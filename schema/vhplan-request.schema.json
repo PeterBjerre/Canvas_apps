@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contoso.example/schemas/vhplan-request-1.0.json",
+  "title": "VH-plan anmodning",
+  "description": "Kontrakt mellem Canvas-appen og enhver modtager af en indmeldt vedligeholdsplan. Gemmes som snapshot i VHP_Request.PayloadJson ved submit. Kontrakten ligger fast, saa integrationsvejen (manuel, RFC, OData, fil) kan skiftes uden aendringer i app eller datamodel.",
+  "type": "object",
+  "required": ["schemaVersion", "requestGuid", "requestNo", "plan", "items"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "requestGuid": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Idempotensnoegle. Genereres i appen foer foerste skrivning og aendres aldrig. Modtageren SKAL afvise en genindsendelse med samme GUID og returnere det eksisterende plannummer i stedet for at oprette en dublet."
+    },
+    "requestNo": { "type": "string", "pattern": "^VHP-[0-9]{4}-[0-9]{5}$" },
+    "submittedBy": { "type": "string", "format": "email" },
+    "submittedOn": { "type": "string", "format": "date-time" },
+
+    "plan": {
+      "type": "object",
+      "required": ["planType", "description", "planningPlant", "cycleStartDate"],
+      "additionalProperties": false,
+      "properties": {
+        "planType": { "enum": ["SingleCycle", "Strategy", "MultipleCounter"] },
+        "planCategory": { "type": "string", "maxLength": 2 },
+        "description": { "type": "string", "maxLength": 40 },
+        "planningPlant": { "type": "string", "maxLength": 4 },
+        "strategyKey": {
+          "type": ["string", "null"], "maxLength": 6,
+          "description": "Obligatorisk naar planType = Strategy. Skal matche taskLists[].strategyKey."
+        },
+        "cycleStartDate": { "type": "string", "format": "date" },
+        "singleCycle": {
+          "type": ["object", "null"],
+          "description": "Kun ved planType = SingleCycle.",
+          "required": ["length", "unit"],
+          "properties": {
+            "length": { "type": "number", "exclusiveMinimum": 0 },
+            "unit": { "enum": ["DAY", "WK", "MON", "YR", "H", "KM"] }
+          }
+        },
+        "scheduling": {
+          "type": "object",
+          "properties": {
+            "schedIndicator": { "enum": ["TIME", "TIME_KEYDATE", "TIME_FACTCAL", "PERFORMANCE"] },
+            "callHorizonPct": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+            "schedPeriod": { "type": ["number", "null"] },
+            "schedPeriodUnit": { "type": ["string", "null"] },
+            "shiftFactorLatePct": { "type": ["number", "null"] },
+            "shiftFactorEarlyPct": { "type": ["number", "null"] },
+            "toleranceLatePct": { "type": ["number", "null"] },
+            "toleranceEarlyPct": { "type": ["number", "null"] },
+            "cycleModFactor": { "type": ["number", "null"] },
+            "completionRequired": { "type": ["boolean", "null"] },
+            "factoryCalendar": { "type": ["string", "null"] }
+          }
+        }
+      }
+    },
+
+    "packages": {
+      "type": "array",
+      "description": "Frossent snapshot af strategiens pakker paa indsendelsestidspunktet. Medsendes for sporbarhed: aendres masterdata i morgen, skal det stadig kunne dokumenteres, hvad brugeren faktisk godkendte.",
+      "items": {
+        "type": "object",
+        "required": ["packageNo", "cycleLength", "cycleUnit"],
+        "properties": {
+          "packageNo": { "type": "integer", "minimum": 1 },
+          "shortCode": { "type": "string" },
+          "cycleLength": { "type": "number", "exclusiveMinimum": 0 },
+          "cycleUnit": { "enum": ["DAY", "WK", "MON", "YR", "H", "KM"] },
+          "hierarchy": { "type": "integer" },
+          "offset": { "type": "number" },
+          "text": { "type": "string" }
+        }
+      }
+    },
+
+    "items": {
+      "type": "array", "minItems": 1,
+      "description": "Vedligeholdspositioner.",
+      "items": {
+        "type": "object",
+        "required": ["itemNo", "description", "objectType"],
+        "properties": {
+          "itemNo": { "type": "integer" },
+          "description": { "type": "string", "maxLength": 40 },
+          "objectType": { "enum": ["FunctionalLocation", "Equipment", "Assembly", "NoObject"] },
+          "functionalLocation": { "type": ["string", "null"], "maxLength": 40 },
+          "equipment": { "type": ["string", "null"], "maxLength": 18 },
+          "plannerGroup": { "type": "string", "maxLength": 3 },
+          "orderType": { "type": "string", "maxLength": 4 },
+          "mainWorkCenter": { "type": "string", "maxLength": 8 },
+          "activityType": { "type": ["string", "null"] },
+          "taskListMode": { "enum": ["Existing", "New", "None"] },
+          "taskList": {
+            "type": ["object", "null"],
+            "description": "Udfyldt ved taskListMode = Existing.",
+            "properties": {
+              "type": { "enum": ["A", "E", "T"] },
+              "group": { "type": ["string", "null"], "maxLength": 8 },
+              "counter": { "type": ["string", "null"], "maxLength": 2 }
+            }
+          },
+          "taskListRef": {
+            "type": ["string", "null"],
+            "description": "Ved taskListMode = New: peger paa taskLists[].tempKey."
+          },
+          "objects": {
+            "type": "array",
+            "description": "Objektliste, naar positionen daekker flere tekniske objekter.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "objectType": { "enum": ["FunctionalLocation", "Equipment", "Assembly"] },
+                "objectNo": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "taskLists": {
+      "type": "array",
+      "description": "Arbejdsplaner, der oenskes oprettet sammen med planen. Tom, naar der peges paa eksisterende arbejdsplaner.",
+      "items": {
+        "type": "object",
+        "required": ["tempKey", "description", "operations"],
+        "properties": {
+          "tempKey": { "type": "string", "description": "Klientnoegle, som items[].taskListRef peger paa." },
+          "description": { "type": "string", "maxLength": 40 },
+          "type": { "enum": ["A", "E", "T"] },
+          "strategyKey": {
+            "type": "string", "maxLength": 6,
+            "description": "SKAL vaere identisk med plan.strategyKey. Pakkeallokeringen er meningsloes, hvis de afviger."
+          },
+          "plant": { "type": "string", "maxLength": 4 },
+          "usage": { "type": "string" },
+          "workCenter": { "type": "string", "maxLength": 8 },
+          "operations": {
+            "type": "array", "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["operationNo", "description", "packages"],
+              "properties": {
+                "operationNo": { "type": "string", "pattern": "^[0-9]{4}$" },
+                "description": { "type": "string", "maxLength": 40 },
+                "controlKey": { "type": "string", "maxLength": 4 },
+                "workCenter": { "type": "string", "maxLength": 8 },
+                "work": { "type": ["number", "null"] },
+                "workUnit": { "type": ["string", "null"] },
+                "numberOfPeople": { "type": ["number", "null"] },
+                "duration": { "type": ["number", "null"] },
+                "durationUnit": { "type": ["string", "null"] },
+                "packages": {
+                  "type": "array",
+                  "minItems": 1,
+                  "description": "Pakkeallokeringen, udfoldet til rene tal. Modtageren kender ikke appens interne ';1;3;5;'-format. Mindst een pakke: en operation uden pakke ville aldrig blive kaldt.",
+                  "items": {
+                    "type": "object",
+                    "required": ["packageNo"],
+                    "properties": { "packageNo": { "type": "integer", "minimum": 1 } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
