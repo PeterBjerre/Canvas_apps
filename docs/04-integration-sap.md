@@ -1,5 +1,13 @@
 # Udlevering til SAP PM
 
+> **AFKLARET:** vejen er valgt — **Excel-makro med SAP GUI Scripting**, altså
+> en automatiseret variant af mulighed A. Se
+> [`06-excel-gui-scripting.md`](06-excel-gui-scripting.md) for den løsning,
+> der faktisk skal bygges. Dette dokument bevares, fordi afsnittet om
+> kontrakten, idempotens og fejlhåndtering gælder uanset transportvej — og
+> fordi mulighederne B–D bliver relevante igen, hvis døren åbner sig
+> serverside.
+
 > **Verificér før valg.** Hvilke API'er der faktisk findes hos jer, afhænger
 > af release (ECC 6.x vs. S/4HANA, on-prem vs. cloud) og af hvad jeres
 > Basis/integrationsteam har åbnet. Tallene og navnene nedenfor er
@@ -103,7 +111,8 @@ Et ugentligt flow samler alle anmodninger i status `KlarTilSAP` i én fil
 
 ## Anbefaling
 
-**Start på A. Byg kontrakten som om det var B.**
+**Start på A. Byg kontrakten som om det var B.** *(Valgt — i form af Excel +
+GUI Scripting, se `06-excel-gui-scripting.md`.)*
 
 Payload, `requestGuid`, `IntegrationStatus`, `IntegrationMessage` og
 `IntegrationRetries` skal være på plads fra dag ét, også selvom det første
