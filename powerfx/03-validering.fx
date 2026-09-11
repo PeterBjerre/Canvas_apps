@@ -113,6 +113,47 @@ ClearCollect( colValidation,
         )
     ),
 
+    // S9 – hul i hierarkiet.
+    //
+    // Denne regel faldt først ud, da matricen blev prototypet: en operation,
+    // der ligger i en LAV pakke, men ikke i en HØJERE, bliver sprunget over,
+    // hver gang den højere pakke forfalder - fordi hierarki-undertrykkelsen
+    // aflyser den lave pakkes kald den dag. Månedstilsynet udføres altså
+    // 11 gange om året i stedet for 12, og ingen opdager det.
+    //
+    // Gælder kun, når hierarki-undertrykkelse er den aftalte semantik
+    // (åbent spørgsmål 1). Er den ikke det, skal reglen fjernes.
+    If(gblRequest.PlanType = "Strategy" && gblUseHierarchy,
+        ForAll(
+            AddColumns(
+                Filter(colOperations, Len(PackagesKey) > 1) As OP,
+                "MinH", Min(
+                    Filter(colPackages As P, ";" & Text(P.PackageNo) & ";" in OP.PackagesKey),
+                    Hierarchy
+                ),
+                "Missing", Concat(
+                    Sort(
+                        Filter(colPackages As P2,
+                            P2.Hierarchy > Min(
+                                Filter(colPackages As P3, ";" & Text(P3.PackageNo) & ";" in OP.PackagesKey),
+                                Hierarchy
+                            )
+                            && !(";" & Text(P2.PackageNo) & ";" in OP.PackagesKey)
+                        ),
+                        PackageNo
+                    ),
+                    ShortCode, ", "
+                )
+            ),
+            If(!IsBlank(Missing),
+                { Sev: "Advarsel", Code: "S9", Step: 5,
+                  Msg: "Operation " & OperationNo & " ligger i en lav pakke, men ikke i " &
+                       Missing & ". Med hierarki-undertrykkelse springes den over, " &
+                       "når den højere pakke forfalder." }
+            )
+        )
+    ),
+
     // S6 – enhedskonsistens mellem strategiens pakker og planlægningsindikatoren
     If(gblRequest.PlanType = "Strategy" && gblRequest.SchedIndicator = "PERFORMANCE" &&
        CountRows(Filter(colPackages, CycleUnit in ["DAY","WK","MON","YR"])) > 0,

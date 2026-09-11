@@ -27,7 +27,7 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 |---|---|
 | `powerfx/01-app-formulas.fx` | Named formulas, opstart, navigation |
 | `powerfx/02-pakkematrix.fx` | Pakkematricen – nested gallery, toggle, genveje |
-| `powerfx/03-validering.fx` | Regelsæt S1–S8 som én meddelelsestabel |
+| `powerfx/03-validering.fx` | Regelsæt S1–S9 som én meddelelsestabel |
 | `powerfx/04-submit-patch.fx` | Genoptageligt gem + JSON-snapshot ved submit |
 | `powerfx/05-html-timeline.fx` | Formel, der bygger HTML-forfaldskalenderen |
 | `sharepoint/provision/Provision-VHPlanLists.ps1` | Idempotent PnP-provisionering af alle lister |
