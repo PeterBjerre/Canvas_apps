@@ -214,8 +214,15 @@ Kritiske regler, der er specifikke for strategiplaner:
 | S6 | Pakkernes cyklusenhed skal matche planlægningsindikatoren (tid vs. tæller) | Fejl |
 | S7 | `CycleStartDate` skal være udfyldt og ikke i fortiden | Advarsel |
 | S8 | Hvis performance-baseret: målepunkt skal findes på objektet | Fejl |
+| S9 | Operation, der ligger i en lav pakke men ikke i en højere, bliver sprunget over ved hierarki-undertrykkelse | Advarsel |
 
 Advarsler blokerer ikke submit, men skal kvitteres.
+
+S9 er den, der er nemmest at overse og dyrest i drift. Ligger en operation i
+den månedlige pakke, men ikke i årspakken, aflyser hierarki-undertrykkelsen
+det månedlige kald den dag, årseftersynet forfalder — og operationen udføres
+11 gange om året i stedet for 12, uden at nogen opdager det. Reglen gælder kun,
+hvis hierarki-undertrykkelse er jeres semantik (åbent spørgsmål 1).
 
 ## 8. Hvad brugeren faktisk ser (wizard)
 

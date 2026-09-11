@@ -43,7 +43,7 @@ bliver færdig.
 | 3.1 | Trin 2: strategivalg, pakkeoverblik, default af parametre |
 | 3.2 | `cmpPackageMatrix` – nested gallery, toggle, række/kolonne-handlinger |
 | 3.3 | Hierarki-udfyld og kopiér-fra |
-| 3.4 | Validering S1–S8 |
+| 3.4 | Validering S1–S9 |
 | 3.5 | `cmpCycleTimeline` – HTML-forhåndsvisning |
 
 3.2 er den eneste opgave med reel teknisk risiko. Byg den som en isoleret
