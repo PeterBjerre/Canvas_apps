@@ -267,14 +267,14 @@ wizard, ikke to apps.
    forhåndsvisningen og hvordan brugerne skal krydse af. Bekræft med jeres
    PM-key user — forhåndsvisningen understøtter indtil videre begge, styret af
    en toggle.
-2. **Bliver arbejdsplaner oprettet gennem denne app, eller findes de altid
-   i forvejen?** Hvis de altid findes, kan trin 5 (matricen) udgå helt, og
-   omfanget halveres.
+2. ~~**Bliver arbejdsplaner oprettet gennem denne app?**~~ **Afklaret:** ja.
+   Arbejdsplaner og operationer er en del af appen, så trin 5 (matricen) og
+   hele `VHP_TaskList`/`VHP_Operation`-delen er i scope.
 3. **Masterdata-kilde.** Vedligeholdes strategier manuelt i SharePoint, eller
    skal de synkroniseres fra SAP? Sync er klart at foretrække, men kræver
    en læseadgang (RFC eller OData).
-4. **Integrationsvej til SAP.** Se `04-integration-sap.md` — der er fire
-   muligheder, og valget afhænger af jeres SAP-release og gateway-setup.
+4. ~~**Integrationsvej til SAP.**~~ **Afklaret:** Excel-makro med SAP GUI
+   Scripting. Se `06-excel-gui-scripting.md`.
 5. **Performance-baserede strategier** (tælleren, fx driftstimer/km) – skal de
    med i fase 1? De kræver målepunkt-validering på det tekniske objekt.
 6. **Antal operationer pr. arbejdsplan i praksis.** Over ca. 50 bliver den

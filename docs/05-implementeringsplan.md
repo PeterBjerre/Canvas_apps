@@ -56,8 +56,9 @@ operationer × 8 pakker, før den kobles på resten.
 |---|---|
 | 4.1 | Submit-flow med serverside-validering (samme regler som 03-validering.fx) |
 | 4.2 | Godkendelsesflow + `VHP_StatusLog` |
-| 4.3 | PDF-resumé (mulighed A i `04-integration-sap.md`) |
-| 4.4 | Tilbageskrivning af SAP-plannummer |
+| 4.3 | Power Query-lag: SharePoint-lister → Excel-tabeller |
+| 4.4 | GUI scripting-makro: IA01 + IP42, kørt med `DRY_RUN` |
+| 4.5 | Kvitteringsflow: plannummer tilbage på anmodningen |
 
 ## Fase 5 – drift
 
@@ -71,7 +72,9 @@ operationer × 8 pakker, før den kobles på resten.
 ## Fase 6 – valgfrit
 
 - PCF-komponent til matricen, hvis > 50 operationer viser sig at være normen
-- Direkte SAP-integration (mulighed B eller C)
+- Serverside-integration i stedet for GUI scripting (BDC/LSMW eller en
+  RFC-wrapper) — billigt at skifte til, fordi kontrakten og datalaget ikke
+  kender til SAP GUI
 - Multiple counter plans (IP43)
 
 ---

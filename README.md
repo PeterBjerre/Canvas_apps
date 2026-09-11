@@ -18,8 +18,9 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 | [`docs/01-loesningsoplaeg.md`](docs/01-loesningsoplaeg.md) | Domæneforståelse, arkitektur, komponentvalg, åbne spørgsmål |
 | [`docs/02-datamodel-sharepoint.md`](docs/02-datamodel-sharepoint.md) | Lister og kolonner, felt for felt |
 | [`docs/03-canvas-app-design.md`](docs/03-canvas-app-design.md) | Skærme, komponenter, tilstand, gem/submit |
-| [`docs/04-integration-sap.md`](docs/04-integration-sap.md) | Fire veje til SAP – og hvilken der bør vælges først |
+| [`docs/04-integration-sap.md`](docs/04-integration-sap.md) | Fire veje til SAP – kontrakt, idempotens, fejlhåndtering |
 | [`docs/05-implementeringsplan.md`](docs/05-implementeringsplan.md) | Faser, risici, hvad der kan skæres væk |
+| [`docs/06-excel-gui-scripting.md`](docs/06-excel-gui-scripting.md) | **Den valgte vej til SAP:** Excel + GUI Scripting |
 
 ## Kode og artefakter
 
@@ -35,6 +36,29 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 | `schema/vhplan-request.schema.json` | Kontrakten mod SAP |
 | `schema/example-strategy-request.json` | Udfyldt eksempel (kompressor, Z-MONTH) |
 | `html/cycle-timeline-reference.html` | Referenceoutput – åbn i en browser |
+| `excel/vba/*.bas` | Ni VBA-moduler: kilde, kontrakt, SAP GUI Scripting, batch |
+| `excel/powerquery/*.m` | SharePoint-lister → Excel-tabeller, inkl. pakkepivot |
+| `excel/VHPlan-SAP-skabelon.xlsx` | Projektmappe med de rigtige tabeller og eksempeldata |
+
+## Vejen til SAP
+
+SharePoint er backend, fordi godkendelsesflowet hører hjemme der. Oprettelsen
+i SAP sker med en **Excel-makro, der kører SAP GUI Scripting**.
+
+Lagdelingen holder de tre ting adskilt, så hver kan skiftes for sig:
+
+```
+KILDE (vælg én)                FÆLLES KONTRAKT I VBA      UDFØRELSE
+Power Query → arktabeller  ┐
+JSON-fil (VBA-JSON)        ├─► Collection af         ──►  IA01 (arbejdsplan)
+Manuelt udfyldt ark        ┘   Dictionary-poster          IP42 (plan)
+```
+
+JSON er den rigtige **kontrakt** — ét frosset dokument pr. anmodning, der
+viser præcis hvad der blev godkendt. JSON er derimod det forkerte
+**arbejdsformat for VBA**: der er ingen indbygget parser, og `ScriptControl`
+findes kun i 32-bit Office. Power Query flader data ud til tabeller formet som
+SAP-skærmene, og VBA laver kun det, VBA er god til: at trykke på knapper.
 
 ## De tre beslutninger, det hele hænger på
 
