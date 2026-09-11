@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "1.0",
+  "requestGuid": "8f3b1c42-9d77-4e51-b0aa-2c6f1d9e4a10",
+  "requestNo": "VHP-2026-00042",
+  "submittedBy": "anna.nielsen@contoso.com",
+  "submittedOn": "2026-09-11T08:42:17Z",
+
+  "plan": {
+    "planType": "Strategy",
+    "planCategory": "PM",
+    "description": "Foreb. vedligehold kompressor K-101",
+    "planningPlant": "1000",
+    "strategyKey": "Z-MONTH",
+    "cycleStartDate": "2026-10-01",
+    "singleCycle": null,
+    "scheduling": {
+      "schedIndicator": "TIME",
+      "callHorizonPct": 90,
+      "schedPeriod": 24,
+      "schedPeriodUnit": "MON",
+      "shiftFactorLatePct": 100,
+      "shiftFactorEarlyPct": 100,
+      "toleranceLatePct": 0,
+      "toleranceEarlyPct": 0,
+      "cycleModFactor": 1,
+      "completionRequired": false,
+      "factoryCalendar": "01"
+    }
+  },
+
+  "packages": [
+    { "packageNo": 1, "shortCode": "M1",  "cycleLength": 1,  "cycleUnit": "MON", "hierarchy": 1, "offset": 0, "text": "Maanedligt tilsyn" },
+    { "packageNo": 2, "shortCode": "M3",  "cycleLength": 3,  "cycleUnit": "MON", "hierarchy": 2, "offset": 0, "text": "Kvartalsvis eftersyn" },
+    { "packageNo": 3, "shortCode": "M6",  "cycleLength": 6,  "cycleUnit": "MON", "hierarchy": 3, "offset": 0, "text": "Halvaarligt eftersyn" },
+    { "packageNo": 4, "shortCode": "M12", "cycleLength": 12, "cycleUnit": "MON", "hierarchy": 4, "offset": 0, "text": "Aarligt hovedeftersyn" }
+  ],
+
+  "items": [
+    {
+      "itemNo": 10,
+      "description": "Kompressor K-101 foreb. vedligehold",
+      "objectType": "Equipment",
+      "functionalLocation": "1000-PRD-COMP-01",
+      "equipment": "000000010004711",
+      "plannerGroup": "M01",
+      "orderType": "PM01",
+      "mainWorkCenter": "MEK-100",
+      "activityType": null,
+      "taskListMode": "New",
+      "taskList": null,
+      "taskListRef": "tl-a1",
+      "objects": [
+        { "objectType": "Equipment", "objectNo": "000000010004711" },
+        { "objectType": "Equipment", "objectNo": "000000010004712" }
+      ]
+    }
+  ],
+
+  "taskLists": [
+    {
+      "tempKey": "tl-a1",
+      "description": "Kompressor K-101 - strategi Z-MONTH",
+      "type": "E",
+      "strategyKey": "Z-MONTH",
+      "plant": "1000",
+      "usage": "4",
+      "workCenter": "MEK-100",
+      "operations": [
+        {
+          "operationNo": "0010",
+          "description": "Visuel inspektion og laekagetjek",
+          "controlKey": "PM01", "workCenter": "MEK-100",
+          "work": 0.5, "workUnit": "H", "numberOfPeople": 1,
+          "duration": 1, "durationUnit": "H",
+          "packages": [ { "packageNo": 1 }, { "packageNo": 2 }, { "packageNo": 3 }, { "packageNo": 4 } ]
+        },
+        {
+          "operationNo": "0020",
+          "description": "Kontrol af olieniveau og filter",
+          "controlKey": "PM01", "workCenter": "MEK-100",
+          "work": 1, "workUnit": "H", "numberOfPeople": 1,
+          "duration": 1, "durationUnit": "H",
+          "packages": [ { "packageNo": 2 }, { "packageNo": 3 }, { "packageNo": 4 } ]
+        },
+        {
+          "operationNo": "0030",
+          "description": "Vibrationsmaaling leje DE/NDE",
+          "controlKey": "PM03", "workCenter": "EKS-100",
+          "work": 2, "workUnit": "H", "numberOfPeople": 1,
+          "duration": 3, "durationUnit": "H",
+          "packages": [ { "packageNo": 3 }, { "packageNo": 4 } ]
+        },
+        {
+          "operationNo": "0040",
+          "description": "Hovedeftersyn - udskiftning af pakninger",
+          "controlKey": "PM01", "workCenter": "MEK-100",
+          "work": 16, "workUnit": "H", "numberOfPeople": 2,
+          "duration": 8, "durationUnit": "H",
+          "packages": [ { "packageNo": 4 } ]
+        }
+      ]
+    }
+  ]
+}
