@@ -1,0 +1,184 @@
+ClearCollect(
+    colPlanStatusOptions,
+    Table(
+        { Value: "Ny" },
+        { Value: "Ændre" },
+        { Value: "Slettes" }
+    )
+);
+
+ClearCollect(
+    colYesNoOptions,
+    Table(
+        { Value: "JA" },
+        { Value: "NEJ" }
+    )
+);
+
+ClearCollect(
+    colUnitOptions,
+    Table(
+        { Value: "H" },
+        { Value: "DAY" },
+        { Value: "WK" },
+        { Value: "MON" },
+        { Value: "YR" },
+        { Value: "COUNT" }
+    )
+);
+
+ClearCollect(
+    colOrderTypeOptions,
+    Table(
+        { Value: "ZPRE" }
+    )
+);
+
+ClearCollect(
+    colMainWorkCenterTasklistOptions,
+    Table(
+        { Value: "*SUP - Supervisor (ZB01) Timer uden for schedulering" },
+        { Value: "*SERVE - E-service (Ctrl PM01)" },
+        { Value: "*SERVM - M-service (Ctrl PM01)" },
+        { Value: "*PROD - Produktion (Ctrl PM01)" },
+        { Value: "AVVLUB - Smøring (Ctrl PM01) (kun AVV/HCV/SMV)" },
+        { Value: "AVVBRÆND - Brændsel (Ctrl PM01) (kun AVV/HCV/SMV)" },
+        { Value: "AVVLAB - AVV Laboratorium (Ctrl PM01) (kun AVV/HCV/SMV)" },
+        { Value: "ESVKUL - Kulplads (Ctrl PM01) (kun ESV)" },
+        { Value: "SERVI - Instrumentgruppe (Ctrl PM01) (kun SSV)" },
+        { Value: "STVBRAE - STV Brændsel (Logistik) (Ctrl PM01)" },
+        { Value: "*TEMP - Tech. Involvering" },
+        { Value: "*SUP - Supervisor (PM01) Timer med i schedulering" },
+        { Value: "*LEV - Extern leverandører uden ramme aftale (Ctrl PM02)" },
+        { Value: "*XELEK - Elektriker (Ctrl PM03)" },
+        { Value: "*XINDU - Industriservice (Ctrl PM03)" },
+        { Value: "*XISOL - Isolatør (Ctrl PM03)" },
+        { Value: "*XSMED - Maskinservice (Ctrl PM03)" },
+        { Value: "*XSTIL - Stilladsservice (Ctrl PM03)" },
+        { Value: "*XSPEC - Specialist (Ctrl PM02)" }
+    )
+);
+
+ClearCollect(
+    colMainWorkCenterItemOptions,
+    Table(
+        { Value: "*SUP - Supervisor" },
+        { Value: "*PROD - Produktion" },
+        { Value: "*SERVE - Maintenance Execution" },
+        { Value: "*SERVM - Maintenance Execution" },
+        { Value: "*BRÆND - Brændsel" },
+        { Value: "*LAG - Lager" },
+        { Value: "AVVLAB - AVV Laboratorium (kun AVV/HCV/SMV)" },
+        { Value: "AVVLUB - Smøring (kun AVV/HCV/SMV)" },
+        { Value: "ESVAP - Anlægsprioitering (kun ESV)" },
+        { Value: "ESVKUL - Kulplads (kun ESV)" },
+        { Value: "SSVSERVI (kun SSV) - Instrumentgruppe" }
+    )
+);
+
+ClearCollect(
+    colSortFieldOptions,
+    Table(
+        { Value: "180 - Ammonia system" },
+        { Value: "160 - Batteries" },
+        { Value: "080 - Boiler Control Category A" },
+        { Value: "090 - Boiler Control Category B" },
+        { Value: "220 - Calibration equipment" },
+        { Value: "130 - Cranes" },
+        { Value: "120 - Elevators / Lifts" },
+        { Value: "170 - Environmental measuring equipment" },
+        { Value: "175 - Environmental statutory tasks" },
+        { Value: "210 - Gas systems" },
+        { Value: "140 - Gates" },
+        { Value: "030 - Hoist and Slings" },
+        { Value: "110 - Ladders" },
+        { Value: "060 - Pipe Control Category B" },
+        { Value: "070 - Pipe Control Category C" },
+        { Value: "010 - Power tools - single insulation" },
+        { Value: "020 - Power tools - double insulation" },
+        { Value: "115 - Regulatory Requirements" },
+        { Value: "100 - Safety equipment" },
+        { Value: "190 - Safety valves" },
+        { Value: "165 - Settlement Measurement Equipment" },
+        { Value: "230 - SKS Sec. 5 (Power production)" },
+        { Value: "235 - SKS Sec. 6 (Installation work)" },
+        { Value: "150 - Ventilation System" },
+        { Value: "040 - Vessel Control Category A" },
+        { Value: "050 - Vessel Control Category B" },
+        { Value: "055 - Vessel Control Category C" },
+        { Value: "240 - Vehicles" },
+        { Value: "200 - Welding equipment" }
+    )
+);
+
+ClearCollect(
+    colPriorityOptions,
+    Table(
+        { Value: "1 Rød (Lovpligtige og SCEq)" },
+        { Value: "3 Gul (standard)" },
+        { Value: "6 Lilla (standing order)" },
+        { Value: "(Kun notification) 3 Within a week" },
+        { Value: "(Kun notification) 4 Within a month" }
+    )
+);
+
+ClearCollect(
+    colRevisionOptions,
+    Table(
+        { Value: "REV - Generelt revisionsmærke" }
+    )
+);
+
+ClearCollect(
+    colActivityTypeOptions,
+    Table(
+        { Value: "ZPRE 101 Maintenance" },
+        { Value: "ZPRE 102 Predetermined Maintenance" },
+        { Value: "ZPRE 110 Statutory inspections (checks)" },
+        { Value: "ZPRE 115 Authority terms" },
+        { Value: "ZPRE 120 Standing order" },
+        { Value: "ZPRE 130 Cleaning" },
+        { Value: "ZPRE 160 Lubrication" },
+        { Value: "Z3 (kun smørenotifikationer)" }
+    )
+);
+
+ClearCollect(
+    colCtrlOptions,
+    Table(
+        { Value: "ZB01" },
+        { Value: "PM01" },
+        { Value: "PM02" },
+        { Value: "PM03" }
+    )
+);
+
+ClearCollect(
+    colCallHorizonOptions,
+    Table(
+        { Value: "2 Dage (1 WK)" },
+        { Value: "7 Dage (2 WK)" },
+        { Value: "15 Dage (1 MON)" },
+        { Value: "20 Dage (6 WK)" },
+        { Value: "40 Dage (2-4  MON)" },
+        { Value: "45 Dage (6 MON)" },
+        { Value: "50 Dage" },
+        { Value: "55 Dage (1 YR)" },
+        { Value: "60 Dage (2 YR)" },
+        { Value: "65 Dage (3 YR)" },
+        { Value: "70 Dage (4 YR)" },
+        { Value: "80 Dage (5 & 6 YR)" },
+        { Value: "100 Dage (8 YR)" }
+    )
+);
+
+ClearCollect(
+    colDocSystemOptions,
+    Table(
+        { Value: "TEKDOC" },
+        { Value: "Way We Work" },
+        { Value: "DECA" },
+        { Value: "URL adresse" },
+        { Value: "Blob storage (BLB)" }
+    )
+);
