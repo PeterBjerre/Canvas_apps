@@ -187,6 +187,43 @@ App:
       );
 
       ClearCollect(
+          colVhpPlanTypeOptions,
+          Table(
+              { Key: "SingleCycle", Value: "Single cycle plan (IP41)" },
+              { Key: "Strategy", Value: "Strategiplan (IP42)" }
+          )
+      );
+
+      ClearCollect(
+          colVhpStrategies,
+          Table(
+              { Key: "Z-MONTH", Name: "Maanedsbaseret 1/3/6/12", SchedIndicator: "TIME" },
+              { Key: "Z-YEAR", Name: "Aarsbaseret 1/2/5 aar", SchedIndicator: "TIME" },
+              { Key: "Z-WEEK", Name: "Ugebaseret 1/4/13 uger", SchedIndicator: "TIME" },
+              { Key: "Z-RUNH", Name: "Driftstimer 500/2000/8000", SchedIndicator: "PERFORMANCE" }
+          )
+      );
+
+      ClearCollect(
+          colVhpStrategyPackages,
+          Table(
+              { StrategyKey: "Z-MONTH", PackageNo: 1, ShortCode: "M1", CycleLength: 1, CycleUnit: "MON", Hierarchy: 1, PackageText: "Maanedligt tilsyn" },
+              { StrategyKey: "Z-MONTH", PackageNo: 2, ShortCode: "M3", CycleLength: 3, CycleUnit: "MON", Hierarchy: 2, PackageText: "Kvartalsvis eftersyn" },
+              { StrategyKey: "Z-MONTH", PackageNo: 3, ShortCode: "M6", CycleLength: 6, CycleUnit: "MON", Hierarchy: 3, PackageText: "Halvaarligt eftersyn" },
+              { StrategyKey: "Z-MONTH", PackageNo: 4, ShortCode: "M12", CycleLength: 12, CycleUnit: "MON", Hierarchy: 4, PackageText: "Aarligt hovedeftersyn" },
+              { StrategyKey: "Z-YEAR", PackageNo: 1, ShortCode: "Y1", CycleLength: 1, CycleUnit: "YR", Hierarchy: 1, PackageText: "Aarlig inspektion" },
+              { StrategyKey: "Z-YEAR", PackageNo: 2, ShortCode: "Y2", CycleLength: 2, CycleUnit: "YR", Hierarchy: 2, PackageText: "2-aarig gennemgang" },
+              { StrategyKey: "Z-YEAR", PackageNo: 3, ShortCode: "Y5", CycleLength: 5, CycleUnit: "YR", Hierarchy: 3, PackageText: "5-aarigt hovedeftersyn" },
+              { StrategyKey: "Z-WEEK", PackageNo: 1, ShortCode: "W1", CycleLength: 1, CycleUnit: "WK", Hierarchy: 1, PackageText: "Ugentligt runderingstjek" },
+              { StrategyKey: "Z-WEEK", PackageNo: 2, ShortCode: "W4", CycleLength: 4, CycleUnit: "WK", Hierarchy: 2, PackageText: "4-ugers eftersyn" },
+              { StrategyKey: "Z-WEEK", PackageNo: 3, ShortCode: "W13", CycleLength: 13, CycleUnit: "WK", Hierarchy: 3, PackageText: "Kvartalseftersyn" },
+              { StrategyKey: "Z-RUNH", PackageNo: 1, ShortCode: "H500", CycleLength: 500, CycleUnit: "H", Hierarchy: 1, PackageText: "500 driftstimer" },
+              { StrategyKey: "Z-RUNH", PackageNo: 2, ShortCode: "H2000", CycleLength: 2000, CycleUnit: "H", Hierarchy: 2, PackageText: "2000 driftstimer" },
+              { StrategyKey: "Z-RUNH", PackageNo: 3, ShortCode: "H8000", CycleLength: 8000, CycleUnit: "H", Hierarchy: 3, PackageText: "8000 driftstimer - hovedeftersyn" }
+          )
+      );
+
+      ClearCollect(
           colVhpTasklists,
           Table(
               {
@@ -374,10 +411,10 @@ App:
       ClearCollect(
           colVhpOperations,
           Table(
-              { ItemId: 1, OperationNo: "0010", OperationShortText: "Timer til tilrettelaeggelse", WorkHours: 1, DurationHours: 1, MainWorkCenter: "SSVAP", Vendor: "", LongText: "", Selected: false },
-              { ItemId: 1, OperationNo: "0020", OperationShortText: "Supervisor timer", WorkHours: 2, DurationHours: 1, MainWorkCenter: "SSVSUP", Vendor: "", LongText: "", Selected: false },
-              { ItemId: 1, OperationNo: "0030", OperationShortText: "Interne timer E-Service", WorkHours: 3, DurationHours: 2, MainWorkCenter: "SSVSERVE", Vendor: "", LongText: "", Selected: false },
-              { ItemId: 1, OperationNo: "0040", OperationShortText: "Smoering af lejer", WorkHours: 1, DurationHours: 1, MainWorkCenter: "SSVSERVI", Vendor: "", LongText: "", Selected: false }
+              { ItemId: 1, OperationNo: "0010", OperationShortText: "Timer til tilrettelaeggelse", WorkHours: 1, DurationHours: 1, MainWorkCenter: "SSVAP", Vendor: "", LongText: "", PackagesKey: ";", Selected: false },
+              { ItemId: 1, OperationNo: "0020", OperationShortText: "Supervisor timer", WorkHours: 2, DurationHours: 1, MainWorkCenter: "SSVSUP", Vendor: "", LongText: "", PackagesKey: ";", Selected: false },
+              { ItemId: 1, OperationNo: "0030", OperationShortText: "Interne timer E-Service", WorkHours: 3, DurationHours: 2, MainWorkCenter: "SSVSERVE", Vendor: "", LongText: "", PackagesKey: ";", Selected: false },
+              { ItemId: 1, OperationNo: "0040", OperationShortText: "Smoering af lejer", WorkHours: 1, DurationHours: 1, MainWorkCenter: "SSVSERVI", Vendor: "", LongText: "", PackagesKey: ";", Selected: false }
           )
       );
 
@@ -389,6 +426,8 @@ App:
           {
               Plant: "SSV",
               Status: "Ny",
+              PlanType: "SingleCycle",
+              Strategy: "",
               PlanText: "SSV Aarlig Rundering",
               SortField: "080 - Boiler Control Category A",
               Cycle: 12,
@@ -408,10 +447,12 @@ App:
       Set(varVhpItemValidated, false);
       Set(varVhpActiveItemId, 1);
       Set(varVhpNextItemId, 3);
-      Set(varVhpRuntimeInfo, "Ready. Demo plan SSV Aarlig Rundering loaded with 2 items.");
+      Set(varVhpRuntimeInfo, "Ready. Demo plan SSV Aarlig Rundering loaded with 2 items. Skift Plan Type til Strategiplan for at bruge pakker.");
       Set(varVhpFlMeta, "");
       Set(varVhpLastValidationErrors, "");
       Set(varVhpExportJson, "");
       Set(varVhpTasklistPickerOpen, false)
-    StartScreen: =ScreenVhPlan
-    Theme: =PowerAppsTheme
+    StartScreen: |-
+        =ScreenVhPlan
+    Theme: |-
+        =PowerAppsTheme
