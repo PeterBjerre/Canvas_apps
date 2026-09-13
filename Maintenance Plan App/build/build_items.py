@@ -46,7 +46,11 @@ SEED_FL_PICKER = (
     "    { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },\n"
     "    If(\n"
     "        !IsBlank(it.FunctionalLocation),\n"
-    "        Collect(colVhpFlSearch, { Code: it.FunctionalLocation, Description: it.FlDescription })\n"
+    "        Collect(\n"
+    "            colVhpFlSearch,\n"
+    "            { Code: it.FunctionalLocation, Description: it.FlDescription,\n"
+    "              Maintainable: true, Level: \"\" }\n"
+    "        )\n"
     "    )\n"
     ");\n"
     "Clear(colVhpObjectListOptions);\n"
@@ -251,7 +255,8 @@ def build_item_editor():
     drpFlPick = dropdown(
         "drpVhpItemFlPick", "colVhpFlSearch",
         "LookUp(colVhpFlSearch, Code = LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)",
-        item_display="ThisItem.Code & \" - \" & ThisItem.Description",
+        item_display=("ThisItem.Code & \" - \" & ThisItem.Description & "
+                      "If(ThisItem.Maintainable, \"\", \"   (ikke vedligeholdbar)\")"),
         required_formula=REQ_ITEM, display_mode=DM_ITEM, value_field="Code")
     # Nyt FL-valg henter kandidaterne til objektlisten.
     drpFlPick.props["OnChange"] = (
@@ -262,9 +267,20 @@ def build_item_editor():
 
     flDescription = text_ctrl(
         "txtVhpItemFlDescription",
-        "If(IsBlank(drpVhpItemFlPick.Selected.Code), \"Ingen Functional Location valgt endnu.\", "
-        "\"Valgt: \" & drpVhpItemFlPick.Selected.Code & \" - \" & drpVhpItemFlPick.Selected.Description)",
-        size=12, color=C_MUTED, height=18, wrap="true")
+        (
+            "If(\n"
+            "    IsBlank(drpVhpItemFlPick.Selected.Code), \"Ingen Functional Location valgt endnu.\",\n"
+            "    \"Valgt: \" & drpVhpItemFlPick.Selected.Code & \" - \" &\n"
+            "    drpVhpItemFlPick.Selected.Description &\n"
+            "    If(\n"
+            "        drpVhpItemFlPick.Selected.Maintainable, \"\",\n"
+            "        \"   |   ADVARSEL: markeret som ikke vedligeholdbar i SAP.\"\n"
+            "    )\n"
+            ")"
+        ),
+        size=12, height=18, wrap="true",
+        color=("If(!IsBlank(drpVhpItemFlPick.Selected.Code) && "
+               f"!drpVhpItemFlPick.Selected.Maintainable, {C_INVALID_FG}, {C_MUTED})"))
     flMeta = text_ctrl("txtVhpItemFlMeta", "varVhpFlMeta", size=12, color=C_MUTED, height=18, wrap="true")
     flBlock = group("conVhpItemFlBlock", [flLabelRow, flRow, drpFlPick, flDescription, flMeta],
                     direction="Vertical", gap=6, width="Parent.Width")
@@ -369,9 +385,15 @@ def build_item_editor():
         "Width": "30",
     }, h=24)
     objCode = text_ctrl("txtVhpObjCode", "ThisItem.Code", size=13, height=32, width=190, wrap="false")
-    objDesc = text_ctrl("txtVhpObjDesc", "ThisItem.Description", size=12, color=C_MUTED, height=32,
-                        width=f"Parent.TemplateWidth - 30 - 190 - 20", wrap="false")
-    objRow = group("conVhpObjRow", [objChk, objCode, objDesc], direction="Horizontal", gap=10,
+    objLevel = text_ctrl("txtVhpObjLevel", "\"Niv. \" & ThisItem.Level", size=11, color=C_MUTED,
+                         height=32, width=52, wrap="false")
+    objDesc = text_ctrl(
+        "txtVhpObjDesc",
+        ("ThisItem.Description & "
+         "If(ThisItem.Maintainable, \"\", \"   (ikke vedligeholdbar)\")"),
+        size=12, height=32, width="Parent.TemplateWidth - 30 - 190 - 52 - 30", wrap="false",
+        color=f"If(ThisItem.Maintainable, {C_MUTED}, {C_INVALID_FG})")
+    objRow = group("conVhpObjRow", [objChk, objCode, objLevel, objDesc], direction="Horizontal", gap=10,
                    height="Parent.TemplateHeight - 2", align_items="Center", width="Parent.TemplateWidth")
 
     # Hoejst 6 raekker synlige ad gangen - en FL kan have mange underliggende.

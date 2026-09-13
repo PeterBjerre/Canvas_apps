@@ -143,18 +143,24 @@ søgeteksten — og selv laver prefix og hex.
 Objektlistens valg ligger i `colVhpItemObjects` og skrives sammen til
 `ObjectList`-strengen ved gem, så datamodellen er uændret.
 
-**Flow-kontrakten ligger i `build/build_flsearch.py` og kun der.** Fire
-konstanter beskriver svaret:
+**Flow-kontrakten ligger i `build/build_flsearch.py` og kun der.** Svaret er
+bekræftet: outputtet hedder `json` og er et array.
 
-```python
-FLOW_OUTPUT      = "result"               # navnet på Respond-outputtet
-JSON_ARRAY_PATH  = ""                     # tom = svaret ER et array
-JSON_CODE_FIELD  = "FunctionalLocation"
-JSON_DESC_FIELD  = "Description"
+```json
+[ { "functionKey": "SSV10 KAB10AP001",
+    "description": "Ball bearing house, pump area",
+    "maintainable": true,
+    "level": "3" } ]
 ```
 
-De er gæt, indtil flowets svar er set. Ret dem, kør `assemble_screen.py`, og
-synkronisér — så følger alle formler med.
+Alle fire felter bæres med. `maintainable` siger, om der overhovedet kan
+vedligeholdes på lokationen — den markeres i dropdownen og i objektlisten, og
+linjen under valget bliver rød, hvis man vælger en ikke-vedligeholdbar FL. Den
+filtreres bevidst **ikke** væk: at skjule søgeresultater uden forklaring er
+værre end at vise dem med en advarsel.
+
+Ændrer flowets svar sig, rettes konstanterne ét sted, `assemble_screen.py`
+køres, og alle formler følger med.
 
 > Flowet **skal** være tilføjet appen som datakilde i Studio, før YAML'en
 > synkroniseres. Ellers fejler compile på et ukendt navn.

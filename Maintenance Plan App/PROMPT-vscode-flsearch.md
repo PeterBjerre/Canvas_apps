@@ -47,30 +47,28 @@ ret `FLOW_NAME` i `build/build_flsearch.py`.
 
 Gå ikke videre før det er på plads.
 
-## Trin 1 — find flowets svar-format
+## Trin 1 — svar-formatet er allerede på plads
 
-Dette er den eneste reelle ubekendte. Fire konstanter i
-`build/build_flsearch.py` beskriver svaret, og de er **gæt**:
+Flowets svar er bekræftet mod en kørende app. Outputtet hedder `json` og er et
+array:
 
-```python
-FLOW_OUTPUT      = "result"
-JSON_ARRAY_PATH  = ""
-JSON_CODE_FIELD  = "FunctionalLocation"
-JSON_DESC_FIELD  = "Description"
+```json
+[ { "functionKey": "SSV10 KAB10AP001",
+    "description": "Ball bearing house, pump area",
+    "maintainable": true,
+    "level": "3" } ]
 ```
 
-Find de rigtige værdier sådan her:
+Konstanterne i `build/build_flsearch.py` er sat derefter, og alle fire felter
+bæres med. `maintainable` markeres i UI'et — en VH-plan på en
+ikke-vedligeholdbar FL giver ikke mening i SAP, så både dropdownen og
+objektlisten viser det, og linjen under valget bliver rød.
 
-1. Åbn flowet i Power Automate og se på **Respond to a PowerApp or flow**:
-   hvad hedder outputtet? → `FLOW_OUTPUT`.
-2. Kør flowet én gang (eller åbn seneste kørsel i Run history) og se på
-   outputtets faktiske indhold:
-   - Er svaret et JSON-**array** (`[{...},{...}]`)? → `JSON_ARRAY_PATH = ""`.
-   - Er det et objekt med arrayet indeni (`{"value":[...]}`)? →
-     `JSON_ARRAY_PATH = "value"`.
-   - Hvad hedder felterne med FL-kode og beskrivelse i hvert element? →
-     `JSON_CODE_FIELD` og `JSON_DESC_FIELD`.
-3. Ret de fire konstanter, og kør:
+Du skal altså **ikke** gætte på formatet. Men verificér én gang, at
+`ParseJSON(varVhpFlRaw.json)` rent faktisk giver data, første gang du søger —
+se testpunkt 2.
+
+Skal noget rettes, så ret konstanterne i `build_flsearch.py` og kør:
 
 ```bash
 cd "Maintenance Plan App/build"
@@ -78,10 +76,6 @@ python3 generate_app_onstart.py
 python3 assemble_screen.py
 python3 check_layout.py          # SKAL være grøn
 ```
-
-**Hvis flowet ikke returnerer en tekst med JSON**, men fx flere separate
-skalar-outputs, så stop og sig det. Så holder designet ikke, og vi skal enten
-lave flowet om eller vælge en anden opbygning. Byg ikke udenom.
 
 ## Trin 2 — deploy
 
@@ -117,6 +111,9 @@ punkt:
 
 6. Vælg et FL i dropdownen.
    → Linjen under viser "Valgt: <kode> - <beskrivelse>".
+   → Søg efter noget der giver en FL med `maintainable: false`. Den skal i
+   dropdownen stå med "(ikke vedligeholdbar)", og vælges den, bliver linjen
+   under **rød** med en advarsel.
 7. Tryk **Save** på itemet.
    → Itemet bliver `VALID`, og kortet i Items-skinnen viser det valgte FL.
 8. Skift til et andet item og tilbage igen.
@@ -127,7 +124,8 @@ punkt:
 9. Efter FL-valget: er listen under Object List fyldt automatisk? Ellers tryk
    **Hent underliggende**.
    → Kun FL der starter med det valgte. Det valgte FL selv må **ikke** stå på
-   listen.
+   listen. Hver række viser "Niv. <level>" og markerer ikke-vedligeholdbare
+   med rød tekst.
 10. Sæt flueben ved 3-4 stykker.
     → Meta-linjen tæller "X valgt af Y mulige".
 11. Tryk **Save**, og se på mailkladden (Send as email) eller Export JSON.
@@ -147,7 +145,7 @@ punkt:
 
 ## Rapportér
 
-- Hvilke værdier de fire konstanter endte med, og hvor du fandt dem.
+- Om svar-formatet holdt som forventet, eller hvad du måtte rette.
 - Resultatet af compile, sync, appchecker og accessibility.
 - Punkt for punkt hvilke af de 15 test der er grønne, og hvad der fejlede.
 - Antal flow-kørsler i Run history for punkt 5.
