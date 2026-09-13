@@ -41,13 +41,13 @@ OPS_CW = f"({SHELL_W} - 36)"
 # Matricens maal. Label-kolonnen er fast; pakkekolonnerne kommer fra
 # strategien, saa bredden er dynamisk.
 LBL_W = 260
-CELL_W = 56
+CELL_W = 64
 ROW_H = 40
 GAL_ROW_H = ROW_H + 2
 MATRIX_W = f"{LBL_W} + CountRows({PKGS}) * {CELL_W}"
 
 
-def _pkg_cell_gallery(name, template, template_size=CELL_W, height=ROW_H):
+def _pkg_cell_gallery(name, template, items=PKGS_SORTED, template_size=CELL_W, height=ROW_H):
     return Ctrl(
         name, "Gallery", variant="Horizontal",
         props={
@@ -56,7 +56,7 @@ def _pkg_cell_gallery(name, template, template_size=CELL_W, height=ROW_H):
             "Fill": C_TRANSPARENT,
             "FillPortions": "0",
             "Height": str(height),
-            "Items": PKGS_SORTED,
+            "Items": items,
             "LayoutMinWidth": "0",
             "LoadingSpinner": "LoadingSpinner.None",
             "Selectable": "false",
@@ -159,13 +159,14 @@ def build_strategy_section():
     headLbl = text_ctrl("txtVhpPkgHeadLabel", "\"OPERATION\"", size=11, weight="Semibold", color=C_MUTED,
                         height=ROW_H, width=LBL_W, wrap="false")
     headCellText = text_ctrl(
-        "txtVhpPkgHeadCell", "ThisItem.ShortText", size=12, weight="Semibold", height=18, wrap="false",
+        "txtVhpPkgHeadCell",
+        # Kun pakkekoden - cyklussen staar paa meta-linjen over matricen, og
+        # "M12 (12 MON)" ville blive klippet i en kolonne paa 64 px.
+        "ThisItem.ShortCode",
+        size=12, weight="Semibold", height=ROW_H, width=CELL_W, wrap="false",
         extra={"Align": "Align.Center"})
-    headCellCycle = text_ctrl(
-        "txtVhpPkgHeadCycle", "Text(ThisItem.CycleLength) & \" \" & ThisItem.CycleUnit",
-        size=10, color=C_MUTED, height=14, wrap="false", extra={"Align": "Align.Center"})
-    headCell = group("conVhpPkgHeadCell", [headCellText, headCellCycle], direction="Vertical", gap=2,
-                     width="Parent.TemplateWidth", align_items="Stretch")
+    headCell = group("conVhpPkgHeadCell", [headCellText], direction="Horizontal", gap=0, height=ROW_H,
+                     align_items="Center", justify="Center", width="Parent.TemplateWidth")
     headGal = _pkg_cell_gallery("galVhpPkgHead", headCell)
     matrixHead = group("conVhpPkgHeadRow", [headLbl, headGal], direction="Horizontal", gap=0,
                        height=ROW_H, align_items="Center", width=MATRIX_W)
@@ -181,22 +182,19 @@ def build_strategy_section():
     rowText = text_ctrl("txtVhpPkgRowText",
                         "If(IsBlank(ThisItem.OperationShortText), \"(uden tekst)\", ThisItem.OperationShortText)",
                         size=13, height=ROW_H, width=LBL_W - 56, wrap="false")
-    rowLabel = group("conVhpPkgRowLabel", [rowOpNo, rowText], direction="Horizontal", gap=0, height=ROW_H,
-                     align_items="Center", width=LBL_W)
-
     cur_key = ("Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId "
-               "&& OperationNo = txtVhpPkgRowOpNo.Text).PackagesKey, \";\")")
+               "&& OperationNo = ThisItem.OpNo).PackagesKey, \";\")")
 
     chkCell = Ctrl(
         "chkVhpPkgCell", "ModernCheckbox",
         props={
-            "AccessibleLabel": ("\"Pakke \" & ThisItem.ShortText & \" paa operation \" & txtVhpPkgRowOpNo.Text"),
+            "AccessibleLabel": ("\"Pakke \" & ThisItem.ShortCode & \" paa operation \" & ThisItem.OpNo"),
             "AlignInContainer": "AlignInContainer.Center",
             "Default": f"\";\" & Text(ThisItem.PackageNo) & \";\" in {cur_key}",
             "Height": "24",
             "OnCheck": (
                 "With(\n"
-                "    { pkg: Text(ThisItem.PackageNo), op: txtVhpPkgRowOpNo.Text },\n"
+                "    { pkg: Text(ThisItem.PackageNo), op: ThisItem.OpNo },\n"
                 "    UpdateIf(\n"
                 "        colVhpOperations,\n"
                 "        ItemId = varVhpActiveItemId && OperationNo = op,\n"
@@ -213,7 +211,7 @@ def build_strategy_section():
             ),
             "OnUncheck": (
                 "With(\n"
-                "    { pkg: Text(ThisItem.PackageNo), op: txtVhpPkgRowOpNo.Text },\n"
+                "    { pkg: Text(ThisItem.PackageNo), op: ThisItem.OpNo },\n"
                 "    UpdateIf(\n"
                 "        colVhpOperations,\n"
                 "        ItemId = varVhpActiveItemId && OperationNo = op,\n"
@@ -225,9 +223,18 @@ def build_strategy_section():
         }, h=24)
     cellWrap = group("conVhpPkgCell", [chkCell], direction="Horizontal", gap=0, height=ROW_H,
                      align_items="Center", justify="Center", width="Parent.TemplateWidth")
-    cellsGal = _pkg_cell_gallery("galVhpPkgCells", cellWrap)
+    cell_items = (
+        "With(\n"
+        "    { op: ThisItem.OperationNo },\n"
+        f"    ForAll(\n"
+        f"        {PKGS_SORTED} As P,\n"
+        "        { PackageNo: P.PackageNo, ShortCode: P.ShortCode, OpNo: op }\n"
+        "    )\n"
+        ")"
+    )
+    cellsGal = _pkg_cell_gallery("galVhpPkgCells", cellWrap, items=cell_items)
 
-    matrixRow = group("conVhpPkgRow", [rowLabel, cellsGal], direction="Horizontal", gap=0,
+    matrixRow = group("conVhpPkgRow", [rowOpNo, rowText, cellsGal], direction="Horizontal", gap=0,
                       height="Parent.TemplateHeight - 2", align_items="Center",
                       width="Parent.TemplateWidth")
 
