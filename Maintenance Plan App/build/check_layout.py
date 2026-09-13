@@ -235,6 +235,20 @@ def main():
             if depth != 0 or in_str:
                 problems.append(f"[6] {name}.{key}: ubalancerede parenteser/anfoerselstegn")
 
+    # --- 7. Ingen formel maa referere en kontrol, der ikke findes ----------
+    # En Reset() eller .Text paa et slettet kontrolnavn faar compile_canvas
+    # til at fejle paa et ukendt navn - og det opdages ellers foerst i Studio.
+    known = {n for _, n, _ in all_nodes}
+    ref = re.compile(r"\b((?:con|gal|txt|btn|drp|num|chk|cmb|tmr)[A-Za-z0-9_]+)\s*\.")
+    reset = re.compile(r"Reset\(\s*([A-Za-z0-9_]+)\s*\)")
+    for p_, name, body in all_nodes:
+        for key, val in (body.get("Properties") or {}).items():
+            if not isinstance(val, str):
+                continue
+            for m in set(ref.findall(val)) | set(reset.findall(val)):
+                if m not in known and m not in ("Parent", "Self", "ThisItem", "ThisRecord"):
+                    problems.append(f"[7] {name}.{key}: refererer ukendt kontrol '{m}'")
+
     print(f"Kontroller i alt: {len(all_nodes)}")
     if problems:
         print(f"\n{len(problems)} problem(er):\n")

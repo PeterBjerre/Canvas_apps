@@ -132,6 +132,21 @@ PACKAGES_BLOCK = """ClearCollect(
     )
 );"""
 
+# ---------------------------------------------------------------------------
+# Functional Location-soegning
+#
+# colVhpFunctionalLocations bevares som offline fallback, men de to samlinger
+# nedenfor fyldes af flowet BioSapIntegrationFunctionalLocations. De skal
+# findes fra start, saa formler der taeller paa dem ikke fejler foer foerste
+# soegning.
+# ---------------------------------------------------------------------------
+FLSEARCH_BLOCK = """ClearCollect(colVhpFlSearch, { Code: "", Description: "" });
+Clear(colVhpFlSearch);
+ClearCollect(colVhpObjectListOptions, { Code: "", Description: "" });
+Clear(colVhpObjectListOptions);
+ClearCollect(colVhpItemObjects, { ItemId: 0, Code: "", Description: "" });
+Clear(colVhpItemObjects);"""
+
 PICKER_SEED_BLOCK = """ClearCollect(colVhpPickerSelected, { OperationNo: "" });
 Clear(colVhpPickerSelected);"""
 
@@ -163,6 +178,9 @@ Set(varVhpActiveItemId, 1);
 Set(varVhpNextItemId, 3);
 Set(varVhpRuntimeInfo, "Ready. Demo plan SSV Aarlig Rundering loaded with 2 items. Skift Plan Type til Strategiplan for at bruge pakker.");
 Set(varVhpFlMeta, "");
+Set(varVhpFlLastSearch, "");
+Set(varVhpObjLastSearch, "");
+Set(varVhpObjMeta, "");
 Set(varVhpLastValidationErrors, "");
 Set(varVhpExportJson, "");
 Set(varVhpTasklistPickerOpen, false);"""
@@ -178,6 +196,7 @@ ALL_BLOCKS = [
     ITEMS_BLOCK.strip(),
     OPERATIONS_BLOCK.strip(),
     PICKER_SEED_BLOCK.strip(),
+    FLSEARCH_BLOCK.strip(),
     VARS_BLOCK.strip(),
 ]
 

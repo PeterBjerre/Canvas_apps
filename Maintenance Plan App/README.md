@@ -36,6 +36,7 @@ python3 check_layout.py           # verificerer layoutet
 | `build_items.py` | Items-skinne og Item Editor |
 | `build_tasklist.py` | Tasklist, operationstabel, dispatch, mailknap |
 | `build_strategy.py` | **Pakkematricen** |
+| `build_flsearch.py` | **Flow-kontrakten for FL-søgning — den ligger kun her** |
 | `build_modal.py` | Tasklist-picker |
 | `check_layout.py` | Efterregner layoutet — se nedenfor |
 
@@ -124,10 +125,44 @@ Nyt i appen:
 - Validering **S1, S3, S4, S5** på Validate-knappen, og pakkerne med i både
   mailkladden og JSON-eksporten.
 
+## Functional Location-søgning via Power Automate
+
+Functional Location slås ikke længere op i en lokal tabel. Feltet kalder flowet
+`BioSap-Integration-FunctionalLocations`, som tager **ét** argument — hele
+søgeteksten — og selv laver prefix og hex.
+
+| | |
+|---|---|
+| Trigger | `txtVhpItemFL.OnChange`, når søgeteksten er **≥ 7 tegn** |
+| Gentagelsesspærre | Kaldet springes over, hvis teksten er uændret siden sidst |
+| Debounce | `DelayOutput: true` på søgefeltet samler tastetryk |
+| Fallback | Knappen **Søg** kalder samme logik manuelt |
+| Valg | `drpVhpItemFlPick` — præcis ét FL gemmes på itemet |
+| Objektliste | `galVhpObjList` — ubegrænset antal, filtreret til FL der **starter med** det valgte, og det valgte selv er ekskluderet |
+
+Objektlistens valg ligger i `colVhpItemObjects` og skrives sammen til
+`ObjectList`-strengen ved gem, så datamodellen er uændret.
+
+**Flow-kontrakten ligger i `build/build_flsearch.py` og kun der.** Fire
+konstanter beskriver svaret:
+
+```python
+FLOW_OUTPUT      = "result"               # navnet på Respond-outputtet
+JSON_ARRAY_PATH  = ""                     # tom = svaret ER et array
+JSON_CODE_FIELD  = "FunctionalLocation"
+JSON_DESC_FIELD  = "Description"
+```
+
+De er gæt, indtil flowets svar er set. Ret dem, kør `assemble_screen.py`, og
+synkronisér — så følger alle formler med.
+
+> Flowet **skal** være tilføjet appen som datakilde i Studio, før YAML'en
+> synkroniseres. Ellers fejler compile på et ukendt navn.
+
 ## Kendte begrænsninger
 
-- "Verify FL" slår op i en lokal referencetabel (8 eksempler), da der ikke er
-  konfigureret en SAP OData-forbindelse i miljøet.
+- `colVhpFunctionalLocations` er bevaret som offline referencedata, men bruges
+  ikke længere af FL-feltet.
 - Tasklist-datasættet er et repræsentativt udsnit (8 tasklister, op til 6
   operationslinjer hver).
 - Strategier og pakker er indlejret i `App.OnStart` som offline masterdata. De
