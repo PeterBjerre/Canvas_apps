@@ -7919,7 +7919,7 @@ Screens:
                                     LayoutMinWidth: |-
                                         =0
                                     Width: |-
-                                        =260 + CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) * 56
+                                        =260 + CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) * 64
                                   Children:
                                     - txtVhpPkgHeadLabel:
                                         Control: ModernText
@@ -7985,9 +7985,9 @@ Screens:
                                           TemplatePadding: |-
                                               =0
                                           TemplateSize: |-
-                                              =56
+                                              =64
                                           Width: |-
-                                              =CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) * 56
+                                              =CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) * 64
                                           WrapCount: |-
                                               =1
                                         Children:
@@ -8002,13 +8002,15 @@ Screens:
                                                 FillPortions: |-
                                                     =0
                                                 Height: |-
-                                                    =34
+                                                    =40
                                                 LayoutAlignItems: |-
-                                                    =LayoutAlignItems.Stretch
+                                                    =LayoutAlignItems.Center
                                                 LayoutDirection: |-
-                                                    =LayoutDirection.Vertical
+                                                    =LayoutDirection.Horizontal
                                                 LayoutGap: |-
-                                                    =2
+                                                    =0
+                                                LayoutJustifyContent: |-
+                                                    =LayoutJustifyContent.Center
                                                 LayoutMinWidth: |-
                                                     =0
                                                 Width: |-
@@ -8018,7 +8020,7 @@ Screens:
                                                     Control: ModernText
                                                     Properties:
                                                       AccessibleLabel: |-
-                                                          =ThisItem.ShortText
+                                                          =ThisItem.ShortCode
                                                       Align: |-
                                                           =Align.Center
                                                       BorderStyle: |-
@@ -8034,7 +8036,7 @@ Screens:
                                                       FontWeight: |-
                                                           =FontWeight.Semibold
                                                       Height: |-
-                                                          =18
+                                                          =40
                                                       PaddingBottom: |-
                                                           =0
                                                       PaddingLeft: |-
@@ -8046,40 +8048,9 @@ Screens:
                                                       Size: |-
                                                           =12
                                                       Text: |-
-                                                          =ThisItem.ShortText
-                                                      Wrap: |-
-                                                          =false
-                                                - txtVhpPkgHeadCycle:
-                                                    Control: ModernText
-                                                    Properties:
-                                                      AccessibleLabel: |-
-                                                          =Text(ThisItem.CycleLength) & " " & ThisItem.CycleUnit
-                                                      Align: |-
-                                                          =Align.Center
-                                                      BorderStyle: |-
-                                                          =BorderStyle.None
-                                                      BorderThickness: |-
-                                                          =0
-                                                      Color: |-
-                                                          =RGBA(89, 102, 122, 1)
-                                                      Fill: |-
-                                                          =RGBA(0, 0, 0, 0)
-                                                      Font: |-
-                                                          =Font.'Segoe UI'
-                                                      Height: |-
-                                                          =14
-                                                      PaddingBottom: |-
-                                                          =0
-                                                      PaddingLeft: |-
-                                                          =0
-                                                      PaddingRight: |-
-                                                          =0
-                                                      PaddingTop: |-
-                                                          =0
-                                                      Size: |-
-                                                          =10
-                                                      Text: |-
-                                                          =Text(ThisItem.CycleLength) & " " & ThisItem.CycleUnit
+                                                          =ThisItem.ShortCode
+                                                      Width: |-
+                                                          =64
                                                       Wrap: |-
                                                           =false
                               - conVhpPkgDivider:
@@ -8105,7 +8076,7 @@ Screens:
                                     LayoutMinWidth: |-
                                         =0
                                     Width: |-
-                                        =260 + CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) * 56
+                                        =260 + CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) * 64
                               - galVhpPkgRows:
                                   Control: Gallery
                                   Variant: Vertical
@@ -8137,7 +8108,7 @@ Screens:
                                     TemplateSize: |-
                                         =40
                                     Width: |-
-                                        =260 + CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) * 56
+                                        =260 + CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) * 64
                                     WrapCount: |-
                                         =1
                                   Children:
@@ -8164,95 +8135,72 @@ Screens:
                                           Width: |-
                                               =Parent.TemplateWidth
                                         Children:
-                                          - conVhpPkgRowLabel:
-                                              Control: GroupContainer
-                                              Variant: AutoLayout
+                                          - txtVhpPkgRowOpNo:
+                                              Control: ModernText
                                               Properties:
+                                                AccessibleLabel: |-
+                                                    =ThisItem.OperationNo
                                                 BorderStyle: |-
                                                     =BorderStyle.None
-                                                DropShadow: |-
-                                                    =DropShadow.None
-                                                FillPortions: |-
+                                                BorderThickness: |-
                                                     =0
+                                                Color: |-
+                                                    =RGBA(89, 102, 122, 1)
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
                                                 Height: |-
                                                     =40
-                                                LayoutAlignItems: |-
-                                                    =LayoutAlignItems.Center
-                                                LayoutDirection: |-
-                                                    =LayoutDirection.Horizontal
-                                                LayoutGap: |-
+                                                PaddingBottom: |-
                                                     =0
-                                                LayoutMinWidth: |-
+                                                PaddingLeft: |-
                                                     =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =12
+                                                Text: |-
+                                                    =ThisItem.OperationNo
                                                 Width: |-
-                                                    =260
-                                              Children:
-                                                - txtVhpPkgRowOpNo:
-                                                    Control: ModernText
-                                                    Properties:
-                                                      AccessibleLabel: |-
-                                                          =ThisItem.OperationNo
-                                                      BorderStyle: |-
-                                                          =BorderStyle.None
-                                                      BorderThickness: |-
-                                                          =0
-                                                      Color: |-
-                                                          =RGBA(89, 102, 122, 1)
-                                                      Fill: |-
-                                                          =RGBA(0, 0, 0, 0)
-                                                      Font: |-
-                                                          =Font.'Segoe UI'
-                                                      Height: |-
-                                                          =40
-                                                      PaddingBottom: |-
-                                                          =0
-                                                      PaddingLeft: |-
-                                                          =0
-                                                      PaddingRight: |-
-                                                          =0
-                                                      PaddingTop: |-
-                                                          =0
-                                                      Size: |-
-                                                          =12
-                                                      Text: |-
-                                                          =ThisItem.OperationNo
-                                                      Width: |-
-                                                          =56
-                                                      Wrap: |-
-                                                          =false
-                                                - txtVhpPkgRowText:
-                                                    Control: ModernText
-                                                    Properties:
-                                                      AccessibleLabel: |-
-                                                          =If(IsBlank(ThisItem.OperationShortText), "(uden tekst)", ThisItem.OperationShortText)
-                                                      BorderStyle: |-
-                                                          =BorderStyle.None
-                                                      BorderThickness: |-
-                                                          =0
-                                                      Color: |-
-                                                          =RGBA(26, 34, 49, 1)
-                                                      Fill: |-
-                                                          =RGBA(0, 0, 0, 0)
-                                                      Font: |-
-                                                          =Font.'Segoe UI'
-                                                      Height: |-
-                                                          =40
-                                                      PaddingBottom: |-
-                                                          =0
-                                                      PaddingLeft: |-
-                                                          =0
-                                                      PaddingRight: |-
-                                                          =0
-                                                      PaddingTop: |-
-                                                          =0
-                                                      Size: |-
-                                                          =13
-                                                      Text: |-
-                                                          =If(IsBlank(ThisItem.OperationShortText), "(uden tekst)", ThisItem.OperationShortText)
-                                                      Width: |-
-                                                          =204
-                                                      Wrap: |-
-                                                          =false
+                                                    =56
+                                                Wrap: |-
+                                                    =false
+                                          - txtVhpPkgRowText:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    =If(IsBlank(ThisItem.OperationShortText), "(uden tekst)", ThisItem.OperationShortText)
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =RGBA(26, 34, 49, 1)
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =40
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =13
+                                                Text: |-
+                                                    =If(IsBlank(ThisItem.OperationShortText), "(uden tekst)", ThisItem.OperationShortText)
+                                                Width: |-
+                                                    =204
+                                                Wrap: |-
+                                                    =false
                                           - galVhpPkgCells:
                                               Control: Gallery
                                               Variant: Horizontal
@@ -8268,7 +8216,13 @@ Screens:
                                                 Height: |-
                                                     =40
                                                 Items: |-
-                                                    =Sort(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy), PackageNo)
+                                                    =With(
+                                                        { op: ThisItem.OperationNo },
+                                                        ForAll(
+                                                            Sort(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy), PackageNo) As P,
+                                                            { PackageNo: P.PackageNo, ShortCode: P.ShortCode, OpNo: op }
+                                                        )
+                                                    )
                                                 LayoutMinWidth: |-
                                                     =0
                                                 LoadingSpinner: |-
@@ -8282,9 +8236,9 @@ Screens:
                                                 TemplatePadding: |-
                                                     =0
                                                 TemplateSize: |-
-                                                    =56
+                                                    =64
                                                 Width: |-
-                                                    =CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) * 56
+                                                    =CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) * 64
                                                 WrapCount: |-
                                                     =1
                                               Children:
@@ -8317,16 +8271,16 @@ Screens:
                                                           Control: ModernCheckbox
                                                           Properties:
                                                             AccessibleLabel: |-
-                                                                ="Pakke " & ThisItem.ShortText & " paa operation " & txtVhpPkgRowOpNo.Text
+                                                                ="Pakke " & ThisItem.ShortCode & " paa operation " & ThisItem.OpNo
                                                             AlignInContainer: |-
                                                                 =AlignInContainer.Center
                                                             Default: |-
-                                                                =";" & Text(ThisItem.PackageNo) & ";" in Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = txtVhpPkgRowOpNo.Text).PackagesKey, ";")
+                                                                =";" & Text(ThisItem.PackageNo) & ";" in Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = ThisItem.OpNo).PackagesKey, ";")
                                                             Height: |-
                                                                 =24
                                                             OnCheck: |-
                                                                 =With(
-                                                                    { pkg: Text(ThisItem.PackageNo), op: txtVhpPkgRowOpNo.Text },
+                                                                    { pkg: Text(ThisItem.PackageNo), op: ThisItem.OpNo },
                                                                     UpdateIf(
                                                                         colVhpOperations,
                                                                         ItemId = varVhpActiveItemId && OperationNo = op,
@@ -8342,7 +8296,7 @@ Screens:
                                                                 )
                                                             OnUncheck: |-
                                                                 =With(
-                                                                    { pkg: Text(ThisItem.PackageNo), op: txtVhpPkgRowOpNo.Text },
+                                                                    { pkg: Text(ThisItem.PackageNo), op: ThisItem.OpNo },
                                                                     UpdateIf(
                                                                         colVhpOperations,
                                                                         ItemId = varVhpActiveItemId && OperationNo = op,
