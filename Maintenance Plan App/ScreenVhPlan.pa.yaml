@@ -3943,7 +3943,11 @@ Screens:
                                                   { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                                   If(
                                                       !IsBlank(it.FunctionalLocation),
-                                                      Collect(colVhpFlSearch, { Code: it.FunctionalLocation, Description: it.FlDescription })
+                                                      Collect(
+                                                          colVhpFlSearch,
+                                                          { Code: it.FunctionalLocation, Description: it.FlDescription,
+                                                            Maintainable: true, Level: "" }
+                                                      )
                                                   )
                                               );
                                               Clear(colVhpObjectListOptions);
@@ -4039,7 +4043,11 @@ Screens:
                                                   { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                                   If(
                                                       !IsBlank(it.FunctionalLocation),
-                                                      Collect(colVhpFlSearch, { Code: it.FunctionalLocation, Description: it.FlDescription })
+                                                      Collect(
+                                                          colVhpFlSearch,
+                                                          { Code: it.FunctionalLocation, Description: it.FlDescription,
+                                                            Maintainable: true, Level: "" }
+                                                      )
                                                   )
                                               );
                                               Clear(colVhpObjectListOptions);
@@ -4421,7 +4429,11 @@ Screens:
                                                               { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                                               If(
                                                                   !IsBlank(it.FunctionalLocation),
-                                                                  Collect(colVhpFlSearch, { Code: it.FunctionalLocation, Description: it.FlDescription })
+                                                                  Collect(
+                                                                      colVhpFlSearch,
+                                                                      { Code: it.FunctionalLocation, Description: it.FlDescription,
+                                                                        Maintainable: true, Level: "" }
+                                                                  )
                                                               )
                                                           );
                                                           Clear(colVhpObjectListOptions);
@@ -4811,16 +4823,22 @@ Screens:
                                                                 Set(varVhpFlLastSearch, q);
                                                                 IfError(
                                                                     Set(varVhpFlRaw, BioSapIntegrationFunctionalLocations.Run(q));
-                                                                    ClearCollect(
+                                                                    If(
+                                                                        IsBlank(varVhpFlRaw) || IsBlank(varVhpFlRaw.json),
+                                                                        Clear(colVhpFlSearch),
+                                                                        ClearCollect(
                                                         colVhpFlSearch,
                                                         ForAll(
-                                                            Table(ParseJSON(varVhpFlRaw.result)) As R,
+                                                            Table(ParseJSON(varVhpFlRaw.json)) As R,
                                                             {
-                                                                Code: Text(R.Value.FunctionalLocation),
-                                                                Description: Text(R.Value.Description)
+                                                                Code: Text(R.Value.functionKey),
+                                                                Description: Text(R.Value.description),
+                                                                Maintainable: Boolean(R.Value.maintainable),
+                                                                Level: Text(R.Value.level)
                                                             }
                                                         )
-                                                    );
+                                                    )
+                                                                    );
                                                                     Set(
                                                                         varVhpFlMeta,
                                                                         If(
@@ -4897,16 +4915,22 @@ Screens:
                                                                 Set(varVhpFlLastSearch, q);
                                                                 IfError(
                                                                     Set(varVhpFlRaw, BioSapIntegrationFunctionalLocations.Run(q));
-                                                                    ClearCollect(
+                                                                    If(
+                                                                        IsBlank(varVhpFlRaw) || IsBlank(varVhpFlRaw.json),
+                                                                        Clear(colVhpFlSearch),
+                                                                        ClearCollect(
                                                         colVhpFlSearch,
                                                         ForAll(
-                                                            Table(ParseJSON(varVhpFlRaw.result)) As R,
+                                                            Table(ParseJSON(varVhpFlRaw.json)) As R,
                                                             {
-                                                                Code: Text(R.Value.FunctionalLocation),
-                                                                Description: Text(R.Value.Description)
+                                                                Code: Text(R.Value.functionKey),
+                                                                Description: Text(R.Value.description),
+                                                                Maintainable: Boolean(R.Value.maintainable),
+                                                                Level: Text(R.Value.level)
                                                             }
                                                         )
-                                                    );
+                                                    )
+                                                                    );
                                                                     Set(
                                                                         varVhpFlMeta,
                                                                         If(
@@ -4964,7 +4988,7 @@ Screens:
                                           Height: |-
                                               =36
                                           ItemDisplayText: |-
-                                              =ThisItem.Code & " - " & ThisItem.Description
+                                              =ThisItem.Code & " - " & ThisItem.Description & If(ThisItem.Maintainable, "", "   (ikke vedligeholdbar)")
                                           Items: |-
                                               =colVhpFlSearch
                                           LayoutMinWidth: |-
@@ -4986,16 +5010,22 @@ Screens:
                                                           Set(varVhpObjLastSearch, q);
                                                           IfError(
                                                               Set(varVhpFlRaw, BioSapIntegrationFunctionalLocations.Run(q));
-                                                              ClearCollect(
+                                                              If(
+                                                                  IsBlank(varVhpFlRaw) || IsBlank(varVhpFlRaw.json),
+                                                                  Clear(colVhpObjectListOptions),
+                                                                  ClearCollect(
                                                   colVhpObjectListOptions,
                                                   ForAll(
-                                                      Table(ParseJSON(varVhpFlRaw.result)) As R,
+                                                      Table(ParseJSON(varVhpFlRaw.json)) As R,
                                                       {
-                                                          Code: Text(R.Value.FunctionalLocation),
-                                                          Description: Text(R.Value.Description)
+                                                          Code: Text(R.Value.functionKey),
+                                                          Description: Text(R.Value.description),
+                                                          Maintainable: Boolean(R.Value.maintainable),
+                                                          Level: Text(R.Value.level)
                                                       }
                                                   )
-                                              );
+                                              )
+                                                              );
                                                               Set(
                                                                   varVhpObjMeta,
                                                                   If(
@@ -5029,13 +5059,21 @@ Screens:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              =If(IsBlank(drpVhpItemFlPick.Selected.Code), "Ingen Functional Location valgt endnu.", "Valgt: " & drpVhpItemFlPick.Selected.Code & " - " & drpVhpItemFlPick.Selected.Description)
+                                              =If(
+                                                  IsBlank(drpVhpItemFlPick.Selected.Code), "Ingen Functional Location valgt endnu.",
+                                                  "Valgt: " & drpVhpItemFlPick.Selected.Code & " - " &
+                                                  drpVhpItemFlPick.Selected.Description &
+                                                  If(
+                                                      drpVhpItemFlPick.Selected.Maintainable, "",
+                                                      "   |   ADVARSEL: markeret som ikke vedligeholdbar i SAP."
+                                                  )
+                                              )
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
                                               =0
                                           Color: |-
-                                              =RGBA(89, 102, 122, 1)
+                                              =If(!IsBlank(drpVhpItemFlPick.Selected.Code) && !drpVhpItemFlPick.Selected.Maintainable, RGBA(179, 50, 60, 1), RGBA(89, 102, 122, 1))
                                           Fill: |-
                                               =RGBA(0, 0, 0, 0)
                                           Font: |-
@@ -5053,7 +5091,15 @@ Screens:
                                           Size: |-
                                               =12
                                           Text: |-
-                                              =If(IsBlank(drpVhpItemFlPick.Selected.Code), "Ingen Functional Location valgt endnu.", "Valgt: " & drpVhpItemFlPick.Selected.Code & " - " & drpVhpItemFlPick.Selected.Description)
+                                              =If(
+                                                  IsBlank(drpVhpItemFlPick.Selected.Code), "Ingen Functional Location valgt endnu.",
+                                                  "Valgt: " & drpVhpItemFlPick.Selected.Code & " - " &
+                                                  drpVhpItemFlPick.Selected.Description &
+                                                  If(
+                                                      drpVhpItemFlPick.Selected.Maintainable, "",
+                                                      "   |   ADVARSEL: markeret som ikke vedligeholdbar i SAP."
+                                                  )
+                                              )
                                           Wrap: |-
                                               =true
                                     - txtVhpItemFlMeta:
@@ -6291,16 +6337,22 @@ Screens:
                                                                 Set(varVhpObjLastSearch, q);
                                                                 IfError(
                                                                     Set(varVhpFlRaw, BioSapIntegrationFunctionalLocations.Run(q));
-                                                                    ClearCollect(
+                                                                    If(
+                                                                        IsBlank(varVhpFlRaw) || IsBlank(varVhpFlRaw.json),
+                                                                        Clear(colVhpObjectListOptions),
+                                                                        ClearCollect(
                                                         colVhpObjectListOptions,
                                                         ForAll(
-                                                            Table(ParseJSON(varVhpFlRaw.result)) As R,
+                                                            Table(ParseJSON(varVhpFlRaw.json)) As R,
                                                             {
-                                                                Code: Text(R.Value.FunctionalLocation),
-                                                                Description: Text(R.Value.Description)
+                                                                Code: Text(R.Value.functionKey),
+                                                                Description: Text(R.Value.description),
+                                                                Maintainable: Boolean(R.Value.maintainable),
+                                                                Level: Text(R.Value.level)
                                                             }
                                                         )
-                                                    );
+                                                    )
+                                                                    );
                                                                     Set(
                                                                         varVhpObjMeta,
                                                                         If(
@@ -6491,11 +6543,11 @@ Screens:
                                                           =190
                                                       Wrap: |-
                                                           =false
-                                                - txtVhpObjDesc:
+                                                - txtVhpObjLevel:
                                                     Control: ModernText
                                                     Properties:
                                                       AccessibleLabel: |-
-                                                          =ThisItem.Description
+                                                          ="Niv. " & ThisItem.Level
                                                       BorderStyle: |-
                                                           =BorderStyle.None
                                                       BorderThickness: |-
@@ -6517,11 +6569,44 @@ Screens:
                                                       PaddingTop: |-
                                                           =0
                                                       Size: |-
+                                                          =11
+                                                      Text: |-
+                                                          ="Niv. " & ThisItem.Level
+                                                      Width: |-
+                                                          =52
+                                                      Wrap: |-
+                                                          =false
+                                                - txtVhpObjDesc:
+                                                    Control: ModernText
+                                                    Properties:
+                                                      AccessibleLabel: |-
+                                                          =ThisItem.Description & If(ThisItem.Maintainable, "", "   (ikke vedligeholdbar)")
+                                                      BorderStyle: |-
+                                                          =BorderStyle.None
+                                                      BorderThickness: |-
+                                                          =0
+                                                      Color: |-
+                                                          =If(ThisItem.Maintainable, RGBA(89, 102, 122, 1), RGBA(179, 50, 60, 1))
+                                                      Fill: |-
+                                                          =RGBA(0, 0, 0, 0)
+                                                      Font: |-
+                                                          =Font.'Segoe UI'
+                                                      Height: |-
+                                                          =32
+                                                      PaddingBottom: |-
+                                                          =0
+                                                      PaddingLeft: |-
+                                                          =0
+                                                      PaddingRight: |-
+                                                          =0
+                                                      PaddingTop: |-
+                                                          =0
+                                                      Size: |-
                                                           =12
                                                       Text: |-
-                                                          =ThisItem.Description
+                                                          =ThisItem.Description & If(ThisItem.Maintainable, "", "   (ikke vedligeholdbar)")
                                                       Width: |-
-                                                          =Parent.TemplateWidth - 30 - 190 - 20
+                                                          =Parent.TemplateWidth - 30 - 190 - 52 - 30
                                                       Wrap: |-
                                                           =false
                                     - txtVhpObjEmpty:

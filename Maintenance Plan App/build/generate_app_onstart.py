@@ -140,9 +140,9 @@ PACKAGES_BLOCK = """ClearCollect(
 # findes fra start, saa formler der taeller paa dem ikke fejler foer foerste
 # soegning.
 # ---------------------------------------------------------------------------
-FLSEARCH_BLOCK = """ClearCollect(colVhpFlSearch, { Code: "", Description: "" });
+FLSEARCH_BLOCK = """ClearCollect(colVhpFlSearch, { Code: "", Description: "", Maintainable: false, Level: "" });
 Clear(colVhpFlSearch);
-ClearCollect(colVhpObjectListOptions, { Code: "", Description: "" });
+ClearCollect(colVhpObjectListOptions, { Code: "", Description: "", Maintainable: false, Level: "" });
 Clear(colVhpObjectListOptions);
 ClearCollect(colVhpItemObjects, { ItemId: 0, Code: "", Description: "" });
 Clear(colVhpItemObjects);"""

@@ -17,6 +17,19 @@ eneste, der skal rettes, naar svaret er set:
 
 Ret dem, koer assemble_screen.py igen, og synkronisér. Alt andet foelger med.
 
+SVARETS FORM (bekraeftet mod en koerende app)
+---------------------------------------------
+Outputtet hedder "json" og er et array:
+
+    [ { "functionKey": "SSV10 KAB10AP001",
+        "description": "Ball bearing house, pump area",
+        "maintainable": true,
+        "level": "3" }, ... ]
+
+maintainable siger, om der overhovedet kan vedligeholdes paa lokationen.
+Den baeres med og markeres i UI'et - en VH-plan paa en ikke-vedligeholdbar
+FL giver ikke mening i SAP.
+
 FORUDSAETNING: flowet skal vaere tilfoejet appen som datakilde i Studio,
 FOER YAML'en synkroniseres. Ellers fejler compile paa et ukendt navn.
 """
@@ -25,10 +38,12 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # --- flow-kontrakt -----------------------------------------------------------
 FLOW_NAME = "BioSapIntegrationFunctionalLocations"
-FLOW_OUTPUT = "result"
+FLOW_OUTPUT = "json"
 JSON_ARRAY_PATH = ""
-JSON_CODE_FIELD = "FunctionalLocation"
-JSON_DESC_FIELD = "Description"
+JSON_MAINT_FIELD = "maintainable"
+JSON_LEVEL_FIELD = "level"
+JSON_CODE_FIELD = "functionKey"
+JSON_DESC_FIELD = "description"
 
 # Flowet kaldes foerst ved dette antal tegn.
 MIN_SEARCH_LEN = 7
@@ -53,7 +68,9 @@ def collect_results(target_collection):
         f"        {_array_expr()} As R,\n"
         f"        {{\n"
         f"            Code: Text(R.Value.{JSON_CODE_FIELD}),\n"
-        f"            Description: Text(R.Value.{JSON_DESC_FIELD})\n"
+        f"            Description: Text(R.Value.{JSON_DESC_FIELD}),\n"
+        f"            Maintainable: Boolean(R.Value.{JSON_MAINT_FIELD}),\n"
+        f"            Level: Text(R.Value.{JSON_LEVEL_FIELD})\n"
         f"        }}\n"
         f"    )\n"
         f")"
@@ -83,7 +100,11 @@ def search_action(search_text_expr, target_collection, last_search_var, msg_var,
         f"            Set({last_search_var}, q);\n"
         f"            IfError(\n"
         f"                Set({_RAW}, {FLOW_NAME}.Run(q));\n"
-        f"                {collect_results(target_collection)};\n"
+        f"                If(\n"
+        f"                    IsBlank({_RAW}) || IsBlank({_RAW}.{FLOW_OUTPUT}),\n"
+        f"                    Clear({target_collection}),\n"
+        f"                    {collect_results(target_collection)}\n"
+        f"                );\n"
         f"                Set(\n"
         f"                    {msg_var},\n"
         f"                    If(\n"
