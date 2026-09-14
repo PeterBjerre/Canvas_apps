@@ -57,7 +57,10 @@ New-Item -ItemType Directory -Path $OutDir -Force | Out-Null
 
 # PnP.PowerShell 2.x har ikke laengere en faelles app-registrering, saa
 # -Interactive kraever et ClientId. Saet PNP_CLIENT_ID som miljoevariabel,
-# eller giv -ClientId. Har du ingen app endnu, opretter denne den:
+# eller giv -ClientId. Appen findes allerede i tenanten:
+#     9bc3ab49-b65d-410a-85ad-de819febfddc
+# Et client id er ikke en hemmelighed - se docs/08-datamapning.md 6B.
+# Har du ingen app, opretter denne en ny:
 #     Register-PnPEntraIDAppForInteractiveLogin ``
 #         -ApplicationName "PnP Masterdata" -Tenant <tenant>.onmicrosoft.com -Interactive
 $conn = @{ Url = $SiteUrl; Interactive = $true }
