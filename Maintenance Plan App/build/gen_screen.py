@@ -1,21 +1,194 @@
 # -*- coding: utf-8 -*-
 """
-VH-plan appens indgang til det faelles canvas-DSL.
+Kontroltrae-DSL og serialisering til .pa.yaml (Power Apps canvas, VH-plan).
 
-Selve DSL'et, hoejde-algebraen og stylingkonstanterne ligger i
-shared/canvas/canvas_dsl.py og deles med de oevrige canvas apps i repoet.
-Kun de maal, der er specifikke for DENNE skaerm, staar her.
+HOEJDEMODELLEN
+--------------
+Canvas-containere kan ikke "hugge" deres indhold - en container faar kun den
+hoejde, dens Height-formel siger. Den oprindelige kode loeste det ved at lade
+hver container summere sine BOERNS .Height:
+
+    conVhpShell.Height = 40 + conVhpHero.Height + 20 + conVhpPlanCard.Height + ...
+
+Det er en cirkelreference. I en AutoLayout-container er det FORAELDREN, der
+saetter boernenes stoerrelse (LayoutAlignItems er Stretch som standard, og paa
+en container med LayoutWrap = true fjerner platformen LayoutAlignItems helt,
+saa Stretch ikke kan slaas fra). Naar forelderen saa laeser barnets .Height,
+laeser den sin egen udregning tilbage. Resultatet er enten en formelfejl, der
+falder tilbage til IfError-konstanten, eller den kaskade-vaekst hvor
+containerne bliver stoerre for hver genberegning.
+
+Loesningen her: ingen Height-formel refererer nogensinde en anden kontrol.
+Hoejder beregnes i Python ud fra konstanter, App.Width og CountRows(), og
+stack_height()/row_height() taeller selv padding og gaps med, saa de ikke kan
+glemmes et enkelt sted.
 """
-import os, sys
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "shared", "canvas"))
-
-from canvas_dsl import *          # noqa: F401,F403
-from canvas_dsl import SHELL_W
+import os
 
 OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+
+# ---------------------------------------------------------------------------
+# Style constants (matched to ScreenMaterialer.pa.yaml / ScreenDetails.pa.yaml)
+# ---------------------------------------------------------------------------
+C_APP_BG = "RGBA(237, 241, 247, 1)"
+C_CARD_BG = "RGBA(250, 251, 253, 1)"
+C_CARD_BORDER = "RGBA(215, 222, 232, 1)"
+C_TITLE = "RGBA(26, 34, 49, 1)"
+C_MUTED = "RGBA(89, 102, 122, 1)"
+C_REQUIRED = "RGBA(179, 50, 60, 1)"
+C_PRIMARY = "RGBA(0, 103, 174, 1)"
+C_PRIMARY2 = "RGBA(0, 122, 204, 1)"
+C_WHITE = "RGBA(255, 255, 255, 1)"
+C_TRANSPARENT = "RGBA(0, 0, 0, 0)"
+C_INPUT_BG = "RGBA(255, 255, 255, 1)"
+C_DISABLED_BG = "RGBA(240, 243, 248, 1)"
+C_DIVIDER = "RGBA(228, 233, 241, 1)"
+
+C_VALID_FG = "RGBA(21, 127, 92, 1)"
+C_VALID_BG = "RGBA(232, 245, 238, 1)"
+C_INVALID_FG = "RGBA(179, 50, 60, 1)"
+C_INVALID_BG = "RGBA(253, 236, 236, 1)"
+C_INFO_FG = "RGBA(0, 83, 140, 1)"
+C_INFO_BG = "RGBA(222, 240, 252, 1)"
+C_NEUTRAL_FG = "RGBA(89, 102, 122, 1)"
+C_NEUTRAL_BG = "RGBA(228, 233, 241, 1)"
+
+FONT = "Font.'Segoe UI'"
+
+# Bredden af skaermens indholdsomraade. conVhpShell har 24 px padding i hver
+# side, og conVhpRoot scroller lodret, hvilket koster ca. 16 px til
+# scrollbaren. Alle responsive udregninger gaar gennem denne, saa
+# braekpunkter forholder sig til den plads der faktisk er - ikke til
+# App.Width, som er 64 px bredere end det indholdet har.
+SHELL_W = "(App.Width - 64)"
 
 # Bredden af items-skinnen naar de to kort staar side om side.
 RAIL_W = 360
 SPLIT_GAP = 20
 # Bredden af Item Editor-kortet, udtrykt uden at referere nogen kontrol.
 EDITOR_W = f"If(App.Width < 1000, {SHELL_W}, {SHELL_W} - {RAIL_W} - {SPLIT_GAP})"
+
+
+# ---------------------------------------------------------------------------
+# Tiny control-tree DSL
+# ---------------------------------------------------------------------------
+class Ctrl:
+    # h   = kontrollens hoejde som tal eller Power Fx-udtryk. Forelderen
+    #       bruger den til at regne sin egen hoejde ud - den laeses ALDRIG
+    #       som .Height i en formel.
+    # vis = Visible-udtryk, hvis kontrollen kan vaere skjult. Forelderen
+    #       taeller den saa kun med, naar den er synlig.
+    __slots__ = ("name", "control", "variant", "props", "children", "h", "vis")
+
+    def __init__(self, name, control, variant=None, props=None, children=None, h=None, vis=None):
+        self.name = name
+        self.control = control
+        self.variant = variant
+        self.props = props or {}
+        self.children = children or []
+        self.h = h
+        self.vis = vis
+
+
+# ---------------------------------------------------------------------------
+# Hoejde-algebra
+# ---------------------------------------------------------------------------
+def _is_num(v):
+    return isinstance(v, (int, float))
+
+
+def stack_height(children, gap, pad_t=0, pad_b=0):
+    """Hoejden af en lodret AutoLayout-container.
+
+    Taeller padding og gaps med, saa de ikke kan glemmes. Boern med en
+    vis-betingelse bidrager kun naar de er synlige - AutoLayout udelader
+    skjulte boern fra baade stakken og gaps.
+
+    Foerste barn skal altid vaere synligt (i praksis altid en sektions-
+    overskrift), saa gap-regnskabet gaar op.
+    """
+    const = pad_t + pad_b
+    parts = []
+    for i, c in enumerate(children):
+        h = 0 if c.h is None else c.h
+        g = 0 if i == 0 else gap
+        if c.vis:
+            parts.append(f"If({c.vis}, {g} + ({h}), 0)")
+        elif _is_num(h):
+            const += h + g
+        else:
+            parts.append(f"({h})" if g == 0 else f"{g} + ({h})")
+    expr = str(int(const)) if float(const).is_integer() else str(const)
+    for p in parts:
+        expr += " + " + p
+    return expr
+
+
+def row_height(children, pad_t=0, pad_b=0, rows=1, gap=0):
+    """Hoejden af en vandret AutoLayout-container: det hoejeste barn.
+
+    rows > 1 bruges naar raekken ombryder (LayoutWrap) og skal have plads
+    til flere linjer.
+    """
+    hs = [(0 if c.h is None else c.h) for c in children] or [0]
+    if all(_is_num(h) for h in hs):
+        base = max(hs)
+        return int(pad_t + pad_b + base * rows + gap * (rows - 1))
+    terms = ", ".join(f"({h})" for h in hs)
+    base = f"Max({terms})" if len(hs) > 1 else terms
+    return f"{pad_t + pad_b} + ({base}) * {rows} + {gap * (rows - 1)}"
+
+
+def render(node, item_indent):
+    pad = " " * item_indent
+    lines = [f"{pad}- {node.name}:"]
+    body_indent = item_indent + 4
+    bpad = " " * body_indent
+    lines.append(f"{bpad}Control: {node.control}")
+    if node.variant:
+        lines.append(f"{bpad}Variant: {node.variant}")
+    if node.props:
+        lines.append(f"{bpad}Properties:")
+        prop_indent = body_indent + 2
+        ppad = " " * prop_indent
+        content_indent = prop_indent + 4
+        cpad = " " * content_indent
+        for key in sorted(node.props.keys()):
+            val = node.props[key]
+            if val is None:
+                continue
+            val = str(val)
+            lines.append(f"{ppad}{key}: |-")
+            first = True
+            for raw_line in val.split("\n"):
+                if first:
+                    lines.append(f"{cpad}={raw_line}")
+                    first = False
+                else:
+                    lines.append(f"{cpad}{raw_line}")
+    if node.children:
+        lines.append(f"{bpad}Children:")
+        child_indent = body_indent + 2
+        for child in node.children:
+            lines.extend(render(child, child_indent))
+    return lines
+
+
+def render_screen(screen_name, screen_props, children):
+    lines = ["Screens:", f"  {screen_name}:", "    Properties:"]
+    ppad = " " * 6
+    cpad = " " * 10
+    for key in sorted(screen_props.keys()):
+        val = str(screen_props[key])
+        lines.append(f"{ppad}{key}: |-")
+        first = True
+        for raw_line in val.split("\n"):
+            if first:
+                lines.append(f"{cpad}={raw_line}")
+                first = False
+            else:
+                lines.append(f"{cpad}{raw_line}")
+    lines.append("    Children:")
+    for child in children:
+        lines.extend(render(child, 6))
+    return "\n".join(lines) + "\n"

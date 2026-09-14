@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED, C_PRIMARY,
                         C_WHITE, C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, FONT, SHELL_W)
 from build_helpers import (text_ctrl, group, button, text_input, number_input, dropdown, label_row,
-                           field_cell, two_col_row, badge, card)
+                           field_cell, row_n, col_width, badge, card)
 
 DM_PLAN = "If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)"
 REQ_PLAN = "varVhpPlanValidated"
@@ -19,8 +19,17 @@ PLAN_CW = f"({SHELL_W} - 36)"
 # (!varVhpPlan.PlanType) = "Strategy".
 IS_STRATEGY = "(varVhpPlan.PlanType = \"Strategy\")"
 NOT_STRATEGY = "(varVhpPlan.PlanType <> \"Strategy\")"
-DM_CYCLE = f"If(varVhpPlanLocked || {IS_STRATEGY}, DisplayMode.Disabled, DisplayMode.Edit)"
-REQ_CYCLE = f"(varVhpPlanValidated && {NOT_STRATEGY})"
+
+# Editerbarheden af Strategy-dropdownen og Cycle/Unit skal foelge den VALGTE
+# (endnu ikke gemte) Plan Type, ikke den gemte varVhpPlan.PlanType. Ellers
+# opstaar en catch-22: brugeren skifter Plan Type til Strategiplan, men
+# Strategy-dropdownen forbliver disabled indtil planen er gemt - og planen
+# kan ikke gemmes foer der er valgt en strategi (Save kraever
+# drpVhpStrategy.Selected.Key, naar Plan Type er Strategy).
+LIVE_IS_STRATEGY = "(drpVhpPlanType.Selected.Key = \"Strategy\")"
+LIVE_NOT_STRATEGY = "(drpVhpPlanType.Selected.Key <> \"Strategy\")"
+DM_CYCLE = f"If(varVhpPlanLocked || {LIVE_IS_STRATEGY}, DisplayMode.Disabled, DisplayMode.Edit)"
+REQ_CYCLE = f"(varVhpPlanValidated && {LIVE_NOT_STRATEGY})"
 
 
 def section_header(name, title, desc, step_label):
@@ -62,8 +71,8 @@ def build_plan_header():
         "drpVhpStrategy", "colVhpStrategies",
         "LookUp(colVhpStrategies, Key = varVhpPlan.Strategy)",
         item_display="ThisItem.Key & \" - \" & ThisItem.Name",
-        required_formula=f"(varVhpPlanValidated && {IS_STRATEGY})",
-        display_mode=f"If(varVhpPlanLocked || {NOT_STRATEGY}, DisplayMode.Disabled, DisplayMode.Edit)",
+        required_formula=f"(varVhpPlanValidated && {LIVE_IS_STRATEGY})",
+        display_mode=f"If(varVhpPlanLocked || {LIVE_NOT_STRATEGY}, DisplayMode.Disabled, DisplayMode.Edit)",
         value_field="Key")
 
     txtPlanText = text_input("txtVhpPlanText", "varVhpPlan.PlanText", max_length=40,
@@ -88,45 +97,44 @@ def build_plan_header():
     txtStatutorySortField = text_input("txtVhpStatutorySortField", "varVhpPlan.StatutorySortField",
                                        display_mode=DM_PLAN)
 
+    # Fire kolonner i stedet for to. Rakkefoelgen af felter er uaendret -
+    # de er bare grupperet 4 ad gangen i stedet for 2 ad gangen.
     CW = PLAN_CW
-    row0 = two_col_row("conVhpPlanRow0",
-                       field_cell("conVhpCellPlanType", "Plan Type", drpPlanType, required=True,
-                                  container_w=CW,
-                                  hint_text="\"Strategiplan henter cyklus fra strategiens pakker.\""),
-                       field_cell("conVhpCellStrategy", "Maintenance Strategy", drpStrategy,
-                                  container_w=CW,
-                                  hint_text="If(varVhpPlan.PlanType = \"Strategy\", \"Pakkerne vises i Strategy Packages nedenfor.\", \"Kun relevant for strategiplaner.\")"),
-                       container_w=CW)
-    row1 = two_col_row("conVhpPlanRow1",
-                       field_cell("conVhpCellPlant", "Plant", drpPlant, required=True, container_w=CW),
-                       field_cell("conVhpCellStatus", "Status", drpStatus, required=True, container_w=CW),
-                       container_w=CW)
-    row2 = two_col_row("conVhpPlanRow2",
-                       field_cell("conVhpCellPlanText", "Plan Text", txtPlanText, required=True, container_w=CW),
-                       field_cell("conVhpCellSortField", "Sort Field", drpSortField, container_w=CW),
-                       container_w=CW)
-    row3 = two_col_row("conVhpPlanRow3",
-                       field_cell("conVhpCellCycle", "Cycle", numCycle, required=True, container_w=CW),
-                       field_cell("conVhpCellUnit", "Unit", drpUnit, required=True, container_w=CW),
-                       container_w=CW)
-    row4 = two_col_row("conVhpPlanRow4",
-                       field_cell("conVhpCellCallHorizon", "Call Horizon", drpCallHorizon, container_w=CW),
-                       field_cell("conVhpCellSchedInd", "Scheduling Indicator", txtSchedInd, container_w=CW),
-                       container_w=CW)
-    row5 = two_col_row("conVhpPlanRow5",
-                       field_cell("conVhpCellFirstCallDay", "First Call Day", numFirstCallDay, required=True,
-                                  container_w=CW),
-                       field_cell("conVhpCellFirstCallMonth", "First Call Month", numFirstCallMonth,
-                                  required=True, container_w=CW),
-                       container_w=CW)
-    row6 = two_col_row("conVhpPlanRow6",
-                       field_cell("conVhpCellFirstCallYear", "First Call Year", numFirstCallYear, required=True,
-                                  container_w=CW),
-                       field_cell("conVhpCellStatutorySortField", "Statutory Sort Field", txtStatutorySortField,
-                                  container_w=CW),
-                       container_w=CW)
+    PLAN_COLS = 4
+    row0 = row_n("conVhpPlanRow0", [
+        field_cell("conVhpCellPlanType", "Plan Type", drpPlanType, required=True,
+                  container_w=CW, cols=PLAN_COLS,
+                  hint_text="\"Strategiplan henter cyklus fra strategiens pakker.\""),
+        field_cell("conVhpCellStrategy", "Maintenance Strategy", drpStrategy,
+                  container_w=CW, cols=PLAN_COLS,
+                  hint_text="If(varVhpPlan.PlanType = \"Strategy\", \"Pakkerne vises i Strategy Packages nedenfor.\", \"Kun relevant for strategiplaner.\")"),
+        field_cell("conVhpCellPlant", "Plant", drpPlant, required=True, container_w=CW, cols=PLAN_COLS),
+        field_cell("conVhpCellStatus", "Status", drpStatus, required=True, container_w=CW, cols=PLAN_COLS),
+    ], container_w=CW)
+    row1 = row_n("conVhpPlanRow1", [
+        field_cell("conVhpCellPlanText", "Plan Text", txtPlanText, required=True, container_w=CW, cols=PLAN_COLS),
+        field_cell("conVhpCellSortField", "Sort Field", drpSortField, container_w=CW, cols=PLAN_COLS),
+        field_cell("conVhpCellCycle", "Cycle", numCycle, required=True, container_w=CW, cols=PLAN_COLS),
+        field_cell("conVhpCellUnit", "Unit", drpUnit, required=True, container_w=CW, cols=PLAN_COLS),
+    ], container_w=CW)
+    row2 = row_n("conVhpPlanRow2", [
+        field_cell("conVhpCellCallHorizon", "Call Horizon", drpCallHorizon, container_w=CW, cols=PLAN_COLS),
+        field_cell("conVhpCellSchedInd", "Scheduling Indicator", txtSchedInd, container_w=CW, cols=PLAN_COLS),
+        field_cell("conVhpCellFirstCallDay", "First Call Day", numFirstCallDay, required=True,
+                  container_w=CW, cols=PLAN_COLS),
+        field_cell("conVhpCellFirstCallMonth", "First Call Month", numFirstCallMonth,
+                  required=True, container_w=CW, cols=PLAN_COLS),
+    ], container_w=CW)
+    row3 = row_n("conVhpPlanRow3", [
+        field_cell("conVhpCellFirstCallYear", "First Call Year", numFirstCallYear, required=True,
+                  container_w=CW, cols=PLAN_COLS),
+        field_cell("conVhpCellStatutorySortField", "Statutory Sort Field", txtStatutorySortField,
+                  container_w=CW, cols=PLAN_COLS),
+        group("conVhpPlanRow3SpacerA", [], height=62, width=col_width(CW, PLAN_COLS)),
+        group("conVhpPlanRow3SpacerB", [], height=62, width=col_width(CW, PLAN_COLS)),
+    ], container_w=CW)
 
-    grid = group("conVhpPlanGrid", [row0, row1, row2, row3, row4, row5, row6],
+    grid = group("conVhpPlanGrid", [row0, row1, row2, row3],
                  direction="Vertical", gap=16)
 
     planMeta = text_ctrl(

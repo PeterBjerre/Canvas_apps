@@ -30,9 +30,12 @@ PICKER_GAP = 10
 def _picker_header_html():
     cols = " ".join(f"{w}px" for _, w in PICKER_COLS)
     spans = "".join(f"<span>{t}</span>" for t, _ in PICKER_COLS)
+    # Se _ops_header_html i build_tasklist.py: <style>-nulstillingen af
+    # iframe'ens body-margin fjerner scrollbaren under overskriften.
     return (
-        f"\"<div style='display:grid;grid-template-columns:{cols};"
-        f"column-gap:{PICKER_GAP}px;align-items:center;height:22px;line-height:22px;overflow:hidden;"
+        "\"<style>html,body{margin:0;padding:0;overflow:hidden}</style>"
+        f"<div style='display:grid;grid-template-columns:{cols};"
+        f"column-gap:{PICKER_GAP}px;align-items:center;height:21px;line-height:21px;overflow:hidden;"
         "color:#59667A;font-family:Segoe UI;font-size:11px;font-weight:600;white-space:nowrap;'>"
         f"{spans}</div>\""
     )
@@ -56,12 +59,12 @@ def build_tasklist_picker_modal():
         "AccessibleLabel": "\"Select all visible\"",
         "Default": (
             f"IfError(CountRows({VISIBLE_OPS}) > 0 && "
-            f"CountRows(Filter({VISIBLE_OPS}, CountRows(Filter(colVhpPickerSelected, OperationNo = OperationNo)) > 0)) = CountRows({VISIBLE_OPS}), false)"
+            f"CountRows(Filter({VISIBLE_OPS} As VOP, CountRows(Filter(colVhpPickerSelected, OperationNo = VOP.OperationNo)) > 0)) = CountRows({VISIBLE_OPS}), false)"
         ),
         "Height": "36",
         "Label": "\"Select all visible\"",
-        "OnCheck": f"ForAll({VISIBLE_OPS}, If(CountRows(Filter(colVhpPickerSelected, OperationNo = OperationNo)) = 0, Collect(colVhpPickerSelected, {{ OperationNo: OperationNo }})))",
-        "OnUncheck": f"ForAll({VISIBLE_OPS}, RemoveIf(colVhpPickerSelected, OperationNo = OperationNo))",
+        "OnCheck": f"ForAll({VISIBLE_OPS} As VOP, If(CountRows(Filter(colVhpPickerSelected, OperationNo = VOP.OperationNo)) = 0, Collect(colVhpPickerSelected, {{ OperationNo: VOP.OperationNo }})))",
+        "OnUncheck": f"ForAll({VISIBLE_OPS} As VOP, RemoveIf(colVhpPickerSelected, OperationNo = VOP.OperationNo))",
         "Width": "200",
     })
     toolbar = group("conVhpPickerToolbar", [txtSearch, chkSelectAll], direction="Horizontal", gap=12, height=36,
@@ -70,7 +73,7 @@ def build_tasklist_picker_modal():
     infoText = text_ctrl(
         "txtVhpPickerInfo",
         (
-            f"Text(CountRows(Filter({VISIBLE_OPS}, CountRows(Filter(colVhpPickerSelected, OperationNo = OperationNo)) > 0))) & \"/\" & "
+            f"Text(CountRows(Filter({VISIBLE_OPS} As VOP, CountRows(Filter(colVhpPickerSelected, OperationNo = VOP.OperationNo)) > 0))) & \"/\" & "
             f"Text(CountRows({VISIBLE_OPS})) & \" visible selected (\" & Text(CountRows(colVhpPickerSelected)) & \" total selected).\""
         ), size=12, color=C_MUTED, height=18, wrap="false")
 
@@ -141,7 +144,7 @@ def build_tasklist_picker_modal():
             "            Filter(\n"
             "                tl.Operations As TLOP,\n"
             "                CountRows(Filter(colVhpPickerSelected As SEL, SEL.OperationNo = TLOP.OperationNo)) > 0\n"
-            "            ),\n"
+            "            ) As TLOP,\n"
             "            Collect(\n"
             "                colVhpOperations,\n"
             "                {\n"

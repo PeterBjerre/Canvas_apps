@@ -37,9 +37,15 @@ OPS_TABLE_W = sum(w for _, w in OPS_COLS) + OPS_GAP * (len(OPS_COLS) - 1)
 def _ops_header_html():
     cols = " ".join(f"{w}px" for _, w in OPS_COLS)
     spans = "".join(f"<span>{t}</span>" for t, _ in OPS_COLS)
+    # <style>-blokken nulstiller iframe'ens standard body-margin (den er der,
+    # selvom kontrollens egen Padding er sat til 0), og det er den margin,
+    # der fik HtmlViewer til at vise en (unoedvendig) scrollbar under
+    # overskriften. Selve raekken er 1 px lavere end kontrollens Height, saa
+    # afrundingsfejl ikke ogsaa udloeser en scrollbar.
     return (
-        f"\"<div style='display:grid;grid-template-columns:{cols};"
-        f"column-gap:{OPS_GAP}px;align-items:center;height:22px;line-height:22px;overflow:hidden;"
+        "\"<style>html,body{margin:0;padding:0;overflow:hidden}</style>"
+        f"<div style='display:grid;grid-template-columns:{cols};"
+        f"column-gap:{OPS_GAP}px;align-items:center;height:21px;line-height:21px;overflow:hidden;"
         "color:#59667A;font-family:Segoe UI;font-size:11px;font-weight:600;white-space:nowrap;'>"
         f"{spans}</div>\""
     )

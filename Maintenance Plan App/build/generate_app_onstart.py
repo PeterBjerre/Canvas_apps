@@ -135,15 +135,17 @@ PACKAGES_BLOCK = """ClearCollect(
 # ---------------------------------------------------------------------------
 # Functional Location-soegning
 #
-# colVhpFunctionalLocations bevares som offline fallback, men de to samlinger
-# nedenfor fyldes af flowet BioSapIntegrationFunctionalLocations. De skal
-# findes fra start, saa formler der taeller paa dem ikke fejler foer foerste
-# soegning.
+# colVhpFunctionalLocations bevares som offline fallback. colVhpFlSearch
+# fyldes af flowet BioSapIntegrationFunctionalLocations og er kilde til BAADE
+# Functional Location-feltet og objektlisten - objektlisten filtrerer bare i
+# samme resultat og kalder ikke flowet selv.
+#
+# Samlingerne skal findes fra start med den rigtige form, saa formler der
+# taeller eller filtrerer paa dem ikke fejler foer foerste soegning. Display
+# er det felt, comboboksene soeger og viser paa.
 # ---------------------------------------------------------------------------
-FLSEARCH_BLOCK = """ClearCollect(colVhpFlSearch, { Code: "", Description: "", Maintainable: false, Level: "" });
+FLSEARCH_BLOCK = """ClearCollect(colVhpFlSearch, { Code: "", Description: "", Display: "", Maintainable: false, Level: "" });
 Clear(colVhpFlSearch);
-ClearCollect(colVhpObjectListOptions, { Code: "", Description: "", Maintainable: false, Level: "" });
-Clear(colVhpObjectListOptions);
 ClearCollect(colVhpItemObjects, { ItemId: 0, Code: "", Description: "" });
 Clear(colVhpItemObjects);"""
 
@@ -179,8 +181,6 @@ Set(varVhpNextItemId, 3);
 Set(varVhpRuntimeInfo, "Ready. Demo plan SSV Aarlig Rundering loaded with 2 items. Skift Plan Type til Strategiplan for at bruge pakker.");
 Set(varVhpFlMeta, "");
 Set(varVhpFlLastSearch, "");
-Set(varVhpObjLastSearch, "");
-Set(varVhpObjMeta, "");
 Set(varVhpLastValidationErrors, "");
 Set(varVhpExportJson, "");
 Set(varVhpTasklistPickerOpen, false);"""
