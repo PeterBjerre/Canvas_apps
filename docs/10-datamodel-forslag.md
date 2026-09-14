@@ -56,6 +56,22 @@ Så: **tilføj kolonner, lad være med at flytte data.**
 
 ## 3. Det der skal tilføjes (ingen risiko for den kørende app)
 
+**Status: bygget.**
+
+```powershell
+.\Provision-VHPlanColumns.ps1 -SiteUrl "https://..." -WhatIfOnly   # tørløb
+.\Provision-VHPlanColumns.ps1 -SiteUrl "https://..." -Backfill
+```
+
+`-Backfill` udfylder `OperationNo` på de 306 eksisterende rækker: 10, 20, 30
+pr. maintenance item, sorteret efter `Index` hvor det findes og ellers efter
+`ID`. Kun rækker uden `OperationNo` røres, så den kan køres igen.
+
+Fordelingen i dag: 18 items har `Index` på alle deres rækker, 2 delvist, og
+61 slet ikke. Dem med `Index` beholder den rækkefølge, nogen faktisk har
+valgt; resten får ID-orden.
+
+
 ### `TaskListMain`
 
 | Kolonne | Type | Hvorfor |
@@ -155,31 +171,56 @@ Nøglen er `StrategyKey` + `PackageNo`, ikke `Title`.
 
 ### `MD_StandardTaskOperations` — de seks bliver til én
 
-De seks `<VÆRK> Standard Tasklist` har 42 af 42 identiske kolonner (AVV har én
-tom rest, `Test1`). De er oprettet med "opret liste fra Excel", så de interne
+**Status: bygget.**
+
+```powershell
+.\Provision-StandardTaskOperations.ps1 -SiteUrl "https://..." -WhatIfOnly   # tørløb
+.\Provision-StandardTaskOperations.ps1 -SiteUrl "https://..." -Migrate
+```
+
+De seks `<VÆRK> Standard Tasklist` har 42 af 42 identiske kolonner (AVV har
+én tom rest, `Test1`). De er oprettet med "opret liste fra Excel", så interne
 navne er `field_1` … `field_36`, og visningsnavnene er SAP's egne overskrifter
 — heriblandt `Un.`, `Uni.`, `Int. distr` og én kolonne, der hedder `/`.
 
-Én liste med en indekseret `Plant`-kolonne og rigtige navne:
+**To ting, jeg først så, da jeg læste alle 176 rækker:**
 
-| Ny kolonne | Fra |
-|---|---|
-| `Plant` | listens navn (`SSV`, `ASV`, …), indekseret |
-| `OperationNo` | `field_1` (SOp) |
-| `WorkCenter` | `field_2` (Work Ctr) |
-| `ControlKey` | `field_4` (Ctrl) |
-| `OperationShortText` | `field_5` |
-| `Work` / `WorkUnit` | `field_6` / `field_7` |
-| `NormalDuration` / `DurationUnit` | `field_9` / `field_10` |
-| `ActivityType` | `field_15` |
-| `StandardTextKey` | `field_16` |
+1. **Operationsnummeret ligger i `Title`** — 10, 20, 30 … `field_1` (`SOp`),
+   som man skulle tro var nummeret, er **tom i alle 176 rækker**. Hver af de
+   seks lister er én arbejdsplan med én sekvens.
+2. **13 af de 36 kolonner er tomme overalt:** `SOp`, `NorDur`, `Int. distr`,
+   `Functional Location`, `Equipment`, `Assembly`, `Service Object`, `TT`,
+   `Wage Group`, `WT`, `Suit`, `System Condition`, `PDT`. De tages ikke med.
 
-Det er de ni, appen bruger. De øvrige 27 SAP-felter kan tages med som de er
-eller skæres væk — men det skal være et **valg**. Kom de med, får de rigtige
-navne.
+Den nye liste får `Plant` (Choice, indekseret), `OperationNo` (Number,
+indekseret) og de 23 kolonner med indhold:
 
-176 rækker i alt. Migreringen er triviel, og den gamle app rører ikke den nye
-liste — de seks bliver stående, til den er ude.
+| Ny kolonne | Fra | SAP |
+|---|---|---|
+| `WorkCenter` | `field_2` | Work Ctr |
+| `ControlKey` | `field_4` | Ctrl |
+| `OperationShortText` | `field_5` | Operation short text |
+| `Work` / `WorkUnit` | `field_6` / `field_7` | Work / Un. |
+| `DurationUnit` | `field_10` | Uni. |
+| `ActivityType` | `field_15` | ActTyp |
+| `StandardTextKey` | `field_16` | StTextKy |
+| `SapPlant` | `field_3` | Plnt |
+| *+ 15 øvrige* | | OrdQuantity, Price, Cost elem., Matl Group, PGr, Vendor, POrg … |
+
+De ni øverste bruger appen. Resten tages med, fordi de har indhold, og fordi
+det er uigenkaldeligt at smide dem væk.
+
+**SAP's egen overskrift gemmes som kolonnens beskrivelse** (`SAP: Work Ctr
+(var field_2 i kildelisten)`). Nogle af navnene — `NumberOfCapacities` for
+`No.`, `CalculationKey` for `Calc`, `PriceUnit` for `/` — er **min tolkning**
+af en SAP-forkortelse. Beskrivelsen gør, at den kan efterprøves og rettes uden
+at grave i et script.
+
+Migreringen **trimmer**: SAP-eksporten er polstret med mellemrum (`'SSVAP   '`,
+`'FUN07 '`). Utrimmet matcher opslag ikke.
+
+De seks kildelister røres ikke. De bliver stående, til den gamle app er
+slukket.
 
 ## 5. Løbenumrene
 
@@ -238,16 +279,20 @@ Slet ingenting nu. Listen er til den dag, oprydningen er ufarlig.
 
 ## 8. Rækkefølge
 
-1. Tilføj de fire kolonner i §3 og ryd navnerodet. Additivt, den gamle app
-   mærker intet.
+1. ~~Tilføj de fire kolonner i §3 og ryd navnerodet.~~ **Gjort** —
+   `Provision-VHPlanColumns.ps1`.
 2. ~~Opret `MD_Strategy` og `MD_StrategyPackage`.~~ **Gjort** — kør
    `Provision-StrategyLists.ps1`. Sæt derefter `Hierarchical` i hånden, og
    efterprøv `SchedulingIndicator` mod IP11. Pakkerne indlæses, når de er
    hentet.
-3. Opret `MD_StandardTaskOperations` og migrér de 176 rækker.
+3. ~~Opret `MD_StandardTaskOperations` og migrér de 176 rækker.~~ **Gjort** —
+   `Provision-StandardTaskOperations.ps1`.
 4. Byg den nye app mod modellen, med de gamle lister urørte ved siden af.
 5. Vælg B til løbenumrene, når indsendelsen alligevel skrives om.
 6. Ryd op i §7, når den gamle app er slukket.
 
-Trin 1-3 kan skrives som scripts med det samme. Sig til, så laver jeg dem — og
-et migreringsscript til trin 3, der læser de seks lister og skriver den ene.
+Trin 1-3 er skrevet. Kør dem med `-WhatIfOnly` først — begge siger hvad de
+ville gøre uden at røre noget.
+
+Trin 4 er den nye app. Den venter på, at `Hierarchical` er sat, og at
+pakkerne er hentet fra IP11.
