@@ -128,17 +128,14 @@ samme tal og får samme `MP`-nummer. Med en håndfuld brugere sker det sjældent
 SAP. Enten flyttes tællingen til et flow med en lås, eller nøglen gøres
 kollisionsfri på anden vis (dato + bruger + løbenummer).
 
-`AppSettings` indeholder også app-URL'erne pr. miljø. **De skal bruges** i
-`Masterdata Hub/build/hub_config.py` — det er dem, `AppUrl` på
-indeksrækken skal peje på:
+`AppSettings` indeholder også app-URL'er pr. miljø (DEV, TEST, PROD).
 
-| Miljø | App-URL |
-|---|---|
-| DEV | `.../e/639a54a6-…/a/7cc757ca-…` |
-| TEST | `.../e/bb9298f5-…/a/1932f76e-…` |
-| PROD | `.../e/5698dd6f-…/a/04330adf-…` |
-
-Bemærk at det **ikke** er den URL, jeg lagde i `hub_config.py`. Den skal rettes.
+> **Rettelse.** Jeg skrev først, at URL'en i `hub_config.py` var forkert, fordi
+> den ikke matchede nogen af dem. Det modsatte er tilfældet: `hub_config.py`
+> er rigtig, og **`AppSettings` er ikke opdateret**. Rettes der noget, er det
+> listen — ikke konfigurationen. Det er i øvrigt et argument for, at hubben
+> henter `AppUrl` fra indeksrækken og ikke fra en central liste, ingen husker
+> at vedligeholde.
 
 ## 4. Strategipakkerne findes ikke
 
@@ -213,6 +210,7 @@ brugbare som de er. Det er ikke værd at bygge om.
 1. Skal appen **skrive** til `MaintenancePlans`/`MaintenanceItems`/`TaskListMain`,
    eller er de læsekilder med en ny indsendelsesliste ved siden af? Det afgør,
    om løbenummer-kapløbet skal løses nu eller senere.
-2. `TaskListMain` rummer i dag både **arbejdsplanskabeloner** (`TaskID` = `TL0002`)
-   og **operationer på et konkret item**. Er det med vilje, eller skal de to
-   adskilles?
+2. ~~Rummer `TaskListMain` både skabeloner og konkrete operationer?~~
+   **Besvaret ved at læse alle 306 rækker:** nej. 305 af 306 har
+   `MaintenanceItemNo` — listen indeholder kun konkrete operationer. Se
+   [`10-datamodel-forslag.md`](10-datamodel-forslag.md) §1.
