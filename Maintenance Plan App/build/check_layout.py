@@ -19,6 +19,8 @@ Tjekket foretager fire kontroller:
   3. Hver vandret container skal vaere hoej nok til sit hoejeste barn.
 
   4. Faste bredder i en vandret raekke maa ikke overstige raekkens bredde
+  8. Enhver samling, skaermen bruger, findes i App.pa.yaml - som navngiven
+     formel eller som ClearCollect
      (knapraekken var 336 px bred i et kort med 324 px indhold, ombroed til
      to linjer og fik sin sidste knap klippet af).
 
@@ -279,6 +281,25 @@ def main():
                 if m not in known and m not in ("Parent", "Self", "ThisItem", "ThisRecord"):
                     problems.append(f"[7] {name}.{key}: refererer ukendt kontrol '{m}'")
 
+    # --- 8. Samlinger skal findes i App.pa.yaml ---------------------------
+    # En skaerm, der bruger colVhpNoget, som ingen definerer, kompilerer ikke
+    # - men fejlen dukker foerst op i Studio. Da opslagslisterne blev flyttet
+    # fra haardkodede tabeller til navngivne formler, blev tre referencer
+    # haengende. Det her fanger det inden synk.
+    app_path = os.path.join(os.path.dirname(SCREEN), "App.pa.yaml")
+    if os.path.exists(app_path):
+        app = open(app_path, encoding="utf-8").read()
+        defined = set(re.findall(r"^\s*=?(col[A-Z]\w*)\s*=", app, re.M))
+        defined |= set(re.findall(r"ClearCollect\(\s*(col\w+)", app))
+        used = set()
+        for _, _, body in all_nodes:
+            for val in (body.get("Properties") or {}).values():
+                if isinstance(val, str):
+                    used |= set(re.findall(r"\bcol[A-Z]\w*", val))
+        for name in sorted(used - defined):
+            problems.append(f"[8] samlingen '{name}' bruges i skaermen, "
+                            f"men defineres ikke i App.pa.yaml")
+
     print(f"Kontroller i alt: {len(all_nodes)}")
     if problems:
         print(f"\n{len(problems)} problem(er):\n")
@@ -286,7 +307,8 @@ def main():
             print("  " + x)
         return 1
     print("Layout-tjek OK: ingen kontrol-til-kontrol hoejdereferencer, "
-          "og alle containere er hoeje og brede nok til deres indhold.")
+          "alle containere er hoeje og brede nok til deres indhold, "
+          "og alle samlinger findes i App.pa.yaml.")
     return 0
 
 

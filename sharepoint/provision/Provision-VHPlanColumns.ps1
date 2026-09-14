@@ -51,6 +51,7 @@
 param(
     [Parameter(Mandatory = $true)][string] $SiteUrl,
     [switch] $Backfill,
+    [switch] $FixMainWorkCenterNames,
     [switch] $WhatIfOnly,
     [string] $ClientId = $env:PNP_CLIENT_ID
 )
@@ -105,6 +106,33 @@ if (-not $old) {
     Set-PnPField -List 'MaintenancePlans' -Identity 'CallHorizon' `
                  -Values @{ Title = 'CallHorizonChoiceOLD' }
     Write-Host "  ~ '$($old.Title)' -> 'CallHorizonChoiceOLD'" -ForegroundColor Green
+}
+
+# ---------------------------------------------------------------------------
+# MainWorkCenters: visningsnavne der ikke kan bruges fra Power Fx
+# ---------------------------------------------------------------------------
+# field_1 har visningsnavnet 'Description' efterfulgt af 33 MELLEMRUM. Power Fx
+# binder paa visningsnavn, saa kolonnen kun kan naas ved at skrive praecis det
+# antal mellemrum inde i enkelte anfoerselstegn. Det er i praksis ubrugeligt.
+#
+# Appen undgaar problemet ved kun at bruge Title og 'Plant Key'. Omdoebningen
+# er derfor VALGFRI - men den gamle app kan bruge kolonnen, saa den skal
+# vaelges bevidst.
+if ($FixMainWorkCenterNames) {
+    Write-Host "`n=== MainWorkCenters: visningsnavne ===" -ForegroundColor Cyan
+    $f = Get-PnPField -List 'MainWorkCenters' -Identity 'field_1' -ErrorAction SilentlyContinue
+    if (-not $f) {
+        Write-Host "  ! field_1 findes ikke" -ForegroundColor Yellow
+    } elseif ($f.Title -eq 'WorkCenterDescription') {
+        Write-Host "  = Allerede omdoebt" -ForegroundColor DarkGray
+    } elseif ($WhatIfOnly) {
+        Write-Host "  ? ville omdoebe '$($f.Title.TrimEnd())...' -> 'WorkCenterDescription'" -ForegroundColor Yellow
+    } else {
+        Set-PnPField -List 'MainWorkCenters' -Identity 'field_1' `
+                     -Values @{ Title = 'WorkCenterDescription' }
+        Write-Host "  ~ field_1 -> 'WorkCenterDescription'" -ForegroundColor Green
+        Write-Host "    ADVARSEL: bruger den GAMLE app denne kolonne, skal den rettes der." -ForegroundColor Yellow
+    }
 }
 
 # ---------------------------------------------------------------------------

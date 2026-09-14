@@ -46,6 +46,13 @@ ROW_H = 40
 GAL_ROW_H = ROW_H + 2
 MATRIX_W = f"{LBL_W} + CountRows({PKGS}) * {CELL_W}"
 
+# Indtil pakkerne er hentet fra SAP (IP11) er MD_StrategyPackage tom. Saa
+# skal matricen IKKE tegnes som et tomt gitter - den skal sige hvorfor.
+# Eet udtryk styrer begge dele, saa de ikke kan vise sig samtidig.
+HAS_PKGS = f"CountRows({PKGS}) > 0"
+HAS_OPS = f"CountRows({OPS_ACTIVE}) > 0"
+CAN_DRAW = f"(!IsBlank(varVhpPlan.Strategy) && {HAS_PKGS} && {HAS_OPS})"
+
 
 def _pkg_cell_gallery(name, template, items=PKGS_SORTED, template_size=CELL_W, height=ROW_H):
     return Ctrl(
@@ -262,17 +269,29 @@ def build_strategy_section():
     # Matricen har fast bredde (label + een kolonne pr. pakke). Paa smalle
     # skaerme scroller den vandret i stedet for at klippe kolonner af.
     matrixWrap = group("conVhpPkgMatrixWrap", [matrixHead, divider, rowsGal], direction="Vertical", gap=4,
-                       overflow_x="Scroll", width="Parent.Width")
+                       overflow_x="Scroll", width="Parent.Width",
+                       visible=f"IfError({CAN_DRAW}, false)")
 
+    # Tre grunde til at matricen ikke kan tegnes, i den raekkefoelge brugeren
+    # moeder dem. Den midterste er den, der gaelder lige nu: strategierne er
+    # hentet fra SAP, men pakkerne er ikke.
     emptyState = text_ctrl(
         "txtVhpPkgEmpty",
         (
             "If(\n"
-            "    IsBlank(varVhpPlan.Strategy), \"Vaelg en strategi paa planhovedet.\",\n"
-            "    \"Ingen operationer paa det aktive item endnu. Tilfoej operationer under Tasklist and Operations.\"\n"
+            "    IsBlank(varVhpPlan.Strategy),\n"
+            "    \"Vaelg en strategi paa planhovedet.\",\n"
+            "\n"
+            f"    {HAS_PKGS} = false,\n"
+            "    \"Strategi \" & varVhpPlan.Strategy & \" har ingen pakker i MD_StrategyPackage endnu, \" &\n"
+            "        \"saa der er ikke noget at tildele. Pakkerne hentes fra SAP (IP11). \" &\n"
+            "        \"Planen kan godt gemmes og sendes uden pakketildeling.\",\n"
+            "\n"
+            "    \"Ingen operationer paa det aktive item endnu. \" &\n"
+            "        \"Tilfoej operationer under Tasklist and Operations.\"\n"
             ")"
-        ), size=13, color=C_MUTED, height=24, wrap="true",
-        visible=f"IfError(IsBlank(varVhpPlan.Strategy) || CountRows({OPS_ACTIVE}) = 0, true)")
+        ), size=13, color=C_MUTED, height=40, wrap="true",
+        visible=f"IfError(!{CAN_DRAW}, true)")
 
     # S4/S5: en operation uden pakke ville aldrig blive udfoert, og en pakke
     # uden operationer kalder en tom ordre.
@@ -308,7 +327,9 @@ def build_strategy_section():
             f"    If(bad > 0, {C_INVALID_FG}, {C_VALID_FG})\n"
             ")"
         ),
-        visible=f"IfError(!IsBlank(varVhpPlan.Strategy) && CountRows({OPS_ACTIVE}) > 0, false)")
+        visible=f"IfError({CAN_DRAW}, false)")
+
+    actionRow.vis = f"IfError({CAN_DRAW}, false)"
 
     return card("conVhpStrategyCard",
                 [header, strategyMeta, actionRow, matrixWrap, emptyState, warn],
