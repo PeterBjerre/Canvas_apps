@@ -53,6 +53,20 @@ HAS_PKGS = f"CountRows({PKGS}) > 0"
 HAS_OPS = f"CountRows({OPS_ACTIVE}) > 0"
 CAN_DRAW = f"(!IsBlank(varVhpPlan.Strategy) && {HAS_PKGS} && {HAS_OPS})"
 
+# Hierarki-udfyld maa KUN bruges paa en strategi, hvor pakkerne er indlejrede
+# i hinanden - 1-3-6-12, hvor den maanedlige opgave ogsaa skal laves ved
+# kvartals- og aarsgennemgangen.
+#
+# Strategi 128 ("Aar 1, 2, 3, 1, 2, 3") er det modsatte: alle tre pakker har
+# cykluslaengde 3 YR med offset 0, 1 og 2, saa de falder ALDRIG sammen. Fylder
+# man op efter hierarki der, bliver en treaarig opgave aarlig.
+#
+# Derfor er knappen bundet til MD_Strategy.Hierarchical. Er den ikke sat til
+# "Ja", er knappen slaaet fra. "Ikke afklaret" er altsaa ikke det samme som
+# "nej" - det betyder, at ingen har taget stilling, og saa gaettes der ikke.
+STRATEGY_IS_HIER = ("(LookUp(colVhpStrategies, Key = varVhpPlan.Strategy).Hierarchical "
+                    "= \"Ja\")")
+
 
 def _pkg_cell_gallery(name, template, items=PKGS_SORTED, template_size=CELL_W, height=ROW_H):
     return Ctrl(
@@ -93,6 +107,25 @@ def build_strategy_section():
             f"    Concat({PKGS_SORTED}, ShortCode & \" (\" & Text(CycleLength) & \" \" & CycleUnit & \")\", \", \") & \".\"\n"
             ")"
         ), size=13, color=C_MUTED, height=20, wrap="true")
+
+    # En knap, der er graa uden forklaring, ligner en fejl. Denne linje siger
+    # hvorfor, og hvad der skal goeres ved det.
+    hierNote = text_ctrl(
+        "txtVhpPkgHierNote",
+        (
+            "With(\n"
+            "    { h: LookUp(colVhpStrategies, Key = varVhpPlan.Strategy).Hierarchical },\n"
+            "    If(\n"
+            "        h = \"Ja\", \"\",\n"
+            "        h = \"Nej\",\n"
+            "        \"Hierarki-udfyld er slaaet fra: pakkerne i denne strategi er ikke \" &\n"
+            "            \"indlejrede i hinanden, saa de skal markeres hver for sig.\",\n"
+            "        \"Hierarki-udfyld er slaaet fra: det er ikke afklaret, om denne \" &\n"
+            "            \"strategi er hierarkisk. Saet feltet Hierarchical i MD_Strategy.\"\n"
+            "    )\n"
+            ")"
+        ), size=12, color=C_MUTED, height=32, wrap="true",
+        visible=f"IfError({CAN_DRAW} && !{STRATEGY_IS_HIER}, false)")
 
     # --- hjaelpehandlinger ---------------------------------------------------
     allPkgKey = f"\";\" & Concat({PKGS_SORTED}, Text(PackageNo) & \";\")"
@@ -146,7 +179,11 @@ def build_strategy_section():
             "    Set(varVhpRuntimeInfo, \"Pakker fyldt op efter hierarki.\")\n"
             ")"
         ), primary=True,
-        display_mode="If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)")
+        display_mode=(f"If(\n"
+                      f"    IsBlank(varVhpActiveItemId) || !{STRATEGY_IS_HIER},\n"
+                      f"    DisplayMode.Disabled,\n"
+                      f"    DisplayMode.Edit\n"
+                      f")"))
 
     btnClear = button(
         "btnVhpPkgClear", "\"Ryd pakker\"",
@@ -332,5 +369,5 @@ def build_strategy_section():
     actionRow.vis = f"IfError({CAN_DRAW}, false)"
 
     return card("conVhpStrategyCard",
-                [header, strategyMeta, actionRow, matrixWrap, emptyState, warn],
+                [header, strategyMeta, actionRow, hierNote, matrixWrap, emptyState, warn],
                 visible=f"IfError({IS_STRATEGY}, false)")

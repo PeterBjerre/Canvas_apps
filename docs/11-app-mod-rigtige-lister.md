@@ -77,6 +77,46 @@ står i stedet:
 Det samme udtryk, `CAN_DRAW`, styrer både matricen, handlingsknapperne og
 tomtilstanden, så de aldrig kan vises samtidig.
 
+## Strategi 128 er den første, der kan bruges
+
+Pakkerne for **strategi 128** er aflæst i IP11 og ligger i
+`sharepoint/seed/MD_StrategyPackage.csv`. `Provision-StrategyLists.ps1`
+indlæser dem og sætter `PackagesLoaded` automatisk på de strategier, der får
+pakker.
+
+| Pakke | Cyklus | Kort | Hierarki | Offset | Tekst |
+|---|---|---|---|---|---|
+| 1 | 3 YR | 1Y | 1 | 0 | År 1 |
+| 2 | 3 YR | 2Y | 2 | 1 | År 2 |
+| 3 | 3 YR | 3Y | 3 | 2 | År 3 |
+
+Læg mærke til mønsteret: **alle tre pakker har samme cykluslængde, 3 år, med
+offset 0, 1 og 2.** Det er det, der giver "År 1, 2, 3, 1, 2, 3". Pakkerne
+falder aldrig sammen.
+
+### Derfor er "Hierarki-udfyld" slået fra
+
+Knappen fylder alle pakker med `Hierarchy >= den laveste markerede`. Den giver
+mening på en **indlejret** strategi som 1-3-6-12, hvor den månedlige opgave
+også skal laves ved kvartals- og årsgennemgangen.
+
+På strategi 128 ville den være direkte forkert: markerer man "År 1", ville
+"År 2" og "År 3" også blive markeret, og **en treårig opgave ville blive
+årlig**.
+
+Knappen er derfor bundet til `MD_Strategy.Hierarchical` og er kun aktiv, når
+feltet står på `Ja`. `Ikke afklaret` er altså ikke det samme som `Nej` — det
+betyder, at ingen har taget stilling, og så gættes der ikke. En grå knap uden
+forklaring ligner en fejl, så der står en linje under den om hvorfor, og hvad
+der skal gøres.
+
+Det er samtidig svaret på, hvad feltet skal bruges til. Alle 53 står som
+`Ikke afklaret`, som aftalt.
+
+> Ud fra tallene *ser* 128 ikke hierarkisk ud — samme cykluslængde med
+> forskudte offsets er per definition roterende. Men det er jeres kald, ikke
+> mit, så feltet er ikke sat.
+
 ## Arbejdscentre afgrænses nu på værk
 
 `MainWorkCenters` har 53 rækker for hele afdelingen, men kun en håndfuld hører

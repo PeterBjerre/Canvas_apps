@@ -166,9 +166,9 @@ backend**. Den skal bygges:
 og `TaskListMain` skal have en `PackagesKey`-tekstkolonne (`;1;3;5;`) til
 allokeringen. Se `docs/02-datamodel-sharepoint.md`.
 
-Skemaet i `sharepoint/seed/MD_StrategyPackage.csv` kan bruges som udgangspunkt,
-men **strategierne skal hentes fra SAP (IP11)** — de tre ovenfor er ikke nok,
-og de bærer ikke pakkerne.
+**Opdatering:** strategierne er hentet (53 stk., `sharepoint/Strategier.txt`),
+og pakkerne for **strategi 128** er aflæst i IP11 og ligger i
+`sharepoint/seed/MD_StrategyPackage.csv`. De øvrige 52 mangler stadig pakker.
 
 ## 5. Småting
 
