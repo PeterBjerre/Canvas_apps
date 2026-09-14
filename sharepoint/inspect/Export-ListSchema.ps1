@@ -46,7 +46,8 @@ param(
     [Parameter(Mandatory = $true)][string] $SiteUrl,
     [string[]] $Lists,
     [int] $SampleRows = 8,
-    [switch] $NoData
+    [switch] $NoData,
+    [string] $ClientId = $env:PNP_CLIENT_ID
 )
 
 $ErrorActionPreference = 'Stop'
@@ -54,7 +55,14 @@ $ErrorActionPreference = 'Stop'
 $OutDir = Join-Path $PSScriptRoot 'out'
 New-Item -ItemType Directory -Path $OutDir -Force | Out-Null
 
-Connect-PnPOnline -Url $SiteUrl -Interactive
+# PnP.PowerShell 2.x har ikke laengere en faelles app-registrering, saa
+# -Interactive kraever et ClientId. Saet PNP_CLIENT_ID som miljoevariabel,
+# eller giv -ClientId. Har du ingen app endnu, opretter denne den:
+#     Register-PnPEntraIDAppForInteractiveLogin ``
+#         -ApplicationName "PnP Masterdata" -Tenant <tenant>.onmicrosoft.com -Interactive
+$conn = @{ Url = $SiteUrl; Interactive = $true }
+if ($ClientId) { $conn.ClientId = $ClientId }
+Connect-PnPOnline @conn
 
 # Systemkolonner udelades. De siger intet om datamodellen og fylder alt.
 $SKIP = @(

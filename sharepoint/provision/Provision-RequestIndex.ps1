@@ -37,7 +37,8 @@
 param(
     [Parameter(Mandatory = $true)][string] $SiteUrl,
     [switch] $IncludeArchive,
-    [switch] $AddSampleRows
+    [switch] $AddSampleRows,
+    [string] $ClientId = $env:PNP_CLIENT_ID
 )
 
 $ErrorActionPreference = 'Stop'
@@ -50,7 +51,14 @@ $LIST_NAME = 'MD_RequestIndex'
 # staar som COL_NO i hub_config.py. Aendrer du den ene, skal du aendre begge.
 $COL_NO = 'RequestNo'
 
-Connect-PnPOnline -Url $SiteUrl -Interactive
+# PnP.PowerShell 2.x har ikke laengere en faelles app-registrering, saa
+# -Interactive kraever et ClientId. Saet PNP_CLIENT_ID som miljoevariabel,
+# eller giv -ClientId. Har du ingen app endnu, opretter denne den:
+#     Register-PnPEntraIDAppForInteractiveLogin ``
+#         -ApplicationName "PnP Masterdata" -Tenant <tenant>.onmicrosoft.com -Interactive
+$conn = @{ Url = $SiteUrl; Interactive = $true }
+if ($ClientId) { $conn.ClientId = $ClientId }
+Connect-PnPOnline @conn
 
 function New-IdxList {
     param([string]$Title, [string]$Description)
