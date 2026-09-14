@@ -1,21 +1,21 @@
-<#
+﻿<#
 .SYNOPSIS
     Provisionerer SharePoint-listerne til VH-plans appen.
 
 .DESCRIPTION
-    Idempotent: kan køres flere gange. Eksisterende lister og kolonner
-    springes over, så scriptet også kan bruges til at tilføje nye felter
+    Idempotent: kan koeres flere gange. Eksisterende lister og kolonner
+    springes over, saa scriptet ogsaa kan bruges til at tilfoeje nye felter
     senere.
 
-    Kræver PnP.PowerShell:
+    Kraever PnP.PowerShell:
         Install-Module PnP.PowerShell -Scope CurrentUser
 
 .EXAMPLE
     .\Provision-VHPlanLists.ps1 -SiteUrl "https://contoso.sharepoint.com/sites/VHPlan"
 
 .NOTES
-    Kør mod DEV først. Kolonnernes INTERNE navne låses ved oprettelse og kan
-    ikke ændres bagefter - derfor sætter scriptet -InternalName eksplicit.
+    Koer mod DEV foerst. Kolonnernes INTERNE navne laases ved oprettelse og kan
+    ikke aendres bagefter - derfor saetter scriptet -InternalName eksplicit.
 #>
 
 [CmdletBinding()]
@@ -28,7 +28,7 @@ $ErrorActionPreference = 'Stop'
 Connect-PnPOnline -Url $SiteUrl -Interactive
 
 # ---------------------------------------------------------------------------
-# Hjælpefunktioner
+# Hjaelpefunktioner
 # ---------------------------------------------------------------------------
 
 function New-VhList {

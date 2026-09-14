@@ -232,3 +232,25 @@ ved næste build.
 `.gitattributes` normaliserer alt til LF. Rører du filerne på Windows, så
 lad være med at slå det fra — uden det gav et skift mellem VS Code og
 byggescripterne en diff på hele filen, hvor kun få linjer var ændret.
+
+## PowerShell: ASCII i kildekoden, BOM på filen
+
+`.ps1`-filer køres af **Windows PowerShell 5.1**, som antager Windows-1252,
+når filen ikke har en BOM. Et UTF-8 em-dash (`—`, bytes `E2 80 94`) læses så
+som tre tegn — hvoraf det ene er et `"`, der **åbner en streng**. Resten af
+filen parses som tekst, og fejlen dukker op et helt andet sted end tegnet
+står:
+
+```
+Expressions are only allowed as the first element of a pipeline
+```
+
+To regler, begge håndhævet af `tools/check_ps1.py` (som `tools/build_all.py`
+kører først):
+
+1. `.ps1`-filer gemmes som **UTF-8 med BOM**.
+2. Kildekoden er alligevel **ren ASCII** — brug `ae`/`oe`/`aa` og `-` i
+   stedet for `æ`/`ø`/`å` og `—`.
+
+Rigtige danske bogstaver hører hjemme i det, scripterne **skriver ud**
+(`Write-Host`, genereret markdown), ikke i selve filen.
