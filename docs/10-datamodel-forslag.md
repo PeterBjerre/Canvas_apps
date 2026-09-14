@@ -222,32 +222,58 @@ Migreringen **trimmer**: SAP-eksporten er polstret med mellemrum (`'SSVAP   '`,
 De seks kildelister røres ikke. De bliver stående, til den gamle app er
 slukket.
 
-## 5. Løbenumrene
+## 5. Løbenumrene — jeg tog fejl
 
-`AppSettings` holder tællere pr. miljø:
+Jeg skrev, at `AppSettings` holder **tællere**, som appen læser, lægger én til
+og skriver tilbage, og at to samtidige indsendelser derfor kunne få samme
+nummer. **Det er forkert.** Jeg havde ikke efterprøvet det mod data.
 
-```
-{Environment: DEV, Option: RunningNoPlan, Value: 5}
-{Environment: DEV, Option: RunningNoItem, Value: 6}
-{Environment: DEV, Option: RunningNoTask, Value: 1}
-```
+Da jeg gjorde det, var mønsteret entydigt — uden en eneste undtagelse:
 
-Appen læser tallet, lægger én til, skriver tilbage og bruger resultatet som
-`MP0062`. **To brugere, der indsender samtidig, læser det samme tal.** Så bliver
-det to planer med samme nøgle, og det opdages først i SAP.
+| Liste | Nøgle | Forhold til SharePoints `ID` | Rækker der passer |
+|---|---|---|---|
+| `MaintenancePlans` | `PlanID` | `ID - 5` | **34 af 34** |
+| `MaintenanceItems` | `ItemID` | `ID - 6` | **58 af 58** |
+| `TaskListMain` | `TaskItemID` | `ID - 1` | **306 af 306** |
 
-Tre veje:
+Og de tre tal i `AppSettings` er præcis 5, 6 og 1. De er altså **offsets, ikke
+tællere**. Den gamle app gør allerede dét, jeg anbefalede: nøglen kommer fra
+SharePoints eget `ID`, som tildeles atomart. **Der er ingen kapløbstilstand.**
 
-| | Hvad | Vurdering |
-|---|---|---|
-| A | Flyt optællingen til et flow med **concurrency control = 1** | Virker. Serialiserer kaldene, men lægger et flow-kald ind i hver indsendelse |
-| B | Drop tælleren. Opret rækken, og sæt bagefter `PlanID = "MP" & Text(ID, "0000")` | **Anbefales.** SharePoints `ID` er kollisionsfri pr. definition. Koster én ekstra `Patch` |
-| C | Behold tælleren, tjek efter skrivning om nøglen er unik, prøv igen | Virker, men er den slags kode, ingen tør røre bagefter |
+Offsettet findes, fordi listerne allerede indeholdt henholdsvis 5, 6 og 1
+rækker, da nummereringen blev taget i brug.
 
-Data peger i øvrigt allerede på B: `MP0062` har `ID` 67, `MP0063` har 68,
-`MP0066` har 71. Tælleren *er* i praksis `ID` minus 5 — den startede bare fem
-for lavt. B gør det eksplicit i stedet for tilfældigt. Prisen er et hop i
-nummerserien ved overgangen; det er kosmetik.
+### Hvad der så skal gøres
+
+**Behold offsettet.** Numre som `MP0062` står sandsynligvis i SAP, i mails og
+i folks hoveder. At fjerne offsettet ville forskyde hele serien med 5 for at
+vinde en smule renhed. Den nye app læser offsettet fra `AppSettings` som i dag.
+
+### Den ene nøgle, der ikke er ID-afledt
+
+`TaskListMain.TaskID` (`TL0002`) følger **ikke** mønsteret — forskellen til
+`ID` svinger fra 55 til 74 og opefter. Det er en selvstændig serie, og den er
+det eneste sted, et rigtigt tællerproblem kunne opstå.
+
+Men den er også overflødig: 80 forskellige `TaskID` mod 81 items, og ingen
+`TaskID` spænder over mere end ét item (§1). Den siger intet, som
+`MaintenanceItemNo` ikke allerede siger.
+
+**Den nye app skriver den ikke.** Så forsvinder problemet i stedet for at
+blive løst. Kolonnen bliver stående, til den gamle app er slukket.
+
+### En ting der skal ordnes før TEST og PROD
+
+`AppSettings` har seks rækker: tre app-URL'er (DEV, TEST, PROD) og tre
+`RunningNo`-offsets — **alle tre for DEV**.
+
+Kører appen i TEST eller PROD, findes offsettet ikke. Så bliver det blankt,
+og nøglen bliver `ID` uden fratræk — altså en anden serie end i DEV, uden at
+nogen har besluttet det.
+
+Det er ikke et problem i dag, fordi vi arbejder i DEV. Men det skal afklares,
+før appen flyttes: enten oprettes de manglende rækker med det rigtige offset
+for hvert miljø, eller også skal appen fejle højlydt frem for at gætte på 0.
 
 ## 6. Navngivning
 
@@ -288,7 +314,10 @@ Slet ingenting nu. Listen er til den dag, oprydningen er ufarlig.
 3. ~~Opret `MD_StandardTaskOperations` og migrér de 176 rækker.~~ **Gjort** —
    `Provision-StandardTaskOperations.ps1`.
 4. Byg den nye app mod modellen, med de gamle lister urørte ved siden af.
-5. Vælg B til løbenumrene, når indsendelsen alligevel skrives om.
+5. ~~Vælg B til løbenumrene.~~ **Ikke nødvendigt** — den gamle app afleder
+   dem allerede fra SharePoints `ID`. Se §5. Det eneste, der skal gøres, er
+   at den nye app ikke skriver `TaskID`, og at offsets oprettes for TEST og
+   PROD inden appen flyttes dertil.
 6. Ryd op i §7, når den gamle app er slukket.
 
 Trin 1-3 er skrevet. Kør dem med `-WhatIfOnly` først — begge siger hvad de
