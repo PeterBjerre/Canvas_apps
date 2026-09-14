@@ -174,17 +174,20 @@ if (-not $SkipSeed -and (Test-Path $PackageSeedPath)) {
     Write-Host "`n=== Indlaeser pakker ===" -ForegroundColor Cyan
     $pkgSeed = Import-Csv -Path $PackageSeedPath -Encoding UTF8
 
+    # Noeglen er StrategyKey + PackageNo. En raekke der findes i forvejen,
+    # OPDATERES i stedet for at blive sprunget over: saa retter en rettelse
+    # i csv'en ogsaa listen, naar scriptet koeres igen. Sprang vi den over,
+    # ville en forkert vaerdi blive liggende for evigt.
     $havePkg = @{}
     foreach ($it in (Get-PnPListItem -List 'MD_StrategyPackage' -PageSize 500)) {
-        $havePkg["$($it.FieldValues.StrategyKey)|$($it.FieldValues.PackageNo)"] = $true
+        $havePkg["$($it.FieldValues.StrategyKey)|$($it.FieldValues.PackageNo)"] = $it.Id
     }
 
-    $pAdded = 0; $pSkipped = 0
+    $pAdded = 0; $pUpdated = 0
     $touched = @{}
     foreach ($r in $pkgSeed) {
         $touched[$r.StrategyKey] = $true
-        if ($havePkg["$($r.StrategyKey)|$($r.PackageNo)"]) { $pSkipped++; continue }
-        Add-PnPListItem -List 'MD_StrategyPackage' -Values @{
+        $vals = @{
             Title       = $r.Title
             StrategyKey = $r.StrategyKey
             PackageNo   = [int]$r.PackageNo
@@ -194,10 +197,17 @@ if (-not $SkipSeed -and (Test-Path $PackageSeedPath)) {
             Hierarchy   = [int]$r.Hierarchy
             PackageText = $r.PackageText
             OffsetValue = [int]$r.OffsetValue
-        } | Out-Null
-        $pAdded++
+        }
+        $existingId = $havePkg["$($r.StrategyKey)|$($r.PackageNo)"]
+        if ($existingId) {
+            Set-PnPListItem -List 'MD_StrategyPackage' -Identity $existingId -Values $vals | Out-Null
+            $pUpdated++
+        } else {
+            Add-PnPListItem -List 'MD_StrategyPackage' -Values $vals | Out-Null
+            $pAdded++
+        }
     }
-    Write-Host "  + $pAdded pakker oprettet, = $pSkipped fandtes i forvejen" -ForegroundColor Green
+    Write-Host "  + $pAdded pakker oprettet, ~ $pUpdated opdateret fra csv" -ForegroundColor Green
 
     # Saet PackagesLoaded paa de strategier, der nu HAR pakker.
     $marked = 0
