@@ -95,10 +95,11 @@ Disse afgør, om datamodellen skal laves om eller bare kobles på:
 
 ## 6. Hvad der skal til for at svare
 
-Der er to veje. **Brug browser-vejen** — den kræver ingen tilladelser du ikke
-allerede har.
+Der er to veje. **B virker og er den primære** — browser-vejen står som
+reserve, hvis app-registreringen en dag forsvinder, eller hvis nogen uden
+PowerShell skal kunne trække strukturen.
 
-### A. Browseren (anbefalet, ingen opsætning)
+### A. Browseren (reserve, ingen opsætning)
 
 SharePoints REST API gennem din egen indloggede session. Ingen app, intet
 token, ingen IT-sag. Du kan præcis det, du kan i forvejen som bruger.
@@ -116,37 +117,47 @@ python3 tools/schema_to_md.py sharepoint/inspect/out/sharepoint-schema.json
 
 Sæt `SAMPLE_ROWS = 0` øverst i filen, hvis der ikke må komme data med.
 
-### B. PnP PowerShell (kræver en app-registrering)
+### B. PnP PowerShell
 
-`sharepoint/inspect/Export-ListSchema.ps1` gør det samme fra PowerShell.
-**Men** PnP.PowerShell 2.x har ikke længere en fælles app-registrering, så
-`Connect-PnPOnline -Interactive` kræver et `ClientId` fra en Entra-app i
-jeres egen tenant:
+`sharepoint/inspect/Export-ListSchema.ps1` gør det samme fra PowerShell — og
+kan i modsætning til browser-vejen også **skrive**, hvilket
+provisioneringsscripterne har brug for.
 
-```powershell
-.\Export-ListSchema.ps1 -SiteUrl "https://..." -ClientId "<app id>"
-# eller sæt miljøvariablen PNP_CLIENT_ID én gang
+PnP.PowerShell 2.x har ikke længere en fælles app-registrering, så
+`Connect-PnPOnline -Interactive` kræver et `ClientId`. Det findes allerede i
+tenanten:
+
+```
+9bc3ab49-b65d-410a-85ad-de819febfddc
 ```
 
-Har I ingen app, kan den registreres — men det kræver rollen *Application
-Developer* eller højere i Entra:
+Sæt det én gang, så slipper både du og VS Code for at støde på det igen:
+
+```powershell
+[Environment]::SetEnvironmentVariable(
+    "PNP_CLIENT_ID", "9bc3ab49-b65d-410a-85ad-de819febfddc", "User")
+```
+
+Åbn en **ny** terminal bagefter — miljøvariabler læses ved opstart. Begge
+scripts falder tilbage på `PNP_CLIENT_ID`, så der skal ikke sendes noget med
+på kommandolinjen længere. Alternativt pr. kørsel:
+
+```powershell
+.\Export-ListSchema.ps1 -SiteUrl "https://..." -ClientId "9bc3ab49-b65d-410a-85ad-de819febfddc"
+```
+
+Et **client id er ikke en hemmelighed** — det er offentligt ligesom et
+brugernavn, og det er client *secret* eller certifikat, der skal beskyttes.
+Derfor står det her i klartekst. Det giver ingen adgang i sig selv: du skal
+stadig logge ind interaktivt, og appen kan kun det, du selv kan.
+
+Skulle registreringen forsvinde, oprettes en ny — det kræver rollen
+*Application Developer* eller højere i Entra:
 
 ```powershell
 Register-PnPEntraIDAppForInteractiveLogin `
     -ApplicationName "PnP Masterdata" -Tenant <tenant>.onmicrosoft.com -Interactive
 ```
-
-### Hvorfor B alligevel er værd at få på plads
-
-Browser-vejen kan **læse**. Den kan ikke oprette lister. Så snart
-datamodellen skal ændres, skal provisioneringsscripterne kunne skrive — og
-så er der ingen vej uden om en app-registrering eller en anden aftale med IT.
-
-Det I skal bede om, er en **Entra app-registrering** med delegerede
-tilladelser til SharePoint (`AllSites.FullControl` er det PnP bruger;
-`AllSites.Manage` rækker til at oprette og ændre lister). Delegeret betyder,
-at appen kun kan det, den indloggede bruger kan — den giver ikke adgang til
-noget nyt, den gør bare PowerShell i stand til at logge ind som jer.
 
 ## 7. Migrering
 
