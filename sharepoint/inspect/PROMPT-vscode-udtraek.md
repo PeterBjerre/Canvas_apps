@@ -48,8 +48,18 @@ Register-PnPEntraIDAppForInteractiveLogin `
     -ApplicationName "PnP Masterdata" -Tenant <tenant>.onmicrosoft.com -Interactive
 ```
 
-Det kræver rettigheder i Entra. Kan brugeren ikke det, så stop og rapportér —
-find ikke på en anden vej rundt om det.
+Det kræver rettigheder i Entra. **Kan brugeren ikke det, så stop.** Der er en
+vej uden om, men den kører du ikke: brugeren indsætter
+`sharepoint/inspect/browser-extract.js` i browserens konsol på SharePoint-sitet
+og henter `sharepoint-schema.json` selv. Sig det til dem, og vent på filen.
+
+Når filen ligger i `sharepoint/inspect/out/`, er din opgave:
+
+```bash
+python3 tools/schema_to_md.py sharepoint/inspect/out/sharepoint-schema.json
+```
+
+og derefter trin 3 og frem som beskrevet nedenfor.
 
 **Scriptet må ikke ændres for at komme videre.** Fejler det på noget andet, så
 rapportér fejlen ordret og stop — det er den rigtige opførsel, og fejlen bliver
