@@ -5,9 +5,9 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQU
                         C_INFO_FG, C_INFO_BG, C_VALID_FG, C_VALID_BG, C_INVALID_FG, C_INVALID_BG,
                         C_NEUTRAL_FG, C_NEUTRAL_BG, FONT, SHELL_W, EDITOR_W, RAIL_W, SPLIT_GAP)
 from build_helpers import (text_ctrl, group, button, button_row, text_input, number_input, dropdown,
-                           label_row, field_cell, two_col_row, badge, card)
+                           label_row, field_cell, row_n, col_width, badge, card, combobox, poll_timer)
 from build_plan_header import section_header
-from build_flsearch import search_action, MIN_SEARCH_LEN
+from build_flsearch import timer_poll_action, MIN_SEARCH_LEN
 
 DM_ITEM = "If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)"
 REQ_ITEM = "varVhpItemValidated"
@@ -16,30 +16,54 @@ REQ_ITEM = "varVhpItemValidated"
 RAIL_CW = RAIL_W - 36
 EDITOR_CW = f"({EDITOR_W} - 36)"
 
+# Tre kolonner i stedet for to for indtastningsfelterne i Item Editor.
+EDITOR_COLS = 3
+
 # Gallerihoejde: TemplateSize + TemplatePadding pr. raekke. Den oprindelige
 # formel regnede kun med TemplateSize og klippede derfor den sidste raekke.
 ITEM_ROW_H = 88 + 6
 ITEMS_GAL_H = f"Max(CountRows(colVhpItems), 1) * {ITEM_ROW_H}"
 
-# Den FL der er valgt lige nu: dropdownens valg, med fald tilbage til det
+# Den FL der er valgt lige nu: comboboksens valg, med fald tilbage til det
 # gemte paa itemet, saa objektlisten ogsaa filtrerer korrekt foer brugeren
-# har roert dropdownen.
-SEL_FL = ("Coalesce(drpVhpItemFlPick.Selected.Code, "
+# har roert comboboksen.
+SEL_FL = ("Coalesce(cmbVhpItemFL.Selected.Code, "
           "LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)")
 
 # Kandidater til objektlisten: alt under den valgte FL, minus den selv.
-OBJ_CANDIDATES = (f"Filter(colVhpObjectListOptions, StartsWith(Code, {SEL_FL}) && Code <> {SEL_FL})")
-OBJ_SELECTED = "Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)"
+#
+# De kommer fra colVhpFlSearch - altsaa SAMME resultat som FL-soegningen
+# hentede. Objektlisten kalder aldrig selv flowet: soeger man fx "SSV13 HFC10",
+# returnerer flowet baade SSV13 HFC10 og alt under den, saa de underliggende
+# FL ligger allerede i samlingen. Det giver eet flow-kald pr. soegning i
+# stedet for to, og listen kan ikke komme ud af trit med FL-feltet.
+OBJ_CANDIDATES = (f"Filter(colVhpFlSearch, StartsWith(Code, {SEL_FL}) && Code <> {SEL_FL})")
 
-RESET_EDITOR_CONTROLS = (
-    "Reset(txtVhpItemFL); Reset(txtVhpItemShortText); Reset(drpVhpItemMainWorkCenter); "
-    "Reset(drpVhpItemActivityType); Reset(drpVhpItemRevision); "
-    "Reset(txtVhpItemOrstedResponsible); Reset(txtVhpItemInitials); Reset(txtVhpItemLongText); "
-    "Reset(drpVhpItemTasklist); Reset(drpVhpItemFlPick)"
+# DefaultSelectedItems skal komme fra SAMME tabel som Items, ellers matcher
+# Power Apps ikke raekkerne, og de gemte valg ville ikke staa markeret.
+OBJ_DEFAULT_ITEMS = (
+    f"Filter(\n"
+    f"    {OBJ_CANDIDATES} As C,\n"
+    f"    CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId && Code = C.Code)) > 0\n"
+    f")"
+)
+FL_DEFAULT_ITEMS = (
+    "Filter(\n"
+    "    colVhpFlSearch As F,\n"
+    "    F.Code = LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation\n"
+    ")"
 )
 
-# Naar et andet item aabnes, skal dropdownen kunne vise itemets gemte FL.
+RESET_EDITOR_CONTROLS = (
+    "Reset(cmbVhpItemFL); Reset(cmbVhpItemObjects); Reset(txtVhpItemShortText); "
+    "Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(drpVhpItemRevision); "
+    "Reset(txtVhpItemOrstedResponsible); Reset(txtVhpItemInitials); Reset(txtVhpItemLongText); "
+    "Reset(drpVhpItemTasklist)"
+)
+
+# Naar et andet item aabnes, skal comboboksen kunne vise itemets gemte FL.
 # Soegesamlingen er tom paa det tidspunkt, saa den seedes med den ene vaerdi.
+# Display skal med, fordi det er det felt comboboksen soeger og viser paa.
 SEED_FL_PICKER = (
     "Clear(colVhpFlSearch);\n"
     "With(\n"
@@ -49,14 +73,12 @@ SEED_FL_PICKER = (
     "        Collect(\n"
     "            colVhpFlSearch,\n"
     "            { Code: it.FunctionalLocation, Description: it.FlDescription,\n"
+    "              Display: it.FunctionalLocation & \" - \" & it.FlDescription,\n"
     "              Maintainable: true, Level: \"\" }\n"
     "        )\n"
     "    )\n"
     ");\n"
-    "Clear(colVhpObjectListOptions);\n"
-    "Set(varVhpFlLastSearch, \"\");\n"
-    "Set(varVhpObjLastSearch, \"\");\n"
-    "Set(varVhpObjMeta, \"\")"
+    "Set(varVhpFlLastSearch, \"\")"
 )
 
 
@@ -234,56 +256,46 @@ def build_item_editor():
     header = section_header("conVhpEditorHead", "Item Editor",
                             "Fulde itemfelter med reference-opslag af Functional Location.", "")
 
-    # --- Functional Location: soeg via flow, vaelg EEN fra dropdown ---------
-    fl_search = search_action("txtVhpItemFL.Text", "colVhpFlSearch",
-                              "varVhpFlLastSearch", "varVhpFlMeta")
-
-    txtFl = text_input("txtVhpItemFL", "\"\"",
-                       placeholder="\"Skriv mindst %d tegn, fx SSV10 KAB\"" % MIN_SEARCH_LEN,
-                       max_length=40, display_mode=DM_ITEM, ttype="Search",
-                       width="Parent.Width - 110 - 8", onchange=fl_search)
-    # DelayOutput samler tastetryk, saa flowet ikke kaldes for hvert tegn.
-    txtFl.props["DelayOutput"] = "true"
-
-    btnSearchFl = button("btnVhpFlSearch", "\"Soeg\"", fl_search, width=110, height=36,
-                         display_mode=DM_ITEM)
-    flRow = group("conVhpItemFlRow", [txtFl, btnSearchFl], direction="Horizontal", gap=8, height=36,
-                  align_items="Center")
+    # --- Functional Location: soeg OG vaelg i EET felt ----------------------
+    # Classic/ComboBox har indbygget soegefelt, saa brugeren skriver og
+    # vaelger i den samme kontrol. Ingen soegeknap, ingen separat dropdown.
     flLabelRow = label_row("conVhpItemFlLabel", "Functional Location", required=True)
 
-    # Valget af FL er det, der gemmes paa itemet - ikke soegeteksten.
-    drpFlPick = dropdown(
-        "drpVhpItemFlPick", "colVhpFlSearch",
-        "LookUp(colVhpFlSearch, Code = LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)",
-        item_display=("ThisItem.Code & \" - \" & ThisItem.Description & "
-                      "If(ThisItem.Maintainable, \"\", \"   (ikke vedligeholdbar)\")"),
-        required_formula=REQ_ITEM, display_mode=DM_ITEM, value_field="Code")
-    # Nyt FL-valg henter kandidaterne til objektlisten.
-    drpFlPick.props["OnChange"] = (
-        "Set(varVhpObjLastSearch, \"\");\n"
-        + search_action("drpVhpItemFlPick.Selected.Code", "colVhpObjectListOptions",
-                        "varVhpObjLastSearch", "varVhpObjMeta", label="underliggende FL")
-    )
+    cmbFl = combobox(
+        "cmbVhpItemFL", "colVhpFlSearch",
+        display_field="Display",
+        default_items=FL_DEFAULT_ITEMS,
+        placeholder=("\"Skriv mindst %d tegn, fx SSV13 HFC - og vaelg i listen\"" % MIN_SEARCH_LEN),
+        required_formula=REQ_ITEM, display_mode=DM_ITEM)
+
+    # Timeren driver KUN FL-soegningen. Objektlisten kalder ikke flowet - den
+    # filtrerer bare i det resultat, denne soegning allerede har hentet.
+    fl_poll = timer_poll_action("cmbVhpItemFL.SearchText", "colVhpFlSearch",
+                                "varVhpFlLastSearch", "varVhpFlMeta")
+    tmrFl = poll_timer("tmrVhpFlSearch", fl_poll)
 
     flDescription = text_ctrl(
         "txtVhpItemFlDescription",
         (
             "If(\n"
-            "    IsBlank(drpVhpItemFlPick.Selected.Code), \"Ingen Functional Location valgt endnu.\",\n"
-            "    \"Valgt: \" & drpVhpItemFlPick.Selected.Code & \" - \" &\n"
-            "    drpVhpItemFlPick.Selected.Description &\n"
+            "    IsBlank(cmbVhpItemFL.Selected.Code), \"Ingen Functional Location valgt endnu.\",\n"
+            "    \"Valgt: \" & cmbVhpItemFL.Selected.Code & \" - \" &\n"
+            "    cmbVhpItemFL.Selected.Description &\n"
             "    If(\n"
-            "        drpVhpItemFlPick.Selected.Maintainable, \"\",\n"
+            "        cmbVhpItemFL.Selected.Maintainable, \"\",\n"
             "        \"   |   ADVARSEL: markeret som ikke vedligeholdbar i SAP.\"\n"
             "    )\n"
             ")"
         ),
         size=12, height=18, wrap="true",
-        color=("If(!IsBlank(drpVhpItemFlPick.Selected.Code) && "
-               f"!drpVhpItemFlPick.Selected.Maintainable, {C_INVALID_FG}, {C_MUTED})"))
+        color=("If(!IsBlank(cmbVhpItemFL.Selected.Code) && "
+               f"!cmbVhpItemFL.Selected.Maintainable, {C_INVALID_FG}, {C_MUTED})"))
     flMeta = text_ctrl("txtVhpItemFlMeta", "varVhpFlMeta", size=12, color=C_MUTED, height=18, wrap="true")
-    flBlock = group("conVhpItemFlBlock", [flLabelRow, flRow, drpFlPick, flDescription, flMeta],
-                    direction="Vertical", gap=6, width="Parent.Width")
+    # FL-blokken staar nu som en normal gitter-celle (samme bredde som de
+    # andre indtastningsfelter) i stedet for i fuld bredde.
+    flBlock = group("conVhpItemFlBlock", [flLabelRow, cmbFl, flDescription, flMeta, tmrFl],
+                    direction="Vertical", gap=6, width=col_width(EDITOR_CW, EDITOR_COLS),
+                    fill_portions="If(App.Width < 1024, 0, 1)")
 
     drpMwc = dropdown("drpVhpItemMainWorkCenter", "colVhpMainWorkCenterItemOptions",
                       "LookUp(colVhpMainWorkCenterItemOptions, Value = LookUp(colVhpItems, ItemId = varVhpActiveItemId).MainWorkCenter)",
@@ -298,136 +310,85 @@ def build_item_editor():
                            "LookUp(colVhpRevisionOptions, Value = LookUp(colVhpItems, ItemId = varVhpActiveItemId).Revision)",
                            display_mode=DM_ITEM)
     txtOrstedResp = text_input("txtVhpItemOrstedResponsible",
-                               "LookUp(colVhpItems, ItemId = varVhpActiveItemId).OrstedResponsible",
+                               # Standard udfyldt med den bruger, der har appen aaben, men brugeren kan
+                               # frit rette det. Coalesce falder kun tilbage til User().FullName, naar
+                               # itemets gemte vaerdi er tom (fx et nyt item).
+                               f"Coalesce(LookUp(colVhpItems, ItemId = varVhpActiveItemId).OrstedResponsible, User().FullName)",
                                display_mode=DM_ITEM)
     txtInitials = text_input("txtVhpItemInitials",
                              "LookUp(colVhpItems, ItemId = varVhpActiveItemId).Initials", max_length=12,
                              display_mode=DM_ITEM)
 
-    CW = EDITOR_CW
-    row1 = two_col_row("conVhpItemRow1",
-                       field_cell("conVhpCellItemShortText", "Item Short Text", txtShort, required=True,
-                                  container_w=CW),
-                       field_cell("conVhpCellItemMwc", "Main Work Center", drpMwc, required=True,
-                                  container_w=CW), container_w=CW)
-    row2 = two_col_row("conVhpItemRow2",
-                       field_cell("conVhpCellItemAct", "Maintenance Activity Type", drpAct, required=True,
-                                  container_w=CW),
-                       group("conVhpCellItemObjSpacer", [], height=62,
-                             width=f"If({CW} < 640, {CW}, ({CW} - 20) / 2)"),
-                       container_w=CW)
-    row3 = two_col_row("conVhpItemRow3",
-                       field_cell("conVhpCellItemRevision", "Revision", drpRevision, container_w=CW),
-                       field_cell("conVhpCellItemOrstedResp", "Orsted Responsible", txtOrstedResp,
-                                  container_w=CW), container_w=CW)
-    row4 = two_col_row("conVhpItemRow4",
-                       field_cell("conVhpCellItemInitials", "Initials", txtInitials, container_w=CW),
-                       group("conVhpCellItemSpacer", [], height=62,
-                             width=f"If({CW} < 640, {CW}, ({CW} - 20) / 2)"),
-                       container_w=CW)
-
-    fieldsGrid = group("conVhpItemFieldsGrid", [row1, row2, row3, row4], direction="Vertical", gap=16)
-
-
-    # --- Objektliste: flere FL under den valgte, ubegraenset antal ----------
-    # Kandidaterne kommer fra samme flow, kaldt med den valgte FL som
-    # soegetekst, og filtreres lokalt til dem der starter med den. Valgene
-    # ligger i colVhpItemObjects og skrives til ObjectList-feltet ved gem.
+    # --- Objektliste: soeg OG vaelg flere i EET felt ------------------------
+    # Samme princip som FL-feltet, bare multi-select: Classic/ComboBox med
+    # SelectMultiple. Der er hverken hente-knap, ryd-knap eller et galleri
+    # ved siden af - comboboksen har selv soegefelt, tags og et kryds til at
+    # rydde med.
+    #
+    # Items filtreres i colVhpFlSearch, altsaa resultatet af FL-soegningen.
+    # Objektlisten kalder aldrig flowet selv.
     objLabelRow = label_row("conVhpItemObjLabel", "Object List")
+
+    cmbObj = combobox(
+        "cmbVhpItemObjects", f"Sort({OBJ_CANDIDATES}, Code)",
+        display_field="Display", multi=True,
+        default_items=OBJ_DEFAULT_ITEMS,
+        placeholder="\"Vaelg et eller flere underliggende objekter\"",
+        display_mode=DM_ITEM)
+
     objMeta = text_ctrl(
         "txtVhpItemObjMeta",
         (
             "If(\n"
             f"    IsBlank({SEL_FL}), \"Vaelg foerst en Functional Location ovenfor.\",\n"
             f"    \"Filtreret til FL der starter med \" & {SEL_FL} & \". \" &\n"
-            f"    Text(CountRows({OBJ_SELECTED})) & \" valgt af \" &\n"
+            "    Text(CountRows(cmbVhpItemObjects.SelectedItems)) & \" valgt af \" &\n"
             f"    Text(CountRows({OBJ_CANDIDATES})) & \" mulige.\"\n"
             ")"
         ), size=12, color=C_MUTED, height=18, wrap="true")
-
-    btnObjFetch = button(
-        "btnVhpObjFetch", "\"Hent underliggende\"",
-        (
-            "If(\n"
-            f"    IsBlank({SEL_FL}),\n"
-            "    Set(varVhpObjMeta, \"Vaelg en Functional Location foerst.\"),\n"
-            "    Set(varVhpObjLastSearch, \"\");\n"
-            + search_action(SEL_FL, "colVhpObjectListOptions", "varVhpObjLastSearch",
-                            "varVhpObjMeta", label="underliggende FL")
-            + "\n)"
-        ), width=170, height=36,
-        display_mode="If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)")
-    btnObjClear = button(
-        "btnVhpObjClear", "\"Ryd valg\"",
-        (
-            "RemoveIf(colVhpItemObjects, ItemId = varVhpActiveItemId);\n"
-            "Set(varVhpRuntimeInfo, \"Objektliste ryddet paa itemet.\")"
-        ), danger=True, width=110, height=36,
-        display_mode="If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)")
-    objBtnRow = group("conVhpObjBtnRow", [btnObjFetch, btnObjClear], direction="Horizontal", gap=8,
-                      height=36, align_items="Center")
-
-    objChk = Ctrl("chkVhpObjSel", "ModernCheckbox", props={
-        "AccessibleLabel": "\"Vaelg \" & ThisItem.Code",
-        "Default": ("CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId "
-                    "&& Code = ThisItem.Code)) > 0"),
-        "Height": "24",
-        "OnCheck": (
-            "If(\n"
-            "    CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId && Code = ThisItem.Code)) = 0,\n"
-            "    Collect(\n"
-            "        colVhpItemObjects,\n"
-            "        { ItemId: varVhpActiveItemId, Code: ThisItem.Code, Description: ThisItem.Description }\n"
-            "    )\n"
-            ")"
-        ),
-        "OnUncheck": "RemoveIf(colVhpItemObjects, ItemId = varVhpActiveItemId && Code = ThisItem.Code)",
-        "Width": "30",
-    }, h=24)
-    objCode = text_ctrl("txtVhpObjCode", "ThisItem.Code", size=13, height=32, width=190, wrap="false")
-    objLevel = text_ctrl("txtVhpObjLevel", "\"Niv. \" & ThisItem.Level", size=11, color=C_MUTED,
-                         height=32, width=52, wrap="false")
-    objDesc = text_ctrl(
-        "txtVhpObjDesc",
-        ("ThisItem.Description & "
-         "If(ThisItem.Maintainable, \"\", \"   (ikke vedligeholdbar)\")"),
-        size=12, height=32, width="Parent.TemplateWidth - 30 - 190 - 52 - 30", wrap="false",
-        color=f"If(ThisItem.Maintainable, {C_MUTED}, {C_INVALID_FG})")
-    objRow = group("conVhpObjRow", [objChk, objCode, objLevel, objDesc], direction="Horizontal", gap=10,
-                   height="Parent.TemplateHeight - 2", align_items="Center", width="Parent.TemplateWidth")
-
-    # Hoejst 6 raekker synlige ad gangen - en FL kan have mange underliggende.
-    obj_gal_h = f"Min(Max(CountRows({OBJ_CANDIDATES}), 1), 6) * 38"
-    objGal = Ctrl("galVhpObjList", "Gallery", variant="Vertical", props={
-        "AccessibleLabel": "\"Underliggende Functional Locations\"",
-        "BorderStyle": "BorderStyle.None",
-        "Fill": C_CARD_BORDER,
-        "FillPortions": "0",
-        "Height": obj_gal_h,
-        "Items": f"Sort({OBJ_CANDIDATES}, Code)",
-        "LayoutMinWidth": "0",
-        "LoadingSpinner": "LoadingSpinner.None",
-        "Selectable": "false",
-        "ShowScrollbar": "true",
-        "TabIndex": "0",
-        "TemplatePadding": "2",
-        "TemplateSize": "36",
-        "Width": "Parent.Width",
-        "WrapCount": "1",
-    }, children=[objRow], h=obj_gal_h)
 
     objEmpty = text_ctrl(
         "txtVhpObjEmpty",
         (
             "If(\n"
             f"    IsBlank({SEL_FL}), \"Vaelg en Functional Location for at se underliggende objekter.\",\n"
-            "    \"Ingen underliggende Functional Locations hentet endnu. Tryk Hent underliggende.\"\n"
+            "    \"Der er ingen underliggende Functional Locations i soegeresultatet. \" &\n"
+            "    \"Soeg bredere i Functional Location-feltet, fx paa faerre tegn.\"\n"
             ")"
         ), size=12, color=C_MUTED, height=20, wrap="true",
         visible=f"IfError(CountRows({OBJ_CANDIDATES}) = 0, true)")
 
-    objBlock = group("conVhpItemObjBlock", [objLabelRow, objMeta, objBtnRow, objGal, objEmpty],
-                     direction="Vertical", gap=6, width="Parent.Width")
+    # Objektliste-blokken staar nu som en normal gitter-celle (samme bredde
+    # som de andre indtastningsfelter) i stedet for i fuld bredde.
+    objBlock = group("conVhpItemObjBlock", [objLabelRow, cmbObj, objMeta, objEmpty],
+                     direction="Vertical", gap=6, width=col_width(EDITOR_CW, EDITOR_COLS),
+                     fill_portions="If(App.Width < 1024, 0, 1)")
+
+    # Tre kolonner i stedet for to. Functional Location og Object List staar
+    # som almindelige felter i gitteret - kun Item Long Text laengere nede
+    # er i fuld bredde.
+    CW = EDITOR_CW
+    row1 = row_n("conVhpItemRow1", [
+        flBlock,
+        field_cell("conVhpCellItemShortText", "Item Short Text", txtShort, required=True,
+                  container_w=CW, cols=EDITOR_COLS),
+        field_cell("conVhpCellItemMwc", "Main Work Center", drpMwc, required=True,
+                  container_w=CW, cols=EDITOR_COLS),
+    ], container_w=CW)
+    row2 = row_n("conVhpItemRow2", [
+        field_cell("conVhpCellItemAct", "Maintenance Activity Type", drpAct, required=True,
+                  container_w=CW, cols=EDITOR_COLS),
+        objBlock,
+        field_cell("conVhpCellItemRevision", "Revision", drpRevision, container_w=CW, cols=EDITOR_COLS),
+    ], container_w=CW)
+    row3 = row_n("conVhpItemRow3", [
+        field_cell("conVhpCellItemOrstedResp", "Orsted Responsible", txtOrstedResp,
+                  container_w=CW, cols=EDITOR_COLS),
+        field_cell("conVhpCellItemInitials", "Initials", txtInitials, container_w=CW, cols=EDITOR_COLS),
+        group("conVhpCellItemSpacer", [], height=62, width=col_width(CW, EDITOR_COLS)),
+    ], container_w=CW)
+
+    fieldsGrid = group("conVhpItemFieldsGrid", [row1, row2, row3], direction="Vertical", gap=16)
 
     txtLongText = text_input("txtVhpItemLongText",
                              "LookUp(colVhpItems, ItemId = varVhpActiveItemId).LongText", height=80,
@@ -451,22 +412,33 @@ def build_item_editor():
             "        IsBlank(Trim(txtVhpItemShortText.Text)) || Len(Trim(txtVhpItemShortText.Text)) > 40 ||\n"
             "        IsBlank(drpVhpItemMainWorkCenter.Selected.Value) ||\n"
             "        IsBlank(drpVhpItemActivityType.Selected.Value) ||\n"
-            "        IsBlank(drpVhpItemFlPick.Selected.Code),\n"
+            "        IsBlank(cmbVhpItemFL.Selected.Code),\n"
             "        UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { Status: \"invalid\" });\n"
             "        Set(varVhpRuntimeInfo, \"Item contains issues. Fix required fields (marked with *).\"),\n"
             "\n"
+            # Comboboksens valg er sandheden, mens der redigeres. colVhpItemObjects
+            # er den PERSISTENTE kopi: den overlever, at Items-filteret aendrer sig,
+            # og det er den, Copy item og Remove item arbejder paa.
+            "        RemoveIf(colVhpItemObjects, ItemId = varVhpActiveItemId);\n"
+            "        ForAll(\n"
+            "            cmbVhpItemObjects.SelectedItems As S,\n"
+            "            Collect(\n"
+            "                colVhpItemObjects,\n"
+            "                { ItemId: varVhpActiveItemId, Code: S.Code, Description: S.Description }\n"
+            "            )\n"
+            "        );\n"
             "        With(\n"
-            "            { code: drpVhpItemFlPick.Selected.Code },\n"
+            "            { code: cmbVhpItemFL.Selected.Code },\n"
             "            UpdateIf(\n"
             "                colVhpItems,\n"
             "                ItemId = varVhpActiveItemId,\n"
             "                {\n"
             "                    ShortText: Trim(txtVhpItemShortText.Text),\n"
             "                    FunctionalLocation: code,\n"
-            "                    FlDescription: drpVhpItemFlPick.Selected.Description,\n"
+            "                    FlDescription: cmbVhpItemFL.Selected.Description,\n"
             "                    MainWorkCenter: drpVhpItemMainWorkCenter.Selected.Value,\n"
             "                    ActivityType: drpVhpItemActivityType.Selected.Value,\n"
-            "                    ObjectList: Concat(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), Code, \"; \"),\n"
+            "                    ObjectList: Concat(Sort(cmbVhpItemObjects.SelectedItems, Code), Code, \"; \"),\n"
             "                    Revision: drpVhpItemRevision.Selected.Value,\n"
             "                    OrstedResponsible: Trim(txtVhpItemOrstedResponsible.Text),\n"
             "                    Initials: Trim(txtVhpItemInitials.Text),\n"
@@ -484,7 +456,7 @@ def build_item_editor():
                    align_items="Center")
 
     return card("conVhpEditorCard",
-                [header, flBlock, fieldsGrid, objBlock, longTextCell, footer])
+                [header, fieldsGrid, longTextCell, footer])
 
 
 def build_items_section():
