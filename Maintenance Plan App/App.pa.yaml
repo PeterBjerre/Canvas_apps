@@ -1,15 +1,49 @@
 App:
   Properties:
-    OnStart: |
-      =ClearCollect(
-          colVhpPlanStatusOptions,
-          Table(
-              { Value: "Ny" },
-              { Value: "Ændre" },
-              { Value: "Slettes" }
-          )
-      );
+    Formulas: |
+      =colVhpPlantCodes = Sort(ForAll(PlantList As R, { Value: R.Title }), Value);
 
+      colVhpSortFieldOptions = Sort(ForAll(SortFieldList As R, { Value: R.Title }), Value);
+
+      colVhpActivityTypeOptions = Sort(ForAll(MaintenanceActivityTypeList As R, { Value: R.Title }), Value);
+
+      colVhpCallHorizonOptions = Sort(ForAll(CallHorizonMatrix As R, { Value: R.Title }), Value);
+
+      colVhpPlanStatusOptions = Choices(MaintenanceItems.Status);
+
+      colVhpUnitOptions = Choices(MaintenancePlans.Unit);
+
+      colVhpRevisionOptions = Choices(MaintenanceItems.RevisionMark);
+
+      colVhpPriorityOptions = Choices(MaintenanceItems.Priority);
+
+      // Alle arbejdscentre med deres vaerk. Afgraenses i kontrollen.
+      colVhpMainWorkCenters = ForAll(MainWorkCenters As R, { Value: Trim(R.Title), Plant: Trim(R.'Plant Key') });
+
+      colVhpCtrlOptions = Sort(Distinct(MD_StandardTaskOperations, ControlKey), Value);
+
+      colVhpStrategies = Sort(ForAll(MD_Strategy As R, { Key: R.StrategyKey, Name: R.StrategyName, SchedIndicator: R.SchedulingIndicator.Value, Hierarchical: R.Hierarchical.Value, PackagesLoaded: R.PackagesLoaded, Display: R.StrategyKey & " - " & R.StrategyName & If(R.PackagesLoaded, "", "   (pakker mangler)") }), Key);
+
+      colVhpStrategyPackages = ForAll(MD_StrategyPackage As R, { StrategyKey: R.StrategyKey, PackageNo: R.PackageNo, ShortCode: R.ShortCode, CycleLength: R.CycleLength, CycleUnit: R.CycleUnit.Value, Hierarchy: R.Hierarchy, PackageText: R.PackageText });
+
+      colVhpTasklists = ForAll(Distinct(MD_StandardTaskOperations, Plant.Value) As P, { Plant: P.Value, Key: P.Value & "-STD", Name: "Standard task list - " & P.Value, Description: "", Operations: ForAll(Sort(Filter(MD_StandardTaskOperations, Plant.Value = P.Value), OperationNo) As O, { OperationNo: Text(O.OperationNo, "0000"), OperationShortText: O.OperationShortText, WorkHours: O.Work, DurationHours: 0, MainWorkCenter: O.WorkCenter, Vendor: O.VendorNo, LongText: "", ControlKey: O.ControlKey, OpPlant: O.SapPlant }) });
+    OnStart: |
+      =ClearCollect(colVhpItems, { ItemId: 0, ShortText: "", FunctionalLocation: "", FlDescription: "", MainWorkCenter: "", ActivityType: "", ObjectList: "", Revision: "", OrstedResponsible: "", Initials: "", LongText: "", TasklistKey: "", TasklistName: "", Status: "" });
+      Clear(colVhpItems);
+
+      ClearCollect(colVhpOperations, { ItemId: 0, OperationNo: "", OperationShortText: "", WorkHours: 0, DurationHours: 0, MainWorkCenter: "", Vendor: "", LongText: "", PackagesKey: ";", Selected: false });
+      Clear(colVhpOperations);
+
+      ClearCollect(colVhpFlSearch, { Code: "", Description: "", Display: "", Maintainable: false, Level: "" });
+      Clear(colVhpFlSearch);
+
+      ClearCollect(colVhpItemObjects, { ItemId: 0, Code: "", Description: "" });
+      Clear(colVhpItemObjects);
+
+      ClearCollect(colVhpPickerSelected, { OperationNo: "" });
+      Clear(colVhpPickerSelected);
+
+      // SAP-vaerdier for schedulering.
       ClearCollect(
           colVhpYesNoOptions,
           Table(
@@ -18,174 +52,7 @@ App:
           )
       );
 
-      ClearCollect(
-          colVhpUnitOptions,
-          Table(
-              { Value: "H" },
-              { Value: "DAY" },
-              { Value: "WK" },
-              { Value: "MON" },
-              { Value: "YR" },
-              { Value: "COUNT" }
-          )
-      );
-
-      ClearCollect(
-          colVhpOrderTypeOptions,
-          Table(
-              { Value: "ZPRE" }
-          )
-      );
-
-      ClearCollect(
-          colVhpMainWorkCenterTasklistOptions,
-          Table(
-              { Value: "*SUP - Supervisor (ZB01) Timer uden for schedulering" },
-              { Value: "*SERVE - E-service (Ctrl PM01)" },
-              { Value: "*SERVM - M-service (Ctrl PM01)" },
-              { Value: "*PROD - Produktion (Ctrl PM01)" },
-              { Value: "AVVLUB - Smøring (Ctrl PM01) (kun AVV/HCV/SMV)" },
-              { Value: "AVVBRÆND - Brændsel (Ctrl PM01) (kun AVV/HCV/SMV)" },
-              { Value: "AVVLAB - AVV Laboratorium (Ctrl PM01) (kun AVV/HCV/SMV)" },
-              { Value: "ESVKUL - Kulplads (Ctrl PM01) (kun ESV)" },
-              { Value: "SERVI - Instrumentgruppe (Ctrl PM01) (kun SSV)" },
-              { Value: "STVBRAE - STV Brændsel (Logistik) (Ctrl PM01)" },
-              { Value: "*TEMP - Tech. Involvering" },
-              { Value: "*SUP - Supervisor (PM01) Timer med i schedulering" },
-              { Value: "*LEV - Extern leverandører uden ramme aftale (Ctrl PM02)" },
-              { Value: "*XELEK - Elektriker (Ctrl PM03)" },
-              { Value: "*XINDU - Industriservice (Ctrl PM03)" },
-              { Value: "*XISOL - Isolatør (Ctrl PM03)" },
-              { Value: "*XSMED - Maskinservice (Ctrl PM03)" },
-              { Value: "*XSTIL - Stilladsservice (Ctrl PM03)" },
-              { Value: "*XSPEC - Specialist (Ctrl PM02)" }
-          )
-      );
-
-      ClearCollect(
-          colVhpMainWorkCenterItemOptions,
-          Table(
-              { Value: "*SUP - Supervisor" },
-              { Value: "*PROD - Produktion" },
-              { Value: "*SERVE - Maintenance Execution" },
-              { Value: "*SERVM - Maintenance Execution" },
-              { Value: "*BRÆND - Brændsel" },
-              { Value: "*LAG - Lager" },
-              { Value: "AVVLAB - AVV Laboratorium (kun AVV/HCV/SMV)" },
-              { Value: "AVVLUB - Smøring (kun AVV/HCV/SMV)" },
-              { Value: "ESVAP - Anlægsprioitering (kun ESV)" },
-              { Value: "ESVKUL - Kulplads (kun ESV)" },
-              { Value: "SSVSERVI (kun SSV) - Instrumentgruppe" }
-          )
-      );
-
-      ClearCollect(
-          colVhpSortFieldOptions,
-          Table(
-              { Value: "180 - Ammonia system" },
-              { Value: "160 - Batteries" },
-              { Value: "080 - Boiler Control Category A" },
-              { Value: "090 - Boiler Control Category B" },
-              { Value: "220 - Calibration equipment" },
-              { Value: "130 - Cranes" },
-              { Value: "120 - Elevators / Lifts" },
-              { Value: "170 - Environmental measuring equipment" },
-              { Value: "175 - Environmental statutory tasks" },
-              { Value: "210 - Gas systems" },
-              { Value: "140 - Gates" },
-              { Value: "030 - Hoist and Slings" },
-              { Value: "110 - Ladders" },
-              { Value: "060 - Pipe Control Category B" },
-              { Value: "070 - Pipe Control Category C" },
-              { Value: "010 - Power tools - single insulation" },
-              { Value: "020 - Power tools - double insulation" },
-              { Value: "115 - Regulatory Requirements" },
-              { Value: "100 - Safety equipment" },
-              { Value: "190 - Safety valves" },
-              { Value: "165 - Settlement Measurement Equipment" },
-              { Value: "230 - SKS Sec. 5 (Power production)" },
-              { Value: "235 - SKS Sec. 6 (Installation work)" },
-              { Value: "150 - Ventilation System" },
-              { Value: "040 - Vessel Control Category A" },
-              { Value: "050 - Vessel Control Category B" },
-              { Value: "055 - Vessel Control Category C" },
-              { Value: "240 - Vehicles" },
-              { Value: "200 - Welding equipment" }
-          )
-      );
-
-      ClearCollect(
-          colVhpPriorityOptions,
-          Table(
-              { Value: "1 Rød (Lovpligtige og SCEq)" },
-              { Value: "3 Gul (standard)" },
-              { Value: "6 Lilla (standing order)" },
-              { Value: "(Kun notification) 3 Within a week" },
-              { Value: "(Kun notification) 4 Within a month" }
-          )
-      );
-
-      ClearCollect(
-          colVhpRevisionOptions,
-          Table(
-              { Value: "REV - Generelt revisionsmærke" }
-          )
-      );
-
-      ClearCollect(
-          colVhpActivityTypeOptions,
-          Table(
-              { Value: "ZPRE 101 Maintenance" },
-              { Value: "ZPRE 102 Predetermined Maintenance" },
-              { Value: "ZPRE 110 Statutory inspections (checks)" },
-              { Value: "ZPRE 115 Authority terms" },
-              { Value: "ZPRE 120 Standing order" },
-              { Value: "ZPRE 130 Cleaning" },
-              { Value: "ZPRE 160 Lubrication" },
-              { Value: "Z3 (kun smørenotifikationer)" }
-          )
-      );
-
-      ClearCollect(
-          colVhpCtrlOptions,
-          Table(
-              { Value: "ZB01" },
-              { Value: "PM01" },
-              { Value: "PM02" },
-              { Value: "PM03" }
-          )
-      );
-
-      ClearCollect(
-          colVhpCallHorizonOptions,
-          Table(
-              { Value: "2 Dage (1 WK)" },
-              { Value: "7 Dage (2 WK)" },
-              { Value: "15 Dage (1 MON)" },
-              { Value: "20 Dage (6 WK)" },
-              { Value: "40 Dage (2-4  MON)" },
-              { Value: "45 Dage (6 MON)" },
-              { Value: "50 Dage" },
-              { Value: "55 Dage (1 YR)" },
-              { Value: "60 Dage (2 YR)" },
-              { Value: "65 Dage (3 YR)" },
-              { Value: "70 Dage (4 YR)" },
-              { Value: "80 Dage (5 & 6 YR)" },
-              { Value: "100 Dage (8 YR)" }
-          )
-      );
-
-      ClearCollect(
-          colVhpDocSystemOptions,
-          Table(
-              { Value: "TEKDOC" },
-              { Value: "Way We Work" },
-              { Value: "DECA" },
-              { Value: "URL adresse" },
-              { Value: "Blob storage (BLB)" }
-          )
-      );
-
+      // Appens eget begreb, ikke et SAP-felt.
       ClearCollect(
           colVhpPlanTypeOptions,
           Table(
@@ -194,265 +61,34 @@ App:
           )
       );
 
-      ClearCollect(
-          colVhpStrategies,
-          Table(
-              { Key: "Z-MONTH", Name: "Maanedsbaseret 1/3/6/12", SchedIndicator: "TIME" },
-              { Key: "Z-YEAR", Name: "Aarsbaseret 1/2/5 aar", SchedIndicator: "TIME" },
-              { Key: "Z-WEEK", Name: "Ugebaseret 1/4/13 uger", SchedIndicator: "TIME" },
-              { Key: "Z-RUNH", Name: "Driftstimer 500/2000/8000", SchedIndicator: "PERFORMANCE" }
-          )
-      );
-
-      ClearCollect(
-          colVhpStrategyPackages,
-          Table(
-              { StrategyKey: "Z-MONTH", PackageNo: 1, ShortCode: "M1", CycleLength: 1, CycleUnit: "MON", Hierarchy: 1, PackageText: "Maanedligt tilsyn" },
-              { StrategyKey: "Z-MONTH", PackageNo: 2, ShortCode: "M3", CycleLength: 3, CycleUnit: "MON", Hierarchy: 2, PackageText: "Kvartalsvis eftersyn" },
-              { StrategyKey: "Z-MONTH", PackageNo: 3, ShortCode: "M6", CycleLength: 6, CycleUnit: "MON", Hierarchy: 3, PackageText: "Halvaarligt eftersyn" },
-              { StrategyKey: "Z-MONTH", PackageNo: 4, ShortCode: "M12", CycleLength: 12, CycleUnit: "MON", Hierarchy: 4, PackageText: "Aarligt hovedeftersyn" },
-              { StrategyKey: "Z-YEAR", PackageNo: 1, ShortCode: "Y1", CycleLength: 1, CycleUnit: "YR", Hierarchy: 1, PackageText: "Aarlig inspektion" },
-              { StrategyKey: "Z-YEAR", PackageNo: 2, ShortCode: "Y2", CycleLength: 2, CycleUnit: "YR", Hierarchy: 2, PackageText: "2-aarig gennemgang" },
-              { StrategyKey: "Z-YEAR", PackageNo: 3, ShortCode: "Y5", CycleLength: 5, CycleUnit: "YR", Hierarchy: 3, PackageText: "5-aarigt hovedeftersyn" },
-              { StrategyKey: "Z-WEEK", PackageNo: 1, ShortCode: "W1", CycleLength: 1, CycleUnit: "WK", Hierarchy: 1, PackageText: "Ugentligt runderingstjek" },
-              { StrategyKey: "Z-WEEK", PackageNo: 2, ShortCode: "W4", CycleLength: 4, CycleUnit: "WK", Hierarchy: 2, PackageText: "4-ugers eftersyn" },
-              { StrategyKey: "Z-WEEK", PackageNo: 3, ShortCode: "W13", CycleLength: 13, CycleUnit: "WK", Hierarchy: 3, PackageText: "Kvartalseftersyn" },
-              { StrategyKey: "Z-RUNH", PackageNo: 1, ShortCode: "H500", CycleLength: 500, CycleUnit: "H", Hierarchy: 1, PackageText: "500 driftstimer" },
-              { StrategyKey: "Z-RUNH", PackageNo: 2, ShortCode: "H2000", CycleLength: 2000, CycleUnit: "H", Hierarchy: 2, PackageText: "2000 driftstimer" },
-              { StrategyKey: "Z-RUNH", PackageNo: 3, ShortCode: "H8000", CycleLength: 8000, CycleUnit: "H", Hierarchy: 3, PackageText: "8000 driftstimer - hovedeftersyn" }
-          )
-      );
-
-      ClearCollect(
-          colVhpTasklists,
-          Table(
-              {
-                  Plant: "HCV",
-                  Key: "HCV001-STD",
-                  Name: "Standard task list - HCV001",
-                  Description: "Imported from AVV001 in Tasklist.xlsm",
-                  Operations: Table(
-                  { OperationNo: "0010", OperationShortText: "Timer til tilrettelæggelse", WorkHours: 1, DurationHours: 1, MainWorkCenter: "AVVAP", Vendor: "", LongText: "", ControlKey: "ZB01", OpPlant: "2806" },
-                  { OperationNo: "0020", OperationShortText: "Supervisor timer", WorkHours: 2, DurationHours: 1, MainWorkCenter: "AVVSUP", Vendor: "", LongText: "", ControlKey: "ZB01", OpPlant: "2806" },
-                  { OperationNo: "0030", OperationShortText: "Stillads op:", WorkHours: 1, DurationHours: 1, MainWorkCenter: "AVVXSTIL", Vendor: "", LongText: "", ControlKey: "PM03", OpPlant: "2806" },
-                  { OperationNo: "0040", OperationShortText: "Afisolering:", WorkHours: 1, DurationHours: 1, MainWorkCenter: "AVVXISOL", Vendor: "", LongText: "", ControlKey: "PM03", OpPlant: "2806" },
-                  { OperationNo: "0050", OperationShortText: "Interne timer E-Service", WorkHours: 1, DurationHours: 1, MainWorkCenter: "AVVSERVE", Vendor: "", LongText: "", ControlKey: "PM01", OpPlant: "2806" },
-                  { OperationNo: "0060", OperationShortText: "Interne timer E-Service", WorkHours: 1, DurationHours: 1, MainWorkCenter: "AVVSERVE", Vendor: "", LongText: "", ControlKey: "PM01", OpPlant: "2806" }
-              )
-              },
-              {
-                  Plant: "ASV",
-                  Key: "ASV001-STD",
-                  Name: "Standard task list - ASV001",
-                  Description: "Imported from ASV001 in Tasklist.xlsm",
-                  Operations: Table(
-                  { OperationNo: "0010", OperationShortText: "Timer til tilrettelæggelse", WorkHours: 1, DurationHours: 1, MainWorkCenter: "ASVAP", Vendor: "", LongText: "", ControlKey: "ZB01", OpPlant: "2805" },
-                  { OperationNo: "0020", OperationShortText: "Supervisor timer", WorkHours: 2, DurationHours: 1, MainWorkCenter: "ASVSUP", Vendor: "", LongText: "", ControlKey: "ZB01", OpPlant: "2805" },
-                  { OperationNo: "0030", OperationShortText: "Stillads op:", WorkHours: 1, DurationHours: 1, MainWorkCenter: "ASVXSTIL", Vendor: "", LongText: "", ControlKey: "PM03", OpPlant: "2805" },
-                  { OperationNo: "0040", OperationShortText: "Afisolering:", WorkHours: 1, DurationHours: 1, MainWorkCenter: "ASVXISOL", Vendor: "", LongText: "", ControlKey: "PM03", OpPlant: "2805" },
-                  { OperationNo: "0050", OperationShortText: "Interne timer E-service", WorkHours: 1, DurationHours: 1, MainWorkCenter: "ASVSERVE", Vendor: "", LongText: "", ControlKey: "PM01", OpPlant: "2805" },
-                  { OperationNo: "0060", OperationShortText: "Interne timer E-service", WorkHours: 1, DurationHours: 1, MainWorkCenter: "ASVSERVE", Vendor: "", LongText: "", ControlKey: "PM01", OpPlant: "2805" }
-              )
-              },
-              {
-                  Plant: "KYV",
-                  Key: "KYV001-STD",
-                  Name: "Standard task list - KYV001",
-                  Description: "Imported from KYV001 in Tasklist.xlsm",
-                  Operations: Table(
-                  { OperationNo: "0010", OperationShortText: "Timer til planlægning af opgaven", WorkHours: 1, DurationHours: 1, MainWorkCenter: "KYVAP", Vendor: "", LongText: "", ControlKey: "ZB01", OpPlant: "2808" },
-                  { OperationNo: "0020", OperationShortText: "Supervisor timer", WorkHours: 2, DurationHours: 1, MainWorkCenter: "KYVSUP", Vendor: "", LongText: "", ControlKey: "ZB01", OpPlant: "2808" },
-                  { OperationNo: "0030", OperationShortText: "Stillads op:", WorkHours: 1, DurationHours: 1, MainWorkCenter: "KYVXSTIL", Vendor: "", LongText: "", ControlKey: "PM03", OpPlant: "2808" },
-                  { OperationNo: "0040", OperationShortText: "Afisolering:", WorkHours: 1, DurationHours: 1, MainWorkCenter: "KYVXISOL", Vendor: "", LongText: "", ControlKey: "PM03", OpPlant: "2808" },
-                  { OperationNo: "0050", OperationShortText: "Interne timer E-service", WorkHours: 1, DurationHours: 1, MainWorkCenter: "KYVSERVE", Vendor: "", LongText: "", ControlKey: "PM01", OpPlant: "2808" },
-                  { OperationNo: "0060", OperationShortText: "Elektrikkerydelse:", WorkHours: 1, DurationHours: 1, MainWorkCenter: "KYVXELEK", Vendor: "", LongText: "", ControlKey: "PM03", OpPlant: "2808" }
-              )
-              },
-              {
-                  Plant: "SKV",
-                  Key: "SKV001-STD",
-                  Name: "Standard task list - SKV001",
-                  Description: "Imported from SKV001 in Tasklist.xlsm",
-                  Operations: Table(
-                  { OperationNo: "0010", OperationShortText: "Timer til tilrettelæggelse", WorkHours: 1, DurationHours: 1, MainWorkCenter: "SKVAP", Vendor: "", LongText: "", ControlKey: "ZB01", OpPlant: "2801" },
-                  { OperationNo: "0020", OperationShortText: "Supervisor timer", WorkHours: 2, DurationHours: 1, MainWorkCenter: "SKVSUP", Vendor: "", LongText: "", ControlKey: "ZB01", OpPlant: "2801" },
-                  { OperationNo: "0030", OperationShortText: "Stillads op:", WorkHours: 1, DurationHours: 1, MainWorkCenter: "SKVXSTIL", Vendor: "", LongText: "", ControlKey: "PM03", OpPlant: "2801" },
-                  { OperationNo: "0040", OperationShortText: "Afisolering:", WorkHours: 1, DurationHours: 1, MainWorkCenter: "SKVXISOL", Vendor: "", LongText: "", ControlKey: "PM03", OpPlant: "2801" },
-                  { OperationNo: "0050", OperationShortText: "Interne timer E-service", WorkHours: 1, DurationHours: 1, MainWorkCenter: "SKVSERVE", Vendor: "", LongText: "", ControlKey: "PM01", OpPlant: "2801" },
-                  { OperationNo: "0060", OperationShortText: "Interne timer E-service", WorkHours: 1, DurationHours: 1, MainWorkCenter: "SKVSERVE", Vendor: "", LongText: "", ControlKey: "PM01", OpPlant: "2801" }
-              )
-              },
-              {
-                  Plant: "SMV",
-                  Key: "SMV001-STD",
-                  Name: "Standard task list - SMV001",
-                  Description: "Imported from AVV001 in Tasklist.xlsm",
-                  Operations: Table(
-                  { OperationNo: "0010", OperationShortText: "Timer til tilrettelæggelse", WorkHours: 1, DurationHours: 1, MainWorkCenter: "AVVAP", Vendor: "", LongText: "", ControlKey: "ZB01", OpPlant: "2806" },
-                  { OperationNo: "0020", OperationShortText: "Supervisor timer", WorkHours: 2, DurationHours: 1, MainWorkCenter: "AVVSUP", Vendor: "", LongText: "", ControlKey: "ZB01", OpPlant: "2806" },
-                  { OperationNo: "0030", OperationShortText: "Stillads op:", WorkHours: 1, DurationHours: 1, MainWorkCenter: "AVVXSTIL", Vendor: "", LongText: "", ControlKey: "PM03", OpPlant: "2806" },
-                  { OperationNo: "0040", OperationShortText: "Afisolering:", WorkHours: 1, DurationHours: 1, MainWorkCenter: "AVVXISOL", Vendor: "", LongText: "", ControlKey: "PM03", OpPlant: "2806" },
-                  { OperationNo: "0050", OperationShortText: "Interne timer E-Service", WorkHours: 1, DurationHours: 1, MainWorkCenter: "AVVSERVE", Vendor: "", LongText: "", ControlKey: "PM01", OpPlant: "2806" },
-                  { OperationNo: "0060", OperationShortText: "Interne timer E-Service", WorkHours: 1, DurationHours: 1, MainWorkCenter: "AVVSERVE", Vendor: "", LongText: "", ControlKey: "PM01", OpPlant: "2806" }
-              )
-              },
-              {
-                  Plant: "SSV",
-                  Key: "SSV001-STD",
-                  Name: "Standard task list - SSV001",
-                  Description: "Imported from SSV001 in Tasklist.xlsm",
-                  Operations: Table(
-                  { OperationNo: "0010", OperationShortText: "Timer til tilrettelæggelse", WorkHours: 0, DurationHours: 1, MainWorkCenter: "SSVAP", Vendor: "", LongText: "", ControlKey: "PM01", OpPlant: "2804" },
-                  { OperationNo: "0020", OperationShortText: "Supervisor timer", WorkHours: 0, DurationHours: 1, MainWorkCenter: "SSVSUP", Vendor: "", LongText: "", ControlKey: "ZB01", OpPlant: "2804" },
-                  { OperationNo: "0030", OperationShortText: "Stillads op:", WorkHours: 0, DurationHours: 1, MainWorkCenter: "SSVXSTIL", Vendor: "", LongText: "", ControlKey: "PM03", OpPlant: "2804" },
-                  { OperationNo: "0040", OperationShortText: "Afisolering:", WorkHours: 0, DurationHours: 1, MainWorkCenter: "SSVXISOL", Vendor: "", LongText: "", ControlKey: "PM03", OpPlant: "2804" },
-                  { OperationNo: "0050", OperationShortText: "Interne timer E-service", WorkHours: 0, DurationHours: 1, MainWorkCenter: "SSVSERVE", Vendor: "", LongText: "", ControlKey: "PM01", OpPlant: "2804" },
-                  { OperationNo: "0060", OperationShortText: "Interne timer E-service", WorkHours: 0, DurationHours: 1, MainWorkCenter: "SSVSERVE", Vendor: "", LongText: "", ControlKey: "PM01", OpPlant: "2804" }
-              )
-              },
-              {
-                  Plant: "HEV",
-                  Key: "HEV001-STD",
-                  Name: "Standard task list - HEV001",
-                  Description: "Imported from HEV001 in Tasklist.xlsm",
-                  Operations: Table(
-                  { OperationNo: "0010", OperationShortText: "Timer til tilrettelæggelse", WorkHours: 1, DurationHours: 1, MainWorkCenter: "HEVSUP", Vendor: "", LongText: "", ControlKey: "ZB01", OpPlant: "2810" },
-                  { OperationNo: "0020", OperationShortText: "Supervisor timer", WorkHours: 2, DurationHours: 1, MainWorkCenter: "HEVSUP", Vendor: "", LongText: "", ControlKey: "ZB01", OpPlant: "2810" },
-                  { OperationNo: "0030", OperationShortText: "Stillads op:", WorkHours: 1, DurationHours: 1, MainWorkCenter: "HEVXSTIL", Vendor: "", LongText: "", ControlKey: "PM03", OpPlant: "2810" },
-                  { OperationNo: "0040", OperationShortText: "Afisolering:", WorkHours: 1, DurationHours: 1, MainWorkCenter: "HEVXISOL", Vendor: "", LongText: "", ControlKey: "PM03", OpPlant: "2810" },
-                  { OperationNo: "0050", OperationShortText: "Interne timer E-Service", WorkHours: 1, DurationHours: 1, MainWorkCenter: "HEVSERVE", Vendor: "", LongText: "", ControlKey: "PM01", OpPlant: "2810" },
-                  { OperationNo: "0060", OperationShortText: "Interne timer E-Service", WorkHours: 1, DurationHours: 1, MainWorkCenter: "HEVSERVE", Vendor: "", LongText: "", ControlKey: "PM01", OpPlant: "2810" }
-              )
-              },
-              {
-                  Plant: "AVV",
-                  Key: "AVV001-STD",
-                  Name: "Standard task list - AVV001",
-                  Description: "Imported from AVV001 in Tasklist.xlsm",
-                  Operations: Table(
-                  { OperationNo: "0010", OperationShortText: "Timer til tilrettelæggelse", WorkHours: 1, DurationHours: 1, MainWorkCenter: "AVVAP", Vendor: "", LongText: "", ControlKey: "ZB01", OpPlant: "2806" },
-                  { OperationNo: "0020", OperationShortText: "Supervisor timer", WorkHours: 2, DurationHours: 1, MainWorkCenter: "AVVSUP", Vendor: "", LongText: "", ControlKey: "ZB01", OpPlant: "2806" },
-                  { OperationNo: "0030", OperationShortText: "Stillads op:", WorkHours: 1, DurationHours: 1, MainWorkCenter: "AVVXSTIL", Vendor: "", LongText: "", ControlKey: "PM03", OpPlant: "2806" },
-                  { OperationNo: "0040", OperationShortText: "Afisolering:", WorkHours: 1, DurationHours: 1, MainWorkCenter: "AVVXISOL", Vendor: "", LongText: "", ControlKey: "PM03", OpPlant: "2806" },
-                  { OperationNo: "0050", OperationShortText: "Interne timer E-Service", WorkHours: 1, DurationHours: 1, MainWorkCenter: "AVVSERVE", Vendor: "", LongText: "", ControlKey: "PM01", OpPlant: "2806" },
-                  { OperationNo: "0060", OperationShortText: "Interne timer E-Service", WorkHours: 1, DurationHours: 1, MainWorkCenter: "AVVSERVE", Vendor: "", LongText: "", ControlKey: "PM01", OpPlant: "2806" }
-              )
-              }
-          )
-      );
-
-      ClearCollect(
-          colVhpPlantCodes,
-          Table(
-              { Value: "SSV" },
-              { Value: "SKV" },
-              { Value: "HEV" },
-              { Value: "HCV" },
-              { Value: "ASV" },
-              { Value: "AVV" },
-              { Value: "KYV" },
-              { Value: "STV" },
-              { Value: "SMV" }
-          )
-      );
-
-      ClearCollect(
-          colVhpFunctionalLocations,
-          Table(
-              { Code: "SSV10 KAB10AP001", Description: "Ball bearing house, pump area", Plant: "SSV" },
-              { Code: "SKV21 HAD20AA001", Description: "Gasket area, feedwater system", Plant: "SKV" },
-              { Code: "HEV31 LAB10AA010", Description: "Servo motor drive unit", Plant: "HEV" },
-              { Code: "HCV12 CAB05AA002", Description: "Cooling water pump", Plant: "HCV" },
-              { Code: "ASV20 FAB08AA003", Description: "Ash handling conveyor", Plant: "ASV" },
-              { Code: "AVV15 KAB12AA004", Description: "Flue gas fan", Plant: "AVV" },
-              { Code: "KYV18 PAB09AA005", Description: "Boiler feed pump", Plant: "KYV" },
-              { Code: "SMV22 TAB07AA006", Description: "Turbine lube oil system", Plant: "SMV" }
-          )
-      );
-
-      ClearCollect(
-          colVhpItems,
-          Table(
-              {
-                  ItemId: 1,
-                  ShortText: "SSV aarligt eftersyn - KAB10AP001",
-                  FunctionalLocation: "SSV10 KAB10AP001",
-                  FlDescription: "Ball bearing house, pump area",
-                  MainWorkCenter: "*PROD - Produktion",
-                  ActivityType: "ZPRE 101 Maintenance",
-                  ObjectList: "",
-                  Revision: "REV - Generelt revisionsmaerke",
-                  OrstedResponsible: "",
-                  Initials: "",
-                  LongText: "",
-                  TasklistKey: "SSV001-STD",
-                  TasklistName: "Standard task list - SSV001",
-                  Status: "valid"
-              },
-              {
-                  ItemId: 2,
-                  ShortText: "HEV smoering - LAB10AA010",
-                  FunctionalLocation: "HEV31 LAB10AA010",
-                  FlDescription: "Servo motor drive unit",
-                  MainWorkCenter: "*SERVE - Maintenance Execution",
-                  ActivityType: "ZPRE 160 Lubrication",
-                  ObjectList: "",
-                  Revision: "",
-                  OrstedResponsible: "",
-                  Initials: "",
-                  LongText: "",
-                  TasklistKey: "",
-                  TasklistName: "",
-                  Status: "draft"
-              }
-          )
-      );
-
-      ClearCollect(
-          colVhpOperations,
-          Table(
-              { ItemId: 1, OperationNo: "0010", OperationShortText: "Timer til tilrettelaeggelse", WorkHours: 1, DurationHours: 1, MainWorkCenter: "SSVAP", Vendor: "", LongText: "", PackagesKey: ";", Selected: false },
-              { ItemId: 1, OperationNo: "0020", OperationShortText: "Supervisor timer", WorkHours: 2, DurationHours: 1, MainWorkCenter: "SSVSUP", Vendor: "", LongText: "", PackagesKey: ";", Selected: false },
-              { ItemId: 1, OperationNo: "0030", OperationShortText: "Interne timer E-Service", WorkHours: 3, DurationHours: 2, MainWorkCenter: "SSVSERVE", Vendor: "", LongText: "", PackagesKey: ";", Selected: false },
-              { ItemId: 1, OperationNo: "0040", OperationShortText: "Smoering af lejer", WorkHours: 1, DurationHours: 1, MainWorkCenter: "SSVSERVI", Vendor: "", LongText: "", PackagesKey: ";", Selected: false }
-          )
-      );
-
-      ClearCollect(colVhpPickerSelected, { OperationNo: "" });
-      Clear(colVhpPickerSelected);
-
-      ClearCollect(colVhpFlSearch, { Code: "", Description: "", Display: "", Maintainable: false, Level: "" });
-      Clear(colVhpFlSearch);
-      ClearCollect(colVhpItemObjects, { ItemId: 0, Code: "", Description: "" });
-      Clear(colVhpItemObjects);
-
       Set(
           varVhpPlan,
           {
-              Plant: "SSV",
-              Status: "Ny",
+              Plant: "",
+              Status: "",
               PlanType: "SingleCycle",
               Strategy: "",
-              PlanText: "SSV Aarlig Rundering",
-              SortField: "080 - Boiler Control Category A",
-              Cycle: 12,
-              Unit: "MON",
-              CallHorizon: "55 Dage (1 YR)",
+              PlanText: "",
+              SortField: "",
+              Cycle: 0,
+              Unit: "",
+              CallHorizon: "",
               SchedulingIndicator: "",
-              FirstCallDay: 1,
-              FirstCallMonth: 1,
-              FirstCallYear: 2027,
+              FirstCallDay: Day(Today()),
+              FirstCallMonth: Month(Today()),
+              FirstCallYear: Year(Today()) + 1,
               StatutorySortField: ""
           }
       );
-      Set(varVhpPlanCommitted, true);
-      Set(varVhpPlanLocked, true);
-      Set(varVhpPlanCreatedAt, Now());
+
+      Set(varVhpPlanCommitted, false);
+      Set(varVhpPlanLocked, false);
+      Set(varVhpPlanCreatedAt, Blank());
       Set(varVhpPlanValidated, false);
       Set(varVhpItemValidated, false);
-      Set(varVhpActiveItemId, 1);
-      Set(varVhpNextItemId, 3);
-      Set(varVhpRuntimeInfo, "Ready. Demo plan SSV Aarlig Rundering loaded with 2 items. Skift Plan Type til Strategiplan for at bruge pakker.");
+      Set(varVhpActiveItemId, 0);
+      Set(varVhpNextItemId, 1);
+      Set(varVhpRuntimeInfo, "");
       Set(varVhpFlMeta, "");
       Set(varVhpFlLastSearch, "");
       Set(varVhpLastValidationErrors, "");

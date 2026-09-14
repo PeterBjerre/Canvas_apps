@@ -76,6 +76,7 @@ nævner kontrollen.
 
 | Builder | Ejer |
 |---|---|
+| `sp_config.py` | **Datakilde-kontrakten**: hvilke SharePoint-lister og kolonner appen læser. Ret HER, ikke i formlerne |
 | `gen_screen.py` | Kontroltræ-DSL, stylingkonstanter, **højde-algebra** (`stack_height`, `row_height`) |
 | `build_helpers.py` | Byggeklodser: `card`, `group`, `field_cell`, `button_row`, inputs, `combobox` |
 | `build_hero.py` | Hero, procesindikator, **Validate** og **Export JSON** |
@@ -86,7 +87,7 @@ nævner kontrollen.
 | `build_strategy.py` | Pakkematricen (strategiplaner) |
 | `build_modal.py` | Tasklist-picker |
 | `assemble_screen.py` | Samler skærmen → `../ScreenVhPlan.pa.yaml` |
-| `generate_app_onstart.py` | `App.OnStart` → `../App.pa.yaml` |
+| `generate_app_onstart.py` | `App.Formulas` + `App.OnStart` → `../App.pa.yaml` |
 
 Disse fem er **historiske og bruges ikke**: `build_diag_screen.py`,
 `build_vhplan_screen.py`, `gen_options.py`, `gen_tasklists.py`,
@@ -132,9 +133,14 @@ operationer:
 5. HTML-tabeloverskrifter flugter med kontrollerne i rækken
 6. Balancerede parenteser og anførselstegn i alle formler
 7. Ingen formel refererer en kontrol, der ikke findes
+8. Enhver `col*`, skærmen bruger, findes i `App.pa.yaml` — som navngiven
+   formel eller som `ClearCollect`
 
 Punkt 7 fanger den klassiske: du sletter en kontrol og glemmer en
 `Reset()` på den et andet sted. Det ville ellers først vælte i compile.
+
+Punkt 8 fanger den samme fejl for data: flytter du en opslagsliste fra en
+hårdkodet tabel til en navngiven formel, bliver referencerne let hængende.
 
 Et barn med `Visible = false` regnes ikke med i højden — præcis som
 AutoLayout gør det. Kun det *litterale* `false`; en `Visible`-formel kan jo
@@ -192,7 +198,12 @@ egenskaber, builderne bevidst sætter.
    `Classic/ComboBox` til søg-og-vælg, gallery med `ModernCheckbox`, vandret
    gallery til dynamiske kolonner. Hver ubevist konstruktion i dette projekt
    har kostet en deploy-runde.
-5. **Padding tælles med i højden.** Det gør `stack_height()` automatisk —
+5. **Ingen datahentning i `App.OnStart`.** Opslagslister bindes med
+   **navngivne formler** (`App.Formulas`), som evalueres dovent og caches.
+   `OnStart` betales af hver bruger hver gang; en navngiven formel gør ikke.
+   Kun samlinger, appen **skriver** til, hører hjemme i `OnStart` — og der
+   kun som tomt skema.
+6. **Padding tælles med i højden.** Det gør `stack_height()` automatisk —
    omgå den ikke ved at sætte `height=` manuelt på et kort.
 
 ### Hvorfor `Classic/ComboBox` og ikke `ModernCombobox`

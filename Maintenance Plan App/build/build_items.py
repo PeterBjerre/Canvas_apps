@@ -297,8 +297,19 @@ def build_item_editor():
                     direction="Vertical", gap=6, width=col_width(EDITOR_CW, EDITOR_COLS),
                     fill_portions="If(App.Width < 1024, 0, 1)")
 
-    drpMwc = dropdown("drpVhpItemMainWorkCenter", "colVhpMainWorkCenterItemOptions",
-                      "LookUp(colVhpMainWorkCenterItemOptions, Value = LookUp(colVhpItems, ItemId = varVhpActiveItemId).MainWorkCenter)",
+    # 53 arbejdscentre for hele afdelingen, men kun en haandfuld hoerer til
+    # det valgte vaerk. Er der ikke valgt vaerk endnu, vises de alle - en tom
+    # dropdown uden forklaring er vaerre end en lang.
+    MWC_ITEMS = ("Sort(\n"
+                 "    If(\n"
+                 "        IsBlank(varVhpPlan.Plant),\n"
+                 "        colVhpMainWorkCenters,\n"
+                 "        Filter(colVhpMainWorkCenters, Plant = varVhpPlan.Plant)\n"
+                 "    ),\n"
+                 "    Value\n"
+                 ")")
+    drpMwc = dropdown("drpVhpItemMainWorkCenter", MWC_ITEMS,
+                      "LookUp(colVhpMainWorkCenters, Value = LookUp(colVhpItems, ItemId = varVhpActiveItemId).MainWorkCenter)",
                       required_formula=REQ_ITEM, display_mode=DM_ITEM)
     drpAct = dropdown("drpVhpItemActivityType", "colVhpActivityTypeOptions",
                       "LookUp(colVhpActivityTypeOptions, Value = LookUp(colVhpItems, ItemId = varVhpActiveItemId).ActivityType)",

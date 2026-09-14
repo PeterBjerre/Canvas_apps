@@ -70,7 +70,7 @@ def build_plan_header():
     drpStrategy = dropdown(
         "drpVhpStrategy", "colVhpStrategies",
         "LookUp(colVhpStrategies, Key = varVhpPlan.Strategy)",
-        item_display="ThisItem.Key & \" - \" & ThisItem.Name",
+        item_display="ThisItem.Display",
         required_formula=f"(varVhpPlanValidated && {LIVE_IS_STRATEGY})",
         display_mode=f"If(varVhpPlanLocked || {LIVE_NOT_STRATEGY}, DisplayMode.Disabled, DisplayMode.Edit)",
         value_field="Key")
@@ -141,9 +141,21 @@ def build_plan_header():
         "txtVhpPlanMeta",
         "If(varVhpPlanCommitted, \"Plan created \" & Text(varVhpPlanCreatedAt, \"dd-mm-yyyy hh:mm\"), \"\")",
         size=12, color=C_MUTED, height=18, wrap="false")
+    # Hvad der faktisk er hentet. Tallene taelles paa de navngivne formler,
+    # saa de er rigtige i stedet for en haardkodet paastand om "14 option lists".
+    # Antallet af strategier UDEN pakker naevnes eksplicit - ellers ser en kort
+    # strategiliste ud som en fejl i stedet for som en mangel i masterdata.
     optionsState = text_ctrl(
         "txtVhpPlanOptionsState",
-        "\"Reference lists loaded: 14 option lists, \" & Text(CountRows(colVhpTasklists)) & \" tasklists, \" & Text(CountRows(colVhpStrategies)) & \" strategies, \" & Text(CountRows(colVhpFunctionalLocations)) & \" functional locations (offline data).\"",
+        (
+            "\"Data: \" & Text(CountRows(colVhpTasklists)) & \" standardarbejdsplaner, \" &\n"
+            "Text(CountRows(colVhpStrategies)) & \" strategier\" &\n"
+            "With(\n"
+            "    { mangler: CountRows(Filter(colVhpStrategies, !PackagesLoaded)) },\n"
+            "    If(mangler > 0, \" (\" & Text(mangler) & \" uden pakker)\", \"\")\n"
+            ") & \", \" &\n"
+            "Text(CountRows(colVhpMainWorkCenters)) & \" arbejdscentre.\""
+        ),
         size=12, color=C_MUTED, height=18, wrap="true")
     footerInfo = group("conVhpPlanFooterInfo", [planMeta, optionsState], direction="Vertical", gap=2, height=40,
                        fill_portions=1)
