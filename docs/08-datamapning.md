@@ -95,19 +95,58 @@ Disse afgør, om datamodellen skal laves om eller bare kobles på:
 
 ## 6. Hvad der skal til for at svare
 
-```powershell
-cd sharepoint\inspect
-.\Export-ListSchema.ps1 -SiteUrl "https://<tenant>.sharepoint.com/sites/<site>"
+Der er to veje. **Brug browser-vejen** — den kræver ingen tilladelser du ikke
+allerede har.
+
+### A. Browseren (anbefalet, ingen opsætning)
+
+SharePoints REST API gennem din egen indloggede session. Ingen app, intet
+token, ingen IT-sag. Du kan præcis det, du kan i forvejen som bruger.
+
+1. Åbn sitet i Edge eller Chrome og log ind.
+2. F12 → fanen **Console**. Advarer den mod indsat kode, så skriv
+   `allow pasting` og tryk Enter først.
+3. Indsæt hele `sharepoint/inspect/browser-extract.js` og tryk Enter.
+4. `sharepoint-schema.json` hentes til Downloads.
+5. Læg den i `sharepoint/inspect/out/`, og kør:
+
+```bash
+python3 tools/schema_to_md.py sharepoint/inspect/out/sharepoint-schema.json
 ```
 
-Scriptet læser kun. Det skriver `out/schema.json`, `out/schema.md` og
-`out/sample-<liste>.json` med de første 8 rækker pr. liste. Commit `out/` og
-push — så kan mapningen laves felt for felt i stedet for at gætte.
+Sæt `SAMPLE_ROWS = 0` øverst i filen, hvis der ikke må komme data med.
 
-Må dataene ikke forlade sitet, så kør med `-NoData` først. Strukturen alene
-er nok til spørgsmål 2, 4, 5 og 6; prøverækkerne er kun nødvendige for at se
-**formen** på værdierne — står der `SSVAP` eller `*PROD - Produktion` i et
-arbejdscenter, og er `CallHorizon` en tekst eller et tal?
+### B. PnP PowerShell (kræver en app-registrering)
+
+`sharepoint/inspect/Export-ListSchema.ps1` gør det samme fra PowerShell.
+**Men** PnP.PowerShell 2.x har ikke længere en fælles app-registrering, så
+`Connect-PnPOnline -Interactive` kræver et `ClientId` fra en Entra-app i
+jeres egen tenant:
+
+```powershell
+.\Export-ListSchema.ps1 -SiteUrl "https://..." -ClientId "<app id>"
+# eller sæt miljøvariablen PNP_CLIENT_ID én gang
+```
+
+Har I ingen app, kan den registreres — men det kræver rollen *Application
+Developer* eller højere i Entra:
+
+```powershell
+Register-PnPEntraIDAppForInteractiveLogin `
+    -ApplicationName "PnP Masterdata" -Tenant <tenant>.onmicrosoft.com -Interactive
+```
+
+### Hvorfor B alligevel er værd at få på plads
+
+Browser-vejen kan **læse**. Den kan ikke oprette lister. Så snart
+datamodellen skal ændres, skal provisioneringsscripterne kunne skrive — og
+så er der ingen vej uden om en app-registrering eller en anden aftale med IT.
+
+Det I skal bede om, er en **Entra app-registrering** med delegerede
+tilladelser til SharePoint (`AllSites.FullControl` er det PnP bruger;
+`AllSites.Manage` rækker til at oprette og ændre lister). Delegeret betyder,
+at appen kun kan det, den indloggede bruger kan — den giver ikke adgang til
+noget nyt, den gør bare PowerShell i stand til at logge ind som jer.
 
 ## 7. Migrering
 
