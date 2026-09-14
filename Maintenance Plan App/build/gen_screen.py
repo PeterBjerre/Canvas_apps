@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Kontroltrae-DSL og serialisering til .pa.yaml (Power Apps canvas, VH-plan).
+Kontroltrae-DSL og serialisering til .pa.yaml (Power Apps canvas).
+
+Filen er ordret ens i alle apps i repoet. Retter du her, skal du kopiere
+den til de oevrige build-mapper - se .github/skills/canvas-build/SKILL.md.
 
 HOEJDEMODELLEN
 --------------

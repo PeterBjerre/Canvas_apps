@@ -10,6 +10,13 @@ Se docs/07-landingsside.md.
 # Navnet paa listen som den hedder, naar den er tilfoejet appen som datakilde.
 LIST = "MD_RequestIndex"
 
+# Power Fx binder SharePoint-kolonner paa VISNINGSNAVN, ikke internt navn.
+# Provisioneringsscriptet doeber den indbyggede Title-kolonne om til
+# "RequestNo", saa listen er laesbar for dem der aabner den direkte - og
+# derfor skal appen ogsaa kalde den RequestNo. Aendrer du navnet i
+# Provision-RequestIndex.ps1, skal det aendres her samtidig.
+COL_NO = "RequestNo"
+
 # ---------------------------------------------------------------------------
 # De fem domaener.
 #

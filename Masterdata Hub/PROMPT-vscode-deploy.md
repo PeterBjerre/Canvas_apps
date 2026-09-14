@@ -26,8 +26,16 @@ først og læs `Masterdata Hub/README.md`.
 Appen har **én** datakilde: SharePoint-listen `MD_RequestIndex`.
 `compile_canvas` fejler på et ukendt navn, hvis den ikke er tilføjet appen.
 
-1. Kør `sharepoint/provision/Provision-RequestIndex.ps1` mod SharePoint-sitet
-   (bed brugeren om URL'en).
+1. Kør provisioneringsscriptet mod SharePoint-sitet (bed brugeren om URL'en):
+
+   ```powershell
+   Install-Module PnP.PowerShell -Scope CurrentUser     # kun første gang
+   cd sharepoint\provision
+   .\Provision-RequestIndex.ps1 -SiteUrl "https://<tenant>.sharepoint.com/sites/<site>" -AddSampleRows
+   ```
+
+   `-AddSampleRows` lægger fire rækker ind på den kørende brugers e-mail, så
+   appen kan åbnes med det samme. Scriptet er idempotent.
 2. Bed brugeren oprette en tom canvas app i solution BIO SAP og tilføje
    `MD_RequestIndex` som datakilde.
 3. Få `app_id` på den nye app.
@@ -36,10 +44,13 @@ Gå ikke videre, før begge dele er bekræftet.
 
 ## Trin 1 — testdata
 
-Uden rækker kan intet verificeres. Opret 15–20 rækker i `MD_RequestIndex`
+De fire prøverækker fra trin 0 er nok til at appen kan åbnes, men ikke til at
+teste filtrene. Opret i alt 15–20 rækker i `MD_RequestIndex`
 fordelt på alle fem `Domain`-værdier og på mindst fem forskellige
 `Status`-værdier. Husk:
 
+- `RequestNo` (kolonnen hedder `Title` internt) er indmeldingsnummeret, fx
+  `VHP-000101`.
 - `RequesterEmail` skal være **brugerens egen e-mail i småt** på cirka
   halvdelen, så "Mine indmeldinger" ikke er tom.
 - `IsOpen` skal være `true` for alt undtagen `OprettetISAP`, `Afvist` og
@@ -54,10 +65,12 @@ fordelt på alle fem `Domain`-værdier og på mindst fem forskellige
 
 ```bash
 cd "Masterdata Hub/build"
-python3 generate_hub_onstart.py
-python3 assemble_hub.py
-python3 ../../shared/canvas/check_layout.py ../ScreenMdHub.pa.yaml   # skal være grøn
+python3 generate_hub_onstart.py   # -> ../App.pa.yaml
+python3 assemble_hub.py           # -> ../ScreenMdHub.pa.yaml
+python3 check_layout.py           # skal være grøn
 ```
+
+Eller begge apps på én gang fra repo-roden: `python3 tools/build_all.py`.
 
 Derefter, med `directoryPath` = den lokale sti til mappen `Masterdata Hub`:
 
@@ -105,7 +118,9 @@ Ingen automatiserede browsertests. Kør listen og rapportér hvert punkt.
    knappen skifter til "Vis alle". Klik igen → filteret ryddes.
 7. Statuschips: Åbne / Afsluttede / Alle ændrer listen korrekt.
 8. Søgefeltet: skriv de første tegn af et nummer, en tekst og et værk —
-   alle tre skal give hit.
+   alle tre skal give hit. Giver **nummersøgningen** en compile-fejl om en
+   ukendt kolonne, er `Title` ikke blevet omdøbt til `RequestNo` i
+   SharePoint — kør provisioneringsscriptet igen.
 9. Fliserne for FL, Udstyr, Målepunkt og Materiale skal vise **"Kommer snart"**
    og være deaktiverede. Kun VH-plan har "Opret ny".
 10. "Opret ny" på VH-plan-flisen åbner VH-plan-appen i en **ny fane**.
@@ -121,7 +136,9 @@ Ingen automatiserede browsertests. Kør listen og rapportér hvert punkt.
 - Opstartstid i sekunder.
 - Præcis hvad delegationsadvarslerne siger på punkt 3 og 4.
 - Punkt for punkt hvad der er grønt, og hvad der fejlede.
-- `app_id` på den nye app, så den kan skrives ind i dokumentationen.
+- `app_id` på den nye app. Skriv den ind i tabellen under "Synkronisér til
+  Studio" i `.github/skills/canvas-build/SKILL.md`, hvor den står som
+  *(udfyldes når appen er oprettet i Studio)*.
 
 Commit og push kun til `claude/vh-plans-strategy-packages-lu8w70`. Opret ikke
 en pull request.

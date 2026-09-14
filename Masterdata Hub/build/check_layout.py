@@ -24,13 +24,30 @@ Tjekket foretager fire kontroller:
 
 Hoejdeudtrykkene evalueres for flere skaermbredder og datamaengder.
 
+    python3 check_layout.py            # finder skaermen selv
     python3 check_layout.py ../ScreenVhPlan.pa.yaml
 """
 import os, re, sys, yaml
 
-# Kaldes med stien til den .pa.yaml der skal efterregnes:
-#     python3 check_layout.py ../ScreenVhPlan.pa.yaml
-SCREEN = sys.argv[1] if len(sys.argv) > 1 else None
+HERE = os.path.dirname(os.path.abspath(__file__))
+
+# Skaermen findes af sig selv, saa denne fil er ordret ens i alle apps i
+# repoet (se .github/skills/canvas-build/SKILL.md). Er der mere end een
+# skaerm, angives den paa kommandolinjen.
+def _find_screen():
+    if len(sys.argv) > 1:
+        return sys.argv[1]
+    app_dir = os.path.join(HERE, "..")
+    found = sorted(f for f in os.listdir(app_dir)
+                   if f.startswith("Screen") and f.endswith(".pa.yaml"))
+    if len(found) == 1:
+        return os.path.join(app_dir, found[0])
+    raise SystemExit(
+        "Angiv skaermen: python3 check_layout.py ../<Screen>.pa.yaml\n"
+        "Fundet: " + (", ".join(found) or "ingen"))
+
+
+SCREEN = _find_screen()
 
 WIDTHS = [420, 640, 900, 1024, 1366, 1920]
 ITEM_COUNTS = [0, 1, 3, 8]
@@ -99,9 +116,6 @@ def collect(nodes, path="", out=None):
 
 
 def main():
-    if not SCREEN:
-        print("Brug: python3 check_layout.py <sti til .pa.yaml>")
-        return 2
     doc = yaml.safe_load(open(SCREEN, encoding="utf-8"))
     screen = list(doc["Screens"].values())[0]
     all_nodes = collect(screen["Children"])
@@ -123,6 +137,18 @@ def main():
         gap = float(re.sub(r"[^0-9.]", "", props.get("LayoutGap", "=8")) or 8)
         pt = float(re.sub(r"[^0-9.]", "", props.get("PaddingTop", "=0")) or 0)
         pb = float(re.sub(r"[^0-9.]", "", props.get("PaddingBottom", "=0")) or 0)
+
+        # Et barn med Visible = false udelades af AutoLayout - det fylder
+        # hverken hoejde eller gap. Det skal taelles paa samme maade her, som
+        # gen_screen.stack_height goer, ellers ville en skjult hjaelpekontrol
+        # (fx den usynlige soege-timer) blive rapporteret som overloeb.
+        # Kun det LITTERALE "false" springes over; en Visible-FORMEL kan jo
+        # vaere sand, og saa skal pladsen vaere der.
+        kids = [k for k in kids
+                if ((list(k.values())[0].get("Properties") or {})
+                    .get("Visible", "").strip() not in ("=false", "= false"))]
+        if not kids:
+            continue
 
         for w in WIDTHS:
             for ni in ITEM_COUNTS:

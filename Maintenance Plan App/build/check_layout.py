@@ -24,12 +24,30 @@ Tjekket foretager fire kontroller:
 
 Hoejdeudtrykkene evalueres for flere skaermbredder og datamaengder.
 
-    python3 check_layout.py
+    python3 check_layout.py            # finder skaermen selv
+    python3 check_layout.py ../ScreenVhPlan.pa.yaml
 """
 import os, re, sys, yaml
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SCREEN = os.path.join(HERE, "..", "ScreenVhPlan.pa.yaml")
+
+# Skaermen findes af sig selv, saa denne fil er ordret ens i alle apps i
+# repoet (se .github/skills/canvas-build/SKILL.md). Er der mere end een
+# skaerm, angives den paa kommandolinjen.
+def _find_screen():
+    if len(sys.argv) > 1:
+        return sys.argv[1]
+    app_dir = os.path.join(HERE, "..")
+    found = sorted(f for f in os.listdir(app_dir)
+                   if f.startswith("Screen") and f.endswith(".pa.yaml"))
+    if len(found) == 1:
+        return os.path.join(app_dir, found[0])
+    raise SystemExit(
+        "Angiv skaermen: python3 check_layout.py ../<Screen>.pa.yaml\n"
+        "Fundet: " + (", ".join(found) or "ingen"))
+
+
+SCREEN = _find_screen()
 
 WIDTHS = [420, 640, 900, 1024, 1366, 1920]
 ITEM_COUNTS = [0, 1, 3, 8]

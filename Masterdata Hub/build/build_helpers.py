@@ -9,13 +9,13 @@ YAML'en refererer andre kontrollers .Height. Se gen_screen.stack_height.
 """
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from canvas_dsl import (
+from gen_screen import (
     Ctrl, render, render_screen, stack_height, row_height,
     C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED,
     C_PRIMARY, C_PRIMARY2, C_WHITE, C_TRANSPARENT, C_INPUT_BG, C_DISABLED_BG,
     C_DIVIDER, C_VALID_FG, C_VALID_BG, C_INVALID_FG, C_INVALID_BG,
     C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, FONT,
-    SHELL_W,
+    SHELL_W, EDITOR_W, RAIL_W, SPLIT_GAP, OUT_DIR,
 )
 
 # Braekpunkt hvor et to-kolonne-felt stables lodret.
@@ -268,6 +268,81 @@ def dropdown(name, items, default, item_display="ThisItem.Value", required_formu
     return Ctrl(name, "ModernDropdown", props=props, h=height)
 
 
+def combobox(name, items, display_field="Display", multi=False, default_items=None,
+             placeholder="\"Soeg\"", required_formula="false", width="Parent.Width",
+             height=40, display_mode=None, onchange=None):
+    """Soegefelt og valgliste i EEN kontrol.
+
+    Classic/ComboBox har indbygget soegefelt (IsSearchable), saa brugeren
+    skriver og vaelger i det samme felt. Derfor er der hverken en separat
+    soegeknap eller en separat dropdown ved siden af.
+
+    Der bruges Classic/ComboBox og ikke ModernCombobox, fordi det er den
+    variant der eksponerer SearchText som output-egenskab. Uden SearchText
+    kan timeren ikke se, hvad brugeren har skrevet, og saa er hele
+    soege-mens-du-skriver-moenstret ikke muligt.
+
+    Valideringen maaler paa SelectedItems og ikke paa Selected, saa den
+    ogsaa virker for multi-select."""
+    sel_test = ("CountRows(Self.SelectedItems) = 0" if multi
+                else f"IsBlank(Self.Selected.{display_field})")
+    props = {
+        "AccessibleLabel": f"\"{name}\"",
+        "BorderColor": f"If({required_formula} && {sel_test}, {C_REQUIRED}, {C_CARD_BORDER})",
+        "BorderStyle": "BorderStyle.Solid",
+        "BorderThickness": "1",
+        "ChevronBackground": C_PRIMARY,
+        "ChevronFill": C_WHITE,
+        "ChevronHoverBackground": C_PRIMARY2,
+        "ChevronHoverFill": C_WHITE,
+        "Color": C_TITLE,
+        "DisplayFields": f"[\"{display_field}\"]",
+        "Fill": C_INPUT_BG,
+        "Font": FONT,
+        "Height": str(height),
+        "InputTextPlaceholder": placeholder,
+        "IsSearchable": "true",
+        "Items": items,
+        "LayoutMinWidth": "0",
+        "NoSelectionText": "\"\"",
+        "SearchFields": f"[\"{display_field}\"]",
+        "SelectMultiple": "true" if multi else "false",
+        "SelectionColor": C_WHITE,
+        "SelectionFill": C_PRIMARY,
+        "Size": "14",
+        "Width": width,
+    }
+    if default_items is not None:
+        props["DefaultSelectedItems"] = default_items
+    if display_mode is not None:
+        props["DisplayMode"] = display_mode
+    if onchange is not None:
+        props["OnChange"] = onchange
+    return Ctrl(name, "Classic/ComboBox", props=props, h=height)
+
+
+def poll_timer(name, on_timer_end, duration=500):
+    """Usynlig baggrunds-timer.
+
+    Duration 500 ms er samme vaerdi som i referenceappen: hurtigt nok til at
+    foeles som "mens du skriver", langsomt nok til at brugeren naar at skrive
+    faerdig foer der kaldes. Selve spaerren mod gentagne kald ligger i
+    formlen (se build_flsearch.timer_poll_action), ikke i intervallet.
+
+    Visible = false er med vilje: en Timer med AutoStart = true koerer
+    ogsaa naar den er skjult, og kontrollen har ingen visuel funktion."""
+    return Ctrl(name, "Timer", props={
+        "AutoPause": "false",
+        "AutoStart": "true",
+        "Duration": str(duration),
+        "Height": "1",
+        "OnTimerEnd": on_timer_end,
+        "Repeat": "true",
+        "Visible": "false",
+        "Width": "1",
+    }, h=1, vis="false")
+
+
 def label_row(name, label_text, required=False, width="Parent.Width"):
     kids = [text_ctrl(f"{name}Lbl", f"\"{label_text}\"", size=13, weight="Semibold", height=20, wrap="false")]
     if required:
@@ -276,32 +351,55 @@ def label_row(name, label_text, required=False, width="Parent.Width"):
     return group(f"{name}Row", kids, direction="Horizontal", gap=3, height=20, align_items="Center", width=width)
 
 
+def col_width(container_w, cols, gap=20):
+    """Bredden af eet ud af `cols` felter side om side i en container med
+    bredden container_w. Under braekpunktet TWO_COL_MIN staar alle felter
+    fuld bredde (raekken stables lodret af row_n / two_col_row)."""
+    return f"If({container_w} < {TWO_COL_MIN}, {container_w}, ({container_w} - {gap * (cols - 1)}) / {cols})"
+
+
 def field_cell(name, label_text, input_ctrl, required=False, hint_text=None, width=None,
-               container_w=SHELL_W, fill_portions_formula="If(App.Width < 1024, 0, 1)"):
+               container_w=SHELL_W, fill_portions_formula="If(App.Width < 1024, 0, 1)", cols=2, gap=20):
     """Et felt med label over. Hoejden regnes af indholdet - den er ikke laengere
-    et magisk tal, saa et hoejere input (fx multiline) giver automatisk et
-    hoejere felt."""
+    et magisk tal, saa et hoejere input (fx multiline) giver automatisk en
+    hoejere felt.
+
+    cols er antallet af felter, der skal staa side om side i raekken (brug
+    samme tal i row_n/two_col_row), saa bredden bliver ens for alle celler
+    i raekken."""
     kids = [label_row(name, label_text, required=required), input_ctrl]
     if hint_text is not None:
         kids.append(text_ctrl(f"{name}Hint", hint_text, size=12, color=C_MUTED, height=16, wrap="false"))
-    w = width or f"If({container_w} < {TWO_COL_MIN}, {container_w}, ({container_w} - 20) / 2)"
+    w = width or col_width(container_w, cols, gap)
     return group(name, kids, direction="Vertical", gap=6, width=w,
                  align_items="Stretch", fill_portions=fill_portions_formula,
                  align_in_container="Start")
 
 
-def two_col_row(name, cell_a, cell_b, container_w=SHELL_W):
-    """To felter side om side - stablet under braekpunktet.
+def row_n(name, cells, container_w=SHELL_W, gap=20):
+    """Vilkaarligt antal felter side om side - stablet lodret under
+    braekpunktet.
 
-    Hoejden foelger nu cellernes faktiske hoejde i stedet for et fast tal,
-    og braekpunktet maales paa containerens egen bredde i stedet for
-    App.Width. Item Editor-kortet er ca. 380 px smallere end skaermen, saa
-    App.Width som maalestok fik felterne til at staa side om side laenge
-    efter at der reelt var plads."""
-    ha, hb = cell_a.h, cell_b.h
-    tall = f"Max(({ha}), ({hb}))" if ha != hb else f"({ha})"
-    h = f"If({container_w} < {TWO_COL_MIN}, ({ha}) + 20 + ({hb}), {tall})"
-    return group(name, [cell_a, cell_b], direction="Horizontal", gap=20, height=h, wrap="true")
+    Generaliseret udgave af two_col_row: hoejden foelger cellernes
+    faktiske hoejde, og braekpunktet maales paa containerens egen bredde i
+    stedet for App.Width."""
+    heights = [c.h for c in cells]
+    if len(cells) == 1:
+        tall = f"({heights[0]})"
+        stacked = tall
+    else:
+        terms = ", ".join(f"({h})" for h in heights)
+        tall = f"Max({terms})"
+        stacked = " + ".join(f"({h})" for h in heights) + f" + {gap * (len(cells) - 1)}"
+    h = f"If({container_w} < {TWO_COL_MIN}, {stacked}, {tall})"
+    return group(name, cells, direction="Horizontal", gap=gap, height=h, wrap="true")
+
+
+def two_col_row(name, cell_a, cell_b, container_w=SHELL_W):
+    """To felter side om side - stablet under braekpunktet. Item Editor-kortet
+    er ca. 380 px smallere end skaermen, saa App.Width som maalestok fik
+    felterne til at staa side om side laenge efter at der reelt var plads."""
+    return row_n(name, [cell_a, cell_b], container_w=container_w)
 
 
 def badge(name, text, size=11, width=64):
