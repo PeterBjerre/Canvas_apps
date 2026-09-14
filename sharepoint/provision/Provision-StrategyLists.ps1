@@ -44,6 +44,7 @@ param(
     [string] $SeedPath,
     [string] $PackageSeedPath,
     [switch] $SkipSeed,
+    [switch] $WhatIfOnly,
     [string] $ClientId = $env:PNP_CLIENT_ID
 )
 
@@ -183,7 +184,7 @@ if (-not $SkipSeed -and (Test-Path $PackageSeedPath)) {
         $havePkg["$($it.FieldValues.StrategyKey)|$($it.FieldValues.PackageNo)"] = $it.Id
     }
 
-    $pAdded = 0; $pUpdated = 0
+    $pAdded = 0; $pUpdated = 0; $pSame = 0
     $touched = @{}
     foreach ($r in $pkgSeed) {
         $touched[$r.StrategyKey] = $true
@@ -200,14 +201,38 @@ if (-not $SkipSeed -and (Test-Path $PackageSeedPath)) {
         }
         $existingId = $havePkg["$($r.StrategyKey)|$($r.PackageNo)"]
         if ($existingId) {
-            Set-PnPListItem -List 'MD_StrategyPackage' -Identity $existingId -Values $vals | Out-Null
-            $pUpdated++
+            # En TAVS overskrivning er farlig: har nogen rettet direkte i
+            # listen, ruller csv'en rettelsen tilbage, uden at det kan ses.
+            # Derfor listes hvert felt, der faktisk aendrer sig - og med
+            # -WhatIfOnly skrives det uden at der roeres ved noget.
+            $cur = (Get-PnPListItem -List 'MD_StrategyPackage' -Identity $existingId).FieldValues
+            $diff = @()
+            foreach ($k in $vals.Keys) {
+                $now = $cur[$k]
+                if ($now -is [Microsoft.SharePoint.Client.FieldLookupValue]) { $now = $now.LookupValue }
+                if ("$now" -ne "$($vals[$k])") { $diff += "$k '$now' -> '$($vals[$k])'" }
+            }
+            if ($diff.Count -eq 0) {
+                $pSame++
+            } else {
+                $mark = if ($WhatIfOnly) { '?' } else { '~' }
+                Write-Host "    $mark $($r.StrategyKey)-$($r.PackageNo): $($diff -join '; ')" -ForegroundColor Yellow
+                if (-not $WhatIfOnly) {
+                    Set-PnPListItem -List 'MD_StrategyPackage' -Identity $existingId -Values $vals | Out-Null
+                }
+                $pUpdated++
+            }
         } else {
-            Add-PnPListItem -List 'MD_StrategyPackage' -Values $vals | Out-Null
+            if ($WhatIfOnly) {
+                Write-Host "    ? ville oprette $($r.StrategyKey)-$($r.PackageNo)" -ForegroundColor Yellow
+            } else {
+                Add-PnPListItem -List 'MD_StrategyPackage' -Values $vals | Out-Null
+            }
             $pAdded++
         }
     }
-    Write-Host "  + $pAdded pakker oprettet, ~ $pUpdated opdateret fra csv" -ForegroundColor Green
+    $verb = if ($WhatIfOnly) { "ville blive" } else { "er" }
+    Write-Host "  $pAdded oprettet, $pUpdated $verb aendret, $pSame uaendret" -ForegroundColor Green
 
     # Saet PackagesLoaded paa de strategier, der nu HAR pakker.
     $marked = 0
