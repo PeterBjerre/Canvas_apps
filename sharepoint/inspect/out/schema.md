@@ -1,6 +1,6 @@
 # SharePoint-lister bag VH-plan appen
 
-Udtrukket 2026-09-14 22:21 fra https://orsted.sharepoint.com/teams/BioSAPDEV.
+Udtrukket 2026-09-14 23:51 fra https://orsted.sharepoint.com/teams/BioSAPDEV.
 Data med: ja.
 
 | Liste | Raekker | Kolonner |
@@ -13,17 +13,20 @@ Data med: ja.
 | `KYV Standard Tasklist` | 20 | 42 |
 | `LubricationTaskTypeList` | 2 | 6 |
 | `MaintenanceActivityTypeList` | 7 | 7 |
-| `MaintenanceItems` | 58 | 33 |
+| `MaintenanceItems` | 58 | 34 |
 | `MaintenancePlans` | 34 | 27 |
 | `MainWorkCenters` | 53 | 8 |
 | `MD_RequestIndex` | 18 | 23 |
+| `MD_StandardTaskOperations` | 176 | 31 |
+| `MD_Strategy` | 53 | 11 |
+| `MD_StrategyPackage` | 3 | 14 |
 | `PlantList` | 6 | 6 |
 | `SKV Standard Tasklist` | 31 | 42 |
 | `SortFieldList` | 28 | 6 |
 | `SSV Standard Tasklist` | 32 | 42 |
 | `StandardStrategyList` | 3 | 6 |
 | `StandardTaskList` | 3 | 12 |
-| `TaskListMain` | 306 | 28 |
+| `TaskListMain` | 306 | 30 |
 | `UserAndGroups` | 7 | 7 |
 | `Vendors` | 20 | 7 |
 
@@ -304,6 +307,7 @@ Data med: ja.
 | `InitialOrstedResponsible` | InitialOrstedResponsible | Text |  |  |  |
 | `SCEqFL` | SCEqFL | Text |  |  |  |
 | `SCEqOL` | SCEqOL | Note |  |  |  |
+| `OrstedResponsibleEmail` | OrstedResponsibleEmail | Text |  | x |  |
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
@@ -320,7 +324,7 @@ Data med: ja.
 | `Cycle` | Cycle | Number | x |  |  |
 | `Unit` | Unit | Choice | x |  | valg: H, DAY, WK, MON, YR |
 | `PlannedDate` | PlannedDate | DateTime | x |  |  |
-| `CallHorizon` | **CallHorizonOLD** | Choice |  |  | valg: 2 Days (1 WK), 7 Days (2 WK), 15 Days (1 MON), 20 Days (6 WK), 40 days (2-4 MON), 45 days (6 MON), 50 Days, 55 days (1 YR), 60 days (2 YR), 65 days (3 YR), 70 days (4 YR), 80 Days (5 & 6 YR) |
+| `CallHorizon` | **CallHorizonChoiceOLD** | Choice |  |  | valg: 2 Days (1 WK), 7 Days (2 WK), 15 Days (1 MON), 20 Days (6 WK), 40 days (2-4 MON), 45 days (6 MON), 50 Days, 55 days (1 YR), 60 days (2 YR), 65 days (3 YR), 70 days (4 YR), 80 Days (5 & 6 YR) |
 | `SchedulingIndicator` | SchedulingIndicator | Choice |  |  | valg: JA, NEJ |
 | `Package` | Package | Choice |  |  | valg: Main pack. 1, Main pack. 2, Main pack. 3, Main pack. 4, Main pack. 5, Main pack. 6, Main pack. 7 |
 | `PlantsInitial` | PlantsInitial | Choice | x |  | valg: ASV, AVV, HEV, HCV, KYV, SKV, SMV, SSV |
@@ -377,6 +381,77 @@ Data med: ja.
 | `AppUrl` | AppUrl | Text |  |  |  |
 | `LastActionOn` | LastActionOn | DateTime |  | x |  |
 | `LastActionBy` | LastActionBy | Text |  |  |  |
+| `ID` | ID | Counter |  |  | skrivebeskyttet |
+| `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
+| `Created` | Created | DateTime |  |  | skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+
+## `MD_StandardTaskOperations`  -  176 raekker
+
+| Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
+|---|---|---|:-:|:-:|---|
+| `Title` | **TaskLabel** | Text | x |  |  |
+| `Plant` | Plant | Choice |  | x | valg: ASV, AVV, HEV, HCV, KYV, SKV, SMV, SSV |
+| `OperationNo` | OperationNo | Number |  | x |  |
+| `WorkCenter` | WorkCenter | Text |  |  |  |
+| `ControlKey` | ControlKey | Text |  |  |  |
+| `OperationShortText` | OperationShortText | Text |  |  |  |
+| `Work` | Work | Number |  |  |  |
+| `WorkUnit` | WorkUnit | Text |  |  |  |
+| `DurationUnit` | DurationUnit | Text |  |  |  |
+| `ActivityType` | ActivityType | Text |  |  |  |
+| `StandardTextKey` | StandardTextKey | Text |  |  |  |
+| `SapPlant` | SapPlant | Text |  |  |  |
+| `NumberOfCapacities` | NumberOfCapacities | Number |  |  |  |
+| `CalculationKey` | CalculationKey | Number |  |  |  |
+| `PercentageWork` | PercentageWork | Number |  |  |  |
+| `DistributionFactor` | DistributionFactor | Number |  |  |  |
+| `OrderQuantity` | OrderQuantity | Number |  |  |  |
+| `OrderUnit` | OrderUnit | Text |  |  |  |
+| `Price` | Price | Number |  |  |  |
+| `Currency` | Currency | Text |  |  |  |
+| `PriceUnit` | PriceUnit | Number |  |  |  |
+| `CostElement` | CostElement | Number |  |  |  |
+| `MaterialGroup` | MaterialGroup | Text |  |  |  |
+| `PurchasingGroup` | PurchasingGroup | Text |  |  |  |
+| `VendorNo` | VendorNo | Text |  |  |  |
+| `PurchasingOrg` | PurchasingOrg | Text |  |  |  |
+| `ID` | ID | Counter |  |  | skrivebeskyttet |
+| `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
+| `Created` | Created | DateTime |  |  | skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+
+## `MD_Strategy`  -  53 raekker
+
+| Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
+|---|---|---|:-:|:-:|---|
+| `Title` | **StrategyKey** | Text | x | x |  |
+| `StrategyName` | StrategyName | Text | x |  |  |
+| `SchedulingIndicator` | SchedulingIndicator | Choice |  |  | valg: TIME, TIME_FACTOR, PERFORMANCE |
+| `Hierarchical` | Hierarchical | Choice |  |  | valg: Ja, Nej, Ikke afklaret |
+| `PackagesLoaded` | PackagesLoaded | Boolean |  |  |  |
+| `Notes` | Notes | Note |  |  |  |
+| `ID` | ID | Counter |  |  | skrivebeskyttet |
+| `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
+| `Created` | Created | DateTime |  |  | skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+
+## `MD_StrategyPackage`  -  3 raekker
+
+| Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
+|---|---|---|:-:|:-:|---|
+| `Title` | **PackageLabel** | Text | x |  |  |
+| `StrategyKey` | StrategyKey | Text | x | x |  |
+| `PackageNo` | PackageNo | Number | x |  |  |
+| `ShortCode` | ShortCode | Text |  |  |  |
+| `CycleLength` | CycleLength | Number |  |  |  |
+| `CycleUnit` | CycleUnit | Choice |  |  | valg: H, DAY, WK, MON, YR, COUNT |
+| `Hierarchy` | Hierarchy | Number |  |  |  |
+| `PackageText` | PackageText | Text |  |  |  |
+| `OffsetValue` | OffsetValue | Number |  |  |  |
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
@@ -554,6 +629,8 @@ Data med: ja.
 | `CostElem` | CostElem | Number |  |  |  |
 | `Price` | Price | Number |  |  |  |
 | `Currency` | Currency | Text |  |  |  |
+| `OperationNo` | OperationNo | Number |  | x |  |
+| `PackagesKey` | PackagesKey | Text |  |  |  |
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
