@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Udtraekker den KOMPLETTE struktur af SharePoint-listerne bag VH-plan
     appen, saa datamodellen kan gennemgaas uden adgang til sitet.
@@ -91,7 +91,7 @@ function Get-ChoiceValues {
     param($xml)
     $m = [regex]::Matches($xml, '<CHOICE[^>]*>(.*?)</CHOICE>')
     if ($m.Count -eq 0) { return $null }
-    return @($m | ForEach-Object { [System.Web.HttpUtility]::HtmlDecode($_.Groups[1].Value) })
+    return @($m | ForEach-Object { [System.Net.WebUtility]::HtmlDecode($_.Groups[1].Value) })
 }
 
 function Get-XmlAttr {
@@ -100,8 +100,6 @@ function Get-XmlAttr {
     if ($m.Success) { return $m.Groups[1].Value }
     return $null
 }
-
-Add-Type -AssemblyName System.Web
 
 $all = Get-PnPList -Includes ItemCount, Hidden, BaseTemplate, DefaultViewUrl |
        Where-Object { -not $_.Hidden -and $_.BaseTemplate -eq 100 }
@@ -117,7 +115,14 @@ $report = [ordered]@{
     lists       = @()
 }
 
+$failed = @()
+
 foreach ($l in $all) {
+  # En enkelt liste, der ikke kan laeses (rettigheder, en kolonne med en
+  # defekt definition), maa ikke vaelte hele udtraekket - og den maa
+  # SLET ikke goere det i stilhed, saa et halvt schema.md bliver committet
+  # som om alt var fint. Fejl samles og skrives til sidst OG til schema.json.
+  try {
     Write-Host ("  {0,-34} {1,8} raekker" -f $l.Title, $l.ItemCount) -ForegroundColor Green
 
     $fields = @()
@@ -146,13 +151,13 @@ foreach ($l in $all) {
         }
         if ($f.TypeAsString -eq 'Calculated') {
             $m = [regex]::Match($xml, '<Formula>(.*?)</Formula>', 'Singleline')
-            if ($m.Success) { $entry.formula = [System.Web.HttpUtility]::HtmlDecode($m.Groups[1].Value) }
+            if ($m.Success) { $entry.formula = [System.Net.WebUtility]::HtmlDecode($m.Groups[1].Value) }
         }
         $fields += $entry
     }
 
     $views = @()
-    foreach ($v in (Get-PnPView -List $l.Title)) {
+    foreach ($v in (Get-PnPView -List $l.Title -Includes ViewFields)) {
         $views += [ordered]@{
             title       = $v.Title
             defaultView = [bool]$v.DefaultView
@@ -193,16 +198,23 @@ foreach ($l in $all) {
         $rows | ConvertTo-Json -Depth 6 |
             Set-Content (Join-Path $OutDir "sample-$safe.json") -Encoding UTF8
     }
+  }
+  catch {
+    $failed += [ordered]@{ list = $l.Title; error = $_.Exception.Message }
+    Write-Host ("    FEJLEDE: {0}" -f $_.Exception.Message) -ForegroundColor Red
+  }
 }
+
+$report.failedLists = $failed
 
 $report | ConvertTo-Json -Depth 8 |
     Set-Content (Join-Path $OutDir 'schema.json') -Encoding UTF8
 
-# --- Læsbar udgave ---------------------------------------------------------
+# --- Laesbar udgave ---------------------------------------------------------
 $md = New-Object System.Text.StringBuilder
 [void]$md.AppendLine("# SharePoint-lister bag VH-plan appen")
 [void]$md.AppendLine()
-[void]$md.AppendLine("Udtraukket $($report.exportedOn) fra `<$SiteUrl>`.")
+[void]$md.AppendLine("Udtrukket $($report.exportedOn) fra $SiteUrl")
 [void]$md.AppendLine()
 [void]$md.AppendLine("| Liste | Raekker | Kolonner |")
 [void]$md.AppendLine("|---|---:|---:|")
@@ -211,7 +223,7 @@ foreach ($l in $report.lists) {
 }
 foreach ($l in $report.lists) {
     [void]$md.AppendLine()
-    [void]$md.AppendLine("## ``$($l.title)``  —  $($l.itemCount) raekker")
+    [void]$md.AppendLine("## ``$($l.title)``  -  $($l.itemCount) raekker")
     [void]$md.AppendLine()
     [void]$md.AppendLine("| Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |")
     [void]$md.AppendLine("|---|---|---|:-:|:-:|---|")
@@ -228,6 +240,12 @@ foreach ($l in $report.lists) {
     }
 }
 $md.ToString() | Set-Content (Join-Path $OutDir 'schema.md') -Encoding UTF8
+
+if ($failed.Count) {
+    Write-Host "`n$($failed.Count) liste(r) FEJLEDE og mangler i udtraekket:" -ForegroundColor Red
+    foreach ($f in $failed) { Write-Host "  - $($f.list): $($f.error)" -ForegroundColor Red }
+    Write-Host "Commit IKKE udtraekket som fuldstaendigt. Rapporter fejlene." -ForegroundColor Red
+}
 
 Write-Host "`nSkrevet til $OutDir" -ForegroundColor Cyan
 Write-Host "  schema.json   schema.md   sample-*.json`n"

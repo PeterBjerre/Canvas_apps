@@ -11,7 +11,10 @@ og opfind ikke dit eget.**
 ## Kilde
 
 Repo `PeterBjerre/Canvas_apps`, branch
-`claude/vh-plans-strategy-packages-lu8w70`. Pull den først.
+`claude/vh-plans-strategy-packages-lu8w70`. **Pull den først** — en tidligere
+udgave af scriptet havde en encoding-fejl, der er rettet. Kører du på en
+gammel checkout, fejler det med `Expressions are only allowed as the first
+element of a pipeline`.
 
 Scriptet er `sharepoint/inspect/Export-ListSchema.ps1`. Læs
 `docs/08-datamapning.md` først — den forklarer hvad udtrækket skal bruges til,
@@ -49,7 +52,12 @@ Det kræver rettigheder i Entra. Kan brugeren ikke det, så stop og rapportér �
 find ikke på en anden vej rundt om det.
 
 **Scriptet må ikke ændres for at komme videre.** Fejler det på noget andet, så
-rapportér fejlen ordret og stop.
+rapportér fejlen ordret og stop — det er den rigtige opførsel, og fejlen bliver
+rettet i kilden i stedet for lokalt.
+
+Fejler det på en **parse-fejl** (`Expressions are only allowed...`, `Missing
+closing`, uventet token): du har en gammel checkout. Kør `git pull` og prøv
+igen, før du rapporterer noget.
 
 ## Trin 3 — kontrollér før du committer
 
@@ -65,6 +73,10 @@ Tjek alle fire:
    `MaintenanceActivityTypeList`, `SortFieldList`, `MD_RequestIndex`.
 4. Kørte du **uden** `-NoData`: der findes `sample-*.json`-filer, og de er
    ikke tomme arrays.
+
+5. Scriptet skrev **ikke** en rød `FEJLEDE`-blok til sidst. Gjorde det, mangler
+   de lister i udtrækket — rapportér hvilke og hvorfor, og skriv i din
+   commit-besked at udtrækket er ufuldstændigt.
 
 Mangler noget, så rapportér præcis hvad — lap ikke filerne i hånden.
 

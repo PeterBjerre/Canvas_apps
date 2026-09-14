@@ -50,6 +50,13 @@ def check_shared():
 
 
 def main():
+    # PowerShell-scripterne hoerer ikke til canvas-byggeriet, men det her er
+    # den ene kommando alle koerer - saa tjekket ligger her, hvor det ikke
+    # kan glemmes. Se tools/check_ps1.py for hvorfor det er noedvendigt.
+    r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "check_ps1.py")])
+    if r.returncode:
+        return r.returncode
+
     bad = check_shared()
     if bad:
         print("De faelles filer er gledet fra hinanden:\n")
