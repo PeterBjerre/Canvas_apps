@@ -76,6 +76,7 @@ sker også når status ændres af en sagsbehandler.
 | `RequestGuid` | Text Ⓘ | Nøglen der deep-linkes på |
 | `Status` | Choice Ⓘ | Fælles ordforråd, se §4 |
 | `StatusStep` | Number | 1–5. Hubben tegner forløbet uden at kende domænet |
+| `IsOpen` | Yes/No Ⓘ | Sat af flowet sammen med `Status`. **Et indekseret boolsk felt er delegerbart; en række OR'ede statusværdier er det ikke** — og køen filtrerer på præcis dette felt |
 | `RequesterEmail` | **Text** Ⓘ | **Ikke** en Person-kolonne — se nedenfor |
 | `RequesterName` | Text | Kun til visning |
 | `AssignedToEmail` | Text Ⓘ | Sagsbehandler |
@@ -94,7 +95,7 @@ sker også når status ændres af en sagsbehandler.
 > virker uanset hvor mange rækker listen får. Det er den enkeltbeslutning,
 > der holder hubben hurtig om tre år.
 
-Indekser: `Domain`, `Status`, `RequesterEmail`, `AssignedToEmail`,
+Indekser: `Domain`, `Status`, `IsOpen`, `RequesterEmail`, `AssignedToEmail`,
 `LastActionOn`, `Plant`.
 
 ## 4. Fælles statusordforråd
