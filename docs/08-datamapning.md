@@ -70,7 +70,7 @@ ikke masterdata nogen vedligeholder: `colVhpPlanTypeOptions`,
 
 | Samling | Hvorfor |
 |---|---|
-| `colVhpFunctionalLocations` | Erstattet af flowet `BioSap-Integration-FunctionalLocations`. Listen `FunctionalLocations` har **122.700 rækker** — 61 gange delegationsloftet. Den kan ikke bruges direkte fra appen uanset hvad |
+| `colVhpFunctionalLocations` | Erstattet af flowet `BioSap-Integration-FunctionalLocations`. Listen `FunctionalLocations` har **122.700 rækker** — 61 gange delegationsloftet. Den kan ikke bruges direkte fra appen uanset hvad. **Begge udtræksscripts springer den over**, fordi den kun koster ventetid; `-IncludeAll` tager den med, hvis den en dag skal ses |
 | `colVhpFlSearch`, `colVhpItemObjects`, `colVhpPickerSelected` | Arbejdssamlinger. Fyldes under brug, ikke ved opstart |
 
 ## 5. Åbne spørgsmål

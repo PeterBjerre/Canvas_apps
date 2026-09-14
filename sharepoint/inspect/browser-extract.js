@@ -30,6 +30,18 @@
 (async () => {
   const SAMPLE_ROWS = 8;   // 0 = kun struktur, ingen data
 
+  // Lister der springes helt over.
+  //
+  // FunctionalLocations har ~122.700 raekker. Appen bruger den IKKE - FL-soegningen
+  // gaar gennem flowet BioSap-Integration-FunctionalLocations, fordi 122.700 raekker
+  // er 61 gange delegationsloftet. At laese den koster lang ventetid uden at give
+  // noget igen. Toem listen hvis den alligevel skal med.
+  const SKIP_LISTS = ["FunctionalLocations"];
+
+  // Over SharePoints listevisningsgraense springes proeveraekkerne over.
+  // Strukturen hentes stadig.
+  const MAX_ROWS_FOR_SAMPLE = 5000;
+
   // Kun de egenskaber der siger noget om datamodellen. Uden filteret bliver
   // filen flere MB af ligegyldige SharePoint-internals.
   const FIELD_PROPS = [
@@ -91,6 +103,11 @@
     all = (await api("web/lists?$select=Title,ItemCount,Hidden,BaseTemplate"))
       .value.filter(l => !l.Hidden && l.BaseTemplate === 100)
       .sort((a, b) => a.Title.localeCompare(b.Title));
+    for (const l of all.filter(l => SKIP_LISTS.includes(l.Title))) {
+      console.log("  springer over: " + l.Title + " (" + l.ItemCount + " raekker)");
+    }
+    out.skippedLists = SKIP_LISTS;
+    all = all.filter(l => !SKIP_LISTS.includes(l.Title));
   } catch (e) {
     console.error("Kunne ikke hente listerne:", e.message);
     console.error("Staar du paa det rigtige site? web = " + web);
@@ -118,7 +135,9 @@
 
       const entry = { title: l.Title, itemCount: l.ItemCount, fields: fields };
 
-      if (SAMPLE_ROWS > 0 && l.ItemCount > 0) {
+      if (SAMPLE_ROWS > 0 && l.ItemCount > MAX_ROWS_FOR_SAMPLE) {
+        console.log("    " + l.ItemCount + " raekker - springer proeveraekkerne over");
+      } else if (SAMPLE_ROWS > 0 && l.ItemCount > 0) {
         const names = fields.map(f => f.InternalName);
         const rows = (await api(byTitle(l.Title) + "/items?$top=" + SAMPLE_ROWS)).value;
         entry.sample = rows.map(r => {

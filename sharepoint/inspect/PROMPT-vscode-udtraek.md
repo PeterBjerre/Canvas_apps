@@ -81,6 +81,8 @@ Tjek alle fire:
    `MaintenancePlans`, `MaintenanceItems`, `TaskListMain`, `MainWorkCenters`,
    `PlantList`, `StandardStrategyList`, `CallHorizonMatrix`,
    `MaintenanceActivityTypeList`, `SortFieldList`, `MD_RequestIndex`.
+   `FunctionalLocations` skal **ikke** være med — den springes bevidst over
+   (122.700 rækker, bruges ikke af appen). Det er ikke en fejl.
 4. Kørte du **uden** `-NoData`: der findes `sample-*.json`-filer, og de er
    ikke tomme arrays.
 

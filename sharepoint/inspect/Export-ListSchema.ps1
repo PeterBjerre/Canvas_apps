@@ -31,6 +31,19 @@
 .PARAMETER NoData
     Spring proeveraekkerne over. Kun struktur.
 
+.PARAMETER Exclude
+    Yderligere lister der skal springes over. Laegges oveni standardlisten,
+    som i forvejen udelader FunctionalLocations (~122.700 raekker, bruges ikke
+    af appen og faar udtraekket til at haenge).
+
+.PARAMETER IncludeAll
+    Tag ogsaa de som standard udeladte lister med. Regn med lang ventetid.
+
+.PARAMETER MaxRowsForSample
+    Lister over denne stoerrelse faar hentet struktur, men ingen proeveraekker
+    (standard 5000 = SharePoints listevisningsgraense). Over graensen kan selv
+    en RowLimit-forespoergsel blive kvalt af throttling.
+
 .EXAMPLE
     .\Export-ListSchema.ps1 -SiteUrl "https://<tenant>.sharepoint.com/sites/<site>"
 
@@ -47,6 +60,9 @@ param(
     [string[]] $Lists,
     [int] $SampleRows = 8,
     [switch] $NoData,
+    [string[]] $Exclude,
+    [switch] $IncludeAll,
+    [int] $MaxRowsForSample = 5000,
     [string] $ClientId = $env:PNP_CLIENT_ID
 )
 
@@ -104,9 +120,29 @@ function Get-XmlAttr {
     return $null
 }
 
+# Lister der springes over som standard.
+#
+# FunctionalLocations har ~122.700 raekker. Appen bruger den IKKE - FL-soegningen
+# gaar gennem flowet BioSap-Integration-FunctionalLocations, fordi 122.700 raekker
+# er 61 gange delegationsloftet. At laese den koster lang ventetid og faar
+# udtraekket til at fejle, uden at give noget igen.
+#
+# Skal den alligevel med: -IncludeAll, eller navngiv den med -Lists.
+$SKIP_LISTS = @('FunctionalLocations')
+if ($Exclude) { $SKIP_LISTS += $Exclude }
+
 $all = Get-PnPList -Includes ItemCount, Hidden, BaseTemplate, DefaultViewUrl |
        Where-Object { -not $_.Hidden -and $_.BaseTemplate -eq 100 }
-if ($Lists) { $all = $all | Where-Object { $Lists -contains $_.Title } }
+if ($Lists) {
+    # Navngiver du lister eksplicit, er det dem du faar - ogsaa de udelukkede.
+    $all = $all | Where-Object { $Lists -contains $_.Title }
+} elseif (-not $IncludeAll) {
+    $skipped = @($all | Where-Object { $SKIP_LISTS -contains $_.Title })
+    foreach ($sk in $skipped) {
+        Write-Host ("  springer over: {0} ({1} raekker)" -f $sk.Title, $sk.ItemCount) -ForegroundColor DarkYellow
+    }
+    $all = $all | Where-Object { $SKIP_LISTS -notcontains $_.Title }
+}
 $all = $all | Sort-Object Title
 
 Write-Host "`n$($all.Count) lister`n" -ForegroundColor Cyan
@@ -115,6 +151,7 @@ $report = [ordered]@{
     site        = $SiteUrl
     exportedOn  = (Get-Date).ToString('yyyy-MM-dd HH:mm')
     includesData = (-not $NoData)
+    skippedLists = $(if ($Lists -or $IncludeAll) { @() } else { $SKIP_LISTS })
     lists       = @()
 }
 
@@ -176,7 +213,12 @@ foreach ($l in $all) {
         views     = $views
     }
 
-    if (-not $NoData -and $l.ItemCount -gt 0) {
+    # Over listevisningsgraensen kan selv en RowLimit-forespoergsel blive
+    # kvalt af throttling. Strukturen hentes stadig - kun raekkerne springes over.
+    if (-not $NoData -and $l.ItemCount -gt $MaxRowsForSample) {
+        Write-Host ("    {0} raekker - springer proeveraekkerne over" -f $l.ItemCount) -ForegroundColor DarkYellow
+    }
+    elseif (-not $NoData -and $l.ItemCount -gt 0) {
         $caml = "<View><Query></Query><RowLimit>$SampleRows</RowLimit></View>"
         $rows = @()
         foreach ($it in (Get-PnPListItem -List $l.Title -Query $caml)) {
