@@ -29,10 +29,36 @@ def norm(field):
     out = {}
     for k, v in field.items():
         out[ALIAS.get(k, k)] = v
-    # Browserens Choices kan komme som {"results": [...]}
-    ch = out.get("choices")
-    if isinstance(ch, dict) and "results" in ch:
-        out["choices"] = ch["results"]
+    out["choices"] = _choices(out.get("choices"))
+    if not out["choices"]:
+        out.pop("choices", None)
+    return out
+
+
+def _choices(ch):
+    """Normaliserer valgvaerdier fra begge udtraeksveje.
+
+    Browseren kan give {"results": [...]}. PnP giver en liste - men
+    ConvertTo-Json pakker en liste med EEN vaerdi ud til en skalar, saa den
+    kan ogsaa vaere en streng.
+
+    Og indtil regex'en i Export-ListSchema.ps1 blev rettet, fik den FOERSTE
+    vaerdi et '<CHOICE>'-praefiks med, fordi moenstret ogsaa matchede den
+    omsluttende <CHOICES>-tag. Praefikset fjernes her, saa udtraek fra foer
+    rettelsen kan bruges uden at koere det hele igen."""
+    if ch is None:
+        return None
+    if isinstance(ch, dict):
+        ch = ch.get("results") or []
+    if isinstance(ch, str):
+        ch = [ch]
+    out = []
+    for c in ch:
+        c = str(c).strip()
+        if c.startswith("<CHOICE>"):
+            c = c[len("<CHOICE>"):].strip()
+        if c:
+            out.append(c)
     return out
 
 

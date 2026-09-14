@@ -108,7 +108,9 @@ $SKIP = @(
 
 function Get-ChoiceValues {
     param($xml)
-    $m = [regex]::Matches($xml, '<CHOICE[^>]*>(.*?)</CHOICE>')
+    # Praecis <CHOICE>, ikke <CHOICE[^>]*> - det sidste matcher ogsaa den
+    # omsluttende <CHOICES>, saa foerste vaerdi fik et '<CHOICE>'-praefiks.
+    $m = [regex]::Matches($xml, '<CHOICE>(.*?)</CHOICE>')
     if ($m.Count -eq 0) { return $null }
     return @($m | ForEach-Object { [System.Net.WebUtility]::HtmlDecode($_.Groups[1].Value) })
 }
@@ -182,7 +184,9 @@ foreach ($l in $all) {
         if ($f.Description) { $entry.description = $f.Description }
 
         $choices = Get-ChoiceValues $xml
-        if ($choices) { $entry.choices = $choices }
+        # ConvertTo-Json pakker et array med EEN vaerdi ud til en skalar.
+        # [array] i feltet holder det som en liste hele vejen igennem.
+        if ($choices) { $entry.choices = [array]$choices }
 
         if ($f.TypeAsString -like 'Lookup*' -or $f.TypeAsString -like 'User*') {
             $entry.lookupList  = Get-XmlAttr $xml 'List'
