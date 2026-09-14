@@ -94,6 +94,33 @@ Læg mærke til mønsteret: **alle tre pakker har samme cykluslængde, 3 år, me
 offset 0, 1 og 2.** Det er det, der giver "År 1, 2, 3, 1, 2, 3". Pakkerne
 falder aldrig sammen.
 
+### Når nogen retter direkte i SharePoint
+
+`Provision-StrategyLists.ps1` behandler `sharepoint/seed/MD_StrategyPackage.csv`
+som sandheden og **opdaterer** eksisterende pakkerækker ud fra den. Det er
+rigtigt, når rettelser sker i csv'en — men forkert, hvis nogen har rettet
+direkte i listen: så ville næste kørsel rulle rettelsen tilbage i stilhed.
+
+To ting forhindrer det:
+
+1. **Scriptet skriver hvad det ændrer**, felt for felt:
+   `~ 128-2: OffsetValue '1' -> '0'`. Og `-WhatIfOnly` viser det uden at
+   røre noget. En tilbagerulning kan ikke længere ske usynligt.
+2. **`python3 tools/sync_package_seed.py`** vender pilen om og skriver
+   csv'en ud fra et friskt udtræk. Kør den efter en manuel rettelse, så er
+   næste provisioneringskørsel en no-op i stedet for en tilbagerulning.
+
+Rækkefølgen efter en manuel rettelse i SharePoint er:
+
+```powershell
+.\Export-ListSchema.ps1 -SiteUrl "https://..."       # frisk udtræk
+python3 tools\sync_package_seed.py                   # csv <- SharePoint
+```
+
+`sync_package_seed.py` skriver udtrækkets dato ud. Er det ældre end
+rettelsen, beskriver det ikke listen som den ser ud nu — kør eksporten igen
+først.
+
 ### Derfor er "Hierarki-udfyld" slået fra
 
 Knappen fylder alle pakker med `Hierarchy >= den laveste markerede`. Den giver
