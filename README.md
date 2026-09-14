@@ -1,8 +1,18 @@
-# VH-plans app – strategiplaner og pakker
+# SAP masterdata – canvas apps og indmeldinger
 
-Oplæg til udvidelse af den eksisterende single cycle-app, så den også kan tage
-imod indmeldinger af **strategiplaner** (SAP PM, IP42) med de pakker, der hører
-til strategien.
+Canvas apps og indmeldingsflow til SAP masterdata. To apps i dag:
+
+| App | Mappe | Rolle |
+|---|---|---|
+| **Masterdata Hub** | [`Masterdata Hub/`](Masterdata%20Hub) | Landingssiden. Alle indmeldinger på tværs af de fem domæner, med status. 83 kontroller, én datakilde |
+| **VH-plan** | [`Maintenance Plan App/`](Maintenance%20Plan%20App) | Indmelding af vedligeholdsplaner, inkl. strategiplaner med pakker |
+
+Fælles DSL, højde-algebra og layout-tjek ligger i [`shared/canvas/`](shared/canvas).
+Arbejdsgangen står i [`.github/skills/vhplan-canvas-build/SKILL.md`](.github/skills/vhplan-canvas-build/SKILL.md).
+
+Dokumenterne nedenfor er oplægget bag VH-plan-delen: udvidelsen fra single
+cycle til **strategiplaner** (SAP PM, IP42) med de pakker, der hører til
+strategien.
 
 Backend: SharePoint-lister. Frontend: Canvas app i Power Apps, med
 HTML-komponenten brugt der hvor den faktisk hjælper.

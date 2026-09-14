@@ -24,12 +24,13 @@ Tjekket foretager fire kontroller:
 
 Hoejdeudtrykkene evalueres for flere skaermbredder og datamaengder.
 
-    python3 check_layout.py
+    python3 check_layout.py ../ScreenVhPlan.pa.yaml
 """
 import os, re, sys, yaml
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-SCREEN = os.path.join(HERE, "..", "ScreenVhPlan.pa.yaml")
+# Kaldes med stien til den .pa.yaml der skal efterregnes:
+#     python3 check_layout.py ../ScreenVhPlan.pa.yaml
+SCREEN = sys.argv[1] if len(sys.argv) > 1 else None
 
 WIDTHS = [420, 640, 900, 1024, 1366, 1920]
 ITEM_COUNTS = [0, 1, 3, 8]
@@ -98,6 +99,9 @@ def collect(nodes, path="", out=None):
 
 
 def main():
+    if not SCREEN:
+        print("Brug: python3 check_layout.py <sti til .pa.yaml>")
+        return 2
     doc = yaml.safe_load(open(SCREEN, encoding="utf-8"))
     screen = list(doc["Screens"].values())[0]
     all_nodes = collect(screen["Children"])

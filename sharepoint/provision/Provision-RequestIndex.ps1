@@ -61,6 +61,11 @@ function Add-IndexColumns {
     # 1-5. Hubben tegner forloebet uden at kende domaenespecifikke vaerdier.
     New-IdxField $List 'StatusStep'  Number
 
+    # Et enkelt indekseret boolsk felt er delegerbart. En raekke OR'ede
+    # statusvaerdier er det ikke - og koeen i landingssiden filtrerer paa
+    # praecis dette felt. Saettes af submit-flowet sammen med Status.
+    New-IdxField $List 'IsOpen'      Boolean -Indexed
+
     New-IdxField $List 'RequestGuid' Text -Indexed
 
     # TEKST, ikke Person. Person-kolonner kan ikke filtreres delegerbart i

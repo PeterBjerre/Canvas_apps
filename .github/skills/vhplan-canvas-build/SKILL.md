@@ -1,9 +1,9 @@
 ---
 name: vhplan-canvas-build
-description: Arbejdsgang for VH-plan canvas appen i mappen "Maintenance Plan App". Brug den ved ENHVER ændring af skærmen, App.OnStart, layout, Power Fx-formler, kontroller eller datakilder i appen. Ret builderne i Python, generér .pa.yaml, kør layout-tjekket, og synkronisér først derefter til Power Apps Studio.
+description: Arbejdsgang for canvas apperne i dette repo — "Maintenance Plan App" (VH-plan) og "Masterdata Hub" (landingssiden). Brug den ved ENHVER ændring af en skærm, App.OnStart, layout, Power Fx-formler, kontroller eller datakilder. Ret builderne i Python, generér .pa.yaml, kør layout-tjekket, og synkronisér først derefter til Power Apps Studio.
 ---
 
-# VH-plan: byg og deploy
+# Canvas apps: byg og deploy
 
 ## Den ene regel
 
@@ -16,7 +16,18 @@ kører builderen — og du efterlader en fil, der ikke længere matcher sin kild
 Det gælder også, når ændringen er lille, og når du har travlt. Der findes
 ingen undtagelse.
 
-## Hvem ejer hvad
+## To apps, samme arbejdsgang
+
+| App | Mappe | Byg |
+|---|---|---|
+| VH-plan | `Maintenance Plan App/` | `generate_app_onstart.py` + `assemble_screen.py` |
+| Landingsside | `Masterdata Hub/` | `generate_hub_onstart.py` + `assemble_hub.py` |
+
+DSL, højde-algebra, byggeklodser og layout-tjek er **fælles** og ligger i
+`shared/canvas/`. Retter du dér, rammer det begge apps — kør derfor begge
+byg og begge layout-tjek bagefter.
+
+## Hvem ejer hvad i VH-plan
 
 Ret i den builder, der ejer området — ikke i en tilfældig fil, der også
 nævner kontrollen.
@@ -34,7 +45,7 @@ nævner kontrollen.
 | `build_modal.py` | Tasklist-picker |
 | `assemble_screen.py` | Samler skærmen → `../ScreenVhPlan.pa.yaml` |
 | `generate_app_onstart.py` | `App.OnStart` → `../App.pa.yaml` |
-| `check_layout.py` | Efterregner layoutet |
+| `../../shared/canvas/` | **Fælles**: DSL, højde-algebra, byggeklodser, layout-tjek |
 
 Disse fem er **historiske og bruges ikke**: `build_diag_screen.py`,
 `build_vhplan_screen.py`, `gen_options.py`, `gen_tasklists.py`,
@@ -43,17 +54,22 @@ Disse fem er **historiske og bruges ikke**: `build_diag_screen.py`,
 ## Arbejdsgangen
 
 ```bash
+# VH-plan
 cd "Maintenance Plan App/build"
-
-# 1. Ret i den rigtige builder.
-
-# 2. Generér. Kør BEGGE - en ændring i OnStart og en i skærmen hænger ofte sammen.
 python3 generate_app_onstart.py   # -> ../App.pa.yaml
 python3 assemble_screen.py        # -> ../ScreenVhPlan.pa.yaml
+python3 ../../shared/canvas/check_layout.py ../ScreenVhPlan.pa.yaml
 
-# 3. Verificér. SKAL være grøn, før du går videre.
-python3 check_layout.py
+# Landingsside
+cd "Masterdata Hub/build"
+python3 generate_hub_onstart.py   # -> ../App.pa.yaml
+python3 assemble_hub.py           # -> ../ScreenMdHub.pa.yaml
+python3 ../../shared/canvas/check_layout.py ../ScreenMdHub.pa.yaml
 ```
+
+Kør altid begge generatorer for den app, du har rettet — en ændring i
+`OnStart` og en i skærmen hænger ofte sammen. Layout-tjekket **skal** være
+grønt, før du synkroniserer.
 
 Er `check_layout.py` rød, så **ret i builderen og kør igen**. Lap aldrig
 YAML'en for at få tjekket grønt — så er det tjekket, du har slået fra, ikke
