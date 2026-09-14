@@ -71,7 +71,7 @@ sker også når status ændres af en sagsbehandler.
 
 | Kolonne | Type | Bemærkning |
 |---|---|---|
-| `Title` | Text Ⓘ | Anmodningsnr., fx `VHP-2026-00042` |
+| `RequestNo` | Text Ⓘ | Anmodningsnr., fx `VHP-2026-00042`. Det er den indbyggede `Title`-kolonne, omdøbt. Power Fx binder SharePoint-kolonner på **visningsnavn**, så appen kalder den `RequestNo` — se `COL_NO` i `hub_config.py` |
 | `Domain` | Choice Ⓘ | `FunctionalLocation`, `Equipment`, `MeasuringPoint`, `Material`, `MaintenancePlan` |
 | `RequestGuid` | Text Ⓘ | Nøglen der deep-linkes på |
 | `Status` | Choice Ⓘ | Fælles ordforråd, se §4 |

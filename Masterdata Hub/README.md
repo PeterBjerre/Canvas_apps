@@ -11,7 +11,7 @@ Beslutningen bag (hub vs. én samlet app) står i
 
 | | |
 |---|---|
-| Kontroller | **83** (VH-plan-appen: 294) |
+| Kontroller | **83** (VH-plan-appen: 281) |
 | Datakilder | **1** — `MD_RequestIndex` |
 | `ClearCollect` i `App.OnStart` | **0** |
 | `App.pa.yaml` | 12 linjer |
@@ -29,21 +29,31 @@ hver dag, så den er bygget efter de ni performanceregler i dokumentet.
 | `build/build_hub.py` | Skærmen |
 | `build/assemble_hub.py` | → `../ScreenMdHub.pa.yaml` |
 | `build/generate_hub_onstart.py` | → `../App.pa.yaml` |
+| `build/gen_screen.py` | DSL, stylingkonstanter, højde-algebra |
+| `build/build_helpers.py` | Byggeklodser: `card`, `group`, `button_row`, inputs |
+| `build/check_layout.py` | Layout-tjekket |
 
-DSL, højde-algebra, byggeklodser og layout-tjek deles med de øvrige canvas
-apps og ligger i [`../shared/canvas/`](../shared/canvas).
+De tre sidste er **kopieret ordret** fra `Maintenance Plan App/build/`. Retter
+du i en af dem, skal kopien opdateres i den anden app —
+`tools/build_all.py` stopper og siger til, hvis de er gledet fra hinanden.
 
 ## Byg
 
 ```bash
+python3 tools/build_all.py        # begge apps + begge layout-tjek
+```
+
+eller kun denne app:
+
+```bash
 cd "Masterdata Hub/build"
-python3 generate_hub_onstart.py
-python3 assemble_hub.py
-python3 ../../shared/canvas/check_layout.py ../ScreenMdHub.pa.yaml
+python3 generate_hub_onstart.py   # -> ../App.pa.yaml
+python3 assemble_hub.py           # -> ../ScreenMdHub.pa.yaml
+python3 check_layout.py           # finder selv skærmen
 ```
 
 YAML'en er genereret. Ret i builderne — se
-[`../.github/skills/vhplan-canvas-build/SKILL.md`](../.github/skills/vhplan-canvas-build/SKILL.md).
+[`../.github/skills/canvas-build/SKILL.md`](../.github/skills/canvas-build/SKILL.md).
 
 ## Sådan tilpasses den
 
@@ -55,6 +65,9 @@ Alt der skal ændres, står i `build/hub_config.py`:
 - **`STATUS`** — det fælles ordforråd med trin 1–5 og farver. Alle fem apps
   skal bruge de samme værdier, ellers kan de ikke vises i samme oversigt.
 - **`LIST`** — navnet på indekslisten.
+- **`COL_NO`** — visningsnavnet på indmeldingsnummeret (`RequestNo`). Power Fx
+  binder SharePoint-kolonner på visningsnavn, så den skal matche det navn,
+  provisioneringsscriptet giver `Title`-kolonnen.
 
 ## Sådan hænger det sammen med de andre apps
 
@@ -62,9 +75,19 @@ Hubben **skriver ikke**. Hver domæneapp opdaterer sin række i
 `MD_RequestIndex` fra sit **submit-flow** — ikke fra appen — så det også sker,
 når en sagsbehandler ændrer status.
 
-En række skal mindst indeholde `Title`, `Domain`, `RequestGuid`, `Status`,
-`StatusStep`, `IsOpen`, `RequesterEmail`, `ShortText`, `Plant`, `AppUrl` og
-`LastActionOn`. Se `sharepoint/provision/Provision-RequestIndex.ps1`.
+En række skal mindst indeholde `RequestNo` (den omdøbte `Title`), `Domain`,
+`RequestGuid`, `Status`, `StatusStep`, `IsOpen`, `RequesterEmail`, `ShortText`,
+`Plant`, `AppUrl` og `LastActionOn`.
+
+Listen oprettes med:
+
+```powershell
+Install-Module PnP.PowerShell -Scope CurrentUser        # kun første gang
+.\Provision-RequestIndex.ps1 -SiteUrl "https://<tenant>.sharepoint.com/sites/<site>" -AddSampleRows
+```
+
+`-AddSampleRows` lægger fire prøverækker ind, så siden kan afprøves, før de
+fem submit-flows er bygget. Scriptet er idempotent og kan køres igen.
 
 `AppUrl` gemmes på rækken, så hubben ikke skal kende fem app-id'er. Den bygger
 linket som `AppUrl & "?reqid=" & RequestGuid` (eller `&reqid=`, hvis URL'en

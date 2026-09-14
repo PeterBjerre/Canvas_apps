@@ -15,14 +15,11 @@ filter, og flisernes tal taelles paa det samme, allerede afgraensede saet.
 """
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                "..", "..", "shared", "canvas"))
-
-from canvas_dsl import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_PRIMARY, C_WHITE,
+from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_PRIMARY, C_WHITE,
                         C_INFO_FG, C_INFO_BG, C_NEUTRAL_BG, C_DIVIDER, C_TRANSPARENT,
                         C_APP_BG, FONT, SHELL_W)
-from canvas_helpers import text_ctrl, group, button, card
-from hub_config import LIST, DOMAINS, STATUS
+from build_helpers import text_ctrl, group, button, card
+from hub_config import LIST, COL_NO, DOMAINS, STATUS
 
 # ---------------------------------------------------------------------------
 # Afgraensningen. Begge grene er delegerbare hver for sig:
@@ -190,7 +187,7 @@ ITEMS = (
     '        gblStatusMode = "all" || (gblStatusMode = "open" && IsOpen) ||\n'
     '            (gblStatusMode = "done" && !IsOpen),\n'
     '        IsBlank(Trim(txtMdSearch.Text)) ||\n'
-    "            StartsWith(Title, Trim(txtMdSearch.Text)) ||\n"
+    f"            StartsWith({COL_NO}, Trim(txtMdSearch.Text)) ||\n"
     "            StartsWith(ShortText, Trim(txtMdSearch.Text)) ||\n"
     "            StartsWith(Plant, Trim(txtMdSearch.Text)),\n"
     "    ),\n"
@@ -222,7 +219,7 @@ def build_list():
                              "RadiusBottomLeft": "4", "RadiusBottomRight": "4",
                              "RadiusTopLeft": "4", "RadiusTopRight": "4"})
 
-    no = text_ctrl("txtMdRowNo", "ThisItem.Title", size=11, color=C_MUTED, height=16, wrap="false")
+    no = text_ctrl("txtMdRowNo", f"ThisItem.{COL_NO}", size=11, color=C_MUTED, height=16, wrap="false")
     txt = text_ctrl("txtMdRowText", "ThisItem.ShortText", size=13, height=18, wrap="false")
     main = group("conMdRowMain", [no, txt], direction="Vertical", gap=2, width=MAIN_W,
                  align_items="Stretch")
@@ -264,7 +261,7 @@ def build_list():
                        "    )\n"
                        ")"),
                       width=COLS[5][1], height=28,
-                      accessible='"Aabn " & ThisItem.Title & " i domaeneappen"')
+                      accessible=f'"Aabn " & ThisItem.{COL_NO} & " i domaeneappen"')
 
     row = group("conMdRow", [badge, main, plant, stat, when, open_btn],
                 direction="Horizontal", gap=GAP, height="Parent.TemplateHeight - 2",

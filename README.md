@@ -7,8 +7,14 @@ Canvas apps og indmeldingsflow til SAP masterdata. To apps i dag:
 | **Masterdata Hub** | [`Masterdata Hub/`](Masterdata%20Hub) | Landingssiden. Alle indmeldinger på tværs af de fem domæner, med status. 83 kontroller, én datakilde |
 | **VH-plan** | [`Maintenance Plan App/`](Maintenance%20Plan%20App) | Indmelding af vedligeholdsplaner, inkl. strategiplaner med pakker |
 
-Fælles DSL, højde-algebra og layout-tjek ligger i [`shared/canvas/`](shared/canvas).
-Arbejdsgangen står i [`.github/skills/vhplan-canvas-build/SKILL.md`](.github/skills/vhplan-canvas-build/SKILL.md).
+Begge `.pa.yaml`-skærme er **genereret** af Python-builderne i den enkelte apps
+`build/`-mappe. Byg begge apps og efterregn layoutet med:
+
+```bash
+python3 tools/build_all.py
+```
+
+Arbejdsgangen står i [`.github/skills/canvas-build/SKILL.md`](.github/skills/canvas-build/SKILL.md).
 
 Dokumenterne nedenfor er oplægget bag VH-plan-delen: udvidelsen fra single
 cycle til **strategiplaner** (SAP PM, IP42) med de pakker, der hører til
@@ -95,9 +101,17 @@ ikke kan laves i native kontroller.
 
 ```powershell
 Install-Module PnP.PowerShell -Scope CurrentUser
+
+# Listerne bag VH-plan-appen
 .\sharepoint\provision\Provision-VHPlanLists.ps1 `
     -SiteUrl "https://<tenant>.sharepoint.com/sites/<site>" `
     -SeedMasterData
+
+# Indekslisten bag landingssiden. -AddSampleRows giver fire prøverækker,
+# så hubben kan åbnes, før de fem submit-flows er bygget.
+.\sharepoint\provision\Provision-RequestIndex.ps1 `
+    -SiteUrl "https://<tenant>.sharepoint.com/sites/<site>" `
+    -AddSampleRows
 ```
 
 Åbn derefter `html/cycle-timeline-reference.html` i en browser for at se,

@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Kontroltrae-DSL og serialisering til .pa.yaml. Deles af alle canvas apps
-i dette repo.
+Kontroltrae-DSL og serialisering til .pa.yaml (Power Apps canvas).
+
+Filen er ordret ens i alle apps i repoet. Retter du her, skal du kopiere
+den til de oevrige build-mapper - se .github/skills/canvas-build/SKILL.md.
 
 HOEJDEMODELLEN
 --------------
@@ -26,7 +28,7 @@ glemmes et enkelt sted.
 """
 import os
 
-# OUT_DIR saettes af den enkelte app, ikke her.
+OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 
 # ---------------------------------------------------------------------------
 # Style constants (matched to ScreenMaterialer.pa.yaml / ScreenDetails.pa.yaml)
@@ -63,6 +65,11 @@ FONT = "Font.'Segoe UI'"
 # App.Width, som er 64 px bredere end det indholdet har.
 SHELL_W = "(App.Width - 64)"
 
+# Bredden af items-skinnen naar de to kort staar side om side.
+RAIL_W = 360
+SPLIT_GAP = 20
+# Bredden af Item Editor-kortet, udtrykt uden at referere nogen kontrol.
+EDITOR_W = f"If(App.Width < 1000, {SHELL_W}, {SHELL_W} - {RAIL_W} - {SPLIT_GAP})"
 
 
 # ---------------------------------------------------------------------------

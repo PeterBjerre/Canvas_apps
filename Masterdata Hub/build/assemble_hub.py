@@ -3,13 +3,9 @@
 import os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-sys.path.insert(0, os.path.join(HERE, "..", "..", "shared", "canvas"))
-
-from canvas_dsl import render_screen, C_APP_BG
-from canvas_helpers import group
+from gen_screen import render_screen, C_APP_BG, OUT_DIR
+from build_helpers import group
 from build_hub import build_bar, build_tiles, build_filters, build_list
-
-OUT_DIR = os.path.join(HERE, "..")
 
 
 def build_screen():
