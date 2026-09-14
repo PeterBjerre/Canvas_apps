@@ -94,28 +94,64 @@ Rene tilføjelser. Rører ikke noget bestående.
 
 ### `MD_Strategy` og `MD_StrategyPackage`
 
-Strategipakkerne findes ikke. `StandardStrategyList` har kun `Title`, hvor
-pakkestrukturen står som fritekst: `101 - 1-3-6-12-36 md eftersyn`.
+**Status: bygget.** Kør:
 
-| `MD_Strategy` | Type |
-|---|---|
-| `Title` (= `StrategyKey`) | Text, indekseret |
-| `Name` | Text |
-| `SchedulingIndicator` | Choice: TIME, TIME_FACTOR, PERFORMANCE |
-| `SapStrategy` | Text — nøglen i SAP (IP11) |
+```powershell
+python3 tools/gen_strategy_seed.py          # -> sharepoint/seed/MD_Strategy.csv
+.\Provision-StrategyLists.ps1 -SiteUrl "https://orsted.sharepoint.com/teams/BioSAPDEV"
+```
+
+Strategierne er hentet fra SAP og ligger i `sharepoint/Strategier.txt` —
+**53 stykker**, nøgle 100 til 190. `MD_StrategyPackage` oprettes tom;
+pakkerne kommer senere.
+
+| `MD_Strategy` | Type | |
+|---|---|---|
+| `Title` → vises som `StrategyKey` | Text, indekseret | SAP-nøglen: `100`, `101` … |
+| `StrategyName` | Text | `1-3-6-12-36 md eftersyn` |
+| `SchedulingIndicator` | Choice: TIME, TIME_FACTOR, PERFORMANCE | **Gættet** — se nedenfor |
+| `Hierarchical` | Choice: Ja, Nej, **Ikke afklaret** | Sættes i hånden |
+| `PackagesLoaded` | Boolean | Sand, når strategiens pakker er indlæst |
+| `Notes` | Note | |
+
+Bemærk at `Title` får visningsnavnet `StrategyKey`. Power Fx binder på
+visningsnavn, så appen skriver `ThisItem.StrategyKey` — mens et
+migreringsscript skal bruge `Title`. Samme mønster som `RequestNo` i
+`MD_RequestIndex`.
+
+**`Hierarchical` gættes ikke.** Om en strategi undertrykker sine egne pakker,
+står hverken i navnet eller i udtrækket. Alle 53 rækker får derfor
+`Ikke afklaret`, og feltet sættes i hånden. Det er et **tre**-værdi-felt og
+ikke ja/nej, netop så en strategi, ingen har taget stilling til, ikke ligner
+et bevidst "nej" — og så appen kan advare frem for at gætte. Scriptet skriver
+til sidst, hvor mange der mangler.
+
+**`SchedulingIndicator` gættes derimod.** Begynder navnet med `Tæller` eller
+`T.`, er det en tællerstrategi (`PERFORMANCE`), ellers tid (`TIME`). Det giver
+13 PERFORMANCE og 40 TIME. Det er udledt af teksten, ikke læst i SAP, så det
+skal efterprøves mod IP11. Jeg gætter her og ikke på `Hierarchical`, fordi der
+faktisk *er* evidens i navnet.
+
+**`PackagesLoaded`** er til den mellemtilstand, I står i nu: 53 strategier uden
+pakker. Appen må kun tilbyde strategier, hvor den er sand — ellers vælger
+brugeren en strategi, og pakkematricen står tom uden forklaring.
+
+> **Om navnene.** Seks af de 53 er præcis 30 tegn — SAP afkorter der, og nogle
+> er klippet midt i et ord (`6-12-24-30-36-60-72 md eftersy`). Behandl dem som
+> nøgler med en etiket, ikke som prosa.
 
 | `MD_StrategyPackage` | Type |
 |---|---|
+| `Title` → vises som `PackageLabel` | Text |
 | `StrategyKey` | Text, indekseret |
 | `PackageNo` | Number |
 | `ShortCode` | Text — `M1`, `M3` |
 | `CycleLength` / `CycleUnit` | Number / Choice |
 | `Hierarchy` | Number — hvem kalder, når flere forfalder samme dag |
 | `PackageText` | Text |
+| `OffsetValue` | Number |
 
-**Værdierne skal hentes fra SAP (IP11), ikke opfindes.** De tre rækker i
-`StandardStrategyList` er ikke nok, og de bærer ikke pakkerne. Det er den
-eneste post på listen her, der kræver noget af jer ud over et script.
+Nøglen er `StrategyKey` + `PackageNo`, ikke `Title`.
 
 ### `MD_StandardTaskOperations` — de seks bliver til én
 
@@ -204,8 +240,10 @@ Slet ingenting nu. Listen er til den dag, oprydningen er ufarlig.
 
 1. Tilføj de fire kolonner i §3 og ryd navnerodet. Additivt, den gamle app
    mærker intet.
-2. Opret `MD_Strategy` og `MD_StrategyPackage` — tomme. Hent værdierne fra
-   IP11.
+2. ~~Opret `MD_Strategy` og `MD_StrategyPackage`.~~ **Gjort** — kør
+   `Provision-StrategyLists.ps1`. Sæt derefter `Hierarchical` i hånden, og
+   efterprøv `SchedulingIndicator` mod IP11. Pakkerne indlæses, når de er
+   hentet.
 3. Opret `MD_StandardTaskOperations` og migrér de 176 rækker.
 4. Byg den nye app mod modellen, med de gamle lister urørte ved siden af.
 5. Vælg B til løbenumrene, når indsendelsen alligevel skrives om.
