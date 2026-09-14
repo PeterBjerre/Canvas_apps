@@ -42,6 +42,7 @@
 param(
     [Parameter(Mandatory = $true)][string] $SiteUrl,
     [string] $SeedPath,
+    [string] $PackageSeedPath,
     [switch] $SkipSeed,
     [string] $ClientId = $env:PNP_CLIENT_ID
 )
@@ -49,6 +50,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 if (-not $SeedPath) { $SeedPath = Join-Path $PSScriptRoot '..\seed\MD_Strategy.csv' }
+if (-not $PackageSeedPath) { $PackageSeedPath = Join-Path $PSScriptRoot '..\seed\MD_StrategyPackage.csv' }
 
 $conn = @{ Url = $SiteUrl; Interactive = $true }
 if ($ClientId) { $conn.ClientId = $ClientId }
@@ -163,6 +165,55 @@ if (-not $SkipSeed) {
 }
 
 # ---------------------------------------------------------------------------
+# Pakker
+# ---------------------------------------------------------------------------
+# Noeglen er StrategyKey + PackageNo, ikke Title. En strategi faar
+# PackagesLoaded = sand, saa snart den har mindst een pakke - det er det,
+# appen bruger til at maerke de strategier, der endnu ikke kan bruges.
+if (-not $SkipSeed -and (Test-Path $PackageSeedPath)) {
+    Write-Host "`n=== Indlaeser pakker ===" -ForegroundColor Cyan
+    $pkgSeed = Import-Csv -Path $PackageSeedPath -Encoding UTF8
+
+    $havePkg = @{}
+    foreach ($it in (Get-PnPListItem -List 'MD_StrategyPackage' -PageSize 500)) {
+        $havePkg["$($it.FieldValues.StrategyKey)|$($it.FieldValues.PackageNo)"] = $true
+    }
+
+    $pAdded = 0; $pSkipped = 0
+    $touched = @{}
+    foreach ($r in $pkgSeed) {
+        $touched[$r.StrategyKey] = $true
+        if ($havePkg["$($r.StrategyKey)|$($r.PackageNo)"]) { $pSkipped++; continue }
+        Add-PnPListItem -List 'MD_StrategyPackage' -Values @{
+            Title       = $r.Title
+            StrategyKey = $r.StrategyKey
+            PackageNo   = [int]$r.PackageNo
+            ShortCode   = $r.ShortCode
+            CycleLength = [int]$r.CycleLength
+            CycleUnit   = $r.CycleUnit
+            Hierarchy   = [int]$r.Hierarchy
+            PackageText = $r.PackageText
+            OffsetValue = [int]$r.OffsetValue
+        } | Out-Null
+        $pAdded++
+    }
+    Write-Host "  + $pAdded pakker oprettet, = $pSkipped fandtes i forvejen" -ForegroundColor Green
+
+    # Saet PackagesLoaded paa de strategier, der nu HAR pakker.
+    $marked = 0
+    foreach ($it in (Get-PnPListItem -List 'MD_Strategy' -PageSize 500)) {
+        $key = [string]$it.FieldValues.Title
+        if (-not $touched.ContainsKey($key)) { continue }
+        if ($it.FieldValues.PackagesLoaded -eq $true) { continue }
+        Set-PnPListItem -List 'MD_Strategy' -Identity $it.Id `
+                        -Values @{ PackagesLoaded = $true } | Out-Null
+        $marked++
+        Write-Host "    ~ strategi $key markeret som klar" -ForegroundColor Green
+    }
+    if (-not $marked) { Write-Host "    ingen strategier skiftede status" -ForegroundColor DarkGray }
+}
+
+# ---------------------------------------------------------------------------
 $unresolved = @(Get-PnPListItem -List 'MD_Strategy' -PageSize 500 |
     Where-Object { $_.FieldValues.Hierarchical -ne 'Ja' -and $_.FieldValues.Hierarchical -ne 'Nej' })
 
@@ -177,6 +228,7 @@ Write-Host "  1. Efterproev SchedulingIndicator mod IP11. Den er udledt af"
 Write-Host "     strateginavnet (begynder det med 'Taeller' eller 'T.'"
 Write-Host "     = PERFORMANCE), ikke laest i SAP."
 Write-Host "  2. Saet Hierarchical paa de strategier, der skal kunne vaelges."
-Write-Host "  3. Naar pakkerne er hentet: fyld MD_StrategyPackage og saet"
-Write-Host "     PackagesLoaded = Ja paa de strategier, der har faaet pakker."
+Write-Host "  3. Naar flere strategiers pakker er hentet: laeg dem i"
+Write-Host "     sharepoint/seed/MD_StrategyPackage.csv og koer scriptet igen."
+Write-Host "     PackagesLoaded saettes automatisk."
 Write-Host "  4. Tilfoej begge lister som datakilder i appen, og GEM i Studio."
