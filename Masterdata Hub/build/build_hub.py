@@ -189,7 +189,7 @@ ITEMS = (
     '        IsBlank(Trim(txtMdSearch.Text)) ||\n'
     f"            StartsWith({COL_NO}, Trim(txtMdSearch.Text)) ||\n"
     "            StartsWith(ShortText, Trim(txtMdSearch.Text)) ||\n"
-    "            StartsWith(Plant, Trim(txtMdSearch.Text)),\n"
+    "            StartsWith(Plant, Trim(txtMdSearch.Text))\n"
     "    ),\n"
     '    "LastActionOn", SortOrder.Descending\n'
     ")"

@@ -346,6 +346,17 @@ def main():
             problems.append(f"[10] {name}: {body['Control']} kender ikke "
                             f"egenskaben '{key}' - compile vil fejle")
 
+    # --- 11. Efterstillet komma i Power Fx ---------------------------------
+    # Power Fx tillader ikke et komma lige foer en lukkeparentes. Det sker,
+    # naar nogen sletter den sidste gren af et If() og glemmer kommaet paa
+    # linjen foer - og fejlen ses foerst ved compile.
+    TRAILING = re.compile(r",\s*\)")
+    for p_, name, body in all_nodes:
+        for key, val in (body.get("Properties") or {}).items():
+            if isinstance(val, str) and TRAILING.search(val):
+                problems.append(f"[11] {name}.{key}: komma lige foer ')' "
+                                f"- Power Fx afviser det ved compile")
+
     print(f"Kontroller i alt: {len(all_nodes)}")
     if problems:
         print(f"\n{len(problems)} problem(er):\n")
