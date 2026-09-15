@@ -216,3 +216,13 @@ def render_screen(screen_name, screen_props, children):
     for child in children:
         lines.extend(render(child, 6))
     return "\n".join(lines) + "\n"
+
+
+# Denne fil er et bibliotek. Den kan koeres, men goer ingenting - og det
+# kostede en hel verifikationsrunde, hvor "python3 gen_screen.py" saa ud
+# til at bygge skaermen igen uden at roere den. Nu siger den fra.
+if __name__ == "__main__":
+    import sys
+    sys.exit("gen_screen.py er et bibliotek og bygger ingenting.\n"
+             "Byg skaermen med: python3 assemble_screen.py\n"
+             "Eller hele kaeden med: python3 tools/build_all.py")

@@ -413,8 +413,9 @@ def build_item_editor():
             "Items": f"Sort({OBJ_CANDIDATES}, Code)",
             "LayoutMinWidth": "0",
             "LoadingSpinner": "LoadingSpinner.None",
-            "RadiusBottomLeft": "10", "RadiusBottomRight": "10",
-            "RadiusTopLeft": "10", "RadiusTopRight": "10",
+            # Gallery understoetter ikke Radius* - kun rammen kan saettes.
+            # Feltet faar derfor skarpe hjoerner, hvor dropdownen ved siden
+            # af har bloede. Se check 10 i check_layout.py.
             "Selectable": "false",
             "ShowScrollbar": "true",
             "TabIndex": "0",
