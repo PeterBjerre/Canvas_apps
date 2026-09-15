@@ -86,6 +86,7 @@ nævner kontrollen.
 | `build_tasklist.py` | Tasklist, operationstabel, dispatch, mailknap |
 | `build_strategy.py` | Pakkematricen (strategiplaner) |
 | `build_modal.py` | Tasklist-picker |
+| `build_save.py` | **Gemning i SharePoint** — de fire lister, nøglerne, og hvad der bevidst ikke udfyldes |
 | `assemble_screen.py` | Samler skærmen → `../ScreenVhPlan.pa.yaml` |
 | `generate_app_onstart.py` | `App.Formulas` + `App.OnStart` → `../App.pa.yaml` |
 
@@ -198,12 +199,16 @@ egenskaber, builderne bevidst sætter.
    `Classic/ComboBox` til søg-og-vælg, gallery med `ModernCheckbox`, vandret
    gallery til dynamiske kolonner. Hver ubevist konstruktion i dette projekt
    har kostet en deploy-runde.
-5. **Ingen datahentning i `App.OnStart`.** Opslagslister bindes med
+5. **`ctrl.vis` skriver `Visible` igennem.** Sæt synlighed med `visible=` i
+   helperen eller `ctrl.vis = ...` — begge skriver egenskaben *og* fortæller
+   højde-algebraen, at barnet kan være skjult. Sæt aldrig `props["Visible"]`
+   direkte: så regner forælderen med plads til noget, der ikke er der.
+6. **Ingen datahentning i `App.OnStart`.** Opslagslister bindes med
    **navngivne formler** (`App.Formulas`), som evalueres dovent og caches.
    `OnStart` betales af hver bruger hver gang; en navngiven formel gør ikke.
    Kun samlinger, appen **skriver** til, hører hjemme i `OnStart` — og der
    kun som tomt skema.
-6. **Padding tælles med i højden.** Det gør `stack_height()` automatisk —
+7. **Padding tælles med i højden.** Det gør `stack_height()` automatisk —
    omgå den ikke ved at sætte `height=` manuelt på et kort.
 
 ### Hvorfor `Classic/ComboBox` og ikke `ModernCombobox`
@@ -211,6 +216,21 @@ egenskaber, builderne bevidst sætter.
 Kun den klassiske udgave eksponerer `SearchText` som output-egenskab. Uden
 `SearchText` kan timeren ikke se, hvad brugeren har skrevet, og så er hele
 søge-mens-du-skriver-mønstret ikke muligt. Skift den ikke ud.
+
+## Power Fx binder på VISNINGSNAVN
+
+Det gælder hver eneste SharePoint-kolonne. Tre gange i dette projekt har den
+fælde kostet en runde:
+
+| Intern kolonne | Power Fx ser |
+|---|---|
+| `MD_RequestIndex.Title` | `RequestNo` |
+| `MD_Strategy.Title` | `StrategyKey` |
+| `MaintenancePlans.CallHorizon0` | `CallHorizon` |
+
+Slår du en ny kolonne op, så tjek `sharepoint/inspect/out/schema.md` — den
+fremhæver hver kolonne, hvor de to navne er forskellige. Navnene hører hjemme
+i `build/sp_config.py`, ikke ude i formlerne.
 
 ## Datakilder skal findes i appen først
 

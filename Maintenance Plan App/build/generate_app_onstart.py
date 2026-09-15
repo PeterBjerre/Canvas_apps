@@ -81,7 +81,14 @@ Set(varVhpFlMeta, "");
 Set(varVhpFlLastSearch, "");
 Set(varVhpLastValidationErrors, "");
 Set(varVhpExportJson, "");
-Set(varVhpTasklistPickerOpen, false);"""
+Set(varVhpTasklistPickerOpen, false);
+
+// Gemning i SharePoint. SpId > 0 betyder, at planen findes som raekke -
+// saa opdateres den i stedet for at blive oprettet igen.
+Set(varVhpPlanSpId, 0);
+Set(varVhpPlanKey, "");
+Set(varVhpRequestGuid, "");
+Set(varVhpSaving, false);"""
 
 
 def build_onstart():

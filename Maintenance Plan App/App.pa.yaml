@@ -7,7 +7,7 @@ App:
 
       colVhpActivityTypeOptions = Sort(ForAll(MaintenanceActivityTypeList As R, { Value: R.Title }), Value);
 
-      colVhpCallHorizonOptions = Sort(ForAll(CallHorizonMatrix As R, { Value: R.Title }), Value);
+      colVhpCallHorizonOptions = Sort(ForAll(CallHorizonMatrix As R, { Value: R.Title, Days: R.NewCallHorizonOrFCD, SchedPeriod: R.SchedulingPeriodNum }), Value);
 
       colVhpPlanStatusOptions = Choices(MaintenanceItems.Status);
 
@@ -42,6 +42,9 @@ App:
 
       ClearCollect(colVhpPickerSelected, { OperationNo: "" });
       Clear(colVhpPickerSelected);
+
+      ClearCollect(colVhpSavedItems, { LocalId: 0, SpId: 0, ItemKey: "" });
+      Clear(colVhpSavedItems);
 
       // SAP-vaerdier for schedulering.
       ClearCollect(
@@ -93,7 +96,14 @@ App:
       Set(varVhpFlLastSearch, "");
       Set(varVhpLastValidationErrors, "");
       Set(varVhpExportJson, "");
-      Set(varVhpTasklistPickerOpen, false)
+      Set(varVhpTasklistPickerOpen, false);
+
+      // Gemning i SharePoint. SpId > 0 betyder, at planen findes som raekke -
+      // saa opdateres den i stedet for at blive oprettet igen.
+      Set(varVhpPlanSpId, 0);
+      Set(varVhpPlanKey, "");
+      Set(varVhpRequestGuid, "");
+      Set(varVhpSaving, false)
     StartScreen: |-
         =ScreenVhPlan
     Theme: |-

@@ -121,17 +121,22 @@ def timer_poll_action(query_expr, target_collection, last_search_var, msg_var,
 
     GENTAGELSESSPAERREN
     -------------------
-    Soegningen udloeses KUN naar laengden er noejagtig MIN_SEARCH_LEN - ikke
-    ved hvert tegn derefter. Comboboksen filtrerer selv videre i det
-    resultat, den allerede har hentet, naar brugeren skriver flere tegn, saa
-    et nyt flow-kald pr. tastetryk ud over minimum ville bare vaere spild.
+    Soegningen udloeses ved HVER ny tekst paa mindst MIN_SEARCH_LEN tegn -
+    ikke kun naar laengden er noejagtig MIN_SEARCH_LEN.
 
-    Naar laengden IKKE er noejagtig MIN_SEARCH_LEN (for kort, eller der er
-    skrevet videre forbi det), nulstilles last_search_var til "". Det er det,
-    der goer, at et fald til fx 6 tegn og saa tilbage til 7 udloeser et nyt
-    kald - ogsaa hvis teksten ender med at vaere identisk med sidste soegning.
-    Uden nulstillingen ville "q <> last_search_var" forhindre det, fordi
-    last_search_var stadig ville staa med den tekst, der blev soegt paa sidst.
+    Den foerste udgave brugte "noejagtig 7", ud fra at comboboksen selv kunne
+    filtrere videre i det hentede resultat. Det var forkert paa to maader:
+
+      1. En hurtig skribent naaede forbi 7 tegn mellem to timer-tik, og saa
+         blev soegningen ALDRIG udloest.
+      2. Skrev man videre efter 7 tegn, filtrerede comboboksen i resultatet
+         for de 7 tegn. Returnerer flowet kun de foerste N traef, er der
+         ingen af dem, der matcher 10 tegn - og saa stod dropdownen TOM,
+         mens beskeden stadig sagde "50 Functional Locations fundet".
+         Beskeden hoerte til en soegning, der ikke laengere blev vist.
+
+    q <> last_search_var er nok til at holde antallet af kald nede: samme
+    tekst soeges aldrig to gange, og timeren tikker kun hver 500 ms.
 
     Der ryddes bevidst IKKE selve target_collection, naar laengden afviger:
     naar brugeren vaelger en raekke, nulstiller comboboksen selv SearchText
@@ -141,7 +146,7 @@ def timer_poll_action(query_expr, target_collection, last_search_var, msg_var,
         f"With(\n"
         f"    {{ q: Trim({query_expr}) }},\n"
         f"    If(\n"
-        f"        Len(q) <> {MIN_SEARCH_LEN},\n"
+        f"        Len(q) < {MIN_SEARCH_LEN},\n"
         f"        Set({last_search_var}, \"\"),\n"
         f"\n"
         f"        If(\n"
@@ -160,7 +165,8 @@ def timer_poll_action(query_expr, target_collection, last_search_var, msg_var,
         f"                    If(\n"
         f"                        CountRows({target_collection}) = 0,\n"
         f"                        \"Ingen {label} fundet for \" & q & \".\",\n"
-        f"                        Text(CountRows({target_collection})) & \" {label} fundet. Vaelg en i feltet.\"\n"
+        f"                        Text(CountRows({target_collection})) & \" {label} fundet for \" & q &\n"
+        f"                            \". Vaelg en i feltet.\"\n"
         f"                    )\n"
         f"                ),\n"
         f"                Clear({target_collection});\n"

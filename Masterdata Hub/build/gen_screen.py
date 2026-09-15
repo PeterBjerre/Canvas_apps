@@ -81,7 +81,7 @@ class Ctrl:
     #       som .Height i en formel.
     # vis = Visible-udtryk, hvis kontrollen kan vaere skjult. Forelderen
     #       taeller den saa kun med, naar den er synlig.
-    __slots__ = ("name", "control", "variant", "props", "children", "h", "vis")
+    __slots__ = ("name", "control", "variant", "props", "children", "h", "_vis")
 
     def __init__(self, name, control, variant=None, props=None, children=None, h=None, vis=None):
         self.name = name
@@ -90,7 +90,28 @@ class Ctrl:
         self.props = props or {}
         self.children = children or []
         self.h = h
-        self.vis = vis
+        self._vis = None
+        if vis is not None:
+            self.vis = vis
+
+    # vis skrives IGENNEM til Visible-egenskaben.
+    #
+    # Foer var vis kun hoejde-algebraens felt, saa "ctrl.vis = udtryk" efter
+    # konstruktionen fik forelderen til at regne rigtigt, men skrev ingen
+    # Visible i YAML'en - kontrollen blev bare ved med at vaere synlig. Det
+    # ramte handlingsknapperne i pakkematricen, og fejlen var usynlig i
+    # builderen. Nu kan de to ikke komme ud af trit.
+    @property
+    def vis(self):
+        return self._vis
+
+    @vis.setter
+    def vis(self, expr):
+        self._vis = expr
+        if expr is None:
+            self.props.pop("Visible", None)
+        else:
+            self.props["Visible"] = expr
 
 
 # ---------------------------------------------------------------------------

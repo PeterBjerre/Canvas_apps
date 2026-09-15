@@ -35,6 +35,7 @@ L_STDOPS      = "MD_StandardTaskOperations"
 L_PLANS       = "MaintenancePlans"
 L_ITEMS       = "MaintenanceItems"
 L_TASKS       = "TaskListMain"
+L_INDEX       = "MD_RequestIndex"
 
 # --- kolonnenavne der IKKE er selvindlysende -------------------------------
 # MainWorkCenters er oprettet fra Excel, saa de interne navne er field_1 og
@@ -46,6 +47,11 @@ C_WC_PLANT = "'Plant Key'"
 
 # MD_Strategy: Title er omdoebt til StrategyKey ved provisioneringen.
 C_STRATEGY_KEY = "StrategyKey"
+
+# MD_RequestIndex: Title er omdoebt til RequestNo. Power Fx binder paa
+# VISNINGSNAVN, saa et Patch med { Title: ... } ville ramme ved siden af.
+# Samme streng staar som COL_NO i "Masterdata Hub/build/hub_config.py".
+C_INDEX_NO = "RequestNo"
 
 
 def _forall(source, fields, alias="R"):
@@ -78,8 +84,15 @@ def named_formulas():
     add("colVhpActivityTypeOptions",
         f"Sort({_forall(L_ACTTYPES, [('Value', 'R.Title')])}, Value)")
 
+    # Value er teksten, brugeren vaelger. Days er TALLET, SharePoint vil have:
+    # valgkolonnen CallHorizonChoiceOLD har engelske tekster ("55 days (1 YR)"),
+    # som IKKE matcher matricens danske ("45 dage"), mens talkolonnen
+    # CallHorizon tager tallet direkte. Derfor baeres begge dele.
     add("colVhpCallHorizonOptions",
-        f"Sort({_forall(L_CALLHORIZON, [('Value', 'R.Title')])}, Value)")
+        "Sort(" + _forall(L_CALLHORIZON,
+                          [("Value", "R.Title"),
+                           ("Days", "R.NewCallHorizonOrFCD"),
+                           ("SchedPeriod", "R.SchedulingPeriodNum")]) + ", Value)")
 
     # --- valgkolonner: Choices() giver allerede { Value } ---
     add("colVhpPlanStatusOptions", f"Choices({L_ITEMS}.Status)")
@@ -190,4 +203,8 @@ WORKING_COLLECTIONS = [
       "Maintainable": "false", "Level": '""'}),
     ("colVhpItemObjects", {"ItemId": 0, "Code": '""', "Description": '""'}),
     ("colVhpPickerSelected", {"OperationNo": '""'}),
+    # Kobler appens lokale ItemId til den raekke, der blev oprettet i
+    # MaintenanceItems. Operationerne har brug for begge dele til deres
+    # opslagsfelt, og de kan foerst kendes EFTER items er skrevet.
+    ("colVhpSavedItems", {"LocalId": 0, "SpId": 0, "ItemKey": '""'}),
 ]

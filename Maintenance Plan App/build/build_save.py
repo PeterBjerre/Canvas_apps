@@ -1,0 +1,371 @@
+# -*- coding: utf-8 -*-
+"""
+Gem en indmelding i SharePoint.
+
+FIRE LISTER SKRIVES
+-------------------
+    MaintenancePlans    planhovedet          -> PlanID   MP0068
+    MaintenanceItems    eet pr. item         -> ItemID   MI0112
+    TaskListMain        eet pr. operation    -> TaskItemID TI0341
+    MD_RequestIndex     EEN opsummering      -> hubben laeser kun den
+
+NOEGLERNE
+---------
+Den gamle app afleder noeglen af SharePoints eget ID minus et fast offset:
+PlanID = ID - 5, ItemID = ID - 6, TaskItemID = ID - 1 (i DEV). Det holder i
+ALLE 398 eksisterende raekker. Da ID tildeles atomart, er der ingen
+kapløbstilstand - to samtidige indsendelser kan ikke faa samme noegle.
+
+Offsettet staar i AppSettings, men KUN for DEV. I stedet for at gaette paa 0
+i TEST og PROD udledes det af data: nyeste raekkes ID minus dens eget nummer.
+Det er selvkorrigerende og miljoeuafhaengigt. Kan det ikke udledes
+(tom liste, eller et nummer der ikke er et tal), bruges 0 for en tom liste
+og ellers stoppes der - en forkert noegleserie er vaerre end en fejlbesked.
+
+REKKEFOELGEN
+------------
+Planen foerst, saa items, saa operationer: hvert trin har brug for ID'et fra
+det foregaaende til sit opslagsfelt. Ved gensave slettes de gamle items og
+operationer foerst - en halv opdatering er sværere at rydde op i end en
+gentagelse.
+
+DET DER IKKE SKRIVES
+--------------------
+Nogle kolonner i de eksisterende lister kan ikke udfyldes forsvarligt herfra:
+
+  MaintenancePlans.PlanType     eneste valgvaerdi er "PM" - siger intet om
+                                IP41/IP42. StrategyKey baerer det i stedet.
+  MaintenancePlans.Package      een enkelt pakke pr. plan. Appens matrix er
+                                pr. operation og ligger i PackagesKey.
+  MaintenancePlans.CallHorizon  er et TAL og udfyldes fra matricens
+                                NewCallHorizonOrFCD. Valgkolonnen
+                                CallHorizonChoiceOLD roeres ikke: dens
+                                tekster er engelske ("55 days (1 YR)") og
+                                matcher ikke matricens danske ("45 dage"),
+                                saa et Patch ville fejle.
+  MultiCounterStrategy          bruges ikke af appen.
+
+De staar tomme med vilje. Bliver de noedvendige for SAP-oprettelsen, skal
+kilden afklares foerst - ikke gaettes her.
+"""
+import os, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_PRIMARY, C_WHITE,
+                        C_VALID_FG, C_INVALID_FG, SHELL_W)
+from build_helpers import text_ctrl, group, button, button_row, card
+from build_plan_header import section_header
+import sp_config as cfg
+
+# Appens play-URL. Hubben bruger den til at aabne indmeldingen igen.
+APP_URL = ("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47"
+           "/a/11fa8d90-868a-45a4-ba23-28f2cf0671a2")
+
+DOMAIN = "MaintenancePlan"
+
+# Appens Status (Ny/AEndre/Slettes) er AENDRINGSTYPEN pr. item, ikke
+# arbejdsgangens status. De to maa ikke blandes sammen.
+PLAN_STATUS_DRAFT = "Draft"
+PLAN_STATUS_SUBMITTED = "In Progress"
+
+
+def _offset(list_name, key_field, prefix):
+    """Offsettet mellem SharePoints ID og forretningsnoeglen.
+
+    Udledt af den nyeste raekke i stedet for af AppSettings, som kun har
+    vaerdier for DEV. Blank paa en tom liste - saa starter serien paa ID."""
+    return (
+        f"With(\n"
+        f"    {{ r: First(Sort({list_name}, ID, SortOrder.Descending)) }},\n"
+        f"    If(\n"
+        f"        IsBlank(r.ID), 0,\n"
+        f"        IsNumeric(Mid(r.{key_field}, {len(prefix) + 1})),\n"
+        f"        r.ID - Value(Mid(r.{key_field}, {len(prefix) + 1})),\n"
+        f"        Blank()\n"
+        f"    )\n"
+        f")"
+    )
+
+
+def _key(prefix, id_expr, off_var):
+    return f"\"{prefix}\" & Text({id_expr} - {off_var}, \"0000\")"
+
+
+def save_action(submit=False):
+    """Hele gemningen som eet Power Fx-udtryk."""
+    plan_status = PLAN_STATUS_SUBMITTED if submit else PLAN_STATUS_DRAFT
+    idx_status = "Indsendt" if submit else "Kladde"
+    idx_step = 2 if submit else 1
+    verb = "indsendt" if submit else "gemt"
+
+    # Planhovedets felter. PlannedDate samles af de tre First Call-felter.
+    plan_fields = (
+        "{\n"
+        "            Title: varVhpPlan.PlanText,\n"
+        f"            Status: {{ Value: \"{plan_status}\" }},\n"
+        "            PlantsInitial: { Value: varVhpPlan.Plant },\n"
+        "            Cycle: varVhpPlan.Cycle,\n"
+        "            Unit: { Value: varVhpPlan.Unit },\n"
+        "            PlannedDate: Date(\n"
+        "                varVhpPlan.FirstCallYear, varVhpPlan.FirstCallMonth, varVhpPlan.FirstCallDay\n"
+        "            ),\n"
+        "            StrategyKey: varVhpPlan.Strategy,\n"
+        # Talkolonnen, ikke valgkolonnen. Se kommentaren i sp_config.
+        "            CallHorizon: LookUp(\n"
+        "                colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon\n"
+        "            ).Days,\n"
+        "            SchedulingPeriod: LookUp(\n"
+        "                colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon\n"
+        "            ).SchedPeriod,\n"
+        f"            SortField: With(\n"
+        f"                {{ sf: LookUp({cfg.L_SORTFIELDS}, Title = varVhpPlan.SortField) }},\n"
+        "                If(IsBlank(sf.ID), Blank(), { Id: sf.ID, Value: sf.Title })\n"
+        "            )\n"
+        "        }"
+    )
+
+    item_fields = (
+        "{\n"
+        "                        Title: IT.ShortText,\n"
+        "                        Status: { Value: Switch(varVhpPlan.Status,\n"
+        "                            \"Ny\", \"New\", \"AEndre\", \"Change\", \"Slettes\", \"Deleted\", \"New\") },\n"
+        "                        MaintenancePlanNo: { Id: planId, Value: planKey },\n"
+        "                        ItemDescription: Coalesce(IT.LongText, IT.ShortText),\n"
+        "                        FunctionalLocation: IT.FunctionalLocation,\n"
+        "                        ObjectList: IT.ObjectList,\n"
+        # Priority er obligatorisk i listen, men appen har ikke feltet.
+        # Standardvaerdien hedder bogstaveligt "Yellow (default)".
+        "                        Priority: { Value: \"Yellow (default)\" },\n"
+        # Person-kolonnen er obligatorisk. Indsenderen staar som ansvarlig,
+        # indtil appen faar en rigtig personvaelger. Teksten ved siden af er
+        # den, der kan filtreres delegerbart.\n
+        "                        OrstedResponsible: {\n"
+        "                            '@odata.type': \"#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser\",\n"
+        "                            Claims: \"i:0#.f|membership|\" & Lower(User().Email),\n"
+        "                            DisplayName: User().FullName,\n"
+        "                            Email: User().Email,\n"
+        "                            Department: \"\",\n"
+        "                            JobTitle: \"\",\n"
+        "                            Picture: \"\"\n"
+        "                        },\n"
+        "                        OrstedResponsibleEmail: Lower(User().Email),\n"
+        "                        InitialOrstedResponsible: IT.Initials,\n"
+        f"                        MaintenanceActivityType: With(\n"
+        f"                            {{ a: LookUp({cfg.L_ACTTYPES}, Title = IT.ActivityType) }},\n"
+        "                            If(IsBlank(a.ID), Blank(), { Id: a.ID, Value: a.Title })\n"
+        "                        ),\n"
+        f"                        MainWorkCenter: With(\n"
+        f"                            {{ w: LookUp({cfg.L_WORKCENTERS}, Trim(Title) = IT.MainWorkCenter) }},\n"
+        "                            If(IsBlank(w.ID), Blank(), { Id: w.ID, Value: w.Title })\n"
+        "                        )\n"
+        "                    }"
+    )
+
+    op_fields = (
+        "{\n"
+        "                            Title: m.ItemKey & \" - \" & OP.OperationShortText,\n"
+        "                            OperationShortText: OP.OperationShortText,\n"
+        "                            OperationNo: Value(OP.OperationNo),\n"
+        "                            PackagesKey: OP.PackagesKey,\n"
+        "                            Work: OP.WorkHours,\n"
+        "                            Duration: OP.DurationHours,\n"
+        "                            WorkCtr: OP.MainWorkCenter,\n"
+        "                            Vendor: OP.Vendor,\n"
+        "                            LongText: OP.LongText,\n"
+        "                            PlantInitial: varVhpPlan.Plant,\n"
+        "                            MaintenanceItemNo: { Id: m.SpId, Value: m.ItemKey },\n"
+        "                            MaintenancePlanID: { Id: planId, Value: planKey }\n"
+        "                        }"
+    )
+
+    index_fields = (
+        "{\n"
+        f"                {cfg.C_INDEX_NO}: planKey,\n"
+        f"                Domain: {{ Value: \"{DOMAIN}\" }},\n"
+        f"                Status: {{ Value: \"{idx_status}\" }},\n"
+        f"                StatusStep: {idx_step},\n"
+        "                IsOpen: true,\n"
+        "                RequestGuid: varVhpRequestGuid,\n"
+        "                RequesterEmail: Lower(User().Email),\n"
+        "                RequesterName: User().FullName,\n"
+        "                ShortText: varVhpPlan.PlanText,\n"
+        "                Plant: varVhpPlan.Plant,\n"
+        "                ItemCount: CountRows(colVhpItems),\n"
+        "                SourceItemId: planId,\n"
+        f"                AppUrl: \"{APP_URL}\",\n"
+        "                LastActionOn: Now(),\n"
+        "                LastActionBy: Lower(User().Email)\n"
+        "            }"
+    )
+
+    return (
+        "If(\n"
+        "    !varVhpPlanCommitted || CountRows(colVhpItems) = 0,\n"
+        "    Notify(\"Opret planen og mindst eet item foerst.\", NotificationType.Warning),\n"
+        "\n"
+        "    Set(varVhpSaving, true);\n"
+        "    IfError(\n"
+        "        With(\n"
+        "            {\n"
+        f"                planOff: {_offset(cfg.L_PLANS, 'PlanID', 'MP')},\n"
+        f"                itemOff: {_offset(cfg.L_ITEMS, 'ItemID', 'MI')},\n"
+        f"                taskOff: {_offset(cfg.L_TASKS, 'TaskItemID', 'TI')}\n"
+        "            },\n"
+        "            If(\n"
+        "                IsBlank(planOff) || IsBlank(itemOff) || IsBlank(taskOff),\n"
+        # Hellere stoppe end at starte en ny noegleserie ved siden af den
+        # eksisterende, uden at nogen opdager det.
+        "                Notify(\n"
+        "                    \"Kan ikke udlede noeglerne fra de eksisterende raekker. \" &\n"
+        "                        \"Gemning afbrudt - kontakt SAP masterdata.\",\n"
+        "                    NotificationType.Error\n"
+        "                );\n"
+        "                Set(varVhpSaving, false),\n"
+        "\n"
+        "                Set(varVhpRequestGuid, Coalesce(varVhpRequestGuid, Text(GUID())));\n"
+        "\n"
+        "                // --- 1. planhovedet ---------------------------------\n"
+        "                With(\n"
+        "                    {\n"
+        "                        planRec: Patch(\n"
+        f"                            {cfg.L_PLANS},\n"
+        f"                            If(varVhpPlanSpId > 0, LookUp({cfg.L_PLANS}, ID = varVhpPlanSpId),\n"
+        f"                                Defaults({cfg.L_PLANS})),\n"
+        f"                            {plan_fields}\n"
+        "                        )\n"
+        "                    },\n"
+        "                    With(\n"
+        "                        {\n"
+        "                            planId: planRec.ID,\n"
+        f"                            planKey: Coalesce(planRec.PlanID, {_key('MP', 'planRec.ID', 'planOff')})\n"
+        "                        },\n"
+        f"                        Patch({cfg.L_PLANS}, planRec, {{ PlanID: planKey }});\n"
+        "                        Set(varVhpPlanSpId, planId);\n"
+        "                        Set(varVhpPlanKey, planKey);\n"
+        "\n"
+        "                        // --- 2. ryd det gamle -----------------------\n"
+        "                        // Ved gensave er det enklere og sikrere at\n"
+        "                        // skrive linjerne forfra end at finde ud af\n"
+        "                        // hvilke der er tilfoejet, aendret og slettet.\n"
+        f"                        RemoveIf({cfg.L_TASKS}, MaintenancePlanID.Id = planId);\n"
+        f"                        RemoveIf({cfg.L_ITEMS}, MaintenancePlanNo.Id = planId);\n"
+        "\n"
+        "                        // --- 3. items ------------------------------\n"
+        "                        Clear(colVhpSavedItems);\n"
+        "                        ForAll(\n"
+        "                            colVhpItems As IT,\n"
+        "                            With(\n"
+        "                                {\n"
+        "                                    itemRec: Patch(\n"
+        f"                                        {cfg.L_ITEMS}, Defaults({cfg.L_ITEMS}),\n"
+        f"                                        {item_fields}\n"
+        "                                    )\n"
+        "                                },\n"
+        f"                                With(\n"
+        f"                                    {{ itemKey: {_key('MI', 'itemRec.ID', 'itemOff')} }},\n"
+        f"                                    Patch({cfg.L_ITEMS}, itemRec, {{ ItemID: itemKey }});\n"
+        "                                    Collect(\n"
+        "                                        colVhpSavedItems,\n"
+        "                                        { LocalId: IT.ItemId, SpId: itemRec.ID, ItemKey: itemKey }\n"
+        "                                    )\n"
+        "                                )\n"
+        "                            )\n"
+        "                        );\n"
+        "\n"
+        "                        // --- 4. operationer ------------------------\n"
+        "                        ForAll(\n"
+        "                            colVhpOperations As OP,\n"
+        "                            With(\n"
+        "                                { m: LookUp(colVhpSavedItems, LocalId = OP.ItemId) },\n"
+        "                                If(\n"
+        "                                    IsBlank(m.SpId), false,\n"
+        "                                    With(\n"
+        "                                        {\n"
+        "                                            opRec: Patch(\n"
+        f"                                                {cfg.L_TASKS}, Defaults({cfg.L_TASKS}),\n"
+        f"                                                {op_fields}\n"
+        "                                            )\n"
+        "                                        },\n"
+        f"                                        Patch({cfg.L_TASKS}, opRec,\n"
+        f"                                            {{ TaskItemID: {_key('TI', 'opRec.ID', 'taskOff')} }})\n"
+        "                                    )\n"
+        "                                )\n"
+        "                            )\n"
+        "                        );\n"
+        "\n"
+        "                        // --- 5. opsummering til landingssiden ------\n"
+        "                        // Hubben laeser KUN denne raekke. Den skal\n"
+        "                        // skrives hver gang status aendrer sig,\n"
+        "                        // ellers viser oversigten noget forkert.\n"
+        "                        Patch(\n"
+        f"                            {cfg.L_INDEX},\n"
+        "                            Coalesce(\n"
+        f"                                LookUp({cfg.L_INDEX}, RequestGuid = varVhpRequestGuid),\n"
+        f"                                Defaults({cfg.L_INDEX})\n"
+        "                            ),\n"
+        f"                            {index_fields}\n"
+        "                        );\n"
+        "\n"
+        "                        Set(varVhpSaving, false);\n"
+        "                        Set(\n"
+        "                            varVhpRuntimeInfo,\n"
+        f"                            planKey & \" {verb}: \" & Text(CountRows(colVhpItems)) &\n"
+        "                                \" item(s) og \" & Text(CountRows(colVhpOperations)) &\n"
+        "                                \" operation(er).\"\n"
+        "                        );\n"
+        f"                        Notify(planKey & \" {verb}.\", NotificationType.Success)\n"
+        "                    )\n"
+        "                )\n"
+        "            )\n"
+        "        ),\n"
+        "\n"
+        "        Set(varVhpSaving, false);\n"
+        "        Set(varVhpRuntimeInfo, \"Gemning fejlede: \" & FirstError.Message);\n"
+        "        Notify(\"Gemning fejlede: \" & FirstError.Message, NotificationType.Error)\n"
+        "    )\n"
+        ")"
+    )
+
+
+def build_save_section():
+    header = section_header("conVhpSaveHead", "Gem i SharePoint",
+                            "Planen, items og operationer skrives til listerne, "
+                            "og indmeldingen vises paa landingssiden.", "Step 6")
+
+    state = text_ctrl(
+        "txtVhpSaveState",
+        (
+            "If(\n"
+            "    varVhpSaving, \"Gemmer ...\",\n"
+            "    IsBlank(varVhpPlanKey),\n"
+            "        \"Ikke gemt endnu. Gem som kladde for at kunne vende tilbage til den.\",\n"
+            "    \"Gemt som \" & varVhpPlanKey & \". Naeste gem overskriver items og \" &\n"
+            "        \"operationer paa den samme plan.\"\n"
+            ")"
+        ),
+        size=13, height=20, wrap="true",
+        color=f"If(IsBlank(varVhpPlanKey), {C_MUTED}, {C_VALID_FG})")
+
+    DM = ("If(\n"
+          "    varVhpSaving || !varVhpPlanCommitted || CountRows(colVhpItems) = 0,\n"
+          "    DisplayMode.Disabled,\n"
+          "    DisplayMode.Edit\n"
+          ")")
+
+    btnDraft = button("btnVhpSaveDraft", "\"Gem kladde\"", save_action(submit=False),
+                      display_mode=DM)
+    btnSubmit = button("btnVhpSubmit", "\"Indsend\"", save_action(submit=True),
+                       primary=True, display_mode=DM)
+    # Kortet har 18 px polstring i hver side.
+    CARD_W = f"({SHELL_W} - 36)"
+    row = button_row("conVhpSaveActions", [btnDraft, btnSubmit], container_w=CARD_W)
+
+    hint = text_ctrl(
+        "txtVhpSaveHint",
+        (
+            "\"Kladde = gemt, men ikke sendt videre. Indsend markerer den som \" &\n"
+            "\"klar til behandling paa landingssiden. Noeglen (MP-nummeret) \" &\n"
+            "\"tildeles af SharePoint og kan ikke kollidere med andres.\""
+        ),
+        size=12, color=C_MUTED, height=32, wrap="true")
+
+    return card("conVhpSaveCard", [header, state, row, hint], gap=10)

@@ -17,6 +17,7 @@ from build_items import build_items_section
 from build_tasklist import build_tasklist_section, build_dispatch_section, build_email_fab
 from build_strategy import build_strategy_section
 from build_modal import build_tasklist_picker_modal, build_modal_backdrop
+from build_save import build_save_section
 
 
 def build_screen():
@@ -27,6 +28,7 @@ def build_screen():
         build_tasklist_section(),
         build_strategy_section(),
         build_dispatch_section(),
+        build_save_section(),
     ]
 
     # Bundpolstringen giver plads til den svaevende "Send as email"-knap,
