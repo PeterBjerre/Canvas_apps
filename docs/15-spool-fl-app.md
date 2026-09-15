@@ -30,25 +30,27 @@ hele VH-plan appens byggekode ca. 3.400 linjer Python.
 | `Verification_*` (7 moduler) | ~1.200 | KKS-regler, udstyrsnumre, masterdata, trinstyring |
 | `Material_*`, `GUI_*` (8 moduler) | ~1.000 | Materialer, stykliste, dokumenter |
 
-`Verification_EquipmentNumbers` findes i **fire næsten identiske udgaver**
-(`.bas`, `1`, `2`, `3`) à 266 linjer. Det skal afklares hvilken der er den
-levende, før noget oversættes.
+`Verification_EquipmentNumbers` findes i **fire udgaver** (`.bas`, `1`, `2`,
+`3`) à 266 linjer. **Afklaret:** de er byte for byte identiske bortset fra
+modulnavnet, og begge kald er modulkvalificerede, så det er det unummererede
+modul der kører. Se [`16-spool-regler.md`](16-spool-regler.md).
 
 ## Sådan foreslår jeg vi griber det an
 
 Ikke som én oversættelse. Arket er vokset over tid, og en 1:1-omskrivning
 ville tage rodet med.
 
-**Trin 1 — kortlæg reglerne, ikke koden.** Træk valideringsreglerne ud af
-`modInitialEntryValidation`, `Verification_Functions`, `Verification_KKS` og
-`Verification_ClassBlocks` til en tabel: hvad tjekkes, hvornår, hvilken
-besked. `ValidationMessages` gør det halve af arbejdet, fordi teksterne
-allerede er samlet.
+**Trin 1 — kortlæg reglerne, ikke koden.** ✅ **Gjort.** Se
+[`16-spool-regler.md`](16-spool-regler.md). Reglerne viste sig at være langt
+mere ensartede end filen ser ud til: al feltvalidering går gennem én
+funktion med fire parametre pr. felt. `tools/extract_spool_rules.py` trækker
+dem ud af VBA-kilden, så tabellen kan genskabes når arket ændrer sig.
 
-**Trin 2 — klasser og karakteristikker som data, ikke som ark.** De 15
-klasse-faner bliver til to SharePoint-lister: `MD_FLClass` og
-`MD_FLCharacteristic`. Så kan en ny klasse tilføjes uden at nogen rører
-appen. Samme mønster som `MD_Strategy` / `MD_StrategyPackage`.
+**Trin 2 — klasser og karakteristikker som data, ikke som ark.** ✅
+**Modelleret.** 19 klasser og 405 regler ligger som
+`sharepoint/seed/MD_FLClass.csv` og `MD_FLCharacteristic.csv`, samme mønster
+som `MD_Strategy` / `MD_StrategyPackage`. Mangler: de ti værdilister fra
+arket "List data" (`MD_FLValueList`).
 
 **Trin 3 — appen.** Samme byggekæde som VH-plan: Python-buildere,
 `check_layout`, `check_datasources`.
@@ -57,8 +59,9 @@ appen. Samme mønster som `MD_Strategy` / `MD_StrategyPackage`.
 stadig vejen til SAP. Appen erstatter *indtastningsarket* og *valideringen*,
 ikke oprettelsen.
 
-Jeg foreslår at tage trin 1 og 2 først og få dem gennemgået, før der bygges
-skærme. Reglerne er det egentlige aktiv i den fil — skærmen er den nemme del.
+Trin 1 og 2 er lavet. Reglerne er det egentlige aktiv i den fil — skærmen er
+den nemme del. Næste skridt står sidst i
+[`16-spool-regler.md`](16-spool-regler.md).
 
 ---
 
