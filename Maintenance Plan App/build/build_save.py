@@ -213,7 +213,7 @@ def save_action(submit=False):
     return (
         "If(\n"
         "    !varVhpPlanCommitted || CountRows(colVhpItems) = 0,\n"
-        "    Notify(\"Opret planen og mindst eet item foerst.\", NotificationType.Warning),\n"
+        "    Notify(\"Create the plan and at least one item first.\", NotificationType.Warning),\n"
         "\n"
         "    Set(varVhpSaving, true);\n"
         "    IfError(\n"
@@ -228,7 +228,7 @@ def save_action(submit=False):
         # Hellere stoppe end at starte en ny noegleserie ved siden af den
         # eksisterende, uden at nogen opdager det.
         "                Notify(\n"
-        "                    \"Kan ikke udlede noeglerne fra de eksisterende raekker. \" &\n"
+        "                    \"Cannot derive the keys from the existing rows. \" &\n"
         "                        \"Gemning afbrudt - kontakt SAP masterdata.\",\n"
         "                    NotificationType.Error\n"
         "                );\n"
@@ -341,8 +341,8 @@ def save_action(submit=False):
 
 def build_save_section():
     header = section_header("conVhpSaveHead", "Gem i SharePoint",
-                            "Planen, items og operationer skrives til listerne, "
-                            "og indmeldingen vises paa landingssiden.", "Step 6")
+                            "The plan, its items and operations are written to the lists, "
+                            "and the request appears on the landing page.", "Step 6")
 
     state = text_ctrl(
         "txtVhpSaveState",
@@ -350,9 +350,9 @@ def build_save_section():
             "If(\n"
             "    varVhpSaving, \"Gemmer ...\",\n"
             "    IsBlank(varVhpPlanKey),\n"
-            "        \"Ikke gemt endnu. Gem som kladde for at kunne vende tilbage til den.\",\n"
-            "    \"Gemt som \" & varVhpPlanKey & \". Naeste gem overskriver items og \" &\n"
-            "        \"operationer paa den samme plan.\"\n"
+            "        \"Not saved yet. Save as draft so you can come back to it.\",\n"
+            "    \"Saved as \" & varVhpPlanKey & \". The next save overwrites items and \" &\n"
+            "        \"operations on the same plan.\"\n"
             ")"
         ),
         size=13, height=20, wrap="true",
@@ -375,9 +375,9 @@ def build_save_section():
     hint = text_ctrl(
         "txtVhpSaveHint",
         (
-            "\"Kladde = gemt, men ikke sendt videre. Indsend markerer den som \" &\n"
-            "\"klar til behandling paa landingssiden. Noeglen (MP-nummeret) \" &\n"
-            "\"tildeles af SharePoint og kan ikke kollidere med andres.\""
+            "\"Draft = saved but not sent on. Submit marks it as \" &\n"
+            "\"ready for processing on the landing page. The key (the MP number) \" &\n"
+            "\"is assigned by SharePoint and cannot collide with anyone else's.\""
         ),
         size=12, color=C_MUTED, height=32, wrap="true")
 

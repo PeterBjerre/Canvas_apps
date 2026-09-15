@@ -29,7 +29,7 @@ OPS_COLS = [
     ("MAIN WORK CENTER", 110),
     ("VENDOR", 110),
     ("LONG TEXT", 190),
-    ("PAKKER", 110),
+    ("PACKAGES", 110),
 ]
 OPS_GAP = 10
 OPS_TABLE_W = sum(w for _, w in OPS_COLS) + OPS_GAP * (len(OPS_COLS) - 1)
@@ -54,7 +54,7 @@ def _ops_header_html():
 
 def build_tasklist_section():
     header = section_header("conVhpOpsHead", "Tasklist and Operations",
-                            "Bind tasklist til aktivt item og tilfoej operationslinjer.", "Step 3",
+                            "Link a task list to the active item and add operation lines.", "Step 3",
                             help_section="ops")
     helpPanel = help_panel("conVhpOpsHelp", "ops")
 
@@ -213,7 +213,7 @@ def build_tasklist_section():
             "    )\n"
             ")"
         ),
-        size=12, height=32, width=w["PAKKER"], wrap="false",
+        size=12, height=32, width=w["PACKAGES"], wrap="false",
         color=(
             "If(varVhpPlan.PlanType = \"Strategy\" && Len(Coalesce(ThisItem.PackagesKey, \";\")) <= 1, "
             f"{C_INVALID_FG}, {C_MUTED})"
@@ -260,7 +260,7 @@ def build_tasklist_section():
 
 def build_dispatch_section():
     header = section_header("conVhpDispatchHead", "Dispatch and Control",
-                            "Kontrolstatus foer indberetning via mailkladde.", "Step 5")
+                            "Validation status before reporting via an email draft.", "Step 5")
     statusInline = text_ctrl(
         "txtVhpDispatchStatus",
         (
@@ -302,7 +302,7 @@ def build_email_fab():
             "    \"?subject=\" & EncodeUrl(\"VH-plan \" & varVhpPlan.Plant & \" \" & varVhpPlan.PlanText & \" (\" & Text(Today(), \"dd-mm-yyyy\") & \")\") &\n"
             "    \"&body=\" & EncodeUrl(\n"
             "        \"Hej SAP vedligehold,\" & Char(10) & Char(10) &\n"
-            "        \"VH-plan klar til oprettelse i SAP:\" & Char(10) &\n"
+            "        \"Maintenance plan ready for creation in SAP:\" & Char(10) &\n"
             "        \"Plant: \" & varVhpPlan.Plant & Char(10) &\n"
             "        \"Plan text: \" & varVhpPlan.PlanText & Char(10) &\n"
             "        \"Status: \" & varVhpPlan.Status & Char(10) &\n"

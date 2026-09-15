@@ -93,7 +93,7 @@ SEED_FL_PICKER = (
 
 def build_items_rail():
     header = section_header("conVhpItemsHead", "Items",
-                            "Hvert item har eget FL, tasklist-binding og operationer.", "Step 2")
+                            "Each item has its own functional location, task list and operations.", "Step 2")
 
     btnAdd = button(
         "btnVhpAddItem", "\"Add item\"",
@@ -263,7 +263,7 @@ def build_items_rail():
 
 def build_item_editor():
     header = section_header("conVhpEditorHead", "Item Editor",
-                            "Fulde itemfelter med reference-opslag af Functional Location.", "",
+                            "Full item fields with functional location lookup.", "",
                             help_section="item")
     helpPanel = help_panel("conVhpItemHelp", "item")
 
@@ -277,11 +277,12 @@ def build_item_editor():
     #
     # Her er der ingen skjult filtrering tilbage: dropdownen viser praecis
     # det, samlingen indeholder. Og felterne ser ud som alle de andre.
-    flLabelRow = label_row("conVhpItemFlLabel", "Functional Location", required=True)
+    flLabelRow = label_row("conVhpItemFlLabel", "Functional Location", required=True,
+                           hint_text=bh.hint("FunctionalLocation"))
 
     txtFlQuery = text_input(
         "txtVhpFlQuery", "\"\"",
-        placeholder=("\"Skriv mindst %d tegn, fx SSV13 HFC\"" % MIN_SEARCH_LEN),
+        placeholder=("\"At least %d characters, e.g. SSV13 HFC\"" % MIN_SEARCH_LEN),
         display_mode=DM_ITEM, width=f"Parent.Width - {FL_BTN_W} - 8")
     btnFlSearch = button(
         "btnVhpFlSearch", "\"Soeg\"",
@@ -316,10 +317,8 @@ def build_item_editor():
     flMeta = text_ctrl("txtVhpItemFlMeta", "varVhpFlMeta", size=12, color=C_MUTED,
                        height=32, wrap="true")
 
-    flHint = text_ctrl("txtVhpItemFlHint", bh.hint("FunctionalLocation"), size=12,
-                       color=C_MUTED, height=32, wrap="true")
     flBlock = group("conVhpItemFlBlock",
-                    [flLabelRow, flHint, flSearchRow, drpFl, flDescription, flMeta],
+                    [flLabelRow, flSearchRow, drpFl, flDescription, flMeta],
                     direction="Vertical", gap=6, width="Parent.Width",
                     # FillPortions = 0: i en LODRET container fordeler den
                     # hoejde, og blokken ville vokse ud over sit indhold.
@@ -374,10 +373,11 @@ def build_item_editor():
     #
     # Til gengaeld kan man saette flere krydser i traek uden en knap imellem,
     # hvilket var hele pointen.
-    objLabelRow = label_row("conVhpItemObjLabel", "Object List")
+    objLabelRow = label_row("conVhpItemObjLabel", "Object List",
+                            hint_text=bh.hint("ObjectList"))
 
     chkObj = Ctrl("chkVhpObjPick", "ModernCheckbox", props={
-        "AccessibleLabel": "\"Vaelg objekt\"",
+        "AccessibleLabel": "\"Select object\"",
         "Default": f"CountRows(Filter({OBJ_CHOSEN}, Code = ThisItem.Code)) > 0",
         "DisplayMode": DM_ITEM,
         "Height": "24",
@@ -436,9 +436,9 @@ def build_item_editor():
         (
             "If(\n"
             f"    IsBlank({SEL_FL}),\n"
-            "    \"Vaelg foerst en Functional Location ovenfor.\",\n"
-            "    \"Der er ingen underliggende objekter i soegeresultatet. \" &\n"
-            "        \"Soeg bredere i Functional Location-feltet.\"\n"
+            "    \"Choose a functional location above first.\",\n"
+            "    \"There are no sub-objects in the search result. \" &\n"
+            "        \"Search more broadly in the functional location field.\"\n"
             ")"
         ), size=12, color=C_MUTED, height=32, wrap="true",
         visible=f"IfError(CountRows({OBJ_CANDIDATES}) = 0, true)")
@@ -457,7 +457,7 @@ def build_item_editor():
             "                If(\n"
             "                    fremmede > 0,\n"
             "                    \"   |   ADVARSEL: \" & Text(fremmede) &\n"
-            "                        \" af dem ligger ikke under den valgte Functional Location.\",\n"
+            "                        \" of them are not under the selected functional location.\",\n"
             "                    \"\"\n"
             "                )\n"
             "            )\n"
@@ -479,10 +479,8 @@ def build_item_editor():
             ")"
         ), size=12, color=C_MUTED, height=18, wrap="true")
 
-    objHint = text_ctrl("txtVhpItemObjHint", bh.hint("ObjectList"), size=12,
-                        color=C_MUTED, height=32, wrap="true")
     objBlock = group("conVhpItemObjBlock",
-                     [objLabelRow, objHint, galObj, objEmpty, objChosen, objMeta],
+                     [objLabelRow, galObj, objEmpty, objChosen, objMeta],
                      direction="Vertical", gap=6, width="Parent.Width",
                      fill_portions=0, align_in_container="Start")
 

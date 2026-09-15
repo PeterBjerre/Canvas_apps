@@ -14,14 +14,19 @@ Tre niveauer, så teksten ikke drukner sig selv:
 
 | Niveau | Hvor | Hvor meget |
 |---|---|---|
-| **1. Hint** | Altid synlig under feltet | Én linje. Hvad feltet er, eller den regel der gælder lige nu |
+| **1. Tooltip** | Et lille **ⓘ** ved feltets label | Én linje. Hvad feltet er, eller den regel der gælder lige nu |
 | **2. Hjælpepanel** | Foldes ud pr. sektion med et **?** | 3–8 linjer. Hvorfor feltet betyder noget, og hvad der går galt |
 | **3. Kilde** | Link nederst i panelet | Til SAP-portalen / præsentationen |
 
 Niveau 1 bruger `field_cell(hint_text=...)`, som builderne allerede
-understøtter — Plan Type og Maintenance Strategy har det i dag. Niveau 2 er
-ét nyt mønster: en `?`-knap i sektionsoverskriften, der slår
-`varVhpHelp<Sektion>` til og fra.
+understøtter. Teksten stod først som en fast linje **under** feltet — med 22
+felter fyldte hjælpeteksten mere end formularen, og skærmen så rodet ud. Den
+ligger nu i `Tooltip` på et lille **ⓘ** ved labelen, så den ikke koster
+plads, før nogen peger på den. Niveau 2 er ét nyt mønster: en `?`-knap i
+sektionsoverskriften, der slår `varVhpHelp<Sektion>` til og fra.
+
+**Sproget er engelsk**, som resten af appens brugerflade. Kommentarerne i
+byggekoden er stadig danske.
 
 **Hint-teksten skal være dynamisk, hvor reglen er det.** En statisk tekst,
 der siger "udfyldes kun ved lovpligtige eftersyn", er værd mindre end en, der

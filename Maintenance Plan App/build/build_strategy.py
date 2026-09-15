@@ -94,7 +94,7 @@ def _pkg_cell_gallery(name, template, items=PKGS_SORTED, template_size=CELL_W, h
 def build_strategy_section():
     header = section_header(
         "conVhpPkgHead", "Strategy Packages",
-        "Pakkerne kommer fra strategien. Markeer hvilke operationer der hoerer til hver pakke.",
+        "The packages come from the strategy. Tick which operations belong to each package.",
         "Step 4", help_section="pkg")
     helpPanel = help_panel("conVhpPkgHelp", "pkg")
 
@@ -102,7 +102,7 @@ def build_strategy_section():
         "txtVhpPkgMeta",
         (
             "If(\n"
-            "    IsBlank(varVhpPlan.Strategy), \"Vaelg en strategi paa planhovedet foerst.\",\n"
+            "    IsBlank(varVhpPlan.Strategy), \"Choose a strategy in the plan header first.\",\n"
             "    \"Strategi \" & varVhpPlan.Strategy & \" - \" &\n"
             "    Coalesce(LookUp(colVhpStrategies, Key = varVhpPlan.Strategy).Name, \"\") & \": \" &\n"
             f"    Concat({PKGS_SORTED}, ShortCode & \" (\" & Text(CycleLength) & \" \" & CycleUnit & \")\", \", \") & \".\"\n"
@@ -119,10 +119,10 @@ def build_strategy_section():
             "    If(\n"
             "        h = \"Ja\", \"\",\n"
             "        h = \"Nej\",\n"
-            "        \"Hierarki-udfyld er slaaet fra: pakkerne i denne strategi er ikke \" &\n"
-            "            \"indlejrede i hinanden, saa de skal markeres hver for sig.\",\n"
-            "        \"Hierarki-udfyld er slaaet fra: det er ikke afklaret, om denne \" &\n"
-            "            \"strategi er hierarkisk. Saet feltet Hierarchical i MD_Strategy.\"\n"
+            "        \"Hierarchy fill is off: the packages in this strategy are not \" &\n"
+            "            \"nested, so they must be ticked one by one.\",\n"
+            "        \"Hierarchy fill is off: it is not settled whether this \" &\n"
+            "            \"strategy is hierarchical. Set the Hierarchical field in MD_Strategy.\"\n"
             "    )\n"
             ")"
         ), size=12, color=C_MUTED, height=32, wrap="true",
@@ -141,7 +141,7 @@ def build_strategy_section():
             "        colVhpOperations, ItemId = varVhpActiveItemId,\n"
             f"        {{ PackagesKey: {allPkgKey} }}\n"
             "    );\n"
-            "    Set(varVhpRuntimeInfo, \"Alle pakker markeret paa alle operationer.\")\n"
+            "    Set(varVhpRuntimeInfo, \"All packages ticked on every operation.\")\n"
             ")"
         ), display_mode="If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)")
 
@@ -233,7 +233,7 @@ def build_strategy_section():
     chkCell = Ctrl(
         "chkVhpPkgCell", "ModernCheckbox",
         props={
-            "AccessibleLabel": ("\"Pakke \" & ThisItem.ShortCode & \" paa operation \" & ThisItem.OpNo"),
+            "AccessibleLabel": ("\"Pakke \" & ThisItem.ShortCode & \" on operation \" & ThisItem.OpNo"),
             "AlignInContainer": "AlignInContainer.Center",
             "Default": f"\";\" & Text(ThisItem.PackageNo) & \";\" in {cur_key}",
             "Height": "24",
@@ -318,15 +318,15 @@ def build_strategy_section():
         (
             "If(\n"
             "    IsBlank(varVhpPlan.Strategy),\n"
-            "    \"Vaelg en strategi paa planhovedet.\",\n"
+            "    \"Choose a strategy in the plan header.\",\n"
             "\n"
             f"    {HAS_PKGS} = false,\n"
             "    \"Strategi \" & varVhpPlan.Strategy & \" har ingen pakker i MD_StrategyPackage endnu, \" &\n"
-            "        \"saa der er ikke noget at tildele. Pakkerne hentes fra SAP (IP11). \" &\n"
-            "        \"Planen kan godt gemmes og sendes uden pakketildeling.\",\n"
+            "        \"so there is nothing to allocate. The packages come from SAP (IP11). \" &\n"
+            "        \"The plan can still be saved and submitted without a package allocation.\",\n"
             "\n"
-            "    \"Ingen operationer paa det aktive item endnu. \" &\n"
-            "        \"Tilfoej operationer under Tasklist and Operations.\"\n"
+            "    \"No operations on the active item yet. \" &\n"
+            "        \"Add operations under Tasklist and Operations.\"\n"
             ")"
         ), size=13, color=C_MUTED, height=40, wrap="true",
         visible=f"IfError(!{CAN_DRAW}, true)")
@@ -344,9 +344,9 @@ def build_strategy_section():
             "    },\n"
             "    If(\n"
             "        CountRows(noPkg) = 0 && CountRows(emptyPkg) = 0,\n"
-            "        \"Alle operationer er tildelt mindst een pakke, og alle pakker har operationer.\",\n"
+            "        \"Every operation has at least one package, and every package has operations.\",\n"
             "        If(CountRows(noPkg) > 0,\n"
-            "            \"S4: \" & Concat(noPkg, OperationNo, \", \") & \" er ikke tildelt nogen pakke og ville aldrig blive udfoert. \",\n"
+            "            \"S4: \" & Concat(noPkg, OperationNo, \", \") & \" has no package and would never be carried out. \",\n"
             "            \"\"\n"
             "        ) &\n"
             "        If(CountRows(emptyPkg) > 0,\n"

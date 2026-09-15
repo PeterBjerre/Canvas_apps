@@ -39,89 +39,89 @@ def _q(s):
 # ---------------------------------------------------------------------------
 HINTS = {
     # --- Plan Header ---
-    "PlanType": _q("Strategiplan henter cyklus fra strategiens pakker."),
+    "PlanType": _q("A strategy plan takes its cycle from the strategy packages."),
 
     "Strategy": ("If(varVhpPlan.PlanType = \"Strategy\", "
-                 + _q("Pakkerne vises i Strategy Packages nedenfor.") + ", "
-                 + _q("Kun relevant for strategiplaner.") + ")"),
+                 + _q("The packages are shown in Strategy Packages below.") + ", "
+                 + _q("Only relevant for strategy plans.") + ")"),
 
-    "Plant": _q("Vaerket bestemmer hvilke arbejdscentre og arbejdsplaner der kan vaelges."),
+    "Plant": _q("The plant determines which work centres and task lists are available."),
 
-    "Status": _q("Ny, AEndre eller Slettes - hvad indmeldingen skal goere ved planen i SAP."),
+    "Status": _q("New, Change or Delete - what this request should do to the plan in SAP."),
 
     # Overskriften skal starte med vaerkets bogstavkode, saa planen kan findes
     # naar man ikke kan soege paa vaerk eller funktionsplads.
     "PlanText": ("If(\n"
                  "    !IsBlank(varVhpPlan.Plant) && !IsBlank(varVhpPlan.PlanText) &&\n"
                  "        !StartsWith(Upper(varVhpPlan.PlanText), Upper(varVhpPlan.Plant)),\n"
-                 "    " + _q("Boer starte med vaerkskoden ") + " & varVhpPlan.Plant & "
-                 + _q(" - saa kan planen findes uden at soege paa vaerk.") + ",\n"
-                 "    " + _q("Start med vaerkets bogstavkode. Teksten skal daekke alle opgaver planen kalder. Maks. 40 tegn.") + "\n"
+                 "    " + _q("Should start with the plant code ") + " & varVhpPlan.Plant & "
+                 + _q(" - so the plan can be found without searching by plant.") + ",\n"
+                 "    " + _q("Start with the plant code. The text must cover every task the plan calls. Maks. 40 tegn.") + "\n"
                  ")"),
 
     "SortField": ("With(\n"
                   "    { n: CountRows(" + STATUTORY_ITEMS + ") },\n"
                   "    If(\n"
                   "        n > 0,\n"
-                  "        " + _q("Paakraevet: ") + " & Text(n) & "
-                  + _q(" item(s) har activity type 110 eller 115. Alle items i planen skal vaere samme lovpligtige eftersyn.") + ",\n"
-                  "        " + _q("Bruges kun til lovpligtige eftersyn (activity type 110 og 115).") + "\n"
+                  "        " + _q("Required: ") + " & Text(n) & "
+                  + _q(" item(s) have activity type 110 or 115. All items in the plan must be the same statutory inspection.") + ",\n"
+                  "        " + _q("Only used for statutory inspections (activity type 110 and 115).") + "\n"
                   "    )\n"
                   ")"),
 
-    "Cycle": _q("Hvor ofte planen kalder en ordre."),
+    "Cycle": _q("How often the plan calls an order."),
 
-    "Unit": _q("DAY, WK, MON eller YR - eller H for timetaeller."),
+    "Unit": _q("DAY, WK, MON or YR - or H for a counter-based plan."),
 
     "CallHorizon": ("With(\n"
                     "    { m: LookUp(colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon) },\n"
                     "    If(\n"
                     "        IsBlank(m.Value),\n"
-                    "        " + _q("Antal arbejdsdage ordren staar paa joblisten foer slutdatoen.") + ",\n"
+                    "        " + _q("Working days the order stays on the job list before the finish date.") + ",\n"
                     "        Text(m.Days) & " + _q(" FCD, schedulering ") + " & Text(m.SchedPeriod) &\n"
-                    "            " + _q(" aar. Sat automatisk ud fra cyklus.") + "\n"
+                    "            " + _q(" years. Set automatically from the cycle.") + "\n"
                     "    )\n"
                     ")"),
 
-    "SchedInd": _q("Time - key date kalder paa samme dato hvert aar. Vaelg den, hvis planen kalder primo januar."),
+    "SchedInd": _q("Time - key date calls on the same date every year. Use it when the plan calls in early January."),
 
     # Revisionsopgaver kaldes 1/1 - ellers flytter kaldet sig og rammer
     # ikke revisionen.
     "FirstCall": ("If(\n"
                   "    CountRows(" + REVISION_ITEMS + ") > 0,\n"
-                  "    " + _q("Laast til 01/01: et item har revisionsmaerke. Kun aaret kan vaelges.") + ",\n"
-                  "    " + _q("Foerste kald. Vaelg dag, maaned og aar.") + "\n"
+                  "    " + _q("Fixed to 01/01: an item is marked as outage work. Only the year can be chosen.") + ",\n"
+                  "    " + _q("First call. Choose day, month and year.") + "\n"
                   ")"),
 
-    "StatutorySortField": _q("Udfyldes kun, hvis eftersynet har et eget lovpligtigt sorteringsfelt."),
+    "StatutorySortField": _q("Only fill this in if the inspection has its own statutory sort field."),
 
     # --- Item Editor ---
-    "ItemShortText": _q("Bliver VH-ordrens overskrift. Skriv hvad opgaven er - ikke hvad planen hedder. Maks. 40 tegn."),
+    "ItemShortText": _q("Becomes the heading of the maintenance order. Describe the task, not the plan. Max 40 characters."),
 
-    "FunctionalLocation": _q("Angiv saa detaljeret som muligt, helst komponentniveau. Her konteres omkostningen."),
+    "FunctionalLocation": _q("Be as specific as possible, ideally down to component level. This is where the cost is posted."),
 
-    "ObjectList": _q("Skal starte med samme 2-bogstavsniveau som referenceobjektet."),
+    "ObjectList": _q("Must start at the same two-letter level as the reference object."),
 
     "ActivityType": ("With(\n"
                      "    { a: LookUp(colVhpItems, ItemId = varVhpActiveItemId).ActivityType },\n"
                      "    If(\n"
                      "        StartsWith(a, \"110\") || StartsWith(a, \"115\"),\n"
-                     "        " + _q("Lovpligtigt: der SKAL henvises til gaeldende lovgivning i langteksten.") + ",\n"
+                     "        " + _q("Statutory: the long text MUST reference the applicable legislation.") + ",\n"
                      "        StartsWith(a, \"120\"),\n"
-                     "        " + _q("Loebende opgave - maks. 1 aar. Prioritet bliver blaa.") + ",\n"
-                     "        " + _q("101 forebyggende - 102 forudbestemt - 110 lovpligtigt - 115 myndighedsvilkaar - 120 loebende - 130 rengoering - 160 smoering.") + "\n"
+                     "        " + _q("Running task - max 1 year. Priority becomes blue.") + ",\n"
+                     "        " + _q("101 preventive - 102 predetermined - 110 statutory - 115 regulatory condition - 120 running - 130 cleaning - 160 lubrication.") + "\n"
                      "    )\n"
                      ")"),
 
-    "MainWorkCenter": _q("Bruges der eksterne leverandoerer, vaelg *SUP."),
+    "MainWorkCenter": _q("If external suppliers are used, choose *SUP."),
 
-    "Revision": _q("REV betyder at opgaven loeses i revisionsperioden. Foerste kald laases saa til 01/01."),
+    "Revision": _q("REV means the task is done during the outage. First call is then fixed to 01/01."),
 
-    "OrstedResponsible": _q("Den ansvarlige. Udfyldt med dig som standard."),
+    "OrstedResponsible": _q("The person responsible. Defaults to you."),
 
-    "Initials": _q("Initialer paa den ansvarlige, fx NIJUJ."),
+    "Initials": _q("Initials of the person responsible, e.g. NIJUJ."),
 
-    "ItemLongText": _q("Beskriv omfanget, og hvad der skal til for at udfoere opgaven sikkert. Det er det foerste udfoereren ser i ordren."),
+    "ItemLongText": _q("Describe the scope and what it takes to do the job safely. It is the first thing the technician sees in the order."),
 
     # --- Tasklist og operationer ---
     # Operationerne redigeres i et galleri, ikke i field_cell, saa denne hint
@@ -136,11 +136,11 @@ HINTS = {
                    "    If(\n"
                    "        CountRows(ops) = 0, \"\",\n"
                    "        IsBlank(first.MainWorkCenter),\n"
-                   "        \"Operation \" & first.OperationNo & \" skal baere det hovedansvarlige arbejdscenter.\",\n"
+                   "        \"Operation \" & first.OperationNo & \" must carry the main responsible work centre.\",\n"
                    "        CountRows(Filter(ops, IsBlank(OperationShortText))) > 0,\n"
-                   "        Text(CountRows(Filter(ops, IsBlank(OperationShortText)))) & \" operation(er) mangler short text.\",\n"
+                   "        Text(CountRows(Filter(ops, IsBlank(OperationShortText)))) & \" operation(s) are missing a short text.\",\n"
                    "        CountRows(Filter(ops, WorkHours <= 0)) > 0,\n"
-                   "        \"Alle operationer skal time- og bemandingsestimeres - Work skal vaere over 0.\"\n"
+                   "        \"Every operation needs a time and manning estimate - Work must be above 0.\"\n"
                    "    )\n"
                    ")"),
 }
@@ -151,75 +151,81 @@ HINTS = {
 # ---------------------------------------------------------------------------
 PANELS = {
     "plan": [
-        ("Overskriften",
-         "Starter altid med lokationens bogstavkode (AVV, SKV, SSV ...), saa planen "
-         "kan findes, naar man ikke kan soege paa vaerk eller funktionsplads."),
+        ("The plan text",
+         "Always starts with the plant code (AVV, SKV, SSV ...), so the plan can be "
+         "found when you cannot search by plant or functional location."),
         ("Call horizon",
-         "Antal ARBEJDSDAGE den genererede VH-ordre staar paa joblisten, foer basic "
-         "finish naas. Saettes ud fra cyklussen. Revisionsopgaver har 65 FCD."),
+         "The number of WORKING DAYS the generated order stays on the job list "
+         "before basic finish is reached. Set from the cycle. Outage work uses "
+         "65 FCD."),
         ("Scheduling period",
-         "Hvor langt frem kaldene kan ses. Minimum 2 aar af hensyn til den "
-         "oekonomiske simulering i BI-rapporten."),
+         "How far ahead the calls are visible. Minimum 2 years, because the cost "
+         "simulation in the BI report depends on it."),
         ("Sort field",
-         "Bruges KUN ved lovpligtige eftersyn (activity type 110/115). Er der valgt "
-         "Ladders, skal ALLE items i planen vaere lovpligtigt eftersyn af stiger."),
-        ("Revision",
-         "Opgaver der loeses til aarets revision maerkes REV og kaldes 1/1. "),
+         "Used ONLY for statutory inspections (activity type 110/115). If Ladders "
+         "is selected, EVERY item in the plan must be a statutory ladder "
+         "inspection."),
+        ("Outage work",
+         "Tasks carried out during the annual outage are marked REV and called on "
+         "1/1."),
     ],
     "item": [
-        ("Langteksten",
-         "Det FOERSTE vedligeholdelsespersonalet ser i den genererede ordre. Beskriv "
-         "omfanget. Er der krav om "
-         "rengoering, lugemand, kran, stillads eller afspaerring, saa skriv det kort."),
-        ("Referenceobjektet",
-         "Der hvor omkostningen konteres. Angiv funktionspladsen paa "
-         "komponentniveau. Er der objekter paa objektlisten, kan den vaere mindre "
-         "detaljeret - men mindst 2-bogstavsniveau, fx SKV40 EB."),
-        ("Objektlisten",
-         "Cost center og business area skal vaere ens for alle funktionspladser paa "
-         "listen. Gaelder dog ikke sikkerhedsventiler og roerstrenge. Ved lovpligtig "
-         "besigtigelse af trykbaerende udstyr: EEN funktionsplads pr. item, "
-         "objektlisten tom."),
-        ("Aktivitetstyper",
-         "101 forebyggende - 102 forudbestemt - 110 lovpligtigt eftersyn - "
-         "115 myndighedsvilkaar - 120 loebende, maks. 1 aar - 130 rengoering - "
-         "160 smoering. Bruges 110 eller 115 SKAL der henvises til gaeldende lovgivning."),
-        ("Prioritet",
-         "Foelger aktivitetsmatricen: roed ved 110/115 eller sikkerhedskritisk udstyr "
-         "(SCEq), blaa ved 120, ellers gul."),
+        ("The long text",
+         "The FIRST thing the maintenance crew sees in the generated order. "
+         "Describe the scope. If cleaning, a hole watch, a crane, scaffolding or "
+         "barriers are needed, say so briefly."),
+        ("The reference object",
+         "Where the cost is posted. Give the functional location down to component "
+         "level. If there are objects on the object list it can be less specific - "
+         "but at least the two-letter level, e.g. SKV40 EB."),
+        ("The object list",
+         "Cost center and business area must be the same for every functional "
+         "location on the list. This does not apply to safety valves and pipe "
+         "runs. For statutory inspection of pressure equipment: ONE functional "
+         "location per item, object list empty."),
+        ("Activity types",
+         "101 preventive - 102 predetermined - 110 statutory inspection - 115 "
+         "regulatory condition - 120 running, max 1 year - 130 cleaning - 160 "
+         "lubrication. If 110 or 115 is used, the applicable legislation MUST be "
+         "referenced."),
+        ("Priority",
+         "Follows the activity matrix: red for 110/115 or safety critical "
+         "equipment (SCEq), blue for 120, otherwise yellow."),
     ],
     "ops": [
-        ("Del opgaven op, hvor der er ophold",
-         "Stillads op og stillads ned er to operationer. Af-isolering og isolering er "
-         "to. Ellers kan WOS-appen ikke vise forloebet rigtigt."),
-        ("Kronologisk raekkefoelge",
-         "Operationerne skal staa 0010, 0020, 0030 i den orden arbejdet udfoeres, saa "
-         "det grafiske view i WOS afspejler opgaven."),
-        ("Alle operationer time- og bemandingsestimeres",
-         "Work er samlet antal mandetimer. No. er antal personer, 1 er standard. "
-         "Duration udregner SAP selv."),
+        ("Split the job where there is a pause",
+         "Scaffolding up and scaffolding down are two operations. Removing and "
+         "refitting insulation are two. Otherwise the WOS app cannot show the "
+         "sequence correctly."),
+        ("Chronological order",
+         "Operations must run 0010, 0020, 0030 in the order the work is carried "
+         "out, so the graphical view in WOS reflects the job."),
+        ("Every operation needs a time and manning estimate",
+         "Work is the total number of man-hours. No. is the number of people, 1 is "
+         "the default. SAP calculates Duration itself."),
         ("Control keys",
-         "ZB01 internt *SUP, taeller ikke med i schedulering - PM01 interne work "
-         "centre - PM02 ekstern *LEV, der laves rekvisition - PM03 "
-         "rammeaftaleleverandoer paa servicekatalog. Det hovedansvarlige "
-         "arbejdscenter skal staa paa operation 0010."),
+         "ZB01 internal *SUP, not counted in scheduling - PM01 internal work "
+         "centres - PM02 external *LEV, a requisition is raised - PM03 framework "
+         "agreement supplier on the service catalogue. The main responsible work "
+         "centre must sit on operation 0010."),
     ],
     "pkg": [
-        ("Pakkerne hoerer til arbejdsplanen",
-         "I SAP ejer strategien pakkerne, arbejdsplanen ejer allokeringen "
-         "operation -> pakke, og vedligeholdsplanen peger paa begge."),
-        ("Hierarki",
-         "En hierarkisk strategi som 1-3-6-12 betyder, at den maanedlige opgave ogsaa "
-         "skal laves ved kvartals- og aarsgennemgangen. En roterende strategi som "
-         "aar 1-2-3 goer ikke - der skal hver pakke markeres for sig."),
-        ("Hver operation skal have mindst een pakke",
-         "En operation uden pakke bliver aldrig udfoert. En pakke uden operationer "
-         "kalder en tom ordre."),
+        ("The packages belong to the task list",
+         "In SAP the strategy owns the packages, the task list owns the operation "
+         "to package allocation, and the maintenance plan points at both."),
+        ("Hierarchy",
+         "A hierarchical strategy such as 1-3-6-12 means the monthly job is also "
+         "done at the quarterly and annual inspection. A rotating strategy such as "
+         "year 1-2-3 does not - there each package must be ticked on its own."),
+        ("Every operation needs at least one package",
+         "An operation without a package is never carried out. A package without "
+         "operations calls an empty order."),
     ],
 }
 
-SOURCE_NOTE = ('Kilde: "Den gode VH-plan" (maj 2025) og "Planlaegning af en VH ordre" '
-               "(2026). Spoerg SAPvedligehold@orsted.dk.")
+
+SOURCE_NOTE = ('Source: "Den gode VH-plan" (May 2025) and "Planlaegning af en '
+               'VH ordre" (2026). Ask SAPvedligehold@orsted.dk.')
 
 
 def hint(key):
