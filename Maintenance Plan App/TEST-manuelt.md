@@ -118,28 +118,31 @@ Klik **Åbn** på rækken → VH-plan appen åbnes i en ny fane.
 
 ### Hjælpepanelerne
 
-Der skal være en **? Hjælp**-knap i overskriften på fire sektioner: Plan
+Der skal være en **? Help**-knap i overskriften på fire sektioner: Plan
 Header, Item Editor, Tasklist and Operations, Strategy Packages.
 
-1. Klik **? Hjælp** på Plan Header.
+1. Klik **? Help** på Plan Header.
    → Et lyseblåt panel folder sig ud under overskriften. Knappen skifter til
-   **Skjul hjælp** og bliver blå. Nederst i panelet står kilden.
+   **Hide help** og bliver blå. Nederst i panelet står kilden.
 2. Klik igen → panelet forsvinder, knappen bliver grå igen.
 3. Gentag på de tre andre sektioner. De fire paneler er uafhængige — alle
    fire kan være åbne samtidig.
 
-### Hints der ændrer sig
+### Tooltips der ændrer sig
 
-Hint-linjen under et felt skal **ændre tekst**, når forudsætningen ændrer
-sig. Det er den vigtigste del af testen — en hint, der står stille, er en
-statisk tekst, der er sluppet forbi.
+Hold musen over **ⓘ** ved feltets label. Teksten skal **skifte**, når
+forudsætningen ændrer sig. Det er den vigtigste del af testen — en tooltip,
+der står stille, er en statisk tekst, der er sluppet forbi.
 
-| Gør dette | Hinten skal skifte til |
+Tooltip er browserens egen, så den kommer efter ca. et sekunds hvile. Den
+virker ikke på touch — dér er det sektionens `? Help`-panel, der gælder.
+
+| Gør dette | Tooltippen skal skifte til |
 |---|---|
-| Sæt Plan Type = `Strategy` | Strategy-hinten nævner pakkerne nedenfor |
-| Skriv Plan Text uden værkskoden | PlanText-hinten siger, at teksten bør starte med værkskoden |
-| Sæt et items Activity Type til `110` | Sort Field-hinten skifter til "Påkrævet: 1 item …" |
-| Sæt Revision på et item | FirstCall-hinten siger 01/01 |
+| Sæt Plan Type = `Strategy` | Strategy-tooltippen nævner pakkerne nedenfor |
+| Skriv Plan Text uden værkskoden | PlanText-tooltippen siger, at teksten bør starte med værkskoden |
+| Sæt et items Activity Type til `110` | Sort Field-tooltippen skifter til "Required: 1 item …" |
+| Sæt Revision på et item | FirstCall-tooltippen siger 01/01 |
 | Tilføj en operation uden Main Work Center | Linjen over operationstabellen nævner operation 0010 |
 | Udfyld arbejdscentret, men lad short text stå tom | Samme linje skifter til "1 operation(er) mangler short text" |
 

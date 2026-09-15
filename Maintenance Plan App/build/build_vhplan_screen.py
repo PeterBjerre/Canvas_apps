@@ -17,7 +17,7 @@ def build_hero():
                        layout_min_width=220)
     subtitle = text_ctrl(
         "txtVhpSubtitle",
-        "\"Opret planheader, laas planen, tilfoej items, bind tasklist pr. item, indberet via mailkladde.\"",
+        "\"Create the plan header, lock the plan, add items, link a task list per item, then report via an email draft.\"",
         size=14, color=C_MUTED, height=40, wrap="true")
 
     heroLeft = group("conVhpHeroLeft", [eyebrow, title, subtitle], direction="Vertical", gap=6, height=108,
@@ -96,7 +96,7 @@ def build_hero():
 
     legendStar = text_ctrl("txtVhpLegendStar", "\"*\"", size=13, color=C_REQUIRED, weight="Semibold", height=20,
                             width=10, wrap="false")
-    legendText = text_ctrl("txtVhpLegendText", "\"Skal udfyldes\"", size=13, color=C_MUTED, height=20, width=110,
+    legendText = text_ctrl("txtVhpLegendText", "\"Required\"", size=13, color=C_MUTED, height=20, width=110,
                             wrap="false")
     legend = group("conVhpLegend", [legendStar, legendText], direction="Horizontal", gap=3, height=20,
                    align_items="Center", width=110)

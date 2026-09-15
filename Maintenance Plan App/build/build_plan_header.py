@@ -49,7 +49,7 @@ def section_header(name, title, desc, step_label, help_section=None):
     reserved = 0
     if help_section:
         v = help_var(help_section)
-        btn = button(f"{name}Help", f"If({v}, \"Skjul hjaelp\", \"? Hjaelp\")",
+        btn = button(f"{name}Help", f"If({v}, \"Hide help\", \"? Help\")",
                      f"Set({v}, !{v})", width=110, height=30)
         btn.props["Appearance"] = f"If({v}, ButtonAppearance.Primary, ButtonAppearance.Secondary)"
         btn.props["BasePaletteColor"] = C_INFO_FG
@@ -95,7 +95,7 @@ def help_panel(name, section):
 
 def build_plan_header():
     header = section_header("conVhpPlanHead", "Plan Header",
-                            "Vedligeholdelsesplanens stamdata og tidsparametre.", "Step 1",
+                            "Master data and scheduling parameters for the maintenance plan.", "Step 1",
                             help_section="plan")
     helpPanel = help_panel("conVhpPlanHelp", "plan")
 
@@ -195,7 +195,7 @@ def build_plan_header():
                   cols=PLAN_COLS, hint_text=bh.hint("SchedInd")),
         field_cell("conVhpCellStatutorySortField", "Statutory Sort Field", txtStatutorySortField,
                   container_w=CW, cols=PLAN_COLS, hint_text=bh.hint("StatutorySortField")),
-        field_cell("conVhpCellFirstCall", "First Call  (dd / mm / aaaa)", firstCallRow,
+        field_cell("conVhpCellFirstCall", "First Call  (dd / mm / yyyy)", firstCallRow,
                   required=True, container_w=CW, cols=PLAN_COLS,
                   hint_text=bh.hint("FirstCall")),
     ], container_w=CW)

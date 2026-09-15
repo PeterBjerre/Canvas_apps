@@ -14,7 +14,7 @@ def build_hero():
                       layout_min_width=220)
     subtitle = text_ctrl(
         "txtVhpSubtitle",
-        "\"Opret planheader, laas planen, tilfoej items, bind tasklist pr. item, indberet via mailkladde.\"",
+        "\"Create the plan header, lock the plan, add items, link a task list per item, then report via an email draft.\"",
         size=14, color=C_MUTED, height=40, wrap="true")
 
     heroLeft = group("conVhpHeroLeft", [eyebrow, title, subtitle], direction="Vertical", gap=6,
@@ -45,12 +45,12 @@ def build_hero():
             "                ),\n"
             "            s1:\n"
             "                If(isStrat && IsBlank(varVhpPlan.Strategy),\n"
-            "                    \"S1: Strategi skal vaelges paa en strategiplan.\", \"\"),\n"
+            "                    \"S1: A strategy must be chosen on a strategy plan.\", \"\"),\n"
             "            s3:\n"
             "                If(isStrat,\n"
             "                    Concat(\n"
             "                        Filter(colVhpItems, IsBlank(TasklistKey)),\n"
-            "                        \"S3: Item \" & Text(ItemId) & \" mangler tasklist - pakkeallokeringen hoerer til arbejdsplanen.\",\n"
+            "                        \"S3: Item \" & Text(ItemId) & \" has no task list - the package allocation belongs to the task list.\",\n"
             "                        Char(10)\n"
             "                    ), \"\"),\n"
             "            s4:\n"
@@ -58,7 +58,7 @@ def build_hero():
             "                    Concat(\n"
             "                        Filter(colVhpOperations, Len(Coalesce(PackagesKey, \";\")) <= 1),\n"
             "                        \"S4: Item \" & Text(ItemId) & \" operation \" & OperationNo &\n"
-            "                        \" er ikke tildelt nogen pakke og ville aldrig blive udfoert.\",\n"
+            "                        \" has no package and would never be carried out.\",\n"
             "                        Char(10)\n"
             "                    ), \"\"),\n"
             "            s5:\n"
@@ -70,7 +70,7 @@ def build_hero():
             "                            CountRows(Filter(colVhpOperations, \";\" & Text(P.PackageNo) & \";\" in Coalesce(PackagesKey, \";\"))) = 0\n"
             "                        ),\n"
             "                        \"S5: Pakke \" & ShortCode & \" (\" & Text(CycleLength) & \" \" & CycleUnit &\n"
-            "                        \") indeholder ingen operationer - planen vil kalde en tom ordre.\",\n"
+            "                        \") has no operations - the plan would call an empty order.\",\n"
             "                        Char(10)\n"
             "                    ), \"\")\n"
             ",\n"
@@ -81,8 +81,8 @@ def build_hero():
             "                If(\n"
             "                    !IsBlank(varVhpPlan.Plant) && !IsBlank(varVhpPlan.PlanText) &&\n"
             "                        !StartsWith(Upper(varVhpPlan.PlanText), Upper(varVhpPlan.Plant)),\n"
-            "                    \"R1: Plan Text boer starte med vaerkskoden \" & varVhpPlan.Plant &\n"
-            "                        \" - ellers kan planen ikke findes uden at soege paa vaerk.\", \"\"),\n"
+            "                    \"R1: Plan Text should start with the plant code \" & varVhpPlan.Plant &\n"
+            "                        \" - otherwise the plan cannot be found without searching by plant.\", \"\"),\n"
             # R2: sort field bruges kun ved lovpligtige eftersyn - men SKAL
             # udfyldes, saa snart et item er et.
             "            r2:\n"
@@ -90,8 +90,8 @@ def build_hero():
             "                    { n: CountRows(Filter(colVhpItems, StartsWith(ActivityType, \"110\") || StartsWith(ActivityType, \"115\"))) },\n"
             "                    If(\n"
             "                        n > 0 && IsBlank(varVhpPlan.SortField),\n"
-            "                        \"R2: Sort Field er paakraevet: \" & Text(n) &\n"
-            "                            \" item(s) har activity type 110 eller 115.\", \"\")),\n"
+            "                        \"R2: Sort Field is required: \" & Text(n) &\n"
+            "                            \" item(s) have activity type 110 or 115.\", \"\")),\n"
             # R3 er FJERNET. Den blokerede indsendelse, hvis et item med
             # activity type 110/115 ikke havde *SUP som arbejdscenter.
             # Peter har bekraeftet, at det ikke er rigtigt: lovpligtige
@@ -106,8 +106,8 @@ def build_hero():
             "                    { n: CountRows(Filter(colVhpItems, !IsBlank(Revision))) },\n"
             "                    If(\n"
             "                        n > 0 && (varVhpPlan.FirstCallDay <> 1 || varVhpPlan.FirstCallMonth <> 1),\n"
-            "                        \"R4: \" & Text(n) & \" item(s) har revisionsmaerke. \" &\n"
-            "                            \"Foerste kald skal vaere 01/01, ellers rammer opgaven ikke revisionen.\", \"\")),\n"
+            "                        \"R4: \" & Text(n) & \" item(s) are marked as outage work. \" &\n"
+            "                            \"First call must be 01/01, otherwise the task misses the outage.\", \"\")),\n"
             # R5: under 2 aars scheduling period virker den oekonomiske
             # simulering i BI-rapporten ikke.
             "            r5:\n"
@@ -115,8 +115,8 @@ def build_hero():
             "                    { m: LookUp(colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon) },\n"
             "                    If(\n"
             "                        !IsBlank(varVhpPlan.CallHorizon) && m.SchedPeriod < 2,\n"
-            "                        \"R5: Scheduling period skal vaere mindst 2 aar af hensyn til \" &\n"
-            "                            \"den oekonomiske simulering i BI-rapporten.\", \"\"))\n"
+            "                        \"R5: Scheduling period must be at least 2 years because of \" &\n"
+            "                            \"the cost simulation in the BI report.\", \"\"))\n"
             "        },\n"
             "        Set(\n"
             "            varVhpLastValidationErrors,\n"
@@ -245,7 +245,7 @@ def build_hero():
 
     legendStar = text_ctrl("txtVhpLegendStar", "\"*\"", size=13, color=C_REQUIRED, weight="Semibold",
                            height=20, width=10, wrap="false")
-    legendText = text_ctrl("txtVhpLegendText", "\"Skal udfyldes\"", size=13, color=C_MUTED, height=20,
+    legendText = text_ctrl("txtVhpLegendText", "\"Required\"", size=13, color=C_MUTED, height=20,
                            width=110, wrap="false")
     legend = group("conVhpLegend", [legendStar, legendText], direction="Horizontal", gap=3, height=20,
                    align_items="Center", width=123)

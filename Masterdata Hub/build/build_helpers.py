@@ -354,11 +354,37 @@ def poll_timer(name, on_timer_end, duration=500):
     }, h=1, vis="false")
 
 
-def label_row(name, label_text, required=False, width="Parent.Width"):
+def info_icon(name, tip_expr):
+    """Det lille i ved feltets label. Forklaringen ligger i Tooltip.
+
+    Foer stod hver forklaring som en fast linje UNDER feltet. Med 22 felter
+    fyldte hjaelpeteksten mere end formularen, og skaermen saa rodet ud.
+    Tooltip er en indbygget egenskab paa enhver kontrol, saa teksten koster
+    ingen plads, foer nogen peger paa den.
+
+    Ikonet er en label og ikke en knap: en knap ville tage tabulator-fokus
+    fra 22 felter uden at kunne goere noget ved et tryk. AccessibleLabel
+    baerer den samme tekst, saa en skaermlaeser ogsaa faar den."""
+    return text_ctrl(name, '"i"', size=11, weight="Semibold", height=16, width=16,
+                     wrap="false", color=C_INFO_FG,
+                     accessible=tip_expr,
+                     extra={
+                         "Align": "Align.Center",
+                         "AlignInContainer": "AlignInContainer.Center",
+                         "Fill": C_INFO_BG,
+                         "PaddingBottom": "0", "PaddingLeft": "0",
+                         "PaddingRight": "0", "PaddingTop": "0",
+                         "Tooltip": tip_expr,
+                     })
+
+
+def label_row(name, label_text, required=False, width="Parent.Width", hint_text=None):
     kids = [text_ctrl(f"{name}Lbl", f"\"{label_text}\"", size=13, weight="Semibold", height=20, wrap="false")]
     if required:
         kids.append(text_ctrl(f"{name}Star", "\"*\"", size=13, color=C_REQUIRED, weight="Semibold",
-                              height=20, width=10, wrap="false", accessible="\"Skal udfyldes\""))
+                              height=20, width=10, wrap="false", accessible="\"Required\""))
+    if hint_text is not None:
+        kids.append(info_icon(f"{name}Info", hint_text))
     return group(f"{name}Row", kids, direction="Horizontal", gap=3, height=20, align_items="Center", width=width)
 
 
@@ -378,9 +404,9 @@ def field_cell(name, label_text, input_ctrl, required=False, hint_text=None, wid
     cols er antallet af felter, der skal staa side om side i raekken (brug
     samme tal i row_n/two_col_row), saa bredden bliver ens for alle celler
     i raekken."""
-    kids = [label_row(name, label_text, required=required), input_ctrl]
-    if hint_text is not None:
-        kids.append(text_ctrl(f"{name}Hint", hint_text, size=12, color=C_MUTED, height=16, wrap="false"))
+    # hint_text staar nu i et i-ikon ved labelen, ikke som en linje under
+    # feltet. Se info_icon().
+    kids = [label_row(name, label_text, required=required, hint_text=hint_text), input_ctrl]
     w = width or col_width(container_w, cols, gap)
     return group(name, kids, direction="Vertical", gap=6, width=w,
                  align_items="Stretch", fill_portions=fill_portions_formula,
