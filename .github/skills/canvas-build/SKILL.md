@@ -228,8 +228,9 @@ dropdownen var tom. Comboboksens indbyggede søgefiltrering viste ingen af de
 rækker, den havde fået, og det lag kan ikke inspiceres udefra.
 
 FL-feltet er nu **søgefelt + søgeknap + almindelig `ModernDropdown`**, hvor
-dropdownen viser præcis det, samlingen indeholder. Objektlisten er
-**dropdown + Tilføj/Fjern** i stedet for multi-select.
+dropdownen viser præcis det, samlingen indeholder. Objektlisten er et
+**galleri med `ModernCheckbox`** — multi-select uden combobox, og samme
+konstruktion som tasklist-pickeren og pakkematricen allerede bruger.
 
 Det er også mere ensartet: alle felter i Item Editor ser nu ens ud.
 

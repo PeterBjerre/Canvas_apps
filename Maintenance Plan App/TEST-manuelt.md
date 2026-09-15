@@ -33,24 +33,21 @@ dropdown, præcis som de øvrige felter.
 3. Klik **Søg** med under 7 tegn i feltet.
    → Der skal komme en advarsel, og flowet må ikke kaldes.
 
-**Object List** — samme princip, uden multi-select:
+**Object List** — multi-select med afkrydsning:
 
-4. **Uden** en FL valgt: Object List-dropdownen skal være **grå og
-   utilgængelig**, og teksten under skal sige *"Vælg først en Functional
-   Location ovenfor."*
-   → Den må **ikke** kunne åbnes og vise hele søgeresultatet.
-5. Med en FL valgt: åbn Object List-dropdownen.
-   → Den skal vise de underliggende FL'er. Teksten under siger hvor mange.
-6. Vælg en, klik **Tilføj**.
-   → Linjen under skal vise `1 valgt: <kode>`.
-7. Tilføj en mere, og klik så **Fjern** på en af dem.
-   → Tallet og listen skal følge med.
-8. Klik **Tilføj** på den samme to gange.
-   → Anden gang skal der stå at den allerede er på listen — ingen dublet.
-9. Med objekter tilføjet: gå tilbage og vælg en **anden** Functional
-   Location. Linjen med de valgte skal blive **rød** og advare om, at nogle
-   af dem ikke ligger under den nye FL. De bliver stående — de ryddes ikke
-   i stilhed.
+4. **Uden** en FL valgt: listen skal være tom, og der skal stå *"Vælg først
+   en Functional Location ovenfor."*
+   → Den må **ikke** vise hele søgeresultatet.
+5. Med en FL valgt: listen skal vise de underliggende objekter, ét pr. linje
+   med et afkrydsningsfelt. Teksten under siger hvor mange der er mulige.
+6. **Sæt flere krydser i træk.** Linjen under skal tælle med hver gang —
+   `1 valgt:`, `2 valgt:` osv. Der er ingen knap at trykke på.
+7. Fjern et kryds igen → tallet og listen følger med.
+8. Skift til et **andet item** og tilbage igen.
+   → Krydserne skal stå som du efterlod dem. Hvert item har sin egen liste.
+9. Med objekter valgt: gå tilbage og vælg en **anden** Functional Location.
+   Linjen med de valgte skal blive **rød** og advare om, at nogle af dem
+   ikke ligger under den nye FL. De ryddes **ikke** i stilhed.
 
 ## 3. Strategidelen (1 minut)
 
