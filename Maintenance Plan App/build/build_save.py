@@ -37,12 +37,28 @@ Nogle kolonner i de eksisterende lister kan ikke udfyldes forsvarligt herfra:
                                 IP41/IP42. StrategyKey baerer det i stedet.
   MaintenancePlans.Package      een enkelt pakke pr. plan. Appens matrix er
                                 pr. operation og ligger i PackagesKey.
-  MaintenancePlans.CallHorizon  er et TAL og udfyldes fra matricens
-                                NewCallHorizonOrFCD. Valgkolonnen
-                                CallHorizonChoiceOLD roeres ikke: dens
-                                tekster er engelske ("55 days (1 YR)") og
-                                matcher ikke matricens danske ("45 dage"),
-                                saa et Patch ville fejle.
+  MaintenancePlans.CallHorizon  skrives IKKE. Tre grunde, i den raekkefoelge
+                                de vejer:
+
+                                1. Den er TOM i alle 34 eksisterende planer.
+                                   Den gamle app skriver den heller ikke, saa
+                                   ingen mangler den.
+                                2. Listen har TRE CallHorizon-kolonner efter
+                                   oprydningen (CallHorizon som tal,
+                                   CallHorizonChoiceOLD som valg,
+                                   CallHorizonUnit). Hvilken der er den
+                                   levende, er ikke afklaret.
+                                3. Et forsoeg fejlede i compile:
+                                   "argument 'CallHorizon' does not match the
+                                   expected type 'Record'. Found type
+                                   'Number'." SharePoint siger Number, men
+                                   appens CACHEDE datakildeskema siger Choice
+                                   - kolonnen blev doebt om, EFTER listen var
+                                   tilfoejet som datakilde.
+
+                                SchedulingPeriod skrives derimod. Den er
+                                udfyldt i 9 af 34 planer, er et rent tal, og
+                                har ingen navnetvivl.
   MultiCounterStrategy          bruges ikke af appen.
 
 De staar tomme med vilje. Bliver de noedvendige for SAP-oprettelsen, skal
@@ -109,10 +125,7 @@ def save_action(submit=False):
         "                varVhpPlan.FirstCallYear, varVhpPlan.FirstCallMonth, varVhpPlan.FirstCallDay\n"
         "            ),\n"
         "            StrategyKey: varVhpPlan.Strategy,\n"
-        # Talkolonnen, ikke valgkolonnen. Se kommentaren i sp_config.
-        "            CallHorizon: LookUp(\n"
-        "                colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon\n"
-        "            ).Days,\n"
+        # CallHorizon skrives IKKE. Se docstringen oeverst.
         "            SchedulingPeriod: LookUp(\n"
         "                colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon\n"
         "            ).SchedPeriod,\n"

@@ -66,9 +66,36 @@ stående.
 |---|---|
 | `MaintenancePlans.PlanType` | Eneste valgværdi er `PM`. Den siger intet om IP41/IP42 — **`StrategyKey`** bærer det i stedet: udfyldt = strategiplan |
 | `MaintenancePlans.Package` | Én enkelt pakke pr. plan. Appens matrix er pr. operation og ligger i `TaskListMain.PackagesKey` |
-| `CallHorizonChoiceOLD` | Valgkolonnens tekster er engelske (`55 days (1 YR)`) og matcher ikke matricens danske (`45 dage`). Et `Patch` ville fejle. **Talkolonnen `CallHorizon` udfyldes** i stedet, fra `CallHorizonMatrix.NewCallHorizonOrFCD` |
+| `CallHorizon` og `CallHorizonChoiceOLD` | **Ingen af dem skrives.** Se nedenfor |
 | `MultiCounterStrategy` | Bruges ikke af appen |
 | `TaskListMain.TaskID` | Overflødig — 1:1 med `MaintenanceItemNo`. Se `docs/10` §1 |
+
+## Hvorfor Call Horizon ikke skrives
+
+Jeg forsøgte først at skrive tallet til `CallHorizon`. Compile afviste det:
+
+```
+The type of this argument 'CallHorizon' does not match the expected
+type 'Record'. Found type 'Number'.
+```
+
+Tre ting, i den rækkefølge de vejer:
+
+1. **Kolonnen er tom i alle 34 eksisterende planer.** Det er
+   `CallHorizonChoiceOLD` også. Den gamle app skriver ingen af dem, så
+   ingen mangler dem.
+2. Listen har **tre** CallHorizon-kolonner efter oprydningen — et tal, et
+   valg, og en enhed. Hvilken der er den levende, er ikke afklaret.
+3. Fejlen selv er en **cache-fejl i Studio**, ikke i koden: SharePoint
+   siger `Number`, men appen husker den `Choice`, kolonnen var, før den
+   blev omdøbt. Det kan løses ved at fjerne og gentilføje datakilden — men
+   det ville løse et problem, ingen har.
+
+`SchedulingPeriod` skrives derimod. Den er udfyldt i 9 af 34 planer, er et
+rent tal, og har ingen navnetvivl.
+
+Skal Call Horizon med til SAP, er første skridt at beslutte hvilken af de
+tre kolonner der gælder — ikke at gætte fra appen.
 
 ## To ting der er sat, fordi listen kræver det
 

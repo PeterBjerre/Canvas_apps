@@ -174,6 +174,48 @@ def first_ident(expr):
     return m.group(1).strip("'") if m else None
 
 
+# Kolonnetyper der SKAL have en record: { Value: .. } eller { Id: .., Value: .. }
+RECORD_TYPES = {"Choice", "MultiChoice", "Lookup", "LookupMulti", "User", "UserMulti"}
+# Kolonnetyper der skal have en skalar
+SCALAR_TYPES = {"Text", "Note", "Number", "Currency", "DateTime", "Boolean", "URL"}
+
+
+def check_shape(lst, col, val, meta):
+    """Passer formen paa vaerdien til kolonnens type?
+
+    Kun LITTERALE former afgoeres. Er vaerdien et udtryk - LookUp(..).Felt,
+    en variabel, en If - kan typen ikke ses herfra, og saa siges der intet
+    frem for at melde falsk alarm.
+
+    Det er praecis den fejl, compile fandt og dette tjek IKKE fangede:
+    'CallHorizon' fik et tal, men datakilden ventede en record. Vaerdien var
+    et LookUp-udtryk, saa formen alene kunne ikke afgoere det - men den
+    omvendte fejl, en record i en talkolonne eller en bar streng i en
+    valgkolonne, fanges nu."""
+    t = meta["cols"].get(col)
+    v = val.strip()
+    if not t:
+        return None
+
+    is_record = v.startswith("{")
+    # Blank(), If(...) og udtryk kan vaere begge dele - de springes over.
+    is_literal = is_record or v.startswith('"') or re.fullmatch(r"-?\d+(\.\d+)?", v) \
+        or v in ("true", "false")
+
+    if t in RECORD_TYPES:
+        if is_literal and not is_record:
+            return (f"{col}: kolonnen er {t} og skal have en record "
+                    f"(fx {{ Value: \"...\" }}), men faar {v[:40]}")
+        if is_record and meta["choices"].get(col):
+            m = re.match(r'\{\s*Value:\s*"([^"]*)"\s*\}\s*$', v)
+            if m and m.group(1) not in meta["choices"][col]:
+                return (f"{col}: valgvaerdien \"{m.group(1)}\" findes ikke. "
+                        f"Gyldige: " + ", ".join(meta["choices"][col][:6]))
+    elif t in SCALAR_TYPES and is_record:
+        return (f"{col}: kolonnen er {t}, men faar en record {v[:40]}")
+    return None
+
+
 def check(path, schema, problems, stats):
     for fx in formulas(path):
         # --- Patch(Liste, base, {felter} ...) ----------------------------
@@ -195,12 +237,10 @@ def check(path, schema, problems, stats):
                     if k not in meta["cols"] and k not in BUILTIN:
                         problems.append((lst, f"Patch skriver '{k}', som ikke "
                                               f"findes som kolonne"))
-                    elif meta["choices"].get(k):
-                        m = re.match(r"\s*\{\s*Value:\s*\"([^\"]*)\"\s*\}\s*$", val)
-                        if m and m.group(1) not in meta["choices"][k]:
-                            problems.append((lst, f"{k}: valgvaerdien \"{m.group(1)}\" "
-                                                  f"findes ikke. Gyldige: "
-                                                  + ", ".join(meta["choices"][k][:6])))
+                    else:
+                        shape_problem = check_shape(lst, k, val, meta)
+                        if shape_problem:
+                            problems.append((lst, shape_problem))
 
         # --- Choices(Liste.Kolonne) -------------------------------------
         for m in re.finditer(r"Choices\(\s*([A-Za-z_]\w*)\.([A-Za-z_]\w*)\s*\)", fx):

@@ -246,6 +246,29 @@ brugeren tilføje den i Studio først**, og gå ikke videre før det er bekræft
 - Masterdata Hub bruger SharePoint-listen `MD_RequestIndex`. Den oprettes med
   `sharepoint/provision/Provision-RequestIndex.ps1`.
 
+## Studio cacher datakildens skema
+
+Power Apps gemmer kolonnenavne og -typer, **som de var, da listen blev
+tilføjet som datakilde**. Omdøber eller ændrer du en kolonne i SharePoint
+bagefter, arbejder appen videre på den gamle udgave.
+
+Symptomet er en compile-fejl, der modsiger virkeligheden:
+
+```
+The type of this argument 'CallHorizon' does not match the expected
+type 'Record'. Found type 'Number'.
+```
+
+— mens `schema.md` klart siger, at `CallHorizon` er et `Number`. Studio
+huskede den gamle kolonne af samme navn, som var en `Choice`.
+
+**Fix:** fjern listen som datakilde i Studio, tilføj den igen, og **gem**.
+Ingen kodeændring hjælper, og `check_datasources.py` kan ikke se det — det
+sammenholder koden med SharePoint, ikke med Studios hukommelse.
+
+Sker det efter en omdøbning, så genkør også
+`Export-ListSchema.ps1`, så udtrækket og virkeligheden følges ad.
+
 ## Når compile fejler
 
 1. Læs fejlen. Den peger som regel på et kontrolnavn eller en egenskab.
