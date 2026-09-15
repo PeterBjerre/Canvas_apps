@@ -35,14 +35,22 @@ dropdown, præcis som de øvrige felter.
 
 **Object List** — samme princip, uden multi-select:
 
-4. Med en FL valgt: åbn Object List-dropdownen.
+4. **Uden** en FL valgt: Object List-dropdownen skal være **grå og
+   utilgængelig**, og teksten under skal sige *"Vælg først en Functional
+   Location ovenfor."*
+   → Den må **ikke** kunne åbnes og vise hele søgeresultatet.
+5. Med en FL valgt: åbn Object List-dropdownen.
    → Den skal vise de underliggende FL'er. Teksten under siger hvor mange.
-5. Vælg en, klik **Tilføj**.
+6. Vælg en, klik **Tilføj**.
    → Linjen under skal vise `1 valgt: <kode>`.
-6. Tilføj en mere, og klik så **Fjern** på en af dem.
+7. Tilføj en mere, og klik så **Fjern** på en af dem.
    → Tallet og listen skal følge med.
-7. Klik **Tilføj** på den samme to gange.
+8. Klik **Tilføj** på den samme to gange.
    → Anden gang skal der stå at den allerede er på listen — ingen dublet.
+9. Med objekter tilføjet: gå tilbage og vælg en **anden** Functional
+   Location. Linjen med de valgte skal blive **rød** og advare om, at nogle
+   af dem ikke ligger under den nye FL. De bliver stående — de ryddes ikke
+   i stilhed.
 
 ## 3. Strategidelen (1 minut)
 

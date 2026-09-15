@@ -41,7 +41,17 @@ SEL_FL = ("Coalesce(drpVhpItemFL.Selected.Code, "
 # hentede. Objektlisten kalder aldrig selv flowet: soeger man fx "SSV13 HFC10",
 # returnerer flowet baade SSV13 HFC10 og alt under den, saa de underliggende
 # FL ligger allerede i samlingen.
-OBJ_CANDIDATES = (f"Filter(colVhpFlSearch, StartsWith(Code, {SEL_FL}) && Code <> {SEL_FL})")
+#
+# !IsBlank(SEL_FL) foerst er ikke pynt. StartsWith(Code, "") er SAND for alt,
+# saa uden den betingelse ville objektlisten vise HELE soegeresultatet - 819
+# raekker - saa laenge der ikke var valgt en Functional Location. Altsaa det
+# stik modsatte af at vaere filtreret af FL-feltet.
+OBJ_CANDIDATES = (
+    f"Filter(\n"
+    f"    colVhpFlSearch,\n"
+    f"    !IsBlank({SEL_FL}) && StartsWith(Code, {SEL_FL}) && Code <> {SEL_FL}\n"
+    f")"
+)
 
 # De objekter, der er valgt paa det aktive item. colVhpItemObjects ER
 # sandheden nu - der er ingen multi-select-kontrol, der kan holde en
@@ -354,9 +364,16 @@ def build_item_editor():
     # - nu er der kun een liste at holde styr paa.
     objLabelRow = label_row("conVhpItemObjLabel", "Object List")
 
+    # Slaaet fra, indtil der ER valgt en Functional Location. Teksten under
+    # siger hvorfor, saa en graa dropdown ikke ligner en fejl.
+    DM_OBJ_DRP = (f"If(\n"
+                  f"    IsBlank(varVhpActiveItemId) || IsBlank({SEL_FL}),\n"
+                  f"    DisplayMode.Disabled,\n"
+                  f"    DisplayMode.Edit\n"
+                  f")")
     drpObj = dropdown(
         "drpVhpItemObjects", f"Sort({OBJ_CANDIDATES}, Code)", "Blank()",
-        item_display="ThisItem.Display", display_mode=DM_ITEM, value_field="Code",
+        item_display="ThisItem.Display", display_mode=DM_OBJ_DRP, value_field="Code",
         width=f"Parent.Width - {2 * OBJ_BTN_W} - 16")
 
     DM_OBJ = ("If(\n"
@@ -401,11 +418,24 @@ def build_item_editor():
             "    If(\n"
             "        n = 0, \"Ingen underliggende objekter valgt.\",\n"
             "        Text(n) & \" valgt: \" &\n"
-            f"            Concat(Sort({OBJ_CHOSEN}, Code), Code, \", \")\n"
+            f"            Concat(Sort({OBJ_CHOSEN}, Code), Code, \", \") &\n"
+            "            With(\n"
+            f"                {{ fremmede: CountRows(Filter({OBJ_CHOSEN}, !StartsWith(Code, {SEL_FL}))) }},\n"
+            "                If(\n"
+            "                    fremmede > 0,\n"
+            "                    \"   |   ADVARSEL: \" & Text(fremmede) &\n"
+            "                        \" af dem ligger ikke under den valgte Functional Location.\",\n"
+            "                    \"\"\n"
+            "                )\n"
+            "            )\n"
             "    )\n"
             ")"
         ), size=12, height=32, wrap="true",
-        color=f"If(CountRows({OBJ_CHOSEN}) = 0, {C_MUTED}, {C_TITLE})")
+        color=(f"If(\n"
+               f"    CountRows(Filter({OBJ_CHOSEN}, !StartsWith(Code, {SEL_FL}))) > 0, {C_INVALID_FG},\n"
+               f"    CountRows({OBJ_CHOSEN}) = 0, {C_MUTED},\n"
+               f"    {C_TITLE}\n"
+               f")"))
 
     objMeta = text_ctrl(
         "txtVhpItemObjMeta",
