@@ -1,0 +1,208 @@
+<!--
+  VH-plan sendt til oprettelse - mailskabelon til Power Automate.
+
+  Indsaettes i "Send an email (V2)" -> Body -> kodevisningen (</>).
+  Tokens skrevet som {{Navn}} erstattes med dynamisk indhold. Se
+  docs/17-flow-email.md for hvilket felt hvert token kommer fra, og for
+  Select-handlingen der bygger {{ItemRows}} og {{OpRows}}.
+
+  Skrevet til Outlook: kun tabeller, kun inline styles, ingen flexbox,
+  ingen border-radius paa noget der skal se ens ud alle steder. Outlook
+  paa Windows tegner HTML med Words motor - den kan ikke det moderne.
+-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+       style="margin:0;padding:0;background-color:#eef2f6;">
+  <tr>
+    <td align="center" style="padding:24px 12px;">
+
+      <!-- Skjult preheader: det inbox'en viser efter emnelinjen. Uden den
+           viser Outlook de foerste ord i headeren, som er de samme for
+           hver eneste mail. -->
+      <div style="display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:#eef2f6;">
+        {{Plant}} &middot; {{ItemCount}} item(s) &middot; {{PlanText}}
+      </div>
+
+      <table role="presentation" width="640" cellpadding="0" cellspacing="0" border="0"
+             style="width:640px;max-width:640px;background-color:#ffffff;
+                    border:1px solid #d7dee8;font-family:Segoe UI,Arial,Helvetica,sans-serif;">
+
+        <!-- ================= HEADER ================= -->
+        <tr>
+          <td style="background-color:#12405f;padding:20px 24px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+                           color:#8fc4e5;padding-bottom:4px;">
+                  Vedligeholdelsesplan sendt til oprettelse
+                </td>
+              </tr>
+              <tr>
+                <td style="font-size:26px;font-weight:600;color:#ffffff;line-height:1.2;">
+                  {{PlanID}}
+                </td>
+              </tr>
+              <tr>
+                <td style="font-size:15px;color:#d6e6f2;padding-top:6px;line-height:1.4;">
+                  {{PlanText}}
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- ================= NOEGLETAL ================= -->
+        <!-- Tre tal en modtager kan aflaese uden at laese. Ligeligt fordelt
+             med width:33% - Outlook regner ikke procenter paa td'er i en
+             tabel uden fast bredde, derfor width="640" ovenfor. -->
+        <tr>
+          <td style="padding:0;border-bottom:1px solid #e4e9f0;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td width="33%" align="center" style="padding:16px 8px;border-right:1px solid #e4e9f0;">
+                  <div style="font-size:22px;font-weight:600;color:#12405f;">{{Plant}}</div>
+                  <div style="font-size:11px;color:#6b7b8c;text-transform:uppercase;letter-spacing:.06em;padding-top:2px;">Værk</div>
+                </td>
+                <td width="33%" align="center" style="padding:16px 8px;border-right:1px solid #e4e9f0;">
+                  <div style="font-size:22px;font-weight:600;color:#12405f;">{{ItemCount}}</div>
+                  <div style="font-size:11px;color:#6b7b8c;text-transform:uppercase;letter-spacing:.06em;padding-top:2px;">Items</div>
+                </td>
+                <td width="34%" align="center" style="padding:16px 8px;">
+                  <div style="font-size:22px;font-weight:600;color:#12405f;">{{Cycle}} {{Unit}}</div>
+                  <div style="font-size:11px;color:#6b7b8c;text-transform:uppercase;letter-spacing:.06em;padding-top:2px;">Cyklus</div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- ================= PLANENS STAMDATA ================= -->
+        <tr>
+          <td style="padding:22px 24px 6px 24px;">
+            <div style="font-size:13px;font-weight:600;color:#12405f;text-transform:uppercase;
+                        letter-spacing:.06em;padding-bottom:10px;">Planen</div>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                   style="font-size:14px;color:#24313f;">
+              <tr>
+                <td width="42%" style="padding:7px 0;color:#6b7b8c;border-bottom:1px solid #eef2f6;">Status</td>
+                <td style="padding:7px 0;border-bottom:1px solid #eef2f6;font-weight:600;">{{Status}}</td>
+              </tr>
+              <tr>
+                <td style="padding:7px 0;color:#6b7b8c;border-bottom:1px solid #eef2f6;">Strategi</td>
+                <td style="padding:7px 0;border-bottom:1px solid #eef2f6;">{{StrategyKey}}</td>
+              </tr>
+              <tr>
+                <td style="padding:7px 0;color:#6b7b8c;border-bottom:1px solid #eef2f6;">Første planlagte kald</td>
+                <td style="padding:7px 0;border-bottom:1px solid #eef2f6;">{{PlannedDate}}</td>
+              </tr>
+              <tr>
+                <td style="padding:7px 0;color:#6b7b8c;border-bottom:1px solid #eef2f6;">Scheduling period</td>
+                <td style="padding:7px 0;border-bottom:1px solid #eef2f6;">{{SchedulingPeriod}} år</td>
+              </tr>
+              <tr>
+                <td style="padding:7px 0;color:#6b7b8c;border-bottom:1px solid #eef2f6;">Sort field</td>
+                <td style="padding:7px 0;border-bottom:1px solid #eef2f6;">{{SortField}}</td>
+              </tr>
+              <tr>
+                <td style="padding:7px 0;color:#6b7b8c;">Indmeldt af</td>
+                <td style="padding:7px 0;">{{RequesterName}} &middot;
+                  <a href="mailto:{{RequesterEmail}}" style="color:#1a6ea8;text-decoration:none;">{{RequesterEmail}}</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- ================= ITEMS ================= -->
+        <tr>
+          <td style="padding:22px 24px 6px 24px;">
+            <div style="font-size:13px;font-weight:600;color:#12405f;text-transform:uppercase;
+                        letter-spacing:.06em;padding-bottom:10px;">
+              Items ({{ItemCount}})
+            </div>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                   style="border-collapse:collapse;font-size:13px;color:#24313f;">
+              <tr style="background-color:#f4f7fa;">
+                <th align="left" style="padding:8px 8px;border-bottom:2px solid #d7dee8;
+                                        font-size:11px;text-transform:uppercase;letter-spacing:.05em;
+                                        color:#6b7b8c;font-weight:600;">Item</th>
+                <th align="left" style="padding:8px 8px;border-bottom:2px solid #d7dee8;
+                                        font-size:11px;text-transform:uppercase;letter-spacing:.05em;
+                                        color:#6b7b8c;font-weight:600;">Kort tekst</th>
+                <th align="left" style="padding:8px 8px;border-bottom:2px solid #d7dee8;
+                                        font-size:11px;text-transform:uppercase;letter-spacing:.05em;
+                                        color:#6b7b8c;font-weight:600;">Funktionsplads</th>
+                <th align="left" style="padding:8px 8px;border-bottom:2px solid #d7dee8;
+                                        font-size:11px;text-transform:uppercase;letter-spacing:.05em;
+                                        color:#6b7b8c;font-weight:600;">Akt.type</th>
+                <th align="left" style="padding:8px 8px;border-bottom:2px solid #d7dee8;
+                                        font-size:11px;text-transform:uppercase;letter-spacing:.05em;
+                                        color:#6b7b8c;font-weight:600;">Arb.center</th>
+              </tr>
+              {{ItemRows}}
+            </table>
+          </td>
+        </tr>
+
+        <!-- ================= OPERATIONER ================= -->
+        <tr>
+          <td style="padding:22px 24px 6px 24px;">
+            <div style="font-size:13px;font-weight:600;color:#12405f;text-transform:uppercase;
+                        letter-spacing:.06em;padding-bottom:10px;">
+              Operationer ({{OpCount}}) &middot; {{TotalWork}} timer i alt
+            </div>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                   style="border-collapse:collapse;font-size:13px;color:#24313f;">
+              <tr style="background-color:#f4f7fa;">
+                <th align="left" style="padding:8px 8px;border-bottom:2px solid #d7dee8;
+                                        font-size:11px;text-transform:uppercase;letter-spacing:.05em;
+                                        color:#6b7b8c;font-weight:600;">Op.</th>
+                <th align="left" style="padding:8px 8px;border-bottom:2px solid #d7dee8;
+                                        font-size:11px;text-transform:uppercase;letter-spacing:.05em;
+                                        color:#6b7b8c;font-weight:600;">Tekst</th>
+                <th align="left" style="padding:8px 8px;border-bottom:2px solid #d7dee8;
+                                        font-size:11px;text-transform:uppercase;letter-spacing:.05em;
+                                        color:#6b7b8c;font-weight:600;">Arb.center</th>
+                <th align="right" style="padding:8px 8px;border-bottom:2px solid #d7dee8;
+                                         font-size:11px;text-transform:uppercase;letter-spacing:.05em;
+                                         color:#6b7b8c;font-weight:600;">Work</th>
+                <th align="right" style="padding:8px 8px;border-bottom:2px solid #d7dee8;
+                                         font-size:11px;text-transform:uppercase;letter-spacing:.05em;
+                                         color:#6b7b8c;font-weight:600;">Varighed</th>
+              </tr>
+              {{OpRows}}
+            </table>
+          </td>
+        </tr>
+
+        <!-- ================= KNAP ================= -->
+        <tr>
+          <td align="center" style="padding:26px 24px 8px 24px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" bgcolor="#1a6ea8" style="padding:12px 28px;">
+                  <a href="{{AppUrl}}" target="_blank"
+                     style="font-family:Segoe UI,Arial,Helvetica,sans-serif;font-size:15px;
+                            font-weight:600;color:#ffffff;text-decoration:none;display:inline-block;">
+                    Åbn planen i appen
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- ================= FOD ================= -->
+        <tr>
+          <td style="padding:16px 24px 22px 24px;border-top:1px solid #e4e9f0;
+                     font-size:12px;color:#8494a5;line-height:1.6;">
+            Indmelding <strong style="color:#6b7b8c;">{{RequestNo}}</strong> &middot;
+            sendt {{SubmittedOn}}.<br>
+            Denne mail er sendt automatisk af VH-plan appen. Svar på den når ikke nogen -
+            skriv til <a href="mailto:SAPvedligehold@orsted.dk" style="color:#1a6ea8;text-decoration:none;">SAPvedligehold@orsted.dk</a>.
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
