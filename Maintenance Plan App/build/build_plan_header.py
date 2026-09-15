@@ -3,6 +3,7 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED, C_PRIMARY,
                         C_WHITE, C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, FONT, SHELL_W)
+import build_help as bh
 from build_helpers import (text_ctrl, group, button, text_input, number_input, dropdown, label_row,
                            field_cell, row_n, col_width, badge, card)
 
@@ -32,21 +33,67 @@ DM_CYCLE = f"If(varVhpPlanLocked || {LIVE_IS_STRATEGY}, DisplayMode.Disabled, Di
 REQ_CYCLE = f"(varVhpPlanValidated && {LIVE_NOT_STRATEGY})"
 
 
-def section_header(name, title, desc, step_label):
+def help_var(section):
+    return f"varVhpHelp{section.capitalize()}"
+
+
+def section_header(name, title, desc, step_label, help_section=None):
+    """Sektionsoverskrift, evt. med et ? der folder hjaelpepanelet ud.
+
+    Knappen skifter en variabel, og panelet ser paa den samme variabel. To
+    kontroller, ingen tilstand at holde styr paa."""
     t = text_ctrl(f"{name}Title", f"\"{title}\"", size=19, weight="Semibold", height=26, wrap="false")
     d = text_ctrl(f"{name}Desc", f"\"{desc}\"", size=13, color=C_MUTED, height=20, wrap="false")
+
+    right = []
+    reserved = 0
+    if help_section:
+        v = help_var(help_section)
+        btn = button(f"{name}Help", f"If({v}, \"Skjul hjaelp\", \"? Hjaelp\")",
+                     f"Set({v}, !{v})", width=110, height=30)
+        btn.props["Appearance"] = f"If({v}, ButtonAppearance.Primary, ButtonAppearance.Secondary)"
+        btn.props["BasePaletteColor"] = C_INFO_FG
+        btn.props["Color"] = f"If({v}, {C_WHITE}, {C_INFO_FG})"
+        btn.props["BorderColor"] = C_CARD_BORDER
+        btn.props["BorderThickness"] = "1"
+        right.append(btn)
+        reserved += 110 + 12
     if step_label:
+        right.append(badge(f"{name}Badge", f"\"{step_label}\"", width=64))
+        reserved += 64 + 12
+
+    if right:
         left = group(f"{name}Left", [t, d], direction="Vertical", gap=2, height=48, fill_portions=1,
-                     width="Parent.Width - 64 - 12")
-        right = badge(f"{name}Badge", f"\"{step_label}\"", width=64)
-        return group(f"{name}", [left, right], direction="Horizontal", gap=12, height=48, align_items="Center")
+                     width=f"Parent.Width - {reserved}")
+        return group(f"{name}", [left] + right, direction="Horizontal", gap=12, height=48,
+                     align_items="Center")
     left = group(f"{name}Left", [t, d], direction="Vertical", gap=2, height=48, fill_portions=1)
     return group(f"{name}", [left], direction="Horizontal", gap=12, height=48, align_items="Center")
 
 
+def help_panel(name, section):
+    """Foldet ud af ?-knappen. Hoejden regnes af teksten, som alt andet.
+
+    Afsnittene staar i build_help.PANELS, saa teksten kan rettes uden at
+    nogen skal ind i layoutkoden."""
+    v = help_var(section)
+    kids = []
+    for i, (head, body) in enumerate(bh.PANELS[section]):
+        kids.append(text_ctrl(f"{name}H{i}", '"' + head + '"', size=13, weight="Semibold",
+                              height=18, wrap="false"))
+        kids.append(text_ctrl(f"{name}B{i}", '"' + body + '"', size=12, color=C_MUTED,
+                              height=(18 * (1 + len(body) // 95)), wrap="true"))
+    kids.append(text_ctrl(f"{name}Src", '"' + bh.SOURCE_NOTE + '"', size=11, color=C_MUTED,
+                          height=18, wrap="true"))
+    return group(name, kids, direction="Vertical", gap=4, pad=(12, 14, 12, 14),
+                 fill=C_INFO_BG, radius=10, visible=f"IfError({v}, false)")
+
+
 def build_plan_header():
     header = section_header("conVhpPlanHead", "Plan Header",
-                            "Vedligeholdelsesplanens stamdata og tidsparametre.", "Step 1")
+                            "Vedligeholdelsesplanens stamdata og tidsparametre.", "Step 1",
+                            help_section="plan")
+    helpPanel = help_panel("conVhpPlanHelp", "plan")
 
     lockState = text_ctrl(
         "txtVhpPlanLockState",
@@ -104,18 +151,24 @@ def build_plan_header():
     row0 = row_n("conVhpPlanRow0", [
         field_cell("conVhpCellPlanType", "Plan Type", drpPlanType, required=True,
                   container_w=CW, cols=PLAN_COLS,
-                  hint_text="\"Strategiplan henter cyklus fra strategiens pakker.\""),
+                  hint_text=bh.hint("PlanType")),
         field_cell("conVhpCellStrategy", "Maintenance Strategy", drpStrategy,
                   container_w=CW, cols=PLAN_COLS,
-                  hint_text="If(varVhpPlan.PlanType = \"Strategy\", \"Pakkerne vises i Strategy Packages nedenfor.\", \"Kun relevant for strategiplaner.\")"),
-        field_cell("conVhpCellPlant", "Plant", drpPlant, required=True, container_w=CW, cols=PLAN_COLS),
-        field_cell("conVhpCellStatus", "Status", drpStatus, required=True, container_w=CW, cols=PLAN_COLS),
+                  hint_text=bh.hint("Strategy")),
+        field_cell("conVhpCellPlant", "Plant", drpPlant, required=True, container_w=CW, cols=PLAN_COLS,
+                  hint_text=bh.hint("Plant")),
+        field_cell("conVhpCellStatus", "Status", drpStatus, required=True, container_w=CW, cols=PLAN_COLS,
+                  hint_text=bh.hint("Status")),
     ], container_w=CW)
     row1 = row_n("conVhpPlanRow1", [
-        field_cell("conVhpCellPlanText", "Plan Text", txtPlanText, required=True, container_w=CW, cols=PLAN_COLS),
-        field_cell("conVhpCellSortField", "Sort Field", drpSortField, container_w=CW, cols=PLAN_COLS),
-        field_cell("conVhpCellCycle", "Cycle", numCycle, required=True, container_w=CW, cols=PLAN_COLS),
-        field_cell("conVhpCellUnit", "Unit", drpUnit, required=True, container_w=CW, cols=PLAN_COLS),
+        field_cell("conVhpCellPlanText", "Plan Text", txtPlanText, required=True, container_w=CW,
+                  cols=PLAN_COLS, hint_text=bh.hint("PlanText")),
+        field_cell("conVhpCellSortField", "Sort Field", drpSortField, container_w=CW, cols=PLAN_COLS,
+                  hint_text=bh.hint("SortField")),
+        field_cell("conVhpCellCycle", "Cycle", numCycle, required=True, container_w=CW, cols=PLAN_COLS,
+                  hint_text=bh.hint("Cycle")),
+        field_cell("conVhpCellUnit", "Unit", drpUnit, required=True, container_w=CW, cols=PLAN_COLS,
+                  hint_text=bh.hint("Unit")),
     ], container_w=CW)
     # Dag, maaned og aar er EEN dato, ikke tre felter. De staar derfor i
     # samme celle, paa samme raekke, og fylder tilsammen den sidste af de
@@ -132,12 +185,15 @@ def build_plan_header():
                          align_items="Center", width="Parent.Width")
 
     row2 = row_n("conVhpPlanRow2", [
-        field_cell("conVhpCellCallHorizon", "Call Horizon", drpCallHorizon, container_w=CW, cols=PLAN_COLS),
-        field_cell("conVhpCellSchedInd", "Scheduling Indicator", txtSchedInd, container_w=CW, cols=PLAN_COLS),
+        field_cell("conVhpCellCallHorizon", "Call Horizon", drpCallHorizon, container_w=CW,
+                  cols=PLAN_COLS, hint_text=bh.hint("CallHorizon")),
+        field_cell("conVhpCellSchedInd", "Scheduling Indicator", txtSchedInd, container_w=CW,
+                  cols=PLAN_COLS, hint_text=bh.hint("SchedInd")),
         field_cell("conVhpCellStatutorySortField", "Statutory Sort Field", txtStatutorySortField,
-                  container_w=CW, cols=PLAN_COLS),
+                  container_w=CW, cols=PLAN_COLS, hint_text=bh.hint("StatutorySortField")),
         field_cell("conVhpCellFirstCall", "First Call  (dd / mm / aaaa)", firstCallRow,
-                  required=True, container_w=CW, cols=PLAN_COLS),
+                  required=True, container_w=CW, cols=PLAN_COLS,
+                  hint_text=bh.hint("FirstCall")),
     ], container_w=CW)
 
     grid = group("conVhpPlanGrid", [row0, row1, row2],
@@ -226,4 +282,4 @@ def build_plan_header():
     footer = group("conVhpPlanFooter", [footerInfo, btnSave], direction="Horizontal", gap=16, height=40,
                    align_items="Center")
 
-    return card("conVhpPlanCard", [header, lockState, grid, footer])
+    return card("conVhpPlanCard", [header, helpPanel, lockState, grid, footer])

@@ -114,6 +114,51 @@ Klik **Åbn** på rækken → VH-plan appen åbnes i en ny fane.
 
 ---
 
+## 6. Feltforklaringer og de nye regler (3 minutter)
+
+### Hjælpepanelerne
+
+Der skal være en **? Hjælp**-knap i overskriften på fire sektioner: Plan
+Header, Item Editor, Tasklist and Operations, Strategy Packages.
+
+1. Klik **? Hjælp** på Plan Header.
+   → Et lyseblåt panel folder sig ud under overskriften. Knappen skifter til
+   **Skjul hjælp** og bliver blå. Nederst i panelet står kilden.
+2. Klik igen → panelet forsvinder, knappen bliver grå igen.
+3. Gentag på de tre andre sektioner. De fire paneler er uafhængige — alle
+   fire kan være åbne samtidig.
+
+### Hints der ændrer sig
+
+Hint-linjen under et felt skal **ændre tekst**, når forudsætningen ændrer
+sig. Det er den vigtigste del af testen — en hint, der står stille, er en
+statisk tekst, der er sluppet forbi.
+
+| Gør dette | Hinten skal skifte til |
+|---|---|
+| Sæt Plan Type = `Strategy` | Strategy-hinten nævner pakkerne nedenfor |
+| Skriv Plan Text uden værkskoden | PlanText-hinten siger, at teksten bør starte med værkskoden |
+| Sæt et items Activity Type til `110` | Sort Field-hinten skifter til "Påkrævet: 1 item …" |
+| Sæt samme items Main Work Center til noget uden `SUP` | MainWorkCenter-hinten peger på `*SUP` |
+| Sæt Revision på et item | FirstCall-hinten siger 01/01 |
+| Tilføj en operation uden Main Work Center | Linjen over operationstabellen nævner operation 0010 |
+| Udfyld arbejdscentret, men lad short text stå tom | Samme linje skifter til "1 operation(er) mangler short text" |
+
+### R1–R5 i valideringen
+
+Alle fem skal dukke op i fejlpanelet øverst og blokere **Indsend**.
+
+1. **R1** — Plan Text der ikke starter med værkskoden.
+2. **R2** — et item med activity type `110`, og Sort Field tomt på planen.
+3. **R3** — samme item med et Main Work Center uden `SUP`.
+4. **R4** — et item med revisionsmærke, og First Call ≠ 01/01.
+5. **R5** — Scheduling Period under 2 år.
+
+Ret hver fejl → beskeden skal forsvinde igen, og Indsend skal blive aktiv,
+når den sidste er væk.
+
+---
+
 ## Ryd op bagefter
 
 Slet de rækker, testen oprettede, i alle fire lister — ellers ligger der en

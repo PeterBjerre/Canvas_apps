@@ -6,7 +6,8 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQU
                         C_DIVIDER, C_TRANSPARENT, FONT, SHELL_W)
 from build_helpers import (text_ctrl, group, button, button_row, text_input, number_input, dropdown,
                            label_row, field_cell, two_col_row, badge, card)
-from build_plan_header import section_header
+from build_plan_header import section_header, help_panel
+import build_help as bh
 
 DM_ITEM = "If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)"
 OPS_CW = f"({SHELL_W} - 36)"
@@ -53,7 +54,9 @@ def _ops_header_html():
 
 def build_tasklist_section():
     header = section_header("conVhpOpsHead", "Tasklist and Operations",
-                            "Bind tasklist til aktivt item og tilfoej operationslinjer.", "Step 3")
+                            "Bind tasklist til aktivt item og tilfoej operationslinjer.", "Step 3",
+                            help_section="ops")
+    helpPanel = help_panel("conVhpOpsHelp", "ops")
 
     drpTasklist = dropdown(
         "drpVhpItemTasklist", "Filter(colVhpTasklists, Plant = varVhpPlan.Plant)",
@@ -157,6 +160,12 @@ def build_tasklist_section():
             ")"
         ), size=12, color=C_MUTED, height=18, wrap="true")
 
+    # Operationerne redigeres i et galleri, saa der er ingen field_cell at
+    # haenge en hint paa. Den staar i stedet over tabellen og daekker linjen.
+    opsHint = text_ctrl("txtVhpOpsHint", bh.hint("Operations"), size=12, color=C_MUTED,
+                        height=32, wrap="true",
+                        visible="IfError(!IsBlank(varVhpActiveItemId), false)")
+
     opsHeader = Ctrl("conVhpOpsHeaderHtml", "HtmlViewer", props={
         "Fill": C_TRANSPARENT, "Height": "22", "HtmlText": _ops_header_html(),
         "PaddingBottom": "0", "PaddingLeft": "0", "PaddingRight": "0", "PaddingTop": "0",
@@ -246,7 +255,7 @@ def build_tasklist_section():
     opsTableWrap = group("conVhpOpsTableWrap", [opsHeader, opsDivider, gallery, opsEmpty],
                          direction="Vertical", gap=4, overflow_x="Scroll", width="Parent.Width")
 
-    return card("conVhpOpsCard", [header, toolbar, tasklistMeta, opsTableWrap])
+    return card("conVhpOpsCard", [header, helpPanel, toolbar, tasklistMeta, opsHint, opsTableWrap])
 
 
 def build_dispatch_section():

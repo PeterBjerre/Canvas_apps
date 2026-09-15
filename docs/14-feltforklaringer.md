@@ -153,31 +153,63 @@ som hjælpetekst:
 
 | Regel | Status |
 |---|---|
-| Plan Text starter med værkets bogstavkode | **ny** |
+| Plan Text starter med værkets bogstavkode | **R1 — bygget** |
 | Plan Text maks. 40 tegn | findes |
-| Sort Field påkrævet, hvis et item har activity type 110/115 | **ny** |
-| First Call låst til 01/01, hvis et item har `Revision = REV` | **ny** |
+| Sort Field påkrævet, hvis et item har activity type 110/115 | **R2 — bygget** |
+| Activity type 110/115 ⇒ Main Work Center = `*SUP` | **R3 — bygget** |
+| First Call låst til 01/01, hvis et item har `Revision = REV` | **R4 — bygget** |
+| Scheduling period mindst 2 år | **R5 — bygget** |
 | Call Horizon + Scheduling Period sat ud fra cyklus | findes |
-| Scheduling period mindst 2 år | **ny** |
-| Prioritet sat af aktivitetstype og SCEq | **ny** — kræver SCEq-feltet fra FL-flowet |
-| Activity type 110/115 ⇒ Main Work Center = `*SUP` | **ny** |
-| Objektliste-koder starter med samme 2-bogstavsniveau som FL | **ny** |
-| Operation 0010 bærer det hovedansvarlige arbejdscenter | **ny** |
-| Materialegruppe ≠ 999 på operationer med PM02/PM03 | **ny** |
 | Order Type = ZPRE | findes |
+| Operation 0010 bærer det hovedansvarlige arbejdscenter | hint (`Operations`), ikke blokerende |
+| Objektliste-koder starter med samme 2-bogstavsniveau som FL | hint (`ObjectList`); håndhæves reelt af filteret på objektlisten |
+| Prioritet sat af aktivitetstype og SCEq | **afventer** — kræver SCEq-feltet fra FL-flowet |
+| Materialegruppe ≠ 999 på operationer med PM02/PM03 | **afventer** — materialegruppe findes ikke i datamodellen endnu |
 
-De fem første er billige og rammer det, folk oftest glemmer. Jeg foreslår at
-tage dem først.
+R1–R5 ligger i `build_hero.py` og skriver ind i den samme fejltabel som den
+øvrige validering, så de vises i hero-panelet og blokerer indsendelse på
+linje med de eksisterende regler.
 
 ---
 
-## Hvad jeg foreslår vi gør
+## Hvad der er bygget
 
-1. **Hints på alle felter i tabellerne ovenfor.** Bruger `hint_text`, som
-   allerede findes. Ingen nye konstruktioner.
-2. **Ét hjælpepanel pr. sektion**, slået til med et `?` i overskriften.
-3. **De fem billige valideringsregler** ind i `Validate`.
-4. Resten af reglerne, når SCEq er tilgængelig fra FL-flowet.
+| Del | Hvor | Status |
+|---|---|---|
+| 22 hints (niveau 1) | `build_help.py` → `HINTS` | bygget |
+| 4 hjælpepaneler, 19 afsnit (niveau 2) | `build_help.py` → `PANELS` | bygget |
+| `?`-knap i sektionsoverskriften | `build_plan_header.section_header(help_section=...)` | bygget |
+| Panel-rendering | `build_plan_header.help_panel(name, section)` | bygget |
+| `varVhpHelpPlan/Item/Ops/Pkg` | `generate_app_onstart.py` | bygget |
+| R1–R5 | `build_hero.py` | bygget |
 
-Punkt 1 og 2 er ren tekst og layout — de kan laves uden at røre datamodellen.
-Punkt 3 rører kun valideringen.
+Panelerne sidder på **Plan Header**, **Item Editor**, **Tasklist and
+Operations** og **Strategy Packages**.
+
+**Dynamiske hints.** 8 af de 22 er Power Fx-udtryk og ikke faste strenge:
+`Strategy`, `PlanText`, `SortField`, `CallHorizon`, `FirstCall`,
+`ActivityType`, `MainWorkCenter` og `Operations`. De fortæller hvorfor
+reglen gælder lige nu — fx *"Påkrævet: 2 item(s) har activity type 110/115"*
+frem for *"udfyldes ved lovpligtige eftersyn"*.
+
+Operationerne redigeres i et galleri og har derfor ingen `field_cell` at
+hænge en hint på. `Operations`-hinten står i stedet over tabellen og peger
+på den regel der er brudt lige nu (manglende arbejdscenter på første
+operation, manglende short text, Work = 0) og falder ellers tilbage på
+control key-reglen.
+
+---
+
+## Hvad der mangler
+
+1. **Prioritetsreglen** (rød ved 110/115 eller SCEq, blå ved 120, ellers gul).
+   I dag skriver appen altid `Yellow (default)`. SCEq kommer fra
+   FL-indmeldingen, så reglen kan først laves helt, når SPOOL-appen er på
+   plads. Aktivitetstype-delen kunne laves nu — men en halv regel, der
+   sætter rød uden at kunne sætte blå, er værre end ingen.
+2. **Materialegruppe ≠ 999.** `colVhpOperations` har ingen materialegruppe.
+   Kræver et felt på operationslinjen og en kolonne i `TaskListMain`.
+3. **Control key pr. operation.** Samme sag: feltet findes ikke i
+   datamodellen. Reglen står indtil videre kun i ops-panelet og i hinten.
+
+Punkt 2 og 3 er den samme udvidelse af operationslinjen og bør laves samlet.
