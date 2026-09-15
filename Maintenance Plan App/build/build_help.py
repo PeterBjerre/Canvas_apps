@@ -98,9 +98,9 @@ HINTS = {
     # --- Item Editor ---
     "ItemShortText": _q("Bliver VH-ordrens overskrift. Skriv hvad opgaven er - ikke hvad planen hedder. Maks. 40 tegn."),
 
-    "FunctionalLocation": _q("Angiv saa detaljeret som muligt, helst KKS-komponentniveau. Her konteres omkostningen."),
+    "FunctionalLocation": _q("Angiv saa detaljeret som muligt, helst komponentniveau. Her konteres omkostningen."),
 
-    "ObjectList": _q("Skal starte med samme 2-bogstavsniveau som referenceobjektet. Som udgangspunkt eet objekt pr. item."),
+    "ObjectList": _q("Skal starte med samme 2-bogstavsniveau som referenceobjektet."),
 
     "ActivityType": ("With(\n"
                      "    { a: LookUp(colVhpItems, ItemId = varVhpActiveItemId).ActivityType },\n"
@@ -117,14 +117,13 @@ HINTS = {
                        "    { a: LookUp(colVhpItems, ItemId = varVhpActiveItemId).ActivityType },\n"
                        "    If(\n"
                        "        StartsWith(a, \"110\") || StartsWith(a, \"115\"),\n"
-                       "        " + _q("Lovpligtigt eftersyn sendes ALTID til *SUP.") + ",\n"
                        "        " + _q("Bruges der eksterne leverandoerer, vaelg *SUP.") + "\n"
                        "    )\n"
                        ")"),
 
     "Revision": _q("REV betyder at opgaven loeses i revisionsperioden. Foerste kald laases saa til 01/01."),
 
-    "OrstedResponsible": _q("Den ansvarlige fra Technology. Udfyldt med dig som standard."),
+    "OrstedResponsible": _q("Den ansvarlige. Udfyldt med dig som standard."),
 
     "Initials": _q("Initialer paa den ansvarlige, fx NIJUJ."),
 
@@ -148,7 +147,6 @@ HINTS = {
                    "        Text(CountRows(Filter(ops, IsBlank(OperationShortText)))) & \" operation(er) mangler short text.\",\n"
                    "        CountRows(Filter(ops, WorkHours <= 0)) > 0,\n"
                    "        \"Alle operationer skal time- og bemandingsestimeres - Work skal vaere over 0.\",\n"
-                   "        \"Control key foelger arbejdscentret: *SUP -> ZB01, interne -> PM01, *LEV -> PM02, rammeaftale -> PM03.\"\n"
                    "    )\n"
                    ")"),
 }
@@ -164,28 +162,24 @@ PANELS = {
          "kan findes, naar man ikke kan soege paa vaerk eller funktionsplads."),
         ("Call horizon",
          "Antal ARBEJDSDAGE den genererede VH-ordre staar paa joblisten, foer basic "
-         "finish naas. Saettes ud fra cyklussen. Revisionsopgaver har 55 FCD."),
+         "finish naas. Saettes ud fra cyklussen. Revisionsopgaver har 65 FCD."),
         ("Scheduling period",
          "Hvor langt frem kaldene kan ses. Minimum 2 aar af hensyn til den "
          "oekonomiske simulering i BI-rapporten."),
-        ("Time - key date",
-         "Vaelges hvis planen kalder primo januar. Ellers kan kaldet flytte til "
-         "aaret foer, og omkostningen vises forkert i BI."),
         ("Sort field",
          "Bruges KUN ved lovpligtige eftersyn (activity type 110/115). Er der valgt "
          "Ladders, skal ALLE items i planen vaere lovpligtigt eftersyn af stiger."),
         ("Revision",
-         "Opgaver der loeses til aarets revision maerkes REV og kaldes 1/1. "
-         "Vaer opmaerksom paa valget af scheduling indicator."),
+         "Opgaver der loeses til aarets revision maerkes REV og kaldes 1/1. "),
     ],
     "item": [
         ("Langteksten",
          "Det FOERSTE vedligeholdelsespersonalet ser i den genererede ordre. Beskriv "
-         "omfanget, og hvad der skal sikres - arbejdsmiljoe og miljoe. Er der krav om "
+         "omfanget. Er der krav om "
          "rengoering, lugemand, kran, stillads eller afspaerring, saa skriv det kort."),
         ("Referenceobjektet",
          "Der hvor omkostningen konteres. Angiv funktionspladsen paa "
-         "KKS-komponentniveau. Er der objekter paa objektlisten, kan den vaere mindre "
+         "komponentniveau. Er der objekter paa objektlisten, kan den vaere mindre "
          "detaljeret - men mindst 2-bogstavsniveau, fx SKV40 EB."),
         ("Objektlisten",
          "Cost center og business area skal vaere ens for alle funktionspladser paa "
@@ -203,7 +197,7 @@ PANELS = {
     "ops": [
         ("Del opgaven op, hvor der er ophold",
          "Stillads op og stillads ned er to operationer. Af-isolering og isolering er "
-         "to. Ellers kan WOE-appen ikke vise forloebet rigtigt."),
+         "to. Ellers kan WOS-appen ikke vise forloebet rigtigt."),
         ("Kronologisk raekkefoelge",
          "Operationerne skal staa 0010, 0020, 0030 i den orden arbejdet udfoeres, saa "
          "det grafiske view i WOS afspejler opgaven."),
@@ -215,10 +209,6 @@ PANELS = {
          "centre - PM02 ekstern *LEV, der laves rekvisition - PM03 "
          "rammeaftaleleverandoer paa servicekatalog. Det hovedansvarlige "
          "arbejdscenter skal staa paa operation 0010."),
-        ("Materialegruppe 999",
-         "Maa IKKE bruges til indkoeb. Den staar som standard paa "
-         "standardarbejdsplanerne, fordi feltet er paakraevet - men den skal skiftes, "
-         "foer operationen frigives."),
     ],
     "pkg": [
         ("Pakkerne hoerer til arbejdsplanen",
