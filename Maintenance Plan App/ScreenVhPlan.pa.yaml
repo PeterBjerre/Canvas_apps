@@ -5358,6 +5358,8 @@ Screens:
                                                     =LayoutDirection.Vertical
                                                 LayoutGap: |-
                                                     =16
+                                                LayoutJustifyContent: |-
+                                                    =LayoutJustifyContent.Start
                                                 LayoutMinWidth: |-
                                                     =0
                                                 Width: |-
@@ -5367,12 +5369,14 @@ Screens:
                                                     Control: GroupContainer
                                                     Variant: AutoLayout
                                                     Properties:
+                                                      AlignInContainer: |-
+                                                          =AlignInContainer.Start
                                                       BorderStyle: |-
                                                           =BorderStyle.None
                                                       DropShadow: |-
                                                           =DropShadow.None
                                                       FillPortions: |-
-                                                          =If(App.Width < 1024, 0, 1)
+                                                          =0
                                                       Height: |-
                                                           =114 + If(false, 6 + (1), 0)
                                                       LayoutAlignItems: |-
@@ -5681,12 +5685,14 @@ Screens:
                                                     Control: GroupContainer
                                                     Variant: AutoLayout
                                                     Properties:
+                                                      AlignInContainer: |-
+                                                          =AlignInContainer.Start
                                                       BorderStyle: |-
                                                           =BorderStyle.None
                                                       DropShadow: |-
                                                           =DropShadow.None
                                                       FillPortions: |-
-                                                          =If(App.Width < 1024, 0, 1)
+                                                          =0
                                                       Height: |-
                                                           =90 + If(IfError(CountRows(Filter(colVhpFlSearch, StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation))) = 0, true), 6 + (20), 0)
                                                       LayoutAlignItems: |-

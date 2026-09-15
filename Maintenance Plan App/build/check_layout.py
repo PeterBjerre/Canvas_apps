@@ -21,6 +21,7 @@ Tjekket foretager fire kontroller:
   4. Faste bredder i en vandret raekke maa ikke overstige raekkens bredde
   8. Enhver samling, skaermen bruger, findes i App.pa.yaml - som navngiven
      formel eller som ClearCollect
+  9. Ingen LODRET container har et barn med FillPortions <> 0
      (knapraekken var 336 px bred i et kort med 324 px indhold, ombroed til
      to linjer og fik sin sidste knap klippet af).
 
@@ -280,6 +281,31 @@ def main():
             for m in set(ref.findall(val)) | set(reset.findall(val)):
                 if m not in known and m not in ("Parent", "Self", "ThisItem", "ThisRecord"):
                     problems.append(f"[7] {name}.{key}: refererer ukendt kontrol '{m}'")
+
+    # --- 9. FillPortions i en lodret container -----------------------------
+    # FillPortions fordeler plads LANGS containerens retning: bredde i en
+    # vandret, HOEJDE i en lodret.
+    #
+    # I dette projekt regnes enhver containers hoejde ud af sine boern, saa
+    # der ER ingen overskydende hoejde at fordele. Har et barn alligevel
+    # FillPortions <> 0, vokser det, saa snart forelderen selv bliver
+    # straekket af SIN forelder - og saa passer den udregnede hoejde ikke
+    # laengere til det, der faktisk tegnes.
+    #
+    # Det skete, da FL- og objektlisteblokken blev flyttet fra en vandret
+    # gitterraekke (hvor FillPortions fordelte BREDDE og var rigtig) ned i
+    # en lodret kolonne. Begge blokke voksede til hele kolonnens hoejde.
+    for p, name, body in all_nodes:
+        props = body.get("Properties") or {}
+        if props.get("LayoutDirection", "").strip() != "=LayoutDirection.Vertical":
+            continue
+        for kid in (body.get("Children") or []):
+            kname = list(kid.keys())[0]
+            kprops = (list(kid.values())[0].get("Properties") or {})
+            fp = kprops.get("FillPortions", "=0").strip()
+            if fp not in ("=0", "0"):
+                problems.append(f"[9] {kname}: FillPortions {fp[:40]} i den LODRETTE "
+                                f"container {name} - barnet straekkes i hoejden")
 
     # --- 8. Samlinger skal findes i App.pa.yaml ---------------------------
     # En skaerm, der bruger colVhpNoget, som ingen definerer, kompilerer ikke
