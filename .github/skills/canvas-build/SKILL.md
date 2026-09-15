@@ -136,6 +136,7 @@ operationer:
 7. Ingen formel refererer en kontrol, der ikke findes
 8. Enhver `col*`, skærmen bruger, findes i `App.pa.yaml` — som navngiven
    formel eller som `ClearCollect`
+9. Ingen **lodret** container har et barn med `FillPortions <> 0`
 
 Punkt 7 fanger den klassiske: du sletter en kontrol og glemmer en
 `Reset()` på den et andet sted. Det ville ellers først vælte i compile.
@@ -182,7 +183,7 @@ eksplicitte `Height` på nogle blad-kontroller.
 aldrig den normaliserede YAML tilbage over kildefilerne — så mister du de
 egenskaber, builderne bevidst sætter.
 
-## Fem ting der aldrig må regressere
+## Otte ting der aldrig må regressere
 
 1. **Ingen `Height`-formel må referere en anden kontrol.** I en
    AutoLayout-container sætter forælderen børnenes størrelse, så en forælder
@@ -192,23 +193,30 @@ egenskaber, builderne bevidst sætter.
 2. **`LayoutAlignItems` virker ikke på en container med `LayoutWrap = true`.**
    Platformen fjerner egenskaben igen. Forsøg ikke at løse layoutproblemer
    med den dér.
-3. **Stylingen skal være uændret.** Farver, radier, skriftstørrelser og
+3. **`FillPortions` fordeler plads LANGS containerens retning** — bredde i en
+   vandret, **højde** i en lodret. Da hver containers højde her regnes ud af
+   dens børn, er der ingen overskydende højde at fordele: et barn med
+   `FillPortions <> 0` i en lodret container vokser, så snart forælderen selv
+   bliver strakt, og så passer den udregnede højde ikke længere til det, der
+   tegnes. Flytter du en celle fra en gitterrække ned i en kolonne, så **sæt
+   `fill_portions=0`**. Check 9 håndhæver det.
+4. **Stylingen skal være uændret.** Farver, radier, skriftstørrelser og
    polstring matcher Materialer-appen, og de to apps skal blive ved at ligne
    hinanden.
-4. **Brug konstruktioner, der allerede findes i skærmen.** `ModernDropdown`,
+5. **Brug konstruktioner, der allerede findes i skærmen.** `ModernDropdown`,
    `Classic/ComboBox` til søg-og-vælg, gallery med `ModernCheckbox`, vandret
    gallery til dynamiske kolonner. Hver ubevist konstruktion i dette projekt
    har kostet en deploy-runde.
-5. **`ctrl.vis` skriver `Visible` igennem.** Sæt synlighed med `visible=` i
+6. **`ctrl.vis` skriver `Visible` igennem.** Sæt synlighed med `visible=` i
    helperen eller `ctrl.vis = ...` — begge skriver egenskaben *og* fortæller
    højde-algebraen, at barnet kan være skjult. Sæt aldrig `props["Visible"]`
    direkte: så regner forælderen med plads til noget, der ikke er der.
-6. **Ingen datahentning i `App.OnStart`.** Opslagslister bindes med
+7. **Ingen datahentning i `App.OnStart`.** Opslagslister bindes med
    **navngivne formler** (`App.Formulas`), som evalueres dovent og caches.
    `OnStart` betales af hver bruger hver gang; en navngiven formel gør ikke.
    Kun samlinger, appen **skriver** til, hører hjemme i `OnStart` — og der
    kun som tomt skema.
-7. **Padding tælles med i højden.** Det gør `stack_height()` automatisk —
+8. **Padding tælles med i højden.** Det gør `stack_height()` automatisk —
    omgå den ikke ved at sætte `height=` manuelt på et kort.
 
 ### Hvorfor `Classic/ComboBox` og ikke `ModernCombobox`

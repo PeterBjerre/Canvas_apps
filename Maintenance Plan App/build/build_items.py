@@ -296,7 +296,12 @@ def build_item_editor():
     # andre indtastningsfelter) i stedet for i fuld bredde.
     flBlock = group("conVhpItemFlBlock", [flLabelRow, cmbFl, flDescription, flMeta, tmrFl],
                     direction="Vertical", gap=6, width="Parent.Width",
-                    fill_portions="If(App.Width < 1024, 0, 1)")
+                    # FillPortions = 0. Blokken laa foer i en VANDRET
+                    # gitterraekke, hvor den fordelte bredde. I den lodrette
+                    # hoejrekolonne fordeler den HOEJDE, og med 1 voksede
+                    # blokken til hele kolonnens hoejde - langt ud over sine
+                    # 114 px indhold.
+                    fill_portions=0, align_in_container="Start")
 
     # 53 arbejdscentre for hele afdelingen, men kun en haandfuld hoerer til
     # det valgte vaerk. Er der ikke valgt vaerk endnu, vises de alle - en tom
@@ -374,7 +379,7 @@ def build_item_editor():
     # som de andre indtastningsfelter) i stedet for i fuld bredde.
     objBlock = group("conVhpItemObjBlock", [objLabelRow, cmbObj, objMeta, objEmpty],
                      direction="Vertical", gap=6, width="Parent.Width",
-                     fill_portions="If(App.Width < 1024, 0, 1)")
+                     fill_portions=0, align_in_container="Start")
 
     # Functional Location og Object List staar OVEN PAA HINANDEN i hoejre
     # kolonne. De to hoerer sammen - objektlisten kan foerst bruges, naar en
@@ -419,8 +424,11 @@ def build_item_editor():
         ], container_w=LEFT_W),
     ]
     leftCol = group("conVhpItemLeftCol", leftRows, direction="Vertical", gap=16, width=LEFT)
+    # justify=Start: naar raekken er hoejere end hoejrekolonnens indhold
+    # (venstre side har tre raekker), skal de to blokke blive staaende
+    # OEVERST i stedet for at blive fordelt ud over hele hoejden.
     rightCol = group("conVhpItemRightCol", [flBlock, objBlock], direction="Vertical",
-                     gap=16, width=RIGHT)
+                     gap=16, width=RIGHT, justify="Start")
 
     mainRow = row_n("conVhpItemMainRow", [leftCol, rightCol], container_w=CW)
 
