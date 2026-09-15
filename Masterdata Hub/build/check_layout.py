@@ -326,6 +326,26 @@ def main():
             problems.append(f"[8] samlingen '{name}' bruges i skaermen, "
                             f"men defineres ikke i App.pa.yaml")
 
+    # --- 10. Egenskaber kontroltypen ikke kender ---------------------------
+    # Studio afviser en ukendt egenskab ved compile, ikke ved synk, saa
+    # fejlen kommer foerst efter en fuld runde gennem VS Code. Den er
+    # billig at fange her.
+    #
+    # Gallery har ingen Radius*. Den fik dem, da objektlisten blev lavet om
+    # fra en raekke afkrydsningsfelter til et galleri: radius fulgte med fra
+    # den gamle beholder, og compile fejlede med fire ukendte egenskaber.
+    UNSUPPORTED = {
+        "Gallery": ("RadiusBottomLeft", "RadiusBottomRight",
+                    "RadiusTopLeft", "RadiusTopRight"),
+    }
+    for p_, name, body in all_nodes:
+        bad = UNSUPPORTED.get((body.get("Control") or "").strip())
+        if not bad:
+            continue
+        for key in sorted(set(body.get("Properties") or {}) & set(bad)):
+            problems.append(f"[10] {name}: {body['Control']} kender ikke "
+                            f"egenskaben '{key}' - compile vil fejle")
+
     print(f"Kontroller i alt: {len(all_nodes)}")
     if problems:
         print(f"\n{len(problems)} problem(er):\n")
@@ -334,7 +354,8 @@ def main():
         return 1
     print("Layout-tjek OK: ingen kontrol-til-kontrol hoejdereferencer, "
           "alle containere er hoeje og brede nok til deres indhold, "
-          "og alle samlinger findes i App.pa.yaml.")
+          "alle samlinger findes i App.pa.yaml, og ingen kontrol baerer "
+          "en egenskab dens type ikke kender.")
     return 0
 
 
