@@ -207,6 +207,11 @@ control key-reglen.
    FL-indmeldingen, så reglen kan først laves helt, når SPOOL-appen er på
    plads. Aktivitetstype-delen kunne laves nu — men en halv regel, der
    sætter rød uden at kunne sætte blå, er værre end ingen.
+
+   *Opdatering:* `Safety Critical Equipment` er nu fundet i SPOOL-arket, med
+   en værdiliste pr. klasse — se [`16-spool-regler.md`](16-spool-regler.md).
+   Feltet findes altså, og reglen kan laves færdig, så snart FL-appen
+   skriver det til SharePoint.
 2. **Materialegruppe ≠ 999.** `colVhpOperations` har ingen materialegruppe.
    Kræver et felt på operationslinjen og en kolonne i `TaskListMain`.
 3. **Control key pr. operation.** Samme sag: feltet findes ikke i
