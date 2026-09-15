@@ -3,7 +3,8 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED, C_PRIMARY, C_WHITE,
                         C_INFO_FG, C_INFO_BG, C_VALID_FG, C_VALID_BG, C_INVALID_FG, C_INVALID_BG,
-                        C_NEUTRAL_FG, C_NEUTRAL_BG, FONT, SHELL_W, EDITOR_W, RAIL_W, SPLIT_GAP)
+                        C_NEUTRAL_FG, C_NEUTRAL_BG, C_INPUT_BG, FONT, SHELL_W, EDITOR_W, RAIL_W,
+                        SPLIT_GAP)
 from build_helpers import (text_ctrl, group, button, button_row, text_input, number_input, dropdown,
                            label_row, field_cell, row_n, col_width, badge, card, combobox, poll_timer,
                            TWO_COL_MIN)
@@ -20,9 +21,8 @@ EDITOR_CW = f"({EDITOR_W} - 36)"
 # Tre kolonner i stedet for to for indtastningsfelterne i Item Editor.
 EDITOR_COLS = 3
 
-# Knapbredder i FL- og objektlisteblokken.
+# Bredden paa Soeg-knappen i FL-blokken.
 FL_BTN_W = 84
-OBJ_BTN_W = 84
 
 # Gallerihoejde: TemplateSize + TemplatePadding pr. raekke. Den oprindelige
 # formel regnede kun med TemplateSize og klippede derfor den sidste raekke.
@@ -62,7 +62,7 @@ FL_DEFAULT = ("LookUp(colVhpFlSearch, "
               "Code = LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)")
 
 RESET_EDITOR_CONTROLS = (
-    "Reset(drpVhpItemFL); Reset(drpVhpItemObjects); Reset(txtVhpFlQuery); "
+    "Reset(drpVhpItemFL); Reset(txtVhpFlQuery); "
     "Reset(txtVhpItemShortText); "
     "Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(drpVhpItemRevision); "
     "Reset(txtVhpItemOrstedResponsible); Reset(txtVhpItemInitials); Reset(txtVhpItemLongText); "
@@ -353,62 +353,86 @@ def build_item_editor():
                              "LookUp(colVhpItems, ItemId = varVhpActiveItemId).Initials", max_length=12,
                              display_mode=DM_ITEM)
 
-    # --- Objektliste: dropdown + Tilfoej / Fjern ---------------------------
+    # --- Objektliste: multi-select med afkrydsning -------------------------
     #
-    # Ogsaa her uden combobox, saa feltet ser ud som de oevrige. Multi-select
-    # loeses med to knapper i stedet for chips: dropdownen peger paa EEN
-    # kandidat, og knapperne laegger den til eller tager den fra.
+    # HVORFOR IKKE EN COMBOBOX MED SelectMultiple
+    # Det var den oprindelige loesning, og det var ogsaa en combobox, der
+    # svigtede paa FL-feltet: flowet gav 819 raekker, beskeden sagde det, og
+    # dropdownen var tom. Aarsagen blev aldrig isoleret. At saette den samme
+    # kontroltype tilbage her ville vaere at gaette paa, at fejlen ikke
+    # rammer igen.
     #
-    # colVhpItemObjects er sandheden. Foer laa den i comboboksens
-    # SelectedItems, og samlingen var kun en kopi, der blev skrevet ved Save
-    # - nu er der kun een liste at holde styr paa.
+    # Et galleri med ModernCheckbox er derimod EN KONSTRUKTION, DER ALLEREDE
+    # VIRKER i denne app - tasklist-pickeren og pakkematricen bruger den. Der
+    # er ingen skjult filtrering: galleriet viser praecis de raekker, Items
+    # giver det, og hvert kryds skriver direkte i colVhpItemObjects.
+    #
+    # Til gengaeld kan man saette flere krydser i traek uden en knap imellem,
+    # hvilket var hele pointen.
     objLabelRow = label_row("conVhpItemObjLabel", "Object List")
 
-    # Slaaet fra, indtil der ER valgt en Functional Location. Teksten under
-    # siger hvorfor, saa en graa dropdown ikke ligner en fejl.
-    DM_OBJ_DRP = (f"If(\n"
-                  f"    IsBlank(varVhpActiveItemId) || IsBlank({SEL_FL}),\n"
-                  f"    DisplayMode.Disabled,\n"
-                  f"    DisplayMode.Edit\n"
-                  f")")
-    drpObj = dropdown(
-        "drpVhpItemObjects", f"Sort({OBJ_CANDIDATES}, Code)", "Blank()",
-        item_display="ThisItem.Display", display_mode=DM_OBJ_DRP, value_field="Code",
-        width=f"Parent.Width - {2 * OBJ_BTN_W} - 16")
+    chkObj = Ctrl("chkVhpObjPick", "ModernCheckbox", props={
+        "AccessibleLabel": "\"Vaelg objekt\"",
+        "Default": f"CountRows(Filter({OBJ_CHOSEN}, Code = ThisItem.Code)) > 0",
+        "DisplayMode": DM_ITEM,
+        "Height": "24",
+        "OnCheck": ("Collect(\n"
+                    "    colVhpItemObjects,\n"
+                    "    { ItemId: varVhpActiveItemId, Code: ThisItem.Code,\n"
+                    "      Description: ThisItem.Description }\n"
+                    ")"),
+        "OnUncheck": ("RemoveIf(\n"
+                      "    colVhpItemObjects,\n"
+                      "    ItemId = varVhpActiveItemId && Code = ThisItem.Code\n"
+                      ")"),
+        "Width": "26",
+    }, h=24)
+    txtObjRow = text_ctrl("txtVhpObjRowText", "ThisItem.Display", size=13, height=24,
+                          width="Parent.TemplateWidth - 26 - 10 - 4", wrap="false")
+    objRowTpl = group("conVhpObjRow", [chkObj, txtObjRow], direction="Horizontal",
+                      gap=10, height="Parent.TemplateHeight - 2",
+                      align_items="Center", width="Parent.TemplateWidth")
 
-    DM_OBJ = ("If(\n"
-              "    IsBlank(drpVhpItemObjects.Selected.Code) || IsBlank(varVhpActiveItemId),\n"
-              "    DisplayMode.Disabled,\n"
-              "    DisplayMode.Edit\n"
-              ")")
-    btnObjAdd = button(
-        "btnVhpObjAdd", "\"Tilfoej\"",
+    OBJ_ROWS = 6
+    OBJ_ROW_H = 30
+    galObj = Ctrl(
+        "galVhpItemObjects", "Gallery", variant="Vertical",
+        props={
+            "AccessibleLabel": "\"Underliggende objekter\"",
+            "BorderColor": C_CARD_BORDER,
+            "BorderStyle": "BorderStyle.Solid",
+            "BorderThickness": "1",
+            "Fill": C_INPUT_BG,
+            "FillPortions": "0",
+            "Height": str(OBJ_ROWS * (OBJ_ROW_H + 2)),
+            "Items": f"Sort({OBJ_CANDIDATES}, Code)",
+            "LayoutMinWidth": "0",
+            "LoadingSpinner": "LoadingSpinner.None",
+            "RadiusBottomLeft": "10", "RadiusBottomRight": "10",
+            "RadiusTopLeft": "10", "RadiusTopRight": "10",
+            "Selectable": "false",
+            "ShowScrollbar": "true",
+            "TabIndex": "0",
+            "TemplatePadding": "2",
+            "TemplateSize": str(OBJ_ROW_H),
+            "Width": "Parent.Width",
+            "WrapCount": "1",
+        },
+        children=[objRowTpl], h=OBJ_ROWS * (OBJ_ROW_H + 2))
+
+    # Uden valgt FL er listen tom. Saa skal der staa hvorfor, i stedet for et
+    # tomt felt der ligner en fejl.
+    objEmpty = text_ctrl(
+        "txtVhpObjEmpty",
         (
-            "With(\n"
-            "    { c: drpVhpItemObjects.Selected },\n"
-            "    If(\n"
-            f"        CountRows(Filter({OBJ_CHOSEN}, Code = c.Code)) > 0,\n"
-            "        Set(varVhpRuntimeInfo, c.Code & \" er allerede paa listen.\"),\n"
-            "        Collect(\n"
-            "            colVhpItemObjects,\n"
-            "            { ItemId: varVhpActiveItemId, Code: c.Code, Description: c.Description }\n"
-            "        );\n"
-            "        Set(varVhpRuntimeInfo, c.Code & \" tilfoejet til objektlisten.\")\n"
-            "    )\n"
+            "If(\n"
+            f"    IsBlank({SEL_FL}),\n"
+            "    \"Vaelg foerst en Functional Location ovenfor.\",\n"
+            "    \"Der er ingen underliggende objekter i soegeresultatet. \" &\n"
+            "        \"Soeg bredere i Functional Location-feltet.\"\n"
             ")"
-        ), primary=True, width=OBJ_BTN_W, height=36, display_mode=DM_OBJ)
-    btnObjRemove = button(
-        "btnVhpObjRemove", "\"Fjern\"",
-        (
-            "RemoveIf(\n"
-            "    colVhpItemObjects,\n"
-            "    ItemId = varVhpActiveItemId && Code = drpVhpItemObjects.Selected.Code\n"
-            ");\n"
-            "Set(varVhpRuntimeInfo, drpVhpItemObjects.Selected.Code & \" fjernet fra objektlisten.\")"
-        ), width=OBJ_BTN_W, height=36, display_mode=DM_OBJ)
-    objRow = group("conVhpItemObjRow", [drpObj, btnObjAdd, btnObjRemove],
-                   direction="Horizontal", gap=8, height=36,
-                   align_items="Center", width="Parent.Width")
+        ), size=12, color=C_MUTED, height=32, wrap="true",
+        visible=f"IfError(CountRows({OBJ_CANDIDATES}) = 0, true)")
 
     objChosen = text_ctrl(
         "txtVhpItemObjChosen",
@@ -441,12 +465,13 @@ def build_item_editor():
         "txtVhpItemObjMeta",
         (
             "If(\n"
-            f"    IsBlank({SEL_FL}), \"Vaelg foerst en Functional Location ovenfor.\",\n"
+            f"    IsBlank({SEL_FL}), \"\",\n"
             f"    Text(CountRows({OBJ_CANDIDATES})) & \" mulige under \" & {SEL_FL} & \".\"\n"
             ")"
         ), size=12, color=C_MUTED, height=18, wrap="true")
 
-    objBlock = group("conVhpItemObjBlock", [objLabelRow, objRow, objChosen, objMeta],
+    objBlock = group("conVhpItemObjBlock",
+                     [objLabelRow, galObj, objEmpty, objChosen, objMeta],
                      direction="Vertical", gap=6, width="Parent.Width",
                      fill_portions=0, align_in_container="Start")
 
