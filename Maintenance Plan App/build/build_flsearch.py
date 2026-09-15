@@ -61,9 +61,12 @@ JSON_LEVEL_FIELD = "level"
 JSON_CODE_FIELD = "functionKey"
 JSON_DESC_FIELD = "description"
 
-# Flowet kaldes KUN naar soegeteksten er noejagtig dette antal tegn - ikke ved
-# hvert tegn derover. Se timer_poll_action for hvorfor.
+# Soegeknappen naegter at kalde flowet under dette antal tegn. Flowet svarer
+# bredt - 819 traef for "SSV13 HFC10" - saa en kortere soegning er spild.
 MIN_SEARCH_LEN = 7
+
+# Over dette antal traef siger beskeden til, at der boer soeges smallere.
+LONG_RESULT = 50
 
 _RAW = "varVhpFlRaw"
 
@@ -101,80 +104,68 @@ def collect_results(target_collection):
     )
 
 
-def timer_poll_action(query_expr, target_collection, last_search_var, msg_var,
-                      label="Functional Locations"):
-    """Soegningen, som den ser ud naar den drives af en Timer.
+def search_action(query_ctrl, target_collection, last_search_var, msg_var,
+                  label="Functional Locations"):
+    """Soegningen, som den ser ud bag en SOEGEKNAP.
 
-    query_expr er det udtryk, der skal soeges paa. For FL-feltet er det
-    comboboksens egen SearchText; for objektlisten er det den valgte FL.
+    HVORFOR IKKE LAENGERE EN TIMER OG EN COMBOBOX
+    ---------------------------------------------
+    Foerste udgave lod en Timer polle Classic/ComboBox.SearchText og lod
+    comboboksen selv filtrere resultatet. Det virkede ikke i praksis:
+    flowet returnerede 819 raekker for "SSV13 HFC10", beskeden sagde det
+    ogsaa - og dropdownen var alligevel TOM. Comboboksens indbyggede
+    soegefiltrering viste ingen af de raekker, den havde faaet.
 
-    HVORFOR TIMER OG IKKE OnChange
-    ------------------------------
-    En combobox har ingen "brugeren skrev noget"-haendelse. OnChange fyrer
-    foerst, naar der VAELGES en raekke - men listen skal jo fyldes FOER der
-    kan vaelges. Derfor poller en Timer (AutoStart, Repeat, Duration 500 ms)
-    comboboksens SearchText. Det er samme moenster som Timer1/ComboBox1 i
-    referenceappen, hvor det er bevist at virke.
+    Nu er der ingen skjult filtrering tilbage:
 
-    Timeren er usynlig. Det er dokumenteret understoettet: en Timer med
-    AutoStart = true og Visible = false koerer alligevel.
+        et tekstfelt      brugeren skriver hvad der skal soeges paa
+        en soegeknap      brugeren bestemmer HVORNAAR der soeges
+        en dropdown       viser praecis det, samlingen indeholder
 
-    GENTAGELSESSPAERREN
-    -------------------
-    Soegningen udloeses ved HVER ny tekst paa mindst MIN_SEARCH_LEN tegn -
-    ikke kun naar laengden er noejagtig MIN_SEARCH_LEN.
-
-    Den foerste udgave brugte "noejagtig 7", ud fra at comboboksen selv kunne
-    filtrere videre i det hentede resultat. Det var forkert paa to maader:
-
-      1. En hurtig skribent naaede forbi 7 tegn mellem to timer-tik, og saa
-         blev soegningen ALDRIG udloest.
-      2. Skrev man videre efter 7 tegn, filtrerede comboboksen i resultatet
-         for de 7 tegn. Returnerer flowet kun de foerste N traef, er der
-         ingen af dem, der matcher 10 tegn - og saa stod dropdownen TOM,
-         mens beskeden stadig sagde "50 Functional Locations fundet".
-         Beskeden hoerte til en soegning, der ikke laengere blev vist.
-
-    q <> last_search_var er nok til at holde antallet af kald nede: samme
-    tekst soeges aldrig to gange, og timeren tikker kun hver 500 ms.
-
-    Der ryddes bevidst IKKE selve target_collection, naar laengden afviger:
-    naar brugeren vaelger en raekke, nulstiller comboboksen selv SearchText
-    til "", og en oprydning af samlingen ville fjerne den netop valgte
-    raekke fra Items og dermed smide valget vaek."""
+    Dropdownen har ingen egen soegning, saa der er ikke noget lag, der kan
+    skjule raekker. Til gengaeld kan listen blive lang - derfor siger
+    beskeden til, naar resultatet er stort nok til at brugeren boer soege
+    smallere.
+    """
     return (
         f"With(\n"
-        f"    {{ q: Trim({query_expr}) }},\n"
+        f"    {{ q: Trim({query_ctrl}.Text) }},\n"
         f"    If(\n"
         f"        Len(q) < {MIN_SEARCH_LEN},\n"
-        f"        Set({last_search_var}, \"\"),\n"
+        f"        Notify(\n"
+        f"            \"Skriv mindst {MIN_SEARCH_LEN} tegn, foer du soeger.\",\n"
+        f"            NotificationType.Warning\n"
+        f"        ),\n"
         f"\n"
-        f"        If(\n"
-        f"            q <> {last_search_var},\n"
+        f"        Set({msg_var}, \"Soeger efter \" & q & \" ...\");\n"
+        f"        IfError(\n"
+        f"            Set({_RAW}, {FLOW_NAME}.Run(q));\n"
+        f"            If(\n"
+        f"                IsBlank({_RAW}) || IsBlank({_RAW}.{FLOW_OUTPUT}),\n"
+        f"                Clear({target_collection}),\n"
+        f"                {collect_results(target_collection)}\n"
+        f"            );\n"
         f"            Set({last_search_var}, q);\n"
-        f"            Set({msg_var}, \"Soeger efter \" & q & \" ...\");\n"
-        f"            IfError(\n"
-        f"                Set({_RAW}, {FLOW_NAME}.Run(q));\n"
-        f"                If(\n"
-        f"                    IsBlank({_RAW}) || IsBlank({_RAW}.{FLOW_OUTPUT}),\n"
-        f"                    Clear({target_collection}),\n"
-        f"                    {collect_results(target_collection)}\n"
-        f"                );\n"
-        f"                Set(\n"
-        f"                    {msg_var},\n"
+        f"            Set(\n"
+        f"                {msg_var},\n"
+        f"                With(\n"
+        f"                    {{ n: CountRows({target_collection}) }},\n"
         f"                    If(\n"
-        f"                        CountRows({target_collection}) = 0,\n"
+        f"                        n = 0,\n"
         f"                        \"Ingen {label} fundet for \" & q & \".\",\n"
-        f"                        Text(CountRows({target_collection})) & \" {label} fundet for \" & q &\n"
-        f"                            \". Vaelg en i feltet.\"\n"
+        f"                        Text(n) & \" {label} fundet for \" & q & \". \" &\n"
+        f"                            If(\n"
+        f"                                n > {LONG_RESULT},\n"
+        f"                                \"Listen er lang - soeg paa flere tegn for at indsnaevre.\",\n"
+        f"                                \"Vaelg en i listen nedenfor.\"\n"
+        f"                            )\n"
         f"                    )\n"
-        f"                ),\n"
-        f"                Clear({target_collection});\n"
-        f"                Set({last_search_var}, \"\");\n"
-        f"                Set({msg_var}, \"Soegningen fejlede: \" & FirstError.Message)\n"
-        f"            )\n"
+        f"                )\n"
+        f"            ),\n"
+        f"            Clear({target_collection});\n"
+        f"            Set({last_search_var}, \"\");\n"
+        f"            Set({msg_var}, \"Soegningen fejlede: \" & FirstError.Message)\n"
         f"        )\n"
         f"    )\n"
         f")"
     )
-
