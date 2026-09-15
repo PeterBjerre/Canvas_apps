@@ -219,11 +219,22 @@ egenskaber, builderne bevidst sætter.
 8. **Padding tælles med i højden.** Det gør `stack_height()` automatisk —
    omgå den ikke ved at sætte `height=` manuelt på et kort.
 
-### Hvorfor `Classic/ComboBox` og ikke `ModernCombobox`
+### Brug ikke `Classic/ComboBox` til søgning
 
-Kun den klassiske udgave eksponerer `SearchText` som output-egenskab. Uden
-`SearchText` kan timeren ikke se, hvad brugeren har skrevet, og så er hele
-søge-mens-du-skriver-mønstret ikke muligt. Skift den ikke ud.
+Den blev prøvet til FL-feltet, fordi den som den eneste eksponerer
+`SearchText` og dermed muliggør søg-mens-du-skriver. **Det virkede ikke.**
+Flowet returnerede 819 Functional Locations, beskeden sagde det — og
+dropdownen var tom. Comboboksens indbyggede søgefiltrering viste ingen af de
+rækker, den havde fået, og det lag kan ikke inspiceres udefra.
+
+FL-feltet er nu **søgefelt + søgeknap + almindelig `ModernDropdown`**, hvor
+dropdownen viser præcis det, samlingen indeholder. Objektlisten er
+**dropdown + Tilføj/Fjern** i stedet for multi-select.
+
+Det er også mere ensartet: alle felter i Item Editor ser nu ens ud.
+
+Mønsteret er værd at huske ud over denne app: **når data er der, men ikke
+vises, så mistænk kontrollens eget filter før dine egne formler.**
 
 ## Power Fx binder på VISNINGSNAVN
 

@@ -17,23 +17,32 @@ Træk vinduet ned til ca. 900 px bredde. Intet må blive klippet.
 
 ---
 
-## 2. Functional Location-søgningen (1 minut)
+## 2. Functional Location (2 minutter)
 
-Det var her fejlen var: flowet blev kun kaldt ved **præcis 7 tegn**. Skrev du
-videre, filtrerede feltet i det gamle resultat og fandt intet — mens beskeden
-stadig sagde "50 fundet" fra en søgning, der ikke længere blev vist.
+Feltet er bygget helt om. Der er **ingen combobox** længere — den viste ikke
+de rækker, den fik. Nu er der et søgefelt, en **Søg**-knap og en almindelig
+dropdown, præcis som de øvrige felter.
 
-1. Vælg et item, og skriv 7 tegn i Functional Location, fx `SSV13 H`.
-   → Resultaterne skal komme frem **i dropdownen**, ikke kun som en besked.
-2. Skriv videre til 10-11 tegn.
-   → Listen skal **snævres ind og blive ved med at vise resultater**.
-3. Kig på beskeden under feltet. Den skal nævne **hvad der blev søgt på**,
-   fx *"12 Functional Locations fundet for SSV13 HFC10. Vælg en i feltet."*
+1. Vælg et item. Skriv `SSV13 HFC10` i Functional Location-feltet og klik
+   **Søg**.
+   → Beskeden skal sige hvor mange der blev fundet, **og for hvilken tekst**.
+   → Dropdownen nedenunder skal nu indeholde dem. Åbn den og bekræft.
+2. Vælg en i dropdownen.
+   → Linjen under skal vise `Valgt: <kode> - <beskrivelse>`.
+   → Er den ikke vedligeholdbar i SAP, skal der stå en rød advarsel.
+3. Klik **Søg** med under 7 tegn i feltet.
+   → Der skal komme en advarsel, og flowet må ikke kaldes.
 
-Virker det stadig ikke, så noter: hvad du skrev, hvad beskeden sagde, og om
-dropdownen var helt tom eller havde forkerte rækker.
+**Object List** — samme princip, uden multi-select:
 
----
+4. Med en FL valgt: åbn Object List-dropdownen.
+   → Den skal vise de underliggende FL'er. Teksten under siger hvor mange.
+5. Vælg en, klik **Tilføj**.
+   → Linjen under skal vise `1 valgt: <kode>`.
+6. Tilføj en mere, og klik så **Fjern** på en af dem.
+   → Tallet og listen skal følge med.
+7. Klik **Tilføj** på den samme to gange.
+   → Anden gang skal der stå at den allerede er på listen — ingen dublet.
 
 ## 3. Strategidelen (1 minut)
 

@@ -273,6 +273,17 @@ def combobox(name, items, display_field="Display", multi=False, default_items=No
              height=40, display_mode=None, onchange=None):
     """Soegefelt og valgliste i EEN kontrol.
 
+    BRUGES IKKE LAENGERE. Staar her, fordi ideen er god - men i praksis
+    viste Classic/ComboBox sig ikke at vise de raekker, den fik: flowet
+    returnerede 819 Functional Locations, beskeden sagde det, og dropdownen
+    var tom. Comboboksens indbyggede soegefiltrering er et lag, der ikke kan
+    inspiceres udefra, og det lag var fejlen.
+
+    FL-feltet er derfor bygget om til soegefelt + soegeknap + almindelig
+    dropdown, hvor der ikke er noget skjult filter tilbage. Genindfoer den
+    ikke uden at have bevist, at filtreringen virker mod rigtige data.
+
+
     Classic/ComboBox har indbygget soegefelt (IsSearchable), saa brugeren
     skriver og vaelger i det samme felt. Derfor er der hverken en separat
     soegeknap eller en separat dropdown ved siden af.
