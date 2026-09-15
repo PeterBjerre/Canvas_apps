@@ -88,7 +88,14 @@ Set(varVhpTasklistPickerOpen, false);
 Set(varVhpPlanSpId, 0);
 Set(varVhpPlanKey, "");
 Set(varVhpRequestGuid, "");
-Set(varVhpSaving, false);"""
+Set(varVhpSaving, false);
+
+// Hjaelpepanelerne. Slaaet fra som standard - teksten er der for den, der
+// har brug for den, ikke for at fylde skaermen for alle andre.
+Set(varVhpHelpPlan, false);
+Set(varVhpHelpItem, false);
+Set(varVhpHelpOps, false);
+Set(varVhpHelpPkg, false);"""
 
 
 def build_onstart():

@@ -8,7 +8,8 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQU
 from build_helpers import (text_ctrl, group, button, button_row, text_input, number_input, dropdown,
                            label_row, field_cell, row_n, col_width, badge, card, combobox, poll_timer,
                            TWO_COL_MIN)
-from build_plan_header import section_header
+from build_plan_header import section_header, help_panel
+import build_help as bh
 from build_flsearch import search_action, MIN_SEARCH_LEN
 
 DM_ITEM = "If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)"
@@ -262,7 +263,9 @@ def build_items_rail():
 
 def build_item_editor():
     header = section_header("conVhpEditorHead", "Item Editor",
-                            "Fulde itemfelter med reference-opslag af Functional Location.", "")
+                            "Fulde itemfelter med reference-opslag af Functional Location.", "",
+                            help_section="item")
+    helpPanel = help_panel("conVhpItemHelp", "item")
 
     # --- Functional Location: soegefelt, soegeknap, dropdown ---------------
     #
@@ -313,8 +316,10 @@ def build_item_editor():
     flMeta = text_ctrl("txtVhpItemFlMeta", "varVhpFlMeta", size=12, color=C_MUTED,
                        height=32, wrap="true")
 
+    flHint = text_ctrl("txtVhpItemFlHint", bh.hint("FunctionalLocation"), size=12,
+                       color=C_MUTED, height=32, wrap="true")
     flBlock = group("conVhpItemFlBlock",
-                    [flLabelRow, flSearchRow, drpFl, flDescription, flMeta],
+                    [flLabelRow, flHint, flSearchRow, drpFl, flDescription, flMeta],
                     direction="Vertical", gap=6, width="Parent.Width",
                     # FillPortions = 0: i en LODRET container fordeler den
                     # hoejde, og blokken ville vokse ud over sit indhold.
@@ -470,8 +475,10 @@ def build_item_editor():
             ")"
         ), size=12, color=C_MUTED, height=18, wrap="true")
 
+    objHint = text_ctrl("txtVhpItemObjHint", bh.hint("ObjectList"), size=12,
+                        color=C_MUTED, height=32, wrap="true")
     objBlock = group("conVhpItemObjBlock",
-                     [objLabelRow, galObj, objEmpty, objChosen, objMeta],
+                     [objLabelRow, objHint, galObj, objEmpty, objChosen, objMeta],
                      direction="Vertical", gap=6, width="Parent.Width",
                      fill_portions=0, align_in_container="Start")
 
@@ -500,21 +507,21 @@ def build_item_editor():
     leftRows = [
         row_n("conVhpItemRow1", [
             field_cell("conVhpCellItemShortText", "Item Short Text", txtShort, required=True,
-                       container_w=LEFT_W, cols=2),
+                       container_w=LEFT_W, cols=2, hint_text=bh.hint("ItemShortText")),
             field_cell("conVhpCellItemMwc", "Main Work Center", drpMwc, required=True,
-                       container_w=LEFT_W, cols=2),
+                       container_w=LEFT_W, cols=2, hint_text=bh.hint("MainWorkCenter")),
         ], container_w=LEFT_W),
         row_n("conVhpItemRow2", [
             field_cell("conVhpCellItemAct", "Maintenance Activity Type", drpAct, required=True,
-                       container_w=LEFT_W, cols=2),
+                       container_w=LEFT_W, cols=2, hint_text=bh.hint("ActivityType")),
             field_cell("conVhpCellItemRevision", "Revision", drpRevision,
-                       container_w=LEFT_W, cols=2),
+                       container_w=LEFT_W, cols=2, hint_text=bh.hint("Revision")),
         ], container_w=LEFT_W),
         row_n("conVhpItemRow3", [
             field_cell("conVhpCellItemOrstedResp", "Orsted Responsible", txtOrstedResp,
-                       container_w=LEFT_W, cols=2),
+                       container_w=LEFT_W, cols=2, hint_text=bh.hint("OrstedResponsible")),
             field_cell("conVhpCellItemInitials", "Initials", txtInitials,
-                       container_w=LEFT_W, cols=2),
+                       container_w=LEFT_W, cols=2, hint_text=bh.hint("Initials")),
         ], container_w=LEFT_W),
     ]
     leftCol = group("conVhpItemLeftCol", leftRows, direction="Vertical", gap=16, width=LEFT)
@@ -532,7 +539,8 @@ def build_item_editor():
                              "LookUp(colVhpItems, ItemId = varVhpActiveItemId).LongText", height=80,
                              display_mode=DM_ITEM, ttype="Multiline")
     longTextCell = field_cell("conVhpCellItemLongText", "Item Long Text", txtLongText,
-                              width="Parent.Width", container_w=CW, fill_portions_formula="0")
+                              width="Parent.Width", container_w=CW, fill_portions_formula="0",
+                              hint_text=bh.hint("ItemLongText"))
 
     itemMeta = text_ctrl(
         "txtVhpItemMeta",
@@ -587,7 +595,7 @@ def build_item_editor():
                    align_items="Center")
 
     return card("conVhpEditorCard",
-                [header, fieldsGrid, longTextCell, footer])
+                [header, helpPanel, fieldsGrid, longTextCell, footer])
 
 
 def build_items_section():

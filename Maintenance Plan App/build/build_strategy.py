@@ -29,7 +29,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_PRIM
                         C_INFO_FG, C_INFO_BG, C_NEUTRAL_BG, C_DIVIDER, C_VALID_FG, C_INVALID_FG,
                         C_TRANSPARENT, FONT, SHELL_W)
 from build_helpers import text_ctrl, group, button, button_row, badge, card
-from build_plan_header import section_header
+from build_plan_header import section_header, help_panel
 
 IS_STRATEGY = "(varVhpPlan.PlanType = \"Strategy\")"
 PKGS = "Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)"
@@ -95,7 +95,8 @@ def build_strategy_section():
     header = section_header(
         "conVhpPkgHead", "Strategy Packages",
         "Pakkerne kommer fra strategien. Markeer hvilke operationer der hoerer til hver pakke.",
-        "Step 4")
+        "Step 4", help_section="pkg")
+    helpPanel = help_panel("conVhpPkgHelp", "pkg")
 
     strategyMeta = text_ctrl(
         "txtVhpPkgMeta",
@@ -369,5 +370,5 @@ def build_strategy_section():
     actionRow.vis = f"IfError({CAN_DRAW}, false)"
 
     return card("conVhpStrategyCard",
-                [header, strategyMeta, actionRow, hierNote, matrixWrap, emptyState, warn],
+                [header, helpPanel, strategyMeta, actionRow, hierNote, matrixWrap, emptyState, warn],
                 visible=f"IfError({IS_STRATEGY}, false)")
