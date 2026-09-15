@@ -73,6 +73,13 @@ def main():
             r = subprocess.run([sys.executable, s], cwd=d)
             if r.returncode:
                 rc = r.returncode
+
+    # Til sidst, fordi det laeser de .pa.yaml, byggeriet lige har skrevet:
+    # findes hver SharePoint-kolonne, formlerne bruger, i virkeligheden?
+    print()
+    r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "check_datasources.py")])
+    if r.returncode:
+        rc = r.returncode
     return rc
 
 
