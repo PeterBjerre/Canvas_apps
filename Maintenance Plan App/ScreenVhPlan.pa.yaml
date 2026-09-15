@@ -5881,7 +5881,11 @@ Screens:
                                                                   Default: |-
                                                                       =Blank()
                                                                   DisplayMode: |-
-                                                                      =If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
+                                                                      =If(
+                                                                          IsBlank(varVhpActiveItemId) || IsBlank(Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)),
+                                                                          DisplayMode.Disabled,
+                                                                          DisplayMode.Edit
+                                                                      )
                                                                   Fill: |-
                                                                       =RGBA(255, 255, 255, 1)
                                                                   Font: |-
@@ -5891,7 +5895,10 @@ Screens:
                                                                   ItemDisplayText: |-
                                                                       =ThisItem.Display
                                                                   Items: |-
-                                                                      =Sort(Filter(colVhpFlSearch, StartsWith(Code, Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)), Code)
+                                                                      =Sort(Filter(
+                                                                          colVhpFlSearch,
+                                                                          !IsBlank(Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
+                                                                      ), Code)
                                                                   LayoutMinWidth: |-
                                                                       =0
                                                                   RadiusBottomLeft: |-
@@ -6026,7 +6033,16 @@ Screens:
                                                                     If(
                                                                         n = 0, "Ingen underliggende objekter valgt.",
                                                                         Text(n) & " valgt: " &
-                                                                            Concat(Sort(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), Code), Code, ", ")
+                                                                            Concat(Sort(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), Code), Code, ", ") &
+                                                                            With(
+                                                                                { fremmede: CountRows(Filter(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), !StartsWith(Code, Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)))) },
+                                                                                If(
+                                                                                    fremmede > 0,
+                                                                                    "   |   ADVARSEL: " & Text(fremmede) &
+                                                                                        " af dem ligger ikke under den valgte Functional Location.",
+                                                                                    ""
+                                                                                )
+                                                                            )
                                                                     )
                                                                 )
                                                             BorderStyle: |-
@@ -6034,7 +6050,11 @@ Screens:
                                                             BorderThickness: |-
                                                                 =0
                                                             Color: |-
-                                                                =If(CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) = 0, RGBA(89, 102, 122, 1), RGBA(26, 34, 49, 1))
+                                                                =If(
+                                                                    CountRows(Filter(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), !StartsWith(Code, Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)))) > 0, RGBA(179, 50, 60, 1),
+                                                                    CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) = 0, RGBA(89, 102, 122, 1),
+                                                                    RGBA(26, 34, 49, 1)
+                                                                )
                                                             Fill: |-
                                                                 =RGBA(0, 0, 0, 0)
                                                             Font: |-
@@ -6057,7 +6077,16 @@ Screens:
                                                                     If(
                                                                         n = 0, "Ingen underliggende objekter valgt.",
                                                                         Text(n) & " valgt: " &
-                                                                            Concat(Sort(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), Code), Code, ", ")
+                                                                            Concat(Sort(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), Code), Code, ", ") &
+                                                                            With(
+                                                                                { fremmede: CountRows(Filter(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), !StartsWith(Code, Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)))) },
+                                                                                If(
+                                                                                    fremmede > 0,
+                                                                                    "   |   ADVARSEL: " & Text(fremmede) &
+                                                                                        " af dem ligger ikke under den valgte Functional Location.",
+                                                                                    ""
+                                                                                )
+                                                                            )
                                                                     )
                                                                 )
                                                             Wrap: |-
@@ -6068,7 +6097,10 @@ Screens:
                                                             AccessibleLabel: |-
                                                                 =If(
                                                                     IsBlank(Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)), "Vaelg foerst en Functional Location ovenfor.",
-                                                                    Text(CountRows(Filter(colVhpFlSearch, StartsWith(Code, Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)))) & " mulige under " & Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation) & "."
+                                                                    Text(CountRows(Filter(
+                                                                    colVhpFlSearch,
+                                                                    !IsBlank(Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
+                                                                ))) & " mulige under " & Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation) & "."
                                                                 )
                                                             BorderStyle: |-
                                                                 =BorderStyle.None
@@ -6095,7 +6127,10 @@ Screens:
                                                             Text: |-
                                                                 =If(
                                                                     IsBlank(Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)), "Vaelg foerst en Functional Location ovenfor.",
-                                                                    Text(CountRows(Filter(colVhpFlSearch, StartsWith(Code, Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)))) & " mulige under " & Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation) & "."
+                                                                    Text(CountRows(Filter(
+                                                                    colVhpFlSearch,
+                                                                    !IsBlank(Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
+                                                                ))) & " mulige under " & Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation) & "."
                                                                 )
                                                             Wrap: |-
                                                                 =true
