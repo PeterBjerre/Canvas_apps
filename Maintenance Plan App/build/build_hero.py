@@ -92,18 +92,14 @@ def build_hero():
             "                        n > 0 && IsBlank(varVhpPlan.SortField),\n"
             "                        \"R2: Sort Field er paakraevet: \" & Text(n) &\n"
             "                            \" item(s) har activity type 110 eller 115.\", \"\")),\n"
-            # R3: lovpligtige eftersyn sendes ALTID til *SUP.
-            "            r3:\n"
-            "                Concat(\n"
-            "                    Filter(\n"
-            "                        colVhpItems,\n"
-            "                        (StartsWith(ActivityType, \"110\") || StartsWith(ActivityType, \"115\")) &&\n"
-            "                            !StartsWith(MainWorkCenter, \"*SUP\")\n"
-            "                    ),\n"
-            "                    \"R3: Item \" & Text(ItemId) &\n"
-            "                        \" er lovpligtigt eftersyn og skal sendes til *SUP, ikke \" &\n"
-            "                        MainWorkCenter & \".\",\n"
-            "                    Char(10)),\n"
+            # R3 er FJERNET. Den blokerede indsendelse, hvis et item med
+            # activity type 110/115 ikke havde *SUP som arbejdscenter.
+            # Peter har bekraeftet, at det ikke er rigtigt: lovpligtige
+            # eftersyn sendes ikke altid til *SUP. Reglen blokerede altsaa
+            # folk paa noget, der ikke er en regel, og den slags er vaerre
+            # end ingen validering - den laerer folk at ignorere panelet.
+            # Nummereringen R1, R2, R4, R5 staar urOErt, saa den fejl der
+            # var, kan genkendes i docs/14 og i TEST-manuelt.md.
             # R4: revisionsopgaver kaldes 1/1, ellers rammer de ikke revisionen.
             "            r4:\n"
             "                With(\n"
@@ -128,7 +124,7 @@ def build_hero():
             "                Filter(\n"
             "                    Table(\n"
             "                        { t: itemErr }, { t: s1 }, { t: s3 }, { t: s4 }, { t: s5 },\n"
-            "                        { t: r1 }, { t: r2 }, { t: r3 }, { t: r4 }, { t: r5 }\n"
+            "                        { t: r1 }, { t: r2 }, { t: r4 }, { t: r5 }\n"
             "                    ),\n"
             "                    !IsBlank(t)\n"
             "                ),\n"

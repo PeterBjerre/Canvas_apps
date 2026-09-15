@@ -75,8 +75,8 @@ siger *"Påkrævet: item 2 har activity type 110"*.
 | **Item Short Text** | `Bliver VH-ordrens overskrift. Skriv hvad opgaven er — ikke hvad planen hedder. Maks. 40 tegn.` |
 | **Functional Location** | `Angiv så detaljeret som muligt — helst KKS-komponentniveau. Her konteres omkostningen.` |
 | **Object List** | `Skal starte med samme 2-bogstavsniveau som referenceobjektet. Som udgangspunkt ét objekt pr. item.` |
-| **Maintenance Activity Type** | Dynamisk: `110 kræver henvisning til gældende lovgivning, og sendes altid til *SUP.` |
-| **Main Work Center** | Dynamisk: `Lovpligtigt eftersyn — skal være *SUP.` ellers `Bruges der eksterne leverandører, vælg *SUP.` |
+| **Maintenance Activity Type** | Dynamisk: `110 kræver henvisning til gældende lovgivning i langteksten.` |
+| **Main Work Center** | `Bruges der eksterne leverandører, vælg *SUP.` |
 | **Revision** | `REV betyder at opgaven løses i revisionsperioden. Første kald låses til 01/01.` |
 | **Item Long Text** | `Beskriv omfanget, og hvad der skal til for at udføre opgaven sikkert. Det er det første udføreren ser.` |
 
@@ -156,7 +156,7 @@ som hjælpetekst:
 | Plan Text starter med værkets bogstavkode | **R1 — bygget** |
 | Plan Text maks. 40 tegn | findes |
 | Sort Field påkrævet, hvis et item har activity type 110/115 | **R2 — bygget** |
-| Activity type 110/115 ⇒ Main Work Center = `*SUP` | **R3 — bygget** |
+| ~~Activity type 110/115 ⇒ Main Work Center = `*SUP`~~ | **trukket tilbage — påstanden er forkert** |
 | First Call låst til 01/01, hvis et item har `Revision = REV` | **R4 — bygget** |
 | Scheduling period mindst 2 år | **R5 — bygget** |
 | Call Horizon + Scheduling Period sat ud fra cyklus | findes |
@@ -166,9 +166,16 @@ som hjælpetekst:
 | Prioritet sat af aktivitetstype og SCEq | **afventer** — kræver SCEq-feltet fra FL-flowet |
 | Materialegruppe ≠ 999 på operationer med PM02/PM03 | **afventer** — materialegruppe findes ikke i datamodellen endnu |
 
-R1–R5 ligger i `build_hero.py` og skriver ind i den samme fejltabel som den
-øvrige validering, så de vises i hero-panelet og blokerer indsendelse på
-linje med de eksisterende regler.
+R1, R2, R4 og R5 ligger i `build_hero.py` og skriver ind i den samme
+fejltabel som den øvrige validering, så de vises i hero-panelet og blokerer
+indsendelse på linje med de eksisterende regler.
+
+**R3 er trukket tilbage.** Jeg læste "lovpligtigt eftersyn sendes altid til
+`*SUP`" ud af materialet og byggede den som en blokerende regel. Peter har
+bekræftet, at det ikke passer. En regel, der blokerer folk på noget, der
+ikke er en regel, er værre end ingen validering — den lærer dem at ignorere
+panelet. Nummereringen står urørt, så fejlen kan genkendes her og i
+`TEST-manuelt.md`.
 
 ---
 
