@@ -35,6 +35,7 @@ trinliste peger paa.
 """
 
 import csv
+import io
 import os
 import re
 
@@ -50,6 +51,19 @@ SHARED_BLOCKS = {
     "Design_pressure_", "Operating_pressure_", "Design_temperature_",
     "Operating_temperature_", "Design_flow_", "Equipment_Numbers",
 }
+
+
+def write_seed(path, header, rows):
+    """Skriv en seed-CSV i samme format som de eksisterende.
+
+    Provisioneringen laeser dem med Import-Csv -Encoding UTF8, som er
+    komma-separeret. Semikolon ville vaere blevet laest som EEN kolonne,
+    og BOM'en er det, der holder de danske tegn i live paa Windows.
+    """
+    with io.open(path, "w", newline="", encoding="utf-8-sig") as fh:
+        w = csv.writer(fh, quoting=csv.QUOTE_ALL)
+        w.writerow(header)
+        w.writerows(rows)
 
 
 def _read(name):
@@ -210,17 +224,13 @@ def main():
 
     # --- MD_FLClass: en raekke pr. klasse, med dens trinliste ---
     classes = sorted(k for k in steps if k not in SHARED_BLOCKS)
-    p1 = os.path.join(SEED, "MD_FLClass.csv")
-    with open(p1, "w", newline="", encoding="utf-8") as fh:
-        w = csv.writer(fh, delimiter=";")
-        w.writerow(["ClassKey", "VerifySteps", "StepCount"])
-        for c in classes:
-            w.writerow([c, ";".join(steps[c]), len(steps[c])])
+    write_seed(os.path.join(SEED, "MD_FLClass.csv"),
+               ["ClassKey", "VerifySteps", "StepCount"],
+               [[c, ";".join(steps[c]), len(steps[c])] for c in classes])
 
     # --- MD_FLCharacteristic: en raekke pr. klasse x karakteristik ---
     # En klasses regler er dens egen blok plus de faelles blokke, dens
     # trinliste peger paa. Derfor udfoldes trinlisten her.
-    p2 = os.path.join(SEED, "MD_FLCharacteristic.csv")
     rows, missing = [], set()
     for c in classes:
         # Et felt kan staa i BEGGE ordboeger - Plant har baade en
@@ -249,11 +259,10 @@ def main():
             r = merged[name]
             rows.append([c, name, r["maxlen"], r["pattern"], r["required"],
                          r["allowed"], r["table"], r["step"]])
-    with open(p2, "w", newline="", encoding="utf-8") as fh:
-        w = csv.writer(fh, delimiter=";")
-        w.writerow(["ClassKey", "Characteristic", "MaxLength", "Pattern",
-                    "Required", "AllowedValues", "SourceTable", "FromStep"])
-        w.writerows(rows)
+    write_seed(os.path.join(SEED, "MD_FLCharacteristic.csv"),
+               ["ClassKey", "Characteristic", "MaxLength", "Pattern",
+                "Required", "AllowedValues", "SourceTable", "FromStep"],
+               rows)
 
     print("MD_FLClass.csv          %3d klasser" % len(classes))
     print("MD_FLCharacteristic.csv %3d regler" % len(rows))
