@@ -113,13 +113,7 @@ HINTS = {
                      "    )\n"
                      ")"),
 
-    "MainWorkCenter": ("With(\n"
-                       "    { a: LookUp(colVhpItems, ItemId = varVhpActiveItemId).ActivityType },\n"
-                       "    If(\n"
-                       "        StartsWith(a, \"110\") || StartsWith(a, \"115\"),\n"
-                       "        " + _q("Bruges der eksterne leverandoerer, vaelg *SUP.") + "\n"
-                       "    )\n"
-                       ")"),
+    "MainWorkCenter": _q("Bruges der eksterne leverandoerer, vaelg *SUP."),
 
     "Revision": _q("REV betyder at opgaven loeses i revisionsperioden. Foerste kald laases saa til 01/01."),
 
@@ -146,7 +140,7 @@ HINTS = {
                    "        CountRows(Filter(ops, IsBlank(OperationShortText))) > 0,\n"
                    "        Text(CountRows(Filter(ops, IsBlank(OperationShortText)))) & \" operation(er) mangler short text.\",\n"
                    "        CountRows(Filter(ops, WorkHours <= 0)) > 0,\n"
-                   "        \"Alle operationer skal time- og bemandingsestimeres - Work skal vaere over 0.\",\n"
+                   "        \"Alle operationer skal time- og bemandingsestimeres - Work skal vaere over 0.\"\n"
                    "    )\n"
                    ")"),
 }
