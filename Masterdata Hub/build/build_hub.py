@@ -42,7 +42,12 @@ COLS = [("DOMAENE", 104), ("INDMELDING", 0), ("VAERK", 62), ("STATUS", 176),
         ("SIDST", 92), ("", 76)]
 GAP = 10
 FIXED = sum(w for _, w in COLS) + GAP * (len(COLS) - 1)
-MAIN_W = f"Parent.TemplateWidth - {FIXED}"
+# Bruges BAADE i listehovedet og i galleriets raekke. Ingen af de to
+# steder er forelderen selve galleriet - kun et galleris DIREKTE barn
+# kender Parent.TemplateWidth, og raekkens indhold ligger et niveau
+# dybere. Begge foraeldre er lige saa brede som skabelonen, saa
+# Parent.Width giver det samme tal og virker begge steder.
+MAIN_W = f"Parent.Width - {FIXED}"
 
 ROW_H = 46
 GAL_ROWS = 9

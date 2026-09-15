@@ -78,12 +78,16 @@ def help_panel(name, section):
     nogen skal ind i layoutkoden."""
     v = help_var(section)
     kids = []
+    # bh._q() dobler anfoerselstegn. Uden den braekkede kilde-linjen
+    # udtrykket: teksten naevner "Den gode VH-plan" MED anfoerselstegn, og
+    # de lukkede strengen midt i saetningen. Power Fx laeste resten som
+    # navne og gav 18 fejl pr. egenskab.
     for i, (head, body) in enumerate(bh.PANELS[section]):
-        kids.append(text_ctrl(f"{name}H{i}", '"' + head + '"', size=13, weight="Semibold",
+        kids.append(text_ctrl(f"{name}H{i}", bh._q(head), size=13, weight="Semibold",
                               height=18, wrap="false"))
-        kids.append(text_ctrl(f"{name}B{i}", '"' + body + '"', size=12, color=C_MUTED,
+        kids.append(text_ctrl(f"{name}B{i}", bh._q(body), size=12, color=C_MUTED,
                               height=(18 * (1 + len(body) // 95)), wrap="true"))
-    kids.append(text_ctrl(f"{name}Src", '"' + bh.SOURCE_NOTE + '"', size=11, color=C_MUTED,
+    kids.append(text_ctrl(f"{name}Src", bh._q(bh.SOURCE_NOTE), size=11, color=C_MUTED,
                           height=18, wrap="true"))
     return group(name, kids, direction="Vertical", gap=4, pad=(12, 14, 12, 14),
                  fill=C_INFO_BG, radius=10, visible=f"IfError({v}, false)")

@@ -392,8 +392,11 @@ def build_item_editor():
                       ")"),
         "Width": "26",
     }, h=24)
+    # Parent her er raekkebeholderen, ikke galleriet - kun et galleris
+    # DIREKTE barn kender Parent.TemplateWidth. Beholderen er selv saa bred
+    # som skabelonen, saa Parent.Width giver det samme tal.
     txtObjRow = text_ctrl("txtVhpObjRowText", "ThisItem.Display", size=13, height=24,
-                          width="Parent.TemplateWidth - 26 - 10 - 4", wrap="false")
+                          width="Parent.Width - 26 - 10 - 4", wrap="false")
     objRowTpl = group("conVhpObjRow", [chkObj, txtObjRow], direction="Horizontal",
                       gap=10, height="Parent.TemplateHeight - 2",
                       align_items="Center", width="Parent.TemplateWidth")

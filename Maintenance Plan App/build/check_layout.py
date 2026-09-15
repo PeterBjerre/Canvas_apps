@@ -357,6 +357,72 @@ def main():
                 problems.append(f"[11] {name}.{key}: komma lige foer ')' "
                                 f"- Power Fx afviser det ved compile")
 
+    # --- 12. Uescapet anfoerselstegn i en Power Fx-streng ------------------
+    # En dansk hjaelpetekst, der selv naevner noget i anfoerselstegn, lukker
+    # strengen midt i saetningen, hvis tegnene ikke er doblet. Power Fx
+    # laeser saa resten som navne. Det gav 144 fejl fordelt paa fire
+    # hjaelpepaneler, fordi kilde-linjen naevner "Den gode VH-plan".
+    #
+    # At taelle anfoerselstegn er IKKE nok: "Kilde: "Den gode VH-plan" ..."
+    # har seks - et lige tal - og ser derfor rigtigt ud. Tegnene parrer
+    # bare forkert. Det der afsloerer fejlen er, hvad der staar EFTER en
+    # lukkende anfoersel: et bogstav. Efter en rigtig streng kommer altid
+    # en operator, et komma eller en parentes - eller et af de faa
+    # noegleord, der er operatorer i Power Fx.
+    KEYWORD_OPS = {"in", "exactin", "and", "or", "not", "as"}
+
+    def unescaped_quote(expr):
+        i, n = 0, len(expr)
+        while i < n:
+            if expr[i] != '"':
+                i += 1
+                continue
+            j = i + 1
+            while j < n:
+                if expr[j] == '"':
+                    if j + 1 < n and expr[j + 1] == '"':
+                        j += 2          # doblet "" - en escaped anfoersel
+                        continue
+                    break
+                j += 1
+            if j >= n:
+                return "strengen lukker aldrig"
+            k = j + 1
+            while k < n and expr[k] in " \t\n":
+                k += 1
+            if k < n and (expr[k].isalnum() or expr[k] == "_"):
+                w = re.match(r"\w+", expr[k:]).group(0)
+                if w.lower() not in KEYWORD_OPS:
+                    return f"'{w}' staar lige efter en lukket streng"
+            i = j + 1
+        return None
+
+    for p_, name, body in all_nodes:
+        for key, val in (body.get("Properties") or {}).items():
+            if not isinstance(val, str):
+                continue
+            why = unescaped_quote(val)
+            if why:
+                problems.append(f"[12] {name}.{key}: {why} - et anfoerselstegn "
+                                f"i teksten er ikke doblet. Brug build_help._q()")
+
+    # --- 13. Parent.Template* uden for et galleris direkte barn ------------
+    # TemplateWidth og TemplateHeight findes kun paa Gallery. Bruger en
+    # kontrol dem, skal dens FORAELDER vaere galleriet - ellers er navnet
+    # ukendt ved compile. Raekketeksten i objektlisten laa et niveau for
+    # dybt: dens Parent var raekkebeholderen.
+    # p_ er STIEN inkl. kontrollen selv - forelderen er naestsidste led.
+    TPL = re.compile(r"Parent\.Template(?:Width|Height)")
+    for p_, name, body in all_nodes:
+        for key, val in (body.get("Properties") or {}).items():
+            if not isinstance(val, str) or not TPL.search(val):
+                continue
+            parts = [x for x in (p_ or "").split("/") if x]
+            pname = parts[-2] if len(parts) >= 2 else None
+            if (by_name.get(pname) or {}).get("Control") != "Gallery":
+                problems.append(f"[13] {name}.{key}: bruger Parent.Template*, "
+                                f"men forelderen '{pname}' er ikke et Gallery")
+
     print(f"Kontroller i alt: {len(all_nodes)}")
     if problems:
         print(f"\n{len(problems)} problem(er):\n")
