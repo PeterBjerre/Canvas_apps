@@ -172,21 +172,54 @@ Samme mønster som `MD_Strategy` / `MD_StrategyPackage`, som allerede virker.
 | `SourceTable` | Tekst | Navnet på Excel-tabellen, når listen kommer derfra |
 | `FromStep` | Tekst | Hvilken blok reglen kom fra — sporbarhed |
 
-**`SourceTable` er det uafklarede.** 44 af de 405 regler validerer mod en
-værdiliste, der i dag ligger som en navngiven tabel på arket "List data":
+`SourceTable` peger på den værdiliste, feltet valideres mod. 44 af de 405
+regler har en. Alle 44 er nu trukket ud — se næste afsnit.
 
-`SCEq` · `FireClassification` · `Table20` · `Design_pressure_uom` ·
-`Design_Temp_uom` · `Design_flow_uom` · `TypekredsTabel` · `TestMethod`
+### `MD_FLValueList` — 172 værdier i 26 lister
 
-Dertil `Plant` og `EQ_Cat` på udstyrsfanen. Dem finder udtrækket ikke selv —
-de hentes gennem `GetPlantAllowedValues` og
-`GetEquipmentCategoryAllowedValues` i stedet for direkte fra en
-`ListObjects(...)`, så deres `SourceTable` står tom i CSV'en. Ti lister i
-alt.
+`tools/extract_spool_lists.py` læser dem direkte ud af arket:
 
-De skal med over, før appen kan validere de felter. Det er en tredje liste —
-`MD_FLValueList` (`ListName`, `Value`, `Sort`) — og indholdet kan trækkes ud
-af arket med samme fremgangsmåde som `MD_Strategy`.
+| Kolonne | |
+|---|---|
+| `ListName` | Listens navn |
+| `Value` | Værdien, der gemmes |
+| `Value2` | Den viste tekst, hvor listen har to kolonner (Plant, EquipmentCategory) |
+| `Sort` | Rækkefølgen fra arket |
+
+Ti almindelige lister: `Typekreds` (18) · `TestMethod` (5) ·
+`FireClassification` (10) · `FireSealingType` (10) · `Design_pressure_uom`
+(10) · `Design_flow_uom` (9) · `Design_Temp_uom` (3) · `Plant` (8) ·
+`EquipmentCategory` (4).
+
+**Og seksten SCEq-lister.** SCEq er ikke én liste: tabellen har en kolonne
+pr. klasse med hver sine gyldige værdier, og VBA'en slår op med
+`sceTable.ListColumns(Class)`. De er foldet ud som `SCEq:ELF`, `SCEq:MKP` og
+så videre, så en ELF ikke kan vælge en MKP-værdi. Spændvidden er stor —
+`SCEq:NO CLASS` har 26 værdier, `SCEq:MKP_FA` har én.
+
+Krydstjekket holder: alle 44 regler med en værdiliste har fået den, og hver
+eneste klasse der kører `TRMNEW`, har en SCEq-kolonne.
+
+### `MD_FLKey` — 6.733 opslag
+
+Klassebestemmelsens fire ordbøger. De hører ikke sammen med værdilisterne:
+de læses ud af selve KKS-koden, **før** brugeren har udfyldt noget, og
+afgør hvilken klasse rækken får — og dermed hvilke felter der overhovedet
+vises.
+
+| `KeyType` | Rækker | |
+|---|---|---|
+| `Function` | 6.441 | `key7` skal findes her |
+| `Aggregate` | 146 | `key12` → klasse |
+| `Component` | 139 | `key18` → klasse |
+| `BR18` | 7 | `key12` → tilladte `key17` |
+
+VBA'en fylder ordbøgerne med `dict(key) = value` — en **tildeling**, ikke
+`.Add`. Dubletter overskriver derfor hinanden i stilhed, og den sidste
+vinder. Udtrækket gør det samme, så listen indeholder præcis det, arket selv
+ender med. Fire dubletter blev overskrevet på den måde: `CQB`, `LP`, `N` og
+`U`, alle uden beskrivelse. Havde koden brugt `.Add`, ville arket være
+brudt sammen ved indlæsning.
 
 ### Hvad der **ikke** kan ligge i en liste
 
@@ -228,16 +261,37 @@ SCEq. Når FL-appen skriver SCEq til SharePoint, kan den regel laves færdig.
 
 ## Næste trin
 
-1. **Træk de ti værdilister ud** af "List data" til `MD_FLValueList.csv`.
-   Uden dem kan 44 af de 405 regler ikke håndhæves.
+1. ~~Træk værdilisterne ud~~ ✅ **Gjort** — `MD_FLValueList.csv` (172
+   værdier) og `MD_FLKey.csv` (6.733 opslag). Arket var ikke beskyttet mod
+   læsning, så der var ingen kode nødvendig.
 2. **Gennemgå `MD_FLCharacteristic.csv`** — 405 rækker, men kun 88 unikke
    feltnavne. Er der felter, der burde være påkrævede, og ikke er det i dag?
    `Required` er sat på præcis fem: Description, Beskrivelse, Plant,
    Equipment Category og Func. location. Alt andet må stå tomt — også
    Safety Critical Equipment og Fire Classification uden for BR18-reglen.
    Det er værd at få bekræftet, at det er med vilje.
-3. **Provisionér de tre lister**, samme script-mønster som `MD_Strategy`.
+3. **Provisionér de fire lister**, samme script-mønster som `MD_Strategy`.
+   `MD_FLKey` er den eneste, der kræver en tanke: 6.441 Function-nøgler er
+   over SharePoints delegeringsgrænse, så `KeyType` og `KeyValue` skal
+   indekseres, og opslaget skal skrives som et `LookUp` på dem — ikke som en
+   `ClearCollect` ved opstart.
 4. **Byg appen** — samme byggekæde som VH-plan: Python-buildere,
    `check_layout`, `check_datasources`.
 
 Punkt 2 er det, der er værd at bruge tid på. Resten er mekanik.
+
+---
+
+## To ting at kigge på i arket
+
+**`MAF` har en SCEq-kolonne, men ingen klasse.** SCEq-tabellen har en kolonne
+for `MAF` med tre værdier, men `MAF` findes ikke i
+`LegacyDefaultStepsFor` og kan derfor ikke bestemmes som klasse. Enten er
+det en klasse, der er faldet ud af trinlisten, eller en kolonne, der er
+blevet tilbage. Alle 16 andre SCEq-kolonner svarer til en klasse, der kører
+`TRMNEW`.
+
+**`Required` står på fem felter ud af 88.** Description, Beskrivelse, Plant,
+Equipment Category og Func. location. Alt andet må stå tomt — også Safety
+Critical Equipment og Fire Classification uden for BR18-reglen. Det kan være
+med vilje; det er værd at få bekræftet, før appen gør det samme.
