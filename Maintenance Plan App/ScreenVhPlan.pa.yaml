@@ -393,17 +393,6 @@ Screens:
                                                                             n > 0 && IsBlank(varVhpPlan.SortField),
                                                                             "R2: Sort Field er paakraevet: " & Text(n) &
                                                                                 " item(s) har activity type 110 eller 115.", "")),
-                                                                r3:
-                                                                    Concat(
-                                                                        Filter(
-                                                                            colVhpItems,
-                                                                            (StartsWith(ActivityType, "110") || StartsWith(ActivityType, "115")) &&
-                                                                                !StartsWith(MainWorkCenter, "*SUP")
-                                                                        ),
-                                                                        "R3: Item " & Text(ItemId) &
-                                                                            " er lovpligtigt eftersyn og skal sendes til *SUP, ikke " &
-                                                                            MainWorkCenter & ".",
-                                                                        Char(10)),
                                                                 r4:
                                                                     With(
                                                                         { n: CountRows(Filter(colVhpItems, !IsBlank(Revision))) },
@@ -425,7 +414,7 @@ Screens:
                                                                     Filter(
                                                                         Table(
                                                                             { t: itemErr }, { t: s1 }, { t: s3 }, { t: s4 }, { t: s5 },
-                                                                            { t: r1 }, { t: r2 }, { t: r3 }, { t: r4 }, { t: r5 }
+                                                                            { t: r1 }, { t: r2 }, { t: r4 }, { t: r5 }
                                                                         ),
                                                                         !IsBlank(t)
                                                                     ),
@@ -6337,7 +6326,7 @@ Screens:
                                                                           { a: LookUp(colVhpItems, ItemId = varVhpActiveItemId).ActivityType },
                                                                           If(
                                                                               StartsWith(a, "110") || StartsWith(a, "115"),
-                                                                              "Lovpligtigt: der SKAL henvises til gaeldende lovgivning i langteksten, og arbejdscentret skal vaere *SUP.",
+                                                                              "Lovpligtigt: der SKAL henvises til gaeldende lovgivning i langteksten.",
                                                                               StartsWith(a, "120"),
                                                                               "Loebende opgave - maks. 1 aar. Prioritet bliver blaa.",
                                                                               "101 forebyggende - 102 forudbestemt - 110 lovpligtigt - 115 myndighedsvilkaar - 120 loebende - 130 rengoering - 160 smoering."
@@ -6370,7 +6359,7 @@ Screens:
                                                                           { a: LookUp(colVhpItems, ItemId = varVhpActiveItemId).ActivityType },
                                                                           If(
                                                                               StartsWith(a, "110") || StartsWith(a, "115"),
-                                                                              "Lovpligtigt: der SKAL henvises til gaeldende lovgivning i langteksten, og arbejdscentret skal vaere *SUP.",
+                                                                              "Lovpligtigt: der SKAL henvises til gaeldende lovgivning i langteksten.",
                                                                               StartsWith(a, "120"),
                                                                               "Loebende opgave - maks. 1 aar. Prioritet bliver blaa.",
                                                                               "101 forebyggende - 102 forudbestemt - 110 lovpligtigt - 115 myndighedsvilkaar - 120 loebende - 130 rengoering - 160 smoering."

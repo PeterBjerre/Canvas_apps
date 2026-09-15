@@ -106,7 +106,7 @@ HINTS = {
                      "    { a: LookUp(colVhpItems, ItemId = varVhpActiveItemId).ActivityType },\n"
                      "    If(\n"
                      "        StartsWith(a, \"110\") || StartsWith(a, \"115\"),\n"
-                     "        " + _q("Lovpligtigt: der SKAL henvises til gaeldende lovgivning i langteksten, og arbejdscentret skal vaere *SUP.") + ",\n"
+                     "        " + _q("Lovpligtigt: der SKAL henvises til gaeldende lovgivning i langteksten.") + ",\n"
                      "        StartsWith(a, \"120\"),\n"
                      "        " + _q("Loebende opgave - maks. 1 aar. Prioritet bliver blaa.") + ",\n"
                      "        " + _q("101 forebyggende - 102 forudbestemt - 110 lovpligtigt - 115 myndighedsvilkaar - 120 loebende - 130 rengoering - 160 smoering.") + "\n"
