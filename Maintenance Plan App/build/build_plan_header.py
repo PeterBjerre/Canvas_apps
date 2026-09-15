@@ -117,24 +117,30 @@ def build_plan_header():
         field_cell("conVhpCellCycle", "Cycle", numCycle, required=True, container_w=CW, cols=PLAN_COLS),
         field_cell("conVhpCellUnit", "Unit", drpUnit, required=True, container_w=CW, cols=PLAN_COLS),
     ], container_w=CW)
+    # Dag, maaned og aar er EEN dato, ikke tre felter. De staar derfor i
+    # samme celle, paa samme raekke, og fylder tilsammen den sidste af de
+    # fire kolonner. Det frigiver samtidig hele row3, som kun indeholdt de
+    # to overskydende felter og to tomme pladsholdere.
+    FC_CELL = col_width(CW, PLAN_COLS)
+    FC_GAP = 8
+    FC_W = f"(({FC_CELL} - {2 * FC_GAP}) / 3)"
+    for ctrl, w in ((numFirstCallDay, FC_W), (numFirstCallMonth, FC_W), (numFirstCallYear, FC_W)):
+        ctrl.props["Width"] = w
+    firstCallRow = group("conVhpFirstCallRow",
+                         [numFirstCallDay, numFirstCallMonth, numFirstCallYear],
+                         direction="Horizontal", gap=FC_GAP, height=36,
+                         align_items="Center", width="Parent.Width")
+
     row2 = row_n("conVhpPlanRow2", [
         field_cell("conVhpCellCallHorizon", "Call Horizon", drpCallHorizon, container_w=CW, cols=PLAN_COLS),
         field_cell("conVhpCellSchedInd", "Scheduling Indicator", txtSchedInd, container_w=CW, cols=PLAN_COLS),
-        field_cell("conVhpCellFirstCallDay", "First Call Day", numFirstCallDay, required=True,
-                  container_w=CW, cols=PLAN_COLS),
-        field_cell("conVhpCellFirstCallMonth", "First Call Month", numFirstCallMonth,
-                  required=True, container_w=CW, cols=PLAN_COLS),
-    ], container_w=CW)
-    row3 = row_n("conVhpPlanRow3", [
-        field_cell("conVhpCellFirstCallYear", "First Call Year", numFirstCallYear, required=True,
-                  container_w=CW, cols=PLAN_COLS),
         field_cell("conVhpCellStatutorySortField", "Statutory Sort Field", txtStatutorySortField,
                   container_w=CW, cols=PLAN_COLS),
-        group("conVhpPlanRow3SpacerA", [], height=62, width=col_width(CW, PLAN_COLS)),
-        group("conVhpPlanRow3SpacerB", [], height=62, width=col_width(CW, PLAN_COLS)),
+        field_cell("conVhpCellFirstCall", "First Call  (dd / mm / aaaa)", firstCallRow,
+                  required=True, container_w=CW, cols=PLAN_COLS),
     ], container_w=CW)
 
-    grid = group("conVhpPlanGrid", [row0, row1, row2, row3],
+    grid = group("conVhpPlanGrid", [row0, row1, row2],
                  direction="Vertical", gap=16)
 
     planMeta = text_ctrl(

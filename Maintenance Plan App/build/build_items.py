@@ -5,7 +5,8 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQU
                         C_INFO_FG, C_INFO_BG, C_VALID_FG, C_VALID_BG, C_INVALID_FG, C_INVALID_BG,
                         C_NEUTRAL_FG, C_NEUTRAL_BG, FONT, SHELL_W, EDITOR_W, RAIL_W, SPLIT_GAP)
 from build_helpers import (text_ctrl, group, button, button_row, text_input, number_input, dropdown,
-                           label_row, field_cell, row_n, col_width, badge, card, combobox, poll_timer)
+                           label_row, field_cell, row_n, col_width, badge, card, combobox, poll_timer,
+                           TWO_COL_MIN)
 from build_plan_header import section_header
 from build_flsearch import timer_poll_action, MIN_SEARCH_LEN
 
@@ -294,7 +295,7 @@ def build_item_editor():
     # FL-blokken staar nu som en normal gitter-celle (samme bredde som de
     # andre indtastningsfelter) i stedet for i fuld bredde.
     flBlock = group("conVhpItemFlBlock", [flLabelRow, cmbFl, flDescription, flMeta, tmrFl],
-                    direction="Vertical", gap=6, width=col_width(EDITOR_CW, EDITOR_COLS),
+                    direction="Vertical", gap=6, width="Parent.Width",
                     fill_portions="If(App.Width < 1024, 0, 1)")
 
     # 53 arbejdscentre for hele afdelingen, men kun en haandfuld hoerer til
@@ -372,34 +373,58 @@ def build_item_editor():
     # Objektliste-blokken staar nu som en normal gitter-celle (samme bredde
     # som de andre indtastningsfelter) i stedet for i fuld bredde.
     objBlock = group("conVhpItemObjBlock", [objLabelRow, cmbObj, objMeta, objEmpty],
-                     direction="Vertical", gap=6, width=col_width(EDITOR_CW, EDITOR_COLS),
+                     direction="Vertical", gap=6, width="Parent.Width",
                      fill_portions="If(App.Width < 1024, 0, 1)")
 
-    # Tre kolonner i stedet for to. Functional Location og Object List staar
-    # som almindelige felter i gitteret - kun Item Long Text laengere nede
-    # er i fuld bredde.
+    # Functional Location og Object List staar OVEN PAA HINANDEN i hoejre
+    # kolonne. De to hoerer sammen - objektlisten kan foerst bruges, naar en
+    # FL er valgt, og filtreres paa den - saa de skal ogsaa staa sammen.
+    #
+    # De oevrige felter staar i to kolonner til venstre. Layoutet er derfor
+    # een vandret raekke med to celler, ikke tre raekker med tre celler:
+    #
+    #     +---------------------+---------------------+----------------+
+    #     | Item Short Text     | Main Work Center    | Functional     |
+    #     | Activity Type       | Revision            | Location       |
+    #     | Orsted Responsible  | Initials            |                |
+    #     |                     |                     | Object List    |
+    #     +---------------------+---------------------+----------------+
+    #            venstre: 2 kolonner                    hoejre: 1
     CW = EDITOR_CW
-    row1 = row_n("conVhpItemRow1", [
-        flBlock,
-        field_cell("conVhpCellItemShortText", "Item Short Text", txtShort, required=True,
-                  container_w=CW, cols=EDITOR_COLS),
-        field_cell("conVhpCellItemMwc", "Main Work Center", drpMwc, required=True,
-                  container_w=CW, cols=EDITOR_COLS),
-    ], container_w=CW)
-    row2 = row_n("conVhpItemRow2", [
-        field_cell("conVhpCellItemAct", "Maintenance Activity Type", drpAct, required=True,
-                  container_w=CW, cols=EDITOR_COLS),
-        objBlock,
-        field_cell("conVhpCellItemRevision", "Revision", drpRevision, container_w=CW, cols=EDITOR_COLS),
-    ], container_w=CW)
-    row3 = row_n("conVhpItemRow3", [
-        field_cell("conVhpCellItemOrstedResp", "Orsted Responsible", txtOrstedResp,
-                  container_w=CW, cols=EDITOR_COLS),
-        field_cell("conVhpCellItemInitials", "Initials", txtInitials, container_w=CW, cols=EDITOR_COLS),
-        group("conVhpCellItemSpacer", [], height=62, width=col_width(CW, EDITOR_COLS)),
-    ], container_w=CW)
+    GAP = 20
+    RIGHT_W = f"(({CW} - {2 * GAP}) / 3)"
+    LEFT_W = f"({CW} - {GAP} - {RIGHT_W})"
+    # Under braekpunktet stables alt, og saa fylder begge sider det hele.
+    RIGHT = f"If({CW} < {TWO_COL_MIN}, {CW}, {RIGHT_W})"
+    LEFT = f"If({CW} < {TWO_COL_MIN}, {CW}, {LEFT_W})"
 
-    fieldsGrid = group("conVhpItemFieldsGrid", [row1, row2, row3], direction="Vertical", gap=16)
+    leftRows = [
+        row_n("conVhpItemRow1", [
+            field_cell("conVhpCellItemShortText", "Item Short Text", txtShort, required=True,
+                       container_w=LEFT_W, cols=2),
+            field_cell("conVhpCellItemMwc", "Main Work Center", drpMwc, required=True,
+                       container_w=LEFT_W, cols=2),
+        ], container_w=LEFT_W),
+        row_n("conVhpItemRow2", [
+            field_cell("conVhpCellItemAct", "Maintenance Activity Type", drpAct, required=True,
+                       container_w=LEFT_W, cols=2),
+            field_cell("conVhpCellItemRevision", "Revision", drpRevision,
+                       container_w=LEFT_W, cols=2),
+        ], container_w=LEFT_W),
+        row_n("conVhpItemRow3", [
+            field_cell("conVhpCellItemOrstedResp", "Orsted Responsible", txtOrstedResp,
+                       container_w=LEFT_W, cols=2),
+            field_cell("conVhpCellItemInitials", "Initials", txtInitials,
+                       container_w=LEFT_W, cols=2),
+        ], container_w=LEFT_W),
+    ]
+    leftCol = group("conVhpItemLeftCol", leftRows, direction="Vertical", gap=16, width=LEFT)
+    rightCol = group("conVhpItemRightCol", [flBlock, objBlock], direction="Vertical",
+                     gap=16, width=RIGHT)
+
+    mainRow = row_n("conVhpItemMainRow", [leftCol, rightCol], container_w=CW)
+
+    fieldsGrid = group("conVhpItemFieldsGrid", [mainRow], direction="Vertical", gap=16)
 
     txtLongText = text_input("txtVhpItemLongText",
                              "LookUp(colVhpItems, ItemId = varVhpActiveItemId).LongText", height=80,

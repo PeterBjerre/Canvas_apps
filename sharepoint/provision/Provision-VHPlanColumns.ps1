@@ -89,6 +89,18 @@ Add-Col 'TaskListMain' 'OperationNo' Number -Indexed `
 Add-Col 'TaskListMain' 'PackagesKey' Text `
     -Description 'Pakkeallokering for strategiplaner, fx ";1;3;5;". Sentinel i begge ender, saa ";1;" aldrig matcher inde i ";12;".'
 
+Write-Host "`n=== MaintenancePlans ===" -ForegroundColor Cyan
+# Appens strategi kommer fra MD_Strategy ("128"). Den kan IKKE skrives til
+# MaintenancePlans.StandardStrategy, som er et opslag i den gamle
+# StandardStrategyList med tre raekker - strategi 128 findes ikke der.
+# En tekstkolonne med SAP-noeglen er den enkleste vej, og den er additiv.
+#
+# En udfyldt StrategyKey betyder samtidig, at planen ER en strategiplan.
+# MaintenancePlans.PlanType kan ikke bruges til det: dens eneste valgvaerdi
+# er "PM".
+Add-Col 'MaintenancePlans' 'StrategyKey' Text -Indexed `
+    -Description 'SAP-strateginoegle fra MD_Strategy, fx 128. Udfyldt = strategiplan (IP42), tom = single cycle (IP41).'
+
 Write-Host "`n=== MaintenanceItems ===" -ForegroundColor Cyan
 Add-Col 'MaintenanceItems' 'OrstedResponsibleEmail' Text -Indexed `
     -Description 'Samme person som OrstedResponsible, men som indekseret tekst. Person-kolonner kan ikke filtreres delegerbart.'
