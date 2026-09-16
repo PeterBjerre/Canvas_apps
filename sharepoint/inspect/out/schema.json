@@ -1,6 +1,6 @@
 ﻿{
     "site":  "https://orsted.sharepoint.com/teams/BioSAPDEV",
-    "exportedOn":  "2026-09-14 23:51",
+    "exportedOn":  "2026-09-16 20:12",
     "includesData":  true,
     "skippedLists":  "FunctionalLocations",
     "lists":  [
@@ -2007,7 +2007,7 @@
                   },
                   {
                       "title":  "MaintenanceItems",
-                      "itemCount":  58,
+                      "itemCount":  60,
                       "fields":  [
                                      {
                                          "internalName":  "Title",
@@ -2382,7 +2382,7 @@
                   },
                   {
                       "title":  "MaintenancePlans",
-                      "itemCount":  34,
+                      "itemCount":  37,
                       "fields":  [
                                      {
                                          "internalName":  "Title",
@@ -2635,6 +2635,15 @@
                                          "readOnly":  false
                                      },
                                      {
+                                         "internalName":  "StrategyKey",
+                                         "displayName":  "StrategyKey",
+                                         "type":  "Text",
+                                         "required":  false,
+                                         "indexed":  true,
+                                         "readOnly":  false,
+                                         "description":  "SAP-strateginoegle fra MD_Strategy, fx 128. Udfyldt = strategiplan (IP42), tom = single cycle (IP41)."
+                                     },
+                                     {
                                          "internalName":  "ID",
                                          "displayName":  "ID",
                                          "type":  "Counter",
@@ -2710,7 +2719,8 @@
                                                        "Author",
                                                        "Editor",
                                                        "InitialEmailSent",
-                                                       "Modified"
+                                                       "Modified",
+                                                       "StrategyKey"
                                                    ]
                                     }
                                 ]
@@ -2804,7 +2814,7 @@
                   },
                   {
                       "title":  "MD_RequestIndex",
-                      "itemCount":  18,
+                      "itemCount":  21,
                       "fields":  [
                                      {
                                          "internalName":  "Title",
@@ -3632,6 +3642,284 @@
                                                        "Hierarchy",
                                                        "PackageText",
                                                        "OffsetValue"
+                                                   ]
+                                    }
+                                ]
+                  },
+                  {
+                      "title":  "MD_TasklistAttachment",
+                      "itemCount":  1,
+                      "fields":  [
+                                     {
+                                         "internalName":  "Title",
+                                         "displayName":  "FileName",
+                                         "type":  "Text",
+                                         "required":  true,
+                                         "indexed":  false,
+                                         "readOnly":  false
+                                     },
+                                     {
+                                         "internalName":  "PlanKey",
+                                         "displayName":  "PlanKey",
+                                         "type":  "Text",
+                                         "required":  false,
+                                         "indexed":  true,
+                                         "readOnly":  false
+                                     },
+                                     {
+                                         "internalName":  "ItemKey",
+                                         "displayName":  "ItemKey",
+                                         "type":  "Text",
+                                         "required":  false,
+                                         "indexed":  true,
+                                         "readOnly":  false
+                                     },
+                                     {
+                                         "internalName":  "OperationsKey",
+                                         "displayName":  "OperationsKey",
+                                         "type":  "Text",
+                                         "required":  false,
+                                         "indexed":  false,
+                                         "readOnly":  false
+                                     },
+                                     {
+                                         "internalName":  "FileUrl",
+                                         "displayName":  "FileUrl",
+                                         "type":  "Text",
+                                         "required":  false,
+                                         "indexed":  false,
+                                         "readOnly":  false
+                                     },
+                                     {
+                                         "internalName":  "FileSize",
+                                         "displayName":  "FileSize",
+                                         "type":  "Number",
+                                         "required":  false,
+                                         "indexed":  false,
+                                         "readOnly":  false
+                                     },
+                                     {
+                                         "internalName":  "LineId",
+                                         "displayName":  "LineId",
+                                         "type":  "Number",
+                                         "required":  false,
+                                         "indexed":  false,
+                                         "readOnly":  false
+                                     },
+                                     {
+                                         "internalName":  "UploadStatus",
+                                         "displayName":  "UploadStatus",
+                                         "type":  "Choice",
+                                         "required":  false,
+                                         "indexed":  false,
+                                         "readOnly":  false,
+                                         "choices":  [
+                                                         "Pending",
+                                                         "Uploaded",
+                                                         "Failed"
+                                                     ]
+                                     },
+                                     {
+                                         "internalName":  "ID",
+                                         "displayName":  "ID",
+                                         "type":  "Counter",
+                                         "required":  false,
+                                         "indexed":  false,
+                                         "readOnly":  true
+                                     },
+                                     {
+                                         "internalName":  "Modified",
+                                         "displayName":  "Modified",
+                                         "type":  "DateTime",
+                                         "required":  false,
+                                         "indexed":  false,
+                                         "readOnly":  true
+                                     },
+                                     {
+                                         "internalName":  "Created",
+                                         "displayName":  "Created",
+                                         "type":  "DateTime",
+                                         "required":  false,
+                                         "indexed":  false,
+                                         "readOnly":  true
+                                     },
+                                     {
+                                         "internalName":  "Author",
+                                         "displayName":  "Created By",
+                                         "type":  "User",
+                                         "required":  false,
+                                         "indexed":  false,
+                                         "readOnly":  true,
+                                         "lookupList":  "UserInfo",
+                                         "lookupField":  null,
+                                         "allowMultiple":  false
+                                     },
+                                     {
+                                         "internalName":  "Editor",
+                                         "displayName":  "Modified By",
+                                         "type":  "User",
+                                         "required":  false,
+                                         "indexed":  false,
+                                         "readOnly":  true,
+                                         "lookupList":  "UserInfo",
+                                         "lookupField":  null,
+                                         "allowMultiple":  false
+                                     }
+                                 ],
+                      "views":  [
+                                    {
+                                        "title":  "All Items",
+                                        "defaultView":  true,
+                                        "rowLimit":  30,
+                                        "fields":  [
+                                                       "PlanKey",
+                                                       "ItemKey",
+                                                       "OperationsKey",
+                                                       "FileUrl",
+                                                       "FileSize",
+                                                       "LineId",
+                                                       "UploadStatus"
+                                                   ]
+                                    }
+                                ]
+                  },
+                  {
+                      "title":  "MD_TasklistMaterial",
+                      "itemCount":  1,
+                      "fields":  [
+                                     {
+                                         "internalName":  "Title",
+                                         "displayName":  "MaterialNo",
+                                         "type":  "Text",
+                                         "required":  true,
+                                         "indexed":  false,
+                                         "readOnly":  false
+                                     },
+                                     {
+                                         "internalName":  "PlanKey",
+                                         "displayName":  "PlanKey",
+                                         "type":  "Text",
+                                         "required":  false,
+                                         "indexed":  true,
+                                         "readOnly":  false
+                                     },
+                                     {
+                                         "internalName":  "ItemKey",
+                                         "displayName":  "ItemKey",
+                                         "type":  "Text",
+                                         "required":  false,
+                                         "indexed":  true,
+                                         "readOnly":  false
+                                     },
+                                     {
+                                         "internalName":  "TaskItemID",
+                                         "displayName":  "TaskItemID",
+                                         "type":  "Text",
+                                         "required":  false,
+                                         "indexed":  true,
+                                         "readOnly":  false
+                                     },
+                                     {
+                                         "internalName":  "OperationNo",
+                                         "displayName":  "OperationNo",
+                                         "type":  "Text",
+                                         "required":  false,
+                                         "indexed":  false,
+                                         "readOnly":  false
+                                     },
+                                     {
+                                         "internalName":  "Quantity",
+                                         "displayName":  "Quantity",
+                                         "type":  "Number",
+                                         "required":  true,
+                                         "indexed":  false,
+                                         "readOnly":  false
+                                     },
+                                     {
+                                         "internalName":  "MaterialText",
+                                         "displayName":  "MaterialText",
+                                         "type":  "Text",
+                                         "required":  false,
+                                         "indexed":  false,
+                                         "readOnly":  false
+                                     },
+                                     {
+                                         "internalName":  "Unit",
+                                         "displayName":  "Unit",
+                                         "type":  "Text",
+                                         "required":  false,
+                                         "indexed":  false,
+                                         "readOnly":  false
+                                     },
+                                     {
+                                         "internalName":  "LineId",
+                                         "displayName":  "LineId",
+                                         "type":  "Number",
+                                         "required":  false,
+                                         "indexed":  false,
+                                         "readOnly":  false
+                                     },
+                                     {
+                                         "internalName":  "ID",
+                                         "displayName":  "ID",
+                                         "type":  "Counter",
+                                         "required":  false,
+                                         "indexed":  false,
+                                         "readOnly":  true
+                                     },
+                                     {
+                                         "internalName":  "Modified",
+                                         "displayName":  "Modified",
+                                         "type":  "DateTime",
+                                         "required":  false,
+                                         "indexed":  false,
+                                         "readOnly":  true
+                                     },
+                                     {
+                                         "internalName":  "Created",
+                                         "displayName":  "Created",
+                                         "type":  "DateTime",
+                                         "required":  false,
+                                         "indexed":  false,
+                                         "readOnly":  true
+                                     },
+                                     {
+                                         "internalName":  "Author",
+                                         "displayName":  "Created By",
+                                         "type":  "User",
+                                         "required":  false,
+                                         "indexed":  false,
+                                         "readOnly":  true,
+                                         "lookupList":  "UserInfo",
+                                         "lookupField":  null,
+                                         "allowMultiple":  false
+                                     },
+                                     {
+                                         "internalName":  "Editor",
+                                         "displayName":  "Modified By",
+                                         "type":  "User",
+                                         "required":  false,
+                                         "indexed":  false,
+                                         "readOnly":  true,
+                                         "lookupList":  "UserInfo",
+                                         "lookupField":  null,
+                                         "allowMultiple":  false
+                                     }
+                                 ],
+                      "views":  [
+                                    {
+                                        "title":  "All Items",
+                                        "defaultView":  true,
+                                        "rowLimit":  30,
+                                        "fields":  [
+                                                       "PlanKey",
+                                                       "ItemKey",
+                                                       "TaskItemID",
+                                                       "OperationNo",
+                                                       "Quantity",
+                                                       "MaterialText",
+                                                       "Unit",
+                                                       "LineId"
                                                    ]
                                     }
                                 ]
@@ -4758,7 +5046,7 @@
                   },
                   {
                       "title":  "TaskListMain",
-                      "itemCount":  306,
+                      "itemCount":  313,
                       "fields":  [
                                      {
                                          "internalName":  "Title",

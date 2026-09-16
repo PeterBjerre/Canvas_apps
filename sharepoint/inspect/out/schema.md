@@ -1,7 +1,6 @@
-# SharePoint-lister bag VH-plan appen
+﻿# SharePoint-lister bag VH-plan appen
 
-Udtrukket 2026-09-14 23:51 fra https://orsted.sharepoint.com/teams/BioSAPDEV.
-Data med: ja.
+Udtrukket 2026-09-16 20:12 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 
 | Liste | Raekker | Kolonner |
 |---|---:|---:|
@@ -13,20 +12,22 @@ Data med: ja.
 | `KYV Standard Tasklist` | 20 | 42 |
 | `LubricationTaskTypeList` | 2 | 6 |
 | `MaintenanceActivityTypeList` | 7 | 7 |
-| `MaintenanceItems` | 58 | 34 |
-| `MaintenancePlans` | 34 | 27 |
+| `MaintenanceItems` | 60 | 34 |
+| `MaintenancePlans` | 37 | 28 |
 | `MainWorkCenters` | 53 | 8 |
-| `MD_RequestIndex` | 18 | 23 |
+| `MD_RequestIndex` | 21 | 23 |
 | `MD_StandardTaskOperations` | 176 | 31 |
 | `MD_Strategy` | 53 | 11 |
 | `MD_StrategyPackage` | 3 | 14 |
+| `MD_TasklistAttachment` | 1 | 13 |
+| `MD_TasklistMaterial` | 1 | 14 |
 | `PlantList` | 6 | 6 |
 | `SKV Standard Tasklist` | 31 | 42 |
 | `SortFieldList` | 28 | 6 |
 | `SSV Standard Tasklist` | 32 | 42 |
 | `StandardStrategyList` | 3 | 6 |
 | `StandardTaskList` | 3 | 12 |
-| `TaskListMain` | 306 | 30 |
+| `TaskListMain` | 313 | 30 |
 | `UserAndGroups` | 7 | 7 |
 | `Vendors` | 20 | 7 |
 
@@ -45,8 +46,8 @@ Data med: ja.
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
-| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
-| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
 ## `ASV Standard Tasklist`  -  26 raekker
 
@@ -92,8 +93,8 @@ Data med: ja.
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
-| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
-| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
 ## `AVV Standard Tasklist`  -  37 raekker
 
@@ -140,8 +141,8 @@ Data med: ja.
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
-| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
-| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
 ## `CallHorizonMatrix`  -  16 raekker
 
@@ -155,8 +156,8 @@ Data med: ja.
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
-| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
-| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
 ## `HEV Standard Tasklist`  -  30 raekker
 
@@ -202,8 +203,8 @@ Data med: ja.
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
-| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
-| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
 ## `KYV Standard Tasklist`  -  20 raekker
 
@@ -249,8 +250,8 @@ Data med: ja.
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
-| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
-| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
 ## `LubricationTaskTypeList`  -  2 raekker
 
@@ -260,8 +261,8 @@ Data med: ja.
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
-| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
-| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
 ## `MaintenanceActivityTypeList`  -  7 raekker
 
@@ -272,10 +273,10 @@ Data med: ja.
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
-| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
-| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `MaintenanceItems`  -  58 raekker
+## `MaintenanceItems`  -  60 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -311,10 +312,10 @@ Data med: ja.
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
-| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
-| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `MaintenancePlans`  -  34 raekker
+## `MaintenancePlans`  -  37 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -340,11 +341,12 @@ Data med: ja.
 | `PlanType` | PlanType | Choice |  |  | valg: PM |
 | `InitialEmailSent` | InitialEmailSent | Boolean |  |  |  |
 | `SAPNum` | SAPNum | Text |  |  |  |
+| `StrategyKey` | StrategyKey | Text |  | x |  |
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
-| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
-| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
 ## `MainWorkCenters`  -  53 raekker
 
@@ -356,10 +358,10 @@ Data med: ja.
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
-| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
-| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `MD_RequestIndex`  -  18 raekker
+## `MD_RequestIndex`  -  21 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -384,8 +386,8 @@ Data med: ja.
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
-| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
-| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
 ## `MD_StandardTaskOperations`  -  176 raekker
 
@@ -420,8 +422,8 @@ Data med: ja.
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
-| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
-| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
 ## `MD_Strategy`  -  53 raekker
 
@@ -436,8 +438,8 @@ Data med: ja.
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
-| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
-| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
 ## `MD_StrategyPackage`  -  3 raekker
 
@@ -455,8 +457,45 @@ Data med: ja.
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
-| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
-| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+
+## `MD_TasklistAttachment`  -  1 raekker
+
+| Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
+|---|---|---|:-:|:-:|---|
+| `Title` | **FileName** | Text | x |  |  |
+| `PlanKey` | PlanKey | Text |  | x |  |
+| `ItemKey` | ItemKey | Text |  | x |  |
+| `OperationsKey` | OperationsKey | Text |  |  |  |
+| `FileUrl` | FileUrl | Text |  |  |  |
+| `FileSize` | FileSize | Number |  |  |  |
+| `LineId` | LineId | Number |  |  |  |
+| `UploadStatus` | UploadStatus | Choice |  |  | valg: Pending, Uploaded, Failed |
+| `ID` | ID | Counter |  |  | skrivebeskyttet |
+| `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
+| `Created` | Created | DateTime |  |  | skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+
+## `MD_TasklistMaterial`  -  1 raekker
+
+| Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
+|---|---|---|:-:|:-:|---|
+| `Title` | **MaterialNo** | Text | x |  |  |
+| `PlanKey` | PlanKey | Text |  | x |  |
+| `ItemKey` | ItemKey | Text |  | x |  |
+| `TaskItemID` | TaskItemID | Text |  | x |  |
+| `OperationNo` | OperationNo | Text |  |  |  |
+| `Quantity` | Quantity | Number | x |  |  |
+| `MaterialText` | MaterialText | Text |  |  |  |
+| `Unit` | Unit | Text |  |  |  |
+| `LineId` | LineId | Number |  |  |  |
+| `ID` | ID | Counter |  |  | skrivebeskyttet |
+| `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
+| `Created` | Created | DateTime |  |  | skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
 ## `PlantList`  -  6 raekker
 
@@ -466,8 +505,8 @@ Data med: ja.
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
-| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
-| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
 ## `SKV Standard Tasklist`  -  31 raekker
 
@@ -513,8 +552,8 @@ Data med: ja.
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
-| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
-| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
 ## `SortFieldList`  -  28 raekker
 
@@ -524,8 +563,8 @@ Data med: ja.
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
-| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
-| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
 ## `SSV Standard Tasklist`  -  32 raekker
 
@@ -571,8 +610,8 @@ Data med: ja.
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
-| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
-| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
 ## `StandardStrategyList`  -  3 raekker
 
@@ -582,8 +621,8 @@ Data med: ja.
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
-| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
-| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
 ## `StandardTaskList`  -  3 raekker
 
@@ -599,10 +638,10 @@ Data med: ja.
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
-| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
-| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `TaskListMain`  -  306 raekker
+## `TaskListMain`  -  313 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -634,8 +673,8 @@ Data med: ja.
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
-| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
-| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
 ## `UserAndGroups`  -  7 raekker
 
@@ -646,8 +685,8 @@ Data med: ja.
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
-| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
-| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
 ## `Vendors`  -  20 raekker
 
@@ -658,5 +697,6 @@ Data med: ja.
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
-| `Author` | **Created By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
-| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (None); skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+
