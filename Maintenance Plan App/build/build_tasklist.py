@@ -164,7 +164,7 @@ def build_tasklist_section():
     # haenge en hint paa. Den staar i stedet over tabellen og daekker linjen.
     opsHint = text_ctrl("txtVhpOpsHint", bh.hint("Operations"), size=12, color=C_MUTED,
                         height=32, wrap="true",
-                        visible="IfError(!IsBlank(varVhpActiveItemId), false)")
+                        visible="IfError(varVhpShowHints && !IsBlank(varVhpActiveItemId), false)")
 
     opsHeader = Ctrl("conVhpOpsHeaderHtml", "HtmlViewer", props={
         "Fill": C_TRANSPARENT, "Height": "22", "HtmlText": _ops_header_html(),

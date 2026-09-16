@@ -130,15 +130,18 @@ Header, Item Editor, Tasklist and Operations, Strategy Packages.
 
 ### Feltforklaringerne
 
-Tryk på **ⓘ** ved et felts label. Forklaringen folder sig ud under netop det
-felt, og ikonet bliver blåt. Tryk igen, og den lukker.
+Tryk **Show field help** i hero-kortet, ved siden af `*  Required`.
+→ Der kommer en forklaringslinje under **alle** felter på én gang, og
+knappen bliver blå og skifter til **Hide field help**.
 
-Tryk så på et **andet** felts ⓘ uden at lukke det første.
-→ Det første skal lukke af sig selv. Der må aldrig stå to forklaringer.
+Tryk igen.
+→ Alle linjerne forsvinder, og felterne rykker sammen igen. Ingen tomme
+huller, hvor teksten stod.
 
 Teksten skal **skifte**, når forudsætningen ændrer sig. Det er den vigtigste
 del af testen — en forklaring, der står stille, er en statisk tekst, der er
-sluppet forbi.
+sluppet forbi. Lad hjælpen være slået til, mens du går tabellen nedenfor
+igennem.
 
 | Gør dette | Forklaringen skal skifte til |
 |---|---|

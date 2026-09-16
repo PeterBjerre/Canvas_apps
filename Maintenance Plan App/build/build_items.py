@@ -7,7 +7,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQU
                         SPLIT_GAP)
 from build_helpers import (text_ctrl, group, button, button_row, text_input, number_input, dropdown,
                            label_row, field_cell, row_n, col_width, badge, card, combobox, poll_timer,
-                           TWO_COL_MIN)
+                           TWO_COL_MIN, HINTS_ON)
 from build_plan_header import section_header, help_panel
 import build_help as bh
 from build_flsearch import search_action, MIN_SEARCH_LEN
@@ -277,12 +277,9 @@ def build_item_editor():
     #
     # Her er der ingen skjult filtrering tilbage: dropdownen viser praecis
     # det, samlingen indeholder. Og felterne ser ud som alle de andre.
-    flLabelRow = label_row("conVhpItemFlLabel", "Functional Location", required=True,
-                           hint_text=bh.hint("FunctionalLocation"),
-                           tip_key="conVhpItemFl")
-    flTip = text_ctrl("txtVhpItemFlTip", bh.hint("FunctionalLocation"), size=12,
-                      color=C_INFO_FG, height=32, wrap="true",
-                      visible='IfError(varVhpTip = "conVhpItemFl", false)')
+    flLabelRow = label_row("conVhpItemFlLabel", "Functional Location", required=True)
+    flHint = text_ctrl("txtVhpItemFlHint", bh.hint("FunctionalLocation"), size=12,
+                       color=C_MUTED, height=32, wrap="true", visible=HINTS_ON)
 
     txtFlQuery = text_input(
         "txtVhpFlQuery", "\"\"",
@@ -322,7 +319,7 @@ def build_item_editor():
                        height=32, wrap="true")
 
     flBlock = group("conVhpItemFlBlock",
-                    [flLabelRow, flTip, flSearchRow, drpFl, flDescription, flMeta],
+                    [flLabelRow, flHint, flSearchRow, drpFl, flDescription, flMeta],
                     direction="Vertical", gap=6, width="Parent.Width",
                     # FillPortions = 0: i en LODRET container fordeler den
                     # hoejde, og blokken ville vokse ud over sit indhold.
@@ -377,12 +374,9 @@ def build_item_editor():
     #
     # Til gengaeld kan man saette flere krydser i traek uden en knap imellem,
     # hvilket var hele pointen.
-    objLabelRow = label_row("conVhpItemObjLabel", "Object List",
-                            hint_text=bh.hint("ObjectList"),
-                            tip_key="conVhpItemObj")
-    objTip = text_ctrl("txtVhpItemObjTip", bh.hint("ObjectList"), size=12,
-                       color=C_INFO_FG, height=32, wrap="true",
-                       visible='IfError(varVhpTip = "conVhpItemObj", false)')
+    objLabelRow = label_row("conVhpItemObjLabel", "Object List")
+    objHint = text_ctrl("txtVhpItemObjHint", bh.hint("ObjectList"), size=12,
+                        color=C_MUTED, height=32, wrap="true", visible=HINTS_ON)
 
     chkObj = Ctrl("chkVhpObjPick", "ModernCheckbox", props={
         "AccessibleLabel": "\"Select object\"",
@@ -488,7 +482,7 @@ def build_item_editor():
         ), size=12, color=C_MUTED, height=18, wrap="true")
 
     objBlock = group("conVhpItemObjBlock",
-                     [objLabelRow, objTip, galObj, objEmpty, objChosen, objMeta],
+                     [objLabelRow, objHint, galObj, objEmpty, objChosen, objMeta],
                      direction="Vertical", gap=6, width="Parent.Width",
                      fill_portions=0, align_in_container="Start")
 

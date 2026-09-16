@@ -2,7 +2,7 @@
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED,
-                        C_PRIMARY, C_WHITE, C_NEUTRAL_BG, SHELL_W)
+                        C_PRIMARY, C_WHITE, C_NEUTRAL_BG, C_INFO_FG, SHELL_W)
 from build_helpers import text_ctrl, group, button, card
 
 HERO_CW = f"({SHELL_W} - 32)"
@@ -247,8 +247,27 @@ def build_hero():
                            height=20, width=10, wrap="false")
     legendText = text_ctrl("txtVhpLegendText", "\"Required\"", size=13, color=C_MUTED, height=20,
                            width=110, wrap="false")
-    legend = group("conVhpLegend", [legendStar, legendText], direction="Horizontal", gap=3, height=20,
-                   align_items="Center", width=123)
+    # EEN knap slaar alle feltforklaringer til og fra. Foer havde hvert felt
+    # sit eget i-ikon - 21 knapper for at vise 21 linjer er en knap for
+    # meget pr. linje, og de fyldte selv i raekken af labels.
+    #
+    # Den staar i hero-kortet ved siden af stjerne-legenden, fordi det er
+    # der man i forvejen kigger for at forstaa, hvordan skaermen laeses.
+    btnHints = button(
+        "btnVhpToggleHints",
+        'If(IfError(varVhpShowHints, false), "Hide field help", "Show field help")',
+        "Set(varVhpShowHints, !IfError(varVhpShowHints, false))",
+        width=150, height=28)
+    btnHints.props["Appearance"] = ("If(IfError(varVhpShowHints, false), "
+                                    "ButtonAppearance.Primary, ButtonAppearance.Secondary)")
+    btnHints.props["BasePaletteColor"] = C_INFO_FG
+    btnHints.props["Color"] = f"If(IfError(varVhpShowHints, false), {C_WHITE}, {C_INFO_FG})"
+    btnHints.props["BorderColor"] = C_CARD_BORDER
+    btnHints.props["BorderThickness"] = "1"
+    btnHints.props["Size"] = "12"
+
+    legend = group("conVhpLegend", [legendStar, legendText, btnHints], direction="Horizontal",
+                   gap=3, height=28, align_items="Center", width=285)
 
     return group("conVhpHero", [heroGrid, processStrip, runtimeInfo, legend], direction="Vertical", gap=12,
                  fill=C_CARD_BG, border_color=C_CARD_BORDER, radius=14, pad=(16, 16, 16, 16))
