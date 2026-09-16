@@ -334,9 +334,16 @@ def main():
     # Gallery har ingen Radius*. Den fik dem, da objektlisten blev lavet om
     # fra en raekke afkrydsningsfelter til et galleri: radius fulgte med fra
     # den gamle beholder, og compile fejlede med fire ukendte egenskaber.
+    # Tooltip findes kun paa de INTERAKTIVE moderne kontroller. En
+    # ModernText er en label, ikke en kontrol man kan naa med tastaturet,
+    # og den kender den ikke. Et forsoeg paa at laegge feltforklaringerne
+    # der fejlede i compile 21 gange.
     UNSUPPORTED = {
         "Gallery": ("RadiusBottomLeft", "RadiusBottomRight",
                     "RadiusTopLeft", "RadiusTopRight"),
+        "ModernText": ("Tooltip",),
+        "GroupContainer": ("Tooltip",),
+        "HtmlViewer": ("Tooltip",),
     }
     for p_, name, body in all_nodes:
         bad = UNSUPPORTED.get((body.get("Control") or "").strip())

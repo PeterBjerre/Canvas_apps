@@ -14,16 +14,26 @@ Tre niveauer, så teksten ikke drukner sig selv:
 
 | Niveau | Hvor | Hvor meget |
 |---|---|---|
-| **1. Tooltip** | Et lille **ⓘ** ved feltets label | Én linje. Hvad feltet er, eller den regel der gælder lige nu |
+| **1. Feltforklaring** | Bag et lille **ⓘ** ved feltets label | Én linje. Hvad feltet er, eller den regel der gælder lige nu |
 | **2. Hjælpepanel** | Foldes ud pr. sektion med et **?** | 3–8 linjer. Hvorfor feltet betyder noget, og hvad der går galt |
 | **3. Kilde** | Link nederst i panelet | Til SAP-portalen / præsentationen |
 
 Niveau 1 bruger `field_cell(hint_text=...)`, som builderne allerede
 understøtter. Teksten stod først som en fast linje **under** feltet — med 22
 felter fyldte hjælpeteksten mere end formularen, og skærmen så rodet ud. Den
-ligger nu i `Tooltip` på et lille **ⓘ** ved labelen, så den ikke koster
-plads, før nogen peger på den. Niveau 2 er ét nyt mønster: en `?`-knap i
-sektionsoverskriften, der slår `varVhpHelp<Sektion>` til og fra.
+er nu skjult bag et lille **ⓘ** ved labelen og folder sig ud for netop det
+felt, man trykker på. `varVhpTip` holder hvilket felt der er åbent, så der
+aldrig står mere end én forklaring ad gangen.
+
+**Hvorfor ikke en rigtig hover-tooltip?** Det var det første forsøg, og det
+fejlede i compile 21 gange: appen er bygget udelukkende af moderne
+kontroller, og `Tooltip` findes kun på de *interaktive* af dem — en
+`ModernText` er en label og kender ikke egenskaben. Klik-varianten har til
+gengæld en fordel, hover ikke har: den virker på touch. Tjek 10 i
+`check_layout.py` fanger fejlen, hvis nogen prøver igen.
+
+Niveau 2 er ét nyt mønster: en `?`-knap i sektionsoverskriften, der slår
+`varVhpHelp<Sektion>` til og fra.
 
 **Sproget er engelsk**, som resten af appens brugerflade. Kommentarerne i
 byggekoden er stadig danske.
