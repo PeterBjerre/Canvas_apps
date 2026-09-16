@@ -278,7 +278,11 @@ def build_item_editor():
     # Her er der ingen skjult filtrering tilbage: dropdownen viser praecis
     # det, samlingen indeholder. Og felterne ser ud som alle de andre.
     flLabelRow = label_row("conVhpItemFlLabel", "Functional Location", required=True,
-                           hint_text=bh.hint("FunctionalLocation"))
+                           hint_text=bh.hint("FunctionalLocation"),
+                           tip_key="conVhpItemFl")
+    flTip = text_ctrl("txtVhpItemFlTip", bh.hint("FunctionalLocation"), size=12,
+                      color=C_INFO_FG, height=32, wrap="true",
+                      visible='IfError(varVhpTip = "conVhpItemFl", false)')
 
     txtFlQuery = text_input(
         "txtVhpFlQuery", "\"\"",
@@ -318,7 +322,7 @@ def build_item_editor():
                        height=32, wrap="true")
 
     flBlock = group("conVhpItemFlBlock",
-                    [flLabelRow, flSearchRow, drpFl, flDescription, flMeta],
+                    [flLabelRow, flTip, flSearchRow, drpFl, flDescription, flMeta],
                     direction="Vertical", gap=6, width="Parent.Width",
                     # FillPortions = 0: i en LODRET container fordeler den
                     # hoejde, og blokken ville vokse ud over sit indhold.
@@ -374,7 +378,11 @@ def build_item_editor():
     # Til gengaeld kan man saette flere krydser i traek uden en knap imellem,
     # hvilket var hele pointen.
     objLabelRow = label_row("conVhpItemObjLabel", "Object List",
-                            hint_text=bh.hint("ObjectList"))
+                            hint_text=bh.hint("ObjectList"),
+                            tip_key="conVhpItemObj")
+    objTip = text_ctrl("txtVhpItemObjTip", bh.hint("ObjectList"), size=12,
+                       color=C_INFO_FG, height=32, wrap="true",
+                       visible='IfError(varVhpTip = "conVhpItemObj", false)')
 
     chkObj = Ctrl("chkVhpObjPick", "ModernCheckbox", props={
         "AccessibleLabel": "\"Select object\"",
@@ -480,7 +488,7 @@ def build_item_editor():
         ), size=12, color=C_MUTED, height=18, wrap="true")
 
     objBlock = group("conVhpItemObjBlock",
-                     [objLabelRow, galObj, objEmpty, objChosen, objMeta],
+                     [objLabelRow, objTip, galObj, objEmpty, objChosen, objMeta],
                      direction="Vertical", gap=6, width="Parent.Width",
                      fill_portions=0, align_in_container="Start")
 

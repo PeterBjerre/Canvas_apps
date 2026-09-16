@@ -128,21 +128,24 @@ Header, Item Editor, Tasklist and Operations, Strategy Packages.
 3. Gentag på de tre andre sektioner. De fire paneler er uafhængige — alle
    fire kan være åbne samtidig.
 
-### Tooltips der ændrer sig
+### Feltforklaringerne
 
-Hold musen over **ⓘ** ved feltets label. Teksten skal **skifte**, når
-forudsætningen ændrer sig. Det er den vigtigste del af testen — en tooltip,
-der står stille, er en statisk tekst, der er sluppet forbi.
+Tryk på **ⓘ** ved et felts label. Forklaringen folder sig ud under netop det
+felt, og ikonet bliver blåt. Tryk igen, og den lukker.
 
-Tooltip er browserens egen, så den kommer efter ca. et sekunds hvile. Den
-virker ikke på touch — dér er det sektionens `? Help`-panel, der gælder.
+Tryk så på et **andet** felts ⓘ uden at lukke det første.
+→ Det første skal lukke af sig selv. Der må aldrig stå to forklaringer.
 
-| Gør dette | Tooltippen skal skifte til |
+Teksten skal **skifte**, når forudsætningen ændrer sig. Det er den vigtigste
+del af testen — en forklaring, der står stille, er en statisk tekst, der er
+sluppet forbi.
+
+| Gør dette | Forklaringen skal skifte til |
 |---|---|
-| Sæt Plan Type = `Strategy` | Strategy-tooltippen nævner pakkerne nedenfor |
-| Skriv Plan Text uden værkskoden | PlanText-tooltippen siger, at teksten bør starte med værkskoden |
-| Sæt et items Activity Type til `110` | Sort Field-tooltippen skifter til "Required: 1 item …" |
-| Sæt Revision på et item | FirstCall-tooltippen siger 01/01 |
+| Sæt Plan Type = `Strategy` | Strategy-forklaringen nævner pakkerne nedenfor |
+| Skriv Plan Text uden værkskoden | PlanText-forklaringen siger, at teksten bør starte med værkskoden |
+| Sæt et items Activity Type til `110` | Sort Field-forklaringen skifter til "Required: 1 item …" |
+| Sæt Revision på et item | FirstCall-forklaringen siger 01/01 |
 | Tilføj en operation uden Main Work Center | Linjen over operationstabellen nævner operation 0010 |
 | Udfyld arbejdscentret, men lad short text stå tom | Samme linje skifter til "1 operation(er) mangler short text" |
 
