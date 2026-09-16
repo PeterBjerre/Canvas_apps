@@ -310,6 +310,7 @@ def build_strategy_body():
     # skaerme scroller den vandret i stedet for at klippe kolonner af.
     matrixWrap = group("conVhpPkgMatrixWrap", [matrixHead, divider, rowsGal], direction="Vertical", gap=4,
                        overflow_x="Scroll", width="Parent.Width",
+                       align_items="Start",
                        visible=f"IfError({CAN_DRAW}, false)")
 
     # Tre grunde til at matricen ikke kan tegnes, i den raekkefoelge brugeren

@@ -502,8 +502,15 @@ def build_item_editor():
     #            venstre: 2 kolonner                    hoejre: 1
     CW = EDITOR_CW
     GAP = 20
-    RIGHT_W = f"(({CW} - {2 * GAP}) / 3)"
-    LEFT_W = f"({CW} - {GAP} - {RIGHT_W})"
+    # SLACK: uden den summer de to kolonner plus mellemrummet til PRAECIS
+    # CW. Raekken har LayoutWrap = true (den skal stable under braekpunktet),
+    # og ved et eksakt sammenfald er det en afrunding eller en kantlinje,
+    # der afgoer, om hoejre kolonne bliver staaende eller falder ned under.
+    # Den faldt ned. To pixels er nok til at gaa fri.
+    SLACK = 2
+    AVAIL = f"({CW} - {SLACK})"
+    RIGHT_W = f"(({AVAIL} - {2 * GAP}) / 3)"
+    LEFT_W = f"({AVAIL} - {GAP} - {RIGHT_W})"
     # Under braekpunktet stables alt, og saa fylder begge sider det hele.
     RIGHT = f"If({CW} < {TWO_COL_MIN}, {CW}, {RIGHT_W})"
     LEFT = f"If({CW} < {TWO_COL_MIN}, {CW}, {LEFT_W})"

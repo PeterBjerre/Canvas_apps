@@ -136,6 +136,15 @@ New-MdField 'MD_TasklistAttachment' 'LineId' Number
 New-MdField 'MD_TasklistAttachment' 'UploadStatus' Choice `
     -Choices @('Pending', 'Uploaded', 'Failed')
 
+# ---------------------------------------------------------------------------
+# TaskListMain - en enkelt manglende kolonne
+# ---------------------------------------------------------------------------
+# Listen har i forvejen Ctrl, Vendor, Price, Currency og CostElem, saa
+# kontrolnoegle, leverandoer og pris kan gemmes. Materialegruppen mangler,
+# og den skal med, naar kontrolnoeglen er PM02 og der laves rekvisition.
+Write-Host "`nTaskListMain" -ForegroundColor Cyan
+New-MdField 'TaskListMain' 'MaterialGroup' Text
+
 Write-Host "`nFaerdig." -ForegroundColor Green
 Write-Host "Naeste skridt: koer sharepoint/inspect/Export-ListSchema.ps1 igen," -ForegroundColor Gray
 Write-Host "saa check_datasources.py kan efterproeve de nye kolonner." -ForegroundColor Gray

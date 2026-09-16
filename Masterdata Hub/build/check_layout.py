@@ -430,6 +430,23 @@ def main():
                 problems.append(f"[13] {name}.{key}: bruger Parent.Template*, "
                                 f"men forelderen '{pname}' er ikke et Gallery")
 
+    # --- 14. Vandret scroll under Stretch ----------------------------------
+    # I en LODRET container tvinger LayoutAlignItems.Stretch boernene ned i
+    # containerens bredde. En tabel, der er bredere end kortet MED VILJE,
+    # bliver derfor klemt sammen i stedet for at overflyde - og
+    # LayoutOverflowX.Scroll udloeses aldrig, fordi der ikke er noget at
+    # scrolle. Operationstabellen stod saadan: kun den bredeste kolonne var
+    # laesbar, resten var presset ned i ingenting.
+    for p_, name, body in all_nodes:
+        props = body.get("Properties") or {}
+        if props.get("LayoutOverflowX", "").strip() != "=LayoutOverflow.Scroll":
+            continue
+        if props.get("LayoutDirection", "").strip() != "=LayoutDirection.Vertical":
+            continue
+        if props.get("LayoutAlignItems", "").strip() == "=LayoutAlignItems.Stretch":
+            problems.append(f"[14] {name}: vandret scroll, men Stretch klemmer "
+                            f"indholdet ned i containerens bredde - brug Start")
+
     print(f"Kontroller i alt: {len(all_nodes)}")
     if problems:
         print(f"\n{len(problems)} problem(er):\n")

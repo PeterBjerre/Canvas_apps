@@ -24,14 +24,39 @@ OPS_CW = f"({SHELL_W} - 36)"
 OPS_COLS = [
     ("SEL", 30),
     ("OP NO.", 60),
-    ("OPERATION SHORT TEXT", 220),
+    ("OPERATION SHORT TEXT", 200),
     ("WORK (H)", 64),
     ("DUR. (H)", 64),
     ("MAIN WORK CENTER", 110),
+    ("CTRL", 90),
     ("VENDOR", 110),
-    ("LONG TEXT", 190),
+    ("COST", 80),
+    ("MAT.GRP", 90),
+    ("LONG TEXT", 170),
     ("PACKAGES", 110),
 ]
+
+# ---------------------------------------------------------------------------
+# Hvad der maa redigeres paa en operationslinje
+# ---------------------------------------------------------------------------
+# Reglerne kommer fra SAP-praksis, ikke fra appen:
+#
+#   Kontrolnoeglen kan kun aendres, naar arbejdet ligger paa et internt
+#   arbejdscenter - *SUP eller *TECH. Der vaelges mellem ZB01 og PM01.
+#   Alle andre arbejdscentre har noeglen givet af standardarbejdsplanen.
+#
+#   Indkoebsfelterne - leverandoer, pris og materialegruppe - skal kun
+#   udfyldes ved PM02, hvor der laves en rekvisition. Ved alle andre
+#   noegler staar de med standardplanens vaerdier og er skrivebeskyttede.
+#
+# Begge udtryk laeses pr. raekke, saa en aendring slaar igennem med det
+# samme uden at nogen skal trykke noget.
+CTRL_CHOICES = ("ZB01", "PM01")
+WC_INTERNAL = ('(StartsWith(Upper(Coalesce(ThisItem.MainWorkCenter, "")), "*SUP") || '
+               'StartsWith(Upper(Coalesce(ThisItem.MainWorkCenter, "")), "*TECH"))')
+DM_CTRL = f'If({WC_INTERNAL}, DisplayMode.Edit, DisplayMode.View)'
+IS_PM02 = 'Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02"'
+DM_PURCHASE = f'If({IS_PM02}, DisplayMode.Edit, DisplayMode.View)'
 OPS_GAP = 10
 OPS_TABLE_W = sum(w for _, w in OPS_COLS) + OPS_GAP * (len(OPS_COLS) - 1)
 
@@ -241,8 +266,14 @@ def _materials_pane():
                      'Until it is in place they stay empty."',
                      size=12, color=C_MUTED, height=18, wrap="true")
 
+    # align_items="Start": i en LODRET container tvinger Stretch boernene
+    # ned i containerens bredde. Tabellen er bredere end kortet MED VILJE,
+    # saa Stretch klemte raekkens felter sammen - kun den bredeste kolonne
+    # var laesbar - og overflow_x udloestes aldrig, fordi intet overfloed.
+    # Start lader tabellen beholde sin bredde, saa den scroller som taenkt.
     table = group("conVhpMatTableWrap", [header, divider, gallery, empty],
-                  direction="Vertical", gap=4, overflow_x="Scroll", width="Parent.Width")
+                  direction="Vertical", gap=4, overflow_x="Scroll", width="Parent.Width",
+                  align_items="Start")
 
     return group("conVhpMatPane", [actions, note, table], direction="Vertical", gap=12,
                  width="Parent.Width")
@@ -479,7 +510,12 @@ def build_tasklist_section():
             "            WorkHours: 1,\n"
             "            DurationHours: 1,\n"
             "            MainWorkCenter: \"\",\n"
+            "            ControlKey: \"\",\n"
             "            Vendor: \"\",\n"
+            "            Cost: 0,\n"
+            "            Currency: \"\",\n"
+            "            CostElement: 0,\n"
+            "            MaterialGroup: \"\",\n"
             "            LongText: \"\",\n"
             "            PackagesKey: \";\",\n"
             "            Selected: false\n"
@@ -559,8 +595,41 @@ def build_tasklist_section():
     numOpDur.props["OnChange"] = "Patch(colVhpOperations, ThisItem, { DurationHours: Self.Value })"
     txtOpMwc = text_input("txtVhpOpMwc", "ThisItem.MainWorkCenter", width=w["MAIN WORK CENTER"], height=32,
                           onchange="Patch(colVhpOperations, ThisItem, { MainWorkCenter: Self.Text })")
+    # Kontrolnoeglen: kun to valg at SKIFTE imellem, men listen skal
+    # ogsaa kunne VISE den vaerdi, linjen allerede har - fx PM02 eller PM03
+    # fra standardplanen. Ellers stod cellen tom paa alle de linjer, man
+    # ikke maa redigere.
+    #
+    # Foerste forsoeg var en dropdown og en skrivebeskyttet tekst oven i
+    # hinanden, hvor kun een var synlig. Layout-tjekket afviste det med
+    # rette: to kontroller paa 90 px i en celle paa 90 px. Een kontrol med
+    # en dynamisk liste goer det samme uden overlay.
+    ctrl_items = ("Filter(\n"
+                  "    Distinct(\n"
+                  "        Table(\n"
+                  + "".join('            { Value: "%s" },\n' % c for c in CTRL_CHOICES) +
+                  '            { Value: Coalesce(ThisItem.ControlKey, "") }\n'
+                  "        ),\n"
+                  "        Value\n"
+                  "    ),\n"
+                  "    !IsBlank(Value)\n"
+                  ")")
+    drpOpCtrl = dropdown(
+        "drpVhpOpCtrl", ctrl_items,
+        'LookUp(' + ctrl_items + ', Value = ThisItem.ControlKey)',
+        width=w["CTRL"], height=32, display_mode=DM_CTRL)
+    drpOpCtrl.props["OnChange"] = ("Patch(colVhpOperations, ThisItem, "
+                                   "{ ControlKey: Self.Selected.Value })")
+
     txtOpVendor = text_input("txtVhpOpVendor", "ThisItem.Vendor", width=w["VENDOR"], height=32,
+                             display_mode=DM_PURCHASE,
                              onchange="Patch(colVhpOperations, ThisItem, { Vendor: Self.Text })")
+    numOpCost = number_input("numVhpOpCost", "ThisItem.Cost", width=w["COST"], height=32,
+                             display_mode=DM_PURCHASE)
+    numOpCost.props["OnChange"] = "Patch(colVhpOperations, ThisItem, { Cost: Self.Value })"
+    txtOpMatGrp = text_input("txtVhpOpMatGrp", "ThisItem.MaterialGroup", width=w["MAT.GRP"],
+                             height=32, display_mode=DM_PURCHASE,
+                             onchange="Patch(colVhpOperations, ThisItem, { MaterialGroup: Self.Text })")
     txtOpLongText = text_input("txtVhpOpLongText", "ThisItem.LongText", width=w["LONG TEXT"], height=32,
                                onchange="Patch(colVhpOperations, ThisItem, { LongText: Self.Text })")
 
@@ -583,7 +652,8 @@ def build_tasklist_section():
             f"{C_INVALID_FG}, {C_MUTED})"
         ))
 
-    opRow = group("conVhpOpRow", [chkSel, txtOpNo, txtOpShort, numOpWork, numOpDur, txtOpMwc, txtOpVendor,
+    opRow = group("conVhpOpRow", [chkSel, txtOpNo, txtOpShort, numOpWork, numOpDur, txtOpMwc,
+                                  drpOpCtrl, txtOpVendor, numOpCost, txtOpMatGrp,
                                   txtOpLongText, txtOpPackages], direction="Horizontal", gap=OPS_GAP,
                   height="Parent.TemplateHeight - 2", align_items="Center", width="Parent.TemplateWidth")
 
@@ -617,7 +687,8 @@ def build_tasklist_section():
     # Tabellen har fast bredde (summen af kolonnerne). Paa smalle skaerme
     # scroller den vandret i stedet for at klippe kolonner af.
     opsTableWrap = group("conVhpOpsTableWrap", [opsHeader, opsDivider, gallery, opsEmpty],
-                         direction="Vertical", gap=4, overflow_x="Scroll", width="Parent.Width")
+                         direction="Vertical", gap=4, overflow_x="Scroll", width="Parent.Width",
+                         align_items="Start")
 
     # Operationstabellen og dens hjaelpelinje er fanen Operations. De
     # oevrige tre faner ligger ved siden af, hver i sin rude.
