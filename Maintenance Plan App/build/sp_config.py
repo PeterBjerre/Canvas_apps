@@ -13,10 +13,17 @@ HVORFOR NAVNGIVNE FORMLER OG IKKE ClearCollect I OnStart
 OnStart betales af hver bruger hver gang appen aabnes. Et ClearCollect pr.
 opslagsliste ville vaere ti kald, foer der overhovedet er tegnet noget.
 
-Navngivne formler (App.Formulas) evalueres DOVENT og caches: listen hentes
-foerste gang en kontrol faktisk har brug for den, og kun een gang. Navnene
-er de samme colVhp*, som skaermen allerede bruger, saa ingen af de 281
-kontroller skal aendres.
+Navngivne formler (App.Formulas) evalueres DOVENT: listen hentes foerste
+gang en kontrol faktisk har brug for den, ikke foer den foerste skaerm
+vises. Navnene er de samme colVhp*, som skaermen allerede bruger, saa ingen
+kontrol skal aendres.
+
+RETTELSE, efterproevet paa Learn: her stod foer "og kun een gang". Det er
+forkert. En navngiven formel er ikke et engangs-cache men en definition,
+der altid er sand - den genberegnes, naar dens afhaengigheder aendrer sig.
+Det er en FORDEL her (listerne holder sig selv friske uden et Refresh),
+men det er ikke det samme som at hente een gang, og den som laeser videre
+skal ikke regne med et fast oejebliksbillede.
 
 Til gengaeld kan en navngiven formel ikke skrives til. De samlinger, appen
 REDIGERER - items, operationer, soegeresultater - er derfor stadig

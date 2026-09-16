@@ -264,10 +264,27 @@ def save_action(submit=False):
         "                        // Ved gensave er det enklere og sikrere at\n"
         "                        // skrive linjerne forfra end at finde ud af\n"
         "                        // hvilke der er tilfoejet, aendret og slettet.\n"
-        f"                        RemoveIf({cfg.L_MATERIALS}, PlanKey = planKey);\n"
-        f"                        RemoveIf({cfg.L_ATTACHMENTS}, PlanKey = planKey);\n"
-        f"                        RemoveIf({cfg.L_TASKS}, MaintenancePlanID.Id = planId);\n"
-        f"                        RemoveIf({cfg.L_ITEMS}, MaintenancePlanNo.Id = planId);\n"
+        # Remove(kilde, Filter(...)) og IKKE RemoveIf.
+        #
+        # RemoveIf delegeres ikke til SharePoint paa en tekstkolonne, og
+        # heller ikke paa en opslagskolonnes underfelt. Dokumentationen
+        # modsiger endda sig selv om HVOR meget der hentes foerst: Remove-
+        # siden siger "all data matching the filter expression, up to 500 or
+        # 2000", UpdateIf-siden siger "only the initial portion of the data
+        # source". Den tvetydighed er ikke noget at bygge paa, naar den
+        # foerst bider paa en liste der er vokset.
+        #
+        # Filter ER delegerbart paa SharePoint for = paa tekst og paa et
+        # opslags underfelt, saa filtreringen sker paa serveren, og Remove
+        # faar praecis de raekker der skal vaek.
+        f"                        Remove({cfg.L_MATERIALS},\n"
+        f"                            Filter({cfg.L_MATERIALS}, PlanKey = planKey));\n"
+        f"                        Remove({cfg.L_ATTACHMENTS},\n"
+        f"                            Filter({cfg.L_ATTACHMENTS}, PlanKey = planKey));\n"
+        f"                        Remove({cfg.L_TASKS},\n"
+        f"                            Filter({cfg.L_TASKS}, MaintenancePlanID.Id = planId));\n"
+        f"                        Remove({cfg.L_ITEMS},\n"
+        f"                            Filter({cfg.L_ITEMS}, MaintenancePlanNo.Id = planId));\n"
         "\n"
         "                        // --- 3. items ------------------------------\n"
         "                        Clear(colVhpSavedItems);\n"

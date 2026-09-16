@@ -121,7 +121,12 @@ def _tab_bar():
 # Bliver planen lavet om fra strategi- til tidsplan, mens man staar paa
 # pakkefanen, forsvinder baade knappen og ruden - og kortet ville staa tomt.
 # Operationsruden overtager derfor den tilstand.
-OPS_PANE_ON = (f'IfError({_tab_on("ops")} || '
+#
+# Den daekker ogsaa et tredje tilfaelde: OnStart er IKKE blokerende som
+# standard, saa skaermen kan naa at tegne, foer Set(varVhpOpsTab, "ops") er
+# koert. Er variablen tom, ville INGEN fane vaere synlig, og kortet stod
+# tomt i det oejeblik. Tom regnes derfor som "ops".
+OPS_PANE_ON = (f'IfError(IsBlank(varVhpOpsTab) || {_tab_on("ops")} || '
                f'({_tab_on("pkg")} && !{IS_STRATEGY}), false)')
 PKG_PANE_ON = f'IfError({_tab_on("pkg")} && {IS_STRATEGY}, false)'
 

@@ -101,13 +101,12 @@ flowet. Den del ligger klar.
 
 ---
 
-## Én ubevist egenskab i denne ændring
+## Efterprøvet mod dokumentationen
 
-`ModernDropdown.OnChange` bruges på operationsvalget i materialerækken.
-Ingen anden dropdown i appen bruger den — de øvrige læses med `.Selected`,
-når en knap kører. Fejler compile, er det den ene linje
-(`drpVhpMatOp.OnChange` i `build_tasklist.py`), og alternativet er et
-tekstfelt med `onchange`, som er bevist.
+`ModernDropdown.OnChange` stod her som den ene ubeviste egenskab. **Den er
+nu bekræftet** — den er dokumenteret på den moderne Dropdown, og
+dokumentationen viser endda samme mønster, jeg brugte:
+`OnChange: =Set(varSelectedDept, Self.Selected)`. Ingen ændring nødvendig.
 
 Alt andet i ændringen bruger egenskaber, appen allerede beviser virker —
 efterprøvet ved at sammenligne hver ny kontrols egenskaber mod den forrige
