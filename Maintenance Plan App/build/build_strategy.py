@@ -91,11 +91,13 @@ def _pkg_cell_gallery(name, template, items=PKGS_SORTED, template_size=CELL_W, h
         children=[template], h=height)
 
 
-def build_strategy_section():
-    header = section_header(
-        "conVhpPkgHead", "Strategy Packages",
-        "The packages come from the strategy. Tick which operations belong to each package.",
-        "Step 4", help_section="pkg")
+def build_strategy_body():
+    """Pakkematricen UDEN eget kort og overskrift.
+
+    Laa foer som Step 4, et kort for sig. Den hoerer til arbejdsplanen -
+    allokeringen er operation -> pakke - saa den er flyttet ind som en fane
+    i Tasklist-sektionen sammen med operationerne, materialerne og
+    dokumenterne. Hjaelpepanelet foelger med derind."""
     helpPanel = help_panel("conVhpPkgHelp", "pkg")
 
     strategyMeta = text_ctrl(
@@ -369,6 +371,6 @@ def build_strategy_section():
 
     actionRow.vis = f"IfError({CAN_DRAW}, false)"
 
-    return card("conVhpStrategyCard",
-                [header, helpPanel, strategyMeta, actionRow, hierNote, matrixWrap, emptyState, warn],
-                visible=f"IfError({IS_STRATEGY}, false)")
+    return group("conVhpPkgPane",
+                 [helpPanel, strategyMeta, actionRow, hierNote, matrixWrap, emptyState, warn],
+                 direction="Vertical", gap=12, width="Parent.Width")

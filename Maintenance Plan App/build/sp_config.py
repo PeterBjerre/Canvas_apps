@@ -203,6 +203,18 @@ WORKING_COLLECTIONS = [
       "Maintainable": "false", "Level": '""'}),
     ("colVhpItemObjects", {"ItemId": 0, "Code": '""', "Description": '""'}),
     ("colVhpPickerSelected", {"OperationNo": '""'}),
+    # Materialer til arbejdsplanen. Description og Unit staar tomme, indtil
+    # materialeopslaget mod SAP er paa plads - felterne findes allerede, saa
+    # opslaget kun skal fylde dem ud og ikke aendre skemaet.
+    ("colVhpMaterials",
+     {"ItemId": 0, "LineId": 0, "MaterialNo": '""', "Description": '""',
+      "Unit": '""', "Quantity": 0, "OperationNo": '""', "Selected": "false"}),
+    # Dokumenter. OperationsKey er ";0010;0020;" ligesom PackagesKey -
+    # tomt (";") betyder at dokumentet hoerer til hele planen og ikke til
+    # en bestemt operation.
+    ("colVhpAttachments",
+     {"ItemId": 0, "LineId": 0, "FileName": '""', "FileSize": 0,
+      "OperationsKey": '";"', "Status": '""', "Selected": "false"}),
     # Kobler appens lokale ItemId til den raekke, der blev oprettet i
     # MaintenanceItems. Operationerne har brug for begge dele til deres
     # opslagsfelt, og de kan foerst kendes EFTER items er skrevet.
