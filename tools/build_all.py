@@ -12,7 +12,7 @@ kan naa at glide fra hinanden - derfor tjekker dette script, at de er
 ordret ens, FOER der bygges. Er de ikke, staar der hvilken fil det er, og
 hvilken app der har den nyeste udgave.
 """
-import os, subprocess, sys, filecmp
+import os, shutil, subprocess, sys, filecmp
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SHARED = ["gen_screen.py", "build_helpers.py", "check_layout.py"]
@@ -49,10 +49,32 @@ def check_shared():
     return bad
 
 
+def drop_pycache():
+    """Slet __pycache__ foer der bygges.
+
+    Python vaelger cachet bytekode ud fra filens mtime. Gaar mtime BAGLAENS
+    - fx naar en fil gendannes fra en kopi med 'cp' - bliver .pyc'en
+    liggende, og builderen koerer paa den GAMLE kode, mens kilden ser
+    rigtig ud. Det skete under en test her: sp_config.py var rettet
+    tilbage, men den byggede skaerm indeholdt stadig fejlen.
+
+    At slette dem koster under et sekund og fjerner hele klassen af fejl."""
+    n = 0
+    for d, subs, _ in os.walk(ROOT):
+        if ".git" in d:
+            continue
+        if "__pycache__" in subs:
+            shutil.rmtree(os.path.join(d, "__pycache__"), ignore_errors=True)
+            subs.remove("__pycache__")
+            n += 1
+    return n
+
+
 def main():
     # PowerShell-scripterne hoerer ikke til canvas-byggeriet, men det her er
     # den ene kommando alle koerer - saa tjekket ligger her, hvor det ikke
     # kan glemmes. Se tools/check_ps1.py for hvorfor det er noedvendigt.
+    drop_pycache()
     r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "check_ps1.py")])
     if r.returncode:
         return r.returncode

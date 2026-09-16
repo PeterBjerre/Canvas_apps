@@ -36,6 +36,8 @@ L_PLANS       = "MaintenancePlans"
 L_ITEMS       = "MaintenanceItems"
 L_TASKS       = "TaskListMain"
 L_INDEX       = "MD_RequestIndex"
+L_MATERIALS   = "MD_TasklistMaterial"
+L_ATTACHMENTS = "MD_TasklistAttachment"
 
 # --- kolonnenavne der IKKE er selvindlysende -------------------------------
 # MainWorkCenters er oprettet fra Excel, saa de interne navne er field_1 og
@@ -219,4 +221,8 @@ WORKING_COLLECTIONS = [
     # MaintenanceItems. Operationerne har brug for begge dele til deres
     # opslagsfelt, og de kan foerst kendes EFTER items er skrevet.
     ("colVhpSavedItems", {"LocalId": 0, "SpId": 0, "ItemKey": '""'}),
+    # Samme aerinde for operationerne. Materialerne peger paa TaskItemID,
+    # og den kan foerst kendes EFTER operationen er skrevet.
+    ("colVhpSavedOps",
+     {"LocalItemId": 0, "OperationNo": '""', "SpId": 0, "TaskKey": '""'}),
 ]

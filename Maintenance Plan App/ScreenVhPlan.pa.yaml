@@ -12840,6 +12840,8 @@ Screens:
                                                                 // Ved gensave er det enklere og sikrere at
                                                                 // skrive linjerne forfra end at finde ud af
                                                                 // hvilke der er tilfoejet, aendret og slettet.
+                                                                RemoveIf(MD_TasklistMaterial, PlanKey = planKey);
+                                                                RemoveIf(MD_TasklistAttachment, PlanKey = planKey);
                                                                 RemoveIf(TaskListMain, MaintenancePlanID.Id = planId);
                                                                 RemoveIf(MaintenanceItems, MaintenancePlanNo.Id = planId);
                                         
@@ -12894,6 +12896,7 @@ Screens:
                                                                 );
                                         
                                                                 // --- 4. operationer ------------------------
+                                                                Clear(colVhpSavedOps);
                                                                 ForAll(
                                                                     colVhpOperations As OP,
                                                                     With(
@@ -12920,14 +12923,89 @@ Screens:
                                                                 }
                                                                                     )
                                                                                 },
-                                                                                Patch(TaskListMain, opRec,
-                                                                                    { TaskItemID: "TI" & Text(opRec.ID - taskOff, "0000") })
+                                                                                With(
+                                                                                    { taskKey: "TI" & Text(opRec.ID - taskOff, "0000") },
+                                                                                    Patch(TaskListMain, opRec, { TaskItemID: taskKey });
+                                                                                    Collect(
+                                                                                        colVhpSavedOps,
+                                                                                        {
+                                                                                            LocalItemId: OP.ItemId,
+                                                                                            OperationNo: OP.OperationNo,
+                                                                                            SpId: opRec.ID,
+                                                                                            TaskKey: taskKey
+                                                                                        }
+                                                                                    )
+                                                                                )
                                                                             )
                                                                         )
                                                                     )
                                                                 );
                                         
-                                                                // --- 5. opsummering til landingssiden ------
+                                                                // --- 5. materialer -------------------------
+                                                                // Peger paa operationens TaskItemID, ikke paa
+                                                                // itemet. Et materiale hoerer til EEN
+                                                                // operation - det er den relation SAP har.
+                                                                ForAll(
+                                                                    colVhpMaterials As MT,
+                                                                    With(
+                                                                        {
+                                                                            it: LookUp(colVhpSavedItems, LocalId = MT.ItemId),
+                                                                            op: LookUp(
+                                                                                colVhpSavedOps,
+                                                                                LocalItemId = MT.ItemId && OperationNo = MT.OperationNo
+                                                                            )
+                                                                        },
+                                                                        If(
+                                                                            IsBlank(MT.MaterialNo), false,
+                                                                            Patch(
+                                                                                MD_TasklistMaterial, Defaults(MD_TasklistMaterial),
+                                                                                {
+                                                                                    Title: MT.MaterialNo,
+                                                                                    PlanKey: planKey,
+                                                                                    ItemKey: it.ItemKey,
+                                                                                    TaskItemID: op.TaskKey,
+                                                                                    OperationNo: MT.OperationNo,
+                                                                                    Quantity: MT.Quantity,
+                                                                                    MaterialText: MT.Description,
+                                                                                    Unit: MT.Unit,
+                                                                                    LineId: MT.LineId
+                                                                                }
+                                                                            )
+                                                                        )
+                                                                    )
+                                                                );
+                                        
+                                                                // --- 6. dokumenter -------------------------
+                                                                // OperationsKey er ';0010;0020;'. Tom (';')
+                                                                // betyder hele itemet.
+                                                                //
+                                                                // UploadStatus skrives som Pending. Det er
+                                                                // FLOWET der retter den, naar filen ligger i
+                                                                // biblioteket - appen ved ikke selv, om det
+                                                                // lykkedes.
+                                                                ForAll(
+                                                                    colVhpAttachments As AT,
+                                                                    With(
+                                                                        { it: LookUp(colVhpSavedItems, LocalId = AT.ItemId) },
+                                                                        If(
+                                                                            IsBlank(AT.FileName), false,
+                                                                            Patch(
+                                                                                MD_TasklistAttachment, Defaults(MD_TasklistAttachment),
+                                                                                {
+                                                                                    Title: AT.FileName,
+                                                                                    PlanKey: planKey,
+                                                                                    ItemKey: it.ItemKey,
+                                                                                    OperationsKey: Coalesce(AT.OperationsKey, ";"),
+                                                                                    FileSize: AT.FileSize,
+                                                                                    LineId: AT.LineId,
+                                                                                    UploadStatus: { Value: "Pending" }
+                                                                                }
+                                                                            )
+                                                                        )
+                                                                    )
+                                                                );
+                                        
+                                                                // --- 7. opsummering til landingssiden ------
                                                                 // Hubben laeser KUN denne raekke. Den skal
                                                                 // skrives hver gang status aendrer sig,
                                                                 // ellers viser oversigten noget forkert.
@@ -13107,6 +13185,8 @@ Screens:
                                                                 // Ved gensave er det enklere og sikrere at
                                                                 // skrive linjerne forfra end at finde ud af
                                                                 // hvilke der er tilfoejet, aendret og slettet.
+                                                                RemoveIf(MD_TasklistMaterial, PlanKey = planKey);
+                                                                RemoveIf(MD_TasklistAttachment, PlanKey = planKey);
                                                                 RemoveIf(TaskListMain, MaintenancePlanID.Id = planId);
                                                                 RemoveIf(MaintenanceItems, MaintenancePlanNo.Id = planId);
                                         
@@ -13161,6 +13241,7 @@ Screens:
                                                                 );
                                         
                                                                 // --- 4. operationer ------------------------
+                                                                Clear(colVhpSavedOps);
                                                                 ForAll(
                                                                     colVhpOperations As OP,
                                                                     With(
@@ -13187,14 +13268,89 @@ Screens:
                                                                 }
                                                                                     )
                                                                                 },
-                                                                                Patch(TaskListMain, opRec,
-                                                                                    { TaskItemID: "TI" & Text(opRec.ID - taskOff, "0000") })
+                                                                                With(
+                                                                                    { taskKey: "TI" & Text(opRec.ID - taskOff, "0000") },
+                                                                                    Patch(TaskListMain, opRec, { TaskItemID: taskKey });
+                                                                                    Collect(
+                                                                                        colVhpSavedOps,
+                                                                                        {
+                                                                                            LocalItemId: OP.ItemId,
+                                                                                            OperationNo: OP.OperationNo,
+                                                                                            SpId: opRec.ID,
+                                                                                            TaskKey: taskKey
+                                                                                        }
+                                                                                    )
+                                                                                )
                                                                             )
                                                                         )
                                                                     )
                                                                 );
                                         
-                                                                // --- 5. opsummering til landingssiden ------
+                                                                // --- 5. materialer -------------------------
+                                                                // Peger paa operationens TaskItemID, ikke paa
+                                                                // itemet. Et materiale hoerer til EEN
+                                                                // operation - det er den relation SAP har.
+                                                                ForAll(
+                                                                    colVhpMaterials As MT,
+                                                                    With(
+                                                                        {
+                                                                            it: LookUp(colVhpSavedItems, LocalId = MT.ItemId),
+                                                                            op: LookUp(
+                                                                                colVhpSavedOps,
+                                                                                LocalItemId = MT.ItemId && OperationNo = MT.OperationNo
+                                                                            )
+                                                                        },
+                                                                        If(
+                                                                            IsBlank(MT.MaterialNo), false,
+                                                                            Patch(
+                                                                                MD_TasklistMaterial, Defaults(MD_TasklistMaterial),
+                                                                                {
+                                                                                    Title: MT.MaterialNo,
+                                                                                    PlanKey: planKey,
+                                                                                    ItemKey: it.ItemKey,
+                                                                                    TaskItemID: op.TaskKey,
+                                                                                    OperationNo: MT.OperationNo,
+                                                                                    Quantity: MT.Quantity,
+                                                                                    MaterialText: MT.Description,
+                                                                                    Unit: MT.Unit,
+                                                                                    LineId: MT.LineId
+                                                                                }
+                                                                            )
+                                                                        )
+                                                                    )
+                                                                );
+                                        
+                                                                // --- 6. dokumenter -------------------------
+                                                                // OperationsKey er ';0010;0020;'. Tom (';')
+                                                                // betyder hele itemet.
+                                                                //
+                                                                // UploadStatus skrives som Pending. Det er
+                                                                // FLOWET der retter den, naar filen ligger i
+                                                                // biblioteket - appen ved ikke selv, om det
+                                                                // lykkedes.
+                                                                ForAll(
+                                                                    colVhpAttachments As AT,
+                                                                    With(
+                                                                        { it: LookUp(colVhpSavedItems, LocalId = AT.ItemId) },
+                                                                        If(
+                                                                            IsBlank(AT.FileName), false,
+                                                                            Patch(
+                                                                                MD_TasklistAttachment, Defaults(MD_TasklistAttachment),
+                                                                                {
+                                                                                    Title: AT.FileName,
+                                                                                    PlanKey: planKey,
+                                                                                    ItemKey: it.ItemKey,
+                                                                                    OperationsKey: Coalesce(AT.OperationsKey, ";"),
+                                                                                    FileSize: AT.FileSize,
+                                                                                    LineId: AT.LineId,
+                                                                                    UploadStatus: { Value: "Pending" }
+                                                                                }
+                                                                            )
+                                                                        )
+                                                                    )
+                                                                );
+                                        
+                                                                // --- 7. opsummering til landingssiden ------
                                                                 // Hubben laeser KUN denne raekke. Den skal
                                                                 // skrives hver gang status aendrer sig,
                                                                 // ellers viser oversigten noget forkert.
