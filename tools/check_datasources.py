@@ -216,13 +216,15 @@ def check_shape(lst, col, val, meta):
     return None
 
 
-def check(path, schema, problems, stats):
+def check(path, schema, problems, stats, used=None):
     for fx in formulas(path):
         # --- Patch(Liste, base, {felter} ...) ----------------------------
         for args, _ in calls(fx, "Patch"):
             if len(args) < 3:
                 continue
             lst = args[0].strip()
+            if used is not None:
+                used.add(lst)
             if lst not in schema:
                 continue
             meta = schema[lst]
@@ -315,6 +317,21 @@ def provisioned_columns():
     return out
 
 
+def provisioned_lists():
+    """Lister, som et provisioneringsscript opretter."""
+    out = set()
+    d = os.path.join(ROOT, "sharepoint", "provision")
+    if not os.path.isdir(d):
+        return out
+    for fn in os.listdir(d):
+        if not fn.endswith(".ps1"):
+            continue
+        txt = open(os.path.join(d, fn), encoding="utf-8-sig").read()
+        for m in re.finditer(r"(?:New-MdList|New-PnPList)\s+(?:-Title\s+)?'([^']+)'", txt):
+            out.add(m.group(1).strip())
+    return out
+
+
 def main():
     schema = load_schema()
     if schema is None:
@@ -334,8 +351,23 @@ def main():
             if fn.endswith(".pa.yaml"):
                 screens.append(os.path.join(d, fn))
 
+    used = set()
     for path in screens:
-        check(path, schema, problems, stats)
+        check(path, schema, problems, stats, used)
+
+    # En liste, der slet ikke findes i skemaet, blev foer sprunget over i
+    # STILHED - saa en tastefejl i et listenavn, eller en liste ingen havde
+    # oprettet, gik lige igennem. Det var praecis, hvad der skete, da
+    # MD_TasklistMaterial og MD_TasklistAttachment blev taget i brug: hele
+    # skrivningen var ukontrolleret, og tjekket sagde god for den.
+    #
+    # colVhp* er appens EGNE samlinger, ikke SharePoint-lister. De patches
+    # praecis som en liste, saa de ender i samme opsamling og skal sorteres
+    # fra her - ellers melder tjekket dem som stavefejl.
+    prov_lists = provisioned_lists()
+    missing = {l for l in used - set(schema) if not l.startswith("col")}
+    missing_known = sorted(l for l in missing if l in prov_lists)
+    missing_unknown = sorted(l for l in missing if l not in prov_lists)
 
     # Dubletter: samme fejl staar typisk i flere egenskaber.
     seen, uniq, pending = set(), [], []
@@ -352,12 +384,22 @@ def main():
 
     print(f"Datakilde-tjek: {len(screens)} fil(er), {len(schema)} lister i skemaet, "
           f"{stats['checked']} kolonnereferencer efterproevet.")
+    if missing_known:
+        print(f"\n{len(missing_known)} liste(r) oprettes af provisioneringen, men "
+              f"findes ikke i udtraekket endnu:")
+        for x in missing_known:
+            print("  " + x)
+        print("  -> koer provisioneringen, og eksporter skemaet igen. "
+              "Kolonnerne i dem er IKKE efterproevet.")
     if pending:
         print(f"\n{len(pending)} kolonne(r) oprettes af provisioneringen, men "
               f"findes ikke i udtraekket endnu:")
         for x in sorted(set(pending)):
             print("  " + x)
         print("  -> koer sharepoint/provision-scriptet, og eksporter skemaet igen.")
+    for l in missing_unknown:
+        uniq.append(f"{l}: listen findes hverken i skemaet eller i et "
+                    f"provisioneringsscript - er navnet stavet rigtigt?")
     if uniq:
         print(f"\n{len(uniq)} problem(er):\n")
         for p in uniq:

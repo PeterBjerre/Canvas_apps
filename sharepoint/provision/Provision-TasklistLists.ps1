@@ -93,19 +93,19 @@ Set-PnPField -List 'MD_TasklistMaterial' -Identity 'Title' `
 
 # Noeglerne. Indekseret, fordi appen filtrerer paa dem hver gang en plan
 # aabnes - uindekseret ville det ramme delegeringsgraensen ved 2000 raekker.
-New-MdField -List 'MD_TasklistMaterial' -Name 'PlanKey'      -Type Text -Indexed
-New-MdField -List 'MD_TasklistMaterial' -Name 'ItemKey'      -Type Text -Indexed
-New-MdField -List 'MD_TasklistMaterial' -Name 'TaskItemID'   -Type Text -Indexed
-New-MdField -List 'MD_TasklistMaterial' -Name 'OperationNo'  -Type Text
+New-MdField 'MD_TasklistMaterial' 'PlanKey' Text -Indexed
+New-MdField 'MD_TasklistMaterial' 'ItemKey' Text -Indexed
+New-MdField 'MD_TasklistMaterial' 'TaskItemID' Text -Indexed
+New-MdField 'MD_TasklistMaterial' 'OperationNo' Text
 
-New-MdField -List 'MD_TasklistMaterial' -Name 'Quantity'     -Type Number -Required
+New-MdField 'MD_TasklistMaterial' 'Quantity' Number -Required
 
 # Udfyldes af materialeopslaget mod SAP, ikke af brugeren. De staar tomme,
 # indtil opslaget er paa plads.
-New-MdField -List 'MD_TasklistMaterial' -Name 'MaterialText' -Type Text
-New-MdField -List 'MD_TasklistMaterial' -Name 'Unit'         -Type Text
+New-MdField 'MD_TasklistMaterial' 'MaterialText' Text
+New-MdField 'MD_TasklistMaterial' 'Unit' Text
 
-New-MdField -List 'MD_TasklistMaterial' -Name 'LineId'       -Type Number
+New-MdField 'MD_TasklistMaterial' 'LineId' Number
 
 # ---------------------------------------------------------------------------
 # MD_TasklistAttachment - een raekke pr. dokument
@@ -117,23 +117,23 @@ New-MdList -Title 'MD_TasklistAttachment' `
 Set-PnPField -List 'MD_TasklistAttachment' -Identity 'Title' `
     -Values @{ Title = 'FileName'; Required = $true }
 
-New-MdField -List 'MD_TasklistAttachment' -Name 'PlanKey'       -Type Text -Indexed
-New-MdField -List 'MD_TasklistAttachment' -Name 'ItemKey'       -Type Text -Indexed
+New-MdField 'MD_TasklistAttachment' 'PlanKey' Text -Indexed
+New-MdField 'MD_TasklistAttachment' 'ItemKey' Text -Indexed
 
 # ";0010;0020;" - samme moenster som PackagesKey paa TaskListMain. Tom (";")
 # betyder hele itemet. En kolonne kan ikke laves om til en relation senere
 # uden migrering, men her ER det et saet referencer, og det er praecis det
 # moenster fungerer til.
-New-MdField -List 'MD_TasklistAttachment' -Name 'OperationsKey' -Type Text
+New-MdField 'MD_TasklistAttachment' 'OperationsKey' Text
 
-New-MdField -List 'MD_TasklistAttachment' -Name 'FileUrl'       -Type Text
-New-MdField -List 'MD_TasklistAttachment' -Name 'FileSize'      -Type Number
-New-MdField -List 'MD_TasklistAttachment' -Name 'LineId'        -Type Number
+New-MdField 'MD_TasklistAttachment' 'FileUrl' Text
+New-MdField 'MD_TasklistAttachment' 'FileSize' Number
+New-MdField 'MD_TasklistAttachment' 'LineId' Number
 
 # Saettes af attachments-flowet, ikke af appen. Appen skriver raekken med
 # "Pending"; flowet retter til "Uploaded" eller "Failed", naar filen ligger
 # i biblioteket.
-New-MdField -List 'MD_TasklistAttachment' -Name 'UploadStatus' -Type Choice `
+New-MdField 'MD_TasklistAttachment' 'UploadStatus' Choice `
     -Choices @('Pending', 'Uploaded', 'Failed')
 
 Write-Host "`nFaerdig." -ForegroundColor Green
