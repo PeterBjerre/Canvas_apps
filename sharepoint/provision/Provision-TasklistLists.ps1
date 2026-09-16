@@ -92,7 +92,9 @@ Set-PnPField -List 'MD_TasklistMaterial' -Identity 'Title' `
     -Values @{ Title = 'MaterialNo'; Required = $true }
 
 # Noeglerne. Indekseret, fordi appen filtrerer paa dem hver gang en plan
-# aabnes - uindekseret ville det ramme delegeringsgraensen ved 2000 raekker.
+# aabnes. Graensen for hvor mange raekker der behandles lokalt er 500 som
+# STANDARD og kan haeves til hoejst 2000 - ikke 2000 som udgangspunkt, som
+# der stod her foer.
 New-MdField 'MD_TasklistMaterial' 'PlanKey' Text -Indexed
 New-MdField 'MD_TasklistMaterial' 'ItemKey' Text -Indexed
 New-MdField 'MD_TasklistMaterial' 'TaskItemID' Text -Indexed
