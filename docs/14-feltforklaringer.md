@@ -14,23 +14,24 @@ Tre niveauer, så teksten ikke drukner sig selv:
 
 | Niveau | Hvor | Hvor meget |
 |---|---|---|
-| **1. Feltforklaring** | Bag et lille **ⓘ** ved feltets label | Én linje. Hvad feltet er, eller den regel der gælder lige nu |
+| **1. Feltforklaring** | Under feltet, slået til med **én** knap i hero-kortet | Én linje. Hvad feltet er, eller den regel der gælder lige nu |
 | **2. Hjælpepanel** | Foldes ud pr. sektion med et **?** | 3–8 linjer. Hvorfor feltet betyder noget, og hvad der går galt |
 | **3. Kilde** | Link nederst i panelet | Til SAP-portalen / præsentationen |
 
 Niveau 1 bruger `field_cell(hint_text=...)`, som builderne allerede
-understøtter. Teksten stod først som en fast linje **under** feltet — med 22
-felter fyldte hjælpeteksten mere end formularen, og skærmen så rodet ud. Den
-er nu skjult bag et lille **ⓘ** ved labelen og folder sig ud for netop det
-felt, man trykker på. `varVhpTip` holder hvilket felt der er åbent, så der
-aldrig står mere end én forklaring ad gangen.
+understøtter. Alle 22 linjer ser på **én** variabel, `varVhpShowHints`, som
+slås til og fra med knappen **Show field help** i hero-kortet — ved siden af
+stjerne-legenden, fordi det er dér man i forvejen kigger for at forstå,
+hvordan skærmen læses. Er hjælpen slået fra, koster linjerne ingen plads:
+højdealgebraen tæller kun synlige børn med.
 
-**Hvorfor ikke en rigtig hover-tooltip?** Det var det første forsøg, og det
-fejlede i compile 21 gange: appen er bygget udelukkende af moderne
-kontroller, og `Tooltip` findes kun på de *interaktive* af dem — en
-`ModernText` er en label og kender ikke egenskaben. Klik-varianten har til
-gengæld en fordel, hover ikke har: den virker på touch. Tjek 10 i
-`check_layout.py` fanger fejlen, hvis nogen prøver igen.
+To tidligere forsøg, og hvorfor de ikke holdt:
+
+| Forsøg | Hvorfor ikke |
+|---|---|
+| Fast linje under hvert felt | 22 linjer fyldte mere end selve formularen |
+| Hover-tooltip på et **ⓘ** | Fejlede i compile 21 gange — `Tooltip` findes kun på de *interaktive* moderne kontroller, og en `ModernText` er en label. Tjek 10 fanger det nu |
+| **ⓘ** pr. felt, klik for at folde ud | Virkede, men 21 knapper for at vise 21 linjer er en knap for meget pr. linje — og ikonerne fyldte selv i rækken af labels |
 
 Niveau 2 er ét nyt mønster: en `?`-knap i sektionsoverskriften, der slår
 `varVhpHelp<Sektion>` til og fra.

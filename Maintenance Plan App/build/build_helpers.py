@@ -18,6 +18,9 @@ from gen_screen import (
     SHELL_W, EDITOR_W, RAIL_W, SPLIT_GAP, OUT_DIR,
 )
 
+# Alle feltforklaringer ser paa den samme variabel.
+HINTS_ON = "IfError(varVhpShowHints, false)"
+
 # Braekpunkt hvor et to-kolonne-felt stables lodret.
 TWO_COL_MIN = 640
 
@@ -354,46 +357,11 @@ def poll_timer(name, on_timer_end, duration=500):
     }, h=1, vis="false")
 
 
-def info_icon(name, tip_key):
-    """Det lille i ved feltets label. Aabner forklaringen for netop det felt.
-
-    HVORFOR IKKE Tooltip
-    --------------------
-    Foerste forsoeg satte forklaringen i Tooltip paa en ModernText. Det
-    fejlede i compile 21 gange: ModernText kender ikke egenskaben. Appen er
-    bygget udelukkende af moderne kontroller, og Tooltip findes kun paa de
-    interaktive af dem - en label er ikke interaktiv. Tjek 10 i
-    check_layout.py fanger det nu.
-
-    I stedet er ikonet en knap, der saetter varVhpTip. Feltets egen
-    hjaelpelinje ser paa den samme variabel, saa der er hoejst EEN aaben ad
-    gangen. Det virker ogsaa paa touch, hvor en tooltip ikke ville.
-
-    Den bygges med button(), saa den kun kan komme til at baere egenskaber,
-    resten af appen allerede beviser virker. Efter Tooltip-fejlen er det
-    ikke stedet at finde paa nye.
-    """
-    b = button(name, '"i"', f'Set(varVhpTip, If(varVhpTip = "{tip_key}", "", "{tip_key}"))',
-               width=18, height=18,
-               accessible=f'"Explain this field"')
-    v = f'varVhpTip = "{tip_key}"'
-    b.props["Appearance"] = f"If({v}, ButtonAppearance.Primary, ButtonAppearance.Secondary)"
-    b.props["BasePaletteColor"] = C_INFO_FG
-    b.props["Color"] = f"If({v}, {C_WHITE}, {C_INFO_FG})"
-    b.props["BorderColor"] = C_CARD_BORDER
-    b.props["BorderThickness"] = "1"
-    b.props["Size"] = "11"
-    return b
-
-
-def label_row(name, label_text, required=False, width="Parent.Width", hint_text=None,
-              tip_key=None):
+def label_row(name, label_text, required=False, width="Parent.Width"):
     kids = [text_ctrl(f"{name}Lbl", f"\"{label_text}\"", size=13, weight="Semibold", height=20, wrap="false")]
     if required:
         kids.append(text_ctrl(f"{name}Star", "\"*\"", size=13, color=C_REQUIRED, weight="Semibold",
                               height=20, width=10, wrap="false", accessible="\"Required\""))
-    if hint_text is not None:
-        kids.append(info_icon(f"{name}Info", tip_key or name))
     return group(f"{name}Row", kids, direction="Horizontal", gap=3, height=20, align_items="Center", width=width)
 
 
@@ -413,14 +381,17 @@ def field_cell(name, label_text, input_ctrl, required=False, hint_text=None, wid
     cols er antallet af felter, der skal staa side om side i raekken (brug
     samme tal i row_n/two_col_row), saa bredden bliver ens for alle celler
     i raekken."""
-    # Forklaringen er skjult, indtil nogen trykker paa i-ikonet ved labelen.
-    # Linjen vises kun for DETTE felt, saa der aldrig staar mere end een.
-    kids = [label_row(name, label_text, required=required, hint_text=hint_text,
-                      tip_key=name), input_ctrl]
+    # Alle feltforklaringer styres af EEN variabel, varVhpShowHints, slaaet
+    # til og fra i hero-kortet. Foer havde hvert felt sit eget i-ikon - 21
+    # knapper for at vise 21 linjer er en knap for meget pr. linje.
+    #
+    # Hoejdealgebraen taeller kun synlige boern med, saa linjerne koster
+    # ingen plads, naar de er slaaet fra.
+    kids = [label_row(name, label_text, required=required), input_ctrl]
     if hint_text is not None:
-        kids.append(text_ctrl(f"{name}Tip", hint_text, size=12, color=C_INFO_FG,
+        kids.append(text_ctrl(f"{name}Hint", hint_text, size=12, color=C_MUTED,
                               height=32, wrap="true",
-                              visible=f'IfError(varVhpTip = "{name}", false)'))
+                              visible=HINTS_ON))
     w = width or col_width(container_w, cols, gap)
     return group(name, kids, direction="Vertical", gap=6, width=w,
                  align_items="Stretch", fill_portions=fill_portions_formula,
