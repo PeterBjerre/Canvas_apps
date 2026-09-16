@@ -161,6 +161,12 @@ def named_formulas():
          ("Vendor", "O.VendorNo"),
          ("LongText", "\"\""),
          ("ControlKey", "O.ControlKey"),
+         # Baeres med, saa en linje hentet fra standardplanen kommer ind
+         # UDFYLDT. Brugeren skal kun redigere dem ved PM02.
+         ("Cost", "O.Price"),
+         ("Currency", "O.Currency"),
+         ("CostElement", "O.CostElement"),
+         ("MaterialGroup", "O.MaterialGroup"),
          ("OpPlant", "O.SapPlant")],
         alias="O")
     add("colVhpTasklists",
@@ -205,7 +211,11 @@ WORKING_COLLECTIONS = [
     ("colVhpOperations",
      {"ItemId": 0, "OperationNo": '""', "OperationShortText": '""', "WorkHours": 0,
       "DurationHours": 0, "MainWorkCenter": '""', "Vendor": '""', "LongText": '""',
-      "PackagesKey": '";"', "Selected": "false"}),
+      "PackagesKey": '";"', "Selected": "false",
+      # Styres af reglerne i operationstabellen: kontrolnoeglen kan kun
+      # aendres paa *SUP og *TECH, og de tre indkoebsfelter kun ved PM02.
+      "ControlKey": '""', "Cost": 0, "Currency": '""', "CostElement": 0,
+      "MaterialGroup": '""'}),
     ("colVhpFlSearch",
      {"Code": '""', "Description": '""', "Display": '""',
       "Maintainable": "false", "Level": '""'}),
