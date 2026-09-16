@@ -143,7 +143,14 @@ def _materials_pane():
             "            Description: \"\",\n"
             "            Unit: \"\",\n"
             "            Quantity: 1,\n"
-            "            OperationNo: \"\",\n"
+            # Et materiale hoerer til EN operation. En ny linje arver derfor
+            # itemets foerste operation i stedet for at staa tom - en
+            # materialelinje uden operation har ingen plads i SAP.
+            "            OperationNo: Coalesce(\n"
+            "                First(Sort(Filter(colVhpOperations, ItemId = varVhpActiveItemId),\n"
+            "                      Value(OperationNo))).OperationNo,\n"
+            "                \"\"\n"
+            "            ),\n"
             "            Selected: false\n"
             "        }\n"
             "    );\n"
@@ -346,7 +353,7 @@ def _attachments_pane():
         (
             "If(\n"
             "    Len(Coalesce(ThisItem.OperationsKey, \";\")) <= 1,\n"
-            "    \"Whole plan\",\n"
+            "    \"Whole item\",\n"
             "    \"Operations: \" & Substitute(Mid(ThisItem.OperationsKey, 2), \";\", \" \")\n"
             ")"
         ), size=12, color=C_MUTED, height=30, width=240, wrap="false")
@@ -402,7 +409,7 @@ def _attachments_pane():
                       visible=f"IfError(!IsBlank(varVhpActiveItemId) && CountRows({ATT_ACTIVE}) = 0, false)")
 
     note = text_ctrl("txtVhpAttNote",
-                     '"Leave every operation unticked to attach the document to the whole plan."',
+                     '"Leave every operation unticked to attach the document to the whole item."',
                      size=12, color=C_MUTED, height=18, wrap="true")
 
     return group("conVhpAttPane", [dropZone, actions, note, gallery, empty],

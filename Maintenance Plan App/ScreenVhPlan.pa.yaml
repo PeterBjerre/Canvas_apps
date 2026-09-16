@@ -11160,7 +11160,11 @@ Screens:
                                                           Description: "",
                                                           Unit: "",
                                                           Quantity: 1,
-                                                          OperationNo: "",
+                                                          OperationNo: Coalesce(
+                                                              First(Sort(Filter(colVhpOperations, ItemId = varVhpActiveItemId),
+                                                                    Value(OperationNo))).OperationNo,
+                                                              ""
+                                                          ),
                                                           Selected: false
                                                       }
                                                   );
@@ -11839,7 +11843,7 @@ Screens:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Leave every operation unticked to attach the document to the whole plan."
+                                        ="Leave every operation unticked to attach the document to the whole item."
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -11863,7 +11867,7 @@ Screens:
                                     Size: |-
                                         =12
                                     Text: |-
-                                        ="Leave every operation unticked to attach the document to the whole plan."
+                                        ="Leave every operation unticked to attach the document to the whole item."
                                     Wrap: |-
                                         =true
                               - galVhpAttachments:
@@ -11980,7 +11984,7 @@ Screens:
                                                 AccessibleLabel: |-
                                                     =If(
                                                         Len(Coalesce(ThisItem.OperationsKey, ";")) <= 1,
-                                                        "Whole plan",
+                                                        "Whole item",
                                                         "Operations: " & Substitute(Mid(ThisItem.OperationsKey, 2), ";", " ")
                                                     )
                                                 BorderStyle: |-
@@ -12008,7 +12012,7 @@ Screens:
                                                 Text: |-
                                                     =If(
                                                         Len(Coalesce(ThisItem.OperationsKey, ";")) <= 1,
-                                                        "Whole plan",
+                                                        "Whole item",
                                                         "Operations: " & Substitute(Mid(ThisItem.OperationsKey, 2), ";", " ")
                                                     )
                                                 Width: |-
