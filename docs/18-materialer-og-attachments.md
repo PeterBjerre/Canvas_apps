@@ -30,7 +30,7 @@ tilstand (`OPS_PANE_ON` i `build_tasklist.py`).
 |---|---|
 | `MaterialNo` | brugeren |
 | `Quantity` | brugeren, 1 som standard |
-| `OperationNo` | brugeren, valgt blandt itemets egne operationer |
+| `OperationNo` | brugeren, valgt blandt itemets egne operationer. En ny linje arver den **første** operation — et materiale uden operation har ingen plads i SAP |
 | `Description` | **materialeopslaget, senere** |
 | `Unit` | **materialeopslaget, senere** |
 
@@ -46,8 +46,12 @@ bagefter. Når opslaget kommer, er det ét kald pr. materialenummer og en
 Koblingen til operationer ligger i `OperationsKey`, `";0010;0020;"`, præcis
 som `PackagesKey` på operationslinjen. Samme mønster, så der ikke er to
 måder at gemme et mængdevalg på i den samme app. **Er ingen operation
-markeret, hører dokumentet til hele planen** — det er tilstanden `";"`, og
+markeret, hører dokumentet til hele itemet** — det er tilstanden `";"`, og
 den er default.
+
+Samlingen filtreres på `ItemId`, så omfanget er itemet, ikke planen. Teksten
+sagde først "whole plan"; det var forkert, og det blev fanget af spørgsmålet
+om hvor tingene egentlig hænger.
 
 Afkrydsningerne ligger i et galleri inde i dokumentets række. Den indre
 gallery kan ikke læse den ydre rækkes data (`ThisItem` er skygget), så den
@@ -109,13 +113,59 @@ Alt andet i ændringen bruger egenskaber, appen allerede beviser virker —
 efterprøvet ved at sammenligne hver ny kontrols egenskaber mod den forrige
 version af skærmen.
 
+## Datamodellen
+
+Materialer og dokumenter hænger på **arbejdsplanen**, ikke på planen — derfor
+`Tasklist` i navnet. `sharepoint/provision/Provision-TasklistLists.ps1`
+opretter begge.
+
+### `MD_TasklistMaterial` — én række pr. materialelinje
+
+| Kolonne | Type | |
+|---|---|---|
+| `Title` → `MaterialNo` | Tekst, påkrævet | Materialenummeret. Title genbrugt, så standardvisningen viser noget brugbart |
+| `PlanKey`, `ItemKey`, `TaskItemID` | Tekst, **indekseret** | Nøglerne. Indekseret, fordi appen filtrerer på dem, hver gang en plan åbnes |
+| `OperationNo` | Tekst | |
+| `Quantity` | Tal, påkrævet | |
+| `MaterialText`, `Unit` | Tekst | Udfyldes af materialeopslaget, ikke af brugeren |
+| `LineId` | Tal | Appens egen linjenummerering |
+
+### `MD_TasklistAttachment` — én række pr. dokument
+
+| Kolonne | Type | |
+|---|---|---|
+| `Title` → `FileName` | Tekst, påkrævet | |
+| `PlanKey`, `ItemKey` | Tekst, **indekseret** | |
+| `OperationsKey` | Tekst | `";0010;0020;"`. Tom (`";"`) = hele itemet |
+| `FileUrl`, `FileSize` | Tekst / Tal | |
+| `UploadStatus` | Valg: Pending · Uploaded · Failed | Appen skriver `Pending`; **flowet** retter den |
+| `LineId` | Tal | |
+
+### Hvorfor ikke bare kolonner på `TaskListMain`?
+
+Det var det oplagte alternativ, og det holder ikke — men af to forskellige
+grunde:
+
+**Materialer.** Pakkekolonnen virker, fordi en pakke er en *reference* til en
+række i en anden liste, og et sæt referencer fylder fint i `";1;3;"`. En
+materialelinje bærer sine **egne** værdier — nummer, mængde, enhed. En mængde
+pr. materiale kan ikke ligge i en semikolonstreng uden at opfinde et
+miniformat, som hverken SharePoint, et flow eller en rapport kan filtrere på.
+
+**Dokumenter.** Her er problemet et andet: et dokument kan hænge på **flere**
+operationer og skal kunne hænge på **ingen**. En kolonne på `TaskListMain`
+har ingen række at bo på i det tomme tilfælde, og ville duplikere dokumentet
+i det fulde. Derfor egen liste — og så bliver operationskoblingen en
+`OperationsKey`-kolonne dér, hvor den *er* et sæt referencer, og hvor
+mønsteret passer.
+
+Kort sagt: pakkemønsteret er rigtigt til referencer og forkert til rækker med
+egne felter.
+
 ## Endnu ikke bygget
 
-- **Gemning til SharePoint.** `colVhpMaterials` og `colVhpAttachments` bor i
-  appen. To lister skal provisioneres — `MD_PlanMaterial` og
-  `MD_PlanAttachment` — og `build_save.py` udvides. Samme rækkefølge som
-  strategipakkerne: byg brugsfladen først, provisionér når formen er
-  bekræftet.
+- **Gemning til SharePoint.** `colVhpMaterials` og `colVhpAttachments` bor
+  stadig kun i appen. `build_save.py` skal udvides, når listerne er oprettet.
 - **Materialeopslaget** mod SAP (OData).
 - **Validering.** Fx materialelinje uden operation, eller mængde 0. Ingen af
   delene er meldt ud som en regel endnu.
