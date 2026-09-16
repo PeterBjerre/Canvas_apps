@@ -15,7 +15,6 @@ from build_hero import build_hero
 from build_plan_header import build_plan_header
 from build_items import build_items_section
 from build_tasklist import build_tasklist_section, build_dispatch_section, build_email_fab
-from build_strategy import build_strategy_section
 from build_modal import build_tasklist_picker_modal, build_modal_backdrop
 from build_save import build_save_section
 
@@ -25,8 +24,9 @@ def build_screen():
         build_hero(),
         build_plan_header(),
         build_items_section(),
+        # Pakkematricen er nu en fane i Tasklist-sektionen, ikke et kort
+        # for sig. Se build_tasklist._tab_bar.
         build_tasklist_section(),
-        build_strategy_section(),
         build_dispatch_section(),
         build_save_section(),
     ]

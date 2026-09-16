@@ -93,6 +93,9 @@ Set(varVhpSaving, false);
 // Hjaelpepanelerne. Slaaet fra som standard - teksten er der for den, der
 // har brug for den, ikke for at fylde skaermen for alle andre.
 Set(varVhpShowHints, false);
+
+// Fanen i Tasklist-sektionen. Operations er den man er i oftest.
+Set(varVhpOpsTab, "ops");
 Set(varVhpHelpPlan, false);
 Set(varVhpHelpItem, false);
 Set(varVhpHelpOps, false);

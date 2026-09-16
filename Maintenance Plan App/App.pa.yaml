@@ -43,6 +43,12 @@ App:
       ClearCollect(colVhpPickerSelected, { OperationNo: "" });
       Clear(colVhpPickerSelected);
 
+      ClearCollect(colVhpMaterials, { ItemId: 0, LineId: 0, MaterialNo: "", Description: "", Unit: "", Quantity: 0, OperationNo: "", Selected: false });
+      Clear(colVhpMaterials);
+
+      ClearCollect(colVhpAttachments, { ItemId: 0, LineId: 0, FileName: "", FileSize: 0, OperationsKey: ";", Status: "", Selected: false });
+      Clear(colVhpAttachments);
+
       ClearCollect(colVhpSavedItems, { LocalId: 0, SpId: 0, ItemKey: "" });
       Clear(colVhpSavedItems);
 
@@ -108,6 +114,9 @@ App:
       // Hjaelpepanelerne. Slaaet fra som standard - teksten er der for den, der
       // har brug for den, ikke for at fylde skaermen for alle andre.
       Set(varVhpShowHints, false);
+
+      // Fanen i Tasklist-sektionen. Operations er den man er i oftest.
+      Set(varVhpOpsTab, "ops");
       Set(varVhpHelpPlan, false);
       Set(varVhpHelpItem, false);
       Set(varVhpHelpOps, false);

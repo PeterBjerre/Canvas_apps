@@ -3,11 +3,12 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED, C_PRIMARY, C_WHITE,
                         C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, C_VALID_FG, C_INVALID_FG,
-                        C_DIVIDER, C_TRANSPARENT, FONT, SHELL_W)
+                        C_DIVIDER, C_TRANSPARENT, C_INPUT_BG, FONT, SHELL_W)
 from build_helpers import (text_ctrl, group, button, button_row, text_input, number_input, dropdown,
                            label_row, field_cell, two_col_row, badge, card)
 from build_plan_header import section_header, help_panel
 import build_help as bh
+from build_strategy import build_strategy_body, IS_STRATEGY
 
 DM_ITEM = "If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)"
 OPS_CW = f"({SHELL_W} - 36)"
@@ -50,6 +51,362 @@ def _ops_header_html():
         "color:#59667A;font-family:Segoe UI;font-size:11px;font-weight:600;white-space:nowrap;'>"
         f"{spans}</div>\""
     )
+
+
+# ---------------------------------------------------------------------------
+# Faner
+# ---------------------------------------------------------------------------
+# Operationerne, pakkerne, materialerne og dokumenterne hoerer alle til
+# arbejdsplanen. De laa foer som to kort med hver sit trin, og der var ikke
+# plads til to mere. Nu er de fire faner i eet kort.
+#
+# Maintenance packages vises KUN paa en strategiplan - en tidsplan har ingen
+# pakker at allokere til. Materials og Attachments vises altid.
+TABS = [
+    ("ops", "Operations", None),
+    ("pkg", "Maintenance packages", IS_STRATEGY),
+    ("mat", "Materials", None),
+    ("att", "Attachments", None),
+]
+
+
+def _tab_on(key):
+    return f'IfError(varVhpOpsTab = "{key}", false)'
+
+
+def _tab_bar():
+    kids = []
+    for key, label, cond in TABS:
+        on = _tab_on(key)
+        b = button(f"btnVhpTab{key.capitalize()}", f'"{label}"',
+                   f'Set(varVhpOpsTab, "{key}")', width=168, height=34)
+        b.props["Appearance"] = f"If({on}, ButtonAppearance.Primary, ButtonAppearance.Secondary)"
+        b.props["BasePaletteColor"] = C_PRIMARY
+        b.props["Color"] = f"If({on}, {C_WHITE}, {C_TITLE})"
+        b.props["BorderColor"] = C_CARD_BORDER
+        b.props["BorderThickness"] = "1"
+        b.props["Size"] = "13"
+        if cond:
+            b.vis = f"IfError({cond}, false)"
+        kids.append(b)
+    return group("conVhpOpsTabBar", kids, direction="Horizontal", gap=6, height=34,
+                 align_items="Center", width="Parent.Width", wrap="true")
+
+
+# Bliver planen lavet om fra strategi- til tidsplan, mens man staar paa
+# pakkefanen, forsvinder baade knappen og ruden - og kortet ville staa tomt.
+# Operationsruden overtager derfor den tilstand.
+OPS_PANE_ON = (f'IfError({_tab_on("ops")} || '
+               f'({_tab_on("pkg")} && !{IS_STRATEGY}), false)')
+PKG_PANE_ON = f'IfError({_tab_on("pkg")} && {IS_STRATEGY}, false)'
+
+
+# ---------------------------------------------------------------------------
+# Materialer
+# ---------------------------------------------------------------------------
+# Description og Unit er tomme i dag. De fyldes ud af et materialeopslag mod
+# SAP senere - kolonnerne staar der allerede, saa opslaget kun skal skrive i
+# dem og ikke flytte rundt paa tabellen.
+MAT_COLS = [("SEL", 30), ("MATERIAL", 110), ("DESCRIPTION", 230), ("QTY", 70),
+            ("UNIT", 60), ("OPERATION", 120)]
+MAT_GAP = 10
+MAT_TABLE_W = sum(w for _, w in MAT_COLS) + MAT_GAP * (len(MAT_COLS) - 1)
+MAT_ROW_H = 34
+MAT_ACTIVE = "Filter(colVhpMaterials, ItemId = varVhpActiveItemId)"
+
+
+def _mat_header_html():
+    cols = " ".join(f"{w}px" for _, w in MAT_COLS)
+    spans = "".join(f"<span>{t}</span>" for t, _ in MAT_COLS)
+    return ("\"<style>html,body{margin:0;padding:0;overflow:hidden}</style>"
+            f"<div style='display:grid;grid-template-columns:{cols};"
+            f"column-gap:{MAT_GAP}px;align-items:center;height:21px;line-height:21px;"
+            "overflow:hidden;color:#59667A;font-family:Segoe UI;font-size:11px;"
+            f"font-weight:600;white-space:nowrap;'>{spans}</div>\"")
+
+
+def _materials_pane():
+    w = {t: wd for t, wd in MAT_COLS}
+
+    btnAdd = button(
+        "btnVhpAddMaterial", '"Add material"',
+        (
+            "If(\n"
+            "    IsBlank(varVhpActiveItemId),\n"
+            "    Set(varVhpRuntimeInfo, \"Select an item first.\"),\n"
+            "    Collect(\n"
+            "        colVhpMaterials,\n"
+            "        {\n"
+            "            ItemId: varVhpActiveItemId,\n"
+            f"            LineId: Coalesce(Max({MAT_ACTIVE}, LineId), 0) + 1,\n"
+            "            MaterialNo: \"\",\n"
+            "            Description: \"\",\n"
+            "            Unit: \"\",\n"
+            "            Quantity: 1,\n"
+            "            OperationNo: \"\",\n"
+            "            Selected: false\n"
+            "        }\n"
+            "    );\n"
+            "    Set(varVhpRuntimeInfo, \"Material line added.\")\n"
+            ")"
+        ), primary=True, display_mode=DM_ITEM)
+
+    btnRemove = button(
+        "btnVhpRemoveMaterial", '"Remove material"',
+        (
+            "If(\n"
+            f"    CountRows(Filter({MAT_ACTIVE}, Selected = true)) = 0,\n"
+            "    Set(varVhpRuntimeInfo, \"Select one or more material lines to remove.\"),\n"
+            "    RemoveIf(colVhpMaterials, ItemId = varVhpActiveItemId, Selected = true);\n"
+            "    Set(varVhpRuntimeInfo, \"Removed selected material line(s).\")\n"
+            ")"
+        ), danger=True, display_mode=DM_ITEM)
+
+    actions = button_row("conVhpMatActions", [btnAdd, btnRemove], OPS_CW)
+
+    header = Ctrl("conVhpMatHeaderHtml", "HtmlViewer", props={
+        "Fill": C_TRANSPARENT, "Height": "22", "HtmlText": _mat_header_html(),
+        "PaddingBottom": "0", "PaddingLeft": "0", "PaddingRight": "0", "PaddingTop": "0",
+        "Width": str(MAT_TABLE_W),
+    }, h=22)
+    divider = group("conVhpMatDivider", [], height=1, fill=C_DIVIDER,
+                    direction="Horizontal", width=str(MAT_TABLE_W))
+
+    chkSel = Ctrl("chkVhpMatSel", "ModernCheckbox", props={
+        "AccessibleLabel": '"Select material line"',
+        "Default": "ThisItem.Selected",
+        "Height": "24",
+        "Label": '""',
+        "OnCheck": "Patch(colVhpMaterials, ThisItem, { Selected: true })",
+        "OnUncheck": "Patch(colVhpMaterials, ThisItem, { Selected: false })",
+        "Width": str(w["SEL"]),
+    }, h=24)
+    txtNo = text_input("txtVhpMatNo", "ThisItem.MaterialNo", width=w["MATERIAL"], height=30,
+                       onchange="Patch(colVhpMaterials, ThisItem, { MaterialNo: Self.Text })")
+    # Kommer fra materialeopslaget, ikke fra brugeren.
+    txtDesc = text_ctrl("txtVhpMatDesc",
+                        'If(IsBlank(ThisItem.Description), "-", ThisItem.Description)',
+                        size=12, color=C_MUTED, height=30, width=w["DESCRIPTION"], wrap="false")
+    numQty = number_input("numVhpMatQty", "ThisItem.Quantity", width=w["QTY"], height=30)
+    numQty.props["OnChange"] = "Patch(colVhpMaterials, ThisItem, { Quantity: Self.Value })"
+    txtUnit = text_ctrl("txtVhpMatUnit",
+                        'If(IsBlank(ThisItem.Unit), "-", ThisItem.Unit)',
+                        size=12, color=C_MUTED, height=30, width=w["UNIT"], wrap="false")
+    drpOp = dropdown(
+        "drpVhpMatOp",
+        "Sort(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Value(OperationNo))",
+        "LookUp(Filter(colVhpOperations, ItemId = varVhpActiveItemId), OperationNo = ThisItem.OperationNo)",
+        item_display="ThisItem.OperationNo", value_field="OperationNo",
+        width=w["OPERATION"], height=30)
+    drpOp.props["OnChange"] = ("Patch(colVhpMaterials, ThisItem, "
+                               "{ OperationNo: Self.Selected.OperationNo })")
+
+    row = group("conVhpMatRow", [chkSel, txtNo, txtDesc, numQty, txtUnit, drpOp],
+                direction="Horizontal", gap=MAT_GAP, height="Parent.TemplateHeight - 2",
+                align_items="Center", width="Parent.TemplateWidth")
+
+    gal_h = f"Max(CountRows({MAT_ACTIVE}), 1) * {MAT_ROW_H + 2}"
+    gallery = Ctrl("galVhpMaterials", "Gallery", variant="Vertical", props={
+        "AccessibleLabel": '"Materials for active item"',
+        "BorderStyle": "BorderStyle.None",
+        "Fill": C_CARD_BORDER,
+        "FillPortions": "0",
+        "Height": gal_h,
+        "Items": f"Sort({MAT_ACTIVE}, LineId)",
+        "LayoutMinWidth": "0",
+        "LoadingSpinner": "LoadingSpinner.None",
+        "Selectable": "false",
+        "ShowScrollbar": "true",
+        "TabIndex": "0",
+        "TemplatePadding": "2",
+        "TemplateSize": str(MAT_ROW_H),
+        "Width": str(MAT_TABLE_W),
+        "WrapCount": "1",
+    }, children=[row], h=gal_h)
+
+    empty = text_ctrl("txtVhpMatEmpty",
+                      '"No materials on this item yet. Use Add material to add one."',
+                      size=13, color=C_MUTED, height=24, wrap="false",
+                      visible=f"IfError(!IsBlank(varVhpActiveItemId) && CountRows({MAT_ACTIVE}) = 0, false)")
+
+    note = text_ctrl("txtVhpMatNote",
+                     '"Description and Unit are filled in by the material lookup. '
+                     'Until it is in place they stay empty."',
+                     size=12, color=C_MUTED, height=18, wrap="true")
+
+    table = group("conVhpMatTableWrap", [header, divider, gallery, empty],
+                  direction="Vertical", gap=4, overflow_x="Scroll", width="Parent.Width")
+
+    return group("conVhpMatPane", [actions, note, table], direction="Vertical", gap=12,
+                 width="Parent.Width")
+
+
+# ---------------------------------------------------------------------------
+# Dokumenter
+# ---------------------------------------------------------------------------
+# Et dokument kan hoere til HELE planen (ingen operation valgt) eller til en
+# eller flere operationer. Koblingen ligger i OperationsKey, ";0010;0020;",
+# praecis som PackagesKey paa operationslinjen - samme moenster, saa der
+# ikke er to maader at gemme et maengdevalg paa i den samme app.
+ATT_ROW_H = 34
+ATT_CELL_W = 64
+ATT_ACTIVE = "Filter(colVhpAttachments, ItemId = varVhpActiveItemId)"
+ATT_OPS = "Sort(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Value(OperationNo))"
+
+
+def _att_ops_cell():
+    """Een afkrydsning pr. operation, inde i dokumentets raekke.
+
+    Den INDRE gallery kan ikke laese den YDRE raekkes data - ThisItem er
+    skygget. Loesningen er den samme som i pakkematricen: den ydre raekkes
+    noegle baeres MED ind i hver indre record, saa afkrydsningen kun ser paa
+    sin egen ThisItem. Ingen krydsreference mellem to gallerier."""
+    cur = ("Coalesce(LookUp(colVhpAttachments, ItemId = varVhpActiveItemId "
+           "&& LineId = ThisItem.LineId).OperationsKey, \";\")")
+    return Ctrl("chkVhpAttOp", "ModernCheckbox", props={
+        "AccessibleLabel": '"Attach to operation " & ThisItem.OperationNo',
+        "AlignInContainer": "AlignInContainer.Center",
+        "Default": f'";" & ThisItem.OperationNo & ";" in {cur}',
+        "Height": "22",
+        "Label": "ThisItem.OperationNo",
+        "OnCheck": (
+            "With(\n"
+            "    { op: ThisItem.OperationNo, lid: ThisItem.LineId },\n"
+            "    UpdateIf(\n"
+            "        colVhpAttachments,\n"
+            "        ItemId = varVhpActiveItemId && LineId = lid,\n"
+            "        {\n"
+            "            OperationsKey:\n"
+            "                If(\n"
+            "                    \";\" & op & \";\" in Coalesce(OperationsKey, \";\"),\n"
+            "                    Coalesce(OperationsKey, \";\"),\n"
+            "                    Coalesce(OperationsKey, \";\") & op & \";\"\n"
+            "                )\n"
+            "        }\n"
+            "    )\n"
+            ")"
+        ),
+        "OnUncheck": (
+            "With(\n"
+            "    { op: ThisItem.OperationNo, lid: ThisItem.LineId },\n"
+            "    UpdateIf(\n"
+            "        colVhpAttachments,\n"
+            "        ItemId = varVhpActiveItemId && LineId = lid,\n"
+            "        { OperationsKey: Substitute(Coalesce(OperationsKey, \";\"), \";\" & op & \";\", \";\") }\n"
+            "    )\n"
+            ")"
+        ),
+        "Width": str(ATT_CELL_W),
+    }, h=22)
+
+
+def _attachments_pane():
+    # Selve filvalget mangler. Se docs/18-materialer-og-attachments.md:
+    # drag and drop fra stifinderen kraever Attachment-kontrollen, og den
+    # lever kun i en formular bundet til en liste med vedhaeftninger. Hvilken
+    # liste det skal vaere, afhaenger af hvad flowet vil have ind, og det er
+    # ikke afklaret endnu. Resten af fanen virker uden.
+    dropZone = group(
+        "conVhpAttDropZone",
+        [text_ctrl("txtVhpAttDropTitle", '"Drop documents here"', size=14,
+                   weight="Semibold", height=22, wrap="false", color=C_MUTED),
+         text_ctrl("txtVhpAttDropHint",
+                   '"The file picker is added once the attachment flow contract is known. '
+                   'Everything below already works."',
+                   size=12, color=C_MUTED, height=32, wrap="true")],
+        direction="Vertical", gap=4, height=86, width="Parent.Width",
+        align_items="Center", justify="Center",
+        fill=C_INPUT_BG, border_color=C_CARD_BORDER, border_thickness=1, radius=10)
+
+    btnRemove = button(
+        "btnVhpRemoveAttachment", '"Remove document"',
+        (
+            "If(\n"
+            f"    CountRows(Filter({ATT_ACTIVE}, Selected = true)) = 0,\n"
+            "    Set(varVhpRuntimeInfo, \"Select one or more documents to remove.\"),\n"
+            "    RemoveIf(colVhpAttachments, ItemId = varVhpActiveItemId, Selected = true);\n"
+            "    Set(varVhpRuntimeInfo, \"Removed selected document(s).\")\n"
+            ")"
+        ), danger=True, display_mode=DM_ITEM)
+    actions = button_row("conVhpAttActions", [btnRemove], OPS_CW)
+
+    chkSel = Ctrl("chkVhpAttSel", "ModernCheckbox", props={
+        "AccessibleLabel": '"Select document"',
+        "Default": "ThisItem.Selected",
+        "Height": "24",
+        "Label": '""',
+        "OnCheck": "Patch(colVhpAttachments, ThisItem, { Selected: true })",
+        "OnUncheck": "Patch(colVhpAttachments, ThisItem, { Selected: false })",
+        "Width": "30",
+    }, h=24)
+    txtName = text_ctrl("txtVhpAttName", "ThisItem.FileName", size=13, height=30,
+                        width=260, wrap="false")
+    txtScope = text_ctrl(
+        "txtVhpAttScope",
+        (
+            "If(\n"
+            "    Len(Coalesce(ThisItem.OperationsKey, \";\")) <= 1,\n"
+            "    \"Whole plan\",\n"
+            "    \"Operations: \" & Substitute(Mid(ThisItem.OperationsKey, 2), \";\", \" \")\n"
+            ")"
+        ), size=12, color=C_MUTED, height=30, width=240, wrap="false")
+
+    opsGal = Ctrl("galVhpAttOps", "Gallery", variant="Horizontal", props={
+        "AccessibleLabel": '"Operations for this document"',
+        "BorderStyle": "BorderStyle.None",
+        "Fill": C_TRANSPARENT,
+        "FillPortions": "0",
+        "Height": "26",
+        # Den ydre raekkes LineId baeres med ind i hver record - se
+        # _att_ops_cell.
+        "Items": ("With(\n"
+                  "    { lid: ThisItem.LineId },\n"
+                  f"    ForAll({ATT_OPS} As O, {{ OperationNo: O.OperationNo, LineId: lid }})\n"
+                  ")"),
+        "LayoutMinWidth": "0",
+        "LoadingSpinner": "LoadingSpinner.None",
+        "Selectable": "false",
+        "ShowScrollbar": "true",
+        "TemplatePadding": "0",
+        "TemplateSize": str(ATT_CELL_W),
+        "Width": "Parent.Width - 540",
+        "WrapCount": "1",
+    }, children=[_att_ops_cell()], h=26)
+
+    row = group("conVhpAttRow", [chkSel, txtName, txtScope, opsGal],
+                direction="Horizontal", gap=10, height="Parent.TemplateHeight - 2",
+                align_items="Center", width="Parent.TemplateWidth")
+
+    gal_h = f"Max(CountRows({ATT_ACTIVE}), 1) * {ATT_ROW_H + 2}"
+    gallery = Ctrl("galVhpAttachments", "Gallery", variant="Vertical", props={
+        "AccessibleLabel": '"Documents for active item"',
+        "BorderStyle": "BorderStyle.None",
+        "Fill": C_CARD_BORDER,
+        "FillPortions": "0",
+        "Height": gal_h,
+        "Items": f"Sort({ATT_ACTIVE}, LineId)",
+        "LayoutMinWidth": "0",
+        "LoadingSpinner": "LoadingSpinner.None",
+        "Selectable": "true",
+        "ShowScrollbar": "true",
+        "TabIndex": "0",
+        "TemplatePadding": "2",
+        "TemplateSize": str(ATT_ROW_H),
+        "Width": "Parent.Width",
+        "WrapCount": "1",
+    }, children=[row], h=gal_h)
+
+    empty = text_ctrl("txtVhpAttEmpty",
+                      '"No documents on this item yet."',
+                      size=13, color=C_MUTED, height=24, wrap="false",
+                      visible=f"IfError(!IsBlank(varVhpActiveItemId) && CountRows({ATT_ACTIVE}) = 0, false)")
+
+    note = text_ctrl("txtVhpAttNote",
+                     '"Leave every operation unticked to attach the document to the whole plan."',
+                     size=12, color=C_MUTED, height=18, wrap="true")
+
+    return group("conVhpAttPane", [dropZone, actions, note, gallery, empty],
+                 direction="Vertical", gap=12, width="Parent.Width")
 
 
 def build_tasklist_section():
@@ -255,7 +612,20 @@ def build_tasklist_section():
     opsTableWrap = group("conVhpOpsTableWrap", [opsHeader, opsDivider, gallery, opsEmpty],
                          direction="Vertical", gap=4, overflow_x="Scroll", width="Parent.Width")
 
-    return card("conVhpOpsCard", [header, helpPanel, toolbar, tasklistMeta, opsHint, opsTableWrap])
+    # Operationstabellen og dens hjaelpelinje er fanen Operations. De
+    # oevrige tre faner ligger ved siden af, hver i sin rude.
+    opsPane = group("conVhpOpsPane", [opsHint, opsTableWrap], direction="Vertical",
+                    gap=8, width="Parent.Width", visible=OPS_PANE_ON)
+    pkgPane = build_strategy_body()
+    pkgPane.vis = PKG_PANE_ON
+    matPane = _materials_pane()
+    matPane.vis = _tab_on("mat")
+    attPane = _attachments_pane()
+    attPane.vis = _tab_on("att")
+
+    return card("conVhpOpsCard",
+                [header, helpPanel, toolbar, tasklistMeta, _tab_bar(),
+                 opsPane, pkgPane, matPane, attPane])
 
 
 def build_dispatch_section():
