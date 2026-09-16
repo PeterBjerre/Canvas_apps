@@ -55,6 +55,12 @@ C_STRATEGY_KEY = "StrategyKey"
 # Samme streng staar som COL_NO i "Masterdata Hub/build/hub_config.py".
 C_INDEX_NO = "RequestNo"
 
+# Samme faelde i de to nye lister: provisioneringen omdoeber Title til
+# MaterialNo og FileName. Et Patch med { Title: ... } ville ramme ved siden
+# af - praecis som det gjorde i MD_RequestIndex.
+C_MATERIAL_NO = "MaterialNo"
+C_FILE_NAME   = "FileName"
+
 
 def _forall(source, fields, alias="R"):
     """ForAll med eksplicit record - virker i alle Power Fx-versioner.
