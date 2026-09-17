@@ -21,6 +21,14 @@ Public Const WS_MAINTENANCE_TL As String = "Maintenance_TL"
 Public Const WS_MAINTENANCE_ITEMS As String = "Maintenance_Items"
 Public Const WS_MAINTENANCE_PLANS As String = "Maintenance_Plans"
 Public Const WS_OBJECT_LIST As String = "Object_list"
+
+' Materialer og dokumenter hoerer til ARBEJDSPLANEN, ikke til planen -
+' derfor ligger de i egne lister (MD_TasklistMaterial,
+' MD_TasklistAttachment) og faar hver sin fane. Se
+' docs/18-materialer-og-attachments.md for hvorfor de ikke er kolonner
+' paa TaskListMain.
+Public Const WS_MAINTENANCE_MATERIALS As String = "Maintenance_Materials"
+Public Const WS_MAINTENANCE_ATTACHMENTS As String = "Maintenance_Attachments"
 Public Const WS_EXTRACT_DATA As String = "Extract Data"
 Public Const WS_ITEM_EXTRACT As String = "Raw_Item_Header"
 Public Const WS_TASKLIST_EXTRACT As String = "Raw_Tasklist_Operations"
@@ -94,7 +102,7 @@ Public Const USE_PYTHON_COMPARE As Boolean = False   ' True = PY()-based (requir
 ' Integrations
 Public Const POWER_AUTOMATE_URL As String = "https://default100b3c99f3e24da09c8ab9d345742c.36.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/353df9ba00c44de69aac2c0e826043f8/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=1Tjx-wgJvL_EFkb8hZvx7wvoWC3BWv_tApbhsmGMBnQ"
 Public Const SHAREPOINT_DEFAULT_PAGE_SIZE As Long = 500
-Public Const SHAREPOINT_MAINTENANCE_PLANS_URL As String = "https://orsted.sharepoint.com/teams/BioSAP/_api/web/lists/getbytitle('MaintenancePlans')/items"
-Public Const SHAREPOINT_MAINTENANCE_ITEMS_URL As String = "https://orsted.sharepoint.com/teams/BioSAP/_api/web/lists/getbytitle('MaintenanceItems')/items"
-Public Const SHAREPOINT_MAINTENANCE_TLH_URL As String = "https://orsted.sharepoint.com/teams/BioSAP/_api/web/lists/getbytitle('TaskListMain')/items"
-Public Const SHAREPOINT_MAINTENANCE_TL_URL As String = "https://orsted.sharepoint.com/teams/BioSAP/_api/web/lists/getbytitle('TaskListMain')/items"
+' De fire SHAREPOINT_MAINTENANCE_*_URL-konstanter stod her og pegede alle
+' paa BioSAP. De blev ubrugte, da modEnvironment.GetListUrl overtog, og er
+' fjernet: en hardkodet PROD-URL, der ligger og venter paa at blive
+' genfundet, er praecis den fejl miljoevaelgeren skulle lukke.

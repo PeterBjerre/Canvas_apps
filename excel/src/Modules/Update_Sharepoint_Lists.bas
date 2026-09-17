@@ -145,9 +145,9 @@ Private Sub SyncMaintenancePlans( _
             GoTo NextPlan
         End If
 
-        If Not IsSyncableSapValue(sapValue) Then
+        If Not IsSyncableSapNumber(sapValue) Then
             skipped = skipped + 1
-            WriteSyncState ws, i, statusCol, msgCol, atCol, SYNC_STATUS_SKIPPED, "Ingen gyldig SAPNum at synkronisere"
+            WriteSyncState ws, i, statusCol, msgCol, atCol, SYNC_STATUS_SKIPPED, "SAPNum er ikke et tal - intet sendt"
             GoTo NextPlan
         End If
 
@@ -232,9 +232,9 @@ Private Sub SyncMaintenanceItems( _
             GoTo NextItem
         End If
 
-        If Not IsSyncableSapValue(sapValue) Then
+        If Not IsSyncableSapNumber(sapValue) Then
             skipped = skipped + 1
-            WriteSyncState ws, i, statusCol, msgCol, atCol, SYNC_STATUS_SKIPPED, "Ingen gyldig SAPNumber at synkronisere"
+            WriteSyncState ws, i, statusCol, msgCol, atCol, SYNC_STATUS_SKIPPED, "SAPNumber er ikke et tal - intet sendt"
             GoTo NextItem
         End If
 
@@ -392,7 +392,7 @@ Private Sub SyncMaintenanceTaskLists( _
         listItemId = ParseListItemId(GetMapValue(ws, i, CLng(map("LIST_ID")), False))
         sapValue = Trim$(GetMapValue(ws, i, CLng(map("SAP_OUTPUT")), False))
 
-        If Not IsSyncableSapValue(sapValue) Then
+        If Not IsSyncableTaskListValue(sapValue) Then
             taskKey = NormalizeKeyValue(GetMapValue(ws, i, CLng(map("TASK_KEY"))))
             If Len(taskKey) > 0 Then
                 If Not taskSapMap Is Nothing Then
@@ -412,7 +412,7 @@ Private Sub SyncMaintenanceTaskLists( _
             GoTo NextTask
         End If
 
-        If Not IsSyncableSapValue(sapValue) Then
+        If Not IsSyncableTaskListValue(sapValue) Then
             skipped = skipped + 1
             WriteSyncState ws, i, statusCol, msgCol, atCol, SYNC_STATUS_SKIPPED, "Ingen gyldig SAP Task List at synkronisere"
             GoTo NextTask
@@ -525,7 +525,7 @@ Private Function BuildTaskSapMap(ByVal wsTlh As Worksheet, ByVal map As Object) 
 
         sapValue = ComposeTaskListSapValue(groupValue, counterValue)
 
-        If Len(taskKey) > 0 And IsSyncableSapValue(sapValue) Then
+        If Len(taskKey) > 0 And IsSyncableTaskListValue(sapValue) Then
             out(taskKey) = sapValue
         End If
     Next i
@@ -1117,20 +1117,71 @@ Private Function ParseListItemId(ByVal rawValue As Variant) As Long
     If IsNumeric(s) Then ParseListItemId = CLng(Val(s))
 End Function
 
-Private Function IsSyncableSapValue(ByVal rawValue As String) As Boolean
+' Her stod en BLOKLISTE: tre ting blev afvist - SKIPPED, ERROR og "ingen
+' task list" - og alt andet accepteret. Ogsaa en hel SAP-fejlsaetning. Ogsaa
+' det tilfaeldige tal, en fejlbesked kan indeholde, og som GUI-delen foer
+' skrev i SAP-nummer-kolonnen som om det var et oprettet objekt. Og saa blev
+' det sendt til SharePoint, og planen sat til Published.
+'
+' En blokliste kan kun afvise det, man har set foer. Den er vendt om: et
+' SAP-nummer er cifre, og intet andet.
+'
+' De to rettelser haenger sammen. Den i GUI_Script forhindrer, at et forkert
+' tal opstaar; den her forhindrer, at det slipper ud.
+Private Function IsSyncableSapNumber(ByVal rawValue As String) As Boolean
+    IsSyncableSapNumber = IsDigitsOnlyValue(StripTextPrefix(rawValue))
+End Function
+
+' Arbejdsplanens noegle er ikke et rent tal. ComposeTaskListSapValue saetter
+' den sammen som "A-<gruppe>-<taeller>", og det er den form, der skal kunne
+' sendes. Et bart gruppenummer accepteres ogsaa: det er den form, aeldre
+' raekker i SharePoint baerer, og at afvise dem ville vaere en ny fejl i
+' stedet for den, der blev lukket.
+Private Function IsSyncableTaskListValue(ByVal rawValue As String) As Boolean
+    Dim s As String
+    Dim parts() As String
+
+    s = StripTextPrefix(rawValue)
+    If Len(s) = 0 Then Exit Function
+
+    If IsDigitsOnlyValue(s) Then
+        IsSyncableTaskListValue = True
+        Exit Function
+    End If
+
+    If UCase$(Left$(s, 2)) <> "A-" Then Exit Function
+
+    parts = Split(s, "-")
+    If UBound(parts) <> 2 Then Exit Function
+
+    IsSyncableTaskListValue = IsDigitsOnlyValue(parts(1)) And IsDigitsOnlyValue(parts(2))
+End Function
+
+Private Function IsDigitsOnlyValue(ByVal valueText As String) As Boolean
+    Dim s As String
+    Dim k As Long
+    Dim ch As String
+
+    s = Trim$(valueText)
+    If Len(s) = 0 Then Exit Function
+
+    For k = 1 To Len(s)
+        ch = Mid$(s, k, 1)
+        If ch < "0" Or ch > "9" Then Exit Function
+    Next k
+
+    IsDigitsOnlyValue = True
+End Function
+
+' Celler, der er tvunget til tekst, baerer et foranstillet apostrof, naar de
+' laeses uformateret. Det hoerer ikke til vaerdien.
+Private Function StripTextPrefix(ByVal rawValue As String) As String
     Dim s As String
 
     s = Trim$(rawValue)
-    If Len(s) = 0 Then Exit Function
+    If Left$(s, 1) = "'" Then s = Trim$(Mid$(s, 2))
 
-    Dim upperText As String
-    upperText = UCase$(s)
-
-    If Left$(upperText, 7) = "SKIPPED" Then Exit Function
-    If Left$(upperText, 5) = "ERROR" Then Exit Function
-    If InStr(1, upperText, "INGEN TASK LIST", vbTextCompare) > 0 Then Exit Function
-
-    IsSyncableSapValue = True
+    StripTextPrefix = s
 End Function
 
 Private Function IsPlanSelectedForSync(ByVal rawSelection As Variant) As Boolean
