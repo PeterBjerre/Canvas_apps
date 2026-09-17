@@ -290,13 +290,21 @@ End Sub
 
 ' De ark, der indeholder data hentet fra SharePoint. Object_list er afledt
 ' af Maintenance_Items og foelger med.
+'
+' Materialer og dokumenter staar her af samme grund som de oevrige, og
+' ikke fordi GUI-delen bruger dem endnu: de hentes fra et miljoe, og saa
+' skal de ogsaa modsige et forkert et. Bliver listen foerst udvidet den
+' dag GUI'en tager dem i brug, er der et vindue, hvor to faner baerer DEV
+' og resten PROD, uden at noget siger fra.
 Private Function DataSheetNames() As Variant
     DataSheetNames = Array( _
         WS_MAINTENANCE_PLANS, _
         WS_MAINTENANCE_ITEMS, _
         WS_MAINTENANCE_TLH, _
         WS_MAINTENANCE_TL, _
-        WS_OBJECT_LIST)
+        WS_OBJECT_LIST, _
+        WS_MAINTENANCE_MATERIALS, _
+        WS_MAINTENANCE_ATTACHMENTS)
 End Function
 
 Private Function TryGetSheet(ByVal sheetName As String) As Worksheet
