@@ -244,7 +244,7 @@ Derfor foreslår jeg ikke bare en vælger, men tre ting omkring den.
 
 ### 1. Én vælger, afledte URL'er
 
-`Setup!D2` bliver miljøvælgeren: `DEV` eller `PROD`. De fire liste-URL'er
+En celle på `Setup` bliver miljøvælgeren: `DEV` eller `PROD`. De fire liste-URL'er
 **regnes ud** af site-URL plus listenavn i stedet for at stå som fire celler,
 der kan drive fra hinanden:
 
@@ -324,28 +324,33 @@ venter stadig på dit valg, og intet herunder afhænger af det.
 
 Kør `modEnvironment.SetupEnvironmentCell` én gang. Den:
 
-- skriver etiketten i `Setup!C2` og lægger en rulleliste på **`Setup!D2`**
-  med `DEV` og `PROD`
+- skriver etiketten "SharePoint site" i `Setup!F2` og lægger en rulleliste på
+  **`Setup!F3`** med `DEV` og `PROD`
 - sætter `DEV` som startværdi, så cellen ikke står tom
 - markerer de ark, der allerede ligger i mappen, som **`PROD`**
 
 Den sidste er med vilje. Det, der ligger i arkene nu, er hentet med de gamle
 hardkodede URL'er, og de pegede alle fire på BioSap. Stemplede jeg dem som
-det, du lige har valgt i `D2`, ville jeg påstå noget om data, jeg ikke ved.
+det, du lige har valgt i `F3`, ville jeg påstå noget om data, jeg ikke ved.
 Hent én gang forfra, før du opretter noget.
 
-`D2` er ny. `D3` (SAP-systemet) er som før, og `D5`–`D13` er urørte.
+`F3` er ny. `D3` (SAP-systemet) er som før, og `D5`–`D13` er urørte.
+
+Jeg havde først lagt vælgeren i `D2`. Det var forkert: `D2` indeholder
+etiketten **"SAP Client"** til `D3`. Jeg havde kun set celle-kortet gennem
+`Constants.bas`, ikke selve arket. Kolonne F er fri på hele `Setup`, og
+`F2`/`F3` følger samme mønster som `D2`/`D3` — etiket over værdi.
 
 ## De to celler
 
 | Celle | Styrer | Tom betyder |
 |---|---|---|
-| `Setup!D2` | SharePoint-site: `DEV` → BioSapDEV, `PROD` → BioSap | **fejl** — ikke `DEV` |
-| `Setup!D3` | SAP-system: `GQ1` eller `GP1` | følg `D2` |
+| `Setup!F3` | SharePoint-site: `DEV` → BioSapDEV, `PROD` → BioSap | **fejl** — ikke `DEV` |
+| `Setup!D3` | SAP-system: `GQ1` eller `GP1` | følg `F3` |
 
-En tom `D2` er ikke det samme som `DEV`. Et tomt felt, der stille blev læst
+En tom `F3` er ikke det samme som `DEV`. Et tomt felt, der stille blev læst
 som "det ufarlige", er præcis den slags antagelse, der en dag rammer det
-forkerte miljø. `D3` må derimod gerne stå tom — så følger den `D2`, og du kan
+forkerte miljø. `D3` må derimod gerne stå tom — så følger den `F3`, og du kan
 stadig overstyre den, når du vil køre tørprøven `PROD + GQ1`.
 
 ## Spærren
@@ -432,3 +437,148 @@ den blive fanget. Den kører rent på det, der ligger nu:
 44 moduler, 636 procedurer
 ingen problemer
 ```
+
+---
+
+# Tre svar
+
+## Power Query: den skifter ikke miljø — og henter ikke fra SharePoint
+
+Jeg pakkede `DataMashup` ud af regnearket og læste M-koden. Der er fem
+queries: `Maintenance_Plans`, `Maintenance_Items`, `Maintenance_TLH`,
+`Maintenance_TL` og `Object_list`. Alle fem begynder ens:
+
+```m
+Source = Excel.Workbook(File.Contents(
+    "C:\Users\PKBJE\OneDrive - Ørsted\Documents - Sapvedligehold\Apps\Microsoft Lists\BIO SAP VH-plan lister.xlsx"))
+```
+
+De henter ikke fra BioSap. De henter ikke fra BioSapDEV. De læser **én
+lokal fil på din OneDrive** — en manuel eksport af listerne, på din sti,
+med dit brugernavn. På en anden maskine findes filen ikke.
+
+Så svaret er "ingen af delene": der hentes ikke fra begge miljøer, og der
+hentes ikke fra nogen af dem.
+
+### De er heller ikke koblet på
+
+Kun `Vendor_Spend` er indlæst i et ark. De fem VH-plan-queries er
+**connection-only** — de kører, men lander ingen steder. Fanerne
+`Maintenance_Plans`, `Maintenance_Items`, `Maintenance_TLH`,
+`Maintenance_TL` og `Object_list` skrives af VBA (`WriteImportRows`), ikke
+af Power Query. De to systemer har samme navne på alt og rører ikke
+hinanden.
+
+### Og de indeholder den samme logik som VBA
+
+Det er den del, der bekymrer mig mest. Forretningsreglerne står **to
+steder**:
+
+| Regel | I M | I VBA |
+|---|---|---|
+| Planned date trukket én cyklus tilbage | `Date.AddYears(d, -c)` osv. | `ResolvePlanStartDate` |
+| Sort field nulpolstret til 3 | `Text.PadStart(_, 3, "0")` | `Maintenance activity type` |
+| Priority → nøgle (Red=1, Yellow=3, Blue=6) | `Added Conditional Column` | `ExtractPriorityKey` |
+| `REV mærke`: true → REV | `Table.ReplaceValue` | `NormalizeItemRevisionValue` |
+| Aktivitetstype før `" - "` | `Text.BeforeDelimiter` | `NormalizeItemIlartValue` |
+| Object list splittet på `\|\|\|` | `Splitter.SplitTextByDelimiter` | `RefreshObjectListFromMaintenanceItems` |
+
+To implementeringer af samme regel driver fra hinanden. Det er ikke et
+spørgsmål om, hvornår — kun om hvilken der er den rigtige, den dag de er
+uenige, og hvordan man opdager det.
+
+**Anbefaling:** de fem queries skal enten skrives om til at hente fra
+SharePoint gennem miljøvælgeren, eller slettes. Ikke ligge og køre på en
+filsti, der kun findes på din maskine. Det er samtidig svaret på
+spørgsmål 2: vælger vi Power Query-vejen, er det ikke noget nyt, vi bygger
+— det er de her fem, der bliver rettet til. `Vendor_Spend` skal blive, som
+den er.
+
+## GUI-scriptet: to ting der betyder noget, og fire der er pænere
+
+GUI-delen virker, og det er ikke lidt værd. Men der er to steder, hvor den
+kan tage fejl uden at sige det.
+
+### 1. Statuslinjen læses, men ikke dens type
+
+Efter hver gem hentes `wnd[0]/sbar`, og nummeret trækkes ud med et
+regulært udtryk:
+
+```vb
+statusText = objSess.FindById("wnd[0]/sbar").Text
+regex.Pattern = "\d+"
+If matches.Count > 0 Then
+    itemNumber = matches(0).Value
+    SetMapValue ws, i, sapOutCol, itemNumber
+```
+
+`sbar` har en `MessageType` (`S` succes, `E` fejl, `A` abend, `W`
+advarsel). Den læses ikke. Kommer SAP tilbage med en **fejl**, der
+indeholder et tal — og det gør fejlbeskeder ofte — bliver det tal skrevet
+i SAP-nummer-kolonnen som om det var et oprettet item.
+
+Rettelsen er to linjer: læs `objSBar.MessageType`, og accepter kun `S`.
+Variablen `objSBar` er allerede sat i `CreateGlobalDictionaries` og bliver
+ikke brugt.
+
+### 2. Én fejl stopper hele kørslen
+
+`CreateTLH`, `CreateItems` og `CreatePlans` har alle ét `myerr:` for hele
+løkken. Fejler række 12 af 40, ryger man ud af løkken, får
+"Der opstod en fejl under oprettelse af Items", og de resterende 28 bliver
+aldrig forsøgt — uden at nogen får at vide hvilke.
+
+`Update_Sharepoint_Lists` gør det allerede rigtigt: `On Error GoTo
+ItemRowError` inde i løkken, skriv fejlen i rækkens statusfelt, `Resume
+NextItem`. Samme mønster hører hjemme i de tre create-procedurer.
+
+### De fire mindre
+
+- **Ingen `ScreenUpdating = False`.** Hver `SetMapValue` er en
+  celleskrivning med genoptegning, genberegning og `Worksheet_Change`
+  ovenpå. På en kørsel med hundredvis af rækker er det mærkbart.
+- **`ws.Activate`** i `CreateTLH` er ikke nødvendig — alt arbejdet går
+  gennem `ws`-referencen alligevel.
+- **Celler læses én ad gangen.** `GetMapValue` er ét COM-kald pr. felt. Ti
+  felter gange fyrre rækker er fire hundrede kald, hvor ét
+  `ws.Range(...).Value`-array ville gøre det. Men: det er småting mod SAP's
+  svartid, så det er oprydning, ikke hastighed.
+- **140 `FindById` med fulde stier.** De lange
+  `subSUBSCREEN_MITEM:SAPLIWP3:8002/...`-stier står ordret flere gange.
+  Trækkes de ud i konstanter, kan de rettes ét sted, når SAP ændrer et
+  skærmbillede.
+
+**Rækkefølge:** de to første. De andre fire kan vente, og ingen af dem
+ændrer noget for brugeren.
+
+## Tilbageskrivningen: mekanikken findes, kontrollen gør ikke
+
+Du skal ikke bygge noget nyt. `SyncSelectedCreatedRowsToSharePoint` kører
+allerede automatisk som sidste trin i `StartExtract`, og kan køres alene
+fra sin egen knap bagefter. Den tager de planer, der er markeret med
+`CreateInSAP`, slår SharePoint-`Id` op på rækken, og sender en `MERGE` med
+`SAPNum` og `Status = Published`.
+
+Det, der mangler, er kontrollen af, **hvad** der sendes:
+
+```vb
+If Left$(upperText, 7) = "SKIPPED" Then Exit Function
+If Left$(upperText, 5) = "ERROR" Then Exit Function
+If InStr(1, upperText, "INGEN TASK LIST", vbTextCompare) > 0 Then Exit Function
+IsSyncableSapValue = True
+```
+
+Det er en liste over tre ting, der afvises. Alt andet accepteres — også
+en hel SAP-fejlsætning, også det tilfældige tal fra fejlen i punkt 1
+ovenfor. Og så skrives det til SharePoint, og planen får `Published`.
+
+En blokliste kan kun afvise det, man har set før. Den skal vendes om: et
+SAP-nummer er cifre, og intet andet. `IsDigitsOnly` findes allerede i
+`GUI_Script`.
+
+De to rettelser hænger sammen — den første forhindrer, at et forkert tal
+opstår; den anden forhindrer, at det slipper ud. Jeg vil lave dem begge.
+
+**Svaret på dit spørgsmål er altså:** du skal ikke gøre noget. Den skriver
+selv tilbage, når GUI'en er færdig. Men jeg vil ikke anbefale dig at stole
+på den, før de to rettelser er inde.
