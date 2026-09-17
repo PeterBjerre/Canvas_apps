@@ -185,5 +185,130 @@ Det meste af arbejdet er at **fjerne** kode, ikke skrive ny. Regnearket
 bliver mindre, og den del der er svær at få til at virke, bliver til noget,
 Office selv står for.
 
-**Sig hvilket site der gælder, og hvilken vej du vil gå — så bygger jeg
-trin 2 og 3.**
+---
+
+# Tillæg: skift mellem BioSAP og BioSAPDEV
+
+Besvarer dit svar på spørgsmål 1. Og undervejs viste det sig, at spørgsmålet
+allerede var besvaret én gang.
+
+## Vælgeren fandtes — den blev designet væk
+
+`Setup`-fanen har **allerede** celler til det hele:
+
+| Celle | Indhold |
+|---|---|
+| `D3` | SAP-system: `GP1` (Production) eller `GQ1` (Quality) |
+| `D5` | Flow-URL |
+| `D6`–`D9` | SharePoint-URL for Plans, Items, TLH, TL |
+| `D10`–`D11` | Credential target og token-fallback |
+
+SAP-delen bruger sin: `GetSystemPrefix()` læser `D3` og vælger mellem
+`"SAP  DECS GP1  Production"` og `"SAP  DECS GQ1  Quality"`. **Det er
+derfor GUI-delen kan skifte miljø, og SharePoint-delen ikke kan.**
+
+`modSharePointImport` ignorerer `D6`–`D11` og bruger sine egne konstanter.
+Kommentaren i koden siger det selv:
+
+```vb
+' Code-based config (ingen Setup-ark afhængighed)
+```
+
+Nogen har bevidst flyttet konfigurationen fra arket ind i koden — og dermed
+fjernet den omskiftelighed, der allerede var bygget. Det skal bare føres
+tilbage.
+
+## To miljø-akser, ikke én
+
+Det er her, det bliver farligt. Efter ændringen har regnearket **to**
+uafhængige miljøvalg:
+
+| Akse | Hvor | Værdier |
+|---|---|---|
+| SharePoint-site | ny | BioSAP · BioSAPDEV |
+| SAP-system | `Setup!D3` | GP1 (prod) · GQ1 (test) |
+
+Fire kombinationer. To er fornuftige, én er en tørprøve, og **én er den, der
+holder folk vågne om natten**:
+
+| SharePoint | SAP | Betydning |
+|---|---|---|
+| DEV | GQ1 | Test. Fint |
+| PROD | GP1 | Drift. Fint |
+| PROD | GQ1 | Tørprøve: rigtige planer, oprettes i testsystemet. Brugbart |
+| **DEV** | **GP1** | **Testdata oprettes i produktions-SAP.** Den må ikke ske ved et uheld |
+
+Derfor foreslår jeg ikke bare en vælger, men tre ting omkring den.
+
+## Forslaget
+
+### 1. Én vælger, afledte URL'er
+
+`Setup!D2` bliver miljøvælgeren: `DEV` eller `PROD`. De fire liste-URL'er
+**regnes ud** af site-URL plus listenavn i stedet for at stå som fire celler,
+der kan drive fra hinanden:
+
+```vb
+GetListUrl("MaintenancePlans")
+  -> GetSiteUrl() & "/_api/web/lists/getbytitle('MaintenancePlans')/items"
+```
+
+Én ting at skifte. Fire URL'er kan ikke længere pege hver sin vej.
+
+Vælgeren sætter **også** `D3` som standard — DEV → GQ1, PROD → GP1 — men
+`D3` kan stadig overstyres manuelt, så tørprøven PROD+GQ1 er mulig.
+
+### 2. Miljøet stemples på de hentede data
+
+Det her er den vigtige, og den er billig.
+
+Hver import skriver miljøet ind på fanen. `CreateMaintenancePlansFromButton`
+og `SyncSelectedCreatedRowsToSharePoint` **nægter at køre**, hvis stemplet
+ikke svarer til den aktuelle vælger:
+
+> *Arket indeholder data hentet fra **DEV**, men vælgeren står på **PROD**.
+> Hent igen, eller skift tilbage.*
+
+Uden det er der intet, der forhindrer: hent fra DEV → skift til PROD →
+opret. Arket ser ens ud i begge tilfælde. Med stemplet er den vej lukket.
+
+### 3. Miljøet er synligt, og PROD spørger
+
+Den aktuelle kombination står øverst på hver relevant fane — ikke begravet i
+`Setup`. Og de to handlinger, der ændrer noget uden for regnearket
+(oprettelse i SAP, tilbageskrivning til SharePoint), beder om en bekræftelse,
+der **nævner miljøet ved navn**, når det er PROD eller GP1.
+
+Ikke en dialog for hver knap. Kun de to, der kan gøre skade.
+
+## Hvad det betyder for spørgsmål 2
+
+Vælgeren fungerer i begge veje, så valget står stadig åbent — men det er
+blevet lettere:
+
+**Power Query** læser samme celle som VBA via `Excel.CurrentWorkbook()`, så
+der er fortsat én kilde til sandheden. Den henter sine data på en
+godkendelse, Office selv vedligeholder.
+
+**Token-vejen** bliver nu billigere end først antaget: cellerne til
+credential target og token-fallback **findes allerede** i `Setup` (`D10`,
+`D11`), så rørene er lagt. Det, der mangler, er en Entra-app-registrering og
+et token, der fornys — og det er en aftale med IT, ikke kode.
+
+Jeg anbefaler stadig **Power Query** til hentningen. Med ét forbehold, jeg
+ikke vil tale udenom: den præcise kolonneform — hvordan opslags- og
+valgfelter kommer ud, og om `FieldValuesAsText` er nødvendig — skal
+efterprøves med én rigtig hentning, før jeg lover, at heuristikken kan
+slettes. Det er én test, ikke en ombygning.
+
+## Rækkefølge
+
+| Trin | Omfang |
+|---|---|
+| Miljøvælger i `Setup` + `GetSiteUrl`/`GetListUrl` | lille — fører den eksisterende `Setup`-afhængighed tilbage |
+| Stempling og spærre | lille, og det er den der beskytter |
+| Synligt miljø + bekræftelse ved PROD | lille |
+| Hentningen selv (Power Query eller token) | stor — men mest sletning |
+
+**De tre første kan bygges nu og er uafhængige af, hvad du vælger i
+spørgsmål 2.** Sig til, så går jeg i gang med dem.
