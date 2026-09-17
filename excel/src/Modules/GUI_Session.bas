@@ -1,8 +1,12 @@
 Attribute VB_Name = "GUI_Session"
 Option Explicit
 
+' Laeser stadig Setup!D3, men gennem modEnvironment, saa en tom celle
+' falder tilbage paa miljoeet i D2 i stedet for paa en tom streng. Foer
+' gav en tom D3 et systemId paa kun klientnummeret, og forbindelsen
+' fejlede uden at sige hvorfor.
 Private Function GetSystemPrefix() As String
-    GetSystemPrefix = Trim(CStr(Worksheets(WS_SETUP).Cells(SETUP_SYSTEM_ROW, SETUP_SYSTEM_COL).Value))
+    GetSystemPrefix = modEnvironment.GetSapPrefix()
 End Function
 
 Public Sub SAP_AutoLogin_Core()

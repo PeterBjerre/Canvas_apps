@@ -312,3 +312,123 @@ slettes. Det er én test, ikke en ombygning.
 
 **De tre første kan bygges nu og er uafhængige af, hvad du vælger i
 spørgsmål 2.** Sig til, så går jeg i gang med dem.
+
+---
+
+# Bygget: miljøvælgeren
+
+De tre første trin er lavet. Hentningen selv (spørgsmål 2) er urørt — den
+venter stadig på dit valg, og intet herunder afhænger af det.
+
+## Hvad du skal gøre først
+
+Kør `modEnvironment.SetupEnvironmentCell` én gang. Den:
+
+- skriver etiketten i `Setup!C2` og lægger en rulleliste på **`Setup!D2`**
+  med `DEV` og `PROD`
+- sætter `DEV` som startværdi, så cellen ikke står tom
+- markerer de ark, der allerede ligger i mappen, som **`PROD`**
+
+Den sidste er med vilje. Det, der ligger i arkene nu, er hentet med de gamle
+hardkodede URL'er, og de pegede alle fire på BioSap. Stemplede jeg dem som
+det, du lige har valgt i `D2`, ville jeg påstå noget om data, jeg ikke ved.
+Hent én gang forfra, før du opretter noget.
+
+`D2` er ny. `D3` (SAP-systemet) er som før, og `D5`–`D13` er urørte.
+
+## De to celler
+
+| Celle | Styrer | Tom betyder |
+|---|---|---|
+| `Setup!D2` | SharePoint-site: `DEV` → BioSapDEV, `PROD` → BioSap | **fejl** — ikke `DEV` |
+| `Setup!D3` | SAP-system: `GQ1` eller `GP1` | følg `D2` |
+
+En tom `D2` er ikke det samme som `DEV`. Et tomt felt, der stille blev læst
+som "det ufarlige", er præcis den slags antagelse, der en dag rammer det
+forkerte miljø. `D3` må derimod gerne stå tom — så følger den `D2`, og du kan
+stadig overstyre den, når du vil køre tørprøven `PROD + GQ1`.
+
+## Spærren
+
+`DEV + GP1` kan ikke lade sig gøre. Ikke en advarsel man kan klikke forbi:
+
+```
+Spaerret.
+
+Data er hentet fra SharePoint DEV, men SAP staar paa GP1 (Production).
+
+Testdata maa ikke oprettes i produktions-SAP.
+```
+
+De tre andre kombinationer kører. `PROD` og `GP1` spørger én gang pr. kørsel
+og nævner miljøet ved navn; `DEV + GQ1` spørger slet ikke — en bekræftelse,
+man ser hver gang, holder man op med at læse.
+
+Kontrollen sidder to steder, og kun to:
+
+- `GUI_Script.StartExtract` — det eneste sted, der opretter noget i SAP
+- `Update_Sharepoint_Lists.SyncSelectedCreatedRowsToSharePoint` — det eneste
+  sted, der skriver tilbage til SharePoint
+
+Den anden kaldes af den første. Den spørger ikke to gange: `StartExtract`
+sætter et flag for kørslen. **Spærren mod `DEV + GP1` gælder uanset flaget.**
+
+## Stemplingen
+
+Hvert ark bærer, hvilket miljø dets data kom fra. Uden det er der intet, der
+forhindrer: hent fra DEV, skift til PROD, opret — arket ser ens ud i begge
+tilfælde.
+
+Stemplet ligger som et skjult defineret navn (`EnvStamp_<CodeName>`) og ikke
+i en celle, så fanernes layout er urørt — importkoden regner med bestemte
+rækker og kolonner.
+
+Det sættes ét sted: `WriteImportRows`. Alle importstier, både standard og
+all-fields, skriver deres ark derigennem, og `Object_list` gør det også.
+Også når der ingen rækker er — arket er ryddet, og det tomme resultat gælder
+det valgte miljø.
+
+Et **ustemplet** ark slipper igennem. Så er regnearket lige blevet bygget om,
+og der er ikke noget at modsige.
+
+## Hvad der ellers ændrede sig
+
+- `modSharePointImport` har ikke længere fire hardkodede BioSap-URL'er. De
+  fire lister står som **navne** (`MaintenancePlans`, `MaintenanceItems`,
+  `TaskListMain`), og sitet kommer fra `GetSiteUrl()`. De kan ikke længere
+  drive fra hinanden.
+- `GUI_Session.GetSystemPrefix` læser stadig `Setup!D3`, men gennem
+  `modEnvironment.GetSapPrefix()`. Før gav en tom `D3` et `systemId` på kun
+  klientnummeret, og forbindelsen fejlede uden at sige hvorfor.
+- Importens kvittering starter med miljøet, så du kan se, hvor det kom fra,
+  uden at slå op i `Setup`.
+
+## To ting jeg ikke gjorde
+
+**Miljøet står ikke permanent på fanerne.** Det var trin 3 i forslaget
+ovenfor. At skrive i en celle på datafanerne betyder at flytte noget, og
+importkoden regner med faste rækker (`START_ROW_DEFAULT = 3`,
+`START_ROW_TL = 2`). Miljøet vises i stedet i importkvitteringen og i begge
+bekræftelser. Skal det stå fast på fanerne, skal vi vælge en celle, der er
+fri på tværs af alle fem faner — sig til, så finder vi den.
+
+**`TLH` og `TL` peger stadig begge på `TaskListMain`.** Det gjorde de også
+før; det er ikke noget, jeg har indført, og jeg har ikke ændret det, fordi de
+to importer læser forskellige kolonner ud af samme liste. Men det er værd at
+kigge på, når vi alligevel er i importen.
+
+## Kontrollen
+
+`tools/check_vba.py` læser alle 44 moduler statisk og fanger det, der ellers
+først dukker op i Excels egen kompilering: en procedure uden `End`, en `GoTo`
+uden label, et `modX.Member`-kald til noget, der ikke findes eller ikke er
+`Public`. Regnearket kan kun kompileres i Excel, og hver kompilering koster
+en runde frem og tilbage.
+
+Alle fire kontroller er efterprøvet ved at lægge den rigtige fejl ind og se
+den blive fanget. Den kører rent på det, der ligger nu:
+
+```
+44 moduler, 636 procedurer
+ingen problemer
+```
