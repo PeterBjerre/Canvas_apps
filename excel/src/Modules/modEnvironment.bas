@@ -51,9 +51,12 @@ Private Const SITE_PROD As String = "https://orsted.sharepoint.com/teams/BioSAP"
 Private Const SAP_PREFIX_PROD As String = "GP1"
 Private Const SAP_PREFIX_DEV As String = "GQ1"
 
-' Setup!D2. D3 er SAP-systemet og laeses af GUI_Session som hidtil.
-Public Const SETUP_ENVIRONMENT_ROW As Long = 2
-Public Const SETUP_ENVIRONMENT_COL As Long = 4
+' Setup!F3, med etiketten i F2 - samme moenster som "SAP Client" i D2 og
+' vaerdien i D3. Kolonne D er optaget hele vejen ned: D2/D3 er SAP-systemet,
+' og D5-D13 er reserveret i Constants.bas til flow-URL og SharePoint-celler,
+' selv om de staar tomme i dag. Kolonne F er fri paa hele arket.
+Public Const SETUP_ENVIRONMENT_ROW As Long = 3
+Public Const SETUP_ENVIRONMENT_COL As Long = 6
 
 Private Const STAMP_PREFIX As String = "EnvStamp_"
 
@@ -64,6 +67,21 @@ Private mRunConfirmed As Boolean
 
 
 ' --- miljoeet -------------------------------------------------------------
+
+' Adressen staar eet sted. Flytter cellen sig, flytter beskederne med.
+Public Function EnvironmentCellAddress() As String
+    EnvironmentCellAddress = WS_SETUP & "!" & _
+        ThisWorkbook.Worksheets(WS_SETUP) _
+            .Cells(SETUP_ENVIRONMENT_ROW, SETUP_ENVIRONMENT_COL) _
+            .Address(False, False)
+End Function
+
+Public Function SapCellAddress() As String
+    SapCellAddress = WS_SETUP & "!" & _
+        ThisWorkbook.Worksheets(WS_SETUP) _
+            .Cells(SETUP_SYSTEM_ROW, SETUP_SYSTEM_COL) _
+            .Address(False, False)
+End Function
 
 Public Function GetEnvironment() As String
     Dim raw As String
@@ -77,11 +95,11 @@ Public Function GetEnvironment() As String
             ' blev laest som "det ufarlige", er praecis den slags antagelse,
             ' der en dag rammer det forkerte miljoe.
             Err.Raise 3001, "modEnvironment", _
-                "Miljoeet er ikke valgt. Saet " & WS_SETUP & "!D" & SETUP_ENVIRONMENT_ROW & _
+                "Miljoeet er ikke valgt. Saet " & EnvironmentCellAddress() & _
                 " til " & ENV_DEV & " eller " & ENV_PROD & "."
         Case Else
             Err.Raise 3002, "modEnvironment", _
-                "Ukendt miljoe '" & raw & "' i " & WS_SETUP & "!D" & SETUP_ENVIRONMENT_ROW & _
+                "Ukendt miljoe '" & raw & "' i " & EnvironmentCellAddress() & _
                 ". Gyldige vaerdier: " & ENV_DEV & ", " & ENV_PROD & "."
     End Select
 End Function
@@ -150,8 +168,8 @@ Public Function AssertEnvironmentSafe(ByVal actionText As String) As Boolean
             "Data er hentet fra SharePoint " & ENV_DEV & ", men SAP staar paa " & _
             SAP_PREFIX_PROD & " (Production)." & vbCrLf & vbCrLf & _
             "Testdata maa ikke oprettes i produktions-SAP." & vbCrLf & vbCrLf & _
-            "Skift enten miljoeet til " & ENV_PROD & " i " & WS_SETUP & "!D" & SETUP_ENVIRONMENT_ROW & _
-            ", eller SAP-systemet til " & SAP_PREFIX_DEV & " i " & WS_SETUP & "!D" & SETUP_SYSTEM_ROW & ".", _
+            "Skift enten miljoeet til " & ENV_PROD & " i " & EnvironmentCellAddress() & _
+            ", eller SAP-systemet til " & SAP_PREFIX_DEV & " i " & SapCellAddress() & ".", _
             vbCritical + vbOKOnly, "Forkert miljoekombination"
         AssertEnvironmentSafe = False
         Exit Function
@@ -325,9 +343,9 @@ End Function
 
 ' --- opsaetning -----------------------------------------------------------
 
-' Koeres een gang. Setup!D2 findes ikke i det regneark, der ligger i dag -
-' SAP-systemet i D3 har vaeret det eneste valg. Den her skriver etiketten,
-' laegger en rulleliste paa D2 og saetter en startvaerdi, saa cellen ikke
+' Koeres een gang. Miljoecellen findes ikke i det regneark, der ligger i dag
+' - SAP-systemet har vaeret det eneste valg. Den her skriver etiketten,
+' laegger en rulleliste paa cellen og saetter en startvaerdi, saa den ikke
 ' staar tom (og GetEnvironment dermed fejler) foerste gang.
 Public Sub SetupEnvironmentCell(Optional ByVal defaultEnvironment As String = ENV_DEV)
     Dim ws As Worksheet
@@ -338,10 +356,10 @@ Public Sub SetupEnvironmentCell(Optional ByVal defaultEnvironment As String = EN
 
     Set ws = ThisWorkbook.Worksheets(WS_SETUP)
     Set envCell = ws.Cells(SETUP_ENVIRONMENT_ROW, SETUP_ENVIRONMENT_COL)
-    Set labelCell = ws.Cells(SETUP_ENVIRONMENT_ROW, SETUP_ENVIRONMENT_COL - 1)
+    Set labelCell = ws.Cells(SETUP_ENVIRONMENT_ROW - 1, SETUP_ENVIRONMENT_COL)
 
     If Len(Trim$(CStr(labelCell.value))) = 0 Then
-        labelCell.value = "Miljoe (SharePoint)"
+        labelCell.value = "SharePoint site"
     End If
 
     ' Rullelisten er en bekvemmelighed. Er arket beskyttet, saa den ikke kan
@@ -370,7 +388,7 @@ Public Sub SetupEnvironmentCell(Optional ByVal defaultEnvironment As String = EN
     StampDataSheetsAs ENV_PROD
 
     MsgBox _
-        WS_SETUP & "!D" & SETUP_ENVIRONMENT_ROW & " er klar." & vbCrLf & vbCrLf & _
+        EnvironmentCellAddress() & " er klar." & vbCrLf & vbCrLf & _
         DescribeEnvironment() & vbCrLf & vbCrLf & _
         "Arkene er markeret som " & ENV_PROD & ", fordi de er hentet fra BioSap" & vbCrLf & _
         "med den gamle kode. Hent data igen, foer der oprettes noget.", _
@@ -378,6 +396,8 @@ Public Sub SetupEnvironmentCell(Optional ByVal defaultEnvironment As String = EN
     Exit Sub
 
 Failed:
-    MsgBox "Kunne ikke saette " & WS_SETUP & "!D" & SETUP_ENVIRONMENT_ROW & ": " & _
-        Err.Description, vbCritical + vbOKOnly, "Miljoevalg"
+    ' Adressen slaas ikke op her. Naar vi er havnet i en fejlhaandtering,
+    ' er det maaske netop Setup-arket, der ikke kunne naas.
+    MsgBox "Kunne ikke saette miljoecellen: " & Err.Description, _
+        vbCritical + vbOKOnly, "Miljoevalg"
 End Sub
