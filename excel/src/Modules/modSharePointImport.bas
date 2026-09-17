@@ -6,11 +6,15 @@ Private Const START_ROW_TL As Long = 2
 Private Const PLAN_SELECTION_HEADER As String = "CreateInSAP"
 Private Const PLAN_READY_STATUS As String = "ready for creation in sap"
 
-' Code-based config (ingen Setup-ark afhængighed)
-Private Const CFG_SHAREPOINT_PLANS_URL As String = "https://orsted.sharepoint.com/teams/BioSAP/_api/web/lists/getbytitle('MaintenancePlans')/items"
-Private Const CFG_SHAREPOINT_ITEMS_URL As String = "https://orsted.sharepoint.com/teams/BioSAP/_api/web/lists/getbytitle('MaintenanceItems')/items"
-Private Const CFG_SHAREPOINT_TLH_URL As String = "https://orsted.sharepoint.com/teams/BioSAP/_api/web/lists/getbytitle('TaskListMain')/items"
-Private Const CFG_SHAREPOINT_TL_URL As String = "https://orsted.sharepoint.com/teams/BioSAP/_api/web/lists/getbytitle('TaskListMain')/items"
+' Listerne staar som NAVNE, ikke som URL'er. Sitet kommer fra
+' modEnvironment.GetSiteUrl(), saa alle fire foelger miljoevalget i
+' Setup!D2 og ikke kan pege hver sin vej. De fire hardkodede
+' BioSAP-URL'er, der stod her, var grunden til at kun GUI-delen kunne
+' skifte miljoe.
+Private Const CFG_LIST_PLANS As String = "MaintenancePlans"
+Private Const CFG_LIST_ITEMS As String = "MaintenanceItems"
+Private Const CFG_LIST_TLH As String = "TaskListMain"
+Private Const CFG_LIST_TL As String = "TaskListMain"
 
 ' Tom = auto: bruger Environ("USERNAME"), fx PKBJE
 Private Const CFG_SHAREPOINT_CREDENTIAL_TARGET As String = ""
@@ -167,7 +171,8 @@ Public Sub ImportSharePointMaintenanceData(Optional ByVal showSummary As Boolean
     ApplyMaintenanceTlDisplayAndColors
 
     If showSummary Then
-        MsgBox "SharePoint import faerdig." & vbCrLf & _
+        MsgBox modEnvironment.DescribeEnvironment() & vbCrLf & vbCrLf & _
+               "SharePoint import faerdig." & vbCrLf & _
                WS_MAINTENANCE_PLANS & ": " & CStr(cntPlans) & vbCrLf & _
                WS_MAINTENANCE_ITEMS & ": " & CStr(cntItems) & vbCrLf & _
                WS_OBJECT_LIST & ": " & CStr(cntObjectList) & vbCrLf & _
@@ -1949,6 +1954,12 @@ Private Sub WriteImportRows(ByVal sheetName As String, ByVal startRow As Long, B
         Set ws = ThisWorkbook.Worksheets.Add(After:=ThisWorkbook.Worksheets(ThisWorkbook.Worksheets.Count))
         ws.Name = sheetName
     End If
+
+    ' Hvert ark baerer, hvilket miljoe dets data kom fra. Stemplet saettes
+    ' her, fordi alle importstier - baade standard og all-fields - skriver
+    ' arket gennem denne ene procedure. Ogsaa naar der ingen raekker er:
+    ' arket er ryddet, og det tomme resultat gaelder det valgte miljoe.
+    modEnvironment.StampSheetEnvironment ws
 
     Dim colCount As Long
     colCount = HeaderCount(headers)
@@ -4150,19 +4161,19 @@ Private Function GetSharePointTokenFallback() As String
 End Function
 
 Private Function GetSharePointPlansUrl() As String
-    GetSharePointPlansUrl = Trim$(CFG_SHAREPOINT_PLANS_URL)
+    GetSharePointPlansUrl = modEnvironment.GetListUrl(CFG_LIST_PLANS)
 End Function
 
 Private Function GetSharePointItemsUrl() As String
-    GetSharePointItemsUrl = Trim$(CFG_SHAREPOINT_ITEMS_URL)
+    GetSharePointItemsUrl = modEnvironment.GetListUrl(CFG_LIST_ITEMS)
 End Function
 
 Private Function GetSharePointTlhUrl() As String
-    GetSharePointTlhUrl = Trim$(CFG_SHAREPOINT_TLH_URL)
+    GetSharePointTlhUrl = modEnvironment.GetListUrl(CFG_LIST_TLH)
 End Function
 
 Private Function GetSharePointTlUrl() As String
-    GetSharePointTlUrl = Trim$(CFG_SHAREPOINT_TL_URL)
+    GetSharePointTlUrl = modEnvironment.GetListUrl(CFG_LIST_TL)
 End Function
 
 Private Function GetSharePointTlhFilter() As String

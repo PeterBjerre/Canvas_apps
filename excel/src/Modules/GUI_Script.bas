@@ -24,9 +24,28 @@ Private mReadyTlGroupSet As Object
 Sub StartExtract()
     Dim W_Ret As Boolean
 
+    ' Dette er det eneste sted, hvor der oprettes noget i SAP. Derfor
+    ' ligger begge kontroller her og ikke i CreateTLH/CreateItems/CreatePlans.
+    '
+    '   1. Miljoekombinationen. DEV-data + GP1 spaerres haardt.
+    '   2. Arkene. Data hentet fra eet miljoe maa ikke oprettes i et andet,
+    '      og et ark viser ikke selv, hvor det kommer fra.
+    If Not modEnvironment.AssertEnvironmentSafe( _
+        "Planer, items og tasklists markeret med CreateInSAP oprettes nu i SAP.") Then Exit Sub
+    If Not modEnvironment.AssertDataSheetsMatchEnvironment() Then Exit Sub
+
+    ' Resten af koerslen spoerger ikke igen - heller ikke den sync til sidst.
+    ' Flaget SKAL ryddes igen, ogsaa naar noget gaar galt undervejs. Blev
+    ' det staaende, ville naeste sync springe bekraeftelsen over.
+    modEnvironment.BeginEnvironmentRun
+    On Error GoTo Failed
+
     ' Forbind til SAP via GUI_Session (læser system fra Setup-ark)
     W_Ret = Attach_Session_Core()
-    If Not W_Ret Then Exit Sub
+    If Not W_Ret Then
+        modEnvironment.EndEnvironmentRun
+        Exit Sub
+    End If
 
     ResetCreateScope
 
@@ -45,7 +64,16 @@ Sub StartExtract()
     ' End the GUI session
     objSess.EndTransaction
 
+    modEnvironment.EndEnvironmentRun
+    Exit Sub
 
+Failed:
+    ' Beskeden gemmes foerst. Err ryddes, naar EndEnvironmentRun vender
+    ' tilbage herfra, og saa er der ikke mere at fortaelle brugeren.
+    Dim failedText As String
+    failedText = Err.Description
+    modEnvironment.EndEnvironmentRun
+    MsgBox "Oprettelsen stoppede: " & failedText, vbCritical + vbOKOnly
 End Sub
 
 

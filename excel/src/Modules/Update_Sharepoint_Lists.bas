@@ -30,6 +30,13 @@ Public Sub SyncSelectedCreatedRowsToSharePoint()
     Dim tlSkipped As Long
     Dim tlFailed As Long
 
+    ' Skriver SAP-numre tilbage til SharePoint. Kaldes bade fra StartExtract
+    ' og fra egen knap, saa kontrollen skal staa her og ikke kun i StartExtract.
+    ' Under StartExtract er den allerede bekraeftet og spoerger ikke igen.
+    If Not modEnvironment.AssertEnvironmentSafe( _
+        "SAP-numre skrives nu tilbage til SharePoint-listerne.") Then Exit Sub
+    If Not modEnvironment.AssertDataSheetsMatchEnvironment() Then Exit Sub
+
     On Error GoTo SyncError
 
     Set wsPlans = ThisWorkbook.Worksheets(WS_MAINTENANCE_PLANS)
