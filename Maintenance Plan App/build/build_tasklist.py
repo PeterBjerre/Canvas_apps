@@ -9,6 +9,7 @@ from build_helpers import (text_ctrl, group, button, button_row, text_input, num
 from build_plan_header import section_header, help_panel
 import build_help as bh
 from build_strategy import build_strategy_body, IS_STRATEGY
+import sp_config as cfg
 
 DM_ITEM = "If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)"
 OPS_CW = f"({SHELL_W} - 36)"
@@ -26,6 +27,7 @@ OPS_COLS = [
     ("OP NO.", 60),
     ("OPERATION SHORT TEXT", 200),
     ("WORK (H)", 64),
+    ("NO.", 50),
     ("DUR. (H)", 64),
     ("MAIN WORK CENTER", 110),
     ("CTRL", 90),
@@ -514,6 +516,7 @@ def build_tasklist_section():
             "            OperationNo: Text(Coalesce(Max(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Value(OperationNo)), 0) + 10, \"0000\"),\n"
             "            OperationShortText: \"\",\n"
             "            WorkHours: 1,\n"
+            "            Persons: 1,\n"
             "            DurationHours: 1,\n"
             "            MainWorkCenter: \"\",\n"
             "            ControlKey: \"\",\n"
@@ -595,10 +598,31 @@ def build_tasklist_section():
     txtOpShort = text_input("txtVhpOpShortText", "ThisItem.OperationShortText", width=w["OPERATION SHORT TEXT"],
                             height=32,
                             onchange="Patch(colVhpOperations, ThisItem, { OperationShortText: Self.Text })")
+    # Work og No. skriver BEGGE varigheden, fordi den er regnet af dem
+    # begge. Gjorde kun den ene det, ville et skift i den anden efterlade en
+    # varighed, der ikke passer til linjen - og det er varigheden, der
+    # gemmes i TaskListMain.Duration og sendes videre til SAP.
     numOpWork = number_input("numVhpOpWork", "ThisItem.WorkHours", width=w["WORK (H)"], height=32)
-    numOpWork.props["OnChange"] = "Patch(colVhpOperations, ThisItem, { WorkHours: Self.Value })"
-    numOpDur = number_input("numVhpOpDur", "ThisItem.DurationHours", width=w["DUR. (H)"], height=32)
-    numOpDur.props["OnChange"] = "Patch(colVhpOperations, ThisItem, { DurationHours: Self.Value })"
+    numOpWork.props["OnChange"] = (
+        "Patch(\n"
+        "    colVhpOperations, ThisItem,\n"
+        "    {\n"
+        "        WorkHours: Self.Value,\n"
+        f"        DurationHours: {cfg.duration_expr('Self.Value', 'ThisItem.Persons')}\n"
+        "    }\n"
+        ")")
+    numOpPersons = number_input("numVhpOpPersons", "ThisItem.Persons", width=w["NO."], height=32)
+    numOpPersons.props["OnChange"] = (
+        "Patch(\n"
+        "    colVhpOperations, ThisItem,\n"
+        "    {\n"
+        "        Persons: Self.Value,\n"
+        f"        DurationHours: {cfg.duration_expr('ThisItem.WorkHours', 'Self.Value')}\n"
+        "    }\n"
+        ")")
+    # Varigheden vises, men tastes ikke - den ER Work / No.
+    numOpDur = number_input("numVhpOpDur", "ThisItem.DurationHours", width=w["DUR. (H)"], height=32,
+                            display_mode="DisplayMode.View")
     txtOpMwc = text_input("txtVhpOpMwc", "ThisItem.MainWorkCenter", width=w["MAIN WORK CENTER"], height=32,
                           onchange="Patch(colVhpOperations, ThisItem, { MainWorkCenter: Self.Text })")
     # Kontrolnoeglen: kun to valg at SKIFTE imellem, men listen skal
@@ -658,7 +682,7 @@ def build_tasklist_section():
             f"{C_INVALID_FG}, {C_MUTED})"
         ))
 
-    opRow = group("conVhpOpRow", [chkSel, txtOpNo, txtOpShort, numOpWork, numOpDur, txtOpMwc,
+    opRow = group("conVhpOpRow", [chkSel, txtOpNo, txtOpShort, numOpWork, numOpPersons, numOpDur, txtOpMwc,
                                   drpOpCtrl, txtOpVendor, numOpCost, txtOpMatGrp,
                                   txtOpLongText, txtOpPackages], direction="Horizontal", gap=OPS_GAP,
                   height="Parent.TemplateHeight - 2", align_items="Center", width="Parent.TemplateWidth")

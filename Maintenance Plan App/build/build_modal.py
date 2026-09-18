@@ -150,6 +150,7 @@ def build_tasklist_picker_modal():
             "                {\n"
             "                    ItemId: varVhpActiveItemId, OperationNo: TLOP.OperationNo,\n"
             "                    OperationShortText: TLOP.OperationShortText, WorkHours: TLOP.WorkHours,\n"
+            "                    Persons: TLOP.Persons,\n"
             "                    DurationHours: TLOP.DurationHours, MainWorkCenter: TLOP.MainWorkCenter,\n"
             "                    Vendor: TLOP.Vendor, LongText: TLOP.LongText,\n"
             "                    ControlKey: TLOP.ControlKey, Cost: TLOP.Cost,\n"

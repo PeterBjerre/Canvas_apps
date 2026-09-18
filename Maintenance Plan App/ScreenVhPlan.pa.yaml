@@ -9186,6 +9186,7 @@ Screens:
                                                                 OperationNo: Text(Coalesce(Max(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Value(OperationNo)), 0) + 10, "0000"),
                                                                 OperationShortText: "",
                                                                 WorkHours: 1,
+                                                                Persons: 1,
                                                                 DurationHours: 1,
                                                                 MainWorkCenter: "",
                                                                 ControlKey: "",
@@ -9414,7 +9415,7 @@ Screens:
                                           Height: |-
                                               =22
                                           HtmlText: |-
-                                              ="<style>html,body{margin:0;padding:0;overflow:hidden}</style><div style='display:grid;grid-template-columns:30px 60px 200px 64px 64px 110px 90px 110px 80px 90px 170px 110px;column-gap:10px;align-items:center;height:21px;line-height:21px;overflow:hidden;color:#59667A;font-family:Segoe UI;font-size:11px;font-weight:600;white-space:nowrap;'><span>SEL</span><span>OP NO.</span><span>OPERATION SHORT TEXT</span><span>WORK (H)</span><span>DUR. (H)</span><span>MAIN WORK CENTER</span><span>CTRL</span><span>VENDOR</span><span>COST</span><span>MAT.GRP</span><span>LONG TEXT</span><span>PACKAGES</span></div>"
+                                              ="<style>html,body{margin:0;padding:0;overflow:hidden}</style><div style='display:grid;grid-template-columns:30px 60px 200px 64px 50px 64px 110px 90px 110px 80px 90px 170px 110px;column-gap:10px;align-items:center;height:21px;line-height:21px;overflow:hidden;color:#59667A;font-family:Segoe UI;font-size:11px;font-weight:600;white-space:nowrap;'><span>SEL</span><span>OP NO.</span><span>OPERATION SHORT TEXT</span><span>WORK (H)</span><span>NO.</span><span>DUR. (H)</span><span>MAIN WORK CENTER</span><span>CTRL</span><span>VENDOR</span><span>COST</span><span>MAT.GRP</span><span>LONG TEXT</span><span>PACKAGES</span></div>"
                                           PaddingBottom: |-
                                               =0
                                           PaddingLeft: |-
@@ -9424,7 +9425,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Width: |-
-                                              =1288
+                                              =1348
                                     - conVhpOpsDivider:
                                         Control: GroupContainer
                                         Variant: AutoLayout
@@ -9448,7 +9449,7 @@ Screens:
                                           LayoutMinWidth: |-
                                               =0
                                           Width: |-
-                                              =1288
+                                              =1348
                                     - galVhpOps:
                                         Control: Gallery
                                         Variant: Vertical
@@ -9480,7 +9481,7 @@ Screens:
                                           TemplateSize: |-
                                               =38
                                           Width: |-
-                                              =1288
+                                              =1348
                                           WrapCount: |-
                                               =1
                                         Children:
@@ -9622,7 +9623,13 @@ Screens:
                                                       LayoutMinWidth: |-
                                                           =0
                                                       OnChange: |-
-                                                          =Patch(colVhpOperations, ThisItem, { WorkHours: Self.Value })
+                                                          =Patch(
+                                                              colVhpOperations, ThisItem,
+                                                              {
+                                                                  WorkHours: Self.Value,
+                                                                  DurationHours: Self.Value / Max(Coalesce(ThisItem.Persons, 1), 1)
+                                                              }
+                                                          )
                                                       Precision: |-
                                                           =DecimalPrecision.'0'
                                                       RadiusBottomLeft: |-
@@ -9639,6 +9646,55 @@ Screens:
                                                           =If(false && IsBlank(Self.Value), ValidationState.Error, ValidationState.None)
                                                       Width: |-
                                                           =64
+                                                - numVhpOpPersons:
+                                                    Control: ModernNumberInput
+                                                    Properties:
+                                                      AccessibleLabel: |-
+                                                          ="numVhpOpPersons"
+                                                      Appearance: |-
+                                                          =Appearance.Outline
+                                                      BorderColor: |-
+                                                          =If(false && IsBlank(Self.Value), RGBA(179, 50, 60, 1), RGBA(215, 222, 232, 1))
+                                                      BorderStyle: |-
+                                                          =BorderStyle.Solid
+                                                      BorderThickness: |-
+                                                          =1
+                                                      Color: |-
+                                                          =RGBA(26, 34, 49, 1)
+                                                      Default: |-
+                                                          =ThisItem.Persons
+                                                      Fill: |-
+                                                          =RGBA(255, 255, 255, 1)
+                                                      Font: |-
+                                                          =Font.'Segoe UI'
+                                                      Height: |-
+                                                          =32
+                                                      LayoutMinWidth: |-
+                                                          =0
+                                                      OnChange: |-
+                                                          =Patch(
+                                                              colVhpOperations, ThisItem,
+                                                              {
+                                                                  Persons: Self.Value,
+                                                                  DurationHours: ThisItem.WorkHours / Max(Coalesce(Self.Value, 1), 1)
+                                                              }
+                                                          )
+                                                      Precision: |-
+                                                          =DecimalPrecision.'0'
+                                                      RadiusBottomLeft: |-
+                                                          =10
+                                                      RadiusBottomRight: |-
+                                                          =10
+                                                      RadiusTopLeft: |-
+                                                          =10
+                                                      RadiusTopRight: |-
+                                                          =10
+                                                      Size: |-
+                                                          =14
+                                                      ValidationState: |-
+                                                          =If(false && IsBlank(Self.Value), ValidationState.Error, ValidationState.None)
+                                                      Width: |-
+                                                          =50
                                                 - numVhpOpDur:
                                                     Control: ModernNumberInput
                                                     Properties:
@@ -9656,6 +9712,8 @@ Screens:
                                                           =RGBA(26, 34, 49, 1)
                                                       Default: |-
                                                           =ThisItem.DurationHours
+                                                      DisplayMode: |-
+                                                          =DisplayMode.View
                                                       Fill: |-
                                                           =RGBA(255, 255, 255, 1)
                                                       Font: |-
@@ -9664,8 +9722,6 @@ Screens:
                                                           =32
                                                       LayoutMinWidth: |-
                                                           =0
-                                                      OnChange: |-
-                                                          =Patch(colVhpOperations, ThisItem, { DurationHours: Self.Value })
                                                       Precision: |-
                                                           =DecimalPrecision.'0'
                                                       RadiusBottomLeft: |-
@@ -13028,6 +13084,7 @@ Screens:
                                                                     OperationNo: Value(OP.OperationNo),
                                                                     PackagesKey: OP.PackagesKey,
                                                                     Work: OP.WorkHours,
+                                                                    Num: OP.Persons,
                                                                     Duration: OP.DurationHours,
                                                                     WorkCtr: OP.MainWorkCenter,
                                                                     Ctrl: OP.ControlKey,
@@ -13382,6 +13439,7 @@ Screens:
                                                                     OperationNo: Value(OP.OperationNo),
                                                                     PackagesKey: OP.PackagesKey,
                                                                     Work: OP.WorkHours,
+                                                                    Num: OP.Persons,
                                                                     Duration: OP.DurationHours,
                                                                     WorkCtr: OP.MainWorkCenter,
                                                                     Ctrl: OP.ControlKey,
@@ -14331,6 +14389,7 @@ Screens:
                                             {
                                                 ItemId: varVhpActiveItemId, OperationNo: TLOP.OperationNo,
                                                 OperationShortText: TLOP.OperationShortText, WorkHours: TLOP.WorkHours,
+                                                Persons: TLOP.Persons,
                                                 DurationHours: TLOP.DurationHours, MainWorkCenter: TLOP.MainWorkCenter,
                                                 Vendor: TLOP.Vendor, LongText: TLOP.LongText,
                                                 ControlKey: TLOP.ControlKey, Cost: TLOP.Cost,
