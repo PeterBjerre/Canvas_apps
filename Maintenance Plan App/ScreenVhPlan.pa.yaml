@@ -9046,6 +9046,16 @@ Screens:
                                                     =Filter(colVhpTasklists, Plant = varVhpPlan.Plant)
                                                 LayoutMinWidth: |-
                                                     =0
+                                                OnChange: |-
+                                                    =If(
+                                                        !IsBlank(varVhpActiveItemId) &&
+                                                            Self.Selected.Key <> LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey,
+                                                        UpdateIf(
+                                                            colVhpItems, ItemId = varVhpActiveItemId,
+                                                            { TasklistKey: Self.Selected.Key, TasklistName: Self.Selected.Name }
+                                                        );
+                                                        Set(varVhpRuntimeInfo, "Tasklist " & Self.Selected.Key & " selected for this item.")
+                                                    )
                                                 RadiusBottomLeft: |-
                                                     =10
                                                 RadiusBottomRight: |-
@@ -9083,65 +9093,6 @@ Screens:
                                           Width: |-
                                               =Parent.Width
                                         Children:
-                                          - btnVhpApplyTasklist:
-                                              Control: ModernButton
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    ="Apply tasklist"
-                                                Align: |-
-                                                    =Align.Center
-                                                AlignInContainer: |-
-                                                    =AlignInContainer.Center
-                                                Appearance: |-
-                                                    =ButtonAppearance.Secondary
-                                                BorderColor: |-
-                                                    =RGBA(215, 222, 232, 1)
-                                                BorderThickness: |-
-                                                    =1
-                                                Color: |-
-                                                    =RGBA(26, 34, 49, 1)
-                                                DisplayMode: |-
-                                                    =If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                FontWeight: |-
-                                                    =FontWeight.Semibold
-                                                Height: |-
-                                                    =36
-                                                Layout: |-
-                                                    =ButtonLayout.TextOnly
-                                                LayoutMinWidth: |-
-                                                    =0
-                                                OnSelect: |-
-                                                    =If(
-                                                        IsBlank(varVhpActiveItemId),
-                                                        Set(varVhpRuntimeInfo, "Select an item first."),
-                                                        If(
-                                                            IsBlank(drpVhpItemTasklist.Selected.Key),
-                                                            Set(varVhpRuntimeInfo, "Select a tasklist first."),
-                                                            UpdateIf(
-                                                                colVhpItems, ItemId = varVhpActiveItemId,
-                                                                { TasklistKey: drpVhpItemTasklist.Selected.Key, TasklistName: drpVhpItemTasklist.Selected.Name }
-                                                            );
-                                                            Set(varVhpRuntimeInfo, "Tasklist " & drpVhpItemTasklist.Selected.Key & " applied to item.")
-                                                        )
-                                                    )
-                                                RadiusBottomLeft: |-
-                                                    =10
-                                                RadiusBottomRight: |-
-                                                    =10
-                                                RadiusTopLeft: |-
-                                                    =10
-                                                RadiusTopRight: |-
-                                                    =10
-                                                Size: |-
-                                                    =14
-                                                Text: |-
-                                                    ="Apply tasklist"
-                                                VerticalAlign: |-
-                                                    =VerticalAlign.Middle
-                                                Width: |-
-                                                    =(((App.Width - 64) - 36) - 24) / 4
                                           - btnVhpAddTasklistLines:
                                               Control: ModernButton
                                               Properties:
@@ -9173,7 +9124,7 @@ Screens:
                                                         Set(varVhpRuntimeInfo, "Select an item first."),
                                                         If(
                                                             IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey),
-                                                            Set(varVhpRuntimeInfo, "Apply a tasklist first."),
+                                                            Set(varVhpRuntimeInfo, "Select a tasklist first."),
                                                             Clear(colVhpPickerSelected);
                                                             Reset(txtVhpPickerSearch);
                                                             Set(varVhpTasklistPickerOpen, true)
@@ -9194,7 +9145,7 @@ Screens:
                                                 VerticalAlign: |-
                                                     =VerticalAlign.Middle
                                                 Width: |-
-                                                    =(((App.Width - 64) - 36) - 24) / 4
+                                                    =(((App.Width - 64) - 36) - 16) / 3
                                           - btnVhpAddOperation:
                                               Control: ModernButton
                                               Properties:
@@ -9265,7 +9216,7 @@ Screens:
                                                 VerticalAlign: |-
                                                     =VerticalAlign.Middle
                                                 Width: |-
-                                                    =(((App.Width - 64) - 36) - 24) / 4
+                                                    =(((App.Width - 64) - 36) - 16) / 3
                                           - btnVhpRemoveOperation:
                                               Control: ModernButton
                                               Properties:
@@ -9321,7 +9272,7 @@ Screens:
                                                 VerticalAlign: |-
                                                     =VerticalAlign.Middle
                                                 Width: |-
-                                                    =(((App.Width - 64) - 36) - 24) / 4
+                                                    =(((App.Width - 64) - 36) - 16) / 3
                               - txtVhpTasklistMeta:
                                   Control: ModernText
                                   Properties:

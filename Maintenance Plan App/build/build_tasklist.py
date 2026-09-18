@@ -462,27 +462,28 @@ def build_tasklist_section():
         "drpVhpItemTasklist", "Filter(colVhpTasklists, Plant = varVhpPlan.Plant)",
         "LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey)",
         item_display="ThisItem.Name", display_mode=DM_ITEM, value_field="Key")
+    # Valget ER handlingen. Der laa foer en "Apply tasklist"-knap ved siden
+    # af, som skrev det valgte paa itemet - et ekstra klik for at bekraefte
+    # noget, brugeren lige havde besluttet.
+    #
+    # Betingelsen er ikke pynt. Skift af item koerer Reset(drpVhpItemTasklist)
+    # (build_items.py), og en Reset kan udloese OnChange. Uden
+    # sammenligningen ville det skrive den FORRIGE liste paa det NYE item.
+    # Efter en Reset er Selected lig med itemets egen vaerdi, saa
+    # betingelsen er falsk og OnChange en ren nulhandling.
+    drpTasklist.props["OnChange"] = (
+        "If(\n"
+        "    !IsBlank(varVhpActiveItemId) &&\n"
+        "        Self.Selected.Key <> LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey,\n"
+        "    UpdateIf(\n"
+        "        colVhpItems, ItemId = varVhpActiveItemId,\n"
+        "        { TasklistKey: Self.Selected.Key, TasklistName: Self.Selected.Name }\n"
+        "    );\n"
+        "    Set(varVhpRuntimeInfo, \"Tasklist \" & Self.Selected.Key & \" selected for this item.\")\n"
+        ")")
     tasklistCell = field_cell("conVhpCellTasklist", "Tasklist For Active Item", drpTasklist, required=True,
                               width=f"If({OPS_CW} < 640, {OPS_CW}, 360)", container_w=OPS_CW,
                               fill_portions_formula="0")
-
-    btnApply = button(
-        "btnVhpApplyTasklist", "\"Apply tasklist\"",
-        (
-            "If(\n"
-            "    IsBlank(varVhpActiveItemId),\n"
-            "    Set(varVhpRuntimeInfo, \"Select an item first.\"),\n"
-            "    If(\n"
-            "        IsBlank(drpVhpItemTasklist.Selected.Key),\n"
-            "        Set(varVhpRuntimeInfo, \"Select a tasklist first.\"),\n"
-            "        UpdateIf(\n"
-            "            colVhpItems, ItemId = varVhpActiveItemId,\n"
-            "            { TasklistKey: drpVhpItemTasklist.Selected.Key, TasklistName: drpVhpItemTasklist.Selected.Name }\n"
-            "        );\n"
-            "        Set(varVhpRuntimeInfo, \"Tasklist \" & drpVhpItemTasklist.Selected.Key & \" applied to item.\")\n"
-            "    )\n"
-            ")"
-        ), display_mode=DM_ITEM)
 
     btnAddLines = button(
         "btnVhpAddTasklistLines", "\"Add lines from tasklist\"",
@@ -492,7 +493,7 @@ def build_tasklist_section():
             "    Set(varVhpRuntimeInfo, \"Select an item first.\"),\n"
             "    If(\n"
             "        IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey),\n"
-            "        Set(varVhpRuntimeInfo, \"Apply a tasklist first.\"),\n"
+            "        Set(varVhpRuntimeInfo, \"Select a tasklist first.\"),\n"
             "        Clear(colVhpPickerSelected);\n"
             "        Reset(txtVhpPickerSearch);\n"
             "        Set(varVhpTasklistPickerOpen, true)\n"
@@ -548,7 +549,7 @@ def build_tasklist_section():
     # Knapperne laa foer paa samme linje som tasklist-dropdownen i en raekke
     # med fast hoejde 62 - dropdownen blev klippet helt vaek. Nu har de hver
     # sin linje, og knapperne deler bredden, saa de aldrig ombryder.
-    actionRow = button_row("conVhpOpsActionRow", [btnApply, btnAddLines, btnAddOp, btnRemoveOp], OPS_CW)
+    actionRow = button_row("conVhpOpsActionRow", [btnAddLines, btnAddOp, btnRemoveOp], OPS_CW)
     toolbar = group("conVhpOpsToolbar", [tasklistCell, actionRow], direction="Vertical", gap=12)
 
     tasklistMeta = text_ctrl(
