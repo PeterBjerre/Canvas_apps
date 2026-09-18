@@ -180,6 +180,7 @@ def save_action(submit=False):
         "                            OperationNo: Value(OP.OperationNo),\n"
         "                            PackagesKey: OP.PackagesKey,\n"
         "                            Work: OP.WorkHours,\n"
+        "                            Num: OP.Persons,\n"
         "                            Duration: OP.DurationHours,\n"
         "                            WorkCtr: OP.MainWorkCenter,\n"
         "                            Ctrl: OP.ControlKey,\n"
