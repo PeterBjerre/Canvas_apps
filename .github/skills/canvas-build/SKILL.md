@@ -150,8 +150,18 @@ være sand, og så skal pladsen være der.
 
 ## Synkronisér til Studio
 
-Rækkefølgen er ikke valgfri. `directoryPath` er den lokale sti til
-**app-mappen** (ikke `build/`).
+Uden agent, i en terminal — samme MCP-server, uden credits:
+
+```powershell
+python tools\canvas_mcp.py deploy --app vhplan
+```
+
+Den bygger, forbinder, compiler, synkroniserer og kører begge tjek i den
+rigtige rækkefølge. Studio-fanen skal være åben med coauthoring slået til.
+Hele fremgangsmåden står i `docs/21-mcp-uden-vscode.md`.
+
+Kalder du værktøjerne i hånden, er rækkefølgen ikke valgfri. `directoryPath`
+er den lokale sti til **app-mappen** (ikke `build/`).
 
 ```
 canvas-authoring-connect
@@ -170,7 +180,11 @@ canvas-authoring-get_accessibility_errors
 | Masterdata Hub | *(udfyldes når appen er oprettet i Studio)* |
 
 **Compile før sync.** Fejler compile, så stop — synk ikke en app, der ikke
-kan oversættes.
+kan oversættes. Det er `compile_canvas`, der sender YAML'en ind i den åbne
+coauthoring-session; `sync_canvas` skriver bagefter serverens tilstand
+**ned** i mappen igen. Peger du den på app-mappen, overskriver den de
+genererede kilder — derfor arbejder `tools/canvas_mcp.py` på en kopi i
+`.canvas-deploy/`.
 
 ## Efter synk: skriv ikke Studios YAML tilbage
 
