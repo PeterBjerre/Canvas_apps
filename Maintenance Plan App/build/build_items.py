@@ -535,7 +535,21 @@ def build_item_editor():
                        container_w=LEFT_W, cols=2, hint_text=bh.hint("Initials")),
         ], container_w=LEFT_W),
     ]
-    leftCol = group("conVhpItemLeftCol", leftRows, direction="Vertical", gap=16, width=LEFT)
+    # Lang tekst laa foer UNDER hele gitteret i fuld bredde. Den hoerer til
+    # itemets egne oplysninger, saa den staar nu nederst i venstre kolonne -
+    # over begge kolonner dernede, og dermed til venstre for objektlisten,
+    # der bliver staaende i hoejre kolonne.
+    #
+    # cols=1: cellen deler ikke raekken med nogen, den fylder kolonnen.
+    txtLongText = text_input("txtVhpItemLongText",
+                             "LookUp(colVhpItems, ItemId = varVhpActiveItemId).LongText", height=80,
+                             display_mode=DM_ITEM, ttype="Multiline")
+    longTextCell = field_cell("conVhpCellItemLongText", "Item Long Text", txtLongText,
+                              container_w=LEFT_W, cols=1, fill_portions_formula="0",
+                              hint_text=bh.hint("ItemLongText"))
+
+    leftCol = group("conVhpItemLeftCol", leftRows + [longTextCell], direction="Vertical",
+                    gap=16, width=LEFT)
     # justify=Start: naar raekken er hoejere end hoejrekolonnens indhold
     # (venstre side har tre raekker), skal de to blokke blive staaende
     # OEVERST i stedet for at blive fordelt ud over hele hoejden.
@@ -545,13 +559,6 @@ def build_item_editor():
     mainRow = row_n("conVhpItemMainRow", [leftCol, rightCol], container_w=CW)
 
     fieldsGrid = group("conVhpItemFieldsGrid", [mainRow], direction="Vertical", gap=16)
-
-    txtLongText = text_input("txtVhpItemLongText",
-                             "LookUp(colVhpItems, ItemId = varVhpActiveItemId).LongText", height=80,
-                             display_mode=DM_ITEM, ttype="Multiline")
-    longTextCell = field_cell("conVhpCellItemLongText", "Item Long Text", txtLongText,
-                              width="Parent.Width", container_w=CW, fill_portions_formula="0",
-                              hint_text=bh.hint("ItemLongText"))
 
     itemMeta = text_ctrl(
         "txtVhpItemMeta",
@@ -606,7 +613,7 @@ def build_item_editor():
                    align_items="Center")
 
     return card("conVhpEditorCard",
-                [header, helpPanel, fieldsGrid, longTextCell, footer])
+                [header, helpPanel, fieldsGrid, footer])
 
 
 def build_items_section():
