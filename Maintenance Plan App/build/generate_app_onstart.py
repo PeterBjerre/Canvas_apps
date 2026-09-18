@@ -14,6 +14,7 @@ Se sp_config.py for hvorfor, og for hvilke lister og kolonner der bruges.
 """
 import os
 import sp_config as cfg
+import build_load
 
 OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 
@@ -111,21 +112,41 @@ Set(varVhpOpsTab, "ops");
 Set(varVhpHelpPlan, false);
 Set(varVhpHelpItem, false);
 Set(varVhpHelpOps, false);
-Set(varVhpHelpPkg, false);
+Set(varVhpHelpPkg, false);"""
 
-Collect(
-    colVhpItems,
-    {
-        ItemId: 1, ShortText: "", FunctionalLocation: "", FlDescription: "",
-        MainWorkCenter: "", ActivityType: "", ObjectList: "", Revision: "",
-        OrstedResponsible: "", Initials: "", LongText: "", TasklistKey: "",
-        TasklistName: "", Status: "draft"
-    }
-)"""
+
+def check_plan_record():
+    """varVhpPlan skal have de SAMME felter de to steder, den saettes.
+
+    En record med andre felter er en anden type i Power Fx, og en Set med
+    den type paa en eksisterende variabel afvises. De to steder staar langt
+    fra hinanden - her i VARS_BLOCK og i build_load - saa det er en fejl,
+    der ellers foerst ville vise sig, naar nogen aabnede et dyblink."""
+    import re
+    m = re.search(r"Set\(\s*varVhpPlan,\s*\{(.*?)\n    \}\s*\);", VARS_BLOCK, re.S)
+    if not m:
+        return ["kunne ikke finde Set(varVhpPlan, ...) i VARS_BLOCK"]
+    here = {line.split(":")[0].strip()
+            for line in m.group(1).splitlines() if ":" in line}
+    there = {k for k, _ in build_load.PLAN_FIELDS}
+    out = []
+    if here - there:
+        out.append(f"varVhpPlan: build_load mangler {sorted(here - there)}")
+    if there - here:
+        out.append(f"varVhpPlan: build_load saetter {sorted(there - here)}, "
+                   f"som OnStart ikke opretter")
+    return out
 
 
 def build_onstart():
-    blocks = [working_collection_block(), static_block(), VARS_BLOCK.strip()]
+    # Indlaesningen staar TIL SIDST: den skriver i de samlinger, skemablokken
+    # lige har ryddet, og laeser de variable, VARS_BLOCK saetter.
+    problems = build_load.check_mappings() + check_plan_record()
+    if problems:
+        raise SystemExit("build_load passer ikke til OnStart:\n  "
+                         + "\n  ".join(problems))
+    blocks = [working_collection_block(), static_block(), VARS_BLOCK.strip(),
+              build_load.load_block()]
     s = "\n\n".join(b for b in blocks if b).rstrip()
     return s[:-1] if s.endswith(";") else s
 
