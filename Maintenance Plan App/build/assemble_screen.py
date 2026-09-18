@@ -15,7 +15,8 @@ from build_hero import build_hero
 from build_plan_header import build_plan_header
 from build_items import build_items_section
 from build_tasklist import build_tasklist_section, build_dispatch_section, build_email_fab
-from build_modal import build_tasklist_picker_modal, build_modal_backdrop
+from build_modal import (build_tasklist_picker_modal, build_longtext_modal,
+                         build_modal_backdrop)
 from build_save import build_save_section
 
 
@@ -39,7 +40,8 @@ def build_screen():
                  width="Parent.Width", overflow_y="Scroll", fill=C_APP_BG)
 
     return render_screen("ScreenVhPlan", {"Fill": C_APP_BG},
-                         [root, build_modal_backdrop(), build_tasklist_picker_modal(), build_email_fab()])
+                         [root, build_modal_backdrop(), build_tasklist_picker_modal(),
+                          build_longtext_modal(), build_email_fab()])
 
 
 def main():

@@ -706,8 +706,27 @@ def build_tasklist_section():
     txtOpMatGrp = text_input("txtVhpOpMatGrp", "ThisItem.MaterialGroup", width=w["MAT.GRP"],
                              height=32, display_mode=DM_PURCHASE,
                              onchange="Patch(colVhpOperations, ThisItem, { MaterialGroup: Self.Text })")
-    txtOpLongText = text_input("txtVhpOpLongText", "ThisItem.LongText", width=w["LONG TEXT"], height=32,
-                               onchange="Patch(colVhpOperations, ThisItem, { LongText: Self.Text })")
+    # Cellen viser begyndelsen af teksten; skrivningen sker i popup'en, hvor
+    # der er plads til en instruktion. Reset FOER popup'en aabnes, saa feltet
+    # viser den linje, man klikkede paa, og ikke den forrige.
+    btnOpLongText = button(
+        "btnVhpOpLongText",
+        (
+            "If(\n"
+            "    IsBlank(Trim(Coalesce(ThisItem.LongText, \"\"))),\n"
+            "    \"Add text...\",\n"
+            "    Left(ThisItem.LongText, 16) & If(Len(ThisItem.LongText) > 16, \"...\")\n"
+            ")"
+        ),
+        (
+            "Set(varVhpLongTextItemId, ThisItem.ItemId);\n"
+            "Set(varVhpLongTextOpNo, ThisItem.OperationNo);\n"
+            "Set(varVhpLongTextDraft, Coalesce(ThisItem.LongText, \"\"));\n"
+            "Reset(txtVhpLongTextBox);\n"
+            "Set(varVhpLongTextOpen, true)"
+        ),
+        width=w["LONG TEXT"], height=32,
+        accessible='"Edit long text for operation " & ThisItem.OperationNo')
 
     # Pakkerne redigeres i matricen nedenfor - her vises kun resultatet, saa
     # operationslinjen og allokeringen kan laeses samme sted.
@@ -730,7 +749,7 @@ def build_tasklist_section():
 
     opRow = group("conVhpOpRow", [chkSel, txtOpNo, txtOpShort, numOpWork, numOpPersons, numOpDur, txtOpMwc,
                                   drpOpCtrl, txtOpVendor, numOpCost, txtOpMatGrp,
-                                  txtOpLongText, txtOpPackages], direction="Horizontal", gap=OPS_GAP,
+                                  btnOpLongText, txtOpPackages], direction="Horizontal", gap=OPS_GAP,
                   height="Parent.TemplateHeight - 2", align_items="Center", width="Parent.TemplateWidth")
 
     OPS_ROW_H = 38 + 2

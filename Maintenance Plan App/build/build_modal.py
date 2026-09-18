@@ -178,6 +178,70 @@ def build_tasklist_picker_modal():
     return modal
 
 
+# ---------------------------------------------------------------------------
+# Lang tekst paa en operation
+# ---------------------------------------------------------------------------
+# Feltet laa som et enkeltlinjet input paa 170 px inde i operationsraekken.
+# Der er ikke plads til en instruktion i 170 px, og raekken kan ikke vokse:
+# alle tolv celler deler samme hoejde.
+#
+# Raekken har nu en knap, der viser begyndelsen af teksten, og selve
+# skrivningen sker i en popup med et flerlinjet felt - samme konstruktion
+# som tasklist-pickeren, saa der ikke kommer en tredje slags overlay ind i
+# appen.
+#
+# Operationen udpeges af BEGGE noegler. OperationNo er kun unikt inden for
+# et item, saa "0010" alene ville ramme samme operationsnummer paa hvert
+# eneste item i planen.
+LT_TARGET = "ItemId = varVhpLongTextItemId && OperationNo = varVhpLongTextOpNo"
+
+
+def build_longtext_modal():
+    title = text_ctrl("txtVhpLongTextTitle",
+                      '"Long text - operation " & varVhpLongTextOpNo',
+                      size=17, weight="Semibold", height=24, wrap="false")
+    btnCancel = button("btnVhpLongTextCancel", '"Cancel"',
+                       "Set(varVhpLongTextOpen, false)", width=90, height=32)
+    headRow = group("conVhpLongTextHeadRow", [title, btnCancel], direction="Horizontal",
+                    gap=12, height=32, justify="SpaceBetween", align_items="Center")
+
+    hint = text_ctrl(
+        "txtVhpLongTextHint",
+        ('"The long text follows the operation to SAP. Write the instruction '
+         'as the technician needs to read it - steps, safety notes and references."'),
+        size=12, color=C_MUTED, height=32, wrap="true")
+
+    box = text_input("txtVhpLongTextBox", "varVhpLongTextDraft",
+                     placeholder='"Instructions for this operation"',
+                     width="Parent.Width", height=260, ttype="Multiline")
+
+    # Gemmer paa knappen, ikke paa hvert tastetryk. Et OnChange pr. tegn ville
+    # skrive i samlingen, mens man skriver - og Annuller ville ikke kunne
+    # fortryde noget.
+    btnSave = button(
+        "btnVhpLongTextSave", '"Save text"',
+        (
+            "UpdateIf(\n"
+            "    colVhpOperations,\n"
+            f"    {LT_TARGET},\n"
+            "    { LongText: txtVhpLongTextBox.Text }\n"
+            ");\n"
+            "Set(varVhpRuntimeInfo, \"Long text saved on operation \" & varVhpLongTextOpNo & \".\");\n"
+            "Set(varVhpLongTextOpen, false)"
+        ), primary=True, width=150, height=36)
+    footer = group("conVhpLongTextFooter", [btnSave], direction="Horizontal", gap=10,
+                   height=36, justify="End", align_items="Center")
+
+    modal = group(
+        "conVhpLongTextModal", [headRow, hint, box, footer], direction="Vertical", gap=12,
+        fill="RGBA(255, 255, 255, 0.98)", border_color="RGBA(198, 224, 249, 1)", radius=16,
+        pad=(18, 18, 18, 18), width=620, drop_shadow="ExtraBold",
+        visible="varVhpLongTextOpen")
+    modal.props["X"] = "(App.Width - Self.Width) / 2"
+    modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
+    return modal
+
+
 def build_modal_backdrop():
     return Ctrl("conVhpPickerBackdrop", "GroupContainer", variant="AutoLayout", props={
         "BorderStyle": "BorderStyle.None",
@@ -185,7 +249,7 @@ def build_modal_backdrop():
         "Fill": "RGBA(15, 23, 42, 0.35)",
         "Height": "App.Height",
         "LayoutDirection": "LayoutDirection.Vertical",
-        "Visible": "varVhpTasklistPickerOpen",
+        "Visible": "varVhpTasklistPickerOpen || varVhpLongTextOpen",
         "Width": "App.Width",
         "X": "0",
         "Y": "0",
