@@ -83,6 +83,13 @@ Set(varVhpLastValidationErrors, "");
 Set(varVhpExportJson, "");
 Set(varVhpTasklistPickerOpen, false);
 
+// Popup'en til lang tekst paa en operation. Operationen udpeges af
+// BEGGE noegler - OperationNo er kun unikt inden for et item.
+Set(varVhpLongTextOpen, false);
+Set(varVhpLongTextItemId, 0);
+Set(varVhpLongTextOpNo, "");
+Set(varVhpLongTextDraft, "");
+
 // Gemning i SharePoint. SpId > 0 betyder, at planen findes som raekke -
 // saa opdateres den i stedet for at blive oprettet igen.
 Set(varVhpPlanSpId, 0);
