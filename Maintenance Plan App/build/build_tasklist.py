@@ -81,6 +81,52 @@ def _ops_header_html():
 
 
 # ---------------------------------------------------------------------------
+# Totaler
+# ---------------------------------------------------------------------------
+# Summerne staar i en HtmlViewer med PRAECIS samme grid som overskriften.
+# En raekke almindelige kontroller ville skulle holde de tolv kolonnebredder
+# ved lige for anden gang, og de gled fra hinanden sidst det blev proevet -
+# det var derfor overskriften blev genereret herfra til at begynde med.
+OPS_ACTIVE = "Filter(colVhpOperations, ItemId = varVhpActiveItemId)"
+
+# Timer og antal kan vaere halve; kroner vises med to decimaler. Formatet er
+# laast til en kultur, saa tusindtalsseparatoren ikke skifter med brugerens
+# sprogindstilling midt i en tabel.
+_TOTALS = {
+    "WORK (H)": f'Text(Sum({OPS_ACTIVE}, WorkHours), "[$-en-US]#,##0.##")',
+    "NO.":      f'Text(Sum({OPS_ACTIVE}, Persons), "[$-en-US]#,##0.##")',
+    "DUR. (H)": f'Text(Sum({OPS_ACTIVE}, DurationHours), "[$-en-US]#,##0.##")',
+    "COST":     f'Text(Sum({OPS_ACTIVE}, Cost), "[$-en-US]#,##0.00")',
+}
+
+
+def _ops_totals_html():
+    cols = " ".join(f"{w}px" for _, w in OPS_COLS)
+    head = (
+        "\"<style>html,body{margin:0;padding:0;overflow:hidden}"
+        "span{overflow:hidden;text-overflow:ellipsis}</style>"
+        f"<div style='display:grid;grid-template-columns:{cols};"
+        f"column-gap:{OPS_GAP}px;align-items:center;height:23px;line-height:23px;overflow:hidden;"
+        "color:#1B2A41;font-family:Segoe UI;font-size:12px;font-weight:700;white-space:nowrap;'>\""
+    )
+    parts = [head]
+    for title, _ in OPS_COLS:
+        if title == "OPERATION SHORT TEXT":
+            parts.append("\"<span style='color:#59667A;font-weight:600'>Total for this item</span>\"")
+        elif title in _TOTALS:
+            parts.append("\"<span>\" & " + _TOTALS[title] + " & \"</span>\"")
+        else:
+            parts.append("\"<span></span>\"")
+    parts.append("\"</div>\"")
+    return " &\n".join(parts)
+
+
+# Tom tabel har ingen sum at vise - saa staar tomme-teksten der i stedet.
+TOTALS_ON = ("IfError(!IsBlank(varVhpActiveItemId) && "
+             f"CountRows({OPS_ACTIVE}) > 0, false)")
+
+
+# ---------------------------------------------------------------------------
 # Faner
 # ---------------------------------------------------------------------------
 # Operationerne, pakkerne, materialerne og dokumenterne hoerer alle til
@@ -714,9 +760,20 @@ def build_tasklist_section():
                          height=24, wrap="false",
                          visible="IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) = 0, false)")
 
+    opsTotalsDivider = group("conVhpOpsTotalsDivider", [], height=1, fill=C_DIVIDER,
+                             direction="Horizontal", width=str(OPS_TABLE_W),
+                             visible=TOTALS_ON)
+    opsTotals = Ctrl("conVhpOpsTotalsHtml", "HtmlViewer", props={
+        "Fill": C_TRANSPARENT, "Height": "24", "HtmlText": _ops_totals_html(),
+        "PaddingBottom": "0", "PaddingLeft": "0", "PaddingRight": "0", "PaddingTop": "0",
+        "Width": str(OPS_TABLE_W),
+    }, h=24)
+    opsTotals.vis = TOTALS_ON
+
     # Tabellen har fast bredde (summen af kolonnerne). Paa smalle skaerme
     # scroller den vandret i stedet for at klippe kolonner af.
-    opsTableWrap = group("conVhpOpsTableWrap", [opsHeader, opsDivider, gallery, opsEmpty],
+    opsTableWrap = group("conVhpOpsTableWrap",
+                         [opsHeader, opsDivider, gallery, opsTotalsDivider, opsTotals, opsEmpty],
                          direction="Vertical", gap=4, overflow_x="Scroll", width="Parent.Width",
                          align_items="Start")
 
