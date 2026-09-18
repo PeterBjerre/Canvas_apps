@@ -87,6 +87,7 @@ nævner kontrollen.
 | `build_strategy.py` | Pakkematricen (strategiplaner) |
 | `build_modal.py` | Tasklist-picker |
 | `build_save.py` | **Gemning i SharePoint** — de fire lister, nøglerne, og hvad der bevidst ikke udfyldes |
+| `build_load.py` | **Indlæsning af en gemt plan** — dyblinket fra hubben (`?reqid=`), og hvilke felter der kan læses tilbage |
 | `assemble_screen.py` | Samler skærmen → `../ScreenVhPlan.pa.yaml` |
 | `generate_app_onstart.py` | `App.Formulas` + `App.OnStart` → `../App.pa.yaml` |
 
@@ -230,6 +231,11 @@ egenskaber, builderne bevidst sætter.
    `OnStart` betales af hver bruger hver gang; en navngiven formel gør ikke.
    Kun samlinger, appen **skriver** til, hører hjemme i `OnStart` — og der
    kun som tomt skema.
+
+   Den ene undtagelse er dyblinket (`build_load.py`): åbnes appen med
+   `?reqid=`, hentes netop den plan. Den er pakket ind i
+   `If(IsBlank(Param("reqid")), ...)`, så alle andre betaler et
+   `Collect` af én lokal record og ingen listeopslag.
 8. **Padding tælles med i højden.** Det gør `stack_height()` automatisk —
    omgå den ikke ved at sætte `height=` manuelt på et kort.
 
