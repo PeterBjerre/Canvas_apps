@@ -695,10 +695,14 @@ def build_tasklist_section():
                          direction="Vertical", gap=4, overflow_x="Scroll", width="Parent.Width",
                          align_items="Start")
 
-    # Operationstabellen og dens hjaelpelinje er fanen Operations. De
-    # oevrige tre faner ligger ved siden af, hver i sin rude.
-    opsPane = group("conVhpOpsPane", [opsHint, opsTableWrap], direction="Vertical",
-                    gap=8, width="Parent.Width", visible=OPS_PANE_ON)
+    # Operationstabellen er fanen Operations - sammen med tasklist-vaelgeren
+    # og de fire operationsknapper. De laa foer i kortet uden for ruderne, og
+    # saa blev "Add operation" staaende paa materialefanen, hvor den ikke
+    # hoerer hjemme. Hver fane ejer nu sine egne knapper, praecis som
+    # materialeruden allerede gjorde.
+    opsPane = group("conVhpOpsPane", [toolbar, tasklistMeta, opsHint, opsTableWrap],
+                    direction="Vertical", gap=8, width="Parent.Width",
+                    visible=OPS_PANE_ON)
     pkgPane = build_strategy_body()
     pkgPane.vis = PKG_PANE_ON
     matPane = _materials_pane()
@@ -706,8 +710,12 @@ def build_tasklist_section():
     attPane = _attachments_pane()
     attPane.vis = _tab_on("att")
 
+    # Fanebjaelken staar oeverst, lige under sektionshovedet: foerst vaelger
+    # man fanen, saa ser man dens indhold. Den laa foer under baade
+    # tasklist-vaelgeren og knapraekken, og saa stod selve skiftet nederst i
+    # den halvdel af kortet, der ikke aendrede sig.
     return card("conVhpOpsCard",
-                [header, helpPanel, toolbar, tasklistMeta, _tab_bar(),
+                [header, helpPanel, _tab_bar(),
                  opsPane, pkgPane, matPane, attPane])
 
 
