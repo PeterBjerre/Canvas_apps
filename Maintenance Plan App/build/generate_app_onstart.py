@@ -74,7 +74,12 @@ Set(varVhpPlanLocked, false);
 Set(varVhpPlanCreatedAt, Blank());
 Set(varVhpPlanValidated, false);
 Set(varVhpItemValidated, false);
-Set(varVhpActiveItemId, 0);
+// Appen aabner med EET item, der allerede er valgt. Item Editoren stod
+// foer tom og skrivebeskyttet (DM_ITEM slaar fra paa tomt
+// varVhpActiveItemId), saa det foerste man moedte var en raekke graa felter
+// og en knap, man skulle finde foerst. Nummeret er 1, saa "Add item" (som
+// taeller varVhpNextItemId een op foerst) fortsaetter ved 2.
+Set(varVhpActiveItemId, 1);
 Set(varVhpNextItemId, 1);
 Set(varVhpRuntimeInfo, "");
 Set(varVhpFlMeta, "");
@@ -106,7 +111,17 @@ Set(varVhpOpsTab, "ops");
 Set(varVhpHelpPlan, false);
 Set(varVhpHelpItem, false);
 Set(varVhpHelpOps, false);
-Set(varVhpHelpPkg, false);"""
+Set(varVhpHelpPkg, false);
+
+Collect(
+    colVhpItems,
+    {
+        ItemId: 1, ShortText: "", FunctionalLocation: "", FlDescription: "",
+        MainWorkCenter: "", ActivityType: "", ObjectList: "", Revision: "",
+        OrstedResponsible: "", Initials: "", LongText: "", TasklistKey: "",
+        TasklistName: "", Status: "draft"
+    }
+)"""
 
 
 def build_onstart():

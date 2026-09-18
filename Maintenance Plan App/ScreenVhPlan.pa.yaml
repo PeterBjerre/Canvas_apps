@@ -12978,7 +12978,7 @@ Screens:
                                         =RGBA(26, 34, 49, 1)
                                     DisplayMode: |-
                                         =If(
-                                            varVhpSaving || !varVhpPlanCommitted || CountRows(colVhpItems) = 0,
+                                            varVhpSaving || !varVhpPlanCommitted || CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))) = 0,
                                             DisplayMode.Disabled,
                                             DisplayMode.Edit
                                         )
@@ -12994,7 +12994,7 @@ Screens:
                                         =0
                                     OnSelect: |-
                                         =If(
-                                            !varVhpPlanCommitted || CountRows(colVhpItems) = 0,
+                                            !varVhpPlanCommitted || CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))) = 0,
                                             Notify("Create the plan and at least one item first.", NotificationType.Warning),
                                         
                                             Set(varVhpSaving, true);
@@ -13092,7 +13092,10 @@ Screens:
                                                                 // --- 3. items ------------------------------
                                                                 Clear(colVhpSavedItems);
                                                                 ForAll(
-                                                                    colVhpItems As IT,
+                                                                    Filter(
+                                                                    colVhpItems,
+                                                                    !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)
+                                                                ) As IT,
                                                                     With(
                                                                         {
                                                                             itemRec: Patch(
@@ -13276,7 +13279,7 @@ Screens:
                                                         RequesterName: User().FullName,
                                                         ShortText: varVhpPlan.PlanText,
                                                         Plant: varVhpPlan.Plant,
-                                                        ItemCount: CountRows(colVhpItems),
+                                                        ItemCount: CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))),
                                                         SourceItemId: planId,
                                                         AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/11fa8d90-868a-45a4-ba23-28f2cf0671a2",
                                                         LastActionOn: Now(),
@@ -13333,7 +13336,7 @@ Screens:
                                         =RGBA(255, 255, 255, 1)
                                     DisplayMode: |-
                                         =If(
-                                            varVhpSaving || !varVhpPlanCommitted || CountRows(colVhpItems) = 0,
+                                            varVhpSaving || !varVhpPlanCommitted || CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))) = 0,
                                             DisplayMode.Disabled,
                                             DisplayMode.Edit
                                         )
@@ -13349,7 +13352,7 @@ Screens:
                                         =0
                                     OnSelect: |-
                                         =If(
-                                            !varVhpPlanCommitted || CountRows(colVhpItems) = 0,
+                                            !varVhpPlanCommitted || CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))) = 0,
                                             Notify("Create the plan and at least one item first.", NotificationType.Warning),
                                         
                                             Set(varVhpSaving, true);
@@ -13447,7 +13450,10 @@ Screens:
                                                                 // --- 3. items ------------------------------
                                                                 Clear(colVhpSavedItems);
                                                                 ForAll(
-                                                                    colVhpItems As IT,
+                                                                    Filter(
+                                                                    colVhpItems,
+                                                                    !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)
+                                                                ) As IT,
                                                                     With(
                                                                         {
                                                                             itemRec: Patch(
@@ -13631,7 +13637,7 @@ Screens:
                                                         RequesterName: User().FullName,
                                                         ShortText: varVhpPlan.PlanText,
                                                         Plant: varVhpPlan.Plant,
-                                                        ItemCount: CountRows(colVhpItems),
+                                                        ItemCount: CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))),
                                                         SourceItemId: planId,
                                                         AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/11fa8d90-868a-45a4-ba23-28f2cf0671a2",
                                                         LastActionOn: Now(),
