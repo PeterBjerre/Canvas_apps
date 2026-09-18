@@ -78,6 +78,23 @@ APP_URL = ("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e
 
 DOMAIN = "MaintenancePlan"
 
+# Appen aabner med eet tomt item, saa Item Editoren ikke staar graa (#8).
+# Det maa ikke ende som en tom raekke i MaintenanceItems, hvis brugeren
+# aldrig roerte det - og "mindst eet item" ville ellers vaere opfyldt af
+# noget, ingen har skrevet i.
+#
+# Et item taeller foerst med, naar det har en kort tekst eller en
+# funktionsplads. Begge dele er i forvejen paakraevede for at itemet kan
+# blive valid, saa et item uden dem kan alligevel ikke gemmes meningsfuldt.
+# Operationer paa et udeladt item falder selv fra: de slaar itemet op i
+# colVhpSavedItems og springer over, naar det ikke er der.
+SAVEABLE_ITEMS = ('Filter(\n'
+                  '                            colVhpItems,\n'
+                  '                            !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)\n'
+                  '                        )')
+SAVEABLE_COUNT = ('CountRows(Filter(colVhpItems, '
+                  '!IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)))')
+
 # Appens Status (Ny/AEndre/Slettes) er AENDRINGSTYPEN pr. item, ikke
 # arbejdsgangens status. De to maa ikke blandes sammen.
 PLAN_STATUS_DRAFT = "Draft"
@@ -208,7 +225,7 @@ def save_action(submit=False):
         "                RequesterName: User().FullName,\n"
         "                ShortText: varVhpPlan.PlanText,\n"
         "                Plant: varVhpPlan.Plant,\n"
-        "                ItemCount: CountRows(colVhpItems),\n"
+        f"                ItemCount: {SAVEABLE_COUNT},\n"
         "                SourceItemId: planId,\n"
         f"                AppUrl: \"{APP_URL}\",\n"
         "                LastActionOn: Now(),\n"
@@ -218,7 +235,7 @@ def save_action(submit=False):
 
     return (
         "If(\n"
-        "    !varVhpPlanCommitted || CountRows(colVhpItems) = 0,\n"
+        f"    !varVhpPlanCommitted || {SAVEABLE_COUNT} = 0,\n"
         "    Notify(\"Create the plan and at least one item first.\", NotificationType.Warning),\n"
         "\n"
         "    Set(varVhpSaving, true);\n"
@@ -290,7 +307,7 @@ def save_action(submit=False):
         "                        // --- 3. items ------------------------------\n"
         "                        Clear(colVhpSavedItems);\n"
         "                        ForAll(\n"
-        "                            colVhpItems As IT,\n"
+        f"                            {SAVEABLE_ITEMS} As IT,\n"
         "                            With(\n"
         "                                {\n"
         "                                    itemRec: Patch(\n"
@@ -459,8 +476,10 @@ def build_save_section():
         size=13, height=20, wrap="true",
         color=f"If(IsBlank(varVhpPlanKey), {C_MUTED}, {C_VALID_FG})")
 
+    # Samme maal som selve gemningen: et tomt item taeller ikke med, saa
+    # knappen bliver ikke aktiv af det item, appen selv aabnede med.
     DM = ("If(\n"
-          "    varVhpSaving || !varVhpPlanCommitted || CountRows(colVhpItems) = 0,\n"
+          f"    varVhpSaving || !varVhpPlanCommitted || {SAVEABLE_COUNT} = 0,\n"
           "    DisplayMode.Disabled,\n"
           "    DisplayMode.Edit\n"
           ")")
