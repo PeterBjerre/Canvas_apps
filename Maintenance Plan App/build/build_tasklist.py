@@ -9,6 +9,7 @@ from build_helpers import (text_ctrl, group, button, button_row, text_input, num
 from build_plan_header import section_header, help_panel
 import build_help as bh
 from build_strategy import build_strategy_body, IS_STRATEGY
+import sp_config as cfg
 
 DM_ITEM = "If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)"
 OPS_CW = f"({SHELL_W} - 36)"
@@ -26,6 +27,7 @@ OPS_COLS = [
     ("OP NO.", 60),
     ("OPERATION SHORT TEXT", 200),
     ("WORK (H)", 64),
+    ("NO.", 50),
     ("DUR. (H)", 64),
     ("MAIN WORK CENTER", 110),
     ("CTRL", 90),
@@ -76,6 +78,52 @@ def _ops_header_html():
         "color:#59667A;font-family:Segoe UI;font-size:11px;font-weight:600;white-space:nowrap;'>"
         f"{spans}</div>\""
     )
+
+
+# ---------------------------------------------------------------------------
+# Totaler
+# ---------------------------------------------------------------------------
+# Summerne staar i en HtmlViewer med PRAECIS samme grid som overskriften.
+# En raekke almindelige kontroller ville skulle holde de tolv kolonnebredder
+# ved lige for anden gang, og de gled fra hinanden sidst det blev proevet -
+# det var derfor overskriften blev genereret herfra til at begynde med.
+OPS_ACTIVE = "Filter(colVhpOperations, ItemId = varVhpActiveItemId)"
+
+# Timer og antal kan vaere halve; kroner vises med to decimaler. Formatet er
+# laast til en kultur, saa tusindtalsseparatoren ikke skifter med brugerens
+# sprogindstilling midt i en tabel.
+_TOTALS = {
+    "WORK (H)": f'Text(Sum({OPS_ACTIVE}, WorkHours), "[$-en-US]#,##0.##")',
+    "NO.":      f'Text(Sum({OPS_ACTIVE}, Persons), "[$-en-US]#,##0.##")',
+    "DUR. (H)": f'Text(Sum({OPS_ACTIVE}, DurationHours), "[$-en-US]#,##0.##")',
+    "COST":     f'Text(Sum({OPS_ACTIVE}, Cost), "[$-en-US]#,##0.00")',
+}
+
+
+def _ops_totals_html():
+    cols = " ".join(f"{w}px" for _, w in OPS_COLS)
+    head = (
+        "\"<style>html,body{margin:0;padding:0;overflow:hidden}"
+        "span{overflow:hidden;text-overflow:ellipsis}</style>"
+        f"<div style='display:grid;grid-template-columns:{cols};"
+        f"column-gap:{OPS_GAP}px;align-items:center;height:23px;line-height:23px;overflow:hidden;"
+        "color:#1B2A41;font-family:Segoe UI;font-size:12px;font-weight:700;white-space:nowrap;'>\""
+    )
+    parts = [head]
+    for title, _ in OPS_COLS:
+        if title == "OPERATION SHORT TEXT":
+            parts.append("\"<span style='color:#59667A;font-weight:600'>Total for this item</span>\"")
+        elif title in _TOTALS:
+            parts.append("\"<span>\" & " + _TOTALS[title] + " & \"</span>\"")
+        else:
+            parts.append("\"<span></span>\"")
+    parts.append("\"</div>\"")
+    return " &\n".join(parts)
+
+
+# Tom tabel har ingen sum at vise - saa staar tomme-teksten der i stedet.
+TOTALS_ON = ("IfError(!IsBlank(varVhpActiveItemId) && "
+             f"CountRows({OPS_ACTIVE}) > 0, false)")
 
 
 # ---------------------------------------------------------------------------
@@ -462,27 +510,28 @@ def build_tasklist_section():
         "drpVhpItemTasklist", "Filter(colVhpTasklists, Plant = varVhpPlan.Plant)",
         "LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey)",
         item_display="ThisItem.Name", display_mode=DM_ITEM, value_field="Key")
+    # Valget ER handlingen. Der laa foer en "Apply tasklist"-knap ved siden
+    # af, som skrev det valgte paa itemet - et ekstra klik for at bekraefte
+    # noget, brugeren lige havde besluttet.
+    #
+    # Betingelsen er ikke pynt. Skift af item koerer Reset(drpVhpItemTasklist)
+    # (build_items.py), og en Reset kan udloese OnChange. Uden
+    # sammenligningen ville det skrive den FORRIGE liste paa det NYE item.
+    # Efter en Reset er Selected lig med itemets egen vaerdi, saa
+    # betingelsen er falsk og OnChange en ren nulhandling.
+    drpTasklist.props["OnChange"] = (
+        "If(\n"
+        "    !IsBlank(varVhpActiveItemId) &&\n"
+        "        Self.Selected.Key <> LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey,\n"
+        "    UpdateIf(\n"
+        "        colVhpItems, ItemId = varVhpActiveItemId,\n"
+        "        { TasklistKey: Self.Selected.Key, TasklistName: Self.Selected.Name }\n"
+        "    );\n"
+        "    Set(varVhpRuntimeInfo, \"Tasklist \" & Self.Selected.Key & \" selected for this item.\")\n"
+        ")")
     tasklistCell = field_cell("conVhpCellTasklist", "Tasklist For Active Item", drpTasklist, required=True,
                               width=f"If({OPS_CW} < 640, {OPS_CW}, 360)", container_w=OPS_CW,
                               fill_portions_formula="0")
-
-    btnApply = button(
-        "btnVhpApplyTasklist", "\"Apply tasklist\"",
-        (
-            "If(\n"
-            "    IsBlank(varVhpActiveItemId),\n"
-            "    Set(varVhpRuntimeInfo, \"Select an item first.\"),\n"
-            "    If(\n"
-            "        IsBlank(drpVhpItemTasklist.Selected.Key),\n"
-            "        Set(varVhpRuntimeInfo, \"Select a tasklist first.\"),\n"
-            "        UpdateIf(\n"
-            "            colVhpItems, ItemId = varVhpActiveItemId,\n"
-            "            { TasklistKey: drpVhpItemTasklist.Selected.Key, TasklistName: drpVhpItemTasklist.Selected.Name }\n"
-            "        );\n"
-            "        Set(varVhpRuntimeInfo, \"Tasklist \" & drpVhpItemTasklist.Selected.Key & \" applied to item.\")\n"
-            "    )\n"
-            ")"
-        ), display_mode=DM_ITEM)
 
     btnAddLines = button(
         "btnVhpAddTasklistLines", "\"Add lines from tasklist\"",
@@ -492,7 +541,7 @@ def build_tasklist_section():
             "    Set(varVhpRuntimeInfo, \"Select an item first.\"),\n"
             "    If(\n"
             "        IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey),\n"
-            "        Set(varVhpRuntimeInfo, \"Apply a tasklist first.\"),\n"
+            "        Set(varVhpRuntimeInfo, \"Select a tasklist first.\"),\n"
             "        Clear(colVhpPickerSelected);\n"
             "        Reset(txtVhpPickerSearch);\n"
             "        Set(varVhpTasklistPickerOpen, true)\n"
@@ -513,6 +562,7 @@ def build_tasklist_section():
             "            OperationNo: Text(Coalesce(Max(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Value(OperationNo)), 0) + 10, \"0000\"),\n"
             "            OperationShortText: \"\",\n"
             "            WorkHours: 1,\n"
+            "            Persons: 1,\n"
             "            DurationHours: 1,\n"
             "            MainWorkCenter: \"\",\n"
             "            ControlKey: \"\",\n"
@@ -548,7 +598,7 @@ def build_tasklist_section():
     # Knapperne laa foer paa samme linje som tasklist-dropdownen i en raekke
     # med fast hoejde 62 - dropdownen blev klippet helt vaek. Nu har de hver
     # sin linje, og knapperne deler bredden, saa de aldrig ombryder.
-    actionRow = button_row("conVhpOpsActionRow", [btnApply, btnAddLines, btnAddOp, btnRemoveOp], OPS_CW)
+    actionRow = button_row("conVhpOpsActionRow", [btnAddLines, btnAddOp, btnRemoveOp], OPS_CW)
     toolbar = group("conVhpOpsToolbar", [tasklistCell, actionRow], direction="Vertical", gap=12)
 
     tasklistMeta = text_ctrl(
@@ -594,10 +644,31 @@ def build_tasklist_section():
     txtOpShort = text_input("txtVhpOpShortText", "ThisItem.OperationShortText", width=w["OPERATION SHORT TEXT"],
                             height=32,
                             onchange="Patch(colVhpOperations, ThisItem, { OperationShortText: Self.Text })")
+    # Work og No. skriver BEGGE varigheden, fordi den er regnet af dem
+    # begge. Gjorde kun den ene det, ville et skift i den anden efterlade en
+    # varighed, der ikke passer til linjen - og det er varigheden, der
+    # gemmes i TaskListMain.Duration og sendes videre til SAP.
     numOpWork = number_input("numVhpOpWork", "ThisItem.WorkHours", width=w["WORK (H)"], height=32)
-    numOpWork.props["OnChange"] = "Patch(colVhpOperations, ThisItem, { WorkHours: Self.Value })"
-    numOpDur = number_input("numVhpOpDur", "ThisItem.DurationHours", width=w["DUR. (H)"], height=32)
-    numOpDur.props["OnChange"] = "Patch(colVhpOperations, ThisItem, { DurationHours: Self.Value })"
+    numOpWork.props["OnChange"] = (
+        "Patch(\n"
+        "    colVhpOperations, ThisItem,\n"
+        "    {\n"
+        "        WorkHours: Self.Value,\n"
+        f"        DurationHours: {cfg.duration_expr('Self.Value', 'ThisItem.Persons')}\n"
+        "    }\n"
+        ")")
+    numOpPersons = number_input("numVhpOpPersons", "ThisItem.Persons", width=w["NO."], height=32)
+    numOpPersons.props["OnChange"] = (
+        "Patch(\n"
+        "    colVhpOperations, ThisItem,\n"
+        "    {\n"
+        "        Persons: Self.Value,\n"
+        f"        DurationHours: {cfg.duration_expr('ThisItem.WorkHours', 'Self.Value')}\n"
+        "    }\n"
+        ")")
+    # Varigheden vises, men tastes ikke - den ER Work / No.
+    numOpDur = number_input("numVhpOpDur", "ThisItem.DurationHours", width=w["DUR. (H)"], height=32,
+                            display_mode="DisplayMode.View")
     txtOpMwc = text_input("txtVhpOpMwc", "ThisItem.MainWorkCenter", width=w["MAIN WORK CENTER"], height=32,
                           onchange="Patch(colVhpOperations, ThisItem, { MainWorkCenter: Self.Text })")
     # Kontrolnoeglen: kun to valg at SKIFTE imellem, men listen skal
@@ -635,8 +706,27 @@ def build_tasklist_section():
     txtOpMatGrp = text_input("txtVhpOpMatGrp", "ThisItem.MaterialGroup", width=w["MAT.GRP"],
                              height=32, display_mode=DM_PURCHASE,
                              onchange="Patch(colVhpOperations, ThisItem, { MaterialGroup: Self.Text })")
-    txtOpLongText = text_input("txtVhpOpLongText", "ThisItem.LongText", width=w["LONG TEXT"], height=32,
-                               onchange="Patch(colVhpOperations, ThisItem, { LongText: Self.Text })")
+    # Cellen viser begyndelsen af teksten; skrivningen sker i popup'en, hvor
+    # der er plads til en instruktion. Reset FOER popup'en aabnes, saa feltet
+    # viser den linje, man klikkede paa, og ikke den forrige.
+    btnOpLongText = button(
+        "btnVhpOpLongText",
+        (
+            "If(\n"
+            "    IsBlank(Trim(Coalesce(ThisItem.LongText, \"\"))),\n"
+            "    \"Add text...\",\n"
+            "    Left(ThisItem.LongText, 16) & If(Len(ThisItem.LongText) > 16, \"...\")\n"
+            ")"
+        ),
+        (
+            "Set(varVhpLongTextItemId, ThisItem.ItemId);\n"
+            "Set(varVhpLongTextOpNo, ThisItem.OperationNo);\n"
+            "Set(varVhpLongTextDraft, Coalesce(ThisItem.LongText, \"\"));\n"
+            "Reset(txtVhpLongTextBox);\n"
+            "Set(varVhpLongTextOpen, true)"
+        ),
+        width=w["LONG TEXT"], height=32,
+        accessible='"Edit long text for operation " & ThisItem.OperationNo')
 
     # Pakkerne redigeres i matricen nedenfor - her vises kun resultatet, saa
     # operationslinjen og allokeringen kan laeses samme sted.
@@ -657,9 +747,9 @@ def build_tasklist_section():
             f"{C_INVALID_FG}, {C_MUTED})"
         ))
 
-    opRow = group("conVhpOpRow", [chkSel, txtOpNo, txtOpShort, numOpWork, numOpDur, txtOpMwc,
+    opRow = group("conVhpOpRow", [chkSel, txtOpNo, txtOpShort, numOpWork, numOpPersons, numOpDur, txtOpMwc,
                                   drpOpCtrl, txtOpVendor, numOpCost, txtOpMatGrp,
-                                  txtOpLongText, txtOpPackages], direction="Horizontal", gap=OPS_GAP,
+                                  btnOpLongText, txtOpPackages], direction="Horizontal", gap=OPS_GAP,
                   height="Parent.TemplateHeight - 2", align_items="Center", width="Parent.TemplateWidth")
 
     OPS_ROW_H = 38 + 2
@@ -689,16 +779,31 @@ def build_tasklist_section():
                          height=24, wrap="false",
                          visible="IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) = 0, false)")
 
+    opsTotalsDivider = group("conVhpOpsTotalsDivider", [], height=1, fill=C_DIVIDER,
+                             direction="Horizontal", width=str(OPS_TABLE_W),
+                             visible=TOTALS_ON)
+    opsTotals = Ctrl("conVhpOpsTotalsHtml", "HtmlViewer", props={
+        "Fill": C_TRANSPARENT, "Height": "24", "HtmlText": _ops_totals_html(),
+        "PaddingBottom": "0", "PaddingLeft": "0", "PaddingRight": "0", "PaddingTop": "0",
+        "Width": str(OPS_TABLE_W),
+    }, h=24)
+    opsTotals.vis = TOTALS_ON
+
     # Tabellen har fast bredde (summen af kolonnerne). Paa smalle skaerme
     # scroller den vandret i stedet for at klippe kolonner af.
-    opsTableWrap = group("conVhpOpsTableWrap", [opsHeader, opsDivider, gallery, opsEmpty],
+    opsTableWrap = group("conVhpOpsTableWrap",
+                         [opsHeader, opsDivider, gallery, opsTotalsDivider, opsTotals, opsEmpty],
                          direction="Vertical", gap=4, overflow_x="Scroll", width="Parent.Width",
                          align_items="Start")
 
-    # Operationstabellen og dens hjaelpelinje er fanen Operations. De
-    # oevrige tre faner ligger ved siden af, hver i sin rude.
-    opsPane = group("conVhpOpsPane", [opsHint, opsTableWrap], direction="Vertical",
-                    gap=8, width="Parent.Width", visible=OPS_PANE_ON)
+    # Operationstabellen er fanen Operations - sammen med tasklist-vaelgeren
+    # og de fire operationsknapper. De laa foer i kortet uden for ruderne, og
+    # saa blev "Add operation" staaende paa materialefanen, hvor den ikke
+    # hoerer hjemme. Hver fane ejer nu sine egne knapper, praecis som
+    # materialeruden allerede gjorde.
+    opsPane = group("conVhpOpsPane", [toolbar, tasklistMeta, opsHint, opsTableWrap],
+                    direction="Vertical", gap=8, width="Parent.Width",
+                    visible=OPS_PANE_ON)
     pkgPane = build_strategy_body()
     pkgPane.vis = PKG_PANE_ON
     matPane = _materials_pane()
@@ -706,8 +811,12 @@ def build_tasklist_section():
     attPane = _attachments_pane()
     attPane.vis = _tab_on("att")
 
+    # Fanebjaelken staar oeverst, lige under sektionshovedet: foerst vaelger
+    # man fanen, saa ser man dens indhold. Den laa foer under baade
+    # tasklist-vaelgeren og knapraekken, og saa stod selve skiftet nederst i
+    # den halvdel af kortet, der ikke aendrede sig.
     return card("conVhpOpsCard",
-                [header, helpPanel, toolbar, tasklistMeta, _tab_bar(),
+                [header, helpPanel, _tab_bar(),
                  opsPane, pkgPane, matPane, attPane])
 
 

@@ -14,6 +14,7 @@ Se sp_config.py for hvorfor, og for hvilke lister og kolonner der bruges.
 """
 import os
 import sp_config as cfg
+import build_load
 
 OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 
@@ -74,7 +75,12 @@ Set(varVhpPlanLocked, false);
 Set(varVhpPlanCreatedAt, Blank());
 Set(varVhpPlanValidated, false);
 Set(varVhpItemValidated, false);
-Set(varVhpActiveItemId, 0);
+// Appen aabner med EET item, der allerede er valgt. Item Editoren stod
+// foer tom og skrivebeskyttet (DM_ITEM slaar fra paa tomt
+// varVhpActiveItemId), saa det foerste man moedte var en raekke graa felter
+// og en knap, man skulle finde foerst. Nummeret er 1, saa "Add item" (som
+// taeller varVhpNextItemId een op foerst) fortsaetter ved 2.
+Set(varVhpActiveItemId, 1);
 Set(varVhpNextItemId, 1);
 Set(varVhpRuntimeInfo, "");
 Set(varVhpFlMeta, "");
@@ -82,6 +88,13 @@ Set(varVhpFlLastSearch, "");
 Set(varVhpLastValidationErrors, "");
 Set(varVhpExportJson, "");
 Set(varVhpTasklistPickerOpen, false);
+
+// Popup'en til lang tekst paa en operation. Operationen udpeges af
+// BEGGE noegler - OperationNo er kun unikt inden for et item.
+Set(varVhpLongTextOpen, false);
+Set(varVhpLongTextItemId, 0);
+Set(varVhpLongTextOpNo, "");
+Set(varVhpLongTextDraft, "");
 
 // Gemning i SharePoint. SpId > 0 betyder, at planen findes som raekke -
 // saa opdateres den i stedet for at blive oprettet igen.
@@ -102,8 +115,38 @@ Set(varVhpHelpOps, false);
 Set(varVhpHelpPkg, false);"""
 
 
+def check_plan_record():
+    """varVhpPlan skal have de SAMME felter de to steder, den saettes.
+
+    En record med andre felter er en anden type i Power Fx, og en Set med
+    den type paa en eksisterende variabel afvises. De to steder staar langt
+    fra hinanden - her i VARS_BLOCK og i build_load - saa det er en fejl,
+    der ellers foerst ville vise sig, naar nogen aabnede et dyblink."""
+    import re
+    m = re.search(r"Set\(\s*varVhpPlan,\s*\{(.*?)\n    \}\s*\);", VARS_BLOCK, re.S)
+    if not m:
+        return ["kunne ikke finde Set(varVhpPlan, ...) i VARS_BLOCK"]
+    here = {line.split(":")[0].strip()
+            for line in m.group(1).splitlines() if ":" in line}
+    there = {k for k, _ in build_load.PLAN_FIELDS}
+    out = []
+    if here - there:
+        out.append(f"varVhpPlan: build_load mangler {sorted(here - there)}")
+    if there - here:
+        out.append(f"varVhpPlan: build_load saetter {sorted(there - here)}, "
+                   f"som OnStart ikke opretter")
+    return out
+
+
 def build_onstart():
-    blocks = [working_collection_block(), static_block(), VARS_BLOCK.strip()]
+    # Indlaesningen staar TIL SIDST: den skriver i de samlinger, skemablokken
+    # lige har ryddet, og laeser de variable, VARS_BLOCK saetter.
+    problems = build_load.check_mappings() + check_plan_record()
+    if problems:
+        raise SystemExit("build_load passer ikke til OnStart:\n  "
+                         + "\n  ".join(problems))
+    blocks = [working_collection_block(), static_block(), VARS_BLOCK.strip(),
+              build_load.load_block()]
     s = "\n\n".join(b for b in blocks if b).rstrip()
     return s[:-1] if s.endswith(";") else s
 

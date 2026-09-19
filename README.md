@@ -16,6 +16,15 @@ python3 tools/build_all.py
 
 Arbejdsgangen står i [`.github/skills/canvas-build/SKILL.md`](.github/skills/canvas-build/SKILL.md).
 
+Synkroniseringen til Power Apps Studio kan køres fra en terminal — samme
+MCP-server som VS Code bruger, bare uden VS Code:
+
+```powershell
+python tools\canvas_mcp.py deploy --app vhplan
+```
+
+Se [`docs/21-mcp-uden-vscode.md`](docs/21-mcp-uden-vscode.md).
+
 Dokumenterne nedenfor er oplægget bag VH-plan-delen: udvidelsen fra single
 cycle til **strategiplaner** (SAP PM, IP42) med de pakker, der hører til
 strategien.
@@ -43,6 +52,7 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 
 | Sti | Indhold |
 |---|---|
+| `tools/canvas_mcp.py` | Byg, compile og synk til Studio via canvas-authoring MCP-serveren — uden VS Code |
 | `powerfx/01-app-formulas.fx` | Named formulas, opstart, navigation |
 | `powerfx/02-pakkematrix.fx` | Pakkematricen – nested gallery, toggle, genveje |
 | `powerfx/03-validering.fx` | Regelsæt S1–S9 som én meddelelsestabel |

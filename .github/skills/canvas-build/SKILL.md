@@ -87,6 +87,7 @@ nævner kontrollen.
 | `build_strategy.py` | Pakkematricen (strategiplaner) |
 | `build_modal.py` | Tasklist-picker |
 | `build_save.py` | **Gemning i SharePoint** — de fire lister, nøglerne, og hvad der bevidst ikke udfyldes |
+| `build_load.py` | **Indlæsning af en gemt plan** — dyblinket fra hubben (`?reqid=`), og hvilke felter der kan læses tilbage |
 | `assemble_screen.py` | Samler skærmen → `../ScreenVhPlan.pa.yaml` |
 | `generate_app_onstart.py` | `App.Formulas` + `App.OnStart` → `../App.pa.yaml` |
 
@@ -150,8 +151,18 @@ være sand, og så skal pladsen være der.
 
 ## Synkronisér til Studio
 
-Rækkefølgen er ikke valgfri. `directoryPath` er den lokale sti til
-**app-mappen** (ikke `build/`).
+Uden agent, i en terminal — samme MCP-server, uden credits:
+
+```powershell
+python tools\canvas_mcp.py deploy --app vhplan
+```
+
+Den bygger, forbinder, compiler, synkroniserer og kører begge tjek i den
+rigtige rækkefølge. Studio-fanen skal være åben med coauthoring slået til.
+Hele fremgangsmåden står i `docs/21-mcp-uden-vscode.md`.
+
+Kalder du værktøjerne i hånden, er rækkefølgen ikke valgfri. `directoryPath`
+er den lokale sti til **app-mappen** (ikke `build/`).
 
 ```
 canvas-authoring-connect
@@ -170,7 +181,11 @@ canvas-authoring-get_accessibility_errors
 | Masterdata Hub | *(udfyldes når appen er oprettet i Studio)* |
 
 **Compile før sync.** Fejler compile, så stop — synk ikke en app, der ikke
-kan oversættes.
+kan oversættes. Det er `compile_canvas`, der sender YAML'en ind i den åbne
+coauthoring-session; `sync_canvas` skriver bagefter serverens tilstand
+**ned** i mappen igen. Peger du den på app-mappen, overskriver den de
+genererede kilder — derfor arbejder `tools/canvas_mcp.py` på en kopi i
+`.canvas-deploy/`.
 
 ## Efter synk: skriv ikke Studios YAML tilbage
 
@@ -216,6 +231,11 @@ egenskaber, builderne bevidst sætter.
    `OnStart` betales af hver bruger hver gang; en navngiven formel gør ikke.
    Kun samlinger, appen **skriver** til, hører hjemme i `OnStart` — og der
    kun som tomt skema.
+
+   Den ene undtagelse er dyblinket (`build_load.py`): åbnes appen med
+   `?reqid=`, hentes netop den plan. Den er pakket ind i
+   `If(IsBlank(Param("reqid")), ...)`, så alle andre betaler et
+   `Collect` af én lokal record og ingen listeopslag.
 8. **Padding tælles med i højden.** Det gør `stack_height()` automatisk —
    omgå den ikke ved at sætte `height=` manuelt på et kort.
 

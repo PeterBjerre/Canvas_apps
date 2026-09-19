@@ -38,8 +38,11 @@ SCOPE = (
 
 # Tabellens kolonner. EEN kilde til bredderne, saa overskriften og raekken
 # ikke kan komme til at staa forskudt.
-COLS = [("DOMAENE", 104), ("INDMELDING", 0), ("VAERK", 62), ("STATUS", 176),
-        ("SIDST", 92), ("", 76)]
+# DOMAIN er bredere end den danske DOMAENE, fordi etiketterne er det:
+# "Functional location" fylder mere end "Funktionsplads". Resten af
+# bredden ligger i INDMELDING/REQUEST, som regnes af de faste.
+COLS = [("DOMAIN", 124), ("REQUEST", 0), ("PLANT", 62), ("STATUS", 176),
+        ("LAST", 92), ("", 76)]
 GAP = 10
 FIXED = sum(w for _, w in COLS) + GAP * (len(COLS) - 1)
 # Bruges BAADE i listehovedet og i galleriets raekke. Ingen af de to
@@ -53,9 +56,16 @@ ROW_H = 46
 GAL_ROWS = 9
 
 
-def _switch(field_index, fallback):
-    """Switch over statusvaerdien, bygget af ordforraadet i hub_config."""
-    parts = [f'"{s[0]}", {s[field_index]}' for s in STATUS]
+def _switch(field_index, fallback, quote=False):
+    """Switch over statusvaerdien, bygget af ordforraadet i hub_config.
+
+    quote=True naar feltet er TEKST. Farvefelterne er Power Fx-udtryk
+    ("RGBA(...)") og skal staa uden anfoerselstegn, men etiketten er en
+    streng - uden dem blev "In progress" til to identifiers, og Switch'en
+    kunne ikke oversaettes. Den fejl kunne ikke ses i appen, fordi hubben
+    endnu ikke er oprettet i Studio."""
+    parts = [f'"{s[0]}", ' + (f'"{s[field_index]}"' if quote else f'{s[field_index]}')
+             for s in STATUS]
     return "Switch(\n    ThisItem.Status.Value,\n    " + ",\n    ".join(parts) + \
            f",\n    {fallback}\n)"
 
@@ -77,17 +87,17 @@ def _seg(name, label, value):
 def build_bar():
     brand = text_ctrl("txtMdBrand", '"Masterdata"', size=22, weight="Semibold", height=30,
                       width=150, wrap="false")
-    sub = text_ctrl("txtMdSub", '"SAP indmeldinger"', size=13, color=C_MUTED, height=30,
+    sub = text_ctrl("txtMdSub", '"SAP requests"', size=13, color=C_MUTED, height=30,
                     width=140, wrap="false")
     left = group("conMdBrand", [brand, sub], direction="Horizontal", gap=10, height=34,
                  align_items="Center", width=300)
 
-    seg = group("conMdSeg", [_seg("btnMdViewMine", "Mine indmeldinger", "mine"),
-                             _seg("btnMdViewQueue", "Til behandling", "queue")],
+    seg = group("conMdSeg", [_seg("btnMdViewMine", "My requests", "mine"),
+                             _seg("btnMdViewQueue", "Queue", "queue")],
                 direction="Horizontal", gap=0, height=34, align_items="Center", width=336)
 
     who = text_ctrl("txtMdWho",
-                    'If(gblView = "mine", gblMe, "Koe - hele afdelingen")',
+                    'If(gblView = "mine", gblMe, "Queue - whole department")',
                     size=12, color=C_MUTED, height=34, align="Right", wrap="false",
                     width=f"Max(160, {SHELL_W} - 300 - 336 - 24)")
 
@@ -118,20 +128,20 @@ def build_tiles():
             f'Text(CountRows(Filter({SCOPE}, Domain.Value = "{d["key"]}", IsOpen = true)))',
             size=26, weight="Semibold", height=32, wrap="false")
         lbl = text_ctrl(f"txtMdTileLbl{n}",
-                        'If(gblView = "mine", "aabne hos mig", "aabne i koeen")',
+                        'If(gblView = "mine", "open with me", "open in the queue")',
                         size=11, color=C_MUTED, height=16, wrap="false")
 
         bw = f"(({TILE_W}) - 24 - 6) / 2"
         bFilter = button(f"btnMdTileFilter{n}",
-                         f'If(gblDomain = "{d["key"]}", "Vis alle", "Filtrer")',
+                         f'If(gblDomain = "{d["key"]}", "Show all", "Filter")',
                          f'Set(gblDomain, If(gblDomain = "{d["key"]}", "", "{d["key"]}"))',
                          width=bw, height=28)
         if d["url"]:
             new_action = (f'Launch("{d["url"]}", {{ }}, LaunchTarget.New)')
         else:
-            new_action = ('Notify("Denne app er ikke bygget endnu.", NotificationType.Warning)')
+            new_action = ('Notify("This app has not been built yet.", NotificationType.Warning)')
         bNew = button(f"btnMdTileNew{n}",
-                      '"Opret ny"' if d["url"] else '"Kommer snart"',
+                      '"New request"' if d["url"] else '"Coming soon"',
                       new_action, primary=bool(d["url"]), width=bw, height=28,
                       display_mode="DisplayMode.Edit" if d["url"] else "DisplayMode.Disabled")
         btns = group(f"conMdTileBtns{n}", [bFilter, bNew], direction="Horizontal", gap=6,
@@ -163,21 +173,21 @@ def _chip(name, label, value):
 
 def build_filters():
     search = Ctrl("txtMdSearch", "ModernTextInput", props={
-        "AccessibleLabel": '"Soeg nummer, tekst eller vaerk"',
+        "AccessibleLabel": '"Search number, text or plant"',
         "BorderColor": C_CARD_BORDER, "BorderStyle": "BorderStyle.Solid", "BorderThickness": "1",
         "Color": C_TITLE, "Default": '""', "Fill": C_WHITE, "Font": FONT, "Height": "32",
-        "LayoutMinWidth": "0", "Placeholder": '"Soeg nummer, tekst eller vaerk"',
+        "LayoutMinWidth": "0", "Placeholder": '"Search number, text or plant"',
         "RadiusBottomLeft": "8", "RadiusBottomRight": "8", "RadiusTopLeft": "8", "RadiusTopRight": "8",
         "Size": "13", "Type": "TextInputType.Search",
         "Width": f"Max(180, {SHELL_W} - 3 * 104 - 200 - 5 * 8)",
     }, h=32)
     count = text_ctrl("txtMdCount",
-                      f'Text(CountRows({SCOPE})) & " indmeldinger i visningen"',
+                      f'Text(CountRows({SCOPE})) & " requests in this view"',
                       size=12, color=C_MUTED, height=32, align="Right", width=200, wrap="false")
     return group("conMdFilters",
-                 [search, _chip("btnMdStOpen", "Aabne", "open"),
-                  _chip("btnMdStDone", "Afsluttede", "done"),
-                  _chip("btnMdStAll", "Alle", "all"), count],
+                 [search, _chip("btnMdStOpen", "Open", "open"),
+                  _chip("btnMdStDone", "Closed", "done"),
+                  _chip("btnMdStAll", "All", "all"), count],
                  direction="Horizontal", gap=8, height=32, align_items="Center", wrap="true")
 
 
@@ -232,7 +242,7 @@ def build_list():
     plant = text_ctrl("txtMdRowPlant", "ThisItem.Plant", size=12, color=C_MUTED, height=36,
                       width=COLS[2][1], wrap="false")
 
-    pill = text_ctrl("txtMdRowStatus", _switch(1, '"Ukendt"'), size=11, weight="Semibold",
+    pill = text_ctrl("txtMdRowStatus", _switch(1, '"Unknown"', quote=True), size=11, weight="Semibold",
                      height=18, width=120, wrap="false", align="Center",
                      extra={"Color": _switch(3, C_MUTED), "Fill": _switch(4, C_NEUTRAL_BG),
                             "PaddingLeft": "8", "PaddingRight": "8",
@@ -249,15 +259,15 @@ def build_list():
     when = text_ctrl("txtMdRowWhen",
                      'With(\n'
                      '    { d: DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days) },\n'
-                     '    If(d <= 0, "I dag", If(d = 1, "I gaar", Text(d) & " dage"))\n'
+                     '    If(d <= 0, "Today", If(d = 1, "Yesterday", Text(d) & " days ago"))\n'
                      ')',
                      size=11, color=C_MUTED, height=36, width=COLS[4][1], align="Right",
                      wrap="false")
 
-    open_btn = button("btnMdRowOpen", '"Aabn"',
+    open_btn = button("btnMdRowOpen", '"Open"',
                       ("If(\n"
                        "    IsBlank(ThisItem.AppUrl),\n"
-                       '    Notify("Der er ingen app-URL paa denne indmelding.", NotificationType.Error),\n'
+                       '    Notify("This request has no app URL.", NotificationType.Error),\n'
                        "    Launch(\n"
                        '        ThisItem.AppUrl & If(Find("?", ThisItem.AppUrl) > 0, "&", "?") &\n'
                        '            "reqid=" & ThisItem.RequestGuid,\n'
@@ -266,14 +276,14 @@ def build_list():
                        "    )\n"
                        ")"),
                       width=COLS[5][1], height=28,
-                      accessible=f'"Aabn " & ThisItem.{COL_NO} & " i domaeneappen"')
+                      accessible=f'"Open " & ThisItem.{COL_NO} & " in the domain app"')
 
     row = group("conMdRow", [badge, main, plant, stat, when, open_btn],
                 direction="Horizontal", gap=GAP, height="Parent.TemplateHeight - 2",
                 align_items="Center", width="Parent.TemplateWidth", fill=C_CARD_BG)
 
     gal = Ctrl("galMdRequests", "Gallery", variant="Vertical", props={
-        "AccessibleLabel": '"Indmeldinger"',
+        "AccessibleLabel": '"Requests"',
         "BorderStyle": "BorderStyle.None", "Fill": C_CARD_BORDER, "FillPortions": "0",
         "Height": str(GAL_ROWS * (ROW_H + 2)),
         "Items": ITEMS, "LayoutMinWidth": "0", "LoadingSpinner": "LoadingSpinner.Controls",
@@ -282,7 +292,7 @@ def build_list():
         "Width": "Parent.Width", "WrapCount": "1",
     }, children=[row], h=GAL_ROWS * (ROW_H + 2))
 
-    empty = text_ctrl("txtMdEmpty", '"Ingen indmeldinger matcher filtrene."', size=13,
+    empty = text_ctrl("txtMdEmpty", '"No requests match the filters."', size=13,
                       color=C_MUTED, height=24, wrap="true",
                       visible=f"IfError(IsEmpty({ITEMS}), false)")
 

@@ -69,6 +69,19 @@ C_MATERIAL_NO = "MaterialNo"
 C_FILE_NAME   = "FileName"
 
 
+# ---------------------------------------------------------------------------
+# Varighed regnes, den tastes ikke
+# ---------------------------------------------------------------------------
+# I SAP er operationens varighed arbejdstimerne fordelt paa det antal
+# personer, der udfoerer den (ANZZL - "No."). Tastede man begge dele, kunne
+# de modsige hinanden, og SAP ville alligevel regne sin egen.
+#
+# Nul personer findes ikke; en tom eller nulstillet celle regnes som een, saa
+# udtrykket aldrig dividerer med nul.
+def duration_expr(work, persons):
+    return f"{work} / Max(Coalesce({persons}, 1), 1)"
+
+
 def _forall(source, fields, alias="R"):
     """ForAll med eksplicit record - virker i alle Power Fx-versioner.
 
@@ -163,7 +176,11 @@ def named_formulas():
         [("OperationNo", "Text(O.OperationNo, \"0000\")"),
          ("OperationShortText", "O.OperationShortText"),
          ("WorkHours", "O.Work"),
-         ("DurationHours", "0"),
+         # NumberOfCapacities er standardplanens "No.". Varigheden stod foer
+         # som 0 paa hver hentet linje; nu regnes den af de to felter med
+         # samme udtryk som i operationstabellen.
+         ("Persons", "O.NumberOfCapacities"),
+         ("DurationHours", duration_expr("O.Work", "O.NumberOfCapacities")),
          ("MainWorkCenter", "O.WorkCenter"),
          ("Vendor", "O.VendorNo"),
          ("LongText", "\"\""),
@@ -217,6 +234,9 @@ WORKING_COLLECTIONS = [
       "TasklistKey": '""', "TasklistName": '""', "Status": '""'}),
     ("colVhpOperations",
      {"ItemId": 0, "OperationNo": '""', "OperationShortText": '""', "WorkHours": 0,
+      # Persons er SAP's "No." (ANZZL). DurationHours regnes af de to og
+      # tastes ikke - se duration_expr() ovenfor.
+      "Persons": 0,
       "DurationHours": 0, "MainWorkCenter": '""', "Vendor": '""', "LongText": '""',
       "PackagesKey": '";"', "Selected": "false",
       # Styres af reglerne i operationstabellen: kontrolnoeglen kan kun
