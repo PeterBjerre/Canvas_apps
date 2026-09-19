@@ -200,9 +200,31 @@ ikke kilden til den næste. Retter nogen i en `.msapp` eller pakker
 solutionen tilbage, er ændringen væk ved næste `python3 tools/build_all.py`,
 og så er der to sandheder om den samme skærm.
 
-`.msapp`-filerne er derfor i `.gitignore`. Skal du se, hvad der faktisk
-ligger i Studio, så brug `python tools/canvas_mcp.py pull` — den henter den
-kørende app ned som læsbar YAML.
+`.msapp`-filerne er derfor i `.gitignore`. Men så kunne YAML'en inde i dem
+heller ikke læses fra repoet, og en app, der *kun* findes i solutionen —
+Equipment, Materialer, KKS — var dermed en sort kasse for alle andre end
+den, der sad ved maskinen. Derfor pakker `tools/unpack_msapp.py` hver
+`.msapp` ud som tekst i en mappe ved siden af:
+
+```
+solution/BIOSAP/src/CanvasApps/<navn>.src/Src/*.pa.yaml
+                                         /References/DataSources.json
+                                         /Properties.json
+```
+
+`export_solution.ps1` kalder den selv, **før** rensningen — en formel kan
+bære en URL eller en nøgle, og `scrub_solution.py` kan kun fjerne det, den
+kan se.
+
+**`<navn>.src` er læsestof på nøjagtig samme måde som resten af eksporten.**
+For `orsted_maintenanceplan_82090.src` og `orsted_masterdatahub_1b09a.src`
+betyder det, at den samme skærm nu står to steder i repoet: builderens
+resultat i app-mappen, og deployets øjebliksbillede i eksporten. Rediger
+altid builderen. Eksportkopien er kun god til ét: at se, om det, der ligger
+i Studio, er det, vi sidst byggede.
+
+Skal du se den kørende app *nu* — ikke som ved sidste eksport — så brug
+`python tools/canvas_mcp.py pull`.
 
 Eksporten er et øjebliksbillede: ændrer nogen et flow, ved repoet det først,
 når den er hentet igen.

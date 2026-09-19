@@ -1,0 +1,604 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  Admin_Queue:
+    Properties:
+      Fill: =RGBA(248, 250, 252, 1)
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+      OnVisible: |-
+        =Set(varAdminQueueStatusFilter, "");
+        Set(varAdminQueueSearch, "");
+        Refresh(MaintenancePlans);
+        ClearCollect(colStatusFilterOptions, {Value: "All"});
+        Collect(colStatusFilterOptions, Choices(MaintenancePlans.Status));
+        ClearCollect(colAdminQueuePlans, MaintenancePlans)
+    Children:
+      - conAdminQueueRoot:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =RGBA(248, 250, 252, 1)
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =12
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingBottom: =16
+            PaddingLeft: =24
+            PaddingRight: =24
+            PaddingTop: =16
+            Width: =Parent.Width
+          Children:
+            - conAdminQueueNav:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(12, 59, 94, 1)
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 104, 52)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =8
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  LayoutWrap: =true
+                  PaddingBottom: =4
+                  PaddingLeft: =4
+                  PaddingRight: =4
+                  PaddingTop: =4
+                  Width: =Parent.Width
+                Children:
+                  - btnAdminQueueNavOverview:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Go to Overview"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: =ButtonAppearance.Subtle
+                        BasePaletteColor: =RGBA(255, 255, 255, 1)
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Navigate(Screen1, ScreenTransition.Cover)
+                        Size: =11
+                        Text: ="Overview"
+                        Tooltip: ="Open maintenance plan overview"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =If(Parent.Width < 640, (Parent.Width - 16) / 2, (Parent.Width - 32) / 4)
+                  - btnAdminQueueNavMyPlans:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Go to My plans"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: =ButtonAppearance.Subtle
+                        BasePaletteColor: =RGBA(255, 255, 255, 1)
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Navigate(MyPlans, ScreenTransition.Cover)
+                        Size: =11
+                        Text: ="My plans"
+                        Tooltip: ="Open your maintenance plans"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =If(Parent.Width < 640, (Parent.Width - 16) / 2, (Parent.Width - 32) / 4)
+                  - btnAdminQueueNavQueue:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Current Admin queue screen"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        BasePaletteColor: =RGBA(56, 96, 178, 1)
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Navigate(Admin_Queue, ScreenTransition.None)
+                        Size: =11
+                        Text: ="Admin queue"
+                        Tooltip: ="Review the administrator queue"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =If(Parent.Width < 640, (Parent.Width - 16) / 2, (Parent.Width - 32) / 4)
+                  - btnAdminQueueNavNew:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Start a new maintenance plan"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: =ButtonAppearance.Subtle
+                        BasePaletteColor: =RGBA(255, 255, 255, 1)
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Set(varCreateMode, "New"); Set(varCreateStep, 1); Navigate(NewPlan_Header, ScreenTransition.Cover)
+                        Size: =11
+                        Text: ="New plan"
+                        Tooltip: ="Create a new maintenance plan"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =If(Parent.Width < 640, (Parent.Width - 16) / 2, (Parent.Width - 32) / 4)
+            - conAdminQueueHeader:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(12, 59, 94, 1)
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 128, 88)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =4
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =14
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =14
+                  Width: =Parent.Width
+                Children:
+                  - txtAdminQueueTitle:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Admin queue title"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =38
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =24
+                        Text: ="Admin queue"
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - txtAdminQueueSupporting:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Admin queue guidance"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(226, 231, 235, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =If(Parent.Width < 640, 42, 30)
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: ="Review maintenance plans that are ready for administrator follow-up."
+                        Width: =Parent.Width
+            - conAdminQueueDenied:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =240
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =10
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =24
+                  PaddingLeft: =24
+                  PaddingRight: =24
+                  PaddingTop: =24
+                  Visible: =!varIsAdmin
+                  Width: =Parent.Width
+                Children:
+                  - txtAdminQueueDeniedTitle:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Access denied title"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =18
+                        Text: ="Access denied"
+                        Width: =Parent.Width
+                  - txtAdminQueueDeniedBody:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Access denied explanation"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(50, 49, 48, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =64
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: ="Your account is not a member of the Admin group, so the administrator queue is unavailable."
+                        Width: =Parent.Width
+                  - btnAdminQueueDeniedBack:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Return to My plans"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: =ButtonAppearance.Secondary
+                        BasePaletteColor: =RGBA(56, 96, 178, 1)
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Navigate(MyPlans, ScreenTransition.Cover)
+                        Size: =11
+                        Text: ="Return to My plans"
+                        Tooltip: ="Return to your maintenance plans"
+                        Width: =180
+            - conAdminQueueContent:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 1080, 760)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =10
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  Visible: =varIsAdmin
+                  Width: =Parent.Width
+                Children:
+                  - conAdminQueueFilters:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        Fill: =RGBA(255, 255, 255, 1)
+                        FillPortions: =0
+                        Height: =If(Parent.Width < 640, 300, 180)
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =8
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PaddingBottom: =12
+                        PaddingLeft: =12
+                        PaddingRight: =12
+                        PaddingTop: =12
+                        Width: =Parent.Width
+                      Children:
+                        - conAdminQueueFilterRow:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              FillPortions: =0
+                              Height: =If(Parent.Width < 640, 144, 64)
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =If(Parent.Width < 640, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                              LayoutGap: =8
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              Width: =Parent.Width
+                            Children:
+                              - txtAdminQueueSearch:
+                                  Control: ModernTextInput@1.1.1
+                                  Properties:
+                                    AccessibleLabel: ="Search admin queue"
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Appearance: =Appearance.Outline
+                                    Fill: =RGBA(241, 242, 246, 1)
+                                    Font: =Font.'Open Sans'
+                                    Height: =44
+                                    MaxLength: =100
+                                    OnChange: =Set(varAdminQueueSearch, Trim(txtAdminQueueSearch.Text))
+                                    Placeholder: ="Search PlanID, title, SAP number or plant"
+                                    TriggerOutput: =TriggerOutput.FocusOut
+                                    Type: =TextInputType.Search
+                                    Width: =If(Parent.Width < 640, Parent.Width - 24, Parent.Width * 0.36)
+                              - radAdminQueueStatus:
+                                  Control: ModernRadio@1.0.1
+                                  Properties:
+                                    AccessibleLabel: ="Filter admin queue by status"
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Default: |-
+                                      ={Value: "All"}
+                                    Height: =56
+                                    Items: =colStatusFilterOptions
+                                    Layout: =OptionLayout.Horizontal
+                                    OnChange: =Set(varAdminQueueStatusFilter, If(radAdminQueueStatus.Selected.Value = "All", "", radAdminQueueStatus.Selected.Value))
+                                    Width: =If(Parent.Width < 640, Parent.Width - 24, Parent.Width * 0.44)
+                              - btnAdminQueueClear:
+                                  Control: ModernButton@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Clear admin queue filters"
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Appearance: =ButtonAppearance.Secondary
+                                    BasePaletteColor: =RGBA(56, 96, 178, 1)
+                                    Color: =RGBA(12, 59, 94, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =44
+                                    Layout: =ButtonLayout.TextOnly
+                                    OnSelect: =Reset(txtAdminQueueSearch); Reset(radAdminQueueStatus); Set(varAdminQueueSearch, ""); Set(varAdminQueueStatusFilter, ""); Set(varAdminQueueReceiptVisible, false)
+                                    Size: =11
+                                    Text: ="Clear"
+                                    Tooltip: ="Reset queue search and status filters"
+                                    Visible: =!IsBlank(Trim(varAdminQueueSearch)) || !IsBlank(varAdminQueueStatusFilter)
+                                    Width: =If(Parent.Width < 640, Parent.Width - 24, 112)
+                        - txtAdminQueueActiveFilter:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Active admin queue filters"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =If(Parent.Width < 640, 36, 24)
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =11
+                              Text: |-
+                                =If(IsBlank(Trim(varAdminQueueSearch)) && IsBlank(varAdminQueueStatusFilter), "Showing all maintenance plans", "Filters: " & If(IsBlank(Trim(varAdminQueueSearch)), "", "Search '" & Trim(varAdminQueueSearch) & "'") & If(IsBlank(varAdminQueueStatusFilter), "", If(IsBlank(Trim(varAdminQueueSearch)), "", " Â· ") & "Status '" & varAdminQueueStatusFilter & "'"))
+                              Width: =Parent.Width
+                        - txtAdminQueuePendingNote:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Pending admin queue capabilities"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(90, 90, 90, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =If(Parent.Width < 640, 70, 42)
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =10
+                              Text: |-
+                                ="Assignment and CSV export are pending: AssignedTo is not in the connected MaintenancePlans schema and no flow connector is available."
+                              Width: =Parent.Width
+                  - txtAdminQueueReceipt:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Admin queue selection receipt"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(22, 160, 133, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =If(Parent.Width < 640, 42, 30)
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =11
+                        Text: |-
+                          ="Admin queue selection: record ID " & varAdminQueueSelectedID & " is routed to PlanDetail."
+                        Visible: =varAdminQueueReceiptVisible
+                        Width: =Parent.Width
+                  - txtAdminQueueEmpty:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Admin queue empty state"
+                        Align: =Align.Center
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(90, 90, 90, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =60
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: =If(IsBlank(Trim(varAdminQueueSearch)) && IsBlank(varAdminQueueStatusFilter), "No maintenance plans are available in the admin queue.", "No plans match these filters.")
+                        Visible: =galAdminQueue.AllItemsCount = 0
+                        Width: =Parent.Width
+                  - galAdminQueue:
+                      Control: Gallery@2.15.0
+                      Variant: Vertical
+                      Properties:
+                        AccessibleLabel: ="Admin queue maintenance plans"
+                        BorderColor: =RGBA(214, 221, 224, 1)
+                        BorderThickness: =1
+                        FillPortions: =0
+                        Height: =If(Parent.Width < 640, 680, 520)
+                        Items: |-
+                          =Filter(
+                              colAdminQueuePlans,
+                              (
+                                  IsBlank(Trim(varAdminQueueSearch)) ||
+                                  StartsWith(PlanID, Trim(varAdminQueueSearch)) ||
+                                  StartsWith(Title, Trim(varAdminQueueSearch)) ||
+                                  StartsWith(SAPNum, Trim(varAdminQueueSearch)) ||
+                                  StartsWith(PlantsInitial.Value, Trim(varAdminQueueSearch))
+                              ) &&
+                              (IsBlank(varAdminQueueStatusFilter) || Status.Value = varAdminQueueStatusFilter)
+                          )
+                        Selectable: =false
+                        TabIndex: =0
+                        TemplatePadding: =4
+                        TemplateSize: =If(Parent.Width < 640, 260, 232)
+                        Width: =Parent.Width
+                      Children:
+                        - conAdminQueueRow:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              Fill: =RGBA(255, 255, 255, 1)
+                              Height: =Parent.TemplateHeight
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =If(Parent.Width < 640, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                              LayoutGap: =8
+                              PaddingBottom: =10
+                              PaddingLeft: =12
+                              PaddingRight: =12
+                              PaddingTop: =10
+                              Width: =Parent.TemplateWidth
+                            Children:
+                              - conAdminQueueRowInfo:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    LayoutAlignItems: =LayoutAlignItems.Stretch
+                                    LayoutDirection: =LayoutDirection.Vertical
+                                    LayoutGap: =2
+                                    LayoutMinHeight: =0
+                                    LayoutMinWidth: =0
+                                    Width: =If(Parent.Width < 640, Parent.Width, Parent.Width - 140)
+                                  Children:
+                                    - txtAdminQueueRowPlanID:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          AccessibleLabel: ="Plan ID " & ThisItem.PlanID
+                                          AlignInContainer: =AlignInContainer.Stretch
+                                          Color: =RGBA(12, 59, 94, 1)
+                                          Font: =Font.'Open Sans'
+                                          FontWeight: =FontWeight.Bold
+                                          Height: =24
+                                          PaddingBottom: =0
+                                          PaddingLeft: =0
+                                          PaddingRight: =0
+                                          PaddingTop: =0
+                                          Size: =13
+                                          Text: =ThisItem.PlanID
+                                          Width: =Parent.Width
+                                          Wrap: =false
+                                    - txtAdminQueueRowTitle:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          AccessibleLabel: ="Plan title " & ThisItem.Title
+                                          AlignInContainer: =AlignInContainer.Stretch
+                                          Color: =RGBA(12, 59, 94, 1)
+                                          Font: =Font.'Open Sans'
+                                          Height: =36
+                                          PaddingBottom: =0
+                                          PaddingLeft: =0
+                                          PaddingRight: =0
+                                          PaddingTop: =0
+                                          Size: =12
+                                          Text: =ThisItem.Title
+                                          Width: =Parent.Width
+                                    - txtAdminQueueRowStatus:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          AccessibleLabel: ="Plan status " & ThisItem.Status.Value
+                                          AlignInContainer: =AlignInContainer.Stretch
+                                          Color: =RGBA(255, 255, 255, 1)
+                                          Fill: =Switch(ThisItem.Status.Value, "Draft", RGBA(100, 76, 118, 1), "In Progress", RGBA(232, 87, 87, 1), "Ready for creation in SAP", RGBA(200, 150, 0, 1), "Published", RGBA(22, 160, 133, 1), RGBA(56, 96, 178, 1))
+                                          Font: =Font.'Open Sans'
+                                          FontWeight: =FontWeight.Bold
+                                          Height: =26
+                                          PaddingBottom: =0
+                                          PaddingLeft: =0
+                                          PaddingRight: =0
+                                          PaddingTop: =0
+                                          Size: =10
+                                          Text: |-
+                                            ="Status: " & ThisItem.Status.Value
+                                          Width: =Parent.Width
+                                    - txtAdminQueueRowPlant:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          AccessibleLabel: ="Plant for " & ThisItem.PlanID
+                                          AlignInContainer: =AlignInContainer.Stretch
+                                          Color: =RGBA(50, 49, 48, 1)
+                                          Font: =Font.'Open Sans'
+                                          Height: =24
+                                          PaddingBottom: =0
+                                          PaddingLeft: =0
+                                          PaddingRight: =0
+                                          PaddingTop: =0
+                                          Size: =10
+                                          Text: |-
+                                            ="Plant: " & Coalesce(ThisItem.PlantsInitial.Value, "â€”")
+                                          Width: =Parent.Width
+                                    - txtAdminQueueRowDate:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          AccessibleLabel: ="Planned date for " & ThisItem.PlanID
+                                          AlignInContainer: =AlignInContainer.Stretch
+                                          Color: =RGBA(90, 90, 90, 1)
+                                          Font: =Font.'Open Sans'
+                                          Height: =24
+                                          PaddingBottom: =0
+                                          PaddingLeft: =0
+                                          PaddingRight: =0
+                                          PaddingTop: =0
+                                          Size: =10
+                                          Text: |-
+                                            ="Planned: " & If(IsBlank(ThisItem.PlannedDate), "â€”", Text(ThisItem.PlannedDate, "[$-en-GB]dd/mm/yyyy"))
+                                          Width: =Parent.Width
+                                    - txtAdminQueueRowSAP:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          AccessibleLabel: ="SAP number for " & ThisItem.PlanID
+                                          AlignInContainer: =AlignInContainer.Stretch
+                                          Color: =RGBA(56, 96, 178, 1)
+                                          Font: =Font.'Open Sans'
+                                          Height: =24
+                                          PaddingBottom: =0
+                                          PaddingLeft: =0
+                                          PaddingRight: =0
+                                          PaddingTop: =0
+                                          Size: =10
+                                          Text: |-
+                                            ="SAP: " & Coalesce(ThisItem.SAPNum, "â€”")
+                                          Width: =Parent.Width
+                                    - txtAdminQueueRowMeta:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          AccessibleLabel: ="Cycle, unit and requester for " & ThisItem.PlanID
+                                          AlignInContainer: =AlignInContainer.Stretch
+                                          Color: =RGBA(90, 90, 90, 1)
+                                          Font: =Font.'Open Sans'
+                                          Height: =36
+                                          PaddingBottom: =0
+                                          PaddingLeft: =0
+                                          PaddingRight: =0
+                                          PaddingTop: =0
+                                          Size: =10
+                                          Text: |-
+                                            ="Cycle: " & Coalesce(Text(ThisItem.Cycle), "â€”") &
+                                            " Â· Unit: " & Coalesce(ThisItem.Unit.Value, "â€”") &
+                                            " Â· Requester: " & Coalesce(ThisItem.Author.Email, "â€”")
+                                          Width: =Parent.Width
+                              - conAdminQueueRowActions:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    FillPortions: =0
+                                    Height: =If(Parent.Width < 640, 50, Parent.Height)
+                                    LayoutAlignItems: =LayoutAlignItems.Stretch
+                                    LayoutDirection: =LayoutDirection.Vertical
+                                    LayoutGap: =4
+                                    LayoutMinHeight: =0
+                                    LayoutMinWidth: =0
+                                    Width: =If(Parent.Width < 640, Parent.Width, 116)
+                                  Children:
+                                    - btnAdminQueueView:
+                                        Control: ModernButton@1.0.0
+                                        Properties:
+                                          AccessibleLabel: ="View " & ThisItem.PlanID
+                                          AlignInContainer: =AlignInContainer.Stretch
+                                          BasePaletteColor: =RGBA(56, 96, 178, 1)
+                                          Color: =RGBA(255, 255, 255, 1)
+                                          Font: =Font.'Open Sans'
+                                          FontWeight: =FontWeight.Bold
+                                          Height: =40
+                                          Layout: =ButtonLayout.TextOnly
+                                          OnSelect: |-
+                                            =Set(varAdminQueueSelectedID, ThisItem.ID);
+                                            Set(varSelectedPlanID, ThisItem.ID);
+                                            Set(varPlanDetailMode, "View");
+                                            Set(varAdminQueueReceiptVisible, true);
+                                            Notify("Admin queue selection opened: " & ThisItem.PlanID, NotificationType.Information);
+                                            Navigate(PlanDetail, ScreenTransition.Cover)
+                                          Size: =10
+                                          Text: ="View"
+                                          Tooltip: ="View this plan in PlanDetail"
+                                          Width: =Parent.Width

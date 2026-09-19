@@ -1,0 +1,908 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  Plan:
+    Properties:
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+      OnVisible: |-
+        =ClearCollect(
+            colAdmins,
+            Filter(
+                'BioSap-List-UserAndGroups',
+                Title = "Admin"
+            )
+        );
+        Set(
+            varIsAdmin,
+            !IsEmpty(
+                Filter(colAdmins, Lower(Member) = Lower(Office365Users.MyProfile().UserPrincipalName))
+            )
+        );
+    Children:
+      - Label2_18:
+          Control: Label@2.5.1
+          Properties:
+            AutoHeight: =true
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(12, 59, 94, 1)
+            Font: =orgTheme.fontFamily
+            FontWeight: =FontWeight.Bold
+            Height: =42
+            PaddingLeft: =0
+            Size: =14
+            Text: ="MAINTENANCE PLAN"
+            Width: =214
+            X: =85
+            Y: =155
+      - btnNewRequest_3:
+          Control: Classic/Button@2.2.0
+          Group: grpNewBtn_3
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =orgTheme.color
+            Font: =orgTheme.fontFamily
+            FontWeight: =FontWeight.Normal
+            Height: =30
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            OnSelect: |+
+              =NewForm(MaintenancePlanForm);
+              Set(SelectedItem, Blank());  //Clear any previously selected item
+              Set(SelectedPlanID, Blank());
+              Set(varIsNewPlan, true);
+              Set(varHasNewRevisionItems, false);
+              Navigate(MaintenancePlanAndItemsForm);
+            PressedBorderColor: =Self.Fill
+            PressedFill: =Self.Fill
+            RadiusBottomLeft: =30
+            RadiusBottomRight: =30
+            RadiusTopLeft: =30
+            RadiusTopRight: =30
+            Size: =orgTheme.fontSize
+            Text: ="New"
+            Tooltip: ="Add new request"
+            Width: =103
+            X: =294
+            Y: =155
+      - sortIcon_3:
+          Control: Classic/Icon@2.5.0
+          Group: grpToolbar_3
+          Properties:
+            BorderColor: =RGBA(166, 166, 166, 1)
+            Color: =RGBA(64, 153, 218, 1)
+            DisabledBorderColor: =RGBA(0, 0, 0, 0)
+            DisabledColor: =RGBA(220, 220, 220, 1)
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            FocusedBorderThickness: =4
+            Height: =24
+            HoverBorderColor: =RGBA(0, 0, 0, 0)
+            HoverColor: =ColorFade(RGBA(0, 120, 212, 1), -30%)
+            HoverFill: =RGBA(0, 0, 0, 0)
+            Icon: =Icon.Sort
+            OnSelect: |-
+              =UpdateContext({SortDescending1: !SortDescending1})
+            PressedBorderColor: =RGBA(0, 0, 0, 0)
+            PressedColor: =ColorFade(RGBA(0, 120, 212, 1), -30%)
+            PressedFill: =RGBA(0, 0, 0, 0)
+            Tooltip: ="Toggle sorting"
+            Width: =24
+            X: =1213
+            Y: =159
+      - reloadIcon_3:
+          Control: Classic/Icon@2.5.0
+          Group: grpToolbar_3
+          Properties:
+            BorderColor: =RGBA(166, 166, 166, 1)
+            Color: =RGBA(64, 153, 218, 1)
+            DisabledBorderColor: =RGBA(0, 0, 0, 0)
+            DisabledColor: =RGBA(220, 220, 220, 1)
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            FocusedBorderThickness: =4
+            Height: =sortIcon_3.Height
+            HoverBorderColor: =RGBA(0, 0, 0, 0)
+            HoverColor: =ColorFade(RGBA(0, 120, 212, 1), -30%)
+            HoverFill: =RGBA(0, 0, 0, 0)
+            Icon: =Icon.Reload
+            OnSelect: |-
+              =Refresh('BioSap-List-MaintenancePlans');
+              //UpdateContext({SortDescending1: !SortDescending1})
+            PressedBorderColor: =RGBA(0, 0, 0, 0)
+            PressedColor: =ColorFade(RGBA(0, 120, 212, 1), -30%)
+            PressedFill: =RGBA(0, 0, 0, 0)
+            Tooltip: ="Refresh data"
+            Width: =sortIcon_3.Width
+            X: =1248
+            Y: =159
+      - Icon1_4:
+          Control: Classic/Icon@2.5.0
+          Group: grpNewBtn_3
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(0, 18, 107, 1)
+            DisplayMode: =DisplayMode.Disabled
+            Height: =18
+            Icon: =Icon.Add
+            OnSelect: =
+            PressedColor: =Self.Color
+            Width: =17
+            X: =306
+            Y: =161
+      - searchBox_3:
+          Control: Classic/TextInput@2.3.2
+          Group: grpSearchBox_3
+          Properties:
+            BorderColor: =RGBA(214, 221, 224, 1)
+            BorderThickness: =1
+            Clear: =true
+            Default: =
+            Fill: =RGBA(241, 242, 246,1.0)
+            Font: =orgTheme.fontFamily
+            Height: =35
+            HintText: ="Search Title or Plan ID"
+            HoverBorderColor: =RGBA(0, 18, 107, 1)
+            HoverFill: =RGBA(186, 202, 226, 1)
+            PaddingLeft: =40
+            RadiusBottomLeft: =30
+            RadiusBottomRight: =30
+            RadiusTopLeft: =30
+            RadiusTopRight: =30
+            Reset: =true
+            Size: =orgTheme.fontSize - 2
+            Width: =380
+            X: =803
+            Y: =153
+      - Icon2_3:
+          Control: Classic/Icon@2.5.0
+          Group: grpSearchBox_3
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(0, 18, 107, 1)
+            DisabledColor: =Color.Gray
+            DisplayMode: =DisplayMode.Disabled
+            Height: =20
+            Icon: =Icon.Search
+            Width: =20
+            X: =814
+            Y: =162
+      - headerID_3:
+          Control: Label@2.5.1
+          Group: Group2_3
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 0, 0, 1)
+            BorderThickness: =1
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(179, 187, 194, 1)
+            DisabledColor: =RGBA(0, 0, 0, 1)
+            DisabledFill: |-
+              =//orgTheme.secondColor
+              RGBA(179, 187, 194, 0.8)
+            DisplayMode: =DisplayMode.Disabled
+            FocusedBorderThickness: =4
+            Font: =orgTheme.fontFamily
+            Height: =36
+            Size: =orgTheme.fontSize-2
+            Text: ="Plan ID"
+            Width: =89
+            X: =80
+            Y: =199
+      - Label20_23:
+          Control: Label@2.5.1
+          Group: Group2_3
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(230, 230, 230, 1)
+            BorderThickness: =1
+            Color: =RGBA(51, 51, 51, 1)
+            DisabledBorderColor: =RGBA(230, 230, 230, 1)
+            DisabledColor: =headerID_3.DisabledColor
+            DisabledFill: =headerID_3.DisabledFill
+            DisplayMode: =headerID_3.DisplayMode
+            FocusedBorderThickness: =4
+            Font: =orgTheme.fontFamily
+            Height: =36
+            Size: =orgTheme.fontSize-2
+            Text: ="Title"
+            Width: =245
+            X: =169
+            Y: =199
+      - Label20_24:
+          Control: Label@2.5.1
+          Group: Group2_3
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(230, 230, 230, 1)
+            BorderThickness: =1
+            Color: =RGBA(51, 51, 51, 1)
+            DisabledBorderColor: =headerID_3.DisabledBorderColor
+            DisabledColor: =headerID_3.DisabledColor
+            DisabledFill: =headerID_3.DisabledFill
+            DisplayMode: =headerID_3.DisplayMode
+            FocusedBorderThickness: =4
+            Font: =orgTheme.fontFamily
+            Height: =36
+            Size: =orgTheme.fontSize-2
+            Text: ="Status"
+            Width: =129
+            X: =413
+            Y: =199
+      - Label20_25:
+          Control: Label@2.5.1
+          Group: Group2_3
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(230, 230, 230, 1)
+            BorderThickness: =1
+            Color: =RGBA(51, 51, 51, 1)
+            DisabledBorderColor: =headerID_3.DisabledBorderColor
+            DisabledColor: =headerID_3.DisabledColor
+            DisabledFill: =headerID_3.DisabledFill
+            DisplayMode: |-
+              =
+              headerID_3.DisplayMode
+            FocusedBorderThickness: =4
+            Font: =orgTheme.fontFamily
+            Height: =36
+            Size: =orgTheme.fontSize-2
+            Text: ="Action"
+            Width: =114
+            X: =1172
+            Y: =199
+      - Label20_26:
+          Control: Label@2.5.1
+          Group: Group2_3
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(230, 230, 230, 1)
+            BorderThickness: =1
+            Color: =RGBA(51, 51, 51, 1)
+            DisabledBorderColor: =headerID_3.DisabledBorderColor
+            DisabledColor: =headerID_3.DisabledColor
+            DisabledFill: =headerID_3.DisabledFill
+            DisplayMode: =headerID_3.DisplayMode
+            FocusedBorderThickness: =4
+            Font: =orgTheme.fontFamily
+            Height: =36
+            Size: =orgTheme.fontSize-2
+            Text: ="First Planned Date"
+            X: =897
+            Y: =199
+      - Label20_22:
+          Control: Label@2.5.1
+          Group: Group2_3
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(230, 230, 230, 1)
+            BorderThickness: =1
+            Color: =RGBA(51, 51, 51, 1)
+            DisabledBorderColor: =headerID_3.DisabledBorderColor
+            DisabledColor: =headerID_3.DisabledColor
+            DisabledFill: =headerID_3.DisabledFill
+            DisplayMode: =headerID_3.DisplayMode
+            FocusedBorderThickness: =4
+            Font: =orgTheme.fontFamily
+            Height: =36
+            Size: =orgTheme.fontSize-2
+            Text: ="Sort Field"
+            Width: =129
+            X: =542
+            Y: =199
+      - Label20_21:
+          Control: Label@2.5.1
+          Group: Group2_3
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(230, 230, 230, 1)
+            BorderThickness: =1
+            Color: =RGBA(51, 51, 51, 1)
+            DisabledBorderColor: =headerID_3.DisabledBorderColor
+            DisabledColor: =headerID_3.DisabledColor
+            DisabledFill: =headerID_3.DisabledFill
+            DisplayMode: =headerID_3.DisplayMode
+            FocusedBorderThickness: =4
+            Font: =orgTheme.fontFamily
+            Height: =36
+            Size: =orgTheme.fontSize-2
+            Text: ="Cycle"
+            Width: =110
+            X: =671
+            Y: =199
+      - Label20_20:
+          Control: Label@2.5.1
+          Group: Group2_3
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(230, 230, 230, 1)
+            BorderThickness: =1
+            Color: =RGBA(51, 51, 51, 1)
+            DisabledBorderColor: =headerID_3.DisabledBorderColor
+            DisabledColor: =headerID_3.DisabledColor
+            DisabledFill: =headerID_3.DisabledFill
+            DisplayMode: =headerID_3.DisplayMode
+            FocusedBorderThickness: =4
+            Font: =orgTheme.fontFamily
+            Height: =35
+            Size: =orgTheme.fontSize-2
+            Text: ="Unit"
+            Width: =115
+            X: =781
+            Y: =199
+      - galleryDashboard_3:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_OneTextVariant_ver5.0
+          Properties:
+            BorderColor: =RGBA(214, 221, 224, 1)
+            BorderThickness: =1
+            Height: =428
+            Items: "=If(\r\n    !showID,\r\n    \r\n    SortByColumns(\r\n        Filter(\r\n            'BioSap-List-MaintenancePlans',\r\n            \r\n            (\r\n                Lower(searchBox_3.Text) in Lower(Title) || \r\n                Lower(searchBox_3.Text) in Lower(PlanID)\r\n            ) &&\r\n            \r\n            (\r\n                varIsAdmin ||  // Admins see all\r\n                Substitute(\r\n                    'Created By'.Claims,\r\n                    \"i:0#.f|membership|\",\r\n                    \"\"\r\n                ) = Lower(Office365Users.MyProfile().UserPrincipalName)\r\n            )\r\n        ),\r\n        \"ID\",\r\n        If(SortDescending1, SortOrder.Descending, SortOrder.Ascending)\r\n    ),\r\n    \r\n    showID,\r\n    \r\n    SortByColumns(\r\n        Filter(\r\n            'BioSap-List-MaintenancePlans',\r\n            \r\n            ID = Value(Param(\"ID\")) &&\r\n            (\r\n                varIsAdmin ||  // Admins can open any ID\r\n                Substitute(\r\n                    'Created By'.Claims,\r\n                    \"i:0#.f|membership|\",\r\n                    \"\"\r\n                ) = Lower(Office365Users.MyProfile().UserPrincipalName)\r\n            )\r\n        ),\r\n        \"ID\",\r\n        If(SortDescending1, SortOrder.Ascending, SortOrder.Descending)\r\n    )\r\n)\r\n\r\n/*If(\r\n    !showID,\r\n    SortByColumns(\r\n        Filter(\r\n            'BioSap-List-MaintenancePlans',\r\n            (\r\n                Lower(searchBox_3.Text) in Lower(Title) || \r\n                Lower(searchBox_3.Text) in Lower(PlanID)\r\n            ) &&\r\n            \r\n            // Only show records created by the current user\r\n            Substitute(\r\n                'Created By'.Claims,\r\n                \"i:0#.f|membership|\",\r\n                \"\"\r\n            ) = Lower(Office365Users.MyProfile().UserPrincipalName)\r\n        ),\r\n        \"ID\",\r\n        If(SortDescending1, SortOrder.Descending, SortOrder.Ascending)\r\n    ),\r\n    \r\n    showID,\r\n    SortByColumns(\r\n        Filter(\r\n            'BioSap-List-MaintenancePlans',\r\n            ID = Value(Param(\"ID\")) &&\r\n            Substitute(\r\n                'Created By'.Claims,\r\n                \"i:0#.f|membership|\",\r\n                \"\"\r\n            ) = Lower(Office365Users.MyProfile().UserPrincipalName)\r\n        ),\r\n        \"ID\",\r\n        If(SortDescending1, SortOrder.Ascending, SortOrder.Descending)\r\n    )\r\n)*/\r\n//WORKS\r\n\r\n//'BioSap-List-MaintenancePlans'\r\n/*If(\r\n  !showID,\r\n    SortByColumns(\r\n    Filter(\r\n        'BioSap-List-MaintenancePlans',\r\n        StartsWith(Title, searchBox_3.Text)\r\n        &&\r\n        Substitute(\r\n                'Created By'.Claims,\r\n                \"i:0#.f|membership|\",\r\n                \"\"\r\n            ) = Lower(Office365Users.MyProfile().UserPrincipalName)       \r\n    ),\r\n    \"ID\",\r\n    If(SortDescending1, \r\n    SortOrder.Descending, \r\n    SortOrder.Ascending\r\n    )\r\n),\r\nshowID,\r\n    //And !IsBlank(Param(\"ID\")),\r\n    SortByColumns(\r\n        Filter(\r\n            'BioSap-List-MaintenancePlans',\r\n            ID = Value(Param(\"ID\")) &&\r\n            Substitute(\r\n                'Created By'.Claims,\r\n                \"i:0#.f|membership|\",\r\n                \"\"\r\n            ) = Lower(Office365Users.MyProfile().UserPrincipalName)\r\n        ),\r\n        \"ID\",\r\n        If(\r\n            SortDescending1,\r\n            SortOrder.Ascending,\r\n            SortOrder.Descending\r\n        )\r\n    )\r\n)*/\r\n//WORKS\r\n\r\n/*,\r\nshowID,\r\n    //And !IsBlank(Param(\"ID\")),\r\n    SortByColumns(\r\n        Filter(\r\n            'BioSap-List-MaintenancePlans',\r\n            ID = Value(Param(\"ID\"))\r\n        ),\r\n        \"ID\",\r\n        If(\r\n            SortDescending1,\r\n            SortOrder.Ascending,\r\n            SortOrder.Descending\r\n        )\r\n    )\r\n)\r\n\r\nSortByColumns(\r\n        Filter(\r\n            'BioSap-List-MaintenancePlans',\r\n            StartsWith(\r\n                Title,\r\n  searchBox_3.Text\r\n            ) \r\n        ),\r\n        \"ID\",\r\n        If(\r\n            SortDescending1,\r\n            SortOrder.Descending,\r\n            SortOrder.Ascending\r\n        )\r\n    )*/\r\n"
+            TemplateSize: =40
+            Width: =1206
+            X: =80
+            Y: =235
+          Children:
+            - Dashboard_Row:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  DisabledFill: =RGBA(244, 244, 244, 1)
+                  DisplayMode: =DisplayMode.Disabled
+                  Fill: =RGBA(56, 96, 178, 1)
+                  Height: =Dashboard_PlanID.Height
+                  OnSelect: =Select(Parent)
+                  Visible: =ThisItem.IsSelected
+                  Width: =Parent.Width
+            - Dashboard_PlanID:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(51, 51, 51, 1)
+                  Font: =orgTheme.fontFamily
+                  FontWeight: =If(ThisItem.IsSelected, FontWeight.Semibold, FontWeight.Normal)
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =orgTheme.fontSize -2
+                  Text: =ThisItem.PlanID
+                  Width: =82
+            - Dashboard_EditIcon:
+                Control: Classic/Icon@2.5.0
+                Properties:
+                  AccessibleLabel: =Self.Tooltip
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Color: =orgTheme.color
+                  Height: =Dashboard_PlanID.Height
+                  Icon: |-
+                    =//This expression assigns the icon for the 'editBtn' control to 'DocumentWithContent' if the status of 'ThisItem' is "Submitted"; otherwise, it assigns the icon to 'Edit'.
+                    If(ThisItem.Status.Value = "Submitted",  Icon.DocumentWithContent, Icon.Edit)
+                  OnSelect: |-
+                    =//This expression sets the global variable 'SelectedItem' to the ID of 'ThisItem', checks if the status of 'ThisItem' is "Submitted" to either view or edit 'MainForm', and then navigates to 'MainScreen'.
+
+                    Set(
+                        SelectedItem,
+                        ThisItem.ID
+                    );
+
+                    Set(
+                        SelectedPlanID,
+                        ThisItem.PlanID
+                    );
+
+                    Set(
+                        SelectedItemStatus,
+                        ThisItem.Status.Value
+                    );
+
+                    If(
+                        ThisItem.Status.Value = "Draft" || ThisItem.Status.Value = "In Progress" || ThisItem.Status.Value = "Ready for creation in SAP",
+                        EditForm(MaintenancePlanForm),
+                        ViewForm(MaintenancePlanForm)
+                    );
+
+                    UpdateContext({
+                            varNewMode: true,
+                            editMode: false,
+                            isItemSelected: false,
+                            CurrentItem: Blank()
+                    });
+
+                    Set(
+                       varHasRevisionItems,
+                       !IsEmpty(
+                          Filter(
+                             'BioSap-List-MaintenanceItems',
+                             MaintenancePlanNo.Value = SelectedPlanID && Revision = true
+                          )
+                       )
+                    );
+
+                    Set(varHasNewRevisionItems, varHasRevisionItems);
+
+                    Set(varIsNewPlan, false);
+
+                    Navigate(MaintenancePlanAndItemsForm);
+                  PaddingBottom: =10
+                  PaddingLeft: =10
+                  PaddingRight: =10
+                  PaddingTop: =10
+                  Tooltip: =If(Dashboard_EditIcon.Icon = Icon.Edit, "Edit request", "View request details")
+                  Width: =50
+                  X: =1096
+                  Y: =(Parent.TemplateHeight / 2) - (Self.Height / 2)
+            - Dashboard_TableBorder:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  DisabledFill: =RGBA(214, 221, 224, 1)
+                  DisplayMode: =DisplayMode.Disabled
+                  Fill: =RGBA(56, 96, 178, 1)
+                  Height: =1
+                  OnSelect: =Select(Parent)
+                  Width: =Parent.Width
+                  Y: =39
+            - Dashboard_Title:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(50, 49, 48, 1)
+                  Font: =orgTheme.fontFamily
+                  FontWeight: =If(ThisItem.IsSelected, FontWeight.Semibold, FontWeight.Normal)
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingTop: =0
+                  Size: =If(Len(ThisItem.Title) > 50, Dashboard_PlanID.Size - 1, Dashboard_PlanID.Size)
+                  Text: =ThisItem.Title
+                  Width: =235
+                  X: =95
+            - Dashboard_PLannedDate:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(50, 49, 48, 1)
+                  Font: =orgTheme.fontFamily
+                  FontWeight: =If(ThisItem.IsSelected, FontWeight.Semibold, FontWeight.Normal)
+                  Height: =Dashboard_PlanID.Height
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =Dashboard_PlanID.Size
+                  Text: |+
+                    =Text(ThisItem.PlannedDate, "[$-en-GB]dd/mm/yyyy")
+                    //ThisItem.PlannedDate
+                  Width: =143
+                  X: =820
+            - Dashboard_Status:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =ColorFade(Self.Fill, -15%)
+                  Color: =RGBA(255, 255, 255, 1)
+                  DisabledBorderColor: =Color.Transparent
+                  DisabledColor: =Color.White
+                  DisabledFill: |-
+                    =If(
+                        ThisItem.Status.Value = "Draft",
+                        RGBA(
+                            100, 76, 118, 1.0
+                        ),
+                        ThisItem.Status.Value = "In Progress" ,
+                        RGBA(
+                            232, 87, 87,
+                            1.0
+                        ),
+                        ThisItem.Status.Value = "Published",
+                        RGBA(
+                            22,
+                            160,
+                            133,
+                            0.5
+                        ),
+                        ThisItem.Status.Value = "Ready for creation in SAP",
+                        RGBA(
+                            200, 150, 0, 1
+                        )
+                    )
+                  DisplayMode: =DisplayMode.Disabled
+                  Fill: =
+                  Font: =orgTheme.fontFamily
+                  FontWeight: =FontWeight.Normal
+                  Height: =25
+                  HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                  OnSelect: =
+                  PressedBorderColor: =Self.Fill
+                  PressedColor: =Self.Fill
+                  PressedFill: =Self.Color
+                  RadiusBottomLeft: =30
+                  RadiusBottomRight: =30
+                  RadiusTopLeft: =30
+                  RadiusTopRight: =30
+                  Size: =Dashboard_PlanID.Size
+                  Text: =ThisItem.Status.Value
+                  Width: =103
+                  X: =348
+                  Y: =7
+            - Dashboard_Cycle:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(50, 49, 48, 1)
+                  Font: =orgTheme.fontFamily
+                  FontWeight: =If(ThisItem.IsSelected, FontWeight.Semibold, FontWeight.Normal)
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: '=Dashboard_PlanID.Size '
+                  Text: =ThisItem.Cycle
+                  Width: =91
+                  X: =600
+            - Dashboard_SortField:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(50, 49, 48, 1)
+                  Font: =orgTheme.fontFamily
+                  FontWeight: =If(ThisItem.IsSelected, FontWeight.Semibold, FontWeight.Normal)
+                  Height: =Dashboard_PlanID.Height
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =Dashboard_PlanID.Size
+                  Text: =ThisItem.SortField.Value
+                  Width: =116
+                  X: =472
+            - Dashboard_Unit:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(50, 49, 48, 1)
+                  Font: =orgTheme.fontFamily
+                  FontWeight: =If(ThisItem.IsSelected, FontWeight.Semibold, FontWeight.Normal)
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: '=Dashboard_PlanID.Size '
+                  Text: =ThisItem.Unit.Value
+                  Width: =102
+                  X: =708
+            - Icon8_1:
+                Control: Classic/Icon@2.5.0
+                Properties:
+                  BorderColor: =RGBA(166, 166, 166, 1)
+                  Color: =RGBA(0, 120, 212, 1)
+                  DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                  DisabledColor: =RGBA(220, 220, 220, 1)
+                  DisabledFill: =RGBA(0, 0, 0, 0)
+                  DisplayMode: |-
+                    =If(ThisItem.Status.Value = "Published", 
+                    DisplayMode.Disabled, DisplayMode.Edit)
+                    //DisplayMode.Edit
+                  FocusedBorderThickness: =4
+                  Height: =35
+                  HoverBorderColor: =RGBA(0, 0, 0, 0)
+                  HoverColor: =ColorFade(RGBA(0, 120, 212, 1), -30%)
+                  HoverFill: =RGBA(0, 0, 0, 0)
+                  Icon: =Icon.Trash
+                  OnSelect: |-
+                    =Set(varShowConfirmDelete, true);
+                    Set(varSelectedRecord, ThisItem)
+
+
+                    /*Patch('BioSap-List-MaintenancePlans',
+                    LookUp('BioSap-List-MaintenancePlans', ID = ThisItem.ID),
+                    {
+                                Status: {Value: "Deleted"}
+                            }
+                    )*/
+                  PressedBorderColor: =RGBA(0, 0, 0, 0)
+                  PressedColor: =ColorFade(RGBA(0, 120, 212, 1), -30%)
+                  PressedFill: =RGBA(0, 0, 0, 0)
+                  Width: =25
+                  X: =1146
+                  Y: =5
+            - Label14:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Color: =RGBA(50, 49, 48, 1)
+                  Font: =orgTheme.fontFamily
+                  OnSelect: |+
+                    =Select(Parent)
+                    /*Launch(
+                        "https://sapascsgp1.de-prod.dk:44300/webgui?~transaction=*IP03%20RMIPM-WARPL=" 
+                        & ThisItem.SAPNum 
+                        & ";&sap-language=EN"
+                    )*/
+                  Size: =Dashboard_PlanID.Size
+                  Text: =ThisItem.SAPNum
+                  Visible: =false
+                  Width: =133
+                  X: =963
+            - HtmlText1:
+                Control: HtmlViewer@2.1.0
+                Properties:
+                  Font: =orgTheme.fontFamily
+                  HtmlText: |-
+                    ="<div style=""text-align:center;"">
+                        <a style=""color:Blue; text-decoration:underline;"" 
+                            href=""https://sapascsgp1.de-prod.dk:44300/webgui?~transaction=*IP03%20RMIPM-WARPL=" 
+                            & ThisItem.SAPNum &
+                            ";&sap-language=EN"">" 
+                            & ThisItem.SAPNum & 
+                        "</a>
+                    </div>"
+                  OnSelect: =Select(Parent)
+                  PaddingTop: =10
+                  Size: =Dashboard_PlanID.Size
+                  Width: =133
+                  X: =963
+      - lblCountItems_3:
+          Control: Label@2.5.1
+          Properties:
+            AutoHeight: =true
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =orgTheme.fontFamily
+            Size: =orgTheme.fontSize-2
+            Text: |-
+              =//If(showID, "1 item", CountRows(Gallery1.AllItems) & " items")
+              CountRows(galleryDashboard_3.AllItems) & " items"
+            X: =80
+            Y: =702
+      - HtmlText2_16:
+          Control: HtmlViewer@2.1.0
+          Properties:
+            Fill: =
+            Font: =Font.'Open Sans'
+            Height: =104
+            HtmlText: |-
+              ="<div style='
+                  width: 100%;
+                  height: 100px;
+
+
+              background: #FFFFFF;
+              background: linear-gradient(90deg, rgba(255, 255, 255, 1) 0%, rgba(64, 153, 218, 0.63) 100%);
+
+                  padding:0;
+                  margin:0;
+                  overflow:hidden;
+              '>
+              </div>"
+            PaddingBottom: =0
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =0
+            Width: =1366
+      - lblAppTitle_10:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =orgTheme.fontFamily
+            FontWeight: =FontWeight.Bold
+            Height: =63
+            Size: =20
+            Text: ="B I O   S A P"
+            Width: =177
+            X: =117
+            Y: =20
+      - imgAppLogo_10:
+          Control: Image@2.2.3
+          Properties:
+            BorderColor: =RGBA(0, 0, 0, 0)
+            BorderStyle: =BorderStyle.None
+            BorderThickness: =2
+            DisabledBorderColor: =RGBA(0, 0, 0, 0)
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            FocusedBorderThickness: =4
+            Height: =49
+            HoverBorderColor: =RGBA(0, 0, 0, 0)
+            HoverFill: =RGBA(0, 0, 0, 0)
+            Image: |-
+              ="data:image/svg+xml,"&EncodeUrl("
+              <svg version='1.2' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1550 1734' width='1550' height='1734'><style>.a{fill:#4099da}</style><path fill-rule='evenodd' class='a' d='m905.9 225.5c369.2 56.8 643.6 358.2 643.6 745.4 0 426.5-336.1 763.1-775.5 763.1-439.9 0-774-336.6-774-763.1 0-387.2 279.4-688.6 644.1-745.4v-224.7h261.8zm340.6 743.4c0-235.2-136.4-413.3-340.6-466v446.4h-263.9v-446.4c-202.1 52.7-338.5 230.8-338.5 466 0 270.4 202.1 477.1 470.5 477.1 267.9 0 472.5-204.2 472.5-477.1z'/></svg>
+              ")
+            PressedBorderColor: =RGBA(0, 0, 0, 0)
+            PressedFill: =RGBA(0, 0, 0, 0)
+            Width: =44
+            X: =80
+            Y: =27
+      - Separator_5:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(64, 153, 218, 1)
+            Fill: =RGBA(64, 153, 218, 0.5)
+            Height: =3
+            Width: =1366
+            Y: =100
+      - UserEmail:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =orgTheme.fontFamily
+            Height: =33
+            Size: =12
+            Text: =User().Email
+            Width: =242
+            X: =1111
+            Y: =43
+      - Icon1:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(0, 18, 107, 1)
+            Height: =22
+            Icon: =Icon.Person
+            Width: =28
+            X: =1083
+            Y: =48
+      - lblNoRecords:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =orgTheme.fontFamily
+            FontWeight: =FontWeight.Lighter
+            Height: =91
+            Size: =orgTheme.fontSize
+            Text: |-
+              ="No request found. 
+              Click New button to get started"
+            Visible: |+
+              =CountRows(galleryDashboard_3.AllItems) = 0 && !showSpinner
+
+            Width: =281
+            X: =542
+            Y: =382
+      - DisableGreyScreen:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            DisabledFill: =RGBA(53, 61, 63, 0.2)
+            DisplayMode: =DisplayMode.Disabled
+            Fill: =RGBA(56, 96, 178, 1)
+            Height: =664
+            Visible: =varShowConfirmDelete
+            Width: =1366
+            Y: =104
+      - popupBox:
+          Control: GroupContainer@1.5.0
+          Variant: ManualLayout
+          Properties:
+            Fill: =RGBA(255, 255, 255, 1)
+            Visible: =varShowConfirmDelete
+            X: =431
+            Y: =286
+          Children:
+            - Label7:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Font: =orgTheme.fontFamily
+                  Height: =79
+                  Size: =15
+                  Text: ="Are you sure you want to delete this Plan?"
+                  Width: =460
+                  X: =20
+                  Y: =14
+            - Button3:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =ColorFade(Self.Fill, -15%)
+                  Color: =RGBA(255, 255, 255, 1)
+                  DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                  Fill: =RGBA(56, 96, 178, 1)
+                  Font: =orgTheme.fontFamily
+                  HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                  OnSelect: |-
+                    =// Collect TaskList items linked to this plan
+                    ClearCollect(
+                        colTasksToDelete,
+                        Filter('BioSap-List-TaskListMain', MaintenancePlanID.Value = varSelectedRecord.PlanID)
+                    );
+
+                    // Collect Maintenance Items linked to this plan
+                    ClearCollect(
+                        colItemsToDelete,
+                        Filter('BioSap-List-MaintenanceItems', MaintenancePlanNo.Value = varSelectedRecord.PlanID)
+                    );
+
+                    // Delete TaskList items
+                    ForAll(
+                        colTasksToDelete,
+                        Remove('BioSap-List-TaskListMain', ThisRecord) //LookUp('BioSap-List-TaskListMain', ID = ThisRecord.ID))
+                    );
+                    Clear(colTasksToDelete);
+
+                    // Delete Maintenance Items
+                    ForAll(
+                        colItemsToDelete,
+                        Remove('BioSap-List-MaintenanceItems', ThisRecord) //LookUp('BioSap-List-MaintenanceItems', ID = ThisRecord.ID))
+                    );
+                    Clear(colItemsToDelete);
+
+                    // Delete the Maintenance Plan
+                    If(
+                        !IsEmpty(Remove('BioSap-List-MaintenancePlans', varSelectedRecord)),
+                        Notify("Plan and related data deleted successfully", NotificationType.Success),
+                        Notify("Failed to delete Plan", NotificationType.Error)
+                    );
+
+                    Set(varShowConfirmDelete, false)
+
+                    /*If(
+                        !IsEmpty(Remove('BioSap-List-MaintenancePlans', varSelectedRecord)),
+                        Notify("Plan deleted successfully", NotificationType.Success),
+                        Notify("Failed to delete Plan", NotificationType.Error)
+                    );*/
+                  PressedBorderColor: =Self.Fill
+                  PressedColor: =Self.Fill
+                  PressedFill: =Self.Color
+                  Text: ="Yes"
+                  X: =50
+                  Y: =118
+            - Button3_1:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =ColorFade(Self.Fill, -15%)
+                  Color: =RGBA(255, 255, 255, 1)
+                  DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                  Fill: =RGBA(56, 96, 178, 1)
+                  Font: =orgTheme.fontFamily
+                  HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                  OnSelect: =Set(varShowConfirmDelete, false)
+                  PressedBorderColor: =Self.Fill
+                  PressedColor: =Self.Fill
+                  PressedFill: =Self.Color
+                  Text: ="No"
+                  X: =290
+                  Y: =118
+      - SAPNUMLabel:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(230, 230, 230, 1)
+            BorderThickness: =1
+            Color: =RGBA(51, 51, 51, 1)
+            DisabledBorderColor: =headerID_3.DisabledBorderColor
+            DisabledColor: =headerID_3.DisabledColor
+            DisabledFill: =headerID_3.DisabledFill
+            DisplayMode: =headerID_3.DisplayMode
+            FocusedBorderThickness: =4
+            Font: =orgTheme.fontFamily
+            Height: =36
+            Size: =orgTheme.fontSize-2
+            Text: ="SAP Number"
+            Width: =125
+            X: =1047
+            Y: =199

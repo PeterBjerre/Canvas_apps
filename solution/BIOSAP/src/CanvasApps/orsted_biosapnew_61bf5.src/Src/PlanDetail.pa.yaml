@@ -1,0 +1,1576 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  PlanDetail:
+    Properties:
+      Fill: =RGBA(248, 250, 252, 1)
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+      OnVisible: |-
+        =Set(varPlanDetailEditMode, varPlanDetailMode = "Edit");
+        Set(varPlanDetailAttempted, false);
+        Set(varPlanDetailError, "");
+        Set(varPlanCommentAttempted, false);
+        Set(varPlanMutationReceiptVisible, false)
+    Children:
+      - conPlanDetailRoot:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =RGBA(248, 250, 252, 1)
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =12
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingBottom: =16
+            PaddingLeft: =12
+            PaddingRight: =12
+            PaddingTop: =12
+            Width: =Parent.Width
+          Children:
+            - conPlanDetailNav:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(12, 59, 94, 1)
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 100, 52)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =8
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  LayoutWrap: =true
+                  PaddingBottom: =4
+                  PaddingLeft: =4
+                  PaddingRight: =4
+                  PaddingTop: =4
+                  Width: =Parent.Width
+                Children:
+                  - btnPlanDetailNavOverview:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Go to Overview"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: =ButtonAppearance.Subtle
+                        BasePaletteColor: =RGBA(255, 255, 255, 1)
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Navigate(Screen1, ScreenTransition.Cover)
+                        Size: =11
+                        Text: ="Overview"
+                        Tooltip: ="Open maintenance plan overview"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =If(Parent.Width < 640, (Parent.Width - 32) / 3, (Parent.Width - 48) / 3)
+                  - btnPlanDetailNavMyPlans:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Go to My plans"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: =ButtonAppearance.Subtle
+                        BasePaletteColor: =RGBA(255, 255, 255, 1)
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Navigate(MyPlans, ScreenTransition.Cover)
+                        Size: =11
+                        Text: ="My plans"
+                        Tooltip: ="Open your maintenance plans"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =If(Parent.Width < 640, (Parent.Width - 32) / 3, (Parent.Width - 48) / 3)
+                  - btnPlanDetailNavNew:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Go to New plan"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: =ButtonAppearance.Subtle
+                        BasePaletteColor: =RGBA(255, 255, 255, 1)
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Navigate(NewPlan_Header, ScreenTransition.Cover)
+                        Size: =11
+                        Text: ="New plan"
+                        Tooltip: ="Create a new maintenance plan"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =If(Parent.Width < 640, (Parent.Width - 32) / 3, (Parent.Width - 48) / 3)
+            - conPlanDetailHeader:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(12, 59, 94, 1)
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 132, 86)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =If(Parent.Width < 640, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                  LayoutGap: =8
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =12
+                  PaddingTop: =12
+                  Width: =Parent.Width
+                Children:
+                  - txtPlanDetailTitle:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Selected plan title"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =40
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =22
+                        Text: =If(varSelectedPlanID = 0, "", LookUp(MaintenancePlans, ID = varSelectedPlanID).Title)
+                        Width: =If(Parent.Width < 640, Parent.Width - 32, Parent.Width * 0.58)
+                        Wrap: =false
+                  - txtPlanDetailIdentity:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Selected plan identity"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(226, 231, 235, 1)
+                        Font: =Font.'Open Sans'
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =11
+                        Text: =If(varSelectedPlanID = 0, "", LookUp(MaintenancePlans, ID = varSelectedPlanID).PlanID & "  ·  ID " & Text(LookUp(MaintenancePlans, ID = varSelectedPlanID).ID))
+                        Width: =If(Parent.Width < 640, Parent.Width - 32, Parent.Width * 0.24)
+                        Wrap: =false
+                  - txtPlanDetailStatus:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Selected plan status"
+                        Align: =Align.Right
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: =If(varSelectedPlanID = 0, "", LookUp(MaintenancePlans, ID = varSelectedPlanID).Status.Value)
+                        Width: =If(Parent.Width < 640, Parent.Width - 32, Parent.Width * 0.18 - 8)
+                        Wrap: =false
+            - conPlanDetailNoSelection:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 168, 120)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =8
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =16
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =16
+                  Visible: =varSelectedPlanID = 0 || IsBlank(LookUp(MaintenancePlans, ID = varSelectedPlanID).ID)
+                  Width: =Parent.Width
+                Children:
+                  - txtPlanDetailNoSelection:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="No plan selected message"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =16
+                        Text: ="No plan selected"
+                        Width: =Parent.Width - 32
+                        Wrap: =false
+                  - txtPlanDetailNoSelectionHelp:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="No plan selected guidance"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(90, 90, 90, 1)
+                        Font: =Font.'Open Sans'
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: ="Choose a plan from My plans to view its details."
+                        Width: =Parent.Width - 32
+                        Wrap: =false
+                  - btnPlanDetailNoSelectionBack:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Return to My plans"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: =ButtonAppearance.Secondary
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Navigate(MyPlans, ScreenTransition.Cover)
+                        Size: =11
+                        Text: ="Back to My plans"
+                        Tooltip: ="Return to your plans"
+                        Width: =If(Parent.Width < 640, Parent.Width - 32, 180)
+            - conPlanDetailSummary:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 520, 292)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =6
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =12
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =12
+                  Visible: =varSelectedPlanID <> 0 && !IsBlank(LookUp(MaintenancePlans, ID = varSelectedPlanID).ID)
+                  Width: =Parent.Width
+                Children:
+                  - txtPlanDetailSummaryHeading:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Plan details heading"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =28
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =16
+                        Text: ="Plan details"
+                        Width: =Parent.Width - 32
+                        Wrap: =false
+                  - conPlanDetailSummaryRow1:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        FillPortions: =0
+                        Height: =If(Parent.Width < 640, 76, 52)
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =If(Parent.Width < 640, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                        LayoutGap: =8
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        Width: =Parent.Width - 32
+                      Children:
+                        - txtPlanDetailPlanIDLabel:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="txtPlanDetailPlanIDLabel"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(90, 90, 90, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Text: ="PlanID"
+                              Width: =If(Parent.Width < 640, Parent.Width - 32, (Parent.Width - 16) / 4)
+                              Wrap: =false
+                        - txtPlanDetailPlanID:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="PlanID value"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Text: =LookUp(MaintenancePlans, ID = varSelectedPlanID).PlanID
+                              Width: =If(Parent.Width < 640, Parent.Width - 32, (Parent.Width - 16) / 4)
+                              Wrap: =false
+                        - txtPlanDetailTitleLabel:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="txtPlanDetailTitleLabel"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(90, 90, 90, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Text: ="Title"
+                              Width: =If(Parent.Width < 640, Parent.Width - 32, (Parent.Width - 16) / 4)
+                              Wrap: =false
+                        - txtPlanDetailSummaryTitle:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Title value"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Text: =LookUp(MaintenancePlans, ID = varSelectedPlanID).Title
+                              Width: =If(Parent.Width < 640, Parent.Width - 32, (Parent.Width - 16) / 4)
+                              Wrap: =false
+                  - conPlanDetailSummaryRow2:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        FillPortions: =0
+                        Height: =If(Parent.Width < 640, 76, 52)
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =If(Parent.Width < 640, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                        LayoutGap: =8
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        Width: =Parent.Width - 32
+                      Children:
+                        - txtPlanDetailPlantLabel:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="txtPlanDetailPlantLabel"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(90, 90, 90, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Text: ="Plant"
+                              Width: =If(Parent.Width < 640, Parent.Width - 32, (Parent.Width - 16) / 4)
+                              Wrap: =false
+                        - txtPlanDetailPlant:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Plant value"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Text: =LookUp(MaintenancePlans, ID = varSelectedPlanID).PlantsInitial.Value
+                              Width: =If(Parent.Width < 640, Parent.Width - 32, (Parent.Width - 16) / 4)
+                              Wrap: =false
+                        - txtPlanDetailCycleLabel:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="txtPlanDetailCycleLabel"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(90, 90, 90, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Text: ="Cycle"
+                              Width: =If(Parent.Width < 640, Parent.Width - 32, (Parent.Width - 16) / 4)
+                              Wrap: =false
+                        - txtPlanDetailCycle:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Cycle value"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Text: =Text(LookUp(MaintenancePlans, ID = varSelectedPlanID).Cycle)
+                              Width: =If(Parent.Width < 640, Parent.Width - 32, (Parent.Width - 16) / 4)
+                              Wrap: =false
+                  - conPlanDetailSummaryRow3:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        FillPortions: =0
+                        Height: =If(Parent.Width < 640, 76, 52)
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =If(Parent.Width < 640, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                        LayoutGap: =8
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        Width: =Parent.Width - 32
+                      Children:
+                        - txtPlanDetailUnitLabel:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="txtPlanDetailUnitLabel"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(90, 90, 90, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Text: ="Unit"
+                              Width: =If(Parent.Width < 640, Parent.Width - 32, (Parent.Width - 16) / 4)
+                              Wrap: =false
+                        - txtPlanDetailUnit:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Unit value"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Text: =LookUp(MaintenancePlans, ID = varSelectedPlanID).Unit.Value
+                              Width: =If(Parent.Width < 640, Parent.Width - 32, (Parent.Width - 16) / 4)
+                              Wrap: =false
+                        - txtPlanDetailSortFieldLabel:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="txtPlanDetailSortFieldLabel"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(90, 90, 90, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Text: ="SortField"
+                              Width: =If(Parent.Width < 640, Parent.Width - 32, (Parent.Width - 16) / 4)
+                              Wrap: =false
+                        - txtPlanDetailSortField:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="SortField value"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Text: =LookUp(MaintenancePlans, ID = varSelectedPlanID).SortField.Value
+                              Width: =If(Parent.Width < 640, Parent.Width - 32, (Parent.Width - 16) / 4)
+                              Wrap: =false
+                  - conPlanDetailSummaryRow4:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        FillPortions: =0
+                        Height: =If(Parent.Width < 640, 76, 52)
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =If(Parent.Width < 640, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                        LayoutGap: =8
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        Width: =Parent.Width - 32
+                      Children:
+                        - txtPlanDetailPlannedDateLabel:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="txtPlanDetailPlannedDateLabel"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(90, 90, 90, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Text: ="PlannedDate"
+                              Width: =If(Parent.Width < 640, Parent.Width - 32, (Parent.Width - 16) / 4)
+                              Wrap: =false
+                        - txtPlanDetailPlannedDate:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Planned date value"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Text: =Text(LookUp(MaintenancePlans, ID = varSelectedPlanID).PlannedDate, "[$-en-US]mmm d, yyyy")
+                              Width: =If(Parent.Width < 640, Parent.Width - 32, (Parent.Width - 16) / 4)
+                              Wrap: =false
+                        - txtPlanDetailHorizonLabel:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="txtPlanDetailHorizonLabel"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(90, 90, 90, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Text: ="CallHorizon0"
+                              Width: =If(Parent.Width < 640, Parent.Width - 32, (Parent.Width - 16) / 4)
+                              Wrap: =false
+                        - txtPlanDetailHorizon:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Call horizon value"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Text: =Text(LookUp(MaintenancePlans, ID = varSelectedPlanID).CallHorizon0)
+                              Width: =If(Parent.Width < 640, Parent.Width - 32, (Parent.Width - 16) / 4)
+                              Wrap: =false
+                  - conPlanDetailSummaryRow5:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        FillPortions: =0
+                        Height: =If(Parent.Width < 640, 76, 52)
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =If(Parent.Width < 640, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                        LayoutGap: =8
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        Width: =Parent.Width - 32
+                      Children:
+                        - txtPlanDetailSchedulingLabel:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="txtPlanDetailSchedulingLabel"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(90, 90, 90, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Text: ="SchedulingPeriod"
+                              Width: =If(Parent.Width < 640, Parent.Width - 32, (Parent.Width - 16) / 4)
+                              Wrap: =false
+                        - txtPlanDetailScheduling:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Scheduling period value"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Text: =Text(LookUp(MaintenancePlans, ID = varSelectedPlanID).SchedulingPeriod)
+                              Width: =If(Parent.Width < 640, Parent.Width - 32, (Parent.Width - 16) / 4)
+                              Wrap: =false
+                        - txtPlanDetailSAPLabel:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="txtPlanDetailSAPLabel"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(90, 90, 90, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Text: ="SAPNum"
+                              Width: =If(Parent.Width < 640, Parent.Width - 32, (Parent.Width - 16) / 4)
+                              Wrap: =false
+                        - txtPlanDetailSAP:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="SAP number value"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Text: =LookUp(MaintenancePlans, ID = varSelectedPlanID).SAPNum
+                              Width: =If(Parent.Width < 640, Parent.Width - 32, (Parent.Width - 16) / 4)
+                              Wrap: =false
+                  - txtPlanDetailSummaryStatus:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Status summary value"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =26
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Text: |-
+                          ="Status: " & LookUp(MaintenancePlans, ID = varSelectedPlanID).Status.Value
+                        Width: =Parent.Width - 32
+                        Wrap: =false
+            - conPlanDetailActions:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 192, 64)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =If(Parent.Width < 640, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                  LayoutGap: =8
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =10
+                  PaddingTop: =10
+                  Visible: =varSelectedPlanID <> 0 && !IsBlank(LookUp(MaintenancePlans, ID = varSelectedPlanID).ID)
+                  Width: =Parent.Width
+                Children:
+                  - btnPlanDetailBack:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Back to My plans"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: =ButtonAppearance.Secondary
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Set(varPlanDetailEditMode, false); Set(varPlanDetailMode, "View"); Navigate(MyPlans, ScreenTransition.Cover)
+                        Size: =11
+                        Text: ="Back to My plans"
+                        Tooltip: ="Return to your plan list"
+                        Width: =If(Parent.Width < 640, Parent.Width, 150)
+                  - btnPlanDetailEdit:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Edit draft plan"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Set(varPlanDetailMode, "Edit"); Set(varPlanDetailEditMode, true); Set(varPlanDetailAttempted, false); Set(varPlanDetailError, "")
+                        Size: =11
+                        Text: ="Edit draft"
+                        Tooltip: ="Edit this draft plan"
+                        Visible: =LookUp(MaintenancePlans, ID = varSelectedPlanID).Status.Value = "Draft" && LookUp(MaintenancePlans, ID = varSelectedPlanID).Author.Email = varUserMail && !varPlanDetailEditMode
+                        Width: =If(Parent.Width < 640, Parent.Width, 130)
+                  - btnPlanDetailCorrect:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Correct returned plan"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Set(varPlanDetailMode, "Correct"); Set(varPlanDetailEditMode, true); Set(varPlanDetailAttempted, false); Set(varPlanDetailError, "")
+                        Size: =11
+                        Text: ="Correct returned plan"
+                        Tooltip: ="Correct the returned plan before resubmitting"
+                        Visible: =LookUp(MaintenancePlans, ID = varSelectedPlanID).Status.Value = "In Progress" && LookUp(MaintenancePlans, ID = varSelectedPlanID).Author.Email = varUserMail && !varPlanDetailEditMode
+                        Width: =If(Parent.Width < 640, Parent.Width, 190)
+                  - btnPlanDetailCancelEdit:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Cancel plan edit"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: =ButtonAppearance.Secondary
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Reset(txtPlanDetailTitleInput); Reset(numPlanDetailCycle); Reset(dpPlanDetailDate); Set(varPlanDetailAttempted, false); Set(varPlanDetailError, ""); Set(varPlanDetailEditMode, false); Set(varPlanDetailMode, "View")
+                        Size: =11
+                        Text: ="Cancel"
+                        Tooltip: ="Discard unsaved changes"
+                        Visible: =varPlanDetailEditMode
+                        Width: =If(Parent.Width < 640, Parent.Width, 110)
+                  - btnPlanDetailSave:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Save plan changes"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(255, 255, 255, 1)
+                        DisplayMode: =If(IsBlank(Trim(txtPlanDetailTitleInput.Text)) || numPlanDetailCycle.Value <= 0 || IsBlank(dpPlanDetailDate.SelectedDate), DisplayMode.Disabled, DisplayMode.Edit)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: |-
+                          =Set(varPlanDetailAttempted, true);
+                          If(
+                              !IsBlank(LookUp(MaintenancePlans, ID = varSelectedPlanID).ID) &&
+                              LookUp(MaintenancePlans, ID = varSelectedPlanID).Author.Email = varUserMail &&
+                              (LookUp(MaintenancePlans, ID = varSelectedPlanID).Status.Value = "Draft" || LookUp(MaintenancePlans, ID = varSelectedPlanID).Status.Value = "In Progress") &&
+                              !IsBlank(Trim(txtPlanDetailTitleInput.Text)) &&
+                              numPlanDetailCycle.Value > 0 &&
+                              !IsBlank(dpPlanDetailDate.SelectedDate),
+                              Set(varPlanDetailError, "");
+                              With(
+                                  {
+                                      updatedPlan: Patch(
+                                          MaintenancePlans,
+                                          LookUp(MaintenancePlans, ID = varSelectedPlanID),
+                                          {
+                                              Title: Trim(txtPlanDetailTitleInput.Text),
+                                              Cycle: numPlanDetailCycle.Value,
+                                              PlannedDate: dpPlanDetailDate.SelectedDate,
+                                              CallHorizon0: If(LookUp(MaintenancePlans, ID = varSelectedPlanID).Unit.Value = "M", numPlanDetailCycle.Value * 30, If(LookUp(MaintenancePlans, ID = varSelectedPlanID).Unit.Value = "Q", numPlanDetailCycle.Value * 90, numPlanDetailCycle.Value * 365)),
+                                              SchedulingPeriod: numPlanDetailCycle.Value
+                                          }
+                                      )
+                                  },
+                                  Set(
+                                      varLastPlanMutation,
+                                      {
+                                          Action: If(varPlanDetailMode = "Correct", "Correction saved", "Draft edit saved"),
+                                          Entity: "Maintenance plan",
+                                          StableID: updatedPlan.ID,
+                                          PlanID: updatedPlan.PlanID,
+                                          Title: updatedPlan.Title,
+                                          Cycle: updatedPlan.Cycle,
+                                          PlannedDate: updatedPlan.PlannedDate,
+                                          CallHorizon0: updatedPlan.CallHorizon0,
+                                          SchedulingPeriod: updatedPlan.SchedulingPeriod,
+                                          Status: updatedPlan.Status.Value,
+                                          Body: "",
+                                          AuthorMail: varUserMail,
+                                          CreatedOn: Now()
+                                      }
+                                  );
+                                  Refresh(MaintenancePlans);
+                                  ClearCollect(colMyPlans, SortByColumns(Filter(MaintenancePlans, varIsAdmin || Author.Email = varUserMail), "ID", SortOrder.Descending));
+                                  Collect(colPlanAudit, {AuditID: GUID(), PlanID: updatedPlan.PlanID, Title: If(varPlanDetailMode = "Correct", "Correction saved", "Draft edit saved"), ActorMail: varUserMail, FromStatus: updatedPlan.Status.Value, ToStatus: updatedPlan.Status.Value, CreatedOn: Now()});
+                                  Set(varPlanMutationReceiptVisible, true);
+                                  Set(varPlanDetailEditMode, false);
+                                  Set(varPlanDetailMode, "View")
+                              ),
+                              Set(varPlanDetailError, "Enter a title, a cycle greater than 0, and a planned date before saving.")
+                          )
+                        Size: =11
+                        Text: ="Save changes"
+                        Tooltip: ="Save changes by stable plan ID"
+                        Visible: =varPlanDetailEditMode
+                        Width: =If(Parent.Width < 640, Parent.Width, 150)
+                  - btnPlanDetailResubmit:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Resubmit corrected plan"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(255, 255, 255, 1)
+                        DisplayMode: =If(LookUp(MaintenancePlans, ID = varSelectedPlanID).Status.Value <> "In Progress", DisplayMode.Disabled, DisplayMode.Edit)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: |-
+                          =Set(varPlanDetailAttempted, true);
+                          If(
+                              !varPlanDetailEditMode &&
+                              !IsBlank(LookUp(MaintenancePlans, ID = varSelectedPlanID).ID) &&
+                              LookUp(MaintenancePlans, ID = varSelectedPlanID).Author.Email = varUserMail &&
+                              LookUp(MaintenancePlans, ID = varSelectedPlanID).Status.Value = "In Progress" &&
+                              !IsBlank(Trim(LookUp(MaintenancePlans, ID = varSelectedPlanID).Title)) &&
+                              LookUp(MaintenancePlans, ID = varSelectedPlanID).Cycle > 0 &&
+                              !IsBlank(LookUp(MaintenancePlans, ID = varSelectedPlanID).PlannedDate),
+                              With(
+                                  {
+                                      resubmittedPlan: Patch(
+                                          MaintenancePlans,
+                                          LookUp(MaintenancePlans, ID = varSelectedPlanID),
+                                          {Status: {Value: "Ready for creation in SAP"}}
+                                      )
+                                  },
+                                  Set(varLastPlanMutation, {Action: "Plan resubmitted", Entity: "Maintenance plan", StableID: resubmittedPlan.ID, PlanID: resubmittedPlan.PlanID, Title: resubmittedPlan.Title, Cycle: resubmittedPlan.Cycle, PlannedDate: resubmittedPlan.PlannedDate, CallHorizon0: resubmittedPlan.CallHorizon0, SchedulingPeriod: resubmittedPlan.SchedulingPeriod, Status: resubmittedPlan.Status.Value, Body: "", AuthorMail: varUserMail, CreatedOn: Now()});
+                                  Refresh(MaintenancePlans);
+                                  ClearCollect(colMyPlans, SortByColumns(Filter(MaintenancePlans, varIsAdmin || Author.Email = varUserMail), "ID", SortOrder.Descending));
+                                  Collect(colPlanAudit, {AuditID: GUID(), PlanID: resubmittedPlan.PlanID, Title: "Plan resubmitted", ActorMail: varUserMail, FromStatus: "In Progress", ToStatus: resubmittedPlan.Status.Value, CreatedOn: Now()});
+                                  Set(varPlanMutationReceiptVisible, true)
+                              ),
+                              Set(varPlanDetailError, "Resubmit is available only for a valid returned plan in In Progress.")
+                          )
+                        Size: =11
+                        Text: ="Resubmit"
+                        Tooltip: ="Resubmit this returned plan for SAP creation"
+                        Visible: =!varPlanDetailEditMode && LookUp(MaintenancePlans, ID = varSelectedPlanID).Status.Value = "In Progress" && LookUp(MaintenancePlans, ID = varSelectedPlanID).Author.Email = varUserMail && !IsBlank(Trim(LookUp(MaintenancePlans, ID = varSelectedPlanID).Title)) && LookUp(MaintenancePlans, ID = varSelectedPlanID).Cycle > 0 && !IsBlank(LookUp(MaintenancePlans, ID = varSelectedPlanID).PlannedDate)
+                        Width: =If(Parent.Width < 640, Parent.Width, 120)
+            - txtPlanDetailError:
+                Control: ModernText@1.0.0
+                Properties:
+                  AccessibleLabel: ="Plan action validation message"
+                  AlignInContainer: =AlignInContainer.Stretch
+                  Color: =RGBA(168, 0, 0, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =36
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =11
+                  Text: =If(varPlanDetailError <> "", varPlanDetailError, If(LookUp(MaintenancePlans, ID = varSelectedPlanID).Status.Value <> "In Progress" && !varPlanDetailEditMode, "Resubmit is blocked because this plan is not In Progress.", ""))
+                  Visible: =varPlanDetailError <> "" || (varSelectedPlanID <> 0 && !IsBlank(LookUp(MaintenancePlans, ID = varSelectedPlanID).ID) && LookUp(MaintenancePlans, ID = varSelectedPlanID).Status.Value <> "In Progress" && !varPlanDetailEditMode)
+                  Width: =Parent.Width - 32
+                  Wrap: =false
+            - conPlanDetailReceipt:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 312, 142)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =4
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =10
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =10
+                  Visible: =varPlanMutationReceiptVisible && varSelectedPlanID <> 0
+                  Width: =Parent.Width
+                Children:
+                  - txtPlanDetailReceiptHeading:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Plan mutation receipt heading"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(16, 124, 16, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =14
+                        Text: ="Saved receipt"
+                        Width: =Parent.Width - 32
+                        Wrap: =false
+                  - txtPlanDetailReceiptAction:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt action"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =22
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Text: |-
+                          ="Action: " & varLastPlanMutation.Action
+                        Width: =Parent.Width - 32
+                        Wrap: =false
+                  - txtPlanDetailReceiptID:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt stable ID"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =22
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Text: |-
+                          ="Stable ID: " & Text(varLastPlanMutation.StableID)
+                        Width: =Parent.Width - 32
+                        Wrap: =false
+                  - txtPlanDetailReceiptPlanID:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt PlanID"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =22
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Text: |-
+                          ="PlanID: " & varLastPlanMutation.PlanID
+                        Width: =Parent.Width - 32
+                        Wrap: =false
+                  - txtPlanDetailReceiptTitle:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt title"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =22
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Text: |-
+                          ="Title: " & varLastPlanMutation.Title
+                        Visible: =varLastPlanMutation.Action <> "Plan resubmitted" && varLastPlanMutation.Action <> "Comment added"
+                        Width: =Parent.Width - 32
+                        Wrap: =false
+                  - txtPlanDetailReceiptCycle:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt cycle"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =22
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Text: |-
+                          ="Cycle: " & Text(varLastPlanMutation.Cycle)
+                        Visible: =varLastPlanMutation.Action <> "Plan resubmitted" && varLastPlanMutation.Action <> "Comment added"
+                        Width: =Parent.Width - 32
+                        Wrap: =false
+                  - txtPlanDetailReceiptDate:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt planned date"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =22
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Text: |-
+                          ="PlannedDate: " & Text(varLastPlanMutation.PlannedDate, "[$-en-US]mmm d, yyyy")
+                        Visible: =varLastPlanMutation.Action <> "Plan resubmitted" && varLastPlanMutation.Action <> "Comment added"
+                        Width: =Parent.Width - 32
+                        Wrap: =false
+                  - txtPlanDetailReceiptHorizon:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt call horizon"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =22
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Text: |-
+                          ="CallHorizon0: " & Text(varLastPlanMutation.CallHorizon0)
+                        Visible: =varLastPlanMutation.Action <> "Plan resubmitted" && varLastPlanMutation.Action <> "Comment added"
+                        Width: =Parent.Width - 32
+                        Wrap: =false
+                  - txtPlanDetailReceiptScheduling:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt scheduling period"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =22
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Text: |-
+                          ="SchedulingPeriod: " & Text(varLastPlanMutation.SchedulingPeriod)
+                        Visible: =varLastPlanMutation.Action <> "Plan resubmitted" && varLastPlanMutation.Action <> "Comment added"
+                        Width: =Parent.Width - 32
+                        Wrap: =false
+                  - txtPlanDetailReceiptStatus:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt status"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =22
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Text: |-
+                          ="Status: " & varLastPlanMutation.Status
+                        Width: =Parent.Width - 32
+                        Wrap: =false
+                  - txtPlanDetailReceiptComment:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt comment body"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =22
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Text: |-
+                          ="Comment: " & varLastPlanMutation.Body & "  ·  " & varLastPlanMutation.AuthorMail & "  ·  " & Text(varLastPlanMutation.CreatedOn, "[$-en-US]mmm d, yyyy h:mm AM/PM")
+                        Visible: =varLastPlanMutation.Action = "Comment added"
+                        Width: =Parent.Width - 32
+            - conPlanDetailEditForm:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 430, 220)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =6
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =12
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =12
+                  Visible: =varPlanDetailEditMode && varSelectedPlanID <> 0
+                  Width: =Parent.Width
+                Children:
+                  - txtPlanDetailEditHeading:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Plan edit form heading"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =26
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =16
+                        Text: =If(varPlanDetailMode = "Correct", "Correct returned plan", "Edit draft plan")
+                        Width: =Parent.Width - 32
+                        Wrap: =false
+                  - txtPlanDetailEditContext:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Plan edit context"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(90, 90, 90, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =26
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =11
+                        Text: =If(varPlanDetailMode = "Correct", "Returned status/history remains visible; the connected source has no ReturnReason column.", "Changes are saved to the selected plan ID.")
+                        Width: =Parent.Width - 32
+                  - txtPlanDetailTitleInputLabel:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Plan title input label"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =22
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Text: ="Title"
+                        Width: =Parent.Width - 32
+                        Wrap: =false
+                  - txtPlanDetailTitleInput:
+                      Control: ModernTextInput@1.1.1
+                      Properties:
+                        AccessibleLabel: ="Plan title input"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: =Appearance.Outline
+                        Color: =RGBA(12, 59, 94, 1)
+                        Default: =LookUp(MaintenancePlans, ID = varSelectedPlanID).Title
+                        Fill: =RGBA(241, 242, 246, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =40
+                        MaxLength: =200
+                        Placeholder: ="Enter plan title"
+                        TriggerOutput: =TriggerOutput.FocusOut
+                        ValidationState: =If(varPlanDetailAttempted && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                        Width: =Parent.Width - 32
+                  - txtPlanDetailCycleInputLabel:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Plan cycle input label"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =22
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Text: ="Cycle"
+                        Width: =Parent.Width - 32
+                        Wrap: =false
+                  - numPlanDetailCycle:
+                      Control: ModernNumberInput@1.1.1
+                      Properties:
+                        AccessibleLabel: ="Plan cycle input"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: =Appearance.Outline
+                        Color: =RGBA(12, 59, 94, 1)
+                        Default: =LookUp(MaintenancePlans, ID = varSelectedPlanID).Cycle
+                        Fill: =RGBA(241, 242, 246, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =40
+                        Max: =9999
+                        Min: =1
+                        Precision: =DecimalPrecision.'0'
+                        ValidationState: =If(varPlanDetailAttempted && (IsBlank(Self.Value) || Self.Value <= 0), ValidationState.Error, ValidationState.None)
+                        Width: =If(Parent.Width < 640, Parent.Width - 32, 180)
+                  - txtPlanDetailDateInputLabel:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Plan date input label"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =22
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Text: ="PlannedDate"
+                        Width: =Parent.Width - 32
+                        Wrap: =false
+                  - dpPlanDetailDate:
+                      Control: ModernDatePicker@1.0.1
+                      Properties:
+                        AccessibleLabel: ="Planned date input"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: =Appearance.Outline
+                        Color: =RGBA(12, 59, 94, 1)
+                        DefaultDate: =LookUp(MaintenancePlans, ID = varSelectedPlanID).PlannedDate
+                        Fill: =RGBA(241, 242, 246, 1)
+                        Format: =DatePickerFormat.Short
+                        Height: =40
+                        StartOfWeek: =StartOfWeek.Monday
+                        ValidationState: =If(varPlanDetailAttempted && IsBlank(Self.SelectedDate), ValidationState.Error, ValidationState.None)
+                        Width: =If(Parent.Width < 640, Parent.Width - 32, 220)
+                  - conPlanDetailDerivedValues:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        FillPortions: =0
+                        Height: =If(Parent.Width < 640, 52, 40)
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =12
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        Width: =Parent.Width - 32
+                      Children:
+                        - numPlanDetailHorizon:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Calculated call horizon"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(90, 90, 90, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =30
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Text: |-
+                                ="CallHorizon0: " & Text(If(LookUp(MaintenancePlans, ID = varSelectedPlanID).Unit.Value = "M", numPlanDetailCycle.Value * 30, If(LookUp(MaintenancePlans, ID = varSelectedPlanID).Unit.Value = "Q", numPlanDetailCycle.Value * 90, numPlanDetailCycle.Value * 365)))
+                              Width: =If(Parent.Width < 640, (Parent.Width - 12) / 2, (Parent.Width - 12) / 2)
+                              Wrap: =false
+                        - numPlanDetailScheduling:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Calculated scheduling period"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(90, 90, 90, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =30
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Text: |-
+                                ="SchedulingPeriod: " & Text(numPlanDetailCycle.Value)
+                              Width: =If(Parent.Width < 640, (Parent.Width - 12) / 2, (Parent.Width - 12) / 2)
+                              Wrap: =false
+            - conPlanDetailComments:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 420, 270)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =8
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =12
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =12
+                  Visible: =varSelectedPlanID <> 0 && !IsBlank(LookUp(MaintenancePlans, ID = varSelectedPlanID).ID)
+                  Width: =Parent.Width
+                Children:
+                  - txtPlanDetailCommentsHeading:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Plan comments heading"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =26
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =16
+                        Text: ="Comments"
+                        Width: =Parent.Width - 32
+                        Wrap: =false
+                  - txtPlanDetailCommentsNote:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Session local comments note"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(90, 90, 90, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =11
+                        Text: ="Comments are saved for the current session only."
+                        Width: =Parent.Width - 32
+                        Wrap: =false
+                  - txtPlanDetailCommentInput:
+                      Control: ModernTextInput@1.1.1
+                      Properties:
+                        AccessibleLabel: ="New plan comment"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: =Appearance.Outline
+                        Color: =RGBA(12, 59, 94, 1)
+                        Fill: =RGBA(241, 242, 246, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =64
+                        MaxLength: =500
+                        Placeholder: ="Add a note (500 characters maximum)"
+                        TriggerOutput: =TriggerOutput.FocusOut
+                        Type: =TextInputType.Multiline
+                        ValidationState: =If(varPlanCommentAttempted && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                        Width: =Parent.Width - 32
+                  - btnPlanDetailAddComment:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Add plan comment"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(255, 255, 255, 1)
+                        DisplayMode: =If(IsBlank(Trim(txtPlanDetailCommentInput.Text)), DisplayMode.Disabled, DisplayMode.Edit)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: |-
+                          =Set(varPlanCommentAttempted, true);
+                          If(
+                              !IsBlank(Trim(txtPlanDetailCommentInput.Text)),
+                              Set(
+                                  varLastPlanMutation,
+                                  {
+                                      Action: "Comment added",
+                                      Entity: "Plan comment",
+                                      StableID: varSelectedPlanID,
+                                      PlanID: LookUp(MaintenancePlans, ID = varSelectedPlanID).PlanID,
+                                      Title: "",
+                                      Cycle: 0,
+                                      PlannedDate: Today(),
+                                      CallHorizon0: 0,
+                                      SchedulingPeriod: 0,
+                                      Status: LookUp(MaintenancePlans, ID = varSelectedPlanID).Status.Value,
+                                      Body: Trim(txtPlanDetailCommentInput.Text),
+                                      AuthorMail: varUserMail,
+                                      CreatedOn: Now()
+                                  }
+                              );
+                              Collect(
+                                  colPlanComments,
+                                  {
+                                      CommentID: GUID(),
+                                      PlanID: LookUp(MaintenancePlans, ID = varSelectedPlanID).PlanID,
+                                      Title: Trim(txtPlanDetailCommentInput.Text),
+                                      AuthorMail: varUserMail,
+                                      IsAdmin: false,
+                                      CreatedOn: Now()
+                                  }
+                              );
+                              Set(varPlanMutationReceiptVisible, true);
+                              Reset(txtPlanDetailCommentInput);
+                              Set(varPlanCommentAttempted, false)
+                          )
+                        Size: =11
+                        Text: ="Add comment"
+                        Tooltip: ="Save a session-local comment"
+                        Width: =If(Parent.Width < 640, Parent.Width - 32, 150)
+                  - galPlanDetailComments:
+                      Control: Gallery@2.15.0
+                      Variant: Vertical
+                      Properties:
+                        AccessibleLabel: ="Plan comments history"
+                        FillPortions: =0
+                        Height: =If(Parent.Width < 640, 190, 120)
+                        Items: =SortByColumns(Filter(colPlanComments, PlanID = LookUp(MaintenancePlans, ID = varSelectedPlanID).PlanID), "CreatedOn", SortOrder.Descending)
+                        Selectable: =false
+                        TabIndex: =0
+                        TemplatePadding: =4
+                        TemplateSize: =58
+                        Width: =Parent.Width - 32
+                      Children:
+                        - conPlanDetailCommentRow:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              Fill: =RGBA(248, 250, 252, 1)
+                              Height: =Parent.TemplateHeight
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =2
+                              PaddingBottom: =4
+                              PaddingLeft: =8
+                              PaddingRight: =8
+                              PaddingTop: =4
+                              Width: =Parent.TemplateWidth
+                            Children:
+                              - txtPlanDetailCommentRowText:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Comment text"
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Color: =RGBA(12, 59, 94, 1)
+                                    Font: =Font.'Open Sans'
+                                    Height: =24
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Text: =ThisItem.Title
+                                    Width: =Parent.Width - 16
+                              - txtPlanDetailCommentRowMeta:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Comment author and timestamp"
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Color: =RGBA(90, 90, 90, 1)
+                                    Font: =Font.'Open Sans'
+                                    Height: =20
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =10
+                                    Text: =ThisItem.AuthorMail & "  ·  " & Text(ThisItem.CreatedOn, "[$-en-US]mmm d, yyyy h:mm AM/PM")
+                                    Width: =Parent.Width - 16
+                                    Wrap: =false
+                  - txtPlanDetailCommentsEmpty:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Empty comments message"
+                        Align: =Align.Center
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(90, 90, 90, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Text: ="No comments for this plan in this session."
+                        Visible: =galPlanDetailComments.AllItemsCount = 0
+                        Width: =Parent.Width - 32
+                        Wrap: =false
+            - conPlanDetailAudit:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 300, 190)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =8
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =12
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =12
+                  Visible: =varSelectedPlanID <> 0 && !IsBlank(LookUp(MaintenancePlans, ID = varSelectedPlanID).ID)
+                  Width: =Parent.Width
+                Children:
+                  - txtPlanDetailAuditHeading:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Plan status history heading"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =26
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =16
+                        Text: ="Status history"
+                        Width: =Parent.Width - 32
+                        Wrap: =false
+                  - txtPlanDetailAuditNote:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Session local audit note"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(90, 90, 90, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =11
+                        Text: ="Audit entries shown here are saved for the current session only."
+                        Width: =Parent.Width - 32
+                        Wrap: =false
+                  - galPlanDetailAudit:
+                      Control: Gallery@2.15.0
+                      Variant: Vertical
+                      Properties:
+                        AccessibleLabel: ="Plan status history"
+                        FillPortions: =0
+                        Height: =If(Parent.Width < 640, 220, 112)
+                        Items: =SortByColumns(Filter(colPlanAudit, PlanID = LookUp(MaintenancePlans, ID = varSelectedPlanID).PlanID), "CreatedOn", SortOrder.Descending)
+                        Selectable: =false
+                        TabIndex: =0
+                        TemplatePadding: =4
+                        TemplateSize: =54
+                        Width: =Parent.Width - 32
+                      Children:
+                        - conPlanDetailAuditRow:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              Fill: =RGBA(248, 250, 252, 1)
+                              Height: =Parent.TemplateHeight
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =2
+                              PaddingBottom: =4
+                              PaddingLeft: =8
+                              PaddingRight: =8
+                              PaddingTop: =4
+                              Width: =Parent.TemplateWidth
+                            Children:
+                              - txtPlanDetailAuditTransition:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Status transition"
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Color: =RGBA(12, 59, 94, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =22
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Text: =ThisItem.FromStatus & " → " & ThisItem.ToStatus
+                                    Width: =Parent.Width - 16
+                                    Wrap: =false
+                              - txtPlanDetailAuditActor:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Status transition actor and timestamp"
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Color: =RGBA(90, 90, 90, 1)
+                                    Font: =Font.'Open Sans'
+                                    Height: =20
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =10
+                                    Text: =ThisItem.ActorMail & "  ·  " & Text(ThisItem.CreatedOn, "[$-en-US]mmm d, yyyy h:mm AM/PM")
+                                    Width: =Parent.Width - 16
+                                    Wrap: =false

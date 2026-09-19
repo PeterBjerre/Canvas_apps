@@ -9,11 +9,16 @@
         pac auth create     log ind i miljoeet (kun foerste gang)
         pac solution list   find solutionens UNIKKE navn
         pac solution clone  hent den udpakket ned i .\solution
+        unpack_msapp.py     pak canvas apps ud som laesbar YAML
         scrub_solution.py   fjern hemmeligheder FOER git ser dem
 
     Eksporten er LAESESTOF. De to canvas apps bygges stadig af Python-
     builderne i hver app-mappe - .msapp-filerne i eksporten er et
     oejebliksbillede, ikke en kilde. Se docs/22-solution-eksport.md.
+
+    .msapp selv committes ikke - den er binaer og staar i .gitignore.
+    Derfor pakkes app'ernes YAML ud som tekst i <navn>.src ved siden af,
+    saa ogsaa en app, der kun findes i solutionen, kan laeses fra repoet.
 
 .PARAMETER Solution
     Solutionens unikke navn (ikke visningsnavnet). Kender du det ikke, saa
@@ -125,9 +130,7 @@ try {
     Write-Host "Henter solution $Solution ..." -ForegroundColor Cyan
     Invoke-Pac @("solution", "clone", "--name", $Solution, "--outputDirectory", $outAbs)
 
-    # --- rens FOER git ser den -------------------------------------------
-    Write-Host ""
-    Write-Host "Renser eksporten ..." -ForegroundColor Cyan
+    # --- find Python een gang - baade udpakning og rensning bruger den ---
     $python = $null
     $pyArgs = @()
     foreach ($candidate in @("py", "python", "python3")) {
@@ -140,6 +143,22 @@ try {
     }
     if (-not $python) { throw "Python blev ikke fundet i PATH - kan ikke rense eksporten." }
 
+    # --- pak canvas apps ud som tekst ------------------------------------
+    # .msapp er binaer og staar i .gitignore, saa app'ernes YAML naaede
+    # aldrig GitHub - en app, der kun findes i solutionen, var en sort
+    # kasse for alle andre end den, der sad ved maskinen. Teksten pakkes
+    # ud ved siden af zip'en og committes.
+    #
+    # FOER rensningen: en formel kan baere en URL eller en noegle, og
+    # rensningen kan kun fjerne det, den kan se.
+    Write-Host ""
+    Write-Host "Pakker canvas apps ud som tekst ..." -ForegroundColor Cyan
+    & $python @($pyArgs + @((Join-Path $PSScriptRoot "unpack_msapp.py"), $outAbs))
+    if ($LASTEXITCODE -ne 0) { throw "unpack_msapp.py fejlede (exitkode $LASTEXITCODE)" }
+
+    # --- rens FOER git ser den -------------------------------------------
+    Write-Host ""
+    Write-Host "Renser eksporten ..." -ForegroundColor Cyan
     $scrub = @($pyArgs + @((Join-Path $PSScriptRoot "scrub_solution.py"), $outAbs))
     if ($ReportOnly) { $scrub += "--report-only" }
     & $python @scrub

@@ -1,0 +1,1616 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  TaskListOperations:
+    Properties:
+      Fill: =RGBA(248, 250, 252, 1)
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+      OnVisible: |-
+        =Set(varCreateStep, 3);
+        Set(varOpsFormOpen, false);
+        Set(varOpsDeletePrompt, false);
+        Set(varOpsCancelPrompt, false);
+        Set(varOperationSubmitAttempted, false);
+        Set(varCreateError, "");
+        Set(varReceiptVisible, false);
+        Set(varOpsCommittedSearch, "");
+        Set(
+            varSelectedItemKey,
+            Coalesce(
+                varSelectedItemKey,
+                If(CountRows(colMaintenanceItems) > 0, First(colMaintenanceItems).LocalItemKey, "")
+            )
+        );
+        Set(
+            varTaskListDescription,
+            Coalesce(varTaskListDescription, "Cooling water pump inspection task list")
+        );
+        Set(varOpsCatalogID, Blank());
+        Set(varOpsStandardCode, "");
+        Set(varOpsOpText, "");
+        Set(varOpsWorkCenter, "");
+        Set(varOpsControlKey, "PM01");
+        Set(varOpsWorkHours, 0);
+        Set(varOpsDurationHours, 0);
+        Set(varEditOperationKey, "");
+    Children:
+      - conOpsRoot:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =RGBA(248, 250, 252, 1)
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =12
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingBottom: =24
+            Width: =Parent.Width
+          Children:
+            - conOpsNav:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(12, 59, 94, 1)
+                  FillPortions: =0
+                  Height: =72
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =8
+                  LayoutMinHeight: =72
+                  LayoutMinWidth: =0
+                  LayoutWrap: =true
+                  PaddingBottom: =12
+                  PaddingLeft: =24
+                  PaddingRight: =24
+                  PaddingTop: =12
+                  Width: =Parent.Width
+                Children:
+                  - btnOpsOverview:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Go to overview"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: =ButtonAppearance.Secondary
+                        BasePaletteColor: =RGBA(255, 255, 255, 1)
+                        BorderStyle: =BorderStyle.Solid
+                        BorderThickness: =1
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Normal
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Navigate(Screen1, ScreenTransition.None)
+                        RadiusBottomLeft: =6
+                        RadiusBottomRight: =6
+                        RadiusTopLeft: =6
+                        RadiusTopRight: =6
+                        Size: =11
+                        Text: ="Overview"
+                        Tooltip: ="Open overview"
+                        Width: =Max(92, (Parent.Width - 64) / 5)
+                  - btnOpsHeader:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Go to plan header"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: =ButtonAppearance.Secondary
+                        BasePaletteColor: =RGBA(255, 255, 255, 1)
+                        BorderStyle: =BorderStyle.Solid
+                        BorderThickness: =1
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Normal
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Navigate(NewPlan_Header, ScreenTransition.None)
+                        RadiusBottomLeft: =6
+                        RadiusBottomRight: =6
+                        RadiusTopLeft: =6
+                        RadiusTopRight: =6
+                        Size: =11
+                        Text: ="Header"
+                        Tooltip: ="Open plan header"
+                        Width: =Max(92, (Parent.Width - 64) / 5)
+                  - btnOpsItems:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Go to maintenance items"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: =ButtonAppearance.Secondary
+                        BasePaletteColor: =RGBA(255, 255, 255, 1)
+                        BorderStyle: =BorderStyle.Solid
+                        BorderThickness: =1
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Normal
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Navigate(NewPlan_Items, ScreenTransition.None)
+                        RadiusBottomLeft: =6
+                        RadiusBottomRight: =6
+                        RadiusTopLeft: =6
+                        RadiusTopRight: =6
+                        Size: =11
+                        Text: ="Items"
+                        Tooltip: ="Open maintenance items"
+                        Width: =Max(92, (Parent.Width - 64) / 5)
+                  - btnOpsOperations:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: |-
+                          ="Current step: operations"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        BasePaletteColor: =RGBA(64, 153, 218, 1)
+                        BorderStyle: =BorderStyle.Solid
+                        BorderThickness: =1
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Set(varCreateStep, 3)
+                        RadiusBottomLeft: =6
+                        RadiusBottomRight: =6
+                        RadiusTopLeft: =6
+                        RadiusTopRight: =6
+                        Size: =11
+                        Text: ="Operations"
+                        Tooltip: ="Current step"
+                        Width: =Max(92, (Parent.Width - 64) / 5)
+                  - btnOpsReview:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Go to review"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: =ButtonAppearance.Secondary
+                        BasePaletteColor: =RGBA(255, 255, 255, 1)
+                        BorderStyle: =BorderStyle.Solid
+                        BorderThickness: =1
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Normal
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =If(varCreateStep >= 4, Navigate(NewPlan_Review, ScreenTransition.None))
+                        RadiusBottomLeft: =6
+                        RadiusBottomRight: =6
+                        RadiusTopLeft: =6
+                        RadiusTopRight: =6
+                        Size: =11
+                        Text: ="Review"
+                        Tooltip: ="Open review"
+                        Width: =Max(92, (Parent.Width - 64) / 5)
+            - conOpsHeader:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(12, 59, 94, 1)
+                  FillPortions: =0
+                  Height: =88
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =2
+                  LayoutMinHeight: =88
+                  LayoutMinWidth: =0
+                  PaddingBottom: =12
+                  PaddingLeft: =24
+                  PaddingRight: =24
+                  PaddingTop: =10
+                  Width: =Parent.Width
+                  Y: =72
+                Children:
+                  - lblOpsTitle:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Operations step title"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =30
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =24
+                        Text: ="Task list operations"
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - lblOpsSubtitle:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Operations step description"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: ="Step 3 of 4  -  Select an item, then add and sequence its operations."
+                        Width: =Parent.Width
+                        Wrap: =false
+            - conOpsItem:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  BorderColor: =RGBA(214, 221, 224, 1)
+                  BorderThickness: =1
+                  DropShadow: =DropShadow.Semilight
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =132
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =If(Parent.Width < 640, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                  LayoutGap: =12
+                  LayoutMinHeight: =132
+                  LayoutMinWidth: =0
+                  LayoutWrap: =true
+                  PaddingBottom: =12
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  PaddingTop: =12
+                  Width: =Parent.Width - 24
+                  X: =12
+                  Y: =172
+                Children:
+                  - conOpsItemField:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        Fill: =RGBA(255, 255, 255, 1)
+                        FillPortions: =0
+                        Height: =96
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =4
+                        LayoutMinHeight: =96
+                        LayoutMinWidth: =180
+                        Width: =If(Parent.Width < 640, Parent.Width, Parent.Width * 0.42)
+                      Children:
+                        - lblOpsItem:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Maintenance item label"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =14
+                              Text: ="Maintenance item"
+                              Width: =Parent.Width
+                              Wrap: =false
+                        - drpOpsItem:
+                            Control: ModernDropdown@1.0.2
+                            Properties:
+                              AccessibleLabel: ="Select maintenance item"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Appearance: =Appearance.Outline
+                              BorderColor: =RGBA(214, 221, 224, 1)
+                              BorderStyle: =BorderStyle.Solid
+                              BorderThickness: =1
+                              Default: =LookUp(colMaintenanceItems, LocalItemKey = varSelectedItemKey)
+                              Fill: =RGBA(241, 242, 246, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =44
+                              ItemDisplayText: =ThisItem.ItemNo & "  -  " & ThisItem.ItemDescription
+                              Items: =colMaintenanceItems
+                              OnChange: =Set(varSelectedItemKey, Self.Selected.LocalItemKey); Set(varEditOperationKey, "")
+                              PaddingBottom: =6
+                              PaddingLeft: =10
+                              PaddingRight: =10
+                              PaddingTop: =6
+                              Size: =12
+                              Width: =Parent.Width
+                  - conOpsDescriptionField:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        Fill: =RGBA(255, 255, 255, 1)
+                        FillPortions: =0
+                        Height: =96
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =4
+                        LayoutMinHeight: =96
+                        LayoutMinWidth: =220
+                        Width: =If(Parent.Width < 640, Parent.Width, Parent.Width * 0.58)
+                      Children:
+                        - lblOpsDescription:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Task list description label"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =14
+                              Text: ="Task list description"
+                              Width: =Parent.Width
+                              Wrap: =false
+                        - txtOpsDescription:
+                            Control: ModernTextInput@1.1.1
+                            Properties:
+                              AccessibleLabel: ="Task list description"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Appearance: =Appearance.Outline
+                              BorderColor: =RGBA(214, 221, 224, 1)
+                              BorderStyle: =BorderStyle.Solid
+                              BorderThickness: =1
+                              Default: =varTaskListDescription
+                              Fill: =RGBA(241, 242, 246, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =44
+                              MaxLength: =120
+                              OnChange: =Set(varTaskListDescription, Self.Text)
+                              PaddingBottom: =8
+                              PaddingLeft: =10
+                              PaddingRight: =10
+                              PaddingTop: =8
+                              Placeholder: ="Describe this task list"
+                              Required: =true
+                              Size: =12
+                              TriggerOutput: =TriggerOutput.FocusOut
+                              ValidationState: =If(varOperationSubmitAttempted && IsBlank(Self.Text), ValidationState.Error, ValidationState.None)
+                              Width: =Parent.Width
+            - conOpsPicker:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  BorderColor: =RGBA(214, 221, 224, 1)
+                  BorderThickness: =1
+                  DropShadow: =DropShadow.Semilight
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =116
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =6
+                  LayoutMinHeight: =116
+                  LayoutMinWidth: =0
+                  PaddingBottom: =12
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  PaddingTop: =12
+                  Width: =Parent.Width - 24
+                  X: =12
+                  Y: =316
+                Children:
+                  - lblOpsPicker:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Standard operation picker label"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =14
+                        Text: ="Pick a standard operation"
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - cmbOpsStandard:
+                      Control: ModernCombobox@1.1.1
+                      Properties:
+                        AccessibleLabel: ="Search and select a standard operation"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        AllowExternalSelectedItems: =false
+                        Appearance: =Appearance.Outline
+                        BorderColor: =RGBA(214, 221, 224, 1)
+                        BorderStyle: =BorderStyle.Solid
+                        BorderThickness: =1
+                        DelayOutput: =true
+                        Fill: =RGBA(241, 242, 246, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =48
+                        InputTextPlaceholder: ="Search by operation, code or work center"
+                        ItemDisplayText: =ThisItem.Title & "  -  " & ThisItem.field_5
+                        Items: =Switch(Left(varDraftPlan.PlantKey, 3), "ASV", 'ASV Standard Tasklist', "AVV", 'AVV Standard Tasklist', "HEV", 'HEV Standard Tasklist', "KYV", 'KYV Standard Tasklist', "SKV", 'SKV Standard Tasklist', "SSV", 'SSV Standard Tasklist', 'ASV Standard Tasklist')
+                        OnChange: |-
+                          =If(
+                              !IsBlank(Self.Selected.ID),
+                              Set(varOpsCatalogID, Self.Selected.ID);
+                              Set(varOpsStandardCode, Text(Self.Selected.field_1));
+                              Set(varOpsOpText, Self.Selected.field_5);
+                              Set(varOpsWorkCenter, Self.Selected.field_2);
+                              Set(varOpsControlKey, Self.Selected.field_4);
+                              Set(varOpsWorkHours, Value(Self.Selected.field_6));
+                              Set(varOpsDurationHours, Value(Self.Selected.field_9));
+                              Set(varOpsFormOpen, true)
+                          )
+                        PaddingBottom: =8
+                        PaddingLeft: =10
+                        PaddingRight: =10
+                        PaddingTop: =8
+                        SelectMultiple: =false
+                        Size: =12
+                        Width: =Parent.Width
+            - conOpsForm:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  BorderColor: =RGBA(214, 221, 224, 1)
+                  BorderThickness: =1
+                  DropShadow: =DropShadow.Semilight
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =246
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =8
+                  LayoutMinHeight: =246
+                  LayoutMinWidth: =0
+                  PaddingBottom: =12
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  PaddingTop: =12
+                  Width: =Parent.Width - 24
+                  X: =12
+                  Y: =444
+                Children:
+                  - lblOpsFormTitle:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Operation editor heading"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =16
+                        Text: =If(IsBlank(varEditOperationKey), "Add operation", "Edit operation " & varEditOperationKey)
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - conOpsFormRow1:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        Fill: =RGBA(255, 255, 255, 1)
+                        FillPortions: =0
+                        Height: =74
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =If(Parent.Width < 640, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                        LayoutGap: =8
+                        LayoutMinHeight: =74
+                        LayoutMinWidth: =0
+                        LayoutWrap: =true
+                        Width: =Parent.Width
+                      Children:
+                        - conOpsTextField:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              Fill: =RGBA(255, 255, 255, 1)
+                              FillPortions: =0
+                              Height: =74
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =4
+                              LayoutMinHeight: =74
+                              LayoutMinWidth: =240
+                              Width: =If(Parent.Width < 640, Parent.Width, Parent.Width * 0.62)
+                            Children:
+                              - lblOpsOpText:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Operation text label"
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Color: =RGBA(12, 59, 94, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =22
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =11
+                                    Text: ="Full operation text"
+                                    Width: =Parent.Width
+                                    Wrap: =false
+                              - txtOpsOpText:
+                                  Control: ModernTextInput@1.1.1
+                                  Properties:
+                                    AccessibleLabel: ="Full operation text"
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Appearance: =Appearance.Outline
+                                    BorderColor: =RGBA(214, 221, 224, 1)
+                                    BorderStyle: =BorderStyle.Solid
+                                    BorderThickness: =1
+                                    Default: =varOpsOpText
+                                    Fill: =RGBA(241, 242, 246, 1)
+                                    Font: =Font.'Open Sans'
+                                    Height: =44
+                                    MaxLength: =120
+                                    OnChange: =Set(varOpsOpText, Self.Text)
+                                    PaddingBottom: =8
+                                    PaddingLeft: =10
+                                    PaddingRight: =10
+                                    PaddingTop: =8
+                                    Placeholder: ="Enter the operation text"
+                                    Required: =true
+                                    Size: =12
+                                    TriggerOutput: =TriggerOutput.FocusOut
+                                    ValidationState: =If(varOperationSubmitAttempted && IsBlank(Self.Text), ValidationState.Error, ValidationState.None)
+                                    Width: =Parent.Width
+                        - conOpsWorkCenterField:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              Fill: =RGBA(255, 255, 255, 1)
+                              FillPortions: =0
+                              Height: =74
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =4
+                              LayoutMinHeight: =74
+                              LayoutMinWidth: =160
+                              Width: =If(Parent.Width < 640, Parent.Width, Parent.Width * 0.38)
+                            Children:
+                              - lblOpsWorkCenter:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Work center label"
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Color: =RGBA(12, 59, 94, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =22
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =11
+                                    Text: ="Work center"
+                                    Width: =Parent.Width
+                                    Wrap: =false
+                              - txtOpsWorkCenter:
+                                  Control: ModernTextInput@1.1.1
+                                  Properties:
+                                    AccessibleLabel: ="Work center"
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Appearance: =Appearance.Outline
+                                    BorderColor: =RGBA(214, 221, 224, 1)
+                                    BorderStyle: =BorderStyle.Solid
+                                    BorderThickness: =1
+                                    Default: =varOpsWorkCenter
+                                    Fill: =RGBA(241, 242, 246, 1)
+                                    Font: =Font.'Open Sans'
+                                    Height: =44
+                                    MaxLength: =40
+                                    OnChange: =Set(varOpsWorkCenter, Self.Text)
+                                    PaddingBottom: =8
+                                    PaddingLeft: =10
+                                    PaddingRight: =10
+                                    PaddingTop: =8
+                                    Placeholder: ="Work center"
+                                    Required: =true
+                                    Size: =12
+                                    TriggerOutput: =TriggerOutput.FocusOut
+                                    ValidationState: =If(varOperationSubmitAttempted && IsBlank(Self.Text), ValidationState.Error, ValidationState.None)
+                                    Width: =Parent.Width
+                  - conOpsFormRow2:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        Fill: =RGBA(255, 255, 255, 1)
+                        FillPortions: =0
+                        Height: =74
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =If(Parent.Width < 640, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                        LayoutGap: =8
+                        LayoutMinHeight: =74
+                        LayoutMinWidth: =0
+                        LayoutWrap: =true
+                        Width: =Parent.Width
+                      Children:
+                        - conOpsControlField:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              Fill: =RGBA(255, 255, 255, 1)
+                              FillPortions: =0
+                              Height: =74
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =4
+                              LayoutMinHeight: =74
+                              LayoutMinWidth: =150
+                              Width: =If(Parent.Width < 640, Parent.Width, Parent.Width * 0.34)
+                            Children:
+                              - lblOpsControl:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Control key label"
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Color: =RGBA(12, 59, 94, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =22
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =11
+                                    Text: ="Control key"
+                                    Width: =Parent.Width
+                                    Wrap: =false
+                              - drpOpsControlKey:
+                                  Control: ModernDropdown@1.0.2
+                                  Properties:
+                                    AccessibleLabel: ="Control key"
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Appearance: =Appearance.Outline
+                                    BorderColor: =RGBA(214, 221, 224, 1)
+                                    BorderStyle: =BorderStyle.Solid
+                                    BorderThickness: =1
+                                    Default: |-
+                                      =LookUp(
+                                          Table({Value: "PM01"}, {Value: "PM02"}, {Value: "PM03"}),
+                                          Value = varOpsControlKey
+                                      )
+                                    Fill: =RGBA(241, 242, 246, 1)
+                                    Font: =Font.'Open Sans'
+                                    Height: =44
+                                    ItemDisplayText: =ThisItem.Value
+                                    Items: |-
+                                      =Table(
+                                          {Value: "PM01"},
+                                          {Value: "PM02"},
+                                          {Value: "PM03"}
+                                      )
+                                    OnChange: =Set(varOpsControlKey, Self.Selected.Value)
+                                    PaddingBottom: =6
+                                    PaddingLeft: =10
+                                    PaddingRight: =10
+                                    PaddingTop: =6
+                                    Size: =12
+                                    Width: =Parent.Width
+                        - conOpsWorkField:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              Fill: =RGBA(255, 255, 255, 1)
+                              FillPortions: =0
+                              Height: =74
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =4
+                              LayoutMinHeight: =74
+                              LayoutMinWidth: =130
+                              Width: =If(Parent.Width < 640, Parent.Width, Parent.Width * 0.33)
+                            Children:
+                              - lblOpsWork:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Work hours label"
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Color: =RGBA(12, 59, 94, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =22
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =11
+                                    Text: ="Work hours"
+                                    Width: =Parent.Width
+                                    Wrap: =false
+                              - numOpsWork:
+                                  Control: ModernNumberInput@1.1.1
+                                  Properties:
+                                    AccessibleLabel: ="Work hours"
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Appearance: =Appearance.Outline
+                                    BorderColor: =RGBA(214, 221, 224, 1)
+                                    BorderStyle: =BorderStyle.Solid
+                                    BorderThickness: =1
+                                    Default: =varOpsWorkHours
+                                    Fill: =RGBA(241, 242, 246, 1)
+                                    Font: =Font.'Open Sans'
+                                    Height: =44
+                                    Max: =999
+                                    Min: =0
+                                    OnChange: =Set(varOpsWorkHours, Self.Value)
+                                    PaddingBottom: =6
+                                    PaddingLeft: =10
+                                    PaddingRight: =10
+                                    PaddingTop: =6
+                                    Precision: =DecimalPrecision.'1'
+                                    Size: =12
+                                    Step: =0.1
+                                    ValidationState: =If(varOperationSubmitAttempted && (IsBlank(Self.Value) || Self.Value < 0), ValidationState.Error, ValidationState.None)
+                                    Width: =Parent.Width
+                        - conOpsDurationField:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              Fill: =RGBA(255, 255, 255, 1)
+                              FillPortions: =0
+                              Height: =74
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =4
+                              LayoutMinHeight: =74
+                              LayoutMinWidth: =130
+                              Width: =If(Parent.Width < 640, Parent.Width, Parent.Width * 0.33)
+                            Children:
+                              - lblOpsDuration:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Duration hours label"
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Color: =RGBA(12, 59, 94, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =22
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =11
+                                    Text: ="Duration hours"
+                                    Width: =Parent.Width
+                                    Wrap: =false
+                              - numOpsDuration:
+                                  Control: ModernNumberInput@1.1.1
+                                  Properties:
+                                    AccessibleLabel: ="Duration hours"
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Appearance: =Appearance.Outline
+                                    BorderColor: =RGBA(214, 221, 224, 1)
+                                    BorderStyle: =BorderStyle.Solid
+                                    BorderThickness: =1
+                                    Default: =varOpsDurationHours
+                                    Fill: =RGBA(241, 242, 246, 1)
+                                    Font: =Font.'Open Sans'
+                                    Height: =44
+                                    Max: =999
+                                    Min: =0
+                                    OnChange: =Set(varOpsDurationHours, Self.Value)
+                                    PaddingBottom: =6
+                                    PaddingLeft: =10
+                                    PaddingRight: =10
+                                    PaddingTop: =6
+                                    Precision: =DecimalPrecision.'1'
+                                    Size: =12
+                                    Step: =0.1
+                                    ValidationState: =If(varOperationSubmitAttempted && (IsBlank(Self.Value) || Self.Value < 0), ValidationState.Error, ValidationState.None)
+                                    Width: =Parent.Width
+                  - conOpsFormActions:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        Fill: =RGBA(255, 255, 255, 1)
+                        FillPortions: =0
+                        Height: =48
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =8
+                        LayoutMinHeight: =48
+                        LayoutMinWidth: =0
+                        LayoutWrap: =true
+                        Width: =Parent.Width
+                      Children:
+                        - btnOpsCancel:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Cancel operation edit"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Appearance: =ButtonAppearance.Transparent
+                              Color: =RGBA(56, 96, 178, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Normal
+                              Height: =44
+                              Layout: =ButtonLayout.TextOnly
+                              OnSelect: =Set(varEditOperationKey, ""); Set(varOpsFormOpen, false); Set(varOpsOpText, ""); Set(varOpsWorkCenter, ""); Set(varOpsControlKey, "PM01"); Set(varOpsWorkHours, 0); Set(varOpsDurationHours, 0)
+                              Size: =12
+                              Text: ="Cancel edit"
+                              Tooltip: ="Discard operation changes"
+                              Width: =130
+                        - btnOpsSave:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Save operation"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              BasePaletteColor: =RGBA(56, 96, 178, 1)
+                              Color: =RGBA(255, 255, 255, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =44
+                              Layout: =ButtonLayout.TextOnly
+                              OnSelect: |-
+                                =Set(varOperationSubmitAttempted, true);
+                                If(
+                                    !IsBlank(drpOpsItem.Selected.LocalItemKey) &&
+                                    !IsBlank(txtOpsOpText.Text) &&
+                                    !IsBlank(txtOpsWorkCenter.Text) &&
+                                    !IsBlank(drpOpsControlKey.Selected.Value) &&
+                                    !IsBlank(numOpsWork.Value) &&
+                                    !IsBlank(numOpsDuration.Value) &&
+                                    numOpsWork.Value >= 0 &&
+                                    numOpsDuration.Value >= 0,
+                                    With(
+                                        {
+                                            itemKey: drpOpsItem.Selected.LocalItemKey,
+                                            operationKey: Coalesce(varEditOperationKey, "OP-" & Text(CountRows(colOperations) + 1, "000"))
+                                        },
+                                        If(
+                                            IsBlank(varEditOperationKey),
+                                            Collect(
+                                                colOperations,
+                                                {
+                                                    LocalOperationKey: operationKey,
+                                                    ItemKey: itemKey,
+                                                    Description: txtOpsDescription.Text,
+                                                    SeqNo: (CountRows(Filter(colOperations, ItemKey = itemKey)) + 1) * 10,
+                                                    OpNo: Text((CountRows(Filter(colOperations, ItemKey = itemKey)) + 1) * 10, "0000"),
+                                                    OpText: txtOpsOpText.Text,
+                                                    WorkCenter: txtOpsWorkCenter.Text,
+                                                    ControlKey: drpOpsControlKey.Selected.Value,
+                                                    WorkHours: numOpsWork.Value,
+                                                    DurationHours: numOpsDuration.Value,
+                                                    StandardCode: Coalesce(varOpsStandardCode, "")
+                                                }
+                                            ),
+                                            UpdateIf(
+                                                colOperations,
+                                                LocalOperationKey = operationKey,
+                                                {
+                                                    ItemKey: itemKey,
+                                                    Description: txtOpsDescription.Text,
+                                                    OpText: txtOpsOpText.Text,
+                                                    WorkCenter: txtOpsWorkCenter.Text,
+                                                    ControlKey: drpOpsControlKey.Selected.Value,
+                                                    WorkHours: numOpsWork.Value,
+                                                    DurationHours: numOpsDuration.Value,
+                                                    StandardCode: Coalesce(varOpsStandardCode, "")
+                                                }
+                                            )
+                                        );
+                                        ForAll(
+                                            Sequence(CountRows(Filter(colOperations, ItemKey = itemKey))) As idx,
+                                            With(
+                                                {
+                                                    rec: Index(
+                                                        Sort(Filter(colOperations, ItemKey = itemKey), SeqNo, SortOrder.Ascending),
+                                                        idx.Value
+                                                    )
+                                                },
+                                                Patch(
+                                                    colOperations,
+                                                    LookUp(colOperations, LocalOperationKey = rec.LocalOperationKey),
+                                                    { SeqNo: idx.Value * 10, OpNo: Text(idx.Value * 10, "0000") }
+                                                )
+                                            )
+                                        );
+                                        Set(
+                                            varLastCreateReceipt,
+                                            {
+                                                Action: If(IsBlank(varEditOperationKey), "Added", "Updated"),
+                                                Entity: "Operation",
+                                                StableKey: operationKey,
+                                                ItemKey: itemKey,
+                                                Description: txtOpsDescription.Text,
+                                                OpText: txtOpsOpText.Text,
+                                                WorkCenter: txtOpsWorkCenter.Text,
+                                                ControlKey: drpOpsControlKey.Selected.Value,
+                                                WorkHours: numOpsWork.Value,
+                                                DurationHours: numOpsDuration.Value,
+                                                StandardCode: Coalesce(varOpsStandardCode, "")
+                                            }
+                                        );
+                                        Set(varReceiptVisible, true);
+                                        Set(varEditOperationKey, "");
+                                        Set(varOpsFormOpen, false);
+                                        Set(varOperationSubmitAttempted, false)
+                                    ),
+                                    Set(varCreateError, "Enter operation text, work center, control key, work hours, and duration (zero is allowed).")
+                                )
+                              Size: =12
+                              Text: =If(IsBlank(varEditOperationKey), "Add operation", "Save operation")
+                              Tooltip: ="Save operation"
+                              Width: =If(IsBlank(varEditOperationKey), 138, 150)
+            - conOpsOperations:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  BorderColor: =RGBA(214, 221, 224, 1)
+                  BorderThickness: =1
+                  DropShadow: =DropShadow.Semilight
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =100 + Max(180, CountRows(Filter(colOperations, ItemKey = drpOpsItem.Selected.LocalItemKey)) * 290)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =8
+                  LayoutMinWidth: =0
+                  PaddingBottom: =12
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  PaddingTop: =12
+                  Width: =Parent.Width - 24
+                  X: =12
+                  Y: =702
+                Children:
+                  - conOpsOperationsHeading:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        Fill: =RGBA(255, 255, 255, 1)
+                        FillPortions: =0
+                        Height: =32
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =8
+                        LayoutMinHeight: =32
+                        LayoutMinWidth: =0
+                        Width: =Parent.Width
+                      Children:
+                        - lblOpsOperations:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Operations list heading"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =28
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =16
+                              Text: ="Operations"
+                              Width: =Parent.Width * 0.45
+                              Wrap: =false
+                        - lblOpsCount:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Operation count"
+                              Align: =Align.Right
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Color: =RGBA(90, 90, 90, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =28
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =12
+                              Text: =CountRows(Filter(colOperations, ItemKey = drpOpsItem.Selected.LocalItemKey)) & " operation(s)"
+                              Width: =Parent.Width * 0.55
+                              Wrap: =false
+                  - galOpsOperations:
+                      Control: Gallery@2.15.0
+                      Variant: Vertical
+                      Properties:
+                        AccessibleLabel: ="Operations for selected maintenance item"
+                        BorderColor: =RGBA(214, 221, 224, 1)
+                        BorderThickness: =1
+                        DelayItemLoading: =false
+                        Fill: =RGBA(255, 255, 255, 1)
+                        FillPortions: =0
+                        Height: =Max(180, CountRows(Filter(colOperations, ItemKey = drpOpsItem.Selected.LocalItemKey)) * 290)
+                        Items: =Sort(Filter(colOperations, ItemKey = drpOpsItem.Selected.LocalItemKey), SeqNo, SortOrder.Ascending)
+                        TabIndex: =0
+                        TemplatePadding: =8
+                        TemplateSize: =290
+                        Width: =Parent.Width
+                      Children:
+                        - conOpsRow:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              Fill: =RGBA(255, 255, 255, 1)
+                              Height: =Parent.TemplateHeight
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =4
+                              Width: =Parent.TemplateWidth
+                            Children:
+                              - lblOpsRowIdentity:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Operation number and description"
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Color: =RGBA(12, 59, 94, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Bold
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =14
+                                    Text: =ThisItem.OpNo & "  -  " & ThisItem.OpText
+                                    Width: =Parent.Width
+                                    Wrap: =false
+                              - lblOpsRowMeta:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Operation work center, control key, work and duration"
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Color: =RGBA(90, 90, 90, 1)
+                                    Font: =Font.'Open Sans'
+                                    Height: =46
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =12
+                                    Text: |-
+                                      ="Work center: " & ThisItem.WorkCenter & "  -  Control: " & ThisItem.ControlKey & "  -  Work: " & Text(ThisItem.WorkHours, "0.0") & " h  -  Duration: " & Text(ThisItem.DurationHours, "0.0") & " h  -  Code: " & Coalesce(ThisItem.StandardCode, "Manual")
+                                    Width: =Parent.Width
+                              - btnOpsUp:
+                                  Control: ModernButton@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Move " & ThisItem.OpNo & " up"
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Appearance: =ButtonAppearance.Secondary
+                                    Color: =RGBA(56, 96, 178, 1)
+                                    DisplayMode: =If(ThisItem.SeqNo = Min(Filter(colOperations, ItemKey = ThisItem.ItemKey), SeqNo), DisplayMode.Disabled, DisplayMode.Edit)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Normal
+                                    Height: =44
+                                    Layout: =ButtonLayout.TextOnly
+                                    OnSelect: |-
+                                      =With(
+                                          {cur: ThisItem.SeqNo, key: ThisItem.LocalOperationKey, itemKey: ThisItem.ItemKey},
+                                          If(
+                                              cur > Min(Filter(colOperations, ItemKey = itemKey), SeqNo),
+                                              UpdateIf(colOperations, LocalOperationKey = key, {SeqNo: -1});
+                                              UpdateIf(colOperations, ItemKey = itemKey && SeqNo = cur - 10, {SeqNo: cur});
+                                              UpdateIf(colOperations, LocalOperationKey = key, {SeqNo: cur - 10});
+                                              ForAll(
+                                                  Sequence(CountRows(Filter(colOperations, ItemKey = itemKey))) As idx,
+                                                  With(
+                                                      {rec: Index(Sort(Filter(colOperations, ItemKey = itemKey), SeqNo, SortOrder.Ascending), idx.Value)},
+                                                      Patch(colOperations, LookUp(colOperations, LocalOperationKey = rec.LocalOperationKey), {SeqNo: idx.Value * 10, OpNo: Text(idx.Value * 10, "0000")})
+                                                  )
+                                              );
+                                              Set(varLastCreateReceipt, {Action: "Moved up", Entity: "Operation", StableKey: key, ItemKey: itemKey, Direction: "Up", NewSeqNo: cur - 10, NewOpNo: Text(cur - 10, "0000")});
+                                              Set(varReceiptVisible, true)
+                                          )
+                                      )
+                                    Size: =11
+                                    Text: ="Move up"
+                                    Tooltip: ="Move operation up"
+                                    Width: =Parent.Width
+                              - btnOpsDown:
+                                  Control: ModernButton@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Move " & ThisItem.OpNo & " down"
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Appearance: =ButtonAppearance.Secondary
+                                    Color: =RGBA(56, 96, 178, 1)
+                                    DisplayMode: =If(ThisItem.SeqNo = Max(Filter(colOperations, ItemKey = ThisItem.ItemKey), SeqNo), DisplayMode.Disabled, DisplayMode.Edit)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Normal
+                                    Height: =44
+                                    Layout: =ButtonLayout.TextOnly
+                                    OnSelect: |-
+                                      =With(
+                                          {cur: ThisItem.SeqNo, key: ThisItem.LocalOperationKey, itemKey: ThisItem.ItemKey},
+                                          If(
+                                              cur < Max(Filter(colOperations, ItemKey = itemKey), SeqNo),
+                                              UpdateIf(colOperations, LocalOperationKey = key, {SeqNo: -1});
+                                              UpdateIf(colOperations, ItemKey = itemKey && SeqNo = cur + 10, {SeqNo: cur});
+                                              UpdateIf(colOperations, LocalOperationKey = key, {SeqNo: cur + 10});
+                                              ForAll(
+                                                  Sequence(CountRows(Filter(colOperations, ItemKey = itemKey))) As idx,
+                                                  With(
+                                                      {rec: Index(Sort(Filter(colOperations, ItemKey = itemKey), SeqNo, SortOrder.Ascending), idx.Value)},
+                                                      Patch(colOperations, LookUp(colOperations, LocalOperationKey = rec.LocalOperationKey), {SeqNo: idx.Value * 10, OpNo: Text(idx.Value * 10, "0000")})
+                                                  )
+                                              );
+                                              Set(varLastCreateReceipt, {Action: "Moved down", Entity: "Operation", StableKey: key, ItemKey: itemKey, Direction: "Down", NewSeqNo: cur + 10, NewOpNo: Text(cur + 10, "0000")});
+                                              Set(varReceiptVisible, true)
+                                          )
+                                      )
+                                    Size: =11
+                                    Text: ="Move down"
+                                    Tooltip: ="Move operation down"
+                                    Width: =Parent.Width
+                              - icoOpsEdit:
+                                  Control: ModernButton@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Edit " & ThisItem.OpNo
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Appearance: =ButtonAppearance.Transparent
+                                    Color: =RGBA(56, 96, 178, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Normal
+                                    Height: =44
+                                    Layout: =ButtonLayout.TextOnly
+                                    OnSelect: |-
+                                      =Set(varEditOperationKey, ThisItem.LocalOperationKey);
+                                      Set(varOpsOpText, ThisItem.OpText);
+                                      Set(varOpsWorkCenter, ThisItem.WorkCenter);
+                                      Set(varOpsControlKey, ThisItem.ControlKey);
+                                      Set(varOpsWorkHours, ThisItem.WorkHours);
+                                      Set(varOpsDurationHours, ThisItem.DurationHours);
+                                      Set(varOpsStandardCode, ThisItem.StandardCode);
+                                      Set(varOpsFormOpen, true)
+                                    Size: =11
+                                    Text: ="Edit"
+                                    Tooltip: ="Edit operation"
+                                    Width: =Parent.Width
+                              - btnOpsDelete:
+                                  Control: ModernButton@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Delete " & ThisItem.OpNo
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Appearance: =ButtonAppearance.Secondary
+                                    BasePaletteColor: =RGBA(168, 0, 0, 1)
+                                    Color: =RGBA(168, 0, 0, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Normal
+                                    Height: =44
+                                    Layout: =ButtonLayout.TextOnly
+                                    OnSelect: =Set(varSelectedOperationKey, ThisItem.LocalOperationKey); Set(varOpsDeletePrompt, true)
+                                    Size: =11
+                                    Text: ="Delete"
+                                    Tooltip: ="Delete operation"
+                                    Width: =Parent.Width
+                              - lblOpsRowDivider:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Operation row divider"
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    Color: =RGBA(214, 221, 224, 1)
+                                    Fill: =RGBA(214, 221, 224, 1)
+                                    Font: =Font.'Open Sans'
+                                    Height: =1
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =1
+                                    Text: =" "
+                                    Width: =Parent.Width
+                                    Wrap: =false
+            - conOpsEmpty:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(241, 242, 246, 1)
+                  FillPortions: =0
+                  Height: =64
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =4
+                  LayoutMinHeight: =64
+                  LayoutMinWidth: =0
+                  Visible: =CountRows(Filter(colOperations, ItemKey = drpOpsItem.Selected.LocalItemKey)) = 0
+                  Width: =Parent.Width - 24
+                  X: =12
+                  Y: =706
+                Children:
+                  - lblOpsEmpty:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="No operations message"
+                        Align: =Align.Center
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(90, 90, 90, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =44
+                        PaddingBottom: =0
+                        PaddingLeft: =8
+                        PaddingRight: =8
+                        PaddingTop: =0
+                        Size: =12
+                        Text: ="No operations for this item. Pick a standard operation or enter one manually."
+                        Width: =Parent.Width
+            - conOpsReceipt:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  BorderColor: =RGBA(16, 124, 16, 1)
+                  BorderThickness: =1
+                  DropShadow: =DropShadow.Semilight
+                  Fill: =RGBA(241, 248, 241, 1)
+                  FillPortions: =0
+                  Height: =152
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =4
+                  LayoutMinHeight: =152
+                  LayoutMinWidth: =0
+                  PaddingBottom: =10
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  PaddingTop: =10
+                  Visible: =varReceiptVisible
+                  Width: =Parent.Width - 24
+                  X: =12
+                  Y: =1098
+                Children:
+                  - lblOpsReceiptTitle:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Operation receipt heading"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(16, 124, 16, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =13
+                        Text: ="Saved operation receipt"
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - lblOpsReceiptIdentity:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt identity and item"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =11
+                        Text: =varLastCreateReceipt.Action & "  -  " & varLastCreateReceipt.StableKey & "  -  Item " & varLastCreateReceipt.ItemKey
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - lblOpsReceiptValues:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt operation values"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =56
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =11
+                        Text: =varLastCreateReceipt.OpText & "  -  " & varLastCreateReceipt.WorkCenter & "  -  " & varLastCreateReceipt.ControlKey & "  -  " & Text(varLastCreateReceipt.WorkHours, "0.0") & " h  -  " & Text(varLastCreateReceipt.DurationHours, "0.0") & " h  -  " & Coalesce(varLastCreateReceipt.StandardCode, "Manual")
+                        Width: =Parent.Width
+            - conOpsFooter:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(248, 250, 252, 1)
+                  FillPortions: =0
+                  Height: =64
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =8
+                  LayoutMinHeight: =64
+                  LayoutMinWidth: =0
+                  LayoutWrap: =true
+                  Width: =Parent.Width - 24
+                  X: =12
+                  Y: =1260
+                Children:
+                  - btnOpsBack:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Back to maintenance items"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: =ButtonAppearance.Transparent
+                        Color: =RGBA(56, 96, 178, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Normal
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Navigate(NewPlan_Items, ScreenTransition.None)
+                        Size: =12
+                        Text: ="Back to items"
+                        Tooltip: ="Return to maintenance items"
+                        Width: =130
+                  - btnOpsCancelFlow:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Cancel plan creation"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: =ButtonAppearance.Transparent
+                        Color: =RGBA(168, 0, 0, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Normal
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Set(varOpsCancelPrompt, true)
+                        Size: =12
+                        Text: ="Cancel flow"
+                        Tooltip: ="Cancel without changing SharePoint"
+                        Width: =120
+                  - btnOpsNext:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Continue to review"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        BasePaletteColor: =RGBA(56, 96, 178, 1)
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: |-
+                          =Set(varOperationSubmitAttempted, true);
+                          If(
+                              CountRows(Filter(colOperations, ItemKey = drpOpsItem.Selected.LocalItemKey)) > 0 &&
+                              CountRows(
+                                  Filter(
+                                      colOperations,
+                                      ItemKey = drpOpsItem.Selected.LocalItemKey &&
+                                      (IsBlank(OpText) || IsBlank(WorkCenter) || IsBlank(ControlKey) || WorkHours < 0 || DurationHours < 0)
+                                  )
+                              ) = 0,
+                              Set(varCreateStep, 4);
+                              Set(varCreateError, "");
+                              Navigate(NewPlan_Review, ScreenTransition.None),
+                              Set(varCreateError, "Add at least one valid operation for the selected item before review.")
+                          )
+                        Size: =12
+                        Text: ="Continue to review"
+                        Tooltip: ="Review this draft"
+                        Width: =170
+            - lblOpsValidation:
+                Control: ModernText@1.0.0
+                Properties:
+                  AccessibleLabel: ="Operation validation message"
+                  AlignInContainer: =AlignInContainer.Stretch
+                  Color: =RGBA(168, 0, 0, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =34
+                  PaddingBottom: =0
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  PaddingTop: =0
+                  Size: =12
+                  Text: =If(varOperationSubmitAttempted, varCreateError, "")
+                  Visible: =varOperationSubmitAttempted && !IsBlank(varCreateError)
+                  Width: =Parent.Width - 24
+                  X: =12
+                  Y: =1332
+            - conOpsDeleteConfirm:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  BorderColor: =RGBA(168, 0, 0, 1)
+                  BorderThickness: =1
+                  DropShadow: =DropShadow.Semilight
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =144
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =8
+                  LayoutMinHeight: =144
+                  LayoutMinWidth: =0
+                  PaddingBottom: =12
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  PaddingTop: =12
+                  Visible: =varOpsDeletePrompt
+                  Width: =Parent.Width - 48
+                  X: =24
+                  Y: =620
+                Children:
+                  - lblOpsDeletePrompt:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Delete operation confirmation"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(168, 0, 0, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =28
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =13
+                        Text: ="Delete operation " & varSelectedOperationKey & "?"
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - conOpsDeleteActions:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        Fill: =RGBA(255, 255, 255, 1)
+                        FillPortions: =0
+                        Height: =48
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =8
+                        LayoutMinHeight: =48
+                        LayoutMinWidth: =0
+                        LayoutWrap: =true
+                        Width: =Parent.Width
+                      Children:
+                        - btnOpsKeepDelete:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Keep operation"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Appearance: =ButtonAppearance.Transparent
+                              Color: =RGBA(56, 96, 178, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Normal
+                              Height: =44
+                              Layout: =ButtonLayout.TextOnly
+                              OnSelect: =Set(varOpsDeletePrompt, false)
+                              Size: =12
+                              Text: ="Keep operation"
+                              Tooltip: ="Cancel deletion"
+                              Width: =138
+                        - btnOpsConfirmDelete:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Confirm delete operation"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Appearance: =ButtonAppearance.Secondary
+                              BasePaletteColor: =RGBA(168, 0, 0, 1)
+                              Color: =RGBA(168, 0, 0, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =44
+                              Layout: =ButtonLayout.TextOnly
+                              OnSelect: |-
+                                =With(
+                                    {
+                                        deletedKey: varSelectedOperationKey,
+                                        deletedRow: LookUp(colOperations, LocalOperationKey = varSelectedOperationKey)
+                                    },
+                                    If(
+                                        !IsBlank(deletedRow.LocalOperationKey),
+                                        RemoveIf(colOperations, LocalOperationKey = deletedKey);
+                                        ForAll(
+                                            Sequence(CountRows(Filter(colOperations, ItemKey = deletedRow.ItemKey))) As idx,
+                                            With(
+                                                {rec: Index(Sort(Filter(colOperations, ItemKey = deletedRow.ItemKey), SeqNo, SortOrder.Ascending), idx.Value)},
+                                                Patch(colOperations, LookUp(colOperations, LocalOperationKey = rec.LocalOperationKey), {SeqNo: idx.Value * 10, OpNo: Text(idx.Value * 10, "0000")})
+                                            )
+                                        );
+                                        Set(varLastCreateReceipt, {Action: "Deleted", Entity: "Operation", StableKey: deletedKey, ItemKey: deletedRow.ItemKey});
+                                        Set(varReceiptVisible, true)
+                                    );
+                                    Set(varOpsDeletePrompt, false);
+                                    Set(varSelectedOperationKey, "")
+                                )
+                              Size: =12
+                              Text: ="Confirm delete"
+                              Tooltip: ="Remove this operation"
+                              Width: =140
+            - conOpsCancelConfirm:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  BorderColor: =RGBA(168, 0, 0, 1)
+                  BorderThickness: =1
+                  DropShadow: =DropShadow.Semilight
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =144
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =8
+                  LayoutMinHeight: =144
+                  LayoutMinWidth: =0
+                  PaddingBottom: =12
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  PaddingTop: =12
+                  Visible: =varOpsCancelPrompt
+                  Width: =Parent.Width - 48
+                  X: =24
+                  Y: =782
+                Children:
+                  - lblOpsCancelPrompt:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Cancel flow confirmation"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(168, 0, 0, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =28
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =13
+                        Text: ="Cancel this draft? Unsaved items and operations will be cleared."
+                        Width: =Parent.Width
+                  - conOpsCancelActions:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        Fill: =RGBA(255, 255, 255, 1)
+                        FillPortions: =0
+                        Height: =48
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =8
+                        LayoutMinHeight: =48
+                        LayoutMinWidth: =0
+                        LayoutWrap: =true
+                        Width: =Parent.Width
+                      Children:
+                        - btnOpsKeepFlow:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Keep draft"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Appearance: =ButtonAppearance.Transparent
+                              Color: =RGBA(56, 96, 178, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Normal
+                              Height: =44
+                              Layout: =ButtonLayout.TextOnly
+                              OnSelect: =Set(varOpsCancelPrompt, false)
+                              Size: =12
+                              Text: ="Keep draft"
+                              Tooltip: ="Return to editing"
+                              Width: =110
+                        - btnOpsConfirmCancel:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Confirm cancel flow"
+                              AlignInContainer: =AlignInContainer.Stretch
+                              Appearance: =ButtonAppearance.Secondary
+                              BasePaletteColor: =RGBA(168, 0, 0, 1)
+                              Color: =RGBA(168, 0, 0, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =44
+                              Layout: =ButtonLayout.TextOnly
+                              OnSelect: |-
+                                =Clear(colMaintenanceItems);
+                                Clear(colOperations);
+                                Clear(colSubmittedItems);
+                                Clear(colSubmittedOperations);
+                                Set(varCreateStep, 1);
+                                Set(varCreateMode, "New");
+                                Set(varSelectedItemKey, "");
+                                Set(varSelectedOperationKey, "");
+                                Set(varEditItemKey, "");
+                                Set(varEditOperationKey, "");
+                                Set(varHeaderSaved, false);
+                                Set(varReceiptVisible, false);
+                                Set(varCreateError, "");
+                                Set(varOpsCancelPrompt, false);
+                                Set(varLastCreateReceipt, {Action: "Cancelled", Entity: "Draft", StableKey: varDraftKey});
+                                Navigate(Screen1, ScreenTransition.None)
+                              Size: =12
+                              Text: ="Confirm cancel"
+                              Tooltip: ="Clear draft and return to overview"
+                              Width: =138

@@ -1,0 +1,483 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  Screen1:
+    Properties:
+      Fill: =RGBA(248, 250, 252, 1)
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+      OnVisible: |-
+        =Refresh(MaintenancePlans);
+        ClearCollect(colStatusFilterOptions, {Value: "All"});
+        Collect(colStatusFilterOptions, Choices(MaintenancePlans.Status));
+        ClearCollect(
+            colMyPlans,
+            SortByColumns(
+                MaintenancePlans,
+                "ID",
+                SortOrder.Descending
+            )
+        )
+    Children:
+      - lblScreen1NavBackground:
+          Control: Label@2.5.1
+          Properties:
+            Fill: =RGBA(12, 59, 94, 1)
+            Height: =52
+            Text: =""
+            Width: =Parent.Width
+      - btnScreen1NavOverview:
+          Control: ModernButton@1.0.0
+          Properties:
+            AccessibleLabel: ="Current overview screen"
+            BasePaletteColor: =RGBA(56, 96, 178, 1)
+            Color: =RGBA(255, 255, 255, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =44
+            Layout: =ButtonLayout.TextOnly
+            OnSelect: =Navigate(Screen1, ScreenTransition.None)
+            Size: =11
+            Text: ="Overview"
+            Tooltip: ="Current maintenance plan overview"
+            Width: =If(Parent.Width < 640, (Parent.Width - 32) / 3, (Parent.Width - 48) / 3)
+            X: =4
+            Y: =4
+      - btnScreen1NavMyPlans:
+          Control: ModernButton@1.0.0
+          Properties:
+            AccessibleLabel: ="Go to My plans"
+            Appearance: =ButtonAppearance.Subtle
+            BasePaletteColor: =RGBA(255, 255, 255, 1)
+            Color: =RGBA(255, 255, 255, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =44
+            Layout: =ButtonLayout.TextOnly
+            OnSelect: =Navigate(MyPlans, ScreenTransition.Cover)
+            Size: =11
+            Text: ="My plans"
+            Tooltip: ="Open your maintenance plans"
+            Width: =If(Parent.Width < 640, (Parent.Width - 32) / 3, (Parent.Width - 48) / 3)
+            X: =If(Parent.Width < 640, (Parent.Width - 32) / 3 + 12, (Parent.Width - 48) / 3 + 12)
+            Y: =4
+      - btnScreen1NavNew:
+          Control: ModernButton@1.0.0
+          Properties:
+            AccessibleLabel: ="Start a new maintenance plan"
+            Appearance: =ButtonAppearance.Subtle
+            BasePaletteColor: =RGBA(255, 255, 255, 1)
+            Color: =RGBA(255, 255, 255, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =44
+            Layout: =ButtonLayout.TextOnly
+            OnSelect: =Set(varCreateMode, "New"); Set(varCreateStep, 1); Navigate(NewPlan_Header, ScreenTransition.Cover)
+            Size: =11
+            Text: ="New plan"
+            Tooltip: ="Create a new maintenance plan"
+            Width: =If(Parent.Width < 640, (Parent.Width - 32) / 3, (Parent.Width - 48) / 3)
+            X: =If(Parent.Width < 640, 2 * (Parent.Width - 32) / 3 + 20, 2 * (Parent.Width - 48) / 3 + 20)
+            Y: =4
+      - galStatus:
+          Control: Gallery@2.15.0
+          Variant: Horizontal
+          Properties:
+            AccessibleLabel: ="Plan status summary"
+            Height: =96
+            Items: |-
+              =ForAll(
+                  Filter(colStatusFilterOptions, Value <> "All") As statusName,
+                  {
+                      StatusName: statusName.Value,
+                      PlanCount: CountRows(Filter(colMyPlans, Status.Value = statusName.Value))
+                  }
+              )
+            ShowScrollbar: =false
+            TabIndex: =0
+            TemplateSize: =264
+            Width: =1081
+            X: =117
+            Y: =66
+          Children:
+            - lblStatus:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  BorderColor: |-
+                    =If(
+                        varPlanStatusFilter = ThisItem.StatusName,
+                        Switch(
+                            ThisItem.StatusName,
+                            "Draft", RGBA(100, 76, 118, 1),
+                            "In Progress", RGBA(232, 87, 87, 1),
+                            "Ready for creation in SAP", RGBA(200, 150, 0, 1),
+                            "Published", RGBA(22, 160, 133, 1),
+                            RGBA(56, 96, 178, 1)
+                        ),
+                        RGBA(214, 221, 224, 1)
+                    )
+                  BorderThickness: =If(varPlanStatusFilter = ThisItem.StatusName, 2, 1)
+                  Color: |-
+                    =If(
+                        varPlanStatusFilter = ThisItem.StatusName,
+                        RGBA(255, 255, 255, 1),
+                        Switch(
+                            ThisItem.StatusName,
+                            "Draft", RGBA(100, 76, 118, 1),
+                            "In Progress", RGBA(232, 87, 87, 1),
+                            "Ready for creation in SAP", RGBA(200, 150, 0, 1),
+                            "Published", RGBA(22, 160, 133, 1),
+                            RGBA(56, 96, 178, 1)
+                        )
+                    )
+                  Fill: |-
+                    =If(
+                        varPlanStatusFilter = ThisItem.StatusName,
+                        Switch(
+                            ThisItem.StatusName,
+                            "Draft", RGBA(100, 76, 118, 1),
+                            "In Progress", RGBA(232, 87, 87, 1),
+                            "Ready for creation in SAP", RGBA(200, 150, 0, 1),
+                            "Published", RGBA(22, 160, 133, 1),
+                            RGBA(56, 96, 178, 1)
+                        ),
+                        RGBA(255, 255, 255, 1)
+                    )
+                  FocusedBorderThickness: =1
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =44
+                  OnSelect: =Set(varPlanStatusFilter, If(varPlanStatusFilter = ThisItem.StatusName, Blank(), ThisItem.StatusName))
+                  Size: =If(ThisItem.StatusName = "Ready for creation in SAP", 10, 11)
+                  TabIndex: =0
+                  Text: =ThisItem.PlanCount & "  " & ThisItem.StatusName
+                  Tooltip: ="Filter plans by " & ThisItem.StatusName
+                  Width: =250
+                  X: =4
+                  Y: =16
+      - lblRecent:
+          Control: Label@2.5.1
+          Properties:
+            Color: =RGBA(12, 59, 94, 1)
+            FocusedBorderThickness: =1
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =34
+            Size: =16
+            TabIndex: =0
+            Text: ="Maintenance plans"
+            Width: =300
+            X: =80
+            Y: =141
+      - lblEmpty:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            Color: =RGBA(90, 90, 90, 1)
+            FocusedBorderThickness: =1
+            Font: =Font.'Open Sans'
+            Size: =12
+            TabIndex: =0
+            Text: ="No maintenance plans found."
+            Visible: =galPlans.AllItemsCount = 0
+            Width: =600
+            X: =380
+            Y: =430
+      - hdrDate:
+          Control: Label@2.5.1
+          Properties:
+            Color: =RGBA(12, 59, 94, 1)
+            Fill: =RGBA(226, 231, 235, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =32
+            Size: =10
+            Text: ="First Planned Date"
+            X: =860
+            Y: =177
+      - hdrAction:
+          Control: Label@2.5.1
+          Properties:
+            Color: =RGBA(12, 59, 94, 1)
+            Fill: =RGBA(226, 231, 235, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =32
+            Size: =10
+            Text: ="Action"
+            Width: =120
+            X: =1140
+            Y: =177
+      - hdrSort:
+          Control: Label@2.5.1
+          Properties:
+            Color: =RGBA(12, 59, 94, 1)
+            Fill: =RGBA(226, 231, 235, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =32
+            Size: =10
+            Text: ="Sort Field"
+            X: =560
+            Y: =177
+      - hdrUnit:
+          Control: Label@2.5.1
+          Properties:
+            Color: =RGBA(12, 59, 94, 1)
+            Fill: =RGBA(226, 231, 235, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =32
+            Size: =10
+            Text: ="Unit"
+            Width: =80
+            X: =780
+            Y: =177
+      - hdrSap:
+          Control: Label@2.5.1
+          Properties:
+            Color: =RGBA(12, 59, 94, 1)
+            Fill: =RGBA(226, 231, 235, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =32
+            Size: =10
+            Text: ="SAP Number"
+            Width: =130
+            X: =1010
+            Y: =177
+      - hdrStatus:
+          Control: Label@2.5.1
+          Properties:
+            Color: =RGBA(12, 59, 94, 1)
+            Fill: =RGBA(226, 231, 235, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =32
+            Size: =10
+            Text: ="Status"
+            Width: =120
+            X: =440
+            Y: =177
+      - hdrCycle:
+          Control: Label@2.5.1
+          Properties:
+            Color: =RGBA(12, 59, 94, 1)
+            Fill: =RGBA(226, 231, 235, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =32
+            Size: =10
+            Text: ="Cycle"
+            Width: =70
+            X: =710
+            Y: =177
+      - hdrTitle:
+          Control: Label@2.5.1
+          Properties:
+            Color: =RGBA(12, 59, 94, 1)
+            Fill: =RGBA(226, 231, 235, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =32
+            Size: =10
+            Text: ="Title"
+            Width: =270
+            X: =170
+            Y: =177
+      - galPlans:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            AccessibleLabel: ="Maintenance plans"
+            BorderColor: =RGBA(214, 221, 224, 1)
+            BorderThickness: =1
+            Height: =546
+            Items: |-
+              =Filter(
+                  MaintenancePlans,
+                  IsBlank(varPlanStatusFilter) || Status.Value = varPlanStatusFilter
+              )
+            TabIndex: =0
+            TemplateSize: =64
+            Width: =1180
+            X: =80
+            Y: =209
+          Children:
+            - lblPlanIdentity:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =RGBA(12, 59, 94, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =28
+                  OnSelect: =Select(Parent)
+                  Size: =12
+                  Text: =ThisItem.PlanID
+                  Width: =90
+                  X: =2
+                  Y: =8
+            - lblPlanStatus:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  BorderColor: |-
+                    =Switch(
+                        ThisItem.Status.Value,
+                        "Draft", RGBA(100, 76, 118, 1),
+                        "In Progress", RGBA(232, 87, 87, 1),
+                        "Ready for creation in SAP", RGBA(200, 150, 0, 1),
+                        "Published", RGBA(22, 160, 133, 1),
+                        RGBA(56, 96, 178, 1)
+                    )
+                  BorderThickness: =1
+                  Color: =RGBA(255, 255, 255, 1)
+                  Fill: |-
+                    =Switch(
+                        ThisItem.Status.Value,
+                        "Draft", RGBA(100, 76, 118, 1),
+                        "In Progress", RGBA(232, 87, 87, 1),
+                        "Ready for creation in SAP", RGBA(200, 150, 0, 1),
+                        "Published", RGBA(22, 160, 133, 1),
+                        RGBA(56, 96, 178, 1)
+                    )
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =28
+                  OnSelect: =Select(Parent)
+                  Size: =9
+                  Text: =ThisItem.Status.Value
+                  Width: =140
+                  X: =348
+                  Y: =18
+            - icoEditPlan:
+                Control: Classic/Icon@2.5.0
+                Properties:
+                  AccessibleLabel: ="Edit " & ThisItem.PlanID
+                  Color: =RGBA(64, 153, 218, 1)
+                  Height: =22
+                  Icon: =Icon.Edit
+                  OnSelect: |-
+                    =Set(varSelectedPlanID, ThisItem.ID);
+                    Notify("Plan selected for editing: " & ThisItem.PlanID, NotificationType.Information)
+                  Tooltip: ="Edit plan"
+                  Width: =22
+                  X: =1076
+                  Y: =20
+            - lblPlanUnit:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =RGBA(50, 49, 48, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =28
+                  OnSelect: =Select(Parent)
+                  Size: =10
+                  Text: =ThisItem.Unit.Value
+                  Width: =80
+                  X: =702
+                  Y: =18
+            - lblPlanCycle:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =RGBA(50, 49, 48, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =28
+                  OnSelect: =Select(Parent)
+                  Size: =10
+                  Text: =ThisItem.Cycle
+                  Width: =70
+                  X: =632
+                  Y: =18
+            - lblPlanDate:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =RGBA(90, 90, 90, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =28
+                  OnSelect: =Select(Parent)
+                  Size: =11
+                  Text: =Text(ThisItem.PlannedDate, "dd/mm/yyyy")
+                  X: =789
+                  Y: =18
+            - lblPlanSap:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =RGBA(56, 96, 178, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =28
+                  OnSelect: =Select(Parent)
+                  Size: =10
+                  Text: =ThisItem.SAPNum
+                  Width: =130
+                  X: =946
+                  Y: =18
+            - icoDeletePlan:
+                Control: Classic/Icon@2.5.0
+                Properties:
+                  AccessibleLabel: ="Delete " & ThisItem.PlanID
+                  Color: =If(ThisItem.Status.Value = "Draft", RGBA(64, 153, 218, 1), RGBA(166, 166, 166, 1))
+                  DisplayMode: =If(ThisItem.Status.Value = "Draft", DisplayMode.Edit, DisplayMode.Disabled)
+                  Height: =22
+                  Icon: =Icon.Trash
+                  OnSelect: |-
+                    =If(
+                        ThisItem.Status.Value = "Draft",
+                        Remove(MaintenancePlans, ThisItem);
+                        Refresh(MaintenancePlans);
+                        ClearCollect(
+                            colMyPlans,
+                            SortByColumns(
+                                MaintenancePlans,
+                                "ID",
+                                SortOrder.Descending
+                            )
+                        ),
+                        Notify("Only Draft plans can be deleted.", NotificationType.Warning)
+                    )
+                  Tooltip: ="Delete draft plan"
+                  Width: =22
+                  X: =1112
+                  Y: =20
+            - lblPlanSort:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =RGBA(50, 49, 48, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =48
+                  OnSelect: =Select(Parent)
+                  Size: =10
+                  Text: =ThisItem.SortField.Value
+                  X: =482
+                  Y: =8
+            - lblPlanTitle:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =RGBA(12, 59, 94, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =48
+                  OnSelect: =Select(Parent)
+                  Size: =10
+                  Text: =ThisItem.Title
+                  Width: =270
+                  X: =106
+                  Y: =8
+      - hdrPlanId:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            Color: =RGBA(12, 59, 94, 1)
+            Fill: =RGBA(226, 231, 235, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =32
+            Size: =10
+            Text: ="Plan ID"
+            Width: =90
+            X: =80
+            Y: =177
