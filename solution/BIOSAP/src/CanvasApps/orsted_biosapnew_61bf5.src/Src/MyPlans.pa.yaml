@@ -1,0 +1,568 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  MyPlans:
+    Properties:
+      Fill: =RGBA(248, 250, 252, 1)
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+      OnVisible: |-
+        =Set(varPlanStatusFilter, "");
+        Set(varPlanDeleteConfirmVisible, false);
+        Set(varPlanMutationReceiptVisible, false);
+        Refresh(MaintenancePlans);
+        ClearCollect(colStatusFilterOptions, {Value: "All"});
+        Collect(colStatusFilterOptions, Choices(MaintenancePlans.Status));
+        ClearCollect(
+            colMyPlans,
+            SortByColumns(
+                Filter(MaintenancePlans, varIsAdmin || Author.Email = varUserMail),
+                "ID",
+                SortOrder.Descending
+            )
+        )
+    Children:
+      - conMyPlansRoot:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =RGBA(248, 250, 252, 1)
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =12
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingBottom: =16
+            PaddingLeft: =24
+            PaddingRight: =24
+            PaddingTop: =16
+            Width: =Parent.Width
+          Children:
+            - conMyPlansNav:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(12, 59, 94, 1)
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 156, 52)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =8
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  LayoutWrap: =true
+                  PaddingBottom: =4
+                  PaddingLeft: =4
+                  PaddingRight: =4
+                  PaddingTop: =4
+                  Width: =Parent.Width
+                Children:
+                  - btnMyPlansNavOverview:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Go to Overview"
+                        Appearance: =ButtonAppearance.Subtle
+                        BasePaletteColor: =RGBA(255, 255, 255, 1)
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Navigate(Screen1, ScreenTransition.Cover)
+                        Size: =11
+                        Text: ="Overview"
+                        Tooltip: ="Open maintenance plan overview"
+                        Width: =If(Parent.Width < 640, (Parent.Width - 32) / 3, (Parent.Width - 48) / 3)
+                  - btnMyPlansNavMyPlans:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Current My plans screen"
+                        BasePaletteColor: =RGBA(56, 96, 178, 1)
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Navigate(MyPlans, ScreenTransition.None)
+                        Size: =11
+                        Text: ="My plans"
+                        Tooltip: ="Current maintenance plans"
+                        Width: =If(Parent.Width < 640, (Parent.Width - 32) / 3, (Parent.Width - 48) / 3)
+                  - btnMyPlansNavNew:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Start a new maintenance plan"
+                        Appearance: =ButtonAppearance.Subtle
+                        BasePaletteColor: =RGBA(255, 255, 255, 1)
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Set(varCreateMode, "New"); Set(varCreateStep, 1); Navigate(NewPlan_Header, ScreenTransition.Cover)
+                        Size: =11
+                        Text: ="New plan"
+                        Tooltip: ="Create a new maintenance plan"
+                        Width: =If(Parent.Width < 640, (Parent.Width - 32) / 3, (Parent.Width - 48) / 3)
+            - conMyPlansHeader:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(12, 59, 94, 1)
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 112, 88)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =4
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =14
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =14
+                  Width: =Parent.Width
+                Children:
+                  - txtMyPlansTitle:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="My maintenance plans title"
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =38
+                        Size: =24
+                        Text: ="My maintenance plans"
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - txtMyPlansSupporting:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Maintenance plans ownership guidance"
+                        Color: =RGBA(226, 231, 235, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =30
+                        Size: =12
+                        Text: ="Requester-owned plans are shown here; administrators can review all plans."
+                        Width: =Parent.Width
+            - conMyPlansFilters:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 240, 128)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =8
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =12
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  PaddingTop: =12
+                  Width: =Parent.Width
+                Children:
+                  - conMyPlansFilterRow:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        FillPortions: =0
+                        Height: =If(Parent.Width < 640, 168, 64)
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =If(Parent.Width < 640, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                        LayoutGap: =8
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        Width: =Parent.Width
+                      Children:
+                        - txtMyPlansSearch:
+                            Control: ModernTextInput@1.1.1
+                            Properties:
+                              AccessibleLabel: ="Search maintenance plans"
+                              Appearance: =Appearance.Outline
+                              Fill: =RGBA(241, 242, 246, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =44
+                              MaxLength: =100
+                              Placeholder: ="Search title, plan ID, SAP number or plant"
+                              TriggerOutput: =TriggerOutput.FocusOut
+                              Type: =TextInputType.Search
+                              Width: =If(Parent.Width < 640, Parent.Width - 24, Parent.Width * 0.34)
+                        - radMyPlansStatus:
+                            Control: ModernRadio@1.0.1
+                            Properties:
+                              AccessibleLabel: ="Filter plans by status"
+                              Default: |-
+                                ={Value: "All"}
+                              Height: =56
+                              Items: =colStatusFilterOptions
+                              Layout: =OptionLayout.Horizontal
+                              OnChange: =Set(varPlanStatusFilter, If(radMyPlansStatus.Selected.Value = "All", "", radMyPlansStatus.Selected.Value))
+                              Width: =If(Parent.Width < 640, Parent.Width - 24, Parent.Width * 0.48)
+                        - btnMyPlansClear:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Clear plan search and status filters"
+                              Appearance: =ButtonAppearance.Secondary
+                              BasePaletteColor: =RGBA(56, 96, 178, 1)
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =44
+                              Layout: =ButtonLayout.TextOnly
+                              OnSelect: =Reset(txtMyPlansSearch); Reset(radMyPlansStatus); Set(varPlanStatusFilter, ""); Set(varPlanMutationReceiptVisible, false)
+                              Size: =11
+                              Text: ="Clear"
+                              Tooltip: ="Reset search and status filters"
+                              Visible: =!IsBlank(Trim(txtMyPlansSearch.Text)) || !IsBlank(varPlanStatusFilter)
+                              Width: =If(Parent.Width < 640, Parent.Width - 24, 112)
+                  - txtMyPlansActiveFilter:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Active plan filters"
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =24
+                        Size: =11
+                        Text: |-
+                          =If(
+                              IsBlank(Trim(txtMyPlansSearch.Text)) && IsBlank(varPlanStatusFilter),
+                              "Showing all plans",
+                              "Filters: " &
+                              If(IsBlank(Trim(txtMyPlansSearch.Text)), "", "Search '" & Trim(txtMyPlansSearch.Text) & "'") &
+                              If(
+                                  IsBlank(varPlanStatusFilter),
+                                  "",
+                                  If(IsBlank(Trim(txtMyPlansSearch.Text)), "", " · ") & "Status '" & varPlanStatusFilter & "'"
+                              )
+                          )
+                        Width: =Parent.Width
+            - galMyPlans:
+                Control: Gallery@2.15.0
+                Variant: Vertical
+                Properties:
+                  AccessibleLabel: ="Maintenance plans matching current filters"
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 360, 300)
+                  Items: |-
+                    =Filter(
+                        colMyPlans,
+                        (
+                            IsBlank(Trim(txtMyPlansSearch.Text)) ||
+                            Lower(Trim(txtMyPlansSearch.Text)) in Lower(Coalesce(Title, "")) ||
+                            Lower(Trim(txtMyPlansSearch.Text)) in Lower(Coalesce(PlanID, "")) ||
+                            Lower(Trim(txtMyPlansSearch.Text)) in Lower(Coalesce(SAPNum, "")) ||
+                            Lower(Trim(txtMyPlansSearch.Text)) in Lower(Coalesce(PlantsInitial.Value, ""))
+                        ) &&
+                        (IsBlank(varPlanStatusFilter) || Status.Value = varPlanStatusFilter)
+                    )
+                  Selectable: =false
+                  TabIndex: =0
+                  TemplatePadding: =4
+                  TemplateSize: =176
+                  Width: =Parent.Width
+                Children:
+                  - conMyPlansRow:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        Fill: =RGBA(255, 255, 255, 1)
+                        Height: =Parent.TemplateHeight
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =8
+                        PaddingBottom: =10
+                        PaddingLeft: =12
+                        PaddingRight: =12
+                        PaddingTop: =10
+                        Width: =Parent.TemplateWidth
+                      Children:
+                        - conMyPlansRowInfo:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              Height: =Parent.Height
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =2
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              Width: =Parent.Width
+                            Children:
+                              - txtMyPlansRowIdentity:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Plan ID " & ThisItem.PlanID
+                                    Color: =RGBA(12, 59, 94, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =24
+                                    Size: =13
+                                    Text: =ThisItem.PlanID
+                                    Width: =Parent.Width
+                                    Wrap: =false
+                              - txtMyPlansRowTitle:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Plan title " & ThisItem.Title
+                                    Color: =RGBA(12, 59, 94, 1)
+                                    Font: =Font.'Open Sans'
+                                    Height: =34
+                                    Size: =12
+                                    Text: =ThisItem.Title
+                                    Width: =Parent.Width
+                              - txtMyPlansRowStatus:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Plan status " & ThisItem.Status.Value
+                                    Color: =RGBA(56, 96, 178, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =22
+                                    Size: =11
+                                    Text: |-
+                                      ="Status: " & ThisItem.Status.Value
+                                    Width: =Parent.Width
+                                    Wrap: =false
+                              - txtMyPlansRowFacts:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Plan details for " & ThisItem.PlanID
+                                    Color: =RGBA(50, 49, 48, 1)
+                                    Font: =Font.'Open Sans'
+                                    Height: =54
+                                    Size: =10
+                                    Text: |-
+                                      ="Plant: " & Coalesce(ThisItem.PlantsInitial.Value, "—") &
+                                      " · Cycle: " & Coalesce(Text(ThisItem.Cycle), "—") &
+                                      " · Unit: " & Coalesce(ThisItem.Unit.Value, "—") &
+                                      " · Planned: " & If(IsBlank(ThisItem.PlannedDate), "—", Text(ThisItem.PlannedDate, "[$-en-GB]dd/mm/yyyy")) &
+                                      " · SAP: " & Coalesce(ThisItem.SAPNum, "—")
+                                    Width: =Parent.Width
+                        - conMyPlansRowActions:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              FillPortions: =0
+                              Height: =Parent.Height
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =4
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              Width: =If(Parent.Width < 640, 92, 116)
+                            Children:
+                              - btnMyPlansView:
+                                  Control: ModernButton@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="View " & ThisItem.PlanID
+                                    BasePaletteColor: =RGBA(56, 96, 178, 1)
+                                    Color: =RGBA(255, 255, 255, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =40
+                                    Layout: =ButtonLayout.TextOnly
+                                    OnSelect: =Set(varSelectedPlanID, ThisItem.ID); Set(varPlanDetailMode, "View"); Navigate(PlanDetail, ScreenTransition.Cover)
+                                    Size: =10
+                                    Text: ="View"
+                                    Tooltip: ="View plan details"
+                                    Width: =Parent.Width
+                              - btnMyPlansEdit:
+                                  Control: ModernButton@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Edit " & ThisItem.PlanID
+                                    Appearance: =ButtonAppearance.Secondary
+                                    BasePaletteColor: =RGBA(56, 96, 178, 1)
+                                    Color: =RGBA(12, 59, 94, 1)
+                                    DisplayMode: =If(ThisItem.Status.Value = "Draft", DisplayMode.Edit, DisplayMode.Disabled)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =40
+                                    Layout: =ButtonLayout.TextOnly
+                                    OnSelect: =If(ThisItem.Status.Value = "Draft", Set(varSelectedPlanID, ThisItem.ID); Set(varPlanDetailMode, "Edit"); Navigate(PlanDetail, ScreenTransition.Cover))
+                                    Size: =10
+                                    Text: ="Edit"
+                                    Tooltip: ="Edit draft plan"
+                                    Visible: =ThisItem.Status.Value = "Draft"
+                                    Width: =Parent.Width
+                              - btnMyPlansDelete:
+                                  Control: ModernButton@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Delete " & ThisItem.PlanID
+                                    Appearance: =ButtonAppearance.Secondary
+                                    BasePaletteColor: =RGBA(168, 0, 0, 1)
+                                    Color: =RGBA(168, 0, 0, 1)
+                                    DisplayMode: =If(ThisItem.Status.Value = "Draft", DisplayMode.Edit, DisplayMode.Disabled)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =40
+                                    Layout: =ButtonLayout.TextOnly
+                                    OnSelect: =If(ThisItem.Status.Value = "Draft", Set(varSelectedPlanID, ThisItem.ID); Set(varSelectedPlanPlanID, ThisItem.PlanID); Set(varPlanDeleteConfirmVisible, true))
+                                    Size: =10
+                                    Text: ="Delete"
+                                    Tooltip: ="Delete draft plan"
+                                    Visible: =ThisItem.Status.Value = "Draft"
+                                    Width: =Parent.Width
+            - txtMyPlansEmpty:
+                Control: ModernText@1.0.0
+                Properties:
+                  AccessibleLabel: ="Empty maintenance plan results"
+                  Color: =RGBA(90, 90, 90, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =34
+                  Size: =12
+                  Text: =If(!IsBlank(Trim(txtMyPlansSearch.Text)) || !IsBlank(varPlanStatusFilter), "No plans match these filters", "No maintenance plans found.")
+                  Visible: |-
+                    =CountRows(
+                        Filter(
+                            colMyPlans,
+                            (
+                                IsBlank(Trim(txtMyPlansSearch.Text)) ||
+                                Lower(Trim(txtMyPlansSearch.Text)) in Lower(Coalesce(Title, "")) ||
+                                Lower(Trim(txtMyPlansSearch.Text)) in Lower(Coalesce(PlanID, "")) ||
+                                Lower(Trim(txtMyPlansSearch.Text)) in Lower(Coalesce(SAPNum, "")) ||
+                                Lower(Trim(txtMyPlansSearch.Text)) in Lower(Coalesce(PlantsInitial.Value, ""))
+                            ) &&
+                            (IsBlank(varPlanStatusFilter) || Status.Value = varPlanStatusFilter)
+                        )
+                    ) = 0
+                  Width: =Parent.Width
+            - conMyPlansConfirm:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 148, 92)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =If(Parent.Width < 640, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                  LayoutGap: =8
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =10
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  PaddingTop: =10
+                  Visible: =varPlanDeleteConfirmVisible
+                  Width: =Parent.Width
+                Children:
+                  - txtMyPlansConfirm:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Delete confirmation for selected plan"
+                        Color: =RGBA(168, 0, 0, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Size: =12
+                        Text: ="Delete draft " & Coalesce(varSelectedPlanPlanID, "selected plan") & "? This cannot be undone."
+                        Width: =If(Parent.Width < 640, Parent.Width - 24, Parent.Width * 0.62)
+                  - btnMyPlansConfirmDelete:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Confirm deletion of selected plan"
+                        BasePaletteColor: =RGBA(168, 0, 0, 1)
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: |-
+                          =With(
+                              {targetId: varSelectedPlanID},
+                              Set(varLastPlanMutation, {
+                                  Action: "Deleted",
+                                  Entity: "Maintenance plan",
+                                  StableID: targetId,
+                                  PlanID: LookUp(MaintenancePlans, ID = targetId).PlanID,
+                                  Title: LookUp(MaintenancePlans, ID = targetId).Title,
+                                  Cycle: LookUp(MaintenancePlans, ID = targetId).Cycle,
+                                  PlannedDate: LookUp(MaintenancePlans, ID = targetId).PlannedDate,
+                                  CallHorizon0: LookUp(MaintenancePlans, ID = targetId).CallHorizon0,
+                                  SchedulingPeriod: LookUp(MaintenancePlans, ID = targetId).SchedulingPeriod,
+                                  Status: LookUp(MaintenancePlans, ID = targetId).Status.Value,
+                                  Body: "",
+                                  AuthorMail: "",
+                                  CreatedOn: Today()
+                              });
+                              Remove(MaintenancePlans, LookUp(MaintenancePlans, ID = targetId));
+                              Collect(colPlanAudit, {
+                                  AuditID: "AUDIT-" & Text(targetId),
+                                  PlanID: varLastPlanMutation.PlanID,
+                                  StableID: targetId,
+                                  Action: "Deleted",
+                                  ResultingStatus: "Deleted",
+                                  CreatedOn: Today()
+                              });
+                              Refresh(MaintenancePlans);
+                              ClearCollect(colMyPlans, SortByColumns(Filter(MaintenancePlans, varIsAdmin || Author.Email = varUserMail), "ID", SortOrder.Descending));
+                              Set(varPlanDeleteConfirmVisible, false);
+                              Set(varPlanMutationReceiptVisible, true)
+                          )
+                        Size: =10
+                        Text: ="Confirm delete"
+                        Tooltip: ="Confirm deletion"
+                        Width: =If(Parent.Width < 640, Parent.Width - 24, 132)
+                  - btnMyPlansCancelDelete:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Cancel deletion"
+                        Appearance: =ButtonAppearance.Secondary
+                        BasePaletteColor: =RGBA(56, 96, 178, 1)
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Set(varPlanDeleteConfirmVisible, false); Set(varSelectedPlanID, Blank()); Set(varSelectedPlanPlanID, Blank())
+                        Size: =10
+                        Text: ="Cancel"
+                        Tooltip: ="Cancel deletion"
+                        Width: =If(Parent.Width < 640, Parent.Width - 24, 100)
+            - conMyPlansReceipt:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =84
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =2
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =8
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  PaddingTop: =8
+                  Visible: =varPlanMutationReceiptVisible
+                  Width: =Parent.Width
+                Children:
+                  - txtMyPlansReceiptAction:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Plan mutation result"
+                        Color: =RGBA(16, 124, 16, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =22
+                        Size: =12
+                        Text: =Coalesce(varLastPlanMutation.Action, "Completed") & " · " & Coalesce(varLastPlanMutation.PlanID, "")
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - txtMyPlansReceiptDetail:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Plan mutation receipt details"
+                        Color: =RGBA(50, 49, 48, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =38
+                        Size: =11
+                        Text: |-
+                          ="Stable ID: " & Coalesce(Text(varLastPlanMutation.StableID), "—") & " · Title: " & Coalesce(varLastPlanMutation.Title, "—")
+                        Width: =Parent.Width

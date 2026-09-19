@@ -80,8 +80,48 @@ skiftet ud.
 ændringen væk ved næste `python3 tools/build_all.py` — og så er der to
 sandheder om den samme skærm.
 
-`.msapp`-filerne er derfor i `.gitignore`. Skal du se, hvad der faktisk
-ligger i Studio lige nu, så brug den vej, der er beregnet til det:
+`.msapp`-filerne er derfor i `.gitignore`.
+
+## Men så kunne app'erne ikke læses — det er rettet
+
+`.msapp` er en zip, og inde i den ligger app'ens skærme som `.pa.yaml`.
+Fordi zip'en aldrig nåede GitHub, gjorde YAML'en det heller ikke. En app,
+der kun findes i solutionen — Equipment, Materialer, KKS — var dermed en
+sort kasse for alle andre end den, der sad ved maskinen. Eksporten lovede
+at være *hele* solutionen; canvas apps var i praksis undtaget.
+
+`tools/unpack_msapp.py` pakker dem nu ud som tekst ved siden af zip'en:
+
+```
+solution/BIOSAP/src/CanvasApps/<navn>.src/Src/*.pa.yaml
+                                         /References/DataSources.json
+                                         /Properties.json
+```
+
+`export_solution.ps1` kalder den selv — **før** rensningen, for en formel
+kan bære en URL eller en nøgle, og `scrub_solution.py` kan kun fjerne det,
+den kan se.
+
+Tre ting kommer bevidst ikke med:
+
+| Springes over | Hvorfor |
+| --- | --- |
+| `_EditorState.pa.yaml` | Studiets eget bogholderi over markeringer og foldede noder. Støj i enhver diff. |
+| `Controls/*.json` | Den samme app en gang til, i maskinform. Formlerne står allerede læsbart i `.pa.yaml`. |
+| `.msapp` selv | Binær. Det var hele udgangspunktet. |
+
+Mappen bygges forfra hver gang. Slettes en skærm i Studio, forsvinder filen
+også her — ellers ville der stå en skærm i repoet, som app'en ikke har.
+
+**Det ændrer ikke reglen.** `<navn>.src` er læsestof som resten af
+eksporten. For `orsted_maintenanceplan_82090.src` og
+`orsted_masterdatahub_1b09a.src` står den samme skærm nu to steder: builderens
+resultat i app-mappen, og deployets øjebliksbillede i eksporten. Rediger
+altid builderen. Eksportkopien er god til én ting: at se, om det, der ligger
+i Studio, er det, vi sidst byggede.
+
+Skal du se, hvad der faktisk ligger i Studio *lige nu*, så brug den vej, der
+er beregnet til det:
 
 ```powershell
 python tools\canvas_mcp.py pull --app vhplan

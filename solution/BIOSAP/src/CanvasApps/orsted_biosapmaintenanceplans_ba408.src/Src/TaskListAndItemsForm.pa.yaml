@@ -1,0 +1,1816 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  TaskListAndItemsForm:
+    Properties:
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+      OnVisible: |-
+        =Set(
+          varjsonFilesString,
+          'BioSap-GetSubmittedAttachments'.Run("TaskListDocuments/" & varNewRunningNumberTask).files
+        );
+
+        ClearCollect(
+          colTaskListFiles,
+          ForAll(
+            ParseJSON(varjsonFilesString),
+            {
+              Name: ThisRecord.Name,
+              Link: ThisRecord.Link,
+              Identifier: ThisRecord.Identifier
+            }
+          )
+        );
+
+        Set(
+            varTaskItemCounter,
+            If(
+                IsEmpty(colTaskList),
+                1,
+                Max(colTaskList, Index) + 1
+            )
+        );
+    Children:
+      - HtmlText2_18:
+          Control: HtmlViewer@2.1.0
+          Group: TopBarGroup_1
+          Properties:
+            Fill: =
+            Font: =Font.'Open Sans'
+            Height: =71
+            HtmlText: |-
+              ="<div style='
+                  width: 100%;
+                  height: 62px;
+
+
+              background: #FFFFFF;
+              background: linear-gradient(90deg, rgba(255, 255, 255, 1) 0%, rgba(64, 153, 218, 0.63) 100%);
+
+                  padding:0;
+                  margin:0;
+                  overflow:hidden;
+              '>
+              </div>"
+            PaddingBottom: =0
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =0
+            Width: =1366
+      - StandardTasklistGallery:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_OneTextVariant_ver5.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            DisplayMode: |-
+              =If(varIsPublished, DisplayMode.Disabled, DisplayMode.Edit)
+              //DisplayMode.Edit
+            Height: =653
+            Items: |-
+              =If(
+                  varSelectedPlant = "AVV", 'BioSap-List-AVVStandardTasklist',
+                  varSelectedPlant = "ASV", 'BioSap-List-ASVStandardTasklist',
+                  varSelectedPlant = "KYV", 'BioSap-List-KYVStandardTasklist',
+                  varSelectedPlant = "SSV", 'BioSap-List-SSVStandardTasklist',
+                  varSelectedPlant = "HEV", 'BioSap-List-HEVStandardTasklist',
+                  varSelectedPlant = "SKV", 'BioSap-List-SKVStandardTasklist',
+                  varSelectedPlant = "HCV", 'BioSap-List-AVVStandardTasklist',
+                  varSelectedPlant = "SMV", 'BioSap-List-AVVStandardTasklist',
+                  Blank()
+              )
+
+
+              /*Switch(
+                  varSelectedPlant,
+                  "AVV", 'BioSap-List-AVVStandardTasklist',
+                  "ASV", 'BioSap-List-ASVStandardTasklist',
+                  "KYV", 'BioSap-List-KYVStandardTasklist',
+                  "SSV", 'BioSap-List-SSVStandardTasklist',
+                  "HEV", 'BioSap-List-HEVStandardTasklist',
+                  "SKV", 'BioSap-List-SKVStandardTasklist',
+                  Blank() // No data shown if no plant matches
+              )*/
+
+              //'BioSap-List-StandardTaskList'
+            TemplateSize: =41
+            Width: =306
+            Y: =114
+          Children:
+            - Title4:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(50, 49, 48, 1)
+                  DisplayMode: |-
+                    =DisplayMode.Edit
+                    /*If(
+                        IsBlank(LookUp(colTaskList, StandardTaskItemID = ThisItem.ID)),
+                        DisplayMode.Edit,
+                        DisplayMode.Disabled
+                    )*/
+
+                    //DisplayMode.Edit
+                  Font: =orgTheme.fontFamily
+                  FontWeight: =If(ThisItem.IsSelected, FontWeight.Semibold, FontWeight.Normal)
+                  Height: =Self.Size * 1.8
+                  OnSelect: |-
+                    =false
+                    //Select(Parent)
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =orgTheme.fontSize
+                  Text: =ThisItem.field_5
+                  VerticalAlign: =VerticalAlign.Top
+                  Width: =Parent.TemplateWidth - 86
+                  X: =16
+                  Y: =(Parent.TemplateHeight / 2) - (Self.Height / 2)
+            - NextArrow4:
+                Control: Classic/Icon@2.5.0
+                Properties:
+                  AccessibleLabel: =Self.Tooltip
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Color: =RGBA(166, 166, 166, 1)
+                  DisplayMode: |-
+                    =DisplayMode.Edit
+                    /*If(
+                        IsBlank(LookUp(colTaskList, StandardTaskItemID = ThisItem.ID)),
+                        DisplayMode.Edit,
+                        DisplayMode.Disabled
+                    )*/
+
+                    //DisplayMode.Edit
+                  Height: =50
+                  Icon: =Icon.Add
+                  OnSelect: |+
+                    =Collect(
+                            colTaskList,
+                            {
+                                StandardTaskItemID: ThisItem.ID,
+                                OperationShortText: ThisItem.field_5,
+                                Work: ThisItem.field_6,
+                                Num: ThisItem.field_8,
+                                Duration: ThisItem.field_9,
+                                VendorID: ThisItem.field_35,
+                                LongText: ThisItem.field_5,
+                                Ctrl: ThisItem.field_4,
+                                WorkCtr: ThisItem.field_2,
+                                CostElem: ThisItem.field_32,
+                                Price: ThisItem.field_28,
+                                Currency: ThisItem.field_29,
+                                Index: varTaskItemCounter
+                            }
+                    );
+
+                    Set(varTaskItemCounter, varTaskItemCounter + 1);
+
+                    /*If(
+                        IsBlank(LookUp(colTaskList, StandardTaskItemID = ThisItem.ID)),
+                        Collect(
+                            colTaskList,
+                            {
+                                StandardTaskItemID: ThisItem.ID,
+                                OperationShortText: ThisItem.field_5,
+                                Work: ThisItem.field_6,
+                                Num: ThisItem.field_8,
+                                Duration: ThisItem.field_9,
+                                VendorID: ThisItem.field_35,
+                                LongText: ThisItem.field_5,
+                                Ctrl: ThisItem.field_4
+                            }
+                        ),
+                        Notify("This item has already been added.", NotificationType.Warning)
+                    )*/
+
+                    /*Collect(
+                        colTaskList,
+                        {
+                            Title: ThisItem.OperationShortText,
+                            Work: ThisItem.Work,
+                            Num: ThisItem.Num,
+                            Dur: ThisItem.Duration,
+                            Vendor: ThisItem.Vendor,
+                            UniqueID: ThisItem.ID
+                            // Add more fields as needed
+                        }
+                    )*/
+
+                    //Select(Parent)
+                  PaddingBottom: =12
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  PaddingTop: =12
+                  Tooltip: ="View item details"
+                  Width: =50
+                  X: =Parent.TemplateWidth - Self.Width - 12
+                  Y: =(Parent.TemplateHeight / 2) - (Self.Height / 2)
+            - Separator4:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Fill: =RGBA(255, 255, 255, 1)
+                  Height: =8
+                  OnSelect: =Select(Parent)
+                  Width: =Parent.TemplateWidth
+                  Y: =Parent.TemplateHeight - Self.Height
+      - Gallery3:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_OneTextVariant_ver5.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            DisplayMode: =If(varIsPublished, DisplayMode.Disabled, DisplayMode.Edit)
+            Height: =116
+            Items: =colTaskListFiles
+            OnSelect: =Launch(ThisItem.Link)
+            TemplateSize: =44
+            Visible: =false //hidden attachment logic
+            Width: =321
+            X: =1015
+            Y: =139
+          Children:
+            - Title3:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(50, 49, 48, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =If(ThisItem.IsSelected, FontWeight.Semibold, FontWeight.Normal)
+                  Height: =20
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =12
+                  Text: =ThisItem.Name
+                  VerticalAlign: =VerticalAlign.Top
+                  Width: =220
+                  X: =55
+                  Y: =12
+            - Icon8:
+                Control: Classic/Icon@2.5.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Color: =RGBA(0, 18, 107, 1)
+                  Height: =22
+                  Icon: =Icon.Document
+                  OnSelect: =Select(Parent)
+                  Width: =34
+                  X: =21
+                  Y: =10
+            - Icon9:
+                Control: Classic/Icon@2.5.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Color: =RGBA(0, 18, 107, 1)
+                  Height: =26
+                  Icon: =Icon.Trash
+                  OnSelect: |-
+                    ='BioSap-DeleteSubmittedAttachments'.Run(ThisItem.Identifier);
+
+                    Set(
+                      varjsonFilesString,
+                      'BioSap-GetSubmittedAttachments'.Run("TaskListDocuments/" & varNewRunningNumberTask).files
+                    );
+
+                    ClearCollect(
+                      colTaskListFiles,
+                      ForAll(
+                        ParseJSON(varjsonFilesString),
+                        {
+                          Name: ThisRecord.Name,
+                          Link: ThisRecord.Link,
+                          Identifier: ThisRecord.Identifier
+                        }
+                      )
+                    )
+                  Width: =40
+                  X: =278
+                  Y: =9
+      - Separator_7:
+          Control: Rectangle@2.3.0
+          Group: TopBarGroup_1
+          Properties:
+            BorderColor: =RGBA(64, 153, 218, 1)
+            Fill: =RGBA(64, 153, 218, 0.5)
+            Height: =2
+            Width: =1366
+            Y: =58
+      - BackButton_1:
+          Control: Arrow@2.3.0
+          Variant: BackArrow
+          Group: BackButtonGroup_1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =RGBA(56, 96, 178, 1)
+            Height: =26
+            OnSelect: |-
+              =//check what to reset
+              //ResetForm(MaintenancePlanForm);
+              Clear(colTaskList);
+              Clear(colTaskListFiles);
+              Reset(TextInput5);
+              Navigate(MaintenancePlanAndItemsForm,ScreenTransition.Fade)
+              //Clear(colTaskListSP);
+            Width: =26
+            X: =22
+            Y: =22
+      - BackLabel_1:
+          Control: Label@2.5.1
+          Group: BackButtonGroup_1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =orgTheme.fontFamily
+            Height: =22
+            OnSelect: =Select(BackButton_1)
+            Size: =9
+            Text: ="Back"
+            Width: =39
+            X: =48
+            Y: =24
+      - StandardTasklistSeperator:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =RGBA(214, 221, 224, 1)
+            Height: =653
+            Width: =2
+            X: =307
+            Y: =114
+      - StandardTasklistHeader:
+          Control: Label@2.5.1
+          Group: StandardTaskList
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: |-
+              =RGBA(12, 59, 94, 1)
+              //RGBA(15, 84, 140, 1)
+            Font: =orgTheme.fontFamily
+            FontWeight: =FontWeight.Semibold
+            Height: =36
+            Size: =14
+            Text: ="STANDARD TASKLIST"
+            Width: =259
+            X: =23
+            Y: =75
+      - TasklistHeader:
+          Control: Label@2.5.1
+          Group: TaskList
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: |-
+              =RGBA(12, 59, 94, 1)
+              //RGBA(15, 84, 140, 1)
+            Font: =orgTheme.fontFamily
+            FontWeight: =FontWeight.Semibold
+            Height: =36
+            Size: =14
+            Text: ="TASKLIST"
+            Width: =259
+            X: =553
+            Y: =22
+      - StandardTasklistTitleBar:
+          Control: Rectangle@2.3.0
+          Group: StandardTaskList
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =RGBA(214, 221, 224, 1)
+            Height: =2
+            Width: =216
+            X: =44
+            Y: =108
+      - TasklistTitleBar:
+          Control: Rectangle@2.3.0
+          Group: TaskList
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =RGBA(214, 221, 224, 1)
+            Height: =2
+            Width: =120
+            X: =622
+            Y: =53
+      - Gallery1:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            DisplayMode: |-
+              =If(varIsPublished, DisplayMode.Disabled, DisplayMode.Edit)
+              //DisplayMode.Edit
+            Height: =537
+            Items: |-
+              =SortByColumns(colTaskList, "Index", "Ascending")
+              //colTaskList
+            TemplateSize: =96
+            Width: =1037
+            WrapCount: =0
+            X: =322
+            Y: =162
+          Children:
+            - Separator5:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Fill: =RGBA(255, 255, 255, 1)
+                  Height: =8
+                  OnSelect: =Select(Parent)
+                  Width: =Parent.TemplateWidth
+                  Y: =Parent.TemplateHeight - Self.Height
+            - TextInput1:
+                Control: Classic/TextInput@2.3.2
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Default: =ThisItem.OperationShortText
+                  Font: =orgTheme.fontFamily
+                  HoverBorderColor: =RGBA(0, 18, 107, 1)
+                  HoverFill: =RGBA(186, 202, 226, 1)
+                  OnChange: |-
+                    =Patch(
+                        colTaskList,
+                        LookUp(colTaskList, Index = ThisItem.Index),
+                        { OperationShortText: Self.Text }
+                    )
+
+                    /*Patch(
+                        colTaskList,
+                        ThisItem,
+                        { OperationShortText: Self.Text }
+                    )*/
+                  OnSelect: =Select(Parent)
+                  Size: =12
+                  Width: =240
+                  X: =21
+                  Y: =9
+            - TextInput2:
+                Control: Classic/TextInput@2.3.2
+                Properties:
+                  Align: =Align.Center
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Default: =ThisItem.Work
+                  Font: =orgTheme.fontFamily
+                  Format: =TextFormat.Number
+                  HoverBorderColor: =RGBA(0, 18, 107, 1)
+                  HoverFill: =RGBA(186, 202, 226, 1)
+                  OnChange: |-
+                    =Patch(
+                        colTaskList,
+                        LookUp(colTaskList, Index = ThisItem.Index),
+                        {
+                            Work: Value(Self.Text),
+                            Duration: If(
+                                !IsBlank(Value(Self.Text)) && !IsBlank(ThisItem.Num) && ThisItem.Num <> 0,
+                                Round(Value(Self.Text) / ThisItem.Num, 2),
+                                ThisItem.Duration
+                            )
+                        }
+                    )
+
+                    /*Patch(
+                        colTaskList,
+                        ThisItem,
+                        {
+                            Work: Value(Self.Text),
+                            Duration: If(
+                                !IsBlank(Value(Self.Text)) && !IsBlank(ThisItem.Num) && ThisItem.Num <> 0,
+                                Round(Value(Self.Text) / ThisItem.Num, 2),
+                                ThisItem.Duration
+                            )
+                        }
+                    )*/
+
+                    /*Patch(
+                        colTaskList,
+                        ThisItem,
+                        { Work: Value(Self.Text)}
+                    )*/
+                  OnSelect: =Select(Parent)
+                  Size: =12
+                  Width: =55
+                  X: =274
+                  Y: =9
+            - TextInput3:
+                Control: Classic/TextInput@2.3.2
+                Properties:
+                  Align: =Align.Center
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Default: =ThisItem.Num
+                  Font: =orgTheme.fontFamily
+                  Format: =TextFormat.Number
+                  HoverBorderColor: =RGBA(0, 18, 107, 1)
+                  HoverFill: =RGBA(186, 202, 226, 1)
+                  OnChange: |-
+                    =Patch(
+                        colTaskList,
+                        LookUp(colTaskList, Index = ThisItem.Index),
+                        {
+                            Num: Value(Self.Text),
+                            Duration: If(
+                                !IsBlank(ThisItem.Work) && !IsBlank(Value(Self.Text)) && Value(Self.Text) <> 0,
+                                Round(ThisItem.Work / Value(Self.Text), 2),
+                                ThisItem.Duration
+                            )
+                        }
+                    )
+
+                    /*Patch(
+                        colTaskList,
+                        ThisItem,
+                        {
+                            Num: Value(Self.Text),
+                            Duration: If(
+                                !IsBlank(ThisItem.Work) && !IsBlank(Value(Self.Text)) && Value(Self.Text) <> 0,
+                                Round(ThisItem.Work / Value(Self.Text), 2),
+                                ThisItem.Duration
+                            )
+                        }
+                    )*/
+
+                    /*Patch(
+                        colTaskList,
+                        ThisItem,
+                        { Num: Value(Self.Text) }
+                    )*/
+                  OnSelect: =Select(Parent)
+                  Size: =12
+                  Width: =55
+                  X: =345
+                  Y: =9
+            - Icon2:
+                Control: Classic/Icon@2.5.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Color: =RGBA(0, 18, 107, 1)
+                  Height: =29
+                  Icon: =Icon.Trash
+                  OnSelect: |-
+                    =Remove(colTaskList, ThisItem); // Remove from collection
+                    RemoveIf('BioSap-List-TaskListMain', TaskItemID = ThisItem.TaskItemID); // Remove from SharePoint
+
+                    //NEW
+                    If(
+                    LookUp('BioSap-List-MaintenancePlans', PlanID = SelectedPlanID).Status.Value <> "Published",
+                        Set(
+                            varItemCount,
+                            CountRows(Filter('BioSap-List-MaintenanceItems', MaintenancePlanNo.Value = SelectedPlanID))
+                        );
+
+                        Set(
+                            varTaskCount,
+                            CountRows(Filter('BioSap-List-TaskListMain', MaintenancePlanID.Value = SelectedPlanID))
+                        );
+
+                        Set(
+                            varNewStatusPlan,
+                                If(
+                                    varItemCount > 0 && varTaskCount > 0,
+                                    { Value: "In Progress" },
+                                    { Value: "Draft" }
+                                )
+                        );
+
+                        // Only patch if the status changed
+                        If(
+                            varNewStatusPlan.Value <> LookUp('BioSap-List-MaintenancePlans', PlanID = SelectedPlanID).Status.Value,
+                            Patch(
+                                'BioSap-List-MaintenancePlans',
+                                LookUp('BioSap-List-MaintenancePlans', PlanID = SelectedPlanID),
+                                { Status: varNewStatusPlan }
+                            )
+                        );
+                    )//NEW
+
+                    /*powerappsCopyEditIf(
+                        !IsBlank(ThisItem.ID),
+                        Remove('TaskList', LookUp('TaskList', ID = ThisItem.ID))
+                    );
+                    Remove(colTasks, ThisItem);*/
+
+                    //Select(Parent)
+                  Width: =28
+                  X: =975
+                  Y: =12
+            - Button1:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =ColorFade(Self.Fill, -15%)
+                  Color: =RGBA(255, 255, 255, 1)
+                  DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                  Fill: =RGBA(56, 96, 178, 1)
+                  Font: =orgTheme.fontFamily
+                  Height: =35
+                  HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                  OnSelect: |-
+                    =Set(varSelectedTaskItem, ThisItem);
+                    Set(varSelectedTaskItemIndex, ThisItem.Index);
+                    Set(varRichTextEditorVisible, true);
+                    Set(varLongText, ThisItem.LongText)
+                    //Select(Parent)
+                  PressedBorderColor: =Self.Fill
+                  PressedColor: =Self.Fill
+                  PressedFill: =Self.Color
+                  Size: =orgTheme.fontSize
+                  Text: ="Long Text"
+                  Width: =85
+                  X: =794
+                  Y: =9
+            - TextInput3_1:
+                Control: Classic/TextInput@2.3.2
+                Properties:
+                  Align: =Align.Center
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Default: |-
+                    =If(
+                        !IsBlank(Value(TextInput2.Text)) && !IsBlank(Value(TextInput3.Text)) && Value(TextInput3.Text) <> 0,
+                        Round(Value(TextInput2.Text) / Value(TextInput3.Text), 2),
+                        ThisItem.Duration
+                    )
+                  DisplayMode: =DisplayMode.View
+                  Font: =orgTheme.fontFamily
+                  HoverBorderColor: =RGBA(0, 18, 107, 1)
+                  HoverFill: =RGBA(186, 202, 226, 1)
+                  OnChange: |-
+                    =Patch(
+                        colTaskList,
+                        LookUp(colTaskList, Index = ThisItem.Index),
+                        { Duration: Value(Self.Text) }
+                    )
+
+                    /*Patch(
+                        colTaskList,
+                        ThisItem,
+                        { Duration: Value(Self.Text) }
+                    )*/
+                  OnSelect: =Select(Parent)
+                  Size: =12
+                  Width: =60
+                  X: =410
+                  Y: =9
+            - ComboBox1:
+                Control: Classic/ComboBox@2.4.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  ChevronBackground: =RGBA(56, 96, 178, 1)
+                  ChevronFill: =RGBA(255, 255, 255, 1)
+                  ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                  ChevronHoverFill: =RGBA(255, 255, 255, 1)
+                  DefaultSelectedItems: |-
+                    =If(
+                        !IsBlank(ThisItem.Vendor),
+                        [ { VendorSearch: ThisItem.Vendor } ],
+                        []
+                    )
+                    //Table({Value: ThisItem.Vendor})
+                  DisplayFields: =["VendorSearch"]
+                  Font: =orgTheme.fontFamily
+                  Height: =30
+                  HoverFill: =RGBA(186, 202, 226, 1)
+                  InputTextPlaceholder: ="Select Vendor.."
+                  IsSearchable: =false
+                  Items: |-
+                    =colVendorSearchData
+                    //[1, 2, 3]
+                  OnChange: |-
+                    =Patch(
+                        colTaskList,
+                        LookUp(colTaskList, Index = ThisItem.Index),
+                        { Vendor: ComboBox1.Selected.VendorSearch }
+                    )
+
+                    /*Patch(
+                        colTaskList,
+                        ThisItem,
+                        { Vendor: ComboBox1.Selected.VendorSearch}
+                    )*/
+                  OnSelect: =Select(Parent)
+                  PressedColor: =RGBA(255, 255, 255, 1)
+                  PressedFill: =RGBA(0, 18, 107, 1)
+                  SearchFields: =["VendorSearch"]
+                  SelectMultiple: =false
+                  SelectionColor: =RGBA(255, 255, 255, 1)
+                  SelectionFill: =RGBA(56, 96, 178, 1)
+                  Size: =12
+                  Visible: |-
+                    =If(ThisItem.VendorID = 0 && ThisItem.Ctrl = "PM02", true, false)
+                    //If(ThisItem.VendorID = 0, true, false)
+                  Width: =197
+                  X: =490
+                  Y: =44
+            - TextInput4:
+                Control: Classic/TextInput@2.3.2
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Default: =If(ThisItem.VendorID = 0, "", ThisItem.VendorID)
+                  Font: =orgTheme.fontFamily
+                  Height: =30
+                  HintText: ="Search vendor.."
+                  HoverBorderColor: =RGBA(0, 18, 107, 1)
+                  HoverFill: =RGBA(186, 202, 226, 1)
+                  OnSelect: =Select(Parent)
+                  Size: =12
+                  Visible: |-
+                    =If(ThisItem.VendorID = 0 && ThisItem.Ctrl = "PM02", true, false)
+                    //If(ThisItem.VendorID = 0, true, false)
+                  Width: =160
+                  X: =490
+                  Y: =9
+            - Icon4:
+                Control: Classic/Icon@2.5.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Color: =RGBA(0, 18, 107, 1)
+                  DisplayMode: |-
+                    =If(IsBlank(TextInput4.Text), DisplayMode.Disabled, DisplayMode.Edit)
+                    //DisplayMode.Edit
+                  Height: =29
+                  Icon: =Icon.Search
+                  OnSelect: "=Set(\r\n    varPowerBIVendor,\r\n    'BioSap-Integration-VendorsAll'.Run(TextInput4.Text).vendoroutput\r\n);\r\nClear(colVendorSearchData);\r\nForAll\r\n(\r\n    \r\n    Table(\r\n        ParseJSON(varPowerBIVendor)\r\n        ),\r\n        Collect(colVendorSearchData,{VendorSearch: Text(ThisRecord.Value.'Vendors[Vendor Search]')}\r\n    )\r\n);"
+                  Visible: |-
+                    =If(ThisItem.VendorID = 0 && ThisItem.Ctrl = "PM02", true, false)
+                    //If(ThisItem.VendorID = 0, true, false)
+                  Width: =37
+                  X: =650
+                  Y: =9
+            - Label10:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Color: =RGBA( 128, 128, 128, 1 )
+                  Font: =orgTheme.fontFamily
+                  Height: =20
+                  Size: =7.5
+                  Text: |-
+                    ="Note: Click search to fill the dropdown."
+                  Visible: |-
+                    =If(ThisItem.VendorID = 0 && ThisItem.Ctrl = "PM02", true, false)
+                    //If(ThisItem.VendorID = 0, true, false)
+                  Width: =197
+                  X: =490
+                  Y: =76
+            - Button1_1:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =ColorFade(Self.Fill, -15%)
+                  Color: =RGBA(255, 255, 255, 1)
+                  DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                  Fill: =RGBA(56, 96, 178, 1)
+                  Font: =orgTheme.fontFamily
+                  Height: =35
+                  HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                  OnSelect: |-
+                    =Set(varSelectedTaskItem, ThisItem);
+                    Set(varSelectedTaskItemIndex, ThisItem.Index);
+                    Set(varRichTextMaterialsVisible, true);
+                    Set(varMaterials, ThisItem.Materials)
+                    //Select(Parent)
+                  PressedBorderColor: =Self.Fill
+                  PressedColor: =Self.Fill
+                  PressedFill: =Self.Color
+                  Size: =orgTheme.fontSize
+                  Text: ="Materials"
+                  Width: =85
+                  X: =884
+                  Y: =9
+            - Label12:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Color: =RGBA( 128, 128, 128, 1 )
+                  Font: =Font.'Open Sans'
+                  Height: =27
+                  OnSelect: =Select(Parent)
+                  Size: =10
+                  Text: |-
+                    ="Work Ctr: " & ThisItem.WorkCtr
+                  Width: =288
+                  X: =31
+                  Y: =49
+            - TextInput2_1:
+                Control: Classic/TextInput@2.3.2
+                Properties:
+                  Align: =Align.Center
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Default: =ThisItem.Price
+                  Font: =orgTheme.fontFamily
+                  Format: =TextFormat.Number
+                  HoverBorderColor: =RGBA(0, 18, 107, 1)
+                  HoverFill: =RGBA(186, 202, 226, 1)
+                  OnChange: |-
+                    =Patch(
+                        colTaskList,
+                        LookUp(colTaskList, Index = ThisItem.Index),
+                        { Price: Value(Self.Text) }
+                    )
+                  OnSelect: =Select(Parent)
+                  Size: =12
+                  Visible: |-
+                    =If(ThisItem.CostElem = 3110010, true, false)
+                    //true
+                  Width: =68
+                  X: =718
+                  Y: =9
+            - Label12_1:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Color: =RGBA( 128, 128, 128, 1 )
+                  Font: =Font.'Open Sans'
+                  Height: =27
+                  OnSelect: =Select(Parent)
+                  Size: =10
+                  Text: =ThisItem.Currency
+                  Visible: =If(ThisItem.CostElem = 3110010, true, false)
+                  Width: =72
+                  X: =720
+                  Y: =49
+            - Icon10:
+                Control: Classic/Icon@2.5.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Color: =RGBA(0, 18, 107, 1)
+                  DisplayMode: |-
+                    =If(
+                        ThisItem.Index = First(Sort(colTaskList, Index, SortOrder.Ascending)).Index,
+                        DisplayMode.Disabled,
+                        DisplayMode.Edit
+                    )
+
+                    //If(ThisItem.Index = 1, DisplayMode.Disabled, DisplayMode.Edit)
+                    //DisplayMode.Edit
+                  Height: =18
+                  Icon: =Icon.ArrowUp
+                  OnSelect: |-
+                    =// Sort the gallery items by Index
+                    Set(sortedList, Sort(colTaskList, Index, SortOrder.Ascending));
+
+                    // Get the first record that has Index smaller than ThisItem
+                    Set(recordAbove, Last(Filter(sortedList, Index < ThisItem.Index)));
+
+                    Set(currentIndex, ThisItem.Index);
+
+                    // Only swap if there is a record above
+                    If(
+                        !IsBlank(recordAbove),
+                        Patch(colTaskList, ThisItem, {Index: recordAbove.Index});
+                        Patch(colTaskList, recordAbove, {Index: currentIndex})
+                    )
+
+                    /*Set(
+                        recordAbove,
+                        LookUp(colTaskList, Index = ThisItem.Index - 1)
+                    );
+
+                    If(
+                        !IsBlank(recordAbove),
+                        Patch(colTaskList, recordAbove, {Index: recordAbove.Index + 1});
+                        Patch(colTaskList, ThisItem, {Index: ThisItem.Index - 1})
+                    )*/
+                  Width: =19
+                  X: =1006
+                  Y: =17
+      - SubmitButton:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            DisplayMode: |-
+              =If(
+                  varRichTextEditorVisible || IsEmpty(colTaskList) || varIsPublished || varRichTextMaterialsVisible,
+                  DisplayMode.Disabled,
+                  DisplayMode.Edit
+              )
+            Fill: =RGBA(56, 96, 178, 1)
+            Font: =orgTheme.fontFamily
+            Height: =28
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            OnSelect: |-
+              =// STEP 1: Submit all tasks
+              ForAll(
+                  colTaskList As rec,
+                  If(
+                      !IsBlank(rec.TaskItemID),
+                      // Update existing item
+                      Patch(
+                          'BioSap-List-TaskListMain',
+                          LookUp('BioSap-List-TaskListMain', TaskItemID = rec.TaskItemID),
+                          {
+                              Title: rec.Title,
+                              PlantInitial: rec.PlantInitial,
+                              OperationShortText: rec.OperationShortText,
+                              Work: rec.Work,
+                              Num: rec.Num,
+                              Duration: rec.Duration,
+                              Vendor: rec.Vendor,
+                              VendorID: rec.VendorID,
+                              LongText: rec.LongText,
+                              AttachmentLink: TextInput5.Text,
+                              Materials: rec.Materials,
+                              Price: rec.Price,
+                              Index: rec.Index
+                              // TaskID and MaintenanceItemNo and MaintenancePlanID unchanged
+                          }
+                      ),
+                      // Create new item
+                      Patch(
+                          'BioSap-List-TaskListMain',
+                          Defaults('BioSap-List-TaskListMain'),
+                          {
+                              Title: TextInput6.Text,
+                              PlantInitial: TextInput7.Text,
+                              AttachmentLink: TextInput5.Text,
+                              OperationShortText: rec.OperationShortText,
+                              Work: rec.Work,
+                              Num: rec.Num,
+                              Duration: rec.Duration,
+                              Vendor: rec.Vendor,
+                              VendorID: rec.VendorID,
+                              LongText: rec.LongText,
+                              Materials: rec.Materials,
+                              Ctrl: rec.Ctrl,
+                              WorkCtr: rec.WorkCtr,
+                              CostElem:rec.CostElem,
+                              Price: rec.Price,
+                              Currency: rec.Currency,
+                              Index: rec.Index,
+                              TaskID: varNewRunningNumberTask,
+                              MaintenanceItemNo: {
+                                  Id: varSelectedItemInternalID,
+                                  Value: varSelectedItemID
+                              },
+                              MaintenancePlanID: {
+                                  Id: SelectedItem,
+                                  Value: SelectedPlanID
+                              },
+                              StandardTaskItemID: rec.StandardTaskItemID
+                          }
+                      )
+                  )
+              );
+
+              Notify("Task Item IDs are generating..Please wait..", NotificationType.Warning);
+
+              Set(varWait, 'BioSap-DelayFlow'.Run(varNewRunningNumberTask));
+
+              // STEP 2: Generate TaskItemID for new rows using SharePoint ID
+              /*Set(
+                  varLastRunningNumberTaskItem,
+                  Value(LookUp('BioSap-List-AppSettings', Option.Value = "RunningNoTask").Value)
+              );
+
+              ForAll(
+                  Filter(
+                      'BioSap-List-TaskListMain',
+                      TaskID = varNewRunningNumberTask && IsBlank(TaskItemID)
+                  ),
+                  Patch(
+                      'BioSap-List-TaskListMain',
+                      ThisRecord,
+                      {
+                          TaskItemID: "TI" & Text(ID - varLastRunningNumberTaskItem, "0000")
+                      }
+                  )
+              );*/
+
+              // STEP 3: Optional success message
+              Notify("All tasks submitted successfully", NotificationType.Success);
+
+              // STEP 4: Refresh datasource
+              Refresh('BioSap-List-TaskListMain');
+
+              // STEP 5: Reload the collection to update the data
+              ClearCollect(
+                  colTaskList,
+                  Filter(
+                      'BioSap-List-TaskListMain',
+                      MaintenanceItemNo.Value = varSelectedItemID
+                  )
+              );
+
+              //NEW
+              //Updating Plan status
+              If(
+              LookUp('BioSap-List-MaintenancePlans', PlanID = SelectedPlanID).Status.Value <> "Published",
+                  Set(
+                      varItemCount,
+                      CountRows(Filter('BioSap-List-MaintenanceItems', MaintenancePlanNo.Value = SelectedPlanID))
+                  );
+
+                  Set(
+                      varTaskCount,
+                      CountRows(Filter('BioSap-List-TaskListMain', MaintenancePlanID.Value = SelectedPlanID))
+                  );
+
+                  Set(
+                      varNewStatusPlan,
+                          If(
+                              varItemCount > 0 && varTaskCount > 0,
+                              { Value: "In Progress" },
+                              { Value: "Draft" }
+                          )
+                  );
+
+                  // Only patch if the status changed
+                  If(
+                      varNewStatusPlan.Value <> LookUp('BioSap-List-MaintenancePlans', PlanID = SelectedPlanID).Status.Value,
+                      Patch(
+                          'BioSap-List-MaintenancePlans',
+                          LookUp('BioSap-List-MaintenancePlans', PlanID = SelectedPlanID),
+                          { Status: varNewStatusPlan }
+                      )
+                  );
+              );//NEW
+
+              ForAll(AttachmentControl.Attachments,
+                  'BioSap-TaskListAttachment'.Run(varNewRunningNumberTask,
+                      {file: {contentBytes: Value, name: Name}}
+                  )
+              );
+
+              Reset(AttachmentControl);
+
+              Set(
+                varjsonFilesString,
+                'BioSap-GetSubmittedAttachments'.Run("TaskListDocuments/" & varNewRunningNumberTask).files
+              );
+
+              ClearCollect(
+                colTaskListFiles,
+                ForAll(
+                  ParseJSON(varjsonFilesString),
+                  {
+                    Name: ThisRecord.Name,
+                    Link: ThisRecord.Link,
+                    Identifier: ThisRecord.Identifier
+                  }
+                )
+              );
+
+              /*ClearCollect(
+                  colTaskListAttachments,
+                  ForAll(
+                      AttachmentControl.Attachments,
+                      {
+                          Name: Name,
+                          Value: Value
+                      }
+                  )
+              );
+
+              'BioSap-TaskListAttachment'.Run(
+                  varNewRunningNumberTask,
+                  JSON(colTaskListAttachments, JSONFormat.IncludeBinaryData)
+              );*/
+
+              /*ForAll(AttachmentControl.Attachments,
+                  'BioSap-TaskListAttachment'.Run(varNewRunningNumberTask,
+                      {file: {contentBytes: Value, name: Name}}
+                  )
+              );*/
+
+              /*// STEP 1: Submit all tasks
+              ForAll(
+                  colTaskList,
+                  If(
+                      !IsBlank(ThisRecord.TaskItemID),
+                      //Update existing item
+                      Patch(
+                          'BioSap-List-TaskListMain',
+                          LookUp('BioSap-List-TaskListMain', TaskItemID = ThisRecord.TaskItemID),
+                          {
+                              Title: ThisRecord.Title,
+                              PlantInitial: ThisRecord.PlantInitial,
+                              OperationShortText: ThisRecord.OperationShortText,
+                              Work: ThisRecord.Work,
+                              Num: ThisRecord.Num,
+                              Duration: ThisRecord.Duration,
+                              Vendor: ThisRecord.Vendor,
+                              LongText: ThisRecord.LongText
+                              // TaskID and MaintenanceItemNo unchanged
+                          }
+                      ),
+                      //Create new item
+                      Patch(
+                          'BioSap-List-TaskListMain',
+                          Defaults('BioSap-List-TaskListMain'),
+                          {
+                              Title: TextInput6.Text,
+                              PlantInitial: TextInput7.Text,
+                              OperationShortText: ThisRecord.OperationShortText,
+                              Work: ThisRecord.Work,
+                              Num: ThisRecord.Num,
+                              Duration: ThisRecord.Duration,
+                              Vendor: ThisRecord.Vendor,
+                              LongText: ThisRecord.LongText,
+                              TaskID: varNewRunningNumberTask,
+                              MaintenanceItemNo: {
+                                  Id: varSelectedItemInternalID,
+                                  Value: varSelectedItemID
+                              },
+                              StandardTaskItemID: ThisRecord.StandardTaskItemID
+                          }
+                      )
+                  )
+              );
+
+              // STEP 2: Generate TaskItemID for new rows using SharePoint ID
+              Set(
+                  varLastRunningNumberTaskItem,
+                  Value(LookUp('BioSap-List-AppSettings', Option.Value = "RunningNoTask").Value)
+              );
+
+              ForAll(
+                  Filter(
+                      'BioSap-List-TaskListMain',
+                      TaskID = varNewRunningNumberTask && IsBlank(TaskItemID)
+                  ),
+                  Patch(
+                      'BioSap-List-TaskListMain',
+                      ThisRecord,
+                      {
+                          TaskItemID: "TI" & Text(ID - varLastRunningNumberTaskItem, "0000")
+                      }
+                  )
+              );
+
+              // STEP 3: Optional success message
+              Notify("All tasks submitted successfully", NotificationType.Success);
+
+              ClearCollect(
+                  colTaskList,
+                  Filter(
+                      'BioSap-List-TaskListMain',
+                      MaintenanceItemNo.Value = varSelectedItemID
+                  )
+              );*/
+
+              /*ForAll(
+                  colTaskList,
+                  Patch(
+                      'BioSap-List-TaskListMain',
+                      Defaults('BioSap-List-TaskListMain'),
+                      {
+                          Title: TextInput6.Text,
+                          PlantInitial: TextInput7.Text,
+                          OperationShortText:OperationShortText,
+                          Work: Work,
+                          Num: Num,
+                          Duration: Duration,
+                          Vendor: Vendor,
+                          LongText: LongText,
+                          TaskID: varNewRunningNumberTask,
+                          MaintenanceItemNo: {Id:varSelectedItemInternalID, Value: varSelectedItemID}
+                          //ParentID: varParentID, // Replace with your actual column name
+                          //Category: DropdownCommonField.Selected.Value // Replace with your extra field name
+                      }
+                  )
+              );
+              Notify("All tasks submitted successfully", NotificationType.Success);*/
+
+              /*ForAll(
+                  colTaskList,
+                  If(
+                      !IsBlank(ThisRecord.ID),
+                      //Update existing item
+                      Patch(
+                          'BioSap-List-TaskListMain',
+                          LookUp('BioSap-List-TaskListMain', ID = ThisRecord.ID),
+                          {
+                              Title: ThisRecord.Title,
+                              PlantInitial: ThisRecord.PlantInitial,
+                              OperationShortText: ThisRecord.OperationShortText,
+                              Work: ThisRecord.Work,
+                              Num: ThisRecord.Num,
+                              Duration: ThisRecord.Duration,
+                              Vendor: ThisRecord.Vendor,
+                              LongText: ThisRecord.LongText
+                              // Keep TaskID and MaintenanceItemNo unchanged
+                          }
+                      ),
+                      //Add new item
+                      Patch(
+                          'BioSap-List-TaskListMain',
+                          Defaults('BioSap-List-TaskListMain'),
+                          {
+                              Title: ThisRecord.Title,
+                              PlantInitial: ThisRecord.PlantInitial,
+                              OperationShortText: ThisRecord.OperationShortText,
+                              Work: ThisRecord.Work,
+                              Num: ThisRecord.Num,
+                              Duration: ThisRecord.Duration,
+                              Vendor: ThisRecord.Vendor,
+                              LongText: ThisRecord.LongText,
+                              TaskID: varNewRunningNumberTask,
+                              MaintenanceItemNo: {
+                                  Id: varSelectedItemInternalID,
+                                  Value: varSelectedItemID
+                              }
+                          }
+                      )
+                  )
+              );*/
+
+              //Notify("All tasks submitted successfully", NotificationType.Success))
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Size: =orgTheme.fontSize
+            Text: ="Save & Submit"
+            Width: =120
+            X: =894
+            Y: =714
+      - TextInput6:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Default: =varSelectedTitle
+            DisplayMode: =DisplayMode.View
+            Font: =orgTheme.fontFamily
+            Height: =39
+            HoverBorderColor: =RGBA(0, 18, 107, 1)
+            HoverFill: =RGBA(186, 202, 226, 1)
+            Size: =12
+            Width: =400
+            X: =764
+            Y: =67
+      - TasklistHeader_1:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: |-
+              =RGBA(12, 59, 94, 1)
+              //RGBA(15, 84, 140, 1)
+            Font: =orgTheme.fontFamily
+            FontWeight: =FontWeight.Semibold
+            Height: =36
+            Size: =12
+            Text: ="Task List Name:"
+            Width: =139
+            X: =622
+            Y: =69
+      - TasklistHeader_2:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: |-
+              =RGBA(12, 59, 94, 1)
+              //RGBA(15, 84, 140, 1)
+            Font: =orgTheme.fontFamily
+            FontWeight: =FontWeight.Semibold
+            Height: =36
+            Size: =12
+            Text: ="Task List Plant:"
+            Width: =139
+            X: =325
+            Y: =70
+      - TextInput7:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Default: =varSelectedPlant
+            DisplayMode: |-
+              =DisplayMode.View
+              //DisplayMode.Edit
+            Font: =orgTheme.fontFamily
+            Height: =32
+            HoverBorderColor: =RGBA(0, 18, 107, 1)
+            HoverFill: =RGBA(186, 202, 226, 1)
+            Size: =12
+            Width: =124
+            X: =459
+            Y: =71
+      - TasklistTitleBar_1:
+          Control: Rectangle@2.3.0
+          Group: TaskListBar
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =RGBA(214, 221, 224, 1)
+            Height: =2
+            Width: =1037
+            X: =322
+            Y: =114
+      - TasklistTitleBar_2:
+          Control: Rectangle@2.3.0
+          Group: TaskListBar
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =RGBA(214, 221, 224, 1)
+            Height: =2
+            Width: =1037
+            X: =322
+            Y: =160
+      - SubmitButton_1:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            DisplayMode: |-
+              =If(
+                  varRichTextEditorVisible || varIsPublished,
+                  DisplayMode.Disabled,
+                  DisplayMode.Edit
+              )
+            Fill: =RGBA(56, 96, 178, 1)
+            Font: =orgTheme.fontFamily
+            Height: =28
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            OnSelect: |+
+              =//option 1
+              /*// Clear from collection
+              Clear(colTaskList);
+
+              // Clear from SharePoint list
+              RemoveIf(
+                  'BioSap-List-TaskListMain',
+                  MaintenanceItemNo.Value = varSelectedItemID
+              );
+
+              // Optional: Notify the user that the items were cleared
+              Notify("All tasks cleared successfully", NotificationType.Success);*/
+
+              //option 2
+              // Clear unsaved changes from collection
+              RemoveIf(
+                  colTaskList,
+                  IsBlank(TaskItemID)  // Only rows not yet submitted
+              );
+
+              // Optional: Notify the user
+              Notify("Unsaved changes cleared successfully", NotificationType.Information);
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Size: =orgTheme.fontSize
+            Text: ="Clear List"
+            Width: =115
+            X: =1205
+            Y: =714
+      - TasklistHeader_3:
+          Control: Label@2.5.1
+          Group: TaskListBar
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: |-
+              =RGBA(12, 59, 94, 1)
+              //RGBA(15, 84, 140, 1)
+            Font: =orgTheme.fontFamily
+            FontWeight: =FontWeight.Semibold
+            Height: =39
+            Size: =12
+            Text: ="Operation Short Text"
+            Width: =182
+            X: =370
+            Y: =119
+      - TasklistHeader_4:
+          Control: Label@2.5.1
+          Group: TaskListBar
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: |-
+              =RGBA(12, 59, 94, 1)
+              //RGBA(15, 84, 140, 1)
+            Font: =orgTheme.fontFamily
+            FontWeight: =FontWeight.Semibold
+            Height: =39
+            Size: =12
+            Text: ="Work (H)"
+            Width: =88
+            X: =580
+            Y: =119
+      - TasklistHeader_5:
+          Control: Label@2.5.1
+          Group: TaskListBar
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: |-
+              =RGBA(12, 59, 94, 1)
+              //RGBA(15, 84, 140, 1)
+            Font: =orgTheme.fontFamily
+            FontWeight: =FontWeight.Semibold
+            Height: =39
+            Size: =12
+            Text: ="No."
+            Width: =62
+            X: =668
+            Y: =119
+      - TasklistHeader_6:
+          Control: Label@2.5.1
+          Group: TaskListBar
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: |-
+              =RGBA(12, 59, 94, 1)
+              //RGBA(15, 84, 140, 1)
+            Font: =orgTheme.fontFamily
+            FontWeight: =FontWeight.Semibold
+            Height: =39
+            Size: =12
+            Text: ="Dur. (H)"
+            Width: =70
+            X: =730
+            Y: =119
+      - TasklistHeader_7:
+          Control: Label@2.5.1
+          Group: TaskListBar
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: |-
+              =RGBA(12, 59, 94, 1)
+              //RGBA(15, 84, 140, 1)
+            Font: =orgTheme.fontFamily
+            FontWeight: =FontWeight.Semibold
+            Size: =12
+            Text: ="Vendor"
+            Width: =85
+            X: =845
+            Y: =119
+      - TasklistHeader_10:
+          Control: Label@2.5.1
+          Group: TaskListBar
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: |-
+              =RGBA(12, 59, 94, 1)
+              //RGBA(15, 84, 140, 1)
+            Font: =orgTheme.fontFamily
+            FontWeight: =FontWeight.Semibold
+            Size: =12
+            Text: ="Price"
+            Width: =85
+            X: =1035
+            Y: =119
+      - RichText:
+          Control: RichTextEditor@2.7.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Default: |-
+              =varLongText
+              //"Enter some <strong>rich text</strong> here."
+            Height: =437
+            Visible: =varRichTextEditorVisible
+            Width: =1040
+            X: =322
+            Y: =272
+      - Icon6:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(0, 18, 107, 1)
+            Height: =34
+            Icon: =Icon.Home
+            OnSelect: |-
+              =Clear(colTaskList);
+              Clear(colTaskListFiles);
+              Reset(TextInput5);
+              ResetForm(MaintenancePlanForm);
+              ResetForm(MaintenanceItemForm);
+              UpdateContext({ varSelectedFL: Blank() });
+              UpdateContext({ varSelectedObj: Blank() });
+              UpdateContext({ varSelectedPersonResponsible: Blank() });
+              Set(varIsPublished, false);
+              Navigate(Plan,ScreenTransition.Fade)
+            Width: =30
+            X: =1230
+            Y: =24
+      - Label8:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =orgTheme.fontFamily
+            Height: =30
+            OnSelect: =Select(Icon6)
+            Size: =orgTheme.fontSize
+            Text: ="Dashboard"
+            Width: =89
+            X: =1260
+            Y: =30
+      - Button4:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =RGBA(56, 96, 178, 1)
+            Font: =orgTheme.fontFamily
+            Height: =28
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            OnSelect: |-
+              =Set(varLongText, "");
+              Set(varRichTextEditorVisible, false);
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Size: =orgTheme.fontSize
+            Text: ="Cancel"
+            Visible: =varRichTextEditorVisible
+            Width: =115
+            X: =1205
+            Y: =714
+      - Label9:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =orgTheme.requiredColor
+            Font: =orgTheme.fontFamily
+            Height: =31
+            Size: =orgTheme.fontSize
+            Text: ="*Please save and submit to finalize your changes."
+            Width: =411
+            X: =325
+            Y: =714
+      - AttachmentControl:
+          Control: Attachments@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            BorderThickness: =1
+            DisabledBorderColor: =RGBA(0, 0, 0, 0)
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisplayMode: =If(varIsPublished, DisplayMode.Disabled, DisplayMode.Edit)
+            DropTargetBorderThickness: =0
+            FocusedBorderThickness: =0
+            Font: =Font.'Open Sans'
+            Height: =141
+            HoverFill: =RGBA(186, 202, 226, 1)
+            ItemColor: =RGBA(255, 255, 255, 1)
+            ItemFill: =RGBA(56, 96, 178, 1)
+            ItemHoverFill: =RGBA(186, 202, 226, 1)
+            MaxAttachmentSize: =50
+            MaxAttachments: =10
+            NoAttachmentsText: =""
+            PaddingBottom: =5
+            PaddingLeft: =If(Self.DisplayMode = DisplayMode.Edit, 5, 0)
+            PaddingRight: =5
+            PaddingTop: =5
+            PressedColor: =RGBA(255, 255, 255, 1)
+            PressedFill: =RGBA(0, 18, 107, 1)
+            Visible: =false //hidden attachment logic
+            Width: =355
+            X: =659
+            Y: =114
+      - TasklistHeader_8:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: |-
+              =RGBA(12, 59, 94, 1)
+              //RGBA(15, 84, 140, 1)
+            Font: =orgTheme.fontFamily
+            FontWeight: =FontWeight.Semibold
+            Height: =36
+            Size: =12
+            Text: ="Link to Attachment:"
+            Visible: =false //hidden attachment logic
+            Width: =167
+            X: =684
+            Y: =70
+      - TextInput5:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            BorderThickness: =1
+            Default: |-
+              =If(
+                  !IsEmpty(colTaskList),
+                  With(
+                      {
+                          varFirstRec: First(colTaskList)
+                      },
+                      If(
+                          !IsBlank(varFirstRec) && !IsBlank(varFirstRec.AttachmentLink),
+                          varFirstRec.AttachmentLink,
+                          ""
+                      )
+                  ),
+                  ""
+              )
+
+              /*If(
+                  !IsEmpty(colTaskList),
+                  With(
+                      {
+                          varTaskRec: LookUp('BioSap-List-TaskListMain', TaskID = varNewRunningNumberTask)
+                      },
+                      If(
+                          !IsBlank(varTaskRec) && !IsBlank(varTaskRec.AttachmentHyperlink),
+                          varTaskRec.AttachmentHyperlink,
+                          ""
+                      )
+                  ),
+                  ""
+              )*/
+
+              /*If(
+                  !IsEmpty(colTaskList),
+                  LookUp(
+                      'BioSap-List-TaskListMain',
+                      TaskID = varNewRunningNumberTask
+                  ).AttachmentHyperlink,
+                  ""
+              )*/
+            DisplayMode: =If(varIsPublished, DisplayMode.Disabled, DisplayMode.Edit)
+            Font: =orgTheme.fontFamily
+            Height: =34
+            HintText: ="Insert Link"
+            HoverBorderColor: =RGBA(0, 18, 107, 1)
+            HoverFill: =RGBA(186, 202, 226, 1)
+            OnChange: |-
+              =ForAll(
+                      colTaskList,
+                      Patch(
+                          ThisRecord,
+                          { AttachmentLink: TextInput5.Text}
+                      )
+              )
+            Size: =12
+            Visible: =false //hidden attachment logic
+            Width: =485
+            X: =851
+            Y: =72
+      - Icon7:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(0, 18, 107, 1)
+            DisplayMode: =DisplayMode.View
+            Height: =26
+            Icon: =Icon.Information
+            Tooltip: |-
+              ="Maximum document to upload is 10 with maximum 50MB per file. 
+              Please paste a link to documents from other sources if relevant."
+            Visible: =false //hidden attachment logic
+            Width: =29
+            X: =659
+            Y: =70
+      - TasklistHeader_9:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: |-
+              =RGBA(12, 59, 94, 1)
+              //RGBA(15, 84, 140, 1)
+            Font: =orgTheme.fontFamily
+            FontWeight: =FontWeight.Semibold
+            Height: =30
+            Size: =12
+            Text: ="Attachments:"
+            Visible: =false //hidden attachment logic
+            Width: =167
+            X: =1092
+            Y: =111
+      - Button2:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            DisplayMode: |-
+              =If(
+                  varRichTextEditorVisible && !varIsPublished,
+                  DisplayMode.Edit,
+                  DisplayMode.Disabled
+              )
+            Fill: =RGBA(56, 96, 178, 1)
+            Font: =orgTheme.fontFamily
+            Height: =28
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            OnSelect: |+
+              =Patch(
+                  colTaskList,
+                  LookUp(colTaskList, Index = varSelectedTaskItemIndex),
+                  { LongText: RichText.HtmlText }
+              );
+
+              Set(varLongText, "");
+              Set(varRichTextEditorVisible, false);
+
+              /*Patch(
+                  colTaskList,
+                  varSelectedTaskItem,
+                  { LongText: RichText.HtmlText}
+              );
+
+              Set(varRichTextEditorVisible, false);*/
+
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Size: =orgTheme.fontSize
+            Text: ="Confirm Long Text"
+            Width: =163
+            X: =1027
+            Y: =714
+      - Button2_1:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            DisplayMode: |-
+              =If(
+                  varRichTextMaterialsVisible && !varIsPublished,
+                  DisplayMode.Edit,
+                  DisplayMode.Disabled
+              )
+            Fill: =RGBA(56, 96, 178, 1)
+            Font: =orgTheme.fontFamily
+            Height: =28
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            OnSelect: |+
+              =Patch(
+                  colTaskList,
+                  LookUp(colTaskList, Index = varSelectedTaskItemIndex),
+                  { Materials: RichTextMaterials.HtmlText }
+              );
+
+              Set(varMaterials, "");
+              Set(varRichTextMaterialsVisible, false);
+
+              /*Patch(
+                  colTaskList,
+                  varSelectedTaskItem,
+                  { Materials: RichTextMaterials.HtmlText}
+              );
+
+              Set(varRichTextMaterialsVisible, false);*/
+
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Size: =orgTheme.fontSize
+            Text: ="Confirm Materials"
+            Visible: =varRichTextMaterialsVisible
+            Width: =163
+            X: =1027
+            Y: =714
+      - Button4_1:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =RGBA(56, 96, 178, 1)
+            Font: =orgTheme.fontFamily
+            Height: =28
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            OnSelect: |-
+              =Set(varMaterials, "");
+              Set(varRichTextMaterialsVisible, false);
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Size: =orgTheme.fontSize
+            Text: ="Cancel"
+            Visible: =varRichTextMaterialsVisible
+            Width: =115
+            X: =1205
+            Y: =714
+      - RichTextMaterials:
+          Control: RichTextEditor@2.7.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Default: |-
+              =varMaterials
+              //"Enter some <strong>rich text</strong> here."
+            Height: =437
+            Visible: =varRichTextMaterialsVisible
+            Width: =1040
+            X: =322
+            Y: =272

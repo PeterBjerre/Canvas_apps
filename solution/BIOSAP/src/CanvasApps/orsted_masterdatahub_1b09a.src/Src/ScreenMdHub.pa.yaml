@@ -1,0 +1,1815 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  ScreenMdHub:
+    Properties:
+      Fill: =RGBA(237, 241, 247, 1)
+    Children:
+      - conMdRoot:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            BorderStyle: =BorderStyle.None
+            DropShadow: =DropShadow.None
+            Fill: =RGBA(237, 241, 247, 1)
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =8
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            Width: =Parent.Width
+          Children:
+            - conMdShell:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: =BorderStyle.None
+                  DropShadow: =DropShadow.None
+                  FillPortions: =0
+                  Height: |-
+                    =142 + 16 + (If((App.Width - 64) < 940, 3 * (148) + 20, 148)) + 16 + (496 + If(IfError(IsEmpty(SortByColumns(
+                        Filter(
+                            If(
+                        gblView = "mine",
+                        Filter('MD_RequestIndex', RequesterEmail = gblMe),
+                        Filter('MD_RequestIndex', IsOpen = true)
+                    ),
+                            gblDomain = "" || Domain.Value = gblDomain,
+                            gblStatusMode = "all" || (gblStatusMode = "open" && IsOpen) ||
+                                (gblStatusMode = "done" && !IsOpen),
+                            IsBlank(Trim(txtMdSearch.Text)) ||
+                                StartsWith(RequestNo, Trim(txtMdSearch.Text)) ||
+                                StartsWith(ShortText, Trim(txtMdSearch.Text)) ||
+                                StartsWith(Plant, Trim(txtMdSearch.Text))
+                        ),
+                        "LastActionOn", SortOrder.Descending
+                    )), false), 8 + (24), 0))
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =16
+                  LayoutMinWidth: =0
+                  PaddingBottom: =40
+                  PaddingLeft: =24
+                  PaddingRight: =24
+                  PaddingTop: =20
+                  Width: =Parent.Width
+                Children:
+                  - conMdBar:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: =BorderStyle.None
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =34
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =12
+                        LayoutMinWidth: =0
+                        LayoutWrap: =true
+                        Width: =Parent.Width
+                      Children:
+                        - conMdBrand:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: =BorderStyle.None
+                              DropShadow: =DropShadow.None
+                              FillPortions: =0
+                              Height: =34
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutGap: =10
+                              LayoutMinWidth: =0
+                              Width: =300
+                            Children:
+                              - txtMdBrand:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Masterdata"
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =0
+                                    Color: =RGBA(26, 34, 49, 1)
+                                    Fill: =RGBA(0, 0, 0, 0)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =30
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =22
+                                    Text: ="Masterdata"
+                                    Wrap: =false
+                              - txtMdSub:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="SAP indmeldinger"
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =0
+                                    Color: =RGBA(89, 102, 122, 1)
+                                    Fill: =RGBA(0, 0, 0, 0)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =30
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =13
+                                    Text: ="SAP indmeldinger"
+                                    Width: =140
+                                    Wrap: =false
+                        - conMdSeg:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: =BorderStyle.None
+                              DropShadow: =DropShadow.None
+                              FillPortions: =0
+                              Height: =34
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutMinWidth: =0
+                              Width: =336
+                            Children:
+                              - btnMdViewMine:
+                                  Control: ModernButton@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Mine indmeldinger"
+                                    Align: =Align.Center
+                                    AlignInContainer: =AlignInContainer.Center
+                                    Appearance: =If(gblView = "mine", ButtonAppearance.Primary, ButtonAppearance.Secondary)
+                                    BasePaletteColor: =RGBA(0, 103, 174, 1)
+                                    BorderColor: =RGBA(215, 222, 232, 1)
+                                    BorderThickness: =1
+                                    Color: =If(gblView = "mine", RGBA(255, 255, 255, 1), RGBA(26, 34, 49, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =34
+                                    Layout: =ButtonLayout.TextOnly
+                                    OnSelect: =Set(gblView, "mine"); Set(gblDomain, "")
+                                    RadiusBottomLeft: =10
+                                    RadiusBottomRight: =10
+                                    RadiusTopLeft: =10
+                                    RadiusTopRight: =10
+                                    Size: =14
+                                    Text: ="Mine indmeldinger"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =168
+                              - btnMdViewQueue:
+                                  Control: ModernButton@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Til behandling"
+                                    Align: =Align.Center
+                                    AlignInContainer: =AlignInContainer.Center
+                                    Appearance: =If(gblView = "queue", ButtonAppearance.Primary, ButtonAppearance.Secondary)
+                                    BasePaletteColor: =RGBA(0, 103, 174, 1)
+                                    BorderColor: =RGBA(215, 222, 232, 1)
+                                    BorderThickness: =1
+                                    Color: =If(gblView = "queue", RGBA(255, 255, 255, 1), RGBA(26, 34, 49, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =34
+                                    Layout: =ButtonLayout.TextOnly
+                                    OnSelect: =Set(gblView, "queue"); Set(gblDomain, "")
+                                    RadiusBottomLeft: =10
+                                    RadiusBottomRight: =10
+                                    RadiusTopLeft: =10
+                                    RadiusTopRight: =10
+                                    Size: =14
+                                    Text: ="Til behandling"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =168
+                        - txtMdWho:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: =If(gblView = "mine", gblMe, "Koe - hele afdelingen")
+                              Align: =Align.Right
+                              BorderStyle: =BorderStyle.None
+                              BorderThickness: =0
+                              Color: =RGBA(89, 102, 122, 1)
+                              Fill: =RGBA(0, 0, 0, 0)
+                              Font: =Font.'Segoe UI'
+                              Height: =34
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =12
+                              Text: =If(gblView = "mine", gblMe, "Koe - hele afdelingen")
+                              Width: =Max(160, (App.Width - 64) - 300 - 336 - 24)
+                              Wrap: =false
+                  - conMdTiles:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: =BorderStyle.None
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =If((App.Width - 64) < 940, 3 * (148) + 20, 148)
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =10
+                        LayoutMinWidth: =0
+                        LayoutWrap: =true
+                        Width: =Parent.Width
+                      Children:
+                        - conMdTileFL:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              BorderColor: =If(gblDomain = "FunctionalLocation", RGBA(0, 103, 174, 1), RGBA(215, 222, 232, 1))
+                              BorderThickness: =1
+                              DropShadow: =DropShadow.None
+                              Fill: =RGBA(250, 251, 253, 1)
+                              FillPortions: =0
+                              Height: =148
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =6
+                              LayoutMinWidth: =0
+                              PaddingBottom: =12
+                              PaddingLeft: =12
+                              PaddingRight: =12
+                              PaddingTop: =12
+                              RadiusBottomLeft: =10
+                              RadiusBottomRight: =10
+                              RadiusTopLeft: =10
+                              RadiusTopRight: =10
+                              Width: =If((App.Width - 64) < 940, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)
+                            Children:
+                              - conMdStripeFL:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: =BorderStyle.None
+                                    DropShadow: =DropShadow.None
+                                    Fill: =RGBA(0, 103, 174, 1)
+                                    FillPortions: =0
+                                    Height: =4
+                                    LayoutAlignItems: =LayoutAlignItems.Stretch
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =8
+                                    LayoutMinWidth: =0
+                                    Width: =34
+                              - txtMdTileNameFL:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Funktionsplads"
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =0
+                                    Color: =RGBA(26, 34, 49, 1)
+                                    Fill: =RGBA(0, 0, 0, 0)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =20
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =14
+                                    Text: ="Funktionsplads"
+                                    Wrap: =false
+                              - txtMdTileCountFL:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: |-
+                                      =Text(CountRows(Filter(If(
+                                          gblView = "mine",
+                                          Filter('MD_RequestIndex', RequesterEmail = gblMe),
+                                          Filter('MD_RequestIndex', IsOpen = true)
+                                      ), Domain.Value = "FunctionalLocation", IsOpen = true)))
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =0
+                                    Color: =RGBA(26, 34, 49, 1)
+                                    Fill: =RGBA(0, 0, 0, 0)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =26
+                                    Text: |-
+                                      =Text(CountRows(Filter(If(
+                                          gblView = "mine",
+                                          Filter('MD_RequestIndex', RequesterEmail = gblMe),
+                                          Filter('MD_RequestIndex', IsOpen = true)
+                                      ), Domain.Value = "FunctionalLocation", IsOpen = true)))
+                                    Wrap: =false
+                              - txtMdTileLblFL:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: =If(gblView = "mine", "aabne hos mig", "aabne i koeen")
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =0
+                                    Color: =RGBA(89, 102, 122, 1)
+                                    Fill: =RGBA(0, 0, 0, 0)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =16
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =11
+                                    Text: =If(gblView = "mine", "aabne hos mig", "aabne i koeen")
+                                    Wrap: =false
+                              - conMdTileBtnsFL:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: =BorderStyle.None
+                                    DropShadow: =DropShadow.None
+                                    FillPortions: =0
+                                    Height: =28
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =6
+                                    LayoutMinWidth: =0
+                                    Width: =Parent.Width
+                                  Children:
+                                    - btnMdTileFilterFL:
+                                        Control: ModernButton@1.0.0
+                                        Properties:
+                                          AccessibleLabel: =If(gblDomain = "FunctionalLocation", "Vis alle", "Filtrer")
+                                          Align: =Align.Center
+                                          AlignInContainer: =AlignInContainer.Center
+                                          Appearance: =ButtonAppearance.Secondary
+                                          BorderColor: =RGBA(215, 222, 232, 1)
+                                          BorderThickness: =1
+                                          Color: =RGBA(26, 34, 49, 1)
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =28
+                                          Layout: =ButtonLayout.TextOnly
+                                          OnSelect: =Set(gblDomain, If(gblDomain = "FunctionalLocation", "", "FunctionalLocation"))
+                                          RadiusBottomLeft: =10
+                                          RadiusBottomRight: =10
+                                          RadiusTopLeft: =10
+                                          RadiusTopRight: =10
+                                          Size: =14
+                                          Text: =If(gblDomain = "FunctionalLocation", "Vis alle", "Filtrer")
+                                          VerticalAlign: =VerticalAlign.Middle
+                                          Width: =((If((App.Width - 64) < 940, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)) - 24 - 6) / 2
+                                    - btnMdTileNewFL:
+                                        Control: ModernButton@1.0.0
+                                        Properties:
+                                          AccessibleLabel: ="Kommer snart"
+                                          Align: =Align.Center
+                                          AlignInContainer: =AlignInContainer.Center
+                                          Appearance: =ButtonAppearance.Secondary
+                                          BorderColor: =RGBA(215, 222, 232, 1)
+                                          BorderThickness: =1
+                                          Color: =RGBA(26, 34, 49, 1)
+                                          DisplayMode: =DisplayMode.Disabled
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =28
+                                          Layout: =ButtonLayout.TextOnly
+                                          OnSelect: =Notify("Denne app er ikke bygget endnu.", NotificationType.Warning)
+                                          RadiusBottomLeft: =10
+                                          RadiusBottomRight: =10
+                                          RadiusTopLeft: =10
+                                          RadiusTopRight: =10
+                                          Size: =14
+                                          Text: ="Kommer snart"
+                                          VerticalAlign: =VerticalAlign.Middle
+                                          Width: =((If((App.Width - 64) < 940, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)) - 24 - 6) / 2
+                        - conMdTileEQ:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              BorderColor: =If(gblDomain = "Equipment", RGBA(14, 124, 134, 1), RGBA(215, 222, 232, 1))
+                              BorderThickness: =1
+                              DropShadow: =DropShadow.None
+                              Fill: =RGBA(250, 251, 253, 1)
+                              FillPortions: =0
+                              Height: =148
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =6
+                              LayoutMinWidth: =0
+                              PaddingBottom: =12
+                              PaddingLeft: =12
+                              PaddingRight: =12
+                              PaddingTop: =12
+                              RadiusBottomLeft: =10
+                              RadiusBottomRight: =10
+                              RadiusTopLeft: =10
+                              RadiusTopRight: =10
+                              Width: =If((App.Width - 64) < 940, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)
+                            Children:
+                              - conMdStripeEQ:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: =BorderStyle.None
+                                    DropShadow: =DropShadow.None
+                                    Fill: =RGBA(14, 124, 134, 1)
+                                    FillPortions: =0
+                                    Height: =4
+                                    LayoutAlignItems: =LayoutAlignItems.Stretch
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =8
+                                    LayoutMinWidth: =0
+                                    Width: =34
+                              - txtMdTileNameEQ:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Udstyr"
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =0
+                                    Color: =RGBA(26, 34, 49, 1)
+                                    Fill: =RGBA(0, 0, 0, 0)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =20
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =14
+                                    Text: ="Udstyr"
+                                    Wrap: =false
+                              - txtMdTileCountEQ:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: |-
+                                      =Text(CountRows(Filter(If(
+                                          gblView = "mine",
+                                          Filter('MD_RequestIndex', RequesterEmail = gblMe),
+                                          Filter('MD_RequestIndex', IsOpen = true)
+                                      ), Domain.Value = "Equipment", IsOpen = true)))
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =0
+                                    Color: =RGBA(26, 34, 49, 1)
+                                    Fill: =RGBA(0, 0, 0, 0)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =26
+                                    Text: |-
+                                      =Text(CountRows(Filter(If(
+                                          gblView = "mine",
+                                          Filter('MD_RequestIndex', RequesterEmail = gblMe),
+                                          Filter('MD_RequestIndex', IsOpen = true)
+                                      ), Domain.Value = "Equipment", IsOpen = true)))
+                                    Wrap: =false
+                              - txtMdTileLblEQ:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: =If(gblView = "mine", "aabne hos mig", "aabne i koeen")
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =0
+                                    Color: =RGBA(89, 102, 122, 1)
+                                    Fill: =RGBA(0, 0, 0, 0)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =16
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =11
+                                    Text: =If(gblView = "mine", "aabne hos mig", "aabne i koeen")
+                                    Wrap: =false
+                              - conMdTileBtnsEQ:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: =BorderStyle.None
+                                    DropShadow: =DropShadow.None
+                                    FillPortions: =0
+                                    Height: =28
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =6
+                                    LayoutMinWidth: =0
+                                    Width: =Parent.Width
+                                  Children:
+                                    - btnMdTileFilterEQ:
+                                        Control: ModernButton@1.0.0
+                                        Properties:
+                                          AccessibleLabel: =If(gblDomain = "Equipment", "Vis alle", "Filtrer")
+                                          Align: =Align.Center
+                                          AlignInContainer: =AlignInContainer.Center
+                                          Appearance: =ButtonAppearance.Secondary
+                                          BorderColor: =RGBA(215, 222, 232, 1)
+                                          BorderThickness: =1
+                                          Color: =RGBA(26, 34, 49, 1)
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =28
+                                          Layout: =ButtonLayout.TextOnly
+                                          OnSelect: =Set(gblDomain, If(gblDomain = "Equipment", "", "Equipment"))
+                                          RadiusBottomLeft: =10
+                                          RadiusBottomRight: =10
+                                          RadiusTopLeft: =10
+                                          RadiusTopRight: =10
+                                          Size: =14
+                                          Text: =If(gblDomain = "Equipment", "Vis alle", "Filtrer")
+                                          VerticalAlign: =VerticalAlign.Middle
+                                          Width: =((If((App.Width - 64) < 940, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)) - 24 - 6) / 2
+                                    - btnMdTileNewEQ:
+                                        Control: ModernButton@1.0.0
+                                        Properties:
+                                          AccessibleLabel: ="Kommer snart"
+                                          Align: =Align.Center
+                                          AlignInContainer: =AlignInContainer.Center
+                                          Appearance: =ButtonAppearance.Secondary
+                                          BorderColor: =RGBA(215, 222, 232, 1)
+                                          BorderThickness: =1
+                                          Color: =RGBA(26, 34, 49, 1)
+                                          DisplayMode: =DisplayMode.Disabled
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =28
+                                          Layout: =ButtonLayout.TextOnly
+                                          OnSelect: =Notify("Denne app er ikke bygget endnu.", NotificationType.Warning)
+                                          RadiusBottomLeft: =10
+                                          RadiusBottomRight: =10
+                                          RadiusTopLeft: =10
+                                          RadiusTopRight: =10
+                                          Size: =14
+                                          Text: ="Kommer snart"
+                                          VerticalAlign: =VerticalAlign.Middle
+                                          Width: =((If((App.Width - 64) < 940, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)) - 24 - 6) / 2
+                        - conMdTileMP:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              BorderColor: =If(gblDomain = "MeasuringPoint", RGBA(21, 127, 92, 1), RGBA(215, 222, 232, 1))
+                              BorderThickness: =1
+                              DropShadow: =DropShadow.None
+                              Fill: =RGBA(250, 251, 253, 1)
+                              FillPortions: =0
+                              Height: =148
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =6
+                              LayoutMinWidth: =0
+                              PaddingBottom: =12
+                              PaddingLeft: =12
+                              PaddingRight: =12
+                              PaddingTop: =12
+                              RadiusBottomLeft: =10
+                              RadiusBottomRight: =10
+                              RadiusTopLeft: =10
+                              RadiusTopRight: =10
+                              Width: =If((App.Width - 64) < 940, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)
+                            Children:
+                              - conMdStripeMP:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: =BorderStyle.None
+                                    DropShadow: =DropShadow.None
+                                    Fill: =RGBA(21, 127, 92, 1)
+                                    FillPortions: =0
+                                    Height: =4
+                                    LayoutAlignItems: =LayoutAlignItems.Stretch
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =8
+                                    LayoutMinWidth: =0
+                                    Width: =34
+                              - txtMdTileNameMP:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Maalepunkt"
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =0
+                                    Color: =RGBA(26, 34, 49, 1)
+                                    Fill: =RGBA(0, 0, 0, 0)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =20
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =14
+                                    Text: ="Maalepunkt"
+                                    Wrap: =false
+                              - txtMdTileCountMP:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: |-
+                                      =Text(CountRows(Filter(If(
+                                          gblView = "mine",
+                                          Filter('MD_RequestIndex', RequesterEmail = gblMe),
+                                          Filter('MD_RequestIndex', IsOpen = true)
+                                      ), Domain.Value = "MeasuringPoint", IsOpen = true)))
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =0
+                                    Color: =RGBA(26, 34, 49, 1)
+                                    Fill: =RGBA(0, 0, 0, 0)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =26
+                                    Text: |-
+                                      =Text(CountRows(Filter(If(
+                                          gblView = "mine",
+                                          Filter('MD_RequestIndex', RequesterEmail = gblMe),
+                                          Filter('MD_RequestIndex', IsOpen = true)
+                                      ), Domain.Value = "MeasuringPoint", IsOpen = true)))
+                                    Wrap: =false
+                              - txtMdTileLblMP:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: =If(gblView = "mine", "aabne hos mig", "aabne i koeen")
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =0
+                                    Color: =RGBA(89, 102, 122, 1)
+                                    Fill: =RGBA(0, 0, 0, 0)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =16
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =11
+                                    Text: =If(gblView = "mine", "aabne hos mig", "aabne i koeen")
+                                    Wrap: =false
+                              - conMdTileBtnsMP:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: =BorderStyle.None
+                                    DropShadow: =DropShadow.None
+                                    FillPortions: =0
+                                    Height: =28
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =6
+                                    LayoutMinWidth: =0
+                                    Width: =Parent.Width
+                                  Children:
+                                    - btnMdTileFilterMP:
+                                        Control: ModernButton@1.0.0
+                                        Properties:
+                                          AccessibleLabel: =If(gblDomain = "MeasuringPoint", "Vis alle", "Filtrer")
+                                          Align: =Align.Center
+                                          AlignInContainer: =AlignInContainer.Center
+                                          Appearance: =ButtonAppearance.Secondary
+                                          BorderColor: =RGBA(215, 222, 232, 1)
+                                          BorderThickness: =1
+                                          Color: =RGBA(26, 34, 49, 1)
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =28
+                                          Layout: =ButtonLayout.TextOnly
+                                          OnSelect: =Set(gblDomain, If(gblDomain = "MeasuringPoint", "", "MeasuringPoint"))
+                                          RadiusBottomLeft: =10
+                                          RadiusBottomRight: =10
+                                          RadiusTopLeft: =10
+                                          RadiusTopRight: =10
+                                          Size: =14
+                                          Text: =If(gblDomain = "MeasuringPoint", "Vis alle", "Filtrer")
+                                          VerticalAlign: =VerticalAlign.Middle
+                                          Width: =((If((App.Width - 64) < 940, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)) - 24 - 6) / 2
+                                    - btnMdTileNewMP:
+                                        Control: ModernButton@1.0.0
+                                        Properties:
+                                          AccessibleLabel: ="Kommer snart"
+                                          Align: =Align.Center
+                                          AlignInContainer: =AlignInContainer.Center
+                                          Appearance: =ButtonAppearance.Secondary
+                                          BorderColor: =RGBA(215, 222, 232, 1)
+                                          BorderThickness: =1
+                                          Color: =RGBA(26, 34, 49, 1)
+                                          DisplayMode: =DisplayMode.Disabled
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =28
+                                          Layout: =ButtonLayout.TextOnly
+                                          OnSelect: =Notify("Denne app er ikke bygget endnu.", NotificationType.Warning)
+                                          RadiusBottomLeft: =10
+                                          RadiusBottomRight: =10
+                                          RadiusTopLeft: =10
+                                          RadiusTopRight: =10
+                                          Size: =14
+                                          Text: ="Kommer snart"
+                                          VerticalAlign: =VerticalAlign.Middle
+                                          Width: =((If((App.Width - 64) < 940, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)) - 24 - 6) / 2
+                        - conMdTileMAT:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              BorderColor: =If(gblDomain = "Material", RGBA(154, 99, 0, 1), RGBA(215, 222, 232, 1))
+                              BorderThickness: =1
+                              DropShadow: =DropShadow.None
+                              Fill: =RGBA(250, 251, 253, 1)
+                              FillPortions: =0
+                              Height: =148
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =6
+                              LayoutMinWidth: =0
+                              PaddingBottom: =12
+                              PaddingLeft: =12
+                              PaddingRight: =12
+                              PaddingTop: =12
+                              RadiusBottomLeft: =10
+                              RadiusBottomRight: =10
+                              RadiusTopLeft: =10
+                              RadiusTopRight: =10
+                              Width: =If((App.Width - 64) < 940, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)
+                            Children:
+                              - conMdStripeMAT:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: =BorderStyle.None
+                                    DropShadow: =DropShadow.None
+                                    Fill: =RGBA(154, 99, 0, 1)
+                                    FillPortions: =0
+                                    Height: =4
+                                    LayoutAlignItems: =LayoutAlignItems.Stretch
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =8
+                                    LayoutMinWidth: =0
+                                    Width: =34
+                              - txtMdTileNameMAT:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Materiale"
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =0
+                                    Color: =RGBA(26, 34, 49, 1)
+                                    Fill: =RGBA(0, 0, 0, 0)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =20
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =14
+                                    Text: ="Materiale"
+                                    Wrap: =false
+                              - txtMdTileCountMAT:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: |-
+                                      =Text(CountRows(Filter(If(
+                                          gblView = "mine",
+                                          Filter('MD_RequestIndex', RequesterEmail = gblMe),
+                                          Filter('MD_RequestIndex', IsOpen = true)
+                                      ), Domain.Value = "Material", IsOpen = true)))
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =0
+                                    Color: =RGBA(26, 34, 49, 1)
+                                    Fill: =RGBA(0, 0, 0, 0)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =26
+                                    Text: |-
+                                      =Text(CountRows(Filter(If(
+                                          gblView = "mine",
+                                          Filter('MD_RequestIndex', RequesterEmail = gblMe),
+                                          Filter('MD_RequestIndex', IsOpen = true)
+                                      ), Domain.Value = "Material", IsOpen = true)))
+                                    Wrap: =false
+                              - txtMdTileLblMAT:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: =If(gblView = "mine", "aabne hos mig", "aabne i koeen")
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =0
+                                    Color: =RGBA(89, 102, 122, 1)
+                                    Fill: =RGBA(0, 0, 0, 0)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =16
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =11
+                                    Text: =If(gblView = "mine", "aabne hos mig", "aabne i koeen")
+                                    Wrap: =false
+                              - conMdTileBtnsMAT:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: =BorderStyle.None
+                                    DropShadow: =DropShadow.None
+                                    FillPortions: =0
+                                    Height: =28
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =6
+                                    LayoutMinWidth: =0
+                                    Width: =Parent.Width
+                                  Children:
+                                    - btnMdTileFilterMAT:
+                                        Control: ModernButton@1.0.0
+                                        Properties:
+                                          AccessibleLabel: =If(gblDomain = "Material", "Vis alle", "Filtrer")
+                                          Align: =Align.Center
+                                          AlignInContainer: =AlignInContainer.Center
+                                          Appearance: =ButtonAppearance.Secondary
+                                          BorderColor: =RGBA(215, 222, 232, 1)
+                                          BorderThickness: =1
+                                          Color: =RGBA(26, 34, 49, 1)
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =28
+                                          Layout: =ButtonLayout.TextOnly
+                                          OnSelect: =Set(gblDomain, If(gblDomain = "Material", "", "Material"))
+                                          RadiusBottomLeft: =10
+                                          RadiusBottomRight: =10
+                                          RadiusTopLeft: =10
+                                          RadiusTopRight: =10
+                                          Size: =14
+                                          Text: =If(gblDomain = "Material", "Vis alle", "Filtrer")
+                                          VerticalAlign: =VerticalAlign.Middle
+                                          Width: =((If((App.Width - 64) < 940, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)) - 24 - 6) / 2
+                                    - btnMdTileNewMAT:
+                                        Control: ModernButton@1.0.0
+                                        Properties:
+                                          AccessibleLabel: ="Kommer snart"
+                                          Align: =Align.Center
+                                          AlignInContainer: =AlignInContainer.Center
+                                          Appearance: =ButtonAppearance.Secondary
+                                          BorderColor: =RGBA(215, 222, 232, 1)
+                                          BorderThickness: =1
+                                          Color: =RGBA(26, 34, 49, 1)
+                                          DisplayMode: =DisplayMode.Disabled
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =28
+                                          Layout: =ButtonLayout.TextOnly
+                                          OnSelect: =Notify("Denne app er ikke bygget endnu.", NotificationType.Warning)
+                                          RadiusBottomLeft: =10
+                                          RadiusBottomRight: =10
+                                          RadiusTopLeft: =10
+                                          RadiusTopRight: =10
+                                          Size: =14
+                                          Text: ="Kommer snart"
+                                          VerticalAlign: =VerticalAlign.Middle
+                                          Width: =((If((App.Width - 64) < 940, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)) - 24 - 6) / 2
+                        - conMdTileVHP:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              BorderColor: =If(gblDomain = "MaintenancePlan", RGBA(109, 74, 166, 1), RGBA(215, 222, 232, 1))
+                              BorderThickness: =1
+                              DropShadow: =DropShadow.None
+                              Fill: =RGBA(250, 251, 253, 1)
+                              FillPortions: =0
+                              Height: =148
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =6
+                              LayoutMinWidth: =0
+                              PaddingBottom: =12
+                              PaddingLeft: =12
+                              PaddingRight: =12
+                              PaddingTop: =12
+                              RadiusBottomLeft: =10
+                              RadiusBottomRight: =10
+                              RadiusTopLeft: =10
+                              RadiusTopRight: =10
+                              Width: =If((App.Width - 64) < 940, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)
+                            Children:
+                              - conMdStripeVHP:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: =BorderStyle.None
+                                    DropShadow: =DropShadow.None
+                                    Fill: =RGBA(109, 74, 166, 1)
+                                    FillPortions: =0
+                                    Height: =4
+                                    LayoutAlignItems: =LayoutAlignItems.Stretch
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =8
+                                    LayoutMinWidth: =0
+                                    Width: =34
+                              - txtMdTileNameVHP:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="VH-plan"
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =0
+                                    Color: =RGBA(26, 34, 49, 1)
+                                    Fill: =RGBA(0, 0, 0, 0)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =20
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =14
+                                    Text: ="VH-plan"
+                                    Wrap: =false
+                              - txtMdTileCountVHP:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: |-
+                                      =Text(CountRows(Filter(If(
+                                          gblView = "mine",
+                                          Filter('MD_RequestIndex', RequesterEmail = gblMe),
+                                          Filter('MD_RequestIndex', IsOpen = true)
+                                      ), Domain.Value = "MaintenancePlan", IsOpen = true)))
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =0
+                                    Color: =RGBA(26, 34, 49, 1)
+                                    Fill: =RGBA(0, 0, 0, 0)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =26
+                                    Text: |-
+                                      =Text(CountRows(Filter(If(
+                                          gblView = "mine",
+                                          Filter('MD_RequestIndex', RequesterEmail = gblMe),
+                                          Filter('MD_RequestIndex', IsOpen = true)
+                                      ), Domain.Value = "MaintenancePlan", IsOpen = true)))
+                                    Wrap: =false
+                              - txtMdTileLblVHP:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: =If(gblView = "mine", "aabne hos mig", "aabne i koeen")
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =0
+                                    Color: =RGBA(89, 102, 122, 1)
+                                    Fill: =RGBA(0, 0, 0, 0)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =16
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =11
+                                    Text: =If(gblView = "mine", "aabne hos mig", "aabne i koeen")
+                                    Wrap: =false
+                              - conMdTileBtnsVHP:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: =BorderStyle.None
+                                    DropShadow: =DropShadow.None
+                                    FillPortions: =0
+                                    Height: =28
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =6
+                                    LayoutMinWidth: =0
+                                    Width: =Parent.Width
+                                  Children:
+                                    - btnMdTileFilterVHP:
+                                        Control: ModernButton@1.0.0
+                                        Properties:
+                                          AccessibleLabel: =If(gblDomain = "MaintenancePlan", "Vis alle", "Filtrer")
+                                          Align: =Align.Center
+                                          AlignInContainer: =AlignInContainer.Center
+                                          Appearance: =ButtonAppearance.Secondary
+                                          BorderColor: =RGBA(215, 222, 232, 1)
+                                          BorderThickness: =1
+                                          Color: =RGBA(26, 34, 49, 1)
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =28
+                                          Layout: =ButtonLayout.TextOnly
+                                          OnSelect: =Set(gblDomain, If(gblDomain = "MaintenancePlan", "", "MaintenancePlan"))
+                                          RadiusBottomLeft: =10
+                                          RadiusBottomRight: =10
+                                          RadiusTopLeft: =10
+                                          RadiusTopRight: =10
+                                          Size: =14
+                                          Text: =If(gblDomain = "MaintenancePlan", "Vis alle", "Filtrer")
+                                          VerticalAlign: =VerticalAlign.Middle
+                                          Width: =((If((App.Width - 64) < 940, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)) - 24 - 6) / 2
+                                    - btnMdTileNewVHP:
+                                        Control: ModernButton@1.0.0
+                                        Properties:
+                                          AccessibleLabel: ="Opret ny"
+                                          Align: =Align.Center
+                                          AlignInContainer: =AlignInContainer.Center
+                                          BasePaletteColor: =RGBA(0, 103, 174, 1)
+                                          Color: =RGBA(255, 255, 255, 1)
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =28
+                                          Layout: =ButtonLayout.TextOnly
+                                          OnSelect: =Launch("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/11fa8d90-868a-45a4-ba23-28f2cf0671a2", { }, LaunchTarget.New)
+                                          RadiusBottomLeft: =10
+                                          RadiusBottomRight: =10
+                                          RadiusTopLeft: =10
+                                          RadiusTopRight: =10
+                                          Size: =14
+                                          Text: ="Opret ny"
+                                          VerticalAlign: =VerticalAlign.Middle
+                                          Width: =((If((App.Width - 64) < 940, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)) - 24 - 6) / 2
+                  - conMdFilters:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: =BorderStyle.None
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =32
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =8
+                        LayoutMinWidth: =0
+                        LayoutWrap: =true
+                        Width: =Parent.Width
+                      Children:
+                        - txtMdSearch:
+                            Control: ModernTextInput@1.1.1
+                            Properties:
+                              AccessibleLabel: ="Soeg nummer, tekst eller vaerk"
+                              BorderColor: =RGBA(215, 222, 232, 1)
+                              BorderStyle: =BorderStyle.Solid
+                              BorderThickness: =1
+                              Color: =RGBA(26, 34, 49, 1)
+                              Fill: =RGBA(255, 255, 255, 1)
+                              Font: =Font.'Segoe UI'
+                              LayoutMinWidth: =0
+                              Placeholder: ="Soeg nummer, tekst eller vaerk"
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                              Size: =13
+                              Type: =TextInputType.Search
+                              Width: =Max(180, (App.Width - 64) - 3 * 104 - 200 - 5 * 8)
+                        - btnMdStOpen:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Aabne"
+                              Align: =Align.Center
+                              AlignInContainer: =AlignInContainer.Center
+                              Appearance: =If(gblStatusMode = "open", ButtonAppearance.Primary, ButtonAppearance.Secondary)
+                              BasePaletteColor: =RGBA(0, 83, 140, 1)
+                              BorderColor: =RGBA(215, 222, 232, 1)
+                              BorderThickness: =1
+                              Color: =If(gblStatusMode = "open", RGBA(255, 255, 255, 1), RGBA(89, 102, 122, 1))
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Layout: =ButtonLayout.TextOnly
+                              OnSelect: =Set(gblStatusMode, "open")
+                              RadiusBottomLeft: =10
+                              RadiusBottomRight: =10
+                              RadiusTopLeft: =10
+                              RadiusTopRight: =10
+                              Size: =14
+                              Text: ="Aabne"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =104
+                        - btnMdStDone:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Afsluttede"
+                              Align: =Align.Center
+                              AlignInContainer: =AlignInContainer.Center
+                              Appearance: =If(gblStatusMode = "done", ButtonAppearance.Primary, ButtonAppearance.Secondary)
+                              BasePaletteColor: =RGBA(0, 83, 140, 1)
+                              BorderColor: =RGBA(215, 222, 232, 1)
+                              BorderThickness: =1
+                              Color: =If(gblStatusMode = "done", RGBA(255, 255, 255, 1), RGBA(89, 102, 122, 1))
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Layout: =ButtonLayout.TextOnly
+                              OnSelect: =Set(gblStatusMode, "done")
+                              RadiusBottomLeft: =10
+                              RadiusBottomRight: =10
+                              RadiusTopLeft: =10
+                              RadiusTopRight: =10
+                              Size: =14
+                              Text: ="Afsluttede"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =104
+                        - btnMdStAll:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Alle"
+                              Align: =Align.Center
+                              AlignInContainer: =AlignInContainer.Center
+                              Appearance: =If(gblStatusMode = "all", ButtonAppearance.Primary, ButtonAppearance.Secondary)
+                              BasePaletteColor: =RGBA(0, 83, 140, 1)
+                              BorderColor: =RGBA(215, 222, 232, 1)
+                              BorderThickness: =1
+                              Color: =If(gblStatusMode = "all", RGBA(255, 255, 255, 1), RGBA(89, 102, 122, 1))
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Layout: =ButtonLayout.TextOnly
+                              OnSelect: =Set(gblStatusMode, "all")
+                              RadiusBottomLeft: =10
+                              RadiusBottomRight: =10
+                              RadiusTopLeft: =10
+                              RadiusTopRight: =10
+                              Size: =14
+                              Text: ="Alle"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =104
+                        - txtMdCount:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: |-
+                                =Text(CountRows(If(
+                                    gblView = "mine",
+                                    Filter('MD_RequestIndex', RequesterEmail = gblMe),
+                                    Filter('MD_RequestIndex', IsOpen = true)
+                                ))) & " indmeldinger i visningen"
+                              Align: =Align.Right
+                              BorderStyle: =BorderStyle.None
+                              BorderThickness: =0
+                              Color: =RGBA(89, 102, 122, 1)
+                              Fill: =RGBA(0, 0, 0, 0)
+                              Font: =Font.'Segoe UI'
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =12
+                              Text: |-
+                                =Text(CountRows(If(
+                                    gblView = "mine",
+                                    Filter('MD_RequestIndex', RequesterEmail = gblMe),
+                                    Filter('MD_RequestIndex', IsOpen = true)
+                                ))) & " indmeldinger i visningen"
+                              Width: =200
+                              Wrap: =false
+                  - conMdListCard:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        BorderColor: =RGBA(215, 222, 232, 1)
+                        BorderThickness: =1
+                        DropShadow: =DropShadow.None
+                        Fill: =RGBA(250, 251, 253, 1)
+                        FillPortions: =0
+                        Height: |-
+                          =496 + If(IfError(IsEmpty(SortByColumns(
+                              Filter(
+                                  If(
+                              gblView = "mine",
+                              Filter('MD_RequestIndex', RequesterEmail = gblMe),
+                              Filter('MD_RequestIndex', IsOpen = true)
+                          ),
+                                  gblDomain = "" || Domain.Value = gblDomain,
+                                  gblStatusMode = "all" || (gblStatusMode = "open" && IsOpen) ||
+                                      (gblStatusMode = "done" && !IsOpen),
+                                  IsBlank(Trim(txtMdSearch.Text)) ||
+                                      StartsWith(RequestNo, Trim(txtMdSearch.Text)) ||
+                                      StartsWith(ShortText, Trim(txtMdSearch.Text)) ||
+                                      StartsWith(Plant, Trim(txtMdSearch.Text))
+                              ),
+                              "LastActionOn", SortOrder.Descending
+                          )), false), 8 + (24), 0)
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =8
+                        LayoutMinWidth: =0
+                        PaddingBottom: =18
+                        PaddingLeft: =18
+                        PaddingRight: =18
+                        PaddingTop: =18
+                        RadiusBottomLeft: =14
+                        RadiusBottomRight: =14
+                        RadiusTopLeft: =14
+                        RadiusTopRight: =14
+                        Width: =Parent.Width
+                      Children:
+                        - conMdListHead:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: =BorderStyle.None
+                              DropShadow: =DropShadow.None
+                              FillPortions: =0
+                              Height: =20
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutGap: =10
+                              LayoutMinWidth: =0
+                              Width: =Parent.Width
+                            Children:
+                              - txtMdH0:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="DOMAENE"
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =0
+                                    Color: =RGBA(89, 102, 122, 1)
+                                    Fill: =RGBA(0, 0, 0, 0)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =20
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =10
+                                    Text: ="DOMAENE"
+                                    Width: =104
+                                    Wrap: =false
+                              - txtMdH1:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="INDMELDING"
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =0
+                                    Color: =RGBA(89, 102, 122, 1)
+                                    Fill: =RGBA(0, 0, 0, 0)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =20
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =10
+                                    Text: ="INDMELDING"
+                                    Width: =Parent.Width - 560
+                                    Wrap: =false
+                              - txtMdH2:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="VAERK"
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =0
+                                    Color: =RGBA(89, 102, 122, 1)
+                                    Fill: =RGBA(0, 0, 0, 0)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =20
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =10
+                                    Text: ="VAERK"
+                                    Width: =62
+                                    Wrap: =false
+                              - txtMdH3:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="STATUS"
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =0
+                                    Color: =RGBA(89, 102, 122, 1)
+                                    Fill: =RGBA(0, 0, 0, 0)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =20
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =10
+                                    Text: ="STATUS"
+                                    Width: =176
+                                    Wrap: =false
+                              - txtMdH4:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="SIDST"
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =0
+                                    Color: =RGBA(89, 102, 122, 1)
+                                    Fill: =RGBA(0, 0, 0, 0)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =20
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =10
+                                    Text: ="SIDST"
+                                    Width: =92
+                                    Wrap: =false
+                              - txtMdH5:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Handling"
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =0
+                                    Color: =RGBA(89, 102, 122, 1)
+                                    Fill: =RGBA(0, 0, 0, 0)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =20
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =10
+                                    Text: =""
+                                    Width: =76
+                                    Wrap: =false
+                        - galMdRequests:
+                            Control: Gallery@2.15.0
+                            Variant: Vertical
+                            Properties:
+                              AccessibleLabel: ="Indmeldinger"
+                              BorderStyle: =BorderStyle.None
+                              Fill: =RGBA(215, 222, 232, 1)
+                              FillPortions: =0
+                              Height: =432
+                              Items: |-
+                                =SortByColumns(
+                                    Filter(
+                                        If(
+                                    gblView = "mine",
+                                    Filter('MD_RequestIndex', RequesterEmail = gblMe),
+                                    Filter('MD_RequestIndex', IsOpen = true)
+                                ),
+                                        gblDomain = "" || Domain.Value = gblDomain,
+                                        gblStatusMode = "all" || (gblStatusMode = "open" && IsOpen) ||
+                                            (gblStatusMode = "done" && !IsOpen),
+                                        IsBlank(Trim(txtMdSearch.Text)) ||
+                                            StartsWith(RequestNo, Trim(txtMdSearch.Text)) ||
+                                            StartsWith(ShortText, Trim(txtMdSearch.Text)) ||
+                                            StartsWith(Plant, Trim(txtMdSearch.Text))
+                                    ),
+                                    "LastActionOn", SortOrder.Descending
+                                )
+                              LayoutMinWidth: =0
+                              LoadingSpinner: =LoadingSpinner.Controls
+                              Selectable: =false
+                              TabIndex: =0
+                              TemplatePadding: =2
+                              TemplateSize: =46
+                              Width: =Parent.Width
+                            Children:
+                              - conMdRow:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: =BorderStyle.None
+                                    DropShadow: =DropShadow.None
+                                    Fill: =RGBA(250, 251, 253, 1)
+                                    Height: =Parent.TemplateHeight - 2
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =10
+                                    Width: =Parent.TemplateWidth
+                                  Children:
+                                    - txtMdRowDomain:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          AccessibleLabel: |-
+                                            ="Domaene: " & Switch(
+                                                ThisItem.Domain.Value,
+                                                "FunctionalLocation", "Funktionsplads",
+                                                "Equipment", "Udstyr",
+                                                "MeasuringPoint", "Maalepunkt",
+                                                "Material", "Materiale",
+                                                "MaintenancePlan", "VH-plan",
+                                                "?"
+                                            )
+                                          Align: =Align.Center
+                                          AlignInContainer: =AlignInContainer.Center
+                                          BorderStyle: =BorderStyle.None
+                                          BorderThickness: =0
+                                          Color: =RGBA(255, 255, 255, 1)
+                                          Fill: |-
+                                            =Switch(
+                                                ThisItem.Domain.Value,
+                                                "FunctionalLocation", RGBA(0, 103, 174, 1),
+                                                "Equipment", RGBA(14, 124, 134, 1),
+                                                "MeasuringPoint", RGBA(21, 127, 92, 1),
+                                                "Material", RGBA(154, 99, 0, 1),
+                                                "MaintenancePlan", RGBA(109, 74, 166, 1),
+                                                RGBA(89, 102, 122, 1)
+                                            )
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =20
+                                          PaddingBottom: =0
+                                          PaddingLeft: =6
+                                          PaddingRight: =6
+                                          PaddingTop: =0
+                                          RadiusBottomLeft: =4
+                                          RadiusBottomRight: =4
+                                          RadiusTopLeft: =4
+                                          RadiusTopRight: =4
+                                          Size: =10
+                                          Text: |-
+                                            =Switch(
+                                                ThisItem.Domain.Value,
+                                                "FunctionalLocation", "Funktionsplads",
+                                                "Equipment", "Udstyr",
+                                                "MeasuringPoint", "Maalepunkt",
+                                                "Material", "Materiale",
+                                                "MaintenancePlan", "VH-plan",
+                                                "?"
+                                            )
+                                          Width: =104
+                                          Wrap: =false
+                                    - conMdRowMain:
+                                        Control: GroupContainer@1.5.0
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: =BorderStyle.None
+                                          DropShadow: =DropShadow.None
+                                          FillPortions: =0
+                                          Height: =36
+                                          LayoutAlignItems: =LayoutAlignItems.Stretch
+                                          LayoutDirection: =LayoutDirection.Vertical
+                                          LayoutGap: =2
+                                          LayoutMinWidth: =0
+                                          Width: =Parent.Width - 560
+                                        Children:
+                                          - txtMdRowNo:
+                                              Control: ModernText@1.0.0
+                                              Properties:
+                                                AccessibleLabel: =ThisItem.RequestNo
+                                                BorderStyle: =BorderStyle.None
+                                                BorderThickness: =0
+                                                Color: =RGBA(89, 102, 122, 1)
+                                                Fill: =RGBA(0, 0, 0, 0)
+                                                Font: =Font.'Segoe UI'
+                                                Height: =16
+                                                PaddingBottom: =0
+                                                PaddingLeft: =0
+                                                PaddingRight: =0
+                                                PaddingTop: =0
+                                                Size: =11
+                                                Text: =ThisItem.RequestNo
+                                                Wrap: =false
+                                          - txtMdRowText:
+                                              Control: ModernText@1.0.0
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                  ="Beskrivelse: " & ThisItem.ShortText
+                                                BorderStyle: =BorderStyle.None
+                                                BorderThickness: =0
+                                                Color: =RGBA(26, 34, 49, 1)
+                                                Fill: =RGBA(0, 0, 0, 0)
+                                                Font: =Font.'Segoe UI'
+                                                Height: =18
+                                                PaddingBottom: =0
+                                                PaddingLeft: =0
+                                                PaddingRight: =0
+                                                PaddingTop: =0
+                                                Size: =13
+                                                Text: =ThisItem.ShortText
+                                                Wrap: =false
+                                    - txtMdRowPlant:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          AccessibleLabel: |-
+                                            ="Vaerk: " & ThisItem.Plant
+                                          BorderStyle: =BorderStyle.None
+                                          BorderThickness: =0
+                                          Color: =RGBA(89, 102, 122, 1)
+                                          Fill: =RGBA(0, 0, 0, 0)
+                                          Font: =Font.'Segoe UI'
+                                          Height: =36
+                                          PaddingBottom: =0
+                                          PaddingLeft: =0
+                                          PaddingRight: =0
+                                          PaddingTop: =0
+                                          Size: =12
+                                          Text: =ThisItem.Plant
+                                          Width: =62
+                                          Wrap: =false
+                                    - conMdRowStat:
+                                        Control: GroupContainer@1.5.0
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: =BorderStyle.None
+                                          DropShadow: =DropShadow.None
+                                          FillPortions: =0
+                                          Height: =27
+                                          LayoutDirection: =LayoutDirection.Vertical
+                                          LayoutGap: =5
+                                          LayoutMinWidth: =0
+                                          Width: =176
+                                        Children:
+                                          - txtMdRowStatus:
+                                              Control: ModernText@1.0.0
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                  =Switch(
+                                                      ThisItem.Status.Value,
+                                                      "Kladde", "Kladde",
+                                                      "Indsendt", "Indsendt",
+                                                      "UnderBehandling", "Under behandling",
+                                                      "AfventerInfo", "Afventer info",
+                                                      "KlarTilSAP", "Klar til SAP",
+                                                      "OprettetISAP", "Oprettet i SAP",
+                                                      "Afvist", "Afvist",
+                                                      "Annulleret", "Annulleret",
+                                                      "Ukendt"
+                                                  )
+                                                Align: =Align.Center
+                                                BorderStyle: =BorderStyle.None
+                                                BorderThickness: =0
+                                                Color: |-
+                                                  =Switch(
+                                                      ThisItem.Status.Value,
+                                                      "Kladde", RGBA(89, 102, 122, 1),
+                                                      "Indsendt", RGBA(0, 83, 140, 1),
+                                                      "UnderBehandling", RGBA(0, 83, 140, 1),
+                                                      "AfventerInfo", RGBA(138, 90, 0, 1),
+                                                      "KlarTilSAP", RGBA(21, 127, 92, 1),
+                                                      "OprettetISAP", RGBA(21, 127, 92, 1),
+                                                      "Afvist", RGBA(179, 50, 60, 1),
+                                                      "Annulleret", RGBA(89, 102, 122, 1),
+                                                      RGBA(89, 102, 122, 1)
+                                                  )
+                                                Fill: |-
+                                                  =Switch(
+                                                      ThisItem.Status.Value,
+                                                      "Kladde", RGBA(228, 233, 241, 1),
+                                                      "Indsendt", RGBA(222, 240, 252, 1),
+                                                      "UnderBehandling", RGBA(222, 240, 252, 1),
+                                                      "AfventerInfo", RGBA(253, 243, 226, 1),
+                                                      "KlarTilSAP", RGBA(232, 245, 238, 1),
+                                                      "OprettetISAP", RGBA(232, 245, 238, 1),
+                                                      "Afvist", RGBA(253, 236, 236, 1),
+                                                      "Annulleret", RGBA(228, 233, 241, 1),
+                                                      RGBA(228, 233, 241, 1)
+                                                  )
+                                                Font: =Font.'Segoe UI'
+                                                FontWeight: =FontWeight.Semibold
+                                                Height: =18
+                                                PaddingBottom: =0
+                                                PaddingLeft: =8
+                                                PaddingRight: =8
+                                                PaddingTop: =0
+                                                RadiusBottomLeft: =9
+                                                RadiusBottomRight: =9
+                                                RadiusTopLeft: =9
+                                                RadiusTopRight: =9
+                                                Size: =11
+                                                Text: |-
+                                                  =Switch(
+                                                      ThisItem.Status.Value,
+                                                      "Kladde", "Kladde",
+                                                      "Indsendt", "Indsendt",
+                                                      "UnderBehandling", "Under behandling",
+                                                      "AfventerInfo", "Afventer info",
+                                                      "KlarTilSAP", "Klar til SAP",
+                                                      "OprettetISAP", "Oprettet i SAP",
+                                                      "Afvist", "Afvist",
+                                                      "Annulleret", "Annulleret",
+                                                      "Ukendt"
+                                                  )
+                                                Width: =120
+                                                Wrap: =false
+                                          - conMdRowSteps:
+                                              Control: GroupContainer@1.5.0
+                                              Variant: AutoLayout
+                                              Properties:
+                                                BorderStyle: =BorderStyle.None
+                                                DropShadow: =DropShadow.None
+                                                FillPortions: =0
+                                                Height: =4
+                                                LayoutAlignItems: =LayoutAlignItems.Stretch
+                                                LayoutDirection: =LayoutDirection.Horizontal
+                                                LayoutGap: =3
+                                                LayoutMinWidth: =0
+                                                Width: =112
+                                              Children:
+                                                - conMdStep1:
+                                                    Control: GroupContainer@1.5.0
+                                                    Variant: AutoLayout
+                                                    Properties:
+                                                      BorderStyle: =BorderStyle.None
+                                                      DropShadow: =DropShadow.None
+                                                      Fill: |-
+                                                        =If(ThisItem.StatusStep >= 1, Switch(
+                                                            ThisItem.Status.Value,
+                                                            "Kladde", RGBA(89, 102, 122, 1),
+                                                            "Indsendt", RGBA(0, 83, 140, 1),
+                                                            "UnderBehandling", RGBA(0, 83, 140, 1),
+                                                            "AfventerInfo", RGBA(138, 90, 0, 1),
+                                                            "KlarTilSAP", RGBA(21, 127, 92, 1),
+                                                            "OprettetISAP", RGBA(21, 127, 92, 1),
+                                                            "Afvist", RGBA(179, 50, 60, 1),
+                                                            "Annulleret", RGBA(89, 102, 122, 1),
+                                                            RGBA(89, 102, 122, 1)
+                                                        ), RGBA(228, 233, 241, 1))
+                                                      FillPortions: =0
+                                                      Height: =4
+                                                      LayoutAlignItems: =LayoutAlignItems.Stretch
+                                                      LayoutDirection: =LayoutDirection.Horizontal
+                                                      LayoutGap: =8
+                                                      LayoutMinWidth: =0
+                                                      Width: =20
+                                                - conMdStep2:
+                                                    Control: GroupContainer@1.5.0
+                                                    Variant: AutoLayout
+                                                    Properties:
+                                                      BorderStyle: =BorderStyle.None
+                                                      DropShadow: =DropShadow.None
+                                                      Fill: |-
+                                                        =If(ThisItem.StatusStep >= 2, Switch(
+                                                            ThisItem.Status.Value,
+                                                            "Kladde", RGBA(89, 102, 122, 1),
+                                                            "Indsendt", RGBA(0, 83, 140, 1),
+                                                            "UnderBehandling", RGBA(0, 83, 140, 1),
+                                                            "AfventerInfo", RGBA(138, 90, 0, 1),
+                                                            "KlarTilSAP", RGBA(21, 127, 92, 1),
+                                                            "OprettetISAP", RGBA(21, 127, 92, 1),
+                                                            "Afvist", RGBA(179, 50, 60, 1),
+                                                            "Annulleret", RGBA(89, 102, 122, 1),
+                                                            RGBA(89, 102, 122, 1)
+                                                        ), RGBA(228, 233, 241, 1))
+                                                      FillPortions: =0
+                                                      Height: =4
+                                                      LayoutAlignItems: =LayoutAlignItems.Stretch
+                                                      LayoutDirection: =LayoutDirection.Horizontal
+                                                      LayoutGap: =8
+                                                      LayoutMinWidth: =0
+                                                      Width: =20
+                                                - conMdStep3:
+                                                    Control: GroupContainer@1.5.0
+                                                    Variant: AutoLayout
+                                                    Properties:
+                                                      BorderStyle: =BorderStyle.None
+                                                      DropShadow: =DropShadow.None
+                                                      Fill: |-
+                                                        =If(ThisItem.StatusStep >= 3, Switch(
+                                                            ThisItem.Status.Value,
+                                                            "Kladde", RGBA(89, 102, 122, 1),
+                                                            "Indsendt", RGBA(0, 83, 140, 1),
+                                                            "UnderBehandling", RGBA(0, 83, 140, 1),
+                                                            "AfventerInfo", RGBA(138, 90, 0, 1),
+                                                            "KlarTilSAP", RGBA(21, 127, 92, 1),
+                                                            "OprettetISAP", RGBA(21, 127, 92, 1),
+                                                            "Afvist", RGBA(179, 50, 60, 1),
+                                                            "Annulleret", RGBA(89, 102, 122, 1),
+                                                            RGBA(89, 102, 122, 1)
+                                                        ), RGBA(228, 233, 241, 1))
+                                                      FillPortions: =0
+                                                      Height: =4
+                                                      LayoutAlignItems: =LayoutAlignItems.Stretch
+                                                      LayoutDirection: =LayoutDirection.Horizontal
+                                                      LayoutGap: =8
+                                                      LayoutMinWidth: =0
+                                                      Width: =20
+                                                - conMdStep4:
+                                                    Control: GroupContainer@1.5.0
+                                                    Variant: AutoLayout
+                                                    Properties:
+                                                      BorderStyle: =BorderStyle.None
+                                                      DropShadow: =DropShadow.None
+                                                      Fill: |-
+                                                        =If(ThisItem.StatusStep >= 4, Switch(
+                                                            ThisItem.Status.Value,
+                                                            "Kladde", RGBA(89, 102, 122, 1),
+                                                            "Indsendt", RGBA(0, 83, 140, 1),
+                                                            "UnderBehandling", RGBA(0, 83, 140, 1),
+                                                            "AfventerInfo", RGBA(138, 90, 0, 1),
+                                                            "KlarTilSAP", RGBA(21, 127, 92, 1),
+                                                            "OprettetISAP", RGBA(21, 127, 92, 1),
+                                                            "Afvist", RGBA(179, 50, 60, 1),
+                                                            "Annulleret", RGBA(89, 102, 122, 1),
+                                                            RGBA(89, 102, 122, 1)
+                                                        ), RGBA(228, 233, 241, 1))
+                                                      FillPortions: =0
+                                                      Height: =4
+                                                      LayoutAlignItems: =LayoutAlignItems.Stretch
+                                                      LayoutDirection: =LayoutDirection.Horizontal
+                                                      LayoutGap: =8
+                                                      LayoutMinWidth: =0
+                                                      Width: =20
+                                                - conMdStep5:
+                                                    Control: GroupContainer@1.5.0
+                                                    Variant: AutoLayout
+                                                    Properties:
+                                                      BorderStyle: =BorderStyle.None
+                                                      DropShadow: =DropShadow.None
+                                                      Fill: |-
+                                                        =If(ThisItem.StatusStep >= 5, Switch(
+                                                            ThisItem.Status.Value,
+                                                            "Kladde", RGBA(89, 102, 122, 1),
+                                                            "Indsendt", RGBA(0, 83, 140, 1),
+                                                            "UnderBehandling", RGBA(0, 83, 140, 1),
+                                                            "AfventerInfo", RGBA(138, 90, 0, 1),
+                                                            "KlarTilSAP", RGBA(21, 127, 92, 1),
+                                                            "OprettetISAP", RGBA(21, 127, 92, 1),
+                                                            "Afvist", RGBA(179, 50, 60, 1),
+                                                            "Annulleret", RGBA(89, 102, 122, 1),
+                                                            RGBA(89, 102, 122, 1)
+                                                        ), RGBA(228, 233, 241, 1))
+                                                      FillPortions: =0
+                                                      Height: =4
+                                                      LayoutAlignItems: =LayoutAlignItems.Stretch
+                                                      LayoutDirection: =LayoutDirection.Horizontal
+                                                      LayoutGap: =8
+                                                      LayoutMinWidth: =0
+                                                      Width: =20
+                                    - txtMdRowWhen:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          AccessibleLabel: |-
+                                            ="Sidst aendret: " & With(
+                                                { d: DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days) },
+                                                If(d <= 0, "I dag", If(d = 1, "I gaar", Text(d) & " dage"))
+                                            )
+                                          Align: =Align.Right
+                                          BorderStyle: =BorderStyle.None
+                                          BorderThickness: =0
+                                          Color: =RGBA(89, 102, 122, 1)
+                                          Fill: =RGBA(0, 0, 0, 0)
+                                          Font: =Font.'Segoe UI'
+                                          Height: =36
+                                          PaddingBottom: =0
+                                          PaddingLeft: =0
+                                          PaddingRight: =0
+                                          PaddingTop: =0
+                                          Size: =11
+                                          Text: |-
+                                            =With(
+                                                { d: DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days) },
+                                                If(d <= 0, "I dag", If(d = 1, "I gaar", Text(d) & " dage"))
+                                            )
+                                          Width: =92
+                                          Wrap: =false
+                                    - btnMdRowOpen:
+                                        Control: ModernButton@1.0.0
+                                        Properties:
+                                          AccessibleLabel: ="Aabn " & ThisItem.RequestNo & " i domaeneappen"
+                                          Align: =Align.Center
+                                          AlignInContainer: =AlignInContainer.Center
+                                          Appearance: =ButtonAppearance.Secondary
+                                          BorderColor: =RGBA(215, 222, 232, 1)
+                                          BorderThickness: =1
+                                          Color: =RGBA(26, 34, 49, 1)
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =28
+                                          Layout: =ButtonLayout.TextOnly
+                                          OnSelect: |-
+                                            =If(
+                                                IsBlank(ThisItem.AppUrl),
+                                                Notify("Der er ingen app-URL paa denne indmelding.", NotificationType.Error),
+                                                Launch(
+                                                    ThisItem.AppUrl & If(Find("?", ThisItem.AppUrl) > 0, "&", "?") &
+                                                        "reqid=" & ThisItem.RequestGuid,
+                                                    { },
+                                                    LaunchTarget.New
+                                                )
+                                            )
+                                          RadiusBottomLeft: =10
+                                          RadiusBottomRight: =10
+                                          RadiusTopLeft: =10
+                                          RadiusTopRight: =10
+                                          Size: =14
+                                          Text: ="Aabn"
+                                          VerticalAlign: =VerticalAlign.Middle
+                                          Width: =76
+                        - txtMdEmpty:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Ingen indmeldinger matcher filtrene."
+                              BorderStyle: =BorderStyle.None
+                              BorderThickness: =0
+                              Color: =RGBA(89, 102, 122, 1)
+                              Fill: =RGBA(0, 0, 0, 0)
+                              Font: =Font.'Segoe UI'
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =13
+                              Text: ="Ingen indmeldinger matcher filtrene."
+                              Visible: |-
+                                =IfError(IsEmpty(SortByColumns(
+                                    Filter(
+                                        If(
+                                    gblView = "mine",
+                                    Filter('MD_RequestIndex', RequesterEmail = gblMe),
+                                    Filter('MD_RequestIndex', IsOpen = true)
+                                ),
+                                        gblDomain = "" || Domain.Value = gblDomain,
+                                        gblStatusMode = "all" || (gblStatusMode = "open" && IsOpen) ||
+                                            (gblStatusMode = "done" && !IsOpen),
+                                        IsBlank(Trim(txtMdSearch.Text)) ||
+                                            StartsWith(RequestNo, Trim(txtMdSearch.Text)) ||
+                                            StartsWith(ShortText, Trim(txtMdSearch.Text)) ||
+                                            StartsWith(Plant, Trim(txtMdSearch.Text))
+                                    ),
+                                    "LastActionOn", SortOrder.Descending
+                                )), false)

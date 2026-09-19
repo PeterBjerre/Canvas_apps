@@ -1,0 +1,878 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  NewPlan_Review:
+    Properties:
+      Fill: =RGBA(248, 250, 252, 1)
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+      OnVisible: |-
+        =Set(varCreateStep, 4);
+        Set(varSubmitAttempted, false);
+        Set(varCreateError, "")
+    Children:
+      - conRevRoot:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =RGBA(248, 250, 252, 1)
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =12
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingBottom: =16
+            PaddingLeft: =24
+            PaddingRight: =24
+            PaddingTop: =16
+            Width: =Parent.Width
+          Children:
+            - conRevNav:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(12, 59, 94, 1)
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 156, 72)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =8
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  LayoutWrap: =true
+                  PaddingBottom: =12
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  PaddingTop: =12
+                  Width: =Parent.Width
+                Children:
+                  - btnRevOverview:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Go to Overview"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: =ButtonAppearance.Subtle
+                        BasePaletteColor: =RGBA(255, 255, 255, 1)
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Normal
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Navigate(Screen1, ScreenTransition.None)
+                        Size: =11
+                        Text: ="Overview"
+                        Tooltip: ="Open maintenance plan overview"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =If(Parent.Width < 640, (Parent.Width - 32) / 5, (Parent.Width - 64) / 5)
+                  - btnRevHeader:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Go to Header"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: =ButtonAppearance.Subtle
+                        BasePaletteColor: =RGBA(255, 255, 255, 1)
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Normal
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Navigate(NewPlan_Header, ScreenTransition.None)
+                        Size: =11
+                        Text: ="Header"
+                        Tooltip: ="Edit plan header"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =If(Parent.Width < 640, (Parent.Width - 32) / 5, (Parent.Width - 64) / 5)
+                  - btnRevItems:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Go to Items"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: =ButtonAppearance.Subtle
+                        BasePaletteColor: =RGBA(255, 255, 255, 1)
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Normal
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Navigate(NewPlan_Items, ScreenTransition.None)
+                        Size: =11
+                        Text: ="Items"
+                        Tooltip: ="Edit maintenance items"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =If(Parent.Width < 640, (Parent.Width - 32) / 5, (Parent.Width - 64) / 5)
+                  - btnRevOperations:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Go to Operations"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: =ButtonAppearance.Subtle
+                        BasePaletteColor: =RGBA(255, 255, 255, 1)
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Normal
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Navigate(TaskListOperations, ScreenTransition.None)
+                        Size: =11
+                        Text: ="Operations"
+                        Tooltip: ="Edit operations"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =If(Parent.Width < 640, (Parent.Width - 32) / 5, (Parent.Width - 64) / 5)
+                  - btnRevReview:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Current step Review"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        BasePaletteColor: =RGBA(64, 153, 218, 1)
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Set(varCreateStep, 4)
+                        Size: =11
+                        Text: ="Review"
+                        Tooltip: ="Current review and submit step"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =If(Parent.Width < 640, (Parent.Width - 32) / 5, (Parent.Width - 64) / 5)
+            - conRevHeader:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(12, 59, 94, 1)
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 116, 72)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =If(Parent.Width < 640, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                  LayoutGap: =8
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =10
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =10
+                  Width: =Parent.Width
+                Children:
+                  - txtRevTitle:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Review maintenance plan title"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =36
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =24
+                        Text: ="Review and submit maintenance plan"
+                        Width: =If(Parent.Width < 640, Parent.Width - 32, Parent.Width * 0.7)
+                        Wrap: =false
+                  - txtRevDraft:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Review draft identity"
+                        Align: =Align.Right
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =36
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: ="Step 4 of 4  ·  " & varDraftKey
+                        Width: =If(Parent.Width < 640, Parent.Width - 32, Parent.Width * 0.3 - 8)
+                        Wrap: =false
+            - conRevProgress:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(226, 231, 235, 1)
+                  FillPortions: =0
+                  Height: =48
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =8
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  LayoutWrap: =true
+                  PaddingBottom: =6
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  PaddingTop: =6
+                  Width: =Parent.Width
+                Children:
+                  - txtRevProgress:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Wizard progress"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        FillPortions: =1
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =34
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: ="1 Header   ›   2 Items   ›   3 Operations   ›   4 Review"
+                        Width: =Parent.Width - 24
+                        Wrap: =false
+            - conRevHeaderSummary:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  BorderColor: =RGBA(214, 221, 224, 1)
+                  BorderThickness: =1
+                  DropShadow: =DropShadow.Semilight
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 384, 214)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =4
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =12
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  PaddingTop: =12
+                  Width: =Parent.Width
+                Children:
+                  - txtRevSummaryHeading:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Draft header summary heading"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =28
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =16
+                        Text: ="Draft header summary"
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - txtRevSummaryValues:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="All draft header values"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        FillPortions: =1
+                        Font: =Font.'Open Sans'
+                        Height: =150
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: |-
+                          ="Draft key: " & varDraftPlan.DraftKey & Char(10) & "Plan ID: " & varDraftPlan.PlanID & Char(10) & "Title: " & varDraftPlan.Title & Char(10) & "Plant: " & varDraftPlan.PlantKey & Char(10) & "Cycle: " & Text(varDraftPlan.Cycle, "0") & Char(10) & "Unit: " & varDraftPlan.Unit & Char(10) & "Sort field: " & varDraftPlan.SortField & Char(10) & "Planned date: " & Text(varDraftPlan.PlannedDate, "[$-en-GB]dd/mm/yyyy") & Char(10) & "Call horizon: " & Text(varDraftPlan.CallHorizon0, "0") & " days" & Char(10) & "Scheduling period: " & Text(varDraftPlan.SchedulingPeriod, "0") & Char(10) & "Requester note: " & Coalesce(varDraftPlan.RequesterNote, "")
+                        VerticalAlign: =VerticalAlign.Top
+                        Width: =Parent.Width
+            - txtRevItemsHeading:
+                Control: ModernText@1.0.0
+                Properties:
+                  AccessibleLabel: ="Maintenance items review heading"
+                  AlignInContainer: =AlignInContainer.Stretch
+                  Color: =RGBA(12, 59, 94, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =28
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =16
+                  Text: ="Maintenance items (" & CountRows(colMaintenanceItems) & ")"
+                  Width: =Parent.Width
+                  Wrap: =false
+            - galRevItems:
+                Control: Gallery@2.15.0
+                Variant: Vertical
+                Properties:
+                  AccessibleLabel: ="Maintenance items review list"
+                  BorderColor: =RGBA(214, 221, 224, 1)
+                  BorderThickness: =1
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =Max(208, CountRows(colMaintenanceItems) * 208)
+                  Items: =colMaintenanceItems
+                  LoadingSpinner: =LoadingSpinner.Controls
+                  LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+                  Selectable: =false
+                  ShowScrollbar: =false
+                  TemplatePadding: =8
+                  TemplateSize: =192
+                  Width: =Parent.Width
+                Children:
+                  - txtRevItemRow:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Maintenance item " & ThisItem.ItemDescription
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =176
+                        PaddingBottom: =4
+                        PaddingLeft: =8
+                        PaddingRight: =8
+                        PaddingTop: =4
+                        Size: =11
+                        Text: |-
+                          ="Item no: " & Text(ThisItem.ItemNo, "00") & Char(10) & "Description: " & ThisItem.ItemDescription & Char(10) & "Reference object: " & ThisItem.ReferenceObject & Char(10) & "Activity type: " & ThisItem.ActivityType & Char(10) & "Object type: " & ThisItem.ObjectType & Char(10) & "Work center: " & ThisItem.WorkCenter & Char(10) & "Planner group: " & ThisItem.PlannerGroup & Char(10) & "Priority: " & ThisItem.Priority & Char(10) & "Revision: " & If(ThisItem.Revision, "Yes", "No") & Char(10) & "Revision mark: " & Coalesce(ThisItem.RevisionMark, "")
+                        VerticalAlign: =VerticalAlign.Top
+                        Width: =Parent.Width
+            - txtRevOperationsHeading:
+                Control: ModernText@1.0.0
+                Properties:
+                  AccessibleLabel: ="Operations review heading"
+                  AlignInContainer: =AlignInContainer.Stretch
+                  Color: =RGBA(12, 59, 94, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =28
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =16
+                  Text: ="Operations (" & CountRows(colOperations) & ")"
+                  Width: =Parent.Width
+                  Wrap: =false
+            - galRevOperations:
+                Control: Gallery@2.15.0
+                Variant: Vertical
+                Properties:
+                  AccessibleLabel: ="Operations review list"
+                  BorderColor: =RGBA(214, 221, 224, 1)
+                  BorderThickness: =1
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =Max(208, CountRows(colOperations) * 208)
+                  Items: =colOperations
+                  LoadingSpinner: =LoadingSpinner.Controls
+                  LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+                  Selectable: =false
+                  ShowScrollbar: =false
+                  TemplatePadding: =8
+                  TemplateSize: =192
+                  Width: =Parent.Width
+                Children:
+                  - txtRevOperationRow:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Operation " & ThisItem.OpNo & " " & ThisItem.OpText
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =176
+                        PaddingBottom: =4
+                        PaddingLeft: =8
+                        PaddingRight: =8
+                        PaddingTop: =4
+                        Size: =11
+                        Text: |-
+                          ="Operation no: " & ThisItem.OpNo & Char(10) & "Item key: " & ThisItem.ItemKey & Char(10) & "Description: " & ThisItem.Description & Char(10) & "Operation text: " & ThisItem.OpText & Char(10) & "Work center: " & ThisItem.WorkCenter & Char(10) & "Control key: " & ThisItem.ControlKey & Char(10) & "Work hours: " & Text(ThisItem.WorkHours, "0.0") & Char(10) & "Duration hours: " & Text(ThisItem.DurationHours, "0.0") & Char(10) & "Standard code: " & Coalesce(ThisItem.StandardCode, "") & Char(10) & "Sequence: " & Text(ThisItem.SeqNo, "0")
+                        VerticalAlign: =VerticalAlign.Top
+                        Width: =Parent.Width
+            - conRevValidation:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  BorderColor: =If(varSubmitAttempted && !IsBlank(varCreateError), RGBA(168, 0, 0, 1), RGBA(214, 221, 224, 1))
+                  BorderThickness: =1
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =If(varSubmitAttempted && !IsBlank(varCreateError), 132, 72)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =4
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =10
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  PaddingTop: =10
+                  Width: =Parent.Width
+                Children:
+                  - txtRevValidationHeading:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Review validation heading"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =13
+                        Text: ="Validation"
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - txtRevValidation:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Review validation errors"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(168, 0, 0, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =If(varSubmitAttempted && !IsBlank(varCreateError), 76, 24)
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: =If(varSubmitAttempted && !IsBlank(varCreateError), varCreateError, "Ready to validate header, items and operations before submit.")
+                        VerticalAlign: =VerticalAlign.Top
+                        Width: =Parent.Width
+            - conRevActions:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 164, 64)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =If(Parent.Width < 640, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                  LayoutGap: =8
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  LayoutWrap: =true
+                  PaddingBottom: =8
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  PaddingTop: =8
+                  Width: =Parent.Width
+                Children:
+                  - btnRevBack:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Back to operations"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: =ButtonAppearance.Transparent
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =48
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Navigate(TaskListOperations, ScreenTransition.None)
+                        Size: =12
+                        Text: ="Back to operations"
+                        Tooltip: ="Return to operations without clearing draft"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =If(Parent.Width < 640, Parent.Width - 24, 188)
+                  - btnRevSubmit:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Submit maintenance plan"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        BasePaletteColor: =RGBA(56, 96, 178, 1)
+                        Color: =RGBA(255, 255, 255, 1)
+                        DisplayMode: =If(varReceiptVisible, DisplayMode.Disabled, DisplayMode.Edit)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =48
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: |-
+                          =Set(varSubmitAttempted, true);
+                          If(
+                              varReceiptVisible,
+                              Set(varCreateError, "This draft was already submitted. The receipt below is the durable result."),
+                              With(
+                                  {
+                                      reviewValid:
+                                          !IsBlank(Trim(varDraftPlan.Title)) &&
+                                          !IsBlank(Trim(varDraftPlan.PlantKey)) &&
+                                          !IsBlank(varDraftPlan.Unit) &&
+                                          !IsBlank(varDraftPlan.SortField) &&
+                                          !IsBlank(varDraftPlan.PlannedDate) &&
+                                          varDraftPlan.Cycle > 0 &&
+                                          CountRows(colMaintenanceItems) > 0 &&
+                                          CountRows(Filter(colMaintenanceItems, IsBlank(Trim(ItemDescription)) || IsBlank(Trim(ReferenceObject)) || IsBlank(Trim(ActivityType)) || IsBlank(Trim(ObjectType)) || IsBlank(Trim(WorkCenter)) || IsBlank(Trim(Priority)))) = 0 &&
+                                          CountRows(colOperations) > 0 &&
+                                          CountRows(Filter(colOperations, IsBlank(Trim(OpText)) || IsBlank(Trim(WorkCenter)) || IsBlank(Trim(ControlKey)) || Coalesce(WorkHours, -1) < 0 || Coalesce(DurationHours, -1) < 0)) = 0
+                                  },
+                                  If(
+                                      reviewValid,
+                                      With(
+                                      {
+                                          savedPlan: Patch(
+                                              MaintenancePlans,
+                                              Defaults(MaintenancePlans),
+                                              {
+                                                  Title: varDraftPlan.Title,
+                                                  PlanID: varDraftPlan.PlanID,
+                                                  PlantsInitial: {Id: LookUp(PlantList, Title = varDraftPlan.PlantKey).ID, Value: varDraftPlan.PlantKey},
+                                                  Cycle: varDraftPlan.Cycle,
+                                                  Unit: {Value: varDraftPlan.Unit},
+                                                  SortField: {Id: LookUp(SortFieldList, Title = varDraftPlan.SortField).ID, Value: varDraftPlan.SortField},
+                                                  PlannedDate: varDraftPlan.PlannedDate,
+                                                  CallHorizon0: varDraftPlan.CallHorizon0,
+                                                  SchedulingPeriod: varDraftPlan.SchedulingPeriod,
+                                                  Status: {Value: "Ready for creation in SAP"},
+                                                  SAPNum: varDraftPlan.PlanID
+                                              }
+                                            )
+                                      },
+                                      Clear(colSubmittedItems);
+                                      Clear(colSubmittedOperations);
+                                      ForAll(
+                                          colMaintenanceItems As item,
+                                          With(
+                                              {
+                                                  savedItem: Patch(
+                                                      MaintenanceItems,
+                                                      Defaults(MaintenanceItems),
+                                                      {
+                                                          Title: item.ItemDescription,
+                                                          ItemID: item.LocalItemKey,
+                                                          FunctionalLocation: item.ReferenceObject,
+                                                          MaintenanceActivityType: {Id: LookUp(MaintenanceActivityTypeList, Title = item.ActivityType).ID, Value: item.ActivityType},
+                                                          MainWorkCenter: {Id: LookUp(MainWorkCenters, Title = item.WorkCenter).ID, Value: item.WorkCenter},
+                                                          Priority: {Value: item.Priority},
+                                                          Revision: item.Revision,
+                                                          RevisionMark: {Value: item.RevisionMark},
+                                                          MaintenancePlanNo: {Id: savedPlan.ID, Value: savedPlan.PlanID}
+                                                      }
+                                                  )
+                                              },
+                                              Collect(
+                                                  colSubmittedItems,
+                                                  {
+                                                      LocalItemKey: item.LocalItemKey,
+                                                      ExternalID: savedItem.ID,
+                                                      ItemNo: item.ItemNo,
+                                                      ItemDescription: item.ItemDescription,
+                                                      ReferenceObject: item.ReferenceObject,
+                                                      ActivityType: item.ActivityType,
+                                                      ObjectType: item.ObjectType,
+                                                      WorkCenter: item.WorkCenter,
+                                                      PlannerGroup: item.PlannerGroup,
+                                                      Priority: item.Priority,
+                                                      Revision: item.Revision,
+                                                      RevisionMark: item.RevisionMark
+                                                  }
+                                              )
+                                          )
+                                      );
+                                      ForAll(
+                                          colOperations As operation,
+                                          With(
+                                              {
+                                                  submittedItem: LookUp(colSubmittedItems, LocalItemKey = operation.ItemKey),
+                                                  savedOperation: Patch(
+                                                      TaskListMain,
+                                                      Defaults(TaskListMain),
+                                                      {
+                                                          Title: operation.Description,
+                                                          MaintenancePlanID: {Id: savedPlan.ID, Value: savedPlan.PlanID},
+                                                          MaintenanceItemNo: {Id: LookUp(colSubmittedItems, LocalItemKey = operation.ItemKey).ExternalID, Value: Text(LookUp(colSubmittedItems, LocalItemKey = operation.ItemKey).ItemNo, "00")},
+                                                          TaskID: operation.LocalOperationKey,
+                                                          TaskItemID: operation.ItemKey,
+                                                          Num: operation.SeqNo,
+                                                          OperationShortText: operation.OpText,
+                                                          WorkCtr: operation.WorkCenter,
+                                                          Ctrl: operation.ControlKey,
+                                                          Work: operation.WorkHours,
+                                                          Duration: operation.DurationHours
+                                                      }
+                                                  )
+                                              },
+                                              Collect(
+                                                  colSubmittedOperations,
+                                                  {
+                                                      LocalOperationKey: operation.LocalOperationKey,
+                                                      ExternalID: savedOperation.ID,
+                                                      ItemKey: operation.ItemKey,
+                                                      Description: operation.Description,
+                                                      SeqNo: operation.SeqNo,
+                                                      OpNo: operation.OpNo,
+                                                      OpText: operation.OpText,
+                                                      WorkCenter: operation.WorkCenter,
+                                                      ControlKey: operation.ControlKey,
+                                                      WorkHours: operation.WorkHours,
+                                                      DurationHours: operation.DurationHours,
+                                                      StandardCode: operation.StandardCode
+                                                  }
+                                              )
+                                          )
+                                      );
+                                      Refresh(MaintenancePlans);
+                                      Refresh(MaintenanceItems);
+                                      Refresh(TaskListMain);
+                                      Set(
+                                          varLastCreateReceipt,
+                                          {
+                                              Action: "Submitted",
+                                              Entity: "Maintenance plan",
+                                              StableKey: Text(savedPlan.ID),
+                                              PlanID: savedPlan.PlanID,
+                                              Title: savedPlan.Title,
+                                              PlantKey: varDraftPlan.PlantKey,
+                                              Cycle: varDraftPlan.Cycle,
+                                              Unit: varDraftPlan.Unit,
+                                              SortField: varDraftPlan.SortField,
+                                              PlannedDate: varDraftPlan.PlannedDate,
+                                              CallHorizon0: varDraftPlan.CallHorizon0,
+                                              SchedulingPeriod: varDraftPlan.SchedulingPeriod,
+                                              RequesterNote: varDraftPlan.RequesterNote,
+                                              Status: "Ready for creation in SAP",
+                                              ItemCount: CountRows(colSubmittedItems),
+                                              OperationCount: CountRows(colSubmittedOperations)
+                                          }
+                                      );
+                                      Set(varCreateError, "");
+                                      Set(varReceiptVisible, true)
+                                  ),
+                                  Set(
+                                      varCreateError,
+                                      If(
+                                          IsBlank(Trim(varDraftPlan.Title)) || IsBlank(Trim(varDraftPlan.PlantKey)) || IsBlank(varDraftPlan.Unit) || IsBlank(varDraftPlan.SortField) || IsBlank(varDraftPlan.PlannedDate) || varDraftPlan.Cycle <= 0,
+                                          "Complete the required header fields before submitting.",
+                                          CountRows(colMaintenanceItems) = 0,
+                                          "Add at least one maintenance item before submitting.",
+                                          CountRows(Filter(colMaintenanceItems, IsBlank(Trim(ItemDescription)) || IsBlank(Trim(ReferenceObject)) || IsBlank(Trim(ActivityType)) || IsBlank(Trim(ObjectType)) || IsBlank(Trim(WorkCenter)) || IsBlank(Trim(Priority)))) > 0,
+                                          "Every maintenance item needs description, reference, activity, object type, work center and priority.",
+                                          CountRows(colOperations) = 0,
+                                          "Add at least one operation before submitting.",
+                                          "Every operation needs text, work center, control key, work hours and duration."
+                                      )
+                                  )
+                              )
+                          )
+                          )
+                        Size: =12
+                        Text: ="Submit plan"
+                        Tooltip: ="Validate and durably submit this plan"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =If(Parent.Width < 640, Parent.Width - 24, 156)
+                  - btnRevCancel:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Cancel create flow"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: =ButtonAppearance.Transparent
+                        Color: =RGBA(168, 0, 0, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =48
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: |-
+                          =If(
+                              Confirm("Cancel this draft? Unsaved items and operations will be cleared."),
+                              Clear(colMaintenanceItems);
+                              Clear(colOperations);
+                              Clear(colSubmittedItems);
+                              Clear(colSubmittedOperations);
+                              Set(varCreateStep, 1);
+                              Set(varCreateMode, "New");
+                              Set(varDraftKey, "");
+                              Set(varSelectedItemKey, "");
+                              Set(varSelectedOperationKey, "");
+                              Set(varEditItemKey, "");
+                              Set(varEditOperationKey, "");
+                              Set(varHeaderSaved, false);
+                              Set(varSubmitAttempted, false);
+                              Set(varReceiptVisible, false);
+                              Set(varCreateError, "");
+                              Navigate(Screen1, ScreenTransition.None)
+                          )
+                        Size: =12
+                        Text: ="Cancel"
+                        Tooltip: ="Confirm and cancel this draft"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =If(Parent.Width < 640, Parent.Width - 24, 112)
+            - conRevReceipt:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  BorderColor: =RGBA(16, 124, 16, 1)
+                  BorderThickness: =1
+                  DropShadow: =DropShadow.Semilight
+                  Fill: =RGBA(241, 248, 241, 1)
+                  FillPortions: =0
+                  Height: =If(varReceiptVisible, 28 + 28 + 250 + 26 + Max(208, CountRows(colSubmittedItems) * 208) + 26 + Max(208, CountRows(colSubmittedOperations) * 208) + 72, 0)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =6
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =12
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  PaddingTop: =12
+                  Visible: =varReceiptVisible
+                  Width: =Parent.Width
+                Children:
+                  - txtRevReceiptHeading:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Submitted plan receipt heading"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(16, 124, 16, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =28
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =16
+                        Text: ="Submitted plan receipt"
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - txtRevReceiptIdentity:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Submitted plan stable identity"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =28
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: |-
+                          ="Stable plan ID: " & varLastCreateReceipt.StableKey & "  ·  PlanID: " & varLastCreateReceipt.PlanID
+                        Width: =Parent.Width
+                  - txtRevReceiptValues:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Submitted plan receipt values"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =250
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: |-
+                          ="Title: " & varLastCreateReceipt.Title & Char(10) & "Plant: " & varLastCreateReceipt.PlantKey & Char(10) & "Cycle: " & Text(varLastCreateReceipt.Cycle, "0") & Char(10) & "Unit: " & varLastCreateReceipt.Unit & Char(10) & "Sort field: " & varLastCreateReceipt.SortField & Char(10) & "Planned date: " & Text(varLastCreateReceipt.PlannedDate, "[$-en-GB]dd/mm/yyyy") & Char(10) & "Call horizon: " & Text(varLastCreateReceipt.CallHorizon0, "0") & " days" & Char(10) & "Scheduling period: " & Text(varLastCreateReceipt.SchedulingPeriod, "0") & Char(10) & "Requester note: " & Coalesce(varLastCreateReceipt.RequesterNote, "") & Char(10) & "Status: " & varLastCreateReceipt.Status & Char(10) & "Item count: " & Text(varLastCreateReceipt.ItemCount, "0") & Char(10) & "Operation count: " & Text(varLastCreateReceipt.OperationCount, "0")
+                        VerticalAlign: =VerticalAlign.Top
+                        Width: =Parent.Width
+                  - txtRevReceiptItemsHeading:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Submitted item receipt heading"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =26
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =13
+                        Text: ="Submitted items (" & CountRows(colSubmittedItems) & ")"
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - galRevSubmittedItems:
+                      Control: Gallery@2.15.0
+                      Variant: Vertical
+                      Properties:
+                        AccessibleLabel: ="Submitted maintenance items receipt"
+                        BorderColor: =RGBA(214, 221, 224, 1)
+                        BorderThickness: =1
+                        Fill: =RGBA(255, 255, 255, 1)
+                        FillPortions: =0
+                        Height: =Max(208, CountRows(colSubmittedItems) * 208)
+                        Items: =colSubmittedItems
+                        LoadingSpinner: =LoadingSpinner.Controls
+                        LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+                        Selectable: =false
+                        ShowScrollbar: =false
+                        TemplatePadding: =8
+                        TemplateSize: =192
+                        Width: =Parent.Width
+                      Children:
+                        - txtRevSubmittedItem:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Submitted item " & ThisItem.ItemDescription
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =176
+                              PaddingBottom: =4
+                              PaddingLeft: =8
+                              PaddingRight: =8
+                              PaddingTop: =4
+                              Size: =11
+                              Text: |-
+                                ="Stable item ID: " & Text(ThisItem.ExternalID, "0") & Char(10) & "Item no: " & Text(ThisItem.ItemNo, "00") & Char(10) & "Description: " & ThisItem.ItemDescription & Char(10) & "Reference object: " & ThisItem.ReferenceObject & Char(10) & "Activity type: " & ThisItem.ActivityType & Char(10) & "Object type: " & ThisItem.ObjectType & Char(10) & "Work center: " & ThisItem.WorkCenter & Char(10) & "Planner group: " & ThisItem.PlannerGroup & Char(10) & "Priority: " & ThisItem.Priority & Char(10) & "Revision: " & If(ThisItem.Revision, "Yes", "No") & Char(10) & "Revision mark: " & Coalesce(ThisItem.RevisionMark, "")
+                              VerticalAlign: =VerticalAlign.Top
+                              Width: =Parent.Width
+                  - txtRevReceiptOperationsHeading:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Submitted operation receipt heading"
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =26
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =13
+                        Text: ="Submitted operations (" & CountRows(colSubmittedOperations) & ")"
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - galRevSubmittedOperations:
+                      Control: Gallery@2.15.0
+                      Variant: Vertical
+                      Properties:
+                        AccessibleLabel: ="Submitted operations receipt"
+                        BorderColor: =RGBA(214, 221, 224, 1)
+                        BorderThickness: =1
+                        Fill: =RGBA(255, 255, 255, 1)
+                        FillPortions: =0
+                        Height: =Max(208, CountRows(colSubmittedOperations) * 208)
+                        Items: =colSubmittedOperations
+                        LoadingSpinner: =LoadingSpinner.Controls
+                        LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+                        Selectable: =false
+                        ShowScrollbar: =false
+                        TemplatePadding: =8
+                        TemplateSize: =192
+                        Width: =Parent.Width
+                      Children:
+                        - txtRevSubmittedOperation:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Submitted operation " & ThisItem.OpNo & " " & ThisItem.OpText
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =176
+                              PaddingBottom: =4
+                              PaddingLeft: =8
+                              PaddingRight: =8
+                              PaddingTop: =4
+                              Size: =11
+                              Text: |-
+                                ="Stable operation ID: " & Text(ThisItem.ExternalID, "0") & Char(10) & "Operation no: " & ThisItem.OpNo & Char(10) & "Item key: " & ThisItem.ItemKey & Char(10) & "Description: " & ThisItem.Description & Char(10) & "Operation text: " & ThisItem.OpText & Char(10) & "Work center: " & ThisItem.WorkCenter & Char(10) & "Control key: " & ThisItem.ControlKey & Char(10) & "Work hours: " & Text(ThisItem.WorkHours, "0.0") & Char(10) & "Duration hours: " & Text(ThisItem.DurationHours, "0.0") & Char(10) & "Standard code: " & Coalesce(ThisItem.StandardCode, "") & Char(10) & "Sequence: " & Text(ThisItem.SeqNo, "0")
+                              VerticalAlign: =VerticalAlign.Top
+                              Width: =Parent.Width

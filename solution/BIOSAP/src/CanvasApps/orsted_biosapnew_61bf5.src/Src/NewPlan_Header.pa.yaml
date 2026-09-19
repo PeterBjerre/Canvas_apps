@@ -1,0 +1,1102 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  NewPlan_Header:
+    Properties:
+      Fill: =RGBA(248, 250, 252, 1)
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+      OnVisible: =Set(varCreateStep, 1)
+    Children:
+      - conHdrRoot:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =RGBA(248, 250, 252, 1)
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =12
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingBottom: =12
+            PaddingLeft: =12
+            PaddingRight: =12
+            PaddingTop: =12
+            Width: =Parent.Width
+          Children:
+            - conHdrNav:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 156, 52)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =8
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  LayoutWrap: =true
+                  PaddingBottom: =4
+                  PaddingLeft: =4
+                  PaddingRight: =4
+                  PaddingTop: =4
+                  Width: =Parent.Width
+                Children:
+                  - btnHdrNavOverview:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Go to Overview"
+                        Appearance: =ButtonAppearance.Subtle
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Navigate(Screen1, ScreenTransition.Cover)
+                        Size: =11
+                        Text: ="Overview"
+                        Tooltip: ="Open maintenance plan overview"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =(Parent.Width - 48) / 5
+                  - btnHdrNavHeader:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Current step Header"
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Set(varCreateStep, 1)
+                        Size: =11
+                        Text: ="Header"
+                        Tooltip: ="Header step"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =(Parent.Width - 48) / 5
+                  - btnHdrNavItems:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Go to Items"
+                        Appearance: =ButtonAppearance.Subtle
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Navigate(NewPlan_Items, ScreenTransition.Cover)
+                        Size: =11
+                        Text: ="Items"
+                        Tooltip: ="Open maintenance items step"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =(Parent.Width - 48) / 5
+                  - btnHdrNavOperations:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Go to Operations"
+                        Appearance: =ButtonAppearance.Subtle
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Navigate(TaskListOperations, ScreenTransition.Cover)
+                        Size: =11
+                        Text: ="Operations"
+                        Tooltip: ="Open operations step"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =(Parent.Width - 48) / 5
+                  - btnHdrNavReview:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Go to Review"
+                        Appearance: =ButtonAppearance.Subtle
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Navigate(NewPlan_Review, ScreenTransition.Cover)
+                        Size: =11
+                        Text: ="Review"
+                        Tooltip: ="Open review step"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =(Parent.Width - 48) / 5
+            - conHdrHeader:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(12, 59, 94, 1)
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 132, 72)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =If(Parent.Width < 640, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                  LayoutGap: =12
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =12
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =12
+                  Width: =Parent.Width
+                Children:
+                  - lblHdrTitle:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="New maintenance plan title"
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =48
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =24
+                        Text: ="New maintenance plan"
+                        Width: =If(Parent.Width < 640, Parent.Width - 32, Parent.Width * 0.58)
+                        Wrap: =false
+                  - lblHdrMode:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Create mode and draft key"
+                        Align: =Align.Right
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =48
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: =varCreateMode & "  Â·  " & varDraftKey
+                        Width: =If(Parent.Width < 640, Parent.Width - 32, Parent.Width * 0.42 - 12)
+                        Wrap: =false
+            - conHdrProgress:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(226, 231, 235, 1)
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 168, 42)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =If(Parent.Width < 640, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                  LayoutGap: =8
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =4
+                  PaddingLeft: =8
+                  PaddingRight: =8
+                  PaddingTop: =4
+                  Width: =Parent.Width
+                Children:
+                  - lblHdrSection:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Wizard progress, step 1 of 4"
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =34
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: ="1  Header"
+                        Width: =If(Parent.Width < 640, Parent.Width - 16, (Parent.Width - 24) / 4)
+                        Wrap: =false
+                  - lblHdrProgressItems:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Wizard progress, step 2 Items"
+                        Color: =RGBA(90, 90, 90, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =34
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: ="2  Items"
+                        Width: =If(Parent.Width < 640, Parent.Width - 16, (Parent.Width - 24) / 4)
+                        Wrap: =false
+                  - lblHdrProgressOperations:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Wizard progress, step 3 Operations"
+                        Color: =RGBA(90, 90, 90, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =34
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: ="3  Operations"
+                        Width: =If(Parent.Width < 640, Parent.Width - 16, (Parent.Width - 24) / 4)
+                        Wrap: =false
+                  - lblHdrProgressReview:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Wizard progress, step 4 Review"
+                        Color: =RGBA(90, 90, 90, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =34
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: ="4  Review"
+                        Width: =If(Parent.Width < 640, Parent.Width - 16, (Parent.Width - 24) / 4)
+                        Wrap: =false
+            - conHdrForm:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 920, 420)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =12
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  LayoutWrap: =true
+                  PaddingBottom: =12
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  PaddingTop: =12
+                  Width: =Parent.Width
+                Children:
+                  - conHdrTitleField:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        Fill: =RGBA(255, 255, 255, 1)
+                        FillPortions: =0
+                        Height: =96
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =4
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        Width: =If(Parent.Width < 640, Parent.Width - 24, (Parent.Width - 60) / 2)
+                      Children:
+                        - lblHdrTitleField:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Plan title field label"
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =12
+                              Text: ="Plan title"
+                              Width: =Parent.Width
+                              Wrap: =false
+                        - txtHdrPlanTitle:
+                            Control: ModernTextInput@1.1.1
+                            Properties:
+                              AccessibleLabel: ="Plan title"
+                              Appearance: =Appearance.Outline
+                              BorderStyle: =BorderStyle.Solid
+                              Default: =varDraftPlan.Title
+                              Fill: =RGBA(241, 242, 246, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =56
+                              MaxLength: =120
+                              Placeholder: ="Enter a plan title"
+                              Required: =true
+                              TriggerOutput: =TriggerOutput.FocusOut
+                              Width: =Parent.Width
+                  - conHdrPlantField:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        Fill: =RGBA(255, 255, 255, 1)
+                        FillPortions: =0
+                        Height: =96
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =4
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        Width: =If(Parent.Width < 640, Parent.Width - 24, (Parent.Width - 60) / 2)
+                      Children:
+                        - lblHdrPlantField:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Plant field label"
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =12
+                              Text: ="Plant"
+                              Width: =Parent.Width
+                              Wrap: =false
+                        - drpHdrPlant:
+                            Control: ModernDropdown@1.0.2
+                            Properties:
+                              AccessibleLabel: ="Plant"
+                              Appearance: =Appearance.Outline
+                              BorderStyle: =BorderStyle.Solid
+                              Default: =LookUp(PlantList, Title = varDraftPlan.PlantKey)
+                              Fill: =RGBA(241, 242, 246, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =56
+                              ItemDisplayText: =ThisItem.Title
+                              Items: =PlantList
+                              Required: =true
+                              Width: =Parent.Width
+                  - conHdrCycleField:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        Fill: =RGBA(255, 255, 255, 1)
+                        FillPortions: =0
+                        Height: =96
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =4
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        Width: =If(Parent.Width < 640, Parent.Width - 24, (Parent.Width - 60) / 2)
+                      Children:
+                        - lblHdrCycleField:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Cycle field label"
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =12
+                              Text: ="Cycle"
+                              Width: =Parent.Width
+                              Wrap: =false
+                        - numHdrCycle:
+                            Control: ModernNumberInput@1.1.1
+                            Properties:
+                              AccessibleLabel: ="Cycle in days"
+                              Appearance: =Appearance.Outline
+                              BorderStyle: =BorderStyle.Solid
+                              Default: =varDraftPlan.Cycle
+                              Fill: =RGBA(241, 242, 246, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =56
+                              Max: =365
+                              Min: =1
+                              Precision: =DecimalPrecision.'0'
+                              Width: =Parent.Width
+                  - conHdrUnitField:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        Fill: =RGBA(255, 255, 255, 1)
+                        FillPortions: =0
+                        Height: =96
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =4
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        Width: =If(Parent.Width < 640, Parent.Width - 24, (Parent.Width - 60) / 2)
+                      Children:
+                        - lblHdrUnitField:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Unit field label"
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =12
+                              Text: ="Unit"
+                              Width: =Parent.Width
+                              Wrap: =false
+                        - radHdrUnit:
+                            Control: ModernRadio@1.0.1
+                            Properties:
+                              AccessibleLabel: ="Cycle unit"
+                              BorderStyle: =BorderStyle.Solid
+                              Default: =LookUp([{Value:"M"},{Value:"Q"},{Value:"Y"}], Value = varDraftPlan.Unit)
+                              Font: =Font.'Open Sans'
+                              Height: =56
+                              Items: =[{Value:"M"},{Value:"Q"},{Value:"Y"}]
+                              Layout: =OptionLayout.Horizontal
+                              Required: =true
+                              Width: =Parent.Width
+                  - conHdrSortField:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        Fill: =RGBA(255, 255, 255, 1)
+                        FillPortions: =0
+                        Height: =96
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =4
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        Width: =If(Parent.Width < 640, Parent.Width - 24, (Parent.Width - 60) / 2)
+                      Children:
+                        - lblHdrSortField:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Sort field label"
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =12
+                              Text: ="Sort field"
+                              Width: =Parent.Width
+                              Wrap: =false
+                        - drpHdrSortField:
+                            Control: ModernDropdown@1.0.2
+                            Properties:
+                              AccessibleLabel: ="Sort field"
+                              Appearance: =Appearance.Outline
+                              BorderStyle: =BorderStyle.Solid
+                              Default: =LookUp(SortFieldList, Title = varDraftPlan.SortField)
+                              Fill: =RGBA(241, 242, 246, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =56
+                              ItemDisplayText: =ThisItem.Title
+                              Items: =SortFieldList
+                              Required: =true
+                              Width: =Parent.Width
+                  - conHdrDateField:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        Fill: =RGBA(255, 255, 255, 1)
+                        FillPortions: =0
+                        Height: =96
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =4
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        Width: =If(Parent.Width < 640, Parent.Width - 24, (Parent.Width - 60) / 2)
+                      Children:
+                        - lblHdrPlannedDate:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Planned date field label"
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =12
+                              Text: ="First planned date"
+                              Width: =Parent.Width
+                              Wrap: =false
+                        - dpHdrPlannedDate:
+                            Control: ModernDatePicker@1.0.1
+                            Properties:
+                              AccessibleLabel: ="First planned date"
+                              Appearance: =Appearance.Outline
+                              BorderStyle: =BorderStyle.Solid
+                              DefaultDate: =varDraftPlan.PlannedDate
+                              EndDate: =Today() + 3650
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Normal
+                              Format: =DatePickerFormat.Short
+                              Height: =56
+                              IsEditable: =true
+                              StartDate: =Today()
+                              StartOfWeek: =StartOfWeek.Monday
+                              Width: =Parent.Width
+                  - conHdrNoteField:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        Fill: =RGBA(255, 255, 255, 1)
+                        FillPortions: =0
+                        Height: =112
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =4
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        Width: =If(Parent.Width < 640, Parent.Width - 24, (Parent.Width - 60) / 2)
+                      Children:
+                        - lblHdrRequesterNote:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Requester note field label"
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =12
+                              Text: ="Requester note"
+                              Width: =Parent.Width
+                              Wrap: =false
+                        - txtHdrRequesterNote:
+                            Control: ModernTextInput@1.1.1
+                            Properties:
+                              AccessibleLabel: ="Requester note"
+                              Appearance: =Appearance.Outline
+                              BorderStyle: =BorderStyle.Solid
+                              Default: =varDraftPlan.RequesterNote
+                              Fill: =RGBA(241, 242, 246, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =80
+                              MaxLength: =500
+                              Placeholder: ="Optional note for the SAP team"
+                              TriggerOutput: =TriggerOutput.FocusOut
+                              Type: =TextInputType.Multiline
+                              Width: =Parent.Width
+            - conHdrActions:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 108, 56)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =8
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  LayoutWrap: =true
+                  PaddingBottom: =6
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  PaddingTop: =6
+                  Width: =Parent.Width
+                Children:
+                  - btnHdrStart:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Start create flow"
+                        Appearance: =ButtonAppearance.Secondary
+                        Color: =RGBA(56, 96, 178, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: |-
+                          =Set(varCreateMode, "New");
+                          Set(varCreateStep, 1);
+                          Set(varDraftKey, "DRAFT-001");
+                          Set(varHeaderSaved, false);
+                          Set(varHdrAttempted, false);
+                          Set(varReceiptVisible, false);
+                          Set(varCreateError, "");
+                          Set(
+                              varDraftPlan,
+                              {
+                                  DraftKey: "DRAFT-001",
+                                  PlanID: "",
+                                  Title: "Cooling water pump inspection",
+                                  PlantKey: "DE01",
+                                  Cycle: 12,
+                                  Unit: "M",
+                                  SortField: "PlanID",
+                                  PlannedDate: Today(),
+                                  CallHorizon0: 360,
+                                  SchedulingPeriod: 12,
+                                  RequesterNote: ""
+                              }
+                          );
+                          ClearCollect(
+                              colMaintenanceItems,
+                              {
+                                  LocalItemKey: "ITEM-001",
+                                  ItemNo: 10,
+                                  ItemDescription: "Pump casing",
+                                  ReferenceObject: "P-100",
+                                  ActivityType: "PM inspection",
+                                  ObjectType: "Equipment",
+                                  WorkCenter: "MECH-01",
+                                  PlannerGroup: "PG1",
+                                  Priority: "3 â€” Normal",
+                                  Revision: false,
+                                  RevisionMark: ""
+                              },
+                              {
+                                  LocalItemKey: "ITEM-002",
+                                  ItemNo: 20,
+                                  ItemDescription: "Motor coupling",
+                                  ReferenceObject: "P-200",
+                                  ActivityType: "PM inspection",
+                                  ObjectType: "Assembly",
+                                  WorkCenter: "MECH-02",
+                                  PlannerGroup: "PG1",
+                                  Priority: "2 â€” High",
+                                  Revision: true,
+                                  RevisionMark: "R1"
+                              }
+                          );
+                          ClearCollect(
+                              colOperations,
+                              {
+                                  LocalOperationKey: "OP-001",
+                                  ItemKey: "ITEM-001",
+                                  Description: "Cooling water pump inspection task list",
+                                  SeqNo: 10,
+                                  OpNo: "0010",
+                                  OpText: "Isolate pump",
+                                  WorkCenter: "MECH-01",
+                                  ControlKey: "PM01",
+                                  WorkHours: 1,
+                                  DurationHours: 1,
+                                  StandardCode: "STD-1001"
+                              },
+                              {
+                                  LocalOperationKey: "OP-002",
+                                  ItemKey: "ITEM-001",
+                                  Description: "Cooling water pump inspection task list",
+                                  SeqNo: 20,
+                                  OpNo: "0020",
+                                  OpText: "Inspect seal",
+                                  WorkCenter: "MECH-01",
+                                  ControlKey: "PM01",
+                                  WorkHours: 2,
+                                  DurationHours: 1,
+                                  StandardCode: "STD-1010"
+                              },
+                              {
+                                  LocalOperationKey: "OP-003",
+                                  ItemKey: "ITEM-002",
+                                  Description: "Cooling water pump inspection task list",
+                                  SeqNo: 10,
+                                  OpNo: "0010",
+                                  OpText: "Record vibration",
+                                  WorkCenter: "MECH-02",
+                                  ControlKey: "PM02",
+                                  WorkHours: 1,
+                                  DurationHours: 1,
+                                  StandardCode: "STD-1020"
+                              }
+                          )
+                        Size: =11
+                        Text: ="Start create flow"
+                        Tooltip: ="Initialize the approved draft"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =If(Parent.Width < 640, (Parent.Width - 32) / 2, 156)
+                  - btnHdrSave:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Save header"
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: |-
+                          =Set(varHdrAttempted, true);
+                          If(
+                              IsBlank(Trim(txtHdrPlanTitle.Text)) ||
+                              IsBlank(drpHdrPlant.Selected.Title) ||
+                              numHdrCycle.Value <= 0 ||
+                              IsBlank(radHdrUnit.Selected.Value) ||
+                              IsBlank(drpHdrSortField.Selected.Title) ||
+                              IsBlank(dpHdrPlannedDate.SelectedDate),
+                              Set(varCreateError, "Enter title, plant, cycle, unit, sort field and planned date.");
+                              Set(varHeaderSaved, false),
+                              Set(
+                                  varDraftPlan,
+                                  {
+                                      DraftKey: varDraftKey,
+                                      PlanID: Coalesce(varDraftPlan.PlanID, "PLAN-" & varDraftKey),
+                                      Title: txtHdrPlanTitle.Text,
+                                      PlantKey: drpHdrPlant.Selected.Title,
+                                      Cycle: numHdrCycle.Value,
+                                      Unit: radHdrUnit.Selected.Value,
+                                      SortField: drpHdrSortField.Selected.Title,
+                                      PlannedDate: dpHdrPlannedDate.SelectedDate,
+                                      CallHorizon0: If(radHdrUnit.Selected.Value = "M", numHdrCycle.Value * 30, If(radHdrUnit.Selected.Value = "Q", numHdrCycle.Value * 90, numHdrCycle.Value * 365)),
+                                      SchedulingPeriod: numHdrCycle.Value,
+                                      RequesterNote: txtHdrRequesterNote.Text
+                                  }
+                              );
+                              Set(varHeaderSaved, true);
+                              Set(varCreateError, "");
+                              Set(
+                                  varLastCreateReceipt,
+                                  {
+                                      Action: "Header saved",
+                                      Entity: "Draft header",
+                                      StableKey: varDraftPlan.DraftKey,
+                                      PlanID: varDraftPlan.PlanID,
+                                      Title: varDraftPlan.Title,
+                                      PlantKey: varDraftPlan.PlantKey,
+                                      Cycle: varDraftPlan.Cycle,
+                                      Unit: varDraftPlan.Unit,
+                                      SortField: varDraftPlan.SortField,
+                                      PlannedDate: varDraftPlan.PlannedDate,
+                                      CallHorizon0: varDraftPlan.CallHorizon0,
+                                      SchedulingPeriod: varDraftPlan.SchedulingPeriod,
+                                      RequesterNote: varDraftPlan.RequesterNote,
+                                      Status: "Ready for creation in SAP",
+                                      ItemCount: CountRows(colMaintenanceItems),
+                                      OperationCount: CountRows(colOperations)
+                                  }
+                              );
+                              Set(varReceiptVisible, true)
+                          )
+                        Size: =11
+                        Text: ="Save header"
+                        Tooltip: ="Save draft header values"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =If(Parent.Width < 640, (Parent.Width - 32) / 2, 136)
+                  - btnHdrNext:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Continue to items"
+                        Color: =RGBA(255, 255, 255, 1)
+                        DisplayMode: =If(varHeaderSaved, DisplayMode.Edit, DisplayMode.Disabled)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =If(varHeaderSaved, Set(varCreateStep, 2); Navigate(NewPlan_Items, ScreenTransition.Cover))
+                        Size: =11
+                        Text: |-
+                          ="Next: Items"
+                        Tooltip: ="Continue to maintenance items"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =If(Parent.Width < 640, (Parent.Width - 32) / 2, 136)
+                  - btnHdrCancel:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Cancel create flow"
+                        Appearance: =ButtonAppearance.Transparent
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: |-
+                          =If(
+                              Confirm("Cancel this draft? Your local draft items and operations will be cleared."),
+                              Set(
+                                  varLastCreateReceipt,
+                                  {
+                                      Action: "Cancelled",
+                                      Entity: "Local draft",
+                                      StableKey: varDraftKey,
+                                      PlanID: varDraftPlan.PlanID,
+                                      Title: varDraftPlan.Title,
+                                      PlantKey: varDraftPlan.PlantKey,
+                                      Cycle: varDraftPlan.Cycle,
+                                      Unit: varDraftPlan.Unit,
+                                      SortField: varDraftPlan.SortField,
+                                      PlannedDate: varDraftPlan.PlannedDate,
+                                      CallHorizon0: varDraftPlan.CallHorizon0,
+                                      SchedulingPeriod: varDraftPlan.SchedulingPeriod,
+                                      RequesterNote: varDraftPlan.RequesterNote,
+                                      Status: "Cancelled",
+                                      ItemCount: CountRows(colMaintenanceItems),
+                                      OperationCount: CountRows(colOperations)
+                                  }
+                              );
+                              Clear(colMaintenanceItems);
+                              Clear(colOperations);
+                              Set(varHeaderSaved, false);
+                              Set(varCreateStep, 1);
+                              Set(varCreateMode, "New");
+                              Set(varReceiptVisible, true);
+                              Set(varCreateError, "");
+                              Navigate(Screen1, ScreenTransition.Cover)
+                          )
+                        Size: =11
+                        Text: ="Cancel"
+                        Tooltip: ="Cancel and return to overview"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =If(Parent.Width < 640, (Parent.Width - 32) / 2, 100)
+            - lblHdrValidation:
+                Control: ModernText@1.0.0
+                Properties:
+                  AccessibleLabel: ="Header validation message"
+                  Color: =RGBA(168, 0, 0, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =30
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =12
+                  Text: =If(varHdrAttempted && !IsBlank(varCreateError), varCreateError, "")
+                  Visible: =varHdrAttempted && !IsBlank(varCreateError)
+                  Width: =Parent.Width
+            - conHdrReceipt:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =If(varReceiptVisible, 36, 0)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =4
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =12
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  PaddingTop: =12
+                  Visible: =varReceiptVisible
+                  Width: =Parent.Width
+                Children:
+                  - lblHdrReceipt:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Header save receipt"
+                        Color: =RGBA(16, 124, 16, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =28
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =14
+                        Text: ="Header receipt"
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - lblHdrReceiptAction:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt action"
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =11
+                        Text: |-
+                          ="Action: " & varLastCreateReceipt.Action
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - lblHdrReceiptDraftKey:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt draft key"
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =11
+                        Text: |-
+                          ="Draft key: " & varLastCreateReceipt.StableKey
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - lblHdrReceiptPlan:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt plan ID"
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =11
+                        Text: |-
+                          ="Plan ID: " & varLastCreateReceipt.PlanID
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - lblHdrReceiptTitle:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt title"
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =11
+                        Text: |-
+                          ="Title: " & varLastCreateReceipt.Title
+                        Width: =Parent.Width
+                  - lblHdrReceiptPlant:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt plant"
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =11
+                        Text: |-
+                          ="Plant: " & varLastCreateReceipt.PlantKey
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - lblHdrReceiptCycle:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt cycle"
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =11
+                        Text: |-
+                          ="Cycle: " & varLastCreateReceipt.Cycle
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - lblHdrReceiptUnit:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt unit"
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =11
+                        Text: |-
+                          ="Unit: " & varLastCreateReceipt.Unit
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - lblHdrReceiptSortDate:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt sort field"
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =11
+                        Text: |-
+                          ="Sort field: " & varLastCreateReceipt.SortField
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - lblHdrReceiptDate:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt planned date"
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =11
+                        Text: |-
+                          ="Planned date: " & Text(varLastCreateReceipt.PlannedDate, "[$-en-GB]dd/mm/yyyy")
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - lblHdrReceiptHorizon:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt derived horizon"
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =11
+                        Text: |-
+                          ="Call horizon: " & varLastCreateReceipt.CallHorizon0 & " days"
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - lblHdrReceiptScheduling:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt scheduling period"
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =11
+                        Text: |-
+                          ="Scheduling period: " & varLastCreateReceipt.SchedulingPeriod
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - lblHdrReceiptNote:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt requester note"
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =11
+                        Text: |-
+                          ="Requester note: " & varLastCreateReceipt.RequesterNote
+                        Width: =Parent.Width
+                  - lblHdrReceiptStatus:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt status"
+                        Color: =RGBA(16, 124, 16, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: |-
+                          ="Status: " & varLastCreateReceipt.Status
+                        Width: =Parent.Width

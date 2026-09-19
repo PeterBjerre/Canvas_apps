@@ -1,0 +1,1564 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  NewPlan_Items:
+    Properties:
+      Fill: =RGBA(248, 250, 252, 1)
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+      OnVisible: |-
+        =Set(varCreateStep, 2);
+        Set(varItemSubmitAttempted, false);
+        Set(varCreateError, "");
+        Set(varItmReceiptVisible, false);
+        Set(varItmConfirmDeleteVisible, false);
+        Set(varEditItemKey, "");
+        Set(
+            varSelectedItemKey,
+            If(
+                CountRows(colMaintenanceItems) > 0,
+                First(SortByColumns(colMaintenanceItems, "ItemNo", SortOrder.Ascending)).LocalItemKey,
+                ""
+            )
+        )
+    Children:
+      - conItmRoot:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =RGBA(248, 250, 252, 1)
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =12
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingBottom: =16
+            PaddingLeft: =24
+            PaddingRight: =24
+            PaddingTop: =16
+            Width: =Parent.Width
+          Children:
+            - conItmHeader:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(12, 59, 94, 1)
+                  FillPortions: =0
+                  Height: =158
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =8
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =12
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =12
+                  Width: =Parent.Width
+                Children:
+                  - txtItmTitle:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Maintenance items step title"
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =24
+                        Text: ="Create maintenance plan · Items"
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - txtItmStep:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Current create-plan step"
+                        Color: =RGBA(226, 231, 235, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =22
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: ="Step 2 of 4 · Define the maintenance items covered by this plan"
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - conItmNav:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        FillPortions: =0
+                        Height: =54
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =8
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        Width: =Parent.Width
+                      Children:
+                        - btnItmNavOverview:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Go to overview"
+                              Align: =Align.Center
+                              Appearance: =ButtonAppearance.Subtle
+                              BasePaletteColor: =RGBA(255, 255, 255, 1)
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Normal
+                              Height: =44
+                              Layout: =ButtonLayout.TextOnly
+                              OnSelect: =Navigate(Screen1, ScreenTransition.None)
+                              PaddingBottom: =8
+                              PaddingLeft: =8
+                              PaddingRight: =8
+                              PaddingTop: =8
+                              Size: =11
+                              Text: ="Overview"
+                              Tooltip: ="Open maintenance plan overview"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =If(Parent.Width < 640, (Parent.Width - 32) / 5, (Parent.Width - 48) / 5)
+                        - btnItmNavHeader:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Go to plan header"
+                              Align: =Align.Center
+                              Appearance: =ButtonAppearance.Subtle
+                              BasePaletteColor: =RGBA(255, 255, 255, 1)
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Normal
+                              Height: =44
+                              Layout: =ButtonLayout.TextOnly
+                              OnSelect: =Navigate(NewPlan_Header, ScreenTransition.Cover)
+                              PaddingBottom: =8
+                              PaddingLeft: =8
+                              PaddingRight: =8
+                              PaddingTop: =8
+                              Size: =11
+                              Text: ="Header"
+                              Tooltip: ="Edit plan header"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =If(Parent.Width < 640, (Parent.Width - 32) / 5, (Parent.Width - 48) / 5)
+                        - btnItmNavItems:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Current maintenance items step"
+                              Align: =Align.Center
+                              BasePaletteColor: =RGBA(56, 96, 178, 1)
+                              Color: =RGBA(255, 255, 255, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =44
+                              Layout: =ButtonLayout.TextOnly
+                              OnSelect: =Set(varCreateStep, 2)
+                              PaddingBottom: =8
+                              PaddingLeft: =8
+                              PaddingRight: =8
+                              PaddingTop: =8
+                              Size: =11
+                              Text: ="Items"
+                              Tooltip: ="Current maintenance items step"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =If(Parent.Width < 640, (Parent.Width - 32) / 5, (Parent.Width - 48) / 5)
+                        - btnItmNavOperations:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Go to operations"
+                              Align: =Align.Center
+                              Appearance: =ButtonAppearance.Subtle
+                              BasePaletteColor: =RGBA(255, 255, 255, 1)
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Normal
+                              Height: =44
+                              Layout: =ButtonLayout.TextOnly
+                              OnSelect: =Navigate(TaskListOperations, ScreenTransition.Cover)
+                              PaddingBottom: =8
+                              PaddingLeft: =8
+                              PaddingRight: =8
+                              PaddingTop: =8
+                              Size: =11
+                              Text: ="Operations"
+                              Tooltip: ="Open task-list operations"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =If(Parent.Width < 640, (Parent.Width - 32) / 5, (Parent.Width - 48) / 5)
+                        - btnItmNavReview:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Go to review"
+                              Align: =Align.Center
+                              Appearance: =ButtonAppearance.Subtle
+                              BasePaletteColor: =RGBA(255, 255, 255, 1)
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Normal
+                              Height: =44
+                              Layout: =ButtonLayout.TextOnly
+                              OnSelect: =Navigate(NewPlan_Review, ScreenTransition.Cover)
+                              PaddingBottom: =8
+                              PaddingLeft: =8
+                              PaddingRight: =8
+                              PaddingTop: =8
+                              Size: =11
+                              Text: ="Review"
+                              Tooltip: ="Review the maintenance plan"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =If(Parent.Width < 640, (Parent.Width - 32) / 5, (Parent.Width - 48) / 5)
+            - conItmEditor:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =If(Parent.Width < 640, 1080, 660)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =8
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =16
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =16
+                  Width: =Parent.Width
+                Children:
+                  - txtItmEditorHeading:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Maintenance item editor heading"
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =30
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =16
+                        Text: =If(IsBlank(varEditItemKey), "Add maintenance item", "Edit maintenance item")
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - conItmFields1:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        FillPortions: =0
+                        Height: =If(Parent.Width < 640, 176, 92)
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =If(Parent.Width < 640, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                        LayoutGap: =10
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        LayoutWrap: =true
+                        Width: =Parent.Width
+                      Children:
+                        - conItmDescriptionField:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              FillPortions: =0
+                              Height: =82
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =4
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              Width: =If(Parent.Width < 640, Parent.Width, (Parent.Width - 36) / 2)
+                            Children:
+                              - txtItmDescriptionLabel:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Description field label"
+                                    Color: =RGBA(12, 59, 94, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =22
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =12
+                                    Text: ="Item description *"
+                                    Width: =Parent.Width
+                                    Wrap: =false
+                              - txtItmDescription:
+                                  Control: ModernTextInput@1.1.1
+                                  Properties:
+                                    AccessibleLabel: ="Item description"
+                                    Appearance: =Appearance.Outline
+                                    BorderColor: =RGBA(214, 221, 224, 1)
+                                    BorderStyle: =BorderStyle.Solid
+                                    BorderThickness: =1
+                                    Default: =If(IsBlank(varEditItemKey), "", Coalesce(LookUp(colMaintenanceItems, LocalItemKey = varEditItemKey).ItemDescription, ""))
+                                    Fill: =RGBA(241, 242, 246, 1)
+                                    Font: =Font.'Open Sans'
+                                    Height: =52
+                                    MaxLength: =120
+                                    PaddingBottom: =8
+                                    PaddingLeft: =10
+                                    PaddingRight: =10
+                                    PaddingTop: =8
+                                    Placeholder: ="e.g. Pump seal"
+                                    Required: =true
+                                    Size: =12
+                                    ValidationState: =If(varItemSubmitAttempted && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                                    Width: =Parent.Width
+                        - conItmReferenceField:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              FillPortions: =0
+                              Height: =82
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =4
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              Width: =If(Parent.Width < 640, Parent.Width, (Parent.Width - 36) / 2)
+                            Children:
+                              - txtItmReferenceLabel:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Reference object field label"
+                                    Color: =RGBA(12, 59, 94, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =22
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =12
+                                    Text: ="Reference object *"
+                                    Width: =Parent.Width
+                                    Wrap: =false
+                              - txtItmReference:
+                                  Control: ModernTextInput@1.1.1
+                                  Properties:
+                                    AccessibleLabel: ="Reference object"
+                                    Appearance: =Appearance.Outline
+                                    BorderStyle: =BorderStyle.Solid
+                                    BorderThickness: =1
+                                    Default: =If(IsBlank(varEditItemKey), "", Coalesce(LookUp(colMaintenanceItems, LocalItemKey = varEditItemKey).ReferenceObject, ""))
+                                    Fill: =RGBA(241, 242, 246, 1)
+                                    Font: =Font.'Open Sans'
+                                    Height: =52
+                                    MaxLength: =60
+                                    PaddingBottom: =8
+                                    PaddingLeft: =10
+                                    PaddingRight: =10
+                                    PaddingTop: =8
+                                    Placeholder: ="e.g. P-300"
+                                    Required: =true
+                                    Size: =12
+                                    ValidationState: =If(varItemSubmitAttempted && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                                    Width: =Parent.Width
+                  - conItmFields2:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        FillPortions: =0
+                        Height: =If(Parent.Width < 640, 176, 92)
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =If(Parent.Width < 640, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                        LayoutGap: =10
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        LayoutWrap: =true
+                        Width: =Parent.Width
+                      Children:
+                        - conItmActivityField:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              FillPortions: =0
+                              Height: =82
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =4
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              Width: =If(Parent.Width < 640, Parent.Width, (Parent.Width - 36) / 2)
+                            Children:
+                              - txtItmActivityLabel:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Activity type field label"
+                                    Color: =RGBA(12, 59, 94, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =22
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =12
+                                    Text: ="Activity type *"
+                                    Width: =Parent.Width
+                                    Wrap: =false
+                              - drpItmActivityType:
+                                  Control: ModernDropdown@1.0.2
+                                  Properties:
+                                    AccessibleLabel: ="Maintenance activity type"
+                                    Appearance: =Appearance.Outline
+                                    BorderStyle: =BorderStyle.Solid
+                                    BorderThickness: =1
+                                    Default: =If(IsBlank(varEditItemKey), Blank(), LookUp(MaintenanceActivityTypeList, Title = LookUp(colMaintenanceItems, LocalItemKey = varEditItemKey).ActivityType))
+                                    Fill: =RGBA(241, 242, 246, 1)
+                                    Font: =Font.'Open Sans'
+                                    Height: =52
+                                    ItemDisplayText: =ThisItem.Title
+                                    Items: =MaintenanceActivityTypeList
+                                    PaddingBottom: =8
+                                    PaddingLeft: =10
+                                    PaddingRight: =10
+                                    PaddingTop: =8
+                                    Required: =true
+                                    Size: =12
+                                    ValidationState: =If(varItemSubmitAttempted && IsBlank(Self.Selected), ValidationState.Error, ValidationState.None)
+                                    Width: =Parent.Width
+                        - conItmObjectField:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              FillPortions: =0
+                              Height: =82
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =4
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              Width: =If(Parent.Width < 640, Parent.Width, (Parent.Width - 36) / 2)
+                            Children:
+                              - txtItmObjectLabel:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Object type field label"
+                                    Color: =RGBA(12, 59, 94, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =22
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =12
+                                    Text: ="Object type *"
+                                    Width: =Parent.Width
+                                    Wrap: =false
+                              - drpItmObjectType:
+                                  Control: ModernDropdown@1.0.2
+                                  Properties:
+                                    AccessibleLabel: ="Maintenance object type"
+                                    Appearance: =Appearance.Outline
+                                    BorderStyle: =BorderStyle.Solid
+                                    BorderThickness: =1
+                                    Default: |-
+                                      ={Value: If(IsBlank(varEditItemKey), "Equipment", LookUp(colMaintenanceItems, LocalItemKey = varEditItemKey).ObjectType)}
+                                    Fill: =RGBA(241, 242, 246, 1)
+                                    Font: =Font.'Open Sans'
+                                    Height: =52
+                                    ItemDisplayText: =ThisItem.Value
+                                    Items: =Table({Value:"Functional location"}, {Value:"Equipment"}, {Value:"Assembly"})
+                                    PaddingBottom: =8
+                                    PaddingLeft: =10
+                                    PaddingRight: =10
+                                    PaddingTop: =8
+                                    Required: =true
+                                    Size: =12
+                                    ValidationState: =If(varItemSubmitAttempted && IsBlank(Self.Selected), ValidationState.Error, ValidationState.None)
+                                    Width: =Parent.Width
+                  - conItmFields3:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        FillPortions: =0
+                        Height: =If(Parent.Width < 640, 176, 92)
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =If(Parent.Width < 640, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                        LayoutGap: =10
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        LayoutWrap: =true
+                        Width: =Parent.Width
+                      Children:
+                        - conItmWorkCenterField:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              FillPortions: =0
+                              Height: =82
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =4
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              Width: =If(Parent.Width < 640, Parent.Width, (Parent.Width - 36) / 2)
+                            Children:
+                              - txtItmWorkCenterLabel:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Work center field label"
+                                    Color: =RGBA(12, 59, 94, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =22
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =12
+                                    Text: ="Work center *"
+                                    Width: =Parent.Width
+                                    Wrap: =false
+                              - drpItmWorkCenter:
+                                  Control: ModernDropdown@1.0.2
+                                  Properties:
+                                    AccessibleLabel: ="Main work center"
+                                    Appearance: =Appearance.Outline
+                                    BorderStyle: =BorderStyle.Solid
+                                    BorderThickness: =1
+                                    Default: =If(IsBlank(varEditItemKey), Blank(), LookUp(MainWorkCenters, Title = LookUp(colMaintenanceItems, LocalItemKey = varEditItemKey).WorkCenter))
+                                    Fill: =RGBA(241, 242, 246, 1)
+                                    Font: =Font.'Open Sans'
+                                    Height: =52
+                                    ItemDisplayText: =ThisItem.Title
+                                    Items: =MainWorkCenters
+                                    PaddingBottom: =8
+                                    PaddingLeft: =10
+                                    PaddingRight: =10
+                                    PaddingTop: =8
+                                    Required: =true
+                                    Size: =12
+                                    ValidationState: =If(varItemSubmitAttempted && IsBlank(Self.Selected), ValidationState.Error, ValidationState.None)
+                                    Width: =Parent.Width
+                        - conItmPlannerField:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              FillPortions: =0
+                              Height: =82
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =4
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              Width: =If(Parent.Width < 640, Parent.Width, (Parent.Width - 36) / 2)
+                            Children:
+                              - txtItmPlannerLabel:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Planner group field label"
+                                    Color: =RGBA(12, 59, 94, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =22
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =12
+                                    Text: ="Planner group"
+                                    Width: =Parent.Width
+                                    Wrap: =false
+                              - txtItmPlannerGroup:
+                                  Control: ModernTextInput@1.1.1
+                                  Properties:
+                                    AccessibleLabel: ="Planner group"
+                                    Appearance: =Appearance.Outline
+                                    BorderStyle: =BorderStyle.Solid
+                                    BorderThickness: =1
+                                    Default: =If(IsBlank(varEditItemKey), "", Coalesce(LookUp(colMaintenanceItems, LocalItemKey = varEditItemKey).PlannerGroup, ""))
+                                    Fill: =RGBA(241, 242, 246, 1)
+                                    Font: =Font.'Open Sans'
+                                    Height: =52
+                                    MaxLength: =30
+                                    PaddingBottom: =8
+                                    PaddingLeft: =10
+                                    PaddingRight: =10
+                                    PaddingTop: =8
+                                    Placeholder: ="e.g. PG1"
+                                    Size: =12
+                                    Width: =Parent.Width
+                  - conItmFields4:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        FillPortions: =0
+                        Height: =If(Parent.Width < 640, 176, 92)
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =If(Parent.Width < 640, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                        LayoutGap: =10
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        LayoutWrap: =true
+                        Width: =Parent.Width
+                      Children:
+                        - conItmPriorityField:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              FillPortions: =0
+                              Height: =82
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =4
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              Width: =If(Parent.Width < 640, Parent.Width, (Parent.Width - 36) / 2)
+                            Children:
+                              - txtItmPriorityLabel:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Priority field label"
+                                    Color: =RGBA(12, 59, 94, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =22
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =12
+                                    Text: ="Priority *"
+                                    Width: =Parent.Width
+                                    Wrap: =false
+                              - drpItmPriority:
+                                  Control: ModernDropdown@1.0.2
+                                  Properties:
+                                    AccessibleLabel: ="Item priority"
+                                    Appearance: =Appearance.Outline
+                                    BorderStyle: =BorderStyle.Solid
+                                    BorderThickness: =1
+                                    Default: |-
+                                      ={Value: If(IsBlank(varEditItemKey), "3 — Normal", LookUp(colMaintenanceItems, LocalItemKey = varEditItemKey).Priority)}
+                                    Fill: =RGBA(241, 242, 246, 1)
+                                    Font: =Font.'Open Sans'
+                                    Height: =52
+                                    ItemDisplayText: =ThisItem.Value
+                                    Items: =Table({Value:"2 — High"}, {Value:"3 — Normal"}, {Value:"4 — Low"})
+                                    PaddingBottom: =8
+                                    PaddingLeft: =10
+                                    PaddingRight: =10
+                                    PaddingTop: =8
+                                    Required: =true
+                                    Size: =12
+                                    ValidationState: =If(varItemSubmitAttempted && IsBlank(Self.Selected), ValidationState.Error, ValidationState.None)
+                                    Width: =Parent.Width
+                        - conItmRevisionField:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              FillPortions: =0
+                              Height: =82
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =4
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              Width: =If(Parent.Width < 640, Parent.Width, (Parent.Width - 36) / 2)
+                            Children:
+                              - txtItmRevisionLabel:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Revision field label"
+                                    Color: =RGBA(12, 59, 94, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =22
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =12
+                                    Text: ="Revision"
+                                    Width: =Parent.Width
+                                    Wrap: =false
+                              - radItmRevision:
+                                  Control: ModernRadio@1.0.1
+                                  Properties:
+                                    AccessibleLabel: ="Revision required"
+                                    BorderStyle: =BorderStyle.Solid
+                                    BorderThickness: =1
+                                    Default: |-
+                                      ={Value: If(IsBlank(varEditItemKey), "No", If(LookUp(colMaintenanceItems, LocalItemKey = varEditItemKey).Revision, "Yes", "No"))}
+                                    Fill: =RGBA(241, 242, 246, 1)
+                                    Font: =Font.'Open Sans'
+                                    Height: =52
+                                    Items: =Table({Value:"No"}, {Value:"Yes"})
+                                    Layout: =OptionLayout.Horizontal
+                                    PaddingBottom: =8
+                                    PaddingLeft: =10
+                                    PaddingRight: =10
+                                    PaddingTop: =8
+                                    Required: =true
+                                    Size: =12
+                                    Width: =Parent.Width
+                  - conItmFields5:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        FillPortions: =0
+                        Height: =If(Parent.Width < 640, 176, 92)
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =If(Parent.Width < 640, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                        LayoutGap: =10
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        LayoutWrap: =true
+                        Width: =Parent.Width
+                      Children:
+                        - conItmRevisionMarkField:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              FillPortions: =0
+                              Height: =82
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =4
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              Width: =If(Parent.Width < 640, Parent.Width, (Parent.Width - 36) / 2)
+                            Children:
+                              - txtItmRevisionMarkLabel:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Revision mark field label"
+                                    Color: =RGBA(12, 59, 94, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =22
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =12
+                                    Text: ="Revision mark"
+                                    Width: =Parent.Width
+                                    Wrap: =false
+                              - txtItmRevisionMark:
+                                  Control: ModernTextInput@1.1.1
+                                  Properties:
+                                    AccessibleLabel: ="Revision mark"
+                                    Appearance: =Appearance.Outline
+                                    BorderStyle: =BorderStyle.Solid
+                                    BorderThickness: =1
+                                    Default: =If(IsBlank(varEditItemKey), "", Coalesce(LookUp(colMaintenanceItems, LocalItemKey = varEditItemKey).RevisionMark, ""))
+                                    Fill: =RGBA(241, 242, 246, 1)
+                                    Font: =Font.'Open Sans'
+                                    Height: =52
+                                    MaxLength: =30
+                                    PaddingBottom: =8
+                                    PaddingLeft: =10
+                                    PaddingRight: =10
+                                    PaddingTop: =8
+                                    Placeholder: ="Optional revision mark"
+                                    Size: =12
+                                    Width: =Parent.Width
+                        - txtItmFormHint:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Item form guidance"
+                              AutoHeight: =true
+                              Color: =RGBA(90, 90, 90, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =82
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =20
+                              Size: =11
+                              Text: ="Choose direct list values for activity, object type, work center and priority. Required fields are marked *."
+                              Width: =If(Parent.Width < 640, Parent.Width, (Parent.Width - 36) / 2)
+                  - conItmEditorActions:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        FillPortions: =0
+                        Height: =54
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =10
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        Width: =Parent.Width
+                      Children:
+                        - btnItmSave:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Save maintenance item"
+                              Align: =Align.Center
+                              BasePaletteColor: =RGBA(56, 96, 178, 1)
+                              Color: =RGBA(255, 255, 255, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =48
+                              Layout: =ButtonLayout.TextOnly
+                              OnSelect: |-
+                                =Set(varItemSubmitAttempted, true);
+                                If(
+                                    !IsBlank(Trim(txtItmDescription.Text)) &&
+                                    !IsBlank(Trim(txtItmReference.Text)) &&
+                                    !IsBlank(drpItmActivityType.Selected) &&
+                                    !IsBlank(drpItmObjectType.Selected) &&
+                                    !IsBlank(drpItmWorkCenter.Selected) &&
+                                    !IsBlank(drpItmPriority.Selected),
+                                    With(
+                                        {
+                                            savedKey: If(
+                                                IsBlank(varEditItemKey),
+                                                "ITEM-" & Text(Now(), "yyyymmddhhmmss") & "-" & Text(RandBetween(100, 999), "000"),
+                                                varEditItemKey
+                                            ),
+                                            savedNo: If(
+                                                IsBlank(varEditItemKey),
+                                                (CountRows(colMaintenanceItems) + 1) * 10,
+                                                LookUp(colMaintenanceItems, LocalItemKey = varEditItemKey).ItemNo
+                                            )
+                                        },
+                                        If(
+                                            IsBlank(varEditItemKey),
+                                            Collect(
+                                                colMaintenanceItems,
+                                                {
+                                                    LocalItemKey: savedKey,
+                                                    ItemNo: savedNo,
+                                                    ItemDescription: txtItmDescription.Text,
+                                                    ReferenceObject: txtItmReference.Text,
+                                                    ActivityType: drpItmActivityType.Selected.Title,
+                                                    ObjectType: drpItmObjectType.Selected.Value,
+                                                    WorkCenter: drpItmWorkCenter.Selected.Title,
+                                                    PlannerGroup: txtItmPlannerGroup.Text,
+                                                    Priority: drpItmPriority.Selected.Value,
+                                                    Revision: radItmRevision.Selected.Value = "Yes",
+                                                    RevisionMark: txtItmRevisionMark.Text
+                                                }
+                                            ),
+                                            UpdateIf(
+                                                colMaintenanceItems,
+                                                LocalItemKey = varEditItemKey,
+                                                {
+                                                    ItemDescription: txtItmDescription.Text,
+                                                    ReferenceObject: txtItmReference.Text,
+                                                    ActivityType: drpItmActivityType.Selected.Title,
+                                                    ObjectType: drpItmObjectType.Selected.Value,
+                                                    WorkCenter: drpItmWorkCenter.Selected.Title,
+                                                    PlannerGroup: txtItmPlannerGroup.Text,
+                                                    Priority: drpItmPriority.Selected.Value,
+                                                    Revision: radItmRevision.Selected.Value = "Yes",
+                                                    RevisionMark: txtItmRevisionMark.Text
+                                                }
+                                            )
+                                        );
+                                        ClearCollect(
+                                            colItmRenumber,
+                                            ForAll(
+                                                Sequence(CountRows(colMaintenanceItems)) As idx,
+                                                Patch(
+                                                    Index(SortByColumns(colMaintenanceItems, "ItemNo", SortOrder.Ascending), idx.Value),
+                                                    {ItemNo: idx.Value * 10}
+                                                )
+                                            )
+                                        );
+                                        ClearCollect(colMaintenanceItems, colItmRenumber);
+                                        Clear(colItmRenumber);
+                                        Set(
+                                            varItmReceipt,
+                                            {
+                                                Action: "Saved",
+                                                StableKey: savedKey,
+                                                ItemNo: LookUp(colMaintenanceItems, LocalItemKey = savedKey).ItemNo,
+                                                ItemDescription: txtItmDescription.Text,
+                                                ReferenceObject: txtItmReference.Text,
+                                                ActivityType: drpItmActivityType.Selected.Title,
+                                                ObjectType: drpItmObjectType.Selected.Value,
+                                                WorkCenter: drpItmWorkCenter.Selected.Title,
+                                                PlannerGroup: txtItmPlannerGroup.Text,
+                                                Priority: drpItmPriority.Selected.Value,
+                                                Revision: radItmRevision.Selected.Value = "Yes",
+                                                RevisionMark: txtItmRevisionMark.Text
+                                            }
+                                        );
+                                        Set(varItmReceiptVisible, true);
+                                        Set(varSelectedItemKey, savedKey);
+                                        Set(varEditItemKey, "");
+                                        Set(varItemSubmitAttempted, false);
+                                        Reset(txtItmDescription);
+                                        Reset(txtItmReference);
+                                        Reset(drpItmActivityType);
+                                        Reset(drpItmObjectType);
+                                        Reset(drpItmWorkCenter);
+                                        Reset(txtItmPlannerGroup);
+                                        Reset(drpItmPriority);
+                                        Reset(radItmRevision);
+                                        Reset(txtItmRevisionMark)
+                                    )
+                                )
+                              PaddingBottom: =8
+                              PaddingLeft: =18
+                              PaddingRight: =18
+                              PaddingTop: =8
+                              Size: =12
+                              Text: ="Save item"
+                              Tooltip: ="Save this maintenance item"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =128
+                        - btnItmNew:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Start a new maintenance item"
+                              Align: =Align.Center
+                              Appearance: =ButtonAppearance.Secondary
+                              BasePaletteColor: =RGBA(56, 96, 178, 1)
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Normal
+                              Height: =48
+                              Layout: =ButtonLayout.TextOnly
+                              OnSelect: |-
+                                =Set(varEditItemKey, "");
+                                Set(varItemSubmitAttempted, false);
+                                Reset(txtItmDescription);
+                                Reset(txtItmReference);
+                                Reset(drpItmActivityType);
+                                Reset(drpItmObjectType);
+                                Reset(drpItmWorkCenter);
+                                Reset(txtItmPlannerGroup);
+                                Reset(drpItmPriority);
+                                Reset(radItmRevision);
+                                Reset(txtItmRevisionMark)
+                              PaddingBottom: =8
+                              PaddingLeft: =18
+                              PaddingRight: =18
+                              PaddingTop: =8
+                              Size: =12
+                              Text: ="Add another"
+                              Tooltip: ="Clear the form for a new item"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =148
+                        - btnItmCancel:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Cancel item edit"
+                              Align: =Align.Center
+                              Appearance: =ButtonAppearance.Transparent
+                              BasePaletteColor: =RGBA(56, 96, 178, 1)
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Normal
+                              Height: =48
+                              Layout: =ButtonLayout.TextOnly
+                              OnSelect: |-
+                                =Set(varEditItemKey, "");
+                                Set(varItemSubmitAttempted, false);
+                                Set(varItmReceiptVisible, false);
+                                Reset(txtItmDescription);
+                                Reset(txtItmReference);
+                                Reset(drpItmActivityType);
+                                Reset(drpItmObjectType);
+                                Reset(drpItmWorkCenter);
+                                Reset(txtItmPlannerGroup);
+                                Reset(drpItmPriority);
+                                Reset(radItmRevision);
+                                Reset(txtItmRevisionMark)
+                              PaddingBottom: =8
+                              PaddingLeft: =14
+                              PaddingRight: =14
+                              PaddingTop: =8
+                              Size: =12
+                              Text: ="Cancel item"
+                              Tooltip: ="Discard changes to this item"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =132
+                  - lblItmValidation:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Item validation message"
+                        AutoHeight: =true
+                        Color: =RGBA(168, 0, 0, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =28
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: =If(varItemSubmitAttempted && (IsBlank(Trim(txtItmDescription.Text)) || IsBlank(Trim(txtItmReference.Text)) || IsBlank(drpItmActivityType.Selected) || IsBlank(drpItmObjectType.Selected) || IsBlank(drpItmWorkCenter.Selected) || IsBlank(drpItmPriority.Selected)), "Complete all required item fields before saving.", "")
+                        Visible: =varItemSubmitAttempted
+                        Width: =Parent.Width
+            - txtItmItemsHeading:
+                Control: ModernText@1.0.0
+                Properties:
+                  AccessibleLabel: ="Maintenance items list heading"
+                  Color: =RGBA(12, 59, 94, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =30
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =16
+                  Text: ="Items on this plan"
+                  Width: =Parent.Width
+                  Wrap: =false
+            - galItmItems:
+                Control: Gallery@2.15.0
+                Variant: Vertical
+                Properties:
+                  AccessibleLabel: ="Maintenance items list"
+                  BorderColor: =RGBA(214, 221, 224, 1)
+                  BorderThickness: =1
+                  Default: =First(SortByColumns(colMaintenanceItems, "ItemNo", SortOrder.Ascending))
+                  DelayItemLoading: =false
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  FocusedBorderColor: =RGBA(56, 96, 178, 1)
+                  FocusedBorderThickness: =2
+                  Height: |-
+                    =With({rowCount: CountRows(colMaintenanceItems)}, Max(220, rowCount * 240 + ((rowCount + 1) * 4)))
+                  Items: =SortByColumns(colMaintenanceItems,"ItemNo",SortOrder.Ascending)
+                  LoadingSpinner: =LoadingSpinner.Controls
+                  LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+                  Selectable: =false
+                  ShowScrollbar: =false
+                  TabIndex: =0
+                  TemplatePadding: =4
+                  TemplateSize: =240
+                  Width: =Parent.Width
+                Children:
+                  - conItmRow:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        Fill: =RGBA(255, 255, 255, 1)
+                        Height: =Parent.TemplateHeight
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =5
+                        PaddingBottom: =10
+                        PaddingLeft: =12
+                        PaddingRight: =12
+                        PaddingTop: =10
+                        Width: =Parent.TemplateWidth
+                      Children:
+                        - conItmRowActions:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              FillPortions: =0
+                              Height: =48
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutGap: =8
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              Width: =Parent.Width
+                            Children:
+                              - icoItmEdit:
+                                  Control: ModernButton@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Edit " & ThisItem.ItemDescription
+                                    Align: =Align.Center
+                                    Appearance: =ButtonAppearance.Secondary
+                                    BasePaletteColor: =RGBA(56, 96, 178, 1)
+                                    Color: =RGBA(12, 59, 94, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Normal
+                                    Height: =44
+                                    Layout: =ButtonLayout.TextOnly
+                                    OnSelect: |-
+                                      =Set(varEditItemKey, ThisItem.LocalItemKey);
+                                      Set(varSelectedItemKey, ThisItem.LocalItemKey);
+                                      Set(varItemSubmitAttempted, false);
+                                      Reset(txtItmDescription);
+                                      Reset(txtItmReference);
+                                      Reset(drpItmActivityType);
+                                      Reset(drpItmObjectType);
+                                      Reset(drpItmWorkCenter);
+                                      Reset(txtItmPlannerGroup);
+                                      Reset(drpItmPriority);
+                                      Reset(radItmRevision);
+                                      Reset(txtItmRevisionMark)
+                                    PaddingBottom: =8
+                                    PaddingLeft: =14
+                                    PaddingRight: =14
+                                    PaddingTop: =8
+                                    Size: =12
+                                    Text: ="Edit"
+                                    Tooltip: ="Edit this maintenance item"
+                                    VerticalAlign: =VerticalAlign.Middle
+                              - btnItmDelete:
+                                  Control: ModernButton@1.0.0
+                                  Properties:
+                                    AccessibleLabel: ="Delete " & ThisItem.ItemDescription
+                                    Align: =Align.Center
+                                    Appearance: =ButtonAppearance.Outline
+                                    BasePaletteColor: =RGBA(168, 0, 0, 1)
+                                    Color: =RGBA(168, 0, 0, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =44
+                                    Layout: =ButtonLayout.TextOnly
+                                    OnSelect: |-
+                                      =Set(varSelectedItemKey, ThisItem.LocalItemKey);
+                                      Set(varItmDeleteSnapshot, ThisItem);
+                                      Set(varItmConfirmDeleteVisible, true)
+                                    PaddingBottom: =8
+                                    PaddingLeft: =14
+                                    PaddingRight: =14
+                                    PaddingTop: =8
+                                    Size: =12
+                                    Text: ="Delete"
+                                    Tooltip: ="Delete this maintenance item"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =104
+                        - txtItmRowIdentity:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Item description " & ThisItem.ItemDescription
+                              AutoHeight: =true
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =30
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =14
+                              Text: =ThisItem.ItemDescription
+                              Width: =Parent.Width
+                        - txtItmRowReference:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Reference object " & ThisItem.ReferenceObject
+                              Color: =RGBA(90, 90, 90, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =12
+                              Text: |-
+                                ="Reference object: " & ThisItem.ReferenceObject
+                              Width: =Parent.Width
+                              Wrap: =false
+                        - txtItmRowMetadata:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Item type, work center and priority"
+                              AutoHeight: =true
+                              Color: =RGBA(90, 90, 90, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =44
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =12
+                              Text: |-
+                                ="Object type: " & ThisItem.ObjectType & " · Work center: " & ThisItem.WorkCenter & " · Priority: " & ThisItem.Priority
+                              Width: =Parent.Width
+                        - txtItmRowActivity:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Activity type and revision"
+                              Color: =RGBA(90, 90, 90, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =24
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =11
+                              Text: |-
+                                ="Activity: " & ThisItem.ActivityType & " · Revision: " & If(ThisItem.Revision, Coalesce(ThisItem.RevisionMark, "Yes"), "No")
+                              Width: =Parent.Width
+                              Wrap: =false
+            - conItmReceipt:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(226, 231, 235, 1)
+                  FillPortions: =0
+                  Height: =If(varItmReceiptVisible, If(Parent.Width < 640, 310, 246), 0)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =6
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =12
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  PaddingTop: =12
+                  Visible: =varItmReceiptVisible
+                  Width: =Parent.Width
+                Children:
+                  - txtItmReceiptHeading:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Item mutation receipt heading"
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =14
+                        Text: =If(varItmReceipt.Action = "Deleted", "Item deleted", "Item saved")
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - txtItmReceiptIdentity:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Saved item stable key and number"
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: |-
+                          ="Key: " & varItmReceipt.StableKey & " · Item no: " & Text(varItmReceipt.ItemNo, "00")
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - txtItmReceiptDescription:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt item description"
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: |-
+                          ="Description: " & varItmReceipt.ItemDescription
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - txtItmReceiptFields:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Receipt item fields"
+                        AutoHeight: =true
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =If(Parent.Width < 640, 132, 66)
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =11
+                        Text: |-
+                          ="Reference: " & varItmReceipt.ReferenceObject & " · Activity: " & varItmReceipt.ActivityType & " · Object: " & varItmReceipt.ObjectType & " · Work center: " & varItmReceipt.WorkCenter & " · Planner group: " & varItmReceipt.PlannerGroup & " · Priority: " & varItmReceipt.Priority & " · Revision: " & If(varItmReceipt.Revision, Coalesce(varItmReceipt.RevisionMark, "Yes"), "No")
+                        Width: =Parent.Width
+                  - btnItmReceiptDismiss:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Dismiss item receipt"
+                        Align: =Align.Center
+                        Appearance: =ButtonAppearance.Transparent
+                        BasePaletteColor: =RGBA(56, 96, 178, 1)
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Normal
+                        Height: =44
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Set(varItmReceiptVisible, false)
+                        PaddingBottom: =8
+                        PaddingLeft: =12
+                        PaddingRight: =12
+                        PaddingTop: =8
+                        Size: =11
+                        Text: ="Dismiss receipt"
+                        Tooltip: ="Dismiss this item receipt"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =150
+            - conItmFooterActions:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  FillPortions: =0
+                  Height: =60
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =If(Parent.Width < 640, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                  LayoutGap: =10
+                  LayoutJustifyContent: =LayoutJustifyContent.End
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  LayoutWrap: =true
+                  Width: =Parent.Width
+                Children:
+                  - btnItmBack:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Back to plan header"
+                        Align: =Align.Center
+                        Appearance: =ButtonAppearance.Transparent
+                        BasePaletteColor: =RGBA(56, 96, 178, 1)
+                        Color: =RGBA(12, 59, 94, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Normal
+                        Height: =48
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Navigate(NewPlan_Header, ScreenTransition.Cover)
+                        PaddingBottom: =8
+                        PaddingLeft: =16
+                        PaddingRight: =16
+                        PaddingTop: =8
+                        Size: =12
+                        Text: ="Back to header"
+                        Tooltip: ="Return to plan header"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =150
+                  - btnItmNext:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Continue to operations"
+                        Align: =Align.Center
+                        BasePaletteColor: =RGBA(56, 96, 178, 1)
+                        Color: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =48
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: |-
+                          =If(
+                              CountRows(
+                                  Filter(
+                                      colMaintenanceItems,
+                                      !IsBlank(ItemDescription) &&
+                                      !IsBlank(ReferenceObject) &&
+                                      !IsBlank(ActivityType) &&
+                                      !IsBlank(ObjectType) &&
+                                      !IsBlank(WorkCenter) &&
+                                      !IsBlank(Priority)
+                                  )
+                              ) > 0,
+                              Set(varCreateStep, 3);
+                              Navigate(TaskListOperations, ScreenTransition.Cover),
+                              Set(varItemSubmitAttempted, true);
+                              Set(varCreateError, "Add at least one complete maintenance item before continuing.")
+                          )
+                        PaddingBottom: =8
+                        PaddingLeft: =16
+                        PaddingRight: =16
+                        PaddingTop: =8
+                        Size: =12
+                        Text: ="Continue to operations"
+                        Tooltip: ="Continue when at least one item is complete"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =210
+                  - btnItmCancelFlowOpen:
+                      Control: ModernButton@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Open cancel flow confirmation"
+                        Align: =Align.Center
+                        Appearance: =ButtonAppearance.Transparent
+                        BasePaletteColor: =RGBA(168, 0, 0, 1)
+                        Color: =RGBA(168, 0, 0, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Normal
+                        Height: =48
+                        Layout: =ButtonLayout.TextOnly
+                        OnSelect: =Set(varItmCancelConfirmVisible, true)
+                        PaddingBottom: =8
+                        PaddingLeft: =16
+                        PaddingRight: =16
+                        PaddingTop: =8
+                        Size: =12
+                        Text: ="Cancel flow"
+                        Tooltip: ="Cancel this draft flow"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =126
+            - conItmConfirmPanel:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =If(varItmConfirmDeleteVisible || varItmCancelConfirmVisible, 210, 0)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =8
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =16
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =16
+                  Visible: =varItmConfirmDeleteVisible || varItmCancelConfirmVisible
+                  Width: =Parent.Width
+                Children:
+                  - txtItmConfirmHeading:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Confirmation heading"
+                        Color: =If(varItmCancelConfirmVisible, RGBA(168, 0, 0, 1), RGBA(12, 59, 94, 1))
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =28
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =14
+                        Text: =If(varItmCancelConfirmVisible, "Cancel draft flow?", "Delete this maintenance item?")
+                        Width: =Parent.Width
+                        Wrap: =false
+                  - txtItmConfirmBody:
+                      Control: ModernText@1.0.0
+                      Properties:
+                        AccessibleLabel: ="Confirmation details"
+                        AutoHeight: =true
+                        Color: =RGBA(90, 90, 90, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =54
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: =If(varItmCancelConfirmVisible, "This clears the working item and operation collections and returns to the overview. Existing SharePoint plans are not deleted.", "The item and its dependent operations will be removed from this draft.")
+                        Width: =Parent.Width
+                  - conItmConfirmActions:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        FillPortions: =0
+                        Height: =54
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =10
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        Width: =Parent.Width
+                      Children:
+                        - btnItmConfirmDelete:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Confirm delete item"
+                              Align: =Align.Center
+                              Appearance: =ButtonAppearance.Outline
+                              BasePaletteColor: =RGBA(168, 0, 0, 1)
+                              Color: =RGBA(168, 0, 0, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =48
+                              Layout: =ButtonLayout.TextOnly
+                              OnSelect: |-
+                                =Set(varItmDeletedKey, varSelectedItemKey);
+                                RemoveIf(colMaintenanceItems, LocalItemKey = varSelectedItemKey);
+                                RemoveIf(colOperations, ItemKey = varSelectedItemKey);
+                                ClearCollect(
+                                    colItmRenumber,
+                                    ForAll(
+                                        Sequence(CountRows(colMaintenanceItems)) As idx,
+                                        Patch(
+                                            Index(SortByColumns(colMaintenanceItems, "ItemNo", SortOrder.Ascending), idx.Value),
+                                            {ItemNo: idx.Value * 10}
+                                        )
+                                    )
+                                );
+                                ClearCollect(colMaintenanceItems, colItmRenumber);
+                                Clear(colItmRenumber);
+                                Set(varItmReceipt, {Action: "Deleted", StableKey: varItmDeletedKey, ItemNo: 0, ItemDescription: "", ReferenceObject: "", ActivityType: "", ObjectType: "", WorkCenter: "", PlannerGroup: "", Priority: "", Revision: false, RevisionMark: ""});
+                                Set(varItmReceiptVisible, true);
+                                Set(varItmConfirmDeleteVisible, false);
+                                Set(varEditItemKey, "")
+                              PaddingBottom: =8
+                              PaddingLeft: =16
+                              PaddingRight: =16
+                              PaddingTop: =8
+                              Size: =12
+                              Text: ="Confirm delete"
+                              Tooltip: ="Confirm the selected action"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Visible: =varItmConfirmDeleteVisible
+                              Width: =148
+                        - btnItmCancelFlow:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Confirm cancel draft flow"
+                              Align: =Align.Center
+                              Appearance: =ButtonAppearance.Outline
+                              BasePaletteColor: =RGBA(168, 0, 0, 1)
+                              Color: =RGBA(168, 0, 0, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =48
+                              Layout: =ButtonLayout.TextOnly
+                              OnSelect: |-
+                                =Clear(colMaintenanceItems);
+                                Clear(colOperations);
+                                Set(varCreateStep, 1);
+                                Set(varEditItemKey, "");
+                                Set(varItmCancelConfirmVisible, false);
+                                Navigate(Screen1, ScreenTransition.Cover)
+                              PaddingBottom: =8
+                              PaddingLeft: =16
+                              PaddingRight: =16
+                              PaddingTop: =8
+                              Size: =12
+                              Text: ="Confirm cancel"
+                              Tooltip: ="Clear the draft and return to overview"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Visible: =varItmCancelConfirmVisible
+                              Width: =148
+                        - btnItmConfirmDismiss:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Dismiss confirmation"
+                              Align: =Align.Center
+                              Appearance: =ButtonAppearance.Transparent
+                              BasePaletteColor: =RGBA(56, 96, 178, 1)
+                              Color: =RGBA(12, 59, 94, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Normal
+                              Height: =48
+                              Layout: =ButtonLayout.TextOnly
+                              OnSelect: =Set(varItmConfirmDeleteVisible, false); Set(varItmCancelConfirmVisible, false)
+                              PaddingBottom: =8
+                              PaddingLeft: =16
+                              PaddingRight: =16
+                              PaddingTop: =8
+                              Size: =12
+                              Text: ="Keep editing"
+                              Tooltip: ="Dismiss confirmation"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =138
+            - lblItmFlowError:
+                Control: ModernText@1.0.0
+                Properties:
+                  AccessibleLabel: ="Flow validation message"
+                  AutoHeight: =true
+                  Color: =RGBA(168, 0, 0, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =28
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =12
+                  Text: =varCreateError
+                  Visible: =!IsBlank(varCreateError)
+                  Width: =Parent.Width

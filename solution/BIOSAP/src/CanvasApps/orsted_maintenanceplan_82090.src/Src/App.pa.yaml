@@ -1,0 +1,338 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+App:
+  Properties:
+    Formulas: |
+      =colVhpPlantCodes = Sort(ForAll(PlantList As R, { Value: R.Title }), Value);
+
+      colVhpSortFieldOptions = Sort(ForAll(SortFieldList As R, { Value: R.Title }), Value);
+
+      colVhpActivityTypeOptions = Sort(ForAll(MaintenanceActivityTypeList As R, { Value: R.Title }), Value);
+
+      colVhpCallHorizonOptions = Sort(ForAll(CallHorizonMatrix As R, { Value: R.Title, Days: R.NewCallHorizonOrFCD, SchedPeriod: R.SchedulingPeriodNum }), Value);
+
+      colVhpPlanStatusOptions = Choices(MaintenanceItems.Status);
+
+      colVhpUnitOptions = Choices(MaintenancePlans.Unit);
+
+      colVhpRevisionOptions = Choices(MaintenanceItems.RevisionMark);
+
+      colVhpPriorityOptions = Choices(MaintenanceItems.Priority);
+
+      // Alle arbejdscentre med deres vaerk. Afgraenses i kontrollen.
+      colVhpMainWorkCenters = ForAll(MainWorkCenters As R, { Value: Trim(R.Title), Plant: Trim(R.'Plant Key') });
+
+      colVhpCtrlOptions = Sort(Distinct(MD_StandardTaskOperations, ControlKey), Value);
+
+      colVhpStrategies = Sort(ForAll(MD_Strategy As R, { Key: R.StrategyKey, Name: R.StrategyName, SchedIndicator: R.SchedulingIndicator.Value, Hierarchical: R.Hierarchical.Value, PackagesLoaded: R.PackagesLoaded, Display: R.StrategyKey & " - " & R.StrategyName & If(R.PackagesLoaded, "", "   (pakker mangler)") }), Key);
+
+      colVhpStrategyPackages = ForAll(MD_StrategyPackage As R, { StrategyKey: R.StrategyKey, PackageNo: R.PackageNo, ShortCode: R.ShortCode, CycleLength: R.CycleLength, CycleUnit: R.CycleUnit.Value, Hierarchy: R.Hierarchy, PackageText: R.PackageText });
+
+      colVhpTasklists = ForAll(Distinct(MD_StandardTaskOperations, Plant.Value) As P, { Plant: P.Value, Key: P.Value & "-STD", Name: "Standard task list - " & P.Value, Description: "", Operations: ForAll(Sort(Filter(MD_StandardTaskOperations, Plant.Value = P.Value), OperationNo) As O, { OperationNo: Text(O.OperationNo, "0000"), OperationShortText: O.OperationShortText, WorkHours: O.Work, Persons: O.NumberOfCapacities, DurationHours: O.Work / Max(Coalesce(O.NumberOfCapacities, 1), 1), MainWorkCenter: O.WorkCenter, Vendor: O.VendorNo, LongText: "", ControlKey: O.ControlKey, UnitCost: O.Price, Cost: O.Work * O.Price, Currency: O.Currency, CostElement: O.CostElement, MaterialGroup: O.MaterialGroup, OpPlant: O.SapPlant }) });
+    OnStart: |
+      =ClearCollect(colVhpItems, { ItemId: 0, ShortText: "", FunctionalLocation: "", FlDescription: "", MainWorkCenter: "", ActivityType: "", ObjectList: "", Revision: "", OrstedResponsible: "", Initials: "", LongText: "", TasklistKey: "", TasklistName: "", Status: "" });
+      Clear(colVhpItems);
+
+      ClearCollect(colVhpOperations, { ItemId: 0, OperationNo: "", OperationShortText: "", WorkHours: 0, Persons: 0, DurationHours: 0, MainWorkCenter: "", Vendor: "", LongText: "", PackagesKey: ";", Selected: false, ControlKey: "", Cost: 0, UnitCost: 0, Currency: "", CostElement: 0, MaterialGroup: "" });
+      Clear(colVhpOperations);
+
+      ClearCollect(colVhpFlSearch, { Code: "", Description: "", Display: "", Maintainable: false, Level: "" });
+      Clear(colVhpFlSearch);
+
+      ClearCollect(colVhpItemObjects, { ItemId: 0, Code: "", Description: "" });
+      Clear(colVhpItemObjects);
+
+      ClearCollect(colVhpPickerSelected, { OperationNo: "" });
+      Clear(colVhpPickerSelected);
+
+      ClearCollect(colVhpMaterials, { ItemId: 0, LineId: 0, MaterialNo: "", Description: "", Unit: "", Quantity: 0, OperationNo: "", Selected: false });
+      Clear(colVhpMaterials);
+
+      ClearCollect(colVhpAttachments, { ItemId: 0, LineId: 0, FileName: "", FileSize: 0, OperationsKey: ";", Status: "", Selected: false });
+      Clear(colVhpAttachments);
+
+      ClearCollect(colVhpSavedItems, { LocalId: 0, SpId: 0, ItemKey: "" });
+      Clear(colVhpSavedItems);
+
+      ClearCollect(colVhpSavedOps, { LocalItemId: 0, OperationNo: "", SpId: 0, TaskKey: "" });
+      Clear(colVhpSavedOps);
+
+      // SAP-vaerdier for schedulering.
+      ClearCollect(
+          colVhpYesNoOptions,
+          Table(
+              { Value: "JA" },
+              { Value: "NEJ" }
+          )
+      );
+
+      // Appens eget begreb, ikke et SAP-felt.
+      ClearCollect(
+          colVhpPlanTypeOptions,
+          Table(
+              { Key: "SingleCycle", Value: "Single cycle plan (IP41)" },
+              { Key: "Strategy", Value: "Strategiplan (IP42)" }
+          )
+      );
+
+      Set(
+          varVhpPlan,
+          {
+              Plant: "",
+              Status: "",
+              PlanType: "SingleCycle",
+              Strategy: "",
+              PlanText: "",
+              SortField: "",
+              Cycle: 0,
+              Unit: "",
+              CallHorizon: "",
+              SchedulingIndicator: "",
+              FirstCallDay: Day(Today()),
+              FirstCallMonth: Month(Today()),
+              FirstCallYear: Year(Today()) + 1,
+              StatutorySortField: ""
+          }
+      );
+
+      Set(varVhpPlanCommitted, false);
+      Set(varVhpPlanLocked, false);
+      Set(varVhpPlanCreatedAt, Blank());
+      Set(varVhpPlanValidated, false);
+      Set(varVhpItemValidated, false);
+      // Appen aabner med EET item, der allerede er valgt. Item Editoren stod
+      // foer tom og skrivebeskyttet (DM_ITEM slaar fra paa tomt
+      // varVhpActiveItemId), saa det foerste man moedte var en raekke graa felter
+      // og en knap, man skulle finde foerst. Nummeret er 1, saa "Add item" (som
+      // taeller varVhpNextItemId een op foerst) fortsaetter ved 2.
+      Set(varVhpActiveItemId, 1);
+      Set(varVhpNextItemId, 1);
+      Set(varVhpRuntimeInfo, "");
+      Set(varVhpFlMeta, "");
+      Set(varVhpFlLastSearch, "");
+      Set(varVhpLastValidationErrors, "");
+      Set(varVhpExportJson, "");
+      Set(varVhpTasklistPickerOpen, false);
+
+      // Popup'en til lang tekst paa en operation. Operationen udpeges af
+      // BEGGE noegler - OperationNo er kun unikt inden for et item.
+      Set(varVhpLongTextOpen, false);
+      Set(varVhpLongTextItemId, 0);
+      Set(varVhpLongTextOpNo, "");
+      Set(varVhpLongTextDraft, "");
+
+      // Gemning i SharePoint. SpId > 0 betyder, at planen findes som raekke -
+      // saa opdateres den i stedet for at blive oprettet igen.
+      Set(varVhpPlanSpId, 0);
+      Set(varVhpPlanKey, "");
+      Set(varVhpRequestGuid, "");
+      Set(varVhpSaving, false);
+
+      // Hjaelpepanelerne. Slaaet fra som standard - teksten er der for den, der
+      // har brug for den, ikke for at fylde skaermen for alle andre.
+      Set(varVhpShowHints, false);
+
+      // Fanen i Tasklist-sektionen. Operations er den man er i oftest.
+      Set(varVhpOpsTab, "ops");
+      Set(varVhpHelpPlan, false);
+      Set(varVhpHelpItem, false);
+      Set(varVhpHelpOps, false);
+      Set(varVhpHelpPkg, false);
+
+      // Dyblink fra Masterdata Hub: <app-url>?reqid=<RequestGuid>.
+      //
+      // Det er en datahentning i OnStart, og reglen er ellers, at der ikke
+      // er nogen. Undtagelsen er bevidst og betales kun af den, der
+      // FAKTISK aabner et dyblink: uden parameter koeres kun Collect af et
+      // tomt item, og der roeres ingen liste. Se build_load.py.
+      If(
+          IsBlank(Param("reqid")),
+
+          Collect(colVhpItems, {
+              ItemId: 1,
+              ShortText: "",
+              FunctionalLocation: "",
+              FlDescription: "",
+              MainWorkCenter: "",
+              ActivityType: "",
+              ObjectList: "",
+              Revision: "",
+              OrstedResponsible: "",
+              Initials: "",
+              LongText: "",
+              TasklistKey: "",
+              TasklistName: "",
+              Status: "draft"
+          }),
+
+          With(
+              { idx: LookUp(MD_RequestIndex, RequestGuid = Param("reqid")) },
+              With(
+                  { pl: LookUp(MaintenancePlans, ID = idx.SourceItemId) },
+                  If(
+                      IsBlank(pl.ID),
+
+                      // Linket peger paa noget, der ikke er her - fx en
+                      // indmelding fra et andet miljoe. Sig det, og aabn
+                      // som en ny plan i stedet for at staa tom og tavs.
+                      Notify(
+                          "Could not find the request behind this link. Opening a new plan.",
+                          NotificationType.Warning
+                      );
+                      Collect(colVhpItems, {
+                          ItemId: 1,
+                          ShortText: "",
+                          FunctionalLocation: "",
+                          FlDescription: "",
+                          MainWorkCenter: "",
+                          ActivityType: "",
+                          ObjectList: "",
+                          Revision: "",
+                          OrstedResponsible: "",
+                          Initials: "",
+                          LongText: "",
+                          TasklistKey: "",
+                          TasklistName: "",
+                          Status: "draft"
+                      }),
+
+                      // --- planhovedet ---------------------------------
+                      Set(
+                          varVhpPlan,
+                          {
+                              Plant: pl.PlantsInitial.Value,
+                              Status: "",
+                              PlanType: If(IsBlank(pl.StrategyKey), "SingleCycle", "Strategy"),
+                              Strategy: Coalesce(pl.StrategyKey, ""),
+                              PlanText: pl.Title,
+                              SortField: pl.SortField.Value,
+                              Cycle: pl.Cycle,
+                              Unit: pl.Unit.Value,
+                              CallHorizon: LookUp(
+                                  colVhpCallHorizonOptions, SchedPeriod = pl.SchedulingPeriod
+                              ).Value,
+                              SchedulingIndicator: pl.SchedulingIndicator.Value,
+                              FirstCallDay: Day(pl.PlannedDate),
+                              FirstCallMonth: Month(pl.PlannedDate),
+                              FirstCallYear: Year(pl.PlannedDate),
+                              StatutorySortField: ""
+                          }
+                      );
+                      Set(varVhpPlanSpId, pl.ID);
+                      Set(varVhpPlanKey, pl.PlanID);
+                      Set(varVhpRequestGuid, idx.RequestGuid);
+                      Set(varVhpPlanCommitted, true);
+
+                      // --- items ---------------------------------------
+                      ClearCollect(
+                          colVhpItems,
+                          ForAll(
+                              Filter(MaintenanceItems, MaintenancePlanNo.Id = pl.ID) As IT,
+                              {
+                                  ItemId: IT.ID,
+                                  ShortText: IT.Title,
+                                  FunctionalLocation: IT.FunctionalLocation,
+                                  FlDescription: "",
+                                  MainWorkCenter: IT.MainWorkCenter.Value,
+                                  ActivityType: IT.MaintenanceActivityType.Value,
+                                  ObjectList: IT.ObjectList,
+                                  Revision: IT.RevisionMark.Value,
+                                  OrstedResponsible: IT.OrstedResponsibleEmail,
+                                  Initials: IT.InitialOrstedResponsible,
+                                  LongText: IT.ItemDescription,
+                                  TasklistKey: "",
+                                  TasklistName: "",
+                                  Status: "valid"
+                              }
+                          )
+                      );
+
+                      // Den samme oversaettelse, gemningen selv bygger.
+                      // Materialer og dokumenter peger paa ItemKey.
+                      ClearCollect(
+                          colVhpSavedItems,
+                          ForAll(
+                              Filter(MaintenanceItems, MaintenancePlanNo.Id = pl.ID) As IT,
+                              { LocalId: IT.ID, SpId: IT.ID, ItemKey: IT.ItemID }
+                          )
+                      );
+
+                      // --- operationer, materialer, dokumenter ---------
+                      ClearCollect(
+                          colVhpOperations,
+                          ForAll(
+                              Filter(TaskListMain, MaintenancePlanID.Id = pl.ID) As OP,
+                              {
+                                  ItemId: OP.MaintenanceItemNo.Id,
+                                  OperationNo: Text(OP.OperationNo, "0000"),
+                                  OperationShortText: OP.OperationShortText,
+                                  WorkHours: OP.Work,
+                                  Persons: OP.Num,
+                                  DurationHours: OP.Duration,
+                                  MainWorkCenter: OP.WorkCtr,
+                                  Vendor: OP.Vendor,
+                                  LongText: OP.LongText,
+                                  PackagesKey: Coalesce(OP.PackagesKey, ";"),
+                                  Selected: false,
+                                  ControlKey: OP.Ctrl,
+                                  Cost: OP.Price,
+                                  UnitCost: If(Coalesce(OP.Work, 0) > 0, OP.Price / OP.Work, OP.Price),
+                                  Currency: OP.Currency,
+                                  CostElement: OP.CostElem,
+                                  MaterialGroup: OP.MaterialGroup
+                              }
+                          )
+                      );
+                      ClearCollect(
+                          colVhpMaterials,
+                          ForAll(
+                              Filter(MD_TasklistMaterial, PlanKey = pl.PlanID) As MT,
+                              {
+                                  ItemId: LookUp(colVhpSavedItems, ItemKey = MT.ItemKey).LocalId,
+                                  LineId: MT.LineId,
+                                  MaterialNo: MT.MaterialNo,
+                                  Description: MT.MaterialText,
+                                  Unit: MT.Unit,
+                                  Quantity: MT.Quantity,
+                                  OperationNo: MT.OperationNo,
+                                  Selected: false
+                              }
+                          )
+                      );
+                      ClearCollect(
+                          colVhpAttachments,
+                          ForAll(
+                              Filter(MD_TasklistAttachment, PlanKey = pl.PlanID) As AT,
+                              {
+                                  ItemId: LookUp(colVhpSavedItems, ItemKey = AT.ItemKey).LocalId,
+                                  LineId: AT.LineId,
+                                  FileName: AT.FileName,
+                                  FileSize: AT.FileSize,
+                                  OperationsKey: Coalesce(AT.OperationsKey, ";"),
+                                  Status: AT.UploadStatus.Value,
+                                  Selected: false
+                              }
+                          )
+                      );
+
+                      // --- hvad der er valgt naar skaermen tegnes -------
+                      Set(varVhpActiveItemId, First(colVhpItems).ItemId);
+                      Set(varVhpNextItemId, Max(colVhpItems, ItemId));
+                      Set(
+                          varVhpRuntimeInfo,
+                          "Opened " & idx.RequestNo & " - " &
+                              Text(CountRows(colVhpItems)) & " item(s), " &
+                              Text(CountRows(colVhpOperations)) & " operation line(s)."
+                      )
+                  )
+              )
+          )
+      )
+    StartScreen: =ScreenVhPlan
+    Theme: =PowerAppsTheme

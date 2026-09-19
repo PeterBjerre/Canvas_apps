@@ -1,0 +1,138 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+App:
+  Properties:
+    OnStart: |-
+      =Set(
+          orgTheme,
+          {
+              fontFamily: "Open Sans",
+              fontSize: 11,
+              color: RGBA(64, 153, 218, 1),
+              primaryColor: RGBA(56, 96, 178, 1),
+              inputFill: RGBA(241, 242, 246, 1)
+          }
+      );
+      Set(varUserMail, User().Email);
+      ClearCollect(colStatusFilterOptions, {Value: "All"});
+      Collect(colStatusFilterOptions, Choices(MaintenancePlans.Status));
+      Set(
+          varIsAdmin,
+          !IsEmpty(
+              Filter(
+                  UserAndGroups,
+                  Title = "Admin" && Member = varUserMail
+              )
+          )
+      );
+      Set(varPlanStatusFilter, Blank())
+      ;
+      Set(varCreateStep, 1); Set(varCreateMode, "New"); Set(varDraftKey, "DRAFT-001");
+      Set(varSelectedItemKey, "ITEM-001"); Set(varSelectedOperationKey, "OP-001");
+      Set(varEditItemKey, ""); Set(varEditOperationKey, ""); Set(varHeaderSaved, false);
+      Set(varHdrAttempted, false); Set(varItemSubmitAttempted, false);
+      Set(varOperationSubmitAttempted, false); Set(varSubmitAttempted, false);
+      Set(varReceiptVisible, false); Set(varCreateError, "");
+      Set(varTaskListDescription, "Cooling water pump inspection task list");
+      Set(varDraftPlan, {DraftKey:"DRAFT-001", PlanID:"", Title:"Cooling water pump inspection",
+        PlantKey:"DE01", Cycle:12, Unit:"M", SortField:"PlanID", PlannedDate:Today(),
+        CallHorizon0:360, SchedulingPeriod:12, RequesterNote:""});
+      ClearCollect(colMaintenanceItems,
+        {LocalItemKey:"ITEM-001", ItemNo:10, ItemDescription:"Pump casing",
+         ReferenceObject:"P-100", ActivityType:"PM inspection", ObjectType:"Equipment",
+         WorkCenter:"MECH-01", PlannerGroup:"PG1", Priority:"3 — Normal",
+         Revision:false, RevisionMark:""},
+        {LocalItemKey:"ITEM-002", ItemNo:20, ItemDescription:"Motor coupling",
+         ReferenceObject:"P-200", ActivityType:"PM inspection", ObjectType:"Assembly",
+         WorkCenter:"MECH-02", PlannerGroup:"PG1", Priority:"2 — High",
+         Revision:true, RevisionMark:"R1"});
+      ClearCollect(colOperations,
+        {LocalOperationKey:"OP-001", ItemKey:"ITEM-001", Description:varTaskListDescription,
+         SeqNo:10, OpNo:"0010", OpText:"Isolate pump", WorkCenter:"MECH-01",
+         ControlKey:"PM01", WorkHours:1, DurationHours:1, StandardCode:"STD-1001"},
+        {LocalOperationKey:"OP-002", ItemKey:"ITEM-001", Description:varTaskListDescription,
+         SeqNo:20, OpNo:"0020", OpText:"Inspect seal", WorkCenter:"MECH-01",
+         ControlKey:"PM01", WorkHours:2, DurationHours:1, StandardCode:"STD-1010"},
+        {LocalOperationKey:"OP-003", ItemKey:"ITEM-002", Description:varTaskListDescription,
+         SeqNo:10, OpNo:"0010", OpText:"Record vibration", WorkCenter:"MECH-02",
+         ControlKey:"PM02", WorkHours:1, DurationHours:1, StandardCode:"STD-1020"});
+      ClearCollect(colSubmittedItems, {LocalItemKey:"", ItemNo:0, ItemDescription:"",
+        ReferenceObject:"", ActivityType:"", ObjectType:"", WorkCenter:"", PlannerGroup:"",
+        Priority:"", Revision:false, RevisionMark:""});
+      ClearCollect(colSubmittedOperations, {LocalOperationKey:"", ItemKey:"",
+        Description:"", SeqNo:0, OpNo:"", OpText:"", WorkCenter:"", ControlKey:"",
+        WorkHours:0, DurationHours:0, StandardCode:""});
+      Set(varLastCreateReceipt, {Action:"", Entity:"", StableKey:"", PlanID:"", Title:"",
+        PlantKey:"", Cycle:0, Unit:"", SortField:"", PlannedDate:Today(),
+        CallHorizon0:0, SchedulingPeriod:0, RequesterNote:"", Status:"",
+        ItemCount:0, OperationCount:0});
+      Set(varSelectedPlanID, 0);
+      Set(varPlanDetailMode, "View");
+      Set(varPlanDetailEditMode, false);
+      Set(varPlanDetailAttempted, false);
+      Set(varPlanDetailError, "");
+      Set(varPlanDeleteConfirmVisible, false);
+      Set(varPlanMutationReceiptVisible, false);
+      Set(varPlanCommentAttempted, false);
+      Set(varPlanCommentDraft, "");
+      Set(varAdminQueueStatusFilter, "");
+      Set(varAdminQueueSearch, "");
+      Set(varAdminQueueSelectedID, 0);
+      Set(varAdminQueueReceiptVisible, false);
+      Set(
+          varLastPlanMutation,
+          {
+              Action: "",
+              Entity: "",
+              StableID: 0,
+              PlanID: "",
+              Title: "",
+              Cycle: 0,
+              PlannedDate: Today(),
+              CallHorizon0: 0,
+              SchedulingPeriod: 0,
+              Status: "",
+              Body: "",
+              AuthorMail: "",
+              CreatedOn: Today()
+          }
+      );
+      ClearCollect(
+          colPlanComments,
+          {
+              CommentID: "COMMENT-001",
+              PlanID: "PLAN-1002",
+              Title: "Please confirm the returned date.",
+              AuthorMail: "requester@contoso.com",
+              IsAdmin: false,
+              CreatedOn: DateAdd(Today(), -2)
+          },
+          {
+              CommentID: "COMMENT-002",
+              PlanID: "PLAN-1002",
+              Title: "SAP team asked for a corrected cycle.",
+              AuthorMail: "sapadmin@contoso.com",
+              IsAdmin: true,
+              CreatedOn: DateAdd(Today(), -1)
+          }
+      );
+      ClearCollect(
+          colPlanAudit,
+          {
+              AuditID: "AUDIT-001",
+              PlanID: "PLAN-1002",
+              Title: "Returned to requester",
+              ActorMail: "sapadmin@contoso.com",
+              FromStatus: "Ready for creation in SAP",
+              ToStatus: "In Progress",
+              CreatedOn: DateAdd(Today(), -1)
+          }
+      )
+    StartScreen: =MyPlans
+    Theme: =PowerAppsTheme
