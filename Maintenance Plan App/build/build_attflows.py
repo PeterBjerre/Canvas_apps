@@ -81,7 +81,7 @@ def refresh_fx(indent=0):
         "ClearCollect(",
         "    colVhpAttFiles,",
         "    ForAll(",
-        "        ParseJSON(varVhpAttJson),",
+        "        ParseJSON(Coalesce(varVhpAttJson, \"[]\")),",
         "        {",
         "            Name: Text(ThisRecord.Name),",
         "            Link: Text(ThisRecord.Link),",
@@ -117,7 +117,13 @@ def upload_fx():
     """Send hver valgt fil gennem flowet, og hent listen forfra bagefter.
 
     ForAll over kontrollens Attachments - Name og Value er kolonnerne, og
-    Value ER indholdet. Det er kaldet fra den gamle app, ordret."""
+    Value ER indholdet. Det er kaldet fra den gamle app, ordret.
+
+    Svaret bliver LAEST. Her stod foer et fast "Document(s) uploaded." lige
+    efter ForAll, uanset hvad flowet svarede - en kvittering, appen selv
+    fandt paa. Flowet returnerer flowrunsuccess, og en fil, der ikke kom
+    igennem, staar nu med navn i beskeden i stedet for at forsvinde.
+    """
     return (
         "If(\n"
         f"    IsBlank({FOLDER}),\n"
@@ -127,18 +133,40 @@ def upload_fx():
         f"        CountRows({PICKER}.Attachments) = 0,\n"
         "        Notify(\"Choose one or more files first.\", NotificationType.Warning),\n"
         "\n"
+        "        Clear(colVhpAttUp);\n"
         "        ForAll(\n"
-        f"            {PICKER}.Attachments,\n"
-        f"            {FLOW_UPLOAD}.Run(\n"
-        f"                {FOLDER},\n"
-        "                { file: { contentBytes: Value, name: Name } }\n"
+        f"            {PICKER}.Attachments As F,\n"
+        "            Collect(\n"
+        "                colVhpAttUp,\n"
+        "                {\n"
+        "                    Name: F.Name,\n"
+        "                    Ok: IfError(\n"
+        "                        Lower(\n"
+        "                            Text(\n"
+        f"                                {FLOW_UPLOAD}.Run(\n"
+        f"                                    {FOLDER},\n"
+        "                                    { file: { contentBytes: F.Value, name: F.Name } }\n"
+        "                                ).flowrunsuccess\n"
+        "                            )\n"
+        "                        ) = \"true\",\n"
+        "                        false\n"
+        "                    )\n"
+        "                }\n"
         "            )\n"
         "        );\n"
         f"        Reset({PICKER});\n"
         "\n"
         + refresh_fx(8) + ";\n"
         "\n"
-        "        Notify(\"Document(s) uploaded.\", NotificationType.Success)\n"
+        "        If(\n"
+        "            CountRows(Filter(colVhpAttUp, Ok = false)) > 0,\n"
+        "            Notify(\n"
+        "                \"SharePoint refused: \" &\n"
+        "                Concat(Filter(colVhpAttUp, Ok = false), Name, \", \"),\n"
+        "                NotificationType.Error\n"
+        "            ),\n"
+        "            Notify(\"Document(s) uploaded.\", NotificationType.Success)\n"
+        "        )\n"
         "    )\n"
         ")"
     )
@@ -176,5 +204,21 @@ def delete_fx():
         "    );\n"
         "    RemoveIf(colVhpAttachments, ItemId = varVhpActiveItemId, Selected = true);\n"
         "    Notify(\"Document(s) removed.\", NotificationType.Success)\n"
+        ")"
+    )
+
+
+def empty_text_fx():
+    """Teksten, naar der ingen raekker er.
+
+    "No documents on this item yet." kunne ikke skelnes fra "flowet fandt
+    ikke mappen" - og flowet svarer det samme i begge tilfaelde: files:
+    "[]". Stien staar derfor i beskeden, saa den kan holdes op mod, hvad
+    der rent faktisk ligger i biblioteket."""
+    return (
+        "If(\n"
+        f"    IsBlank({FOLDER}),\n"
+        f"    \"{NOT_SAVED}\",\n"
+        f"    \"No documents in \" & {FOLDER_PATH} & \" yet.\"\n"
         ")"
     )

@@ -281,6 +281,10 @@ WORKING_COLLECTIONS = [
      {"Name": '""', "Link": '""', "Identifier": '""'}),
     ("colVhpAttKeep",
      {"FileName": '""', "OperationsKey": '";"'}),
+    # Hvad flowet svarede paa hver enkelt fil ved upload. Uden den kunne
+    # knappen kun kvittere paa tro og love.
+    ("colVhpAttUp",
+     {"Name": '""', "Ok": "false"}),
     # Kobler appens lokale ItemId til den raekke, der blev oprettet i
     # MaintenanceItems. Operationerne har brug for begge dele til deres
     # opslagsfelt, og de kan foerst kendes EFTER items er skrevet.
