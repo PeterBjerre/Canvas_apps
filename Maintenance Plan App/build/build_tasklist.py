@@ -505,7 +505,12 @@ def _attachments_pane():
         "Fill": C_CARD_BORDER,
         "FillPortions": "0",
         "Height": gal_h,
-        "Items": f"Sort({ATT_ACTIVE}, LineId)",
+        # Filnavnet er noeglen paa raekken - der ER ingen LineId paa
+        # dokumenterne. Her stod "Sort(..., LineId)", og den kolonne
+        # findes ikke i colVhpAttachments: Items gav en fejl, galleriet
+        # stod tomt, og fordi raekkerne var der, skjulte den tomme
+        # besked sig ogsaa. Derfor saa en uploadet fil ud som ingenting.
+        "Items": f"Sort({ATT_ACTIVE}, FileName)",
         "LayoutMinWidth": "0",
         "LoadingSpinner": "LoadingSpinner.None",
         "Selectable": "true",
@@ -517,9 +522,8 @@ def _attachments_pane():
         "WrapCount": "1",
     }, children=[row], h=gal_h)
 
-    empty = text_ctrl("txtVhpAttEmpty",
-                      '"No documents on this item yet."',
-                      size=13, color=C_MUTED, height=24, wrap="false",
+    empty = text_ctrl("txtVhpAttEmpty", att.empty_text_fx(),
+                      size=13, color=C_MUTED, height=36, wrap="true",
                       visible=f"IfError(!IsBlank(varVhpActiveItemId) && CountRows({ATT_ACTIVE}) = 0, false)")
 
     note = text_ctrl("txtVhpAttNote",

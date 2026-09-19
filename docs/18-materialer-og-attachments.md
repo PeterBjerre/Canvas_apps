@@ -196,6 +196,42 @@ filen kom op, og `Get`-flowets `Link` giver URL'en. Alternativet — at bygge
 en `Update item` ind i flowet — ville kræve, at flowet kendte listerækkens
 id, og det gør det ikke; appen opretter rækken først bagefter, ved Gem.
 
+### Dokumentet lå der — galleriet kunne bare ikke sortere det
+
+Første gang fanen blev prøvet af, kom filen op i biblioteket, og der skete
+ingenting i appen. Ikke en fejl, ikke en tom besked — ingenting.
+
+`Items` på `galVhpAttachments` stod som `Sort(..., LineId)`. **`LineId`
+findes ikke på `colVhpAttachments`.** Materialerne har et løbenummer;
+dokumenterne har filnavnet som nøgle, netop fordi SharePoint ikke tillader
+to ens navne i samme mappe. Sorteringen pegede altså på en kolonne, der
+aldrig har været der, `Items` gik i fejl, og galleriet stod tomt.
+
+At beskeden *"No documents on this item yet."* heller ikke kom, er den
+anden halvdel: den er synlig, når der er **nul** rækker, og rækkerne var der
+jo. Fejlen ramte kun visningen. Sorteringen er nu `FileName`.
+
+### To ting, der ikke kunne skelnes fra hinanden
+
+Der var ikke nogen måde at se, hvad der var galt, og det var to steder:
+
+**Flowet svarer det samme i to forskellige tilfælde.** `Condition_2` tjekker
+`statusCode = 200` på mappeopslaget. Er mappen der ikke — eller peger
+`BioSap-SiteName` et forkert sted hen — svarer `else`-grenen
+`files: "[]"`. Er mappen der og tom, svarer den indre `Condition` også
+`files: "[]"`. **En manglende mappe og en tom mappe ser ens ud fra appen.**
+Det kan ikke rettes fra appen, så beskeden siger nu, hvilken sti der blev
+spurgt om — `"No documents in TaskListDocuments/MI0007 yet."` — så den kan
+holdes op mod biblioteket.
+
+**Knappen kvitterede uden at have læst svaret.** `Notify("Document(s)
+uploaded.")` lå efter `ForAll` og kørte, uanset hvad flowet sagde. Derfor
+betød *"upload virker"* ikke, at noget var kommet op — kun at knappen var
+trykket. Hver fil samles nu i `colVhpAttUp` med flowets eget
+`flowrunsuccess`, og de filer, der ikke kom igennem, står med navn i
+beskeden.
+
+
 ---
 
 ## Efterprøvet mod dokumentationen
