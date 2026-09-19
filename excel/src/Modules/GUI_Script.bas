@@ -560,6 +560,92 @@ Private Function IsDigitsOnly(ByVal valueText As String) As Boolean
     IsDigitsOnly = True
 End Function
 
+' --- statuslinjen ---------------------------------------------------------
+' Statuslinjen har en TYPE ved siden af sin tekst:
+'
+'     S   success     der blev oprettet noget
+'     W   warning     gik igennem, men SAP har en bemaerkning
+'     E   error       gik ikke igennem
+'     A   abend       gik slet ikke igennem
+'
+' Foer blev kun teksten laest, og foerste tal i den blev skrevet i
+' SAP-nummer-kolonnen. Fejlbeskeder indeholder ofte et tal - et feltnummer,
+' en position, et ordrenummer der IKKE blev oprettet - og saa stod der et
+' plausibelt tal i kolonnen, som bagefter blev skrevet til SharePoint og
+' planen sat til Published.
+'
+' Derfor: et nummer tages kun fra en S-besked. Er svaret noget andet, skrives
+' teksten selv i kolonnen. Den er ikke cifre alene, saa tilbageskrivningen
+' afviser den - og man kan se paa arket hvad SAP sagde.
+
+Private Function StatusBarMessageType() As String
+    ' objSBar saettes af Attach_Session_Core, men slaas op igen her: sbar
+    ' hoerer til vinduet, og et modalt vindue undervejs kan have flyttet det.
+    On Error Resume Next
+    StatusBarMessageType = UCase$(Trim$(CStr(objSess.FindById("wnd[0]/sbar").MessageType)))
+    On Error GoTo 0
+End Function
+
+Private Function StatusBarText() As String
+    On Error Resume Next
+    StatusBarText = CStr(objSess.FindById("wnd[0]/sbar").Text)
+    On Error GoTo 0
+End Function
+
+' True naar SAP siger, at det gik igennem OG der er et tal at tage.
+Private Function TryReadCreatedNumber(ByRef outNumber As String, ByRef outStatusText As String) As Boolean
+    Dim regex As Object
+    Dim matches As Object
+
+    outNumber = vbNullString
+    outStatusText = StatusBarText()
+
+    If StatusBarMessageType() <> "S" Then Exit Function
+
+    Set regex = CreateObject("VBScript.RegExp")
+    regex.Pattern = "\d+"
+    Set matches = regex.Execute(outStatusText)
+    If matches.Count = 0 Then Exit Function
+
+    outNumber = matches(0).value
+    TryReadCreatedNumber = True
+End Function
+
+' E og A er de to, der med sikkerhed betyder "der skete ingenting". W taeller
+' ikke med: en advarsel kan staa paa noget, der blev oprettet, og at kassere
+' det ville vaere den modsatte fejl af den, vi lige har lukket.
+Private Function IsFailureStatusType(ByVal messageType As String) As Boolean
+    Select Case UCase$(Trim$(messageType))
+        Case "E", "A"
+            IsFailureStatusType = True
+    End Select
+End Function
+
+' Efter en fejl staar SAP paa et ukendt billede - maaske med en dialog aaben.
+' Uden det her ville naeste raekke fejle af en anden grund end sin egen, og
+' raekke-for-raekke-fejlhaandteringen ville ikke vaere noget vaerd.
+Private Sub RecoverSapScreen(ByVal transactionCode As String)
+    Dim guard As Long
+
+    On Error Resume Next
+
+    ' Luk modale vinduer bagfra. okcd-feltet kan ikke naas, saa laenge der
+    ' staar en dialog. guard er der, fordi en dialog, der ikke vil lukke,
+    ' ellers ville koere i ring.
+    guard = 0
+    Do While objSess.Children.Count > 1 And guard < 5
+        objSess.FindById("wnd[" & CStr(objSess.Children.Count - 1) & "]").Close
+        guard = guard + 1
+    Loop
+
+    If Len(transactionCode) > 0 Then
+        objSess.FindById("wnd[0]/tbar[0]/okcd").Text = transactionCode
+        objSess.FindById("wnd[0]").sendVKey 0
+    End If
+
+    On Error GoTo 0
+End Sub
+
 Private Function NormalizeItemIlartValue(ByVal rawValue As String) As String
     Dim s As String
     Dim parts() As String
@@ -776,6 +862,35 @@ Private Function ResolveCycleInterval(ByVal rawCycleUnit As String) As String
     End Select
 End Function
 
+' Skriver fejlen i raekkens eget felt og bringer SAP tilbage til et kendt
+' billede. Ligger i en egen procedure, fordi den kaldes INDE i en
+' fejlhaandtering: "On Error Resume Next" hoerer hjemme et sted, hvor den
+' ikke ogsaa skygger for resten af loekken.
+Private Sub WriteRowFailure(ByVal ws As Worksheet, ByVal rowIndex As Long, ByVal targetCol As Long, ByVal messageText As String, ByVal transactionCode As String)
+    On Error Resume Next
+
+    If targetCol > 0 Then SetMapValue ws, rowIndex, targetCol, messageText
+    RecoverSapScreen transactionCode
+End Sub
+
+' Rydder det, raekken naaede at faa skrevet, og bringer SAP tilbage til
+' IA05. Kaldes baade fra raekkens fejlhaandtering og naar SAP svarer E/A paa
+' gemningen - i begge tilfaelde findes gruppenummeret paa arket ikke i SAP,
+' og CreateItems ville ellers haenge itemet paa en arbejdsplan, der aldrig
+' blev til noget.
+Private Sub ClearTlhRowResults(ByVal ws As Worksheet, ByVal rowIndex As Long, ByVal mapTlh As Object, ByVal messageText As String)
+    On Error Resume Next
+
+    If mapTlh Is Nothing Then Exit Sub
+
+    SetMapValue ws, rowIndex, CLng(mapTlh("STATUS_CODE")), vbNullString
+    SetMapValue ws, rowIndex, CLng(mapTlh("TL_GROUP_NUMBER")), vbNullString
+    SetMapValue ws, rowIndex, CLng(mapTlh("TL_COUNTER")), vbNullString
+    SetMapValue ws, rowIndex, CLng(mapTlh("STATUS_MESSAGE")), messageText
+
+    RecoverSapScreen TX_IA05
+End Sub
+
 Public Sub CreateTLH()
     Dim ws As Worksheet
     Dim mapTlh As Object
@@ -788,6 +903,9 @@ Public Sub CreateTLH()
     Dim plantValue As String
     Dim hasExplicitLinks As Boolean
     Dim includeTlhRow As Boolean
+    Dim failedRows As Long
+    Dim savedType As String
+    Dim savedMessage As String
 
     Set ws = Worksheets(WS_MAINTENANCE_TLH) ' Aktivér arket
     ws.Activate
@@ -816,6 +934,12 @@ Public Sub CreateTLH()
     objSess.FindById("wnd[0]").sendVKey 0
 
     For i = CLng(mapTlh("ROW_START")) To lastRow
+        ' Fejlhaandteringen sidder INDE i loekken. Foer laa der eet myerr
+        ' for det hele, saa raekke 12 af 40 tog de resterende 28 med sig ned
+        ' - uden at nogen fik at vide hvilke. Samme moenster som
+        ' Update_Sharepoint_Lists har brugt hele tiden.
+        On Error GoTo TlhRowError
+
         TL = GetMapValue(ws, i, CLng(mapTlh("TL_GROUP")))
         If Len(TL) = 0 Then GoTo NextRow
 
@@ -875,11 +999,42 @@ Public Sub CreateTLH()
 
         ' Gem og registrer status
         objSess.FindById("wnd[0]/tbar[0]/btn[11]").press
-        SetMapValue ws, i, CLng(mapTlh("STATUS_MESSAGE")), objSess.FindById("wnd[0]/sbar").Text
+
+        savedType = StatusBarMessageType()
+        savedMessage = Trim$(savedType & " " & StatusBarText())
+        SetMapValue ws, i, CLng(mapTlh("STATUS_MESSAGE")), savedMessage
+
+        ' Blev arbejdsplanen ikke gemt, findes gruppenummeret paa arket ikke
+        ' i SAP. Det skal vaek, for CreateItems slaar netop det nummer op og
+        ' ville haenge itemet paa en arbejdsplan, der aldrig blev til noget.
+        If IsFailureStatusType(savedType) Then
+            failedRows = failedRows + 1
+            ClearTlhRowResults ws, i, mapTlh, savedMessage
+        End If
 NextRow:
+        ' Tilbage til procedurens egen fejlhaandtering. Ikke On Error GoTo 0:
+        ' saa ville alt efter loekken staa uden handler.
+        On Error GoTo myerr
     Next i
 
+    If failedRows > 0 Then
+        MsgBox CStr(failedRows) & " af raekkerne paa " & ws.name & " blev ikke oprettet." & vbCrLf & _
+               "Se kolonnen Status_Message for hvilke og hvorfor.", vbExclamation + vbOKOnly
+    End If
+
     Exit Sub
+
+' Een raekke der fejler, stopper ikke de oevrige. Fejlen skrives i raekkens
+' eget statusfelt, saa den kan findes bagefter.
+'
+' Selve oprydningen ligger i en egen procedure. Den koerer INDE i en
+' fejlhaandtering, og "On Error Resume Next" hoerer hjemme et sted, hvor den
+' ikke ogsaa skygger for resten af loekken.
+TlhRowError:
+    failedRows = failedRows + 1
+    ClearTlhRowResults ws, i, mapTlh, "ERROR: " & Err.Description
+    Err.Clear
+    Resume NextRow
 
 myerr:
     On Error Resume Next
@@ -1144,7 +1299,6 @@ Public Sub CreateItems()
     Dim ws As Worksheet, wsTL As Worksheet, wsOBJ As Worksheet, wsTlOps As Worksheet
     Dim itemCols As Object, tlhCols As Object, objCols As Object, tlCols As Object
     Dim statusText As String, itemNumber As String
-    Dim regex As Object, matches As Object
     Dim MI_TL_dict As Object, MI_OBJ_dict As Object
     Dim tlhInfoByGroup As Object, itemToGroup As Object
     Dim key As Variant
@@ -1159,6 +1313,7 @@ Public Sub CreateItems()
     Dim itemPrio As String, itemPrioKey As String, itemStatus As String, itemNonFlowStatus As String
     Dim itemRev As String, itemRevBy As String, itemLongText As String
     Dim sapOutCol As Long
+    Dim failedRows As Long
     
     '=== Initialisering ===
     Set ws = Worksheets(WS_MAINTENANCE_ITEMS)
@@ -1259,6 +1414,10 @@ Public Sub CreateItems()
     lastRowItems = GetLastDataRow(ws, CLng(itemCols("ITEM_KEY")), 1)
     
     For i = CLng(itemCols("ROW_START")) To lastRowItems
+        ' Raekkens egen fejlhaandtering. Foer tog raekke 12 af 40 de
+        ' resterende 28 med sig, og ingen fik at vide hvilke.
+        On Error GoTo ItemRowError
+
         itemKey = NormalizeKeyValue(GetMapValue(ws, i, CLng(itemCols("ITEM_KEY"))))
         If itemKey = "" Then GoTo NextItem
 
@@ -1333,7 +1492,7 @@ Public Sub CreateItems()
                 Err.Clear
                 objSess.FindById("wnd[0]/usr/subSUBSCREEN_MITEM:SAPLIWP3:8002/tabsTABSTRIP_ITEM/tabpT\11/ssubSUBSCREEN_BODY2:SAPLIWP3:8022/subSUBSCREEN_ITEM_2:SAPLIWP3:0500/cmbRMIPM-PRIOK").Text = itemPrio
             End If
-            On Error GoTo myerr
+            On Error GoTo ItemRowError
         End If
 
         objSess.FindById("wnd[0]/usr/subSUBSCREEN_MITEM:SAPLIWP3:8002/tabsTABSTRIP_ITEM/tabpT\11/ssubSUBSCREEN_BODY2:SAPLIWP3:8022/subSUBSCREEN_ITEM_2:SAPLIWP3:0500/txtRMIPM-PLNTY").Text = arr(0) 'Task List Type
@@ -1373,13 +1532,7 @@ Public Sub CreateItems()
         objSess.FindById("wnd[0]/tbar[0]/btn[11]").press
 
         '=== Udtr�k og gem oprettet item-nummer ===
-        statusText = objSess.FindById("wnd[0]/sbar").Text
-        Set regex = CreateObject("VBScript.RegExp")
-        regex.Pattern = "\d+"
-        Set matches = regex.Execute(statusText)
-
-        If matches.Count > 0 Then
-            itemNumber = matches(0).Value
+        If TryReadCreatedNumber(itemNumber, statusText) Then
             SetMapValue ws, i, sapOutCol, itemNumber
             
             html = itemLongText
@@ -1406,15 +1559,35 @@ Public Sub CreateItems()
 
 
         Else
+            ' Ikke et S-svar, eller ingen cifre i det. Teksten selv skrives i
+            ' kolonnen: den er ikke cifre alene, saa tilbageskrivningen
+            ' afviser den, og man kan se paa arket hvad SAP sagde.
+            failedRows = failedRows + 1
             SetMapValue ws, i, sapOutCol, statusText
+            RecoverSapScreen TX_IP04
         End If
         
         
         
 NextItem:
+        ' Tilbage til procedurens egen fejlhaandtering. Ikke On Error GoTo 0:
+        ' saa ville alt efter loekken staa uden handler.
+        On Error GoTo myerr
     Next i
-    
+
+    If failedRows > 0 Then
+        MsgBox CStr(failedRows) & " af raekkerne paa " & ws.name & " fik ikke et SAP-nummer." & vbCrLf & _
+               "Se kolonnen SAPNumber for hvilke og hvorfor.", vbExclamation + vbOKOnly
+    End If
+
     Exit Sub
+
+' Een raekke der fejler, stopper ikke de oevrige.
+ItemRowError:
+    failedRows = failedRows + 1
+    WriteRowFailure ws, i, sapOutCol, "ERROR: " & Err.Description, TX_IP04
+    Err.Clear
+    Resume NextItem
 
 '=== Fejlh�ndtering ===
 myerr:
@@ -1429,7 +1602,6 @@ Public Sub CreatePlans()
     Dim wsPlans As Worksheet, wsMI As Worksheet
     Dim planCols As Object, itemCols As Object
     Dim statusText As String, planNumber As String
-    Dim regex As Object, matches As Object
     Dim MP_MI_dict As Object                        ' Plan -> MI dictionary
     Dim CallHorizonDict As Object                   ' cycle/unit -> (A-D) dictionary
     Dim key As Variant
@@ -1450,6 +1622,7 @@ Public Sub CreatePlans()
     Dim planLinkCol As Long
     Dim itemKeyCol As Long
     Dim itemSapCol As Long
+    Dim failedPlans As Long
 
     '===Initialisering===
     Set wsPlans = Worksheets(WS_MAINTENANCE_PLANS)
@@ -1552,6 +1725,10 @@ NextItemRow:
 
     '===Loop gennem alle keys i dictionary===
     For Each key In MP_MI_dict.Keys
+        ' Raekkens egen fejlhaandtering. Een plan der fejler, stopper ikke
+        ' de oevrige.
+        On Error GoTo PlanRowError
+
         ' Find rækken i Maintenance_Plans for denne key via lookup dictionary
         planRow = 0
         If planRowDict.Exists(CStr(key)) Then
@@ -1645,23 +1822,44 @@ NextItemRow:
             objSess.FindById("wnd[0]/tbar[0]/btn[11]").press
 
             '===Udtr�k og gem oprettet Plan-nummer===
-            statusText = objSess.FindById("wnd[0]/sbar").Text
-            Set regex = CreateObject("VBScript.RegExp")
-            regex.Pattern = "\d+"
-            Set matches = regex.Execute(statusText)
-
-            If matches.Count > 0 Then
-                planNumber = matches(0).Value
+            If TryReadCreatedNumber(planNumber, statusText) Then
                 SetMapValue wsPlans, planRow, sapOutCol, planNumber
             Else
+                ' Ikke et S-svar, eller ingen cifre i det. Teksten selv
+                ' skrives i kolonnen - den er ikke cifre alene, saa
+                ' tilbageskrivningen afviser den.
+                failedPlans = failedPlans + 1
                 SetMapValue wsPlans, planRow, sapOutCol, statusText
+                RecoverSapScreen TX_IP01
             End If
         End If
 NextPlan:
+        ' Tilbage til procedurens egen fejlhaandtering. Ikke On Error GoTo 0:
+        ' saa ville alt efter loekken staa uden handler.
+        On Error GoTo myerr
     Next key
 
-    MsgBox "Alle planer er oprettet!"
+    ' Sagde "Alle planer er oprettet!" ogsaa naar de ikke var det. En
+    ' kvittering, der ikke kan sige nej, er ikke en kvittering.
+    If failedPlans > 0 Then
+        MsgBox CStr(failedPlans) & " af planerne fik ikke et SAP-nummer." & vbCrLf & _
+               "Se kolonnen SAPNum paa " & wsPlans.name & " for hvilke og hvorfor.", _
+               vbExclamation + vbOKOnly
+    Else
+        MsgBox "Alle planer er oprettet!"
+    End If
     Exit Sub
+
+' Een plan der fejler, stopper ikke de oevrige.
+PlanRowError:
+    failedPlans = failedPlans + 1
+    If planRow > 0 Then
+        WriteRowFailure wsPlans, planRow, sapOutCol, "ERROR: " & Err.Description, TX_IP01
+    Else
+        RecoverSapScreen TX_IP01
+    End If
+    Err.Clear
+    Resume NextPlan
 
 '===Fejlh�ndtering===
 myerr:
