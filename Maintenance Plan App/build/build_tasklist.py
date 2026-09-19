@@ -10,6 +10,7 @@ from build_plan_header import section_header, help_panel
 import build_help as bh
 from build_strategy import build_strategy_body, IS_STRATEGY
 import sp_config as cfg
+import build_attflows as att
 
 DM_ITEM = "If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)"
 OPS_CW = f"({SHELL_W} - 36)"
@@ -374,7 +375,7 @@ def _att_ops_cell():
     noegle baeres MED ind i hver indre record, saa afkrydsningen kun ser paa
     sin egen ThisItem. Ingen krydsreference mellem to gallerier."""
     cur = ("Coalesce(LookUp(colVhpAttachments, ItemId = varVhpActiveItemId "
-           "&& LineId = ThisItem.LineId).OperationsKey, \";\")")
+           "&& FileName = ThisItem.FileName).OperationsKey, \";\")")
     return Ctrl("chkVhpAttOp", "ModernCheckbox", props={
         "AccessibleLabel": '"Attach to operation " & ThisItem.OperationNo',
         "AlignInContainer": "AlignInContainer.Center",
@@ -383,10 +384,10 @@ def _att_ops_cell():
         "Label": "ThisItem.OperationNo",
         "OnCheck": (
             "With(\n"
-            "    { op: ThisItem.OperationNo, lid: ThisItem.LineId },\n"
+            "    { op: ThisItem.OperationNo, fn: ThisItem.FileName },\n"
             "    UpdateIf(\n"
             "        colVhpAttachments,\n"
-            "        ItemId = varVhpActiveItemId && LineId = lid,\n"
+            "        ItemId = varVhpActiveItemId && FileName = fn,\n"
             "        {\n"
             "            OperationsKey:\n"
             "                If(\n"
@@ -400,10 +401,10 @@ def _att_ops_cell():
         ),
         "OnUncheck": (
             "With(\n"
-            "    { op: ThisItem.OperationNo, lid: ThisItem.LineId },\n"
+            "    { op: ThisItem.OperationNo, fn: ThisItem.FileName },\n"
             "    UpdateIf(\n"
             "        colVhpAttachments,\n"
-            "        ItemId = varVhpActiveItemId && LineId = lid,\n"
+            "        ItemId = varVhpActiveItemId && FileName = fn,\n"
             "        { OperationsKey: Substitute(Coalesce(OperationsKey, \";\"), \";\" & op & \";\", \";\") }\n"
             "    )\n"
             ")"
@@ -413,34 +414,42 @@ def _att_ops_cell():
 
 
 def _attachments_pane():
-    # Selve filvalget mangler. Se docs/18-materialer-og-attachments.md:
-    # drag and drop fra stifinderen kraever Attachment-kontrollen, og den
-    # lever kun i en formular bundet til en liste med vedhaeftninger. Hvilken
-    # liste det skal vaere, afhaenger af hvad flowet vil have ind, og det er
-    # ikke afklaret endnu. Resten af fanen virker uden.
-    dropZone = group(
-        "conVhpAttDropZone",
-        [text_ctrl("txtVhpAttDropTitle", '"Drop documents here"', size=14,
-                   weight="Semibold", height=22, wrap="false", color=C_MUTED),
-         text_ctrl("txtVhpAttDropHint",
-                   '"The file picker is added once the attachment flow contract is known. '
-                   'Everything below already works."',
-                   size=12, color=C_MUTED, height=32, wrap="true")],
-        direction="Vertical", gap=4, height=86, width="Parent.Width",
-        align_items="Center", justify="Center",
-        fill=C_INPUT_BG, border_color=C_CARD_BORDER, border_thickness=1, radius=10)
+    # Filvalget. Attachments-kontrollen er den eneste, der tager en
+    # vilkaarlig fil fra stifinderen - og den virker FRIT paa skaermen.
+    # Her stod foer, at den kun lever i en formular bundet til en liste med
+    # vedhaeftninger; det er ikke rigtigt. Den gamle app "BioSap Maintenance
+    # Plans" bruger den praecis saadan, uden formular, mod de samme flows.
+    #
+    # Value ER filens indhold. Flowet vil have { name, contentBytes }, og
+    # ForAll over kontrollens Attachments giver begge dele.
+    #
+    # Versionen staar i selve kontrolnavnet - "Attachments@2.3.0" - og ikke
+    # som en Variant ved siden af. Det er den form, den gamle app har, og
+    # kontroltypens version skal matche paa tvaers af appen; en Variant-linje
+    # ved siden af er en anden konstruktion, og den er ikke bevist her.
+    picker = Ctrl(att.PICKER, "Attachments@2.3.0", props={
+        "AccessibleLabel": '"Choose documents"',
+        "BorderColor": C_CARD_BORDER,
+        "BorderThickness": "1",
+        "Height": "120",
+        "MaxAttachments": "10",
+        "MaxAttachmentSize": "50",
+        "NoAttachmentsText": '"Drop documents here, or browse"',
+        "PaddingBottom": "5", "PaddingLeft": "5",
+        "PaddingRight": "5", "PaddingTop": "5",
+        "Width": "Parent.Width",
+    }, h=120)
+
+    btnUpload = button("btnVhpAttUpload", '"Upload to SharePoint"',
+                       att.upload_fx(), primary=True, display_mode=DM_ITEM)
+    btnRefresh = button("btnVhpAttRefresh", '"Refresh from SharePoint"',
+                        att.refresh_button_fx(), display_mode=DM_ITEM)
 
     btnRemove = button(
         "btnVhpRemoveAttachment", '"Remove document"',
-        (
-            "If(\n"
-            f"    CountRows(Filter({ATT_ACTIVE}, Selected = true)) = 0,\n"
-            "    Set(varVhpRuntimeInfo, \"Select one or more documents to remove.\"),\n"
-            "    RemoveIf(colVhpAttachments, ItemId = varVhpActiveItemId, Selected = true);\n"
-            "    Set(varVhpRuntimeInfo, \"Removed selected document(s).\")\n"
-            ")"
-        ), danger=True, display_mode=DM_ITEM)
-    actions = button_row("conVhpAttActions", [btnRemove], OPS_CW)
+        att.delete_fx(), danger=True, display_mode=DM_ITEM)
+    actions = button_row("conVhpAttActions",
+                         [btnUpload, btnRefresh, btnRemove], OPS_CW)
 
     chkSel = Ctrl("chkVhpAttSel", "ModernCheckbox", props={
         "AccessibleLabel": '"Select document"',
@@ -469,11 +478,11 @@ def _attachments_pane():
         "Fill": C_TRANSPARENT,
         "FillPortions": "0",
         "Height": "26",
-        # Den ydre raekkes LineId baeres med ind i hver record - se
+        # Den ydre raekkes FILNAVN baeres med ind i hver record - se
         # _att_ops_cell.
         "Items": ("With(\n"
-                  "    { lid: ThisItem.LineId },\n"
-                  f"    ForAll({ATT_OPS} As O, {{ OperationNo: O.OperationNo, LineId: lid }})\n"
+                  "    { fn: ThisItem.FileName },\n"
+                  f"    ForAll({ATT_OPS} As O, {{ OperationNo: O.OperationNo, FileName: fn }})\n"
                   ")"),
         "LayoutMinWidth": "0",
         "LoadingSpinner": "LoadingSpinner.None",
@@ -517,7 +526,7 @@ def _attachments_pane():
                      '"Leave every operation unticked to attach the document to the whole item."',
                      size=12, color=C_MUTED, height=18, wrap="true")
 
-    return group("conVhpAttPane", [dropZone, actions, note, gallery, empty],
+    return group("conVhpAttPane", [picker, actions, note, gallery, empty],
                  direction="Vertical", gap=12, width="Parent.Width")
 
 

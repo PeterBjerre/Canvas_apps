@@ -266,9 +266,21 @@ WORKING_COLLECTIONS = [
     # Dokumenter. OperationsKey er ";0010;0020;" ligesom PackagesKey -
     # tomt (";") betyder at dokumentet hoerer til hele planen og ikke til
     # en bestemt operation.
+    # FileName er noeglen paa raekken, ikke et loebenummer: SharePoint
+    # tillader ikke to filer med samme navn i samme mappe, saa navnet er
+    # unikt, stabilt og kendt af begge sider. Identifier kommer fra
+    # Get-flowet og er det, sletningen skal bruge; FileUrl er linket.
     ("colVhpAttachments",
-     {"ItemId": 0, "LineId": 0, "FileName": '""', "FileSize": 0,
-      "OperationsKey": '";"', "Status": '""', "Selected": "false"}),
+     {"ItemId": 0, "FileName": '""', "FileUrl": '""', "Identifier": '""',
+      "FileSize": 0, "OperationsKey": '";"', "Status": '""',
+      "Selected": "false"}),
+    # Arbejdsspand til opdateringen fra biblioteket. colVhpAttKeep holder
+    # operationskoblingen fast, mens raekkerne skiftes ud - den findes kun
+    # i appen og ville ellers gaa tabt ved hver opdatering.
+    ("colVhpAttFiles",
+     {"Name": '""', "Link": '""', "Identifier": '""'}),
+    ("colVhpAttKeep",
+     {"FileName": '""', "OperationsKey": '";"'}),
     # Kobler appens lokale ItemId til den raekke, der blev oprettet i
     # MaintenanceItems. Operationerne har brug for begge dele til deres
     # opslagsfelt, og de kan foerst kendes EFTER items er skrevet.

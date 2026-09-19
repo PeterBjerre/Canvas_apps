@@ -67,21 +67,66 @@ to gallerier.
 
 ---
 
-## Det der mangler: selve filvalget
+## Filvalget — bygget
 
-Alt ovenfor virker. **Der er ingen filvælger endnu**, og det er med vilje —
-valget afhænger af noget, der ikke er afklaret.
+Her stod, at filvælgeren manglede, og at den ventede på en afklaring.
+Begge dele er overhalet.
 
-### Hvorfor det ikke bare er en knap
+### Antagelsen om formularen holdt ikke
 
-Power Apps kan ikke læse en vilkårlig fil fra stifinderen med en almindelig
-kontrol. `AddMediaButton` tager billeder og video, ikke dokumenter. Den
-eneste kontrol, der understøtter træk-og-slip af vilkårlige filer, er
-**Attachment-kontrollen** — og den lever kun inde i en formular bundet til
-en datakilde, der har vedhæftninger. I praksis en SharePoint-liste.
+Teksten sagde, at Attachment-kontrollen "kun lever inde i en formular bundet
+til en datakilde, der har vedhæftninger". **Det er ikke rigtigt.** Den gamle
+app `BioSap Maintenance Plans` bruger den frit på skærmen:
 
-Det betyder, at filen skal **landes et sted i SharePoint først**, og derefter
-kan flowet flytte den til dokumentbiblioteket.
+```yaml
+- AttachmentControl:
+    Control: Attachments@2.3.0
+```
+
+Ingen formular, ingen `DataField`. Og `.Attachments` giver `{ Name, Value }`,
+hvor `Value` **er** filens indhold — præcis det, flowet vil have.
+
+Det er værd at bemærke hvorfor fejlen kunne stå så længe: påstanden var
+rimelig, den er udbredt, og der var ingen måde at efterprøve den på, før
+solutionen lå i repoet. Nu kan konstruktioner slås op i stedet for at blive
+husket.
+
+### Sådan er det bygget
+
+Kontrakten står ét sted: `Maintenance Plan App/build/build_attflows.py`.
+
+| Knap | Gør |
+|---|---|
+| **Upload to SharePoint** | `ForAll(picker.Attachments, upload.Run(<ItemKey>, {file: {contentBytes: Value, name: Name}}))`, nulstiller vælgeren og henter listen forfra |
+| **Refresh from SharePoint** | Kalder Get-flowet, `ParseJSON`, og genopbygger itemets rækker |
+| **Remove document** | Kalder Delete-flowet med `Identifier` og fjerner rækken |
+
+**Mappen er itemets nøgle** (`MI0007`). Den findes først, når planen er
+gemt, så upload på en plan, der kun står i appen, ville skrive til en mappe
+uden navn. Knappen siger det i stedet for at fejle.
+
+**Filnavnet er nøglen på rækken**, ikke et løbenummer. SharePoint tillader
+ikke to filer med samme navn i samme mappe, så navnet er unikt, stabilt og
+kendt af begge sider. Et løbenummer skulle appen selv finde på og holde styr
+på hen over en opdatering — og `ForAll` kan ikke tælle op undervejs uden at
+risikere dubletter. Operationskoblingen bæres derfor også på filnavnet ind i
+den indre gallery.
+
+**Operationskoblingen overlever en opdatering.** Den findes kun i appen, ikke
+i biblioteket, så den reddes over i `colVhpAttKeep`, før rækkerne skiftes ud,
+og sættes tilbage på de filer, der stadig er der.
+
+### Før det kan deployes
+
+De tre flows skal tilføjes appen som datakilder i Studio. En formel, der
+kalder et flow, fejler i compile, hvis kilden ikke er der, og det kan ikke
+gøres fra YAML:
+
+```
+BioSap-TaskListAttachment
+BioSap-GetSubmittedAttachments
+BioSap-DeleteSubmittedAttachments
+```
 
 ### Spørgsmålet er besvaret: flowene findes
 
