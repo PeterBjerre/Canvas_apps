@@ -192,7 +192,10 @@ def text_input(name, default, placeholder="\"\"", max_length=None, required_form
         "BorderThickness": "1",
         "Color": C_TITLE,
         "Default": default,
-        "Fill": C_INPUT_BG if not display_mode else f"If({display_mode} = DisplayMode.Disabled, {C_DISABLED_BG}, {C_INPUT_BG})",
+        # Graat = kan ikke redigeres. Det gjaldt foer kun DisplayMode.Disabled,
+        # saa et View-felt saa redigerbart ud - hvidt felt med kant, der ikke
+        # reagerer. Nu afgoer det ENE spoergsmaal farven: kan man skrive i den?
+        "Fill": C_INPUT_BG if not display_mode else f"If({display_mode} = DisplayMode.Edit, {C_INPUT_BG}, {C_DISABLED_BG})",
         "Font": FONT,
         "Height": str(height),
         "LayoutMinWidth": "0",
@@ -224,7 +227,8 @@ def number_input(name, default, min_v=None, max_v=None, required_formula="false"
         "BorderThickness": "1",
         "Color": C_TITLE,
         "Default": default,
-        "Fill": C_INPUT_BG,
+        # Samme regel som text_input: graat naar der ikke kan skrives.
+        "Fill": C_INPUT_BG if not display_mode else f"If({display_mode} = DisplayMode.Edit, {C_INPUT_BG}, {C_DISABLED_BG})",
         "Font": FONT,
         "Height": str(height),
         "LayoutMinWidth": "0",
@@ -254,7 +258,7 @@ def dropdown(name, items, default, item_display="ThisItem.Value", required_formu
         "BorderThickness": "1",
         "Color": C_TITLE,
         "Default": default,
-        "Fill": C_INPUT_BG,
+        "Fill": C_INPUT_BG if not display_mode else f"If({display_mode} = DisplayMode.Edit, {C_INPUT_BG}, {C_DISABLED_BG})",
         "Font": FONT,
         "Height": str(height),
         "ItemDisplayText": item_display,
@@ -355,6 +359,32 @@ def poll_timer(name, on_timer_end, duration=500):
         "Visible": "false",
         "Width": "1",
     }, h=1, vis="false")
+
+
+def pin_widths(ctrls):
+    """Laas cellebredderne i en tabelraekke, saa den ikke kan klemmes sammen.
+
+    Alle inputs faar LayoutMinWidth = 0 - det er med vilje, for i de fleste
+    raekker SKAL de kunne give efter. Men i en vandret container med faste
+    bredder betyder det, at hvis raekken bare er nogle faa pixels smallere
+    end sit indhold - en scrollbar i galleriet, TemplatePadding, en kant -
+    saa krymper ALLE celler forholdsmaessigt.
+
+    Konsekvensen ses ikke i den foerste kolonne, men vokser hen over raekken:
+    tabellen glider til venstre i forhold til sin HTML-overskrift, indtil
+    vaerdierne staar under den forkerte titel. Overskriften er en HtmlViewer
+    med faste kolonner og kan ikke give efter, saa de to kan ikke undgaa at
+    komme fra hinanden.
+
+    Her laases hver celles mindstebredde til dens faktiske bredde. Saa kan
+    raekken ikke krympe - den bliver klippet eller scroller i stedet, og
+    kolonnerne bliver staaende under deres titler.
+    """
+    for c in ctrls:
+        w = str(c.props.get("Width", "")).strip()
+        if w.isdigit():
+            c.props["LayoutMinWidth"] = w
+    return ctrls
 
 
 def label_row(name, label_text, required=False, width="Parent.Width"):

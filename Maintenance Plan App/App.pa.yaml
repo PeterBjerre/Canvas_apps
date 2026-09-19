@@ -26,12 +26,12 @@ App:
 
       colVhpStrategyPackages = ForAll(MD_StrategyPackage As R, { StrategyKey: R.StrategyKey, PackageNo: R.PackageNo, ShortCode: R.ShortCode, CycleLength: R.CycleLength, CycleUnit: R.CycleUnit.Value, Hierarchy: R.Hierarchy, PackageText: R.PackageText });
 
-      colVhpTasklists = ForAll(Distinct(MD_StandardTaskOperations, Plant.Value) As P, { Plant: P.Value, Key: P.Value & "-STD", Name: "Standard task list - " & P.Value, Description: "", Operations: ForAll(Sort(Filter(MD_StandardTaskOperations, Plant.Value = P.Value), OperationNo) As O, { OperationNo: Text(O.OperationNo, "0000"), OperationShortText: O.OperationShortText, WorkHours: O.Work, Persons: O.NumberOfCapacities, DurationHours: O.Work / Max(Coalesce(O.NumberOfCapacities, 1), 1), MainWorkCenter: O.WorkCenter, Vendor: O.VendorNo, LongText: "", ControlKey: O.ControlKey, Cost: O.Price, Currency: O.Currency, CostElement: O.CostElement, MaterialGroup: O.MaterialGroup, OpPlant: O.SapPlant }) });
+      colVhpTasklists = ForAll(Distinct(MD_StandardTaskOperations, Plant.Value) As P, { Plant: P.Value, Key: P.Value & "-STD", Name: "Standard task list - " & P.Value, Description: "", Operations: ForAll(Sort(Filter(MD_StandardTaskOperations, Plant.Value = P.Value), OperationNo) As O, { OperationNo: Text(O.OperationNo, "0000"), OperationShortText: O.OperationShortText, WorkHours: O.Work, Persons: O.NumberOfCapacities, DurationHours: O.Work / Max(Coalesce(O.NumberOfCapacities, 1), 1), MainWorkCenter: O.WorkCenter, Vendor: O.VendorNo, LongText: "", ControlKey: O.ControlKey, UnitCost: O.Price, Cost: O.Work * O.Price, Currency: O.Currency, CostElement: O.CostElement, MaterialGroup: O.MaterialGroup, OpPlant: O.SapPlant }) });
     OnStart: |
       =ClearCollect(colVhpItems, { ItemId: 0, ShortText: "", FunctionalLocation: "", FlDescription: "", MainWorkCenter: "", ActivityType: "", ObjectList: "", Revision: "", OrstedResponsible: "", Initials: "", LongText: "", TasklistKey: "", TasklistName: "", Status: "" });
       Clear(colVhpItems);
 
-      ClearCollect(colVhpOperations, { ItemId: 0, OperationNo: "", OperationShortText: "", WorkHours: 0, Persons: 0, DurationHours: 0, MainWorkCenter: "", Vendor: "", LongText: "", PackagesKey: ";", Selected: false, ControlKey: "", Cost: 0, Currency: "", CostElement: 0, MaterialGroup: "" });
+      ClearCollect(colVhpOperations, { ItemId: 0, OperationNo: "", OperationShortText: "", WorkHours: 0, Persons: 0, DurationHours: 0, MainWorkCenter: "", Vendor: "", LongText: "", PackagesKey: ";", Selected: false, ControlKey: "", Cost: 0, UnitCost: 0, Currency: "", CostElement: 0, MaterialGroup: "" });
       Clear(colVhpOperations);
 
       ClearCollect(colVhpFlSearch, { Code: "", Description: "", Display: "", Maintainable: false, Level: "" });
@@ -274,6 +274,7 @@ App:
                                   Selected: false,
                                   ControlKey: OP.Ctrl,
                                   Cost: OP.Price,
+                                  UnitCost: If(Coalesce(OP.Work, 0) > 0, OP.Price / OP.Work, OP.Price),
                                   Currency: OP.Currency,
                                   CostElement: OP.CostElem,
                                   MaterialGroup: OP.MaterialGroup

@@ -154,6 +154,7 @@ def build_tasklist_picker_modal():
             "                    DurationHours: TLOP.DurationHours, MainWorkCenter: TLOP.MainWorkCenter,\n"
             "                    Vendor: TLOP.Vendor, LongText: TLOP.LongText,\n"
             "                    ControlKey: TLOP.ControlKey, Cost: TLOP.Cost,\n"
+            "                    UnitCost: TLOP.UnitCost,\n"
             "                    Currency: TLOP.Currency, CostElement: TLOP.CostElement,\n"
             "                    MaterialGroup: TLOP.MaterialGroup,\n"
             "                    PackagesKey: \";\", Selected: false\n"
