@@ -1,0 +1,323 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_powerbi-1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapPowerBIConn"
+        },
+        "api": {
+          "name": "shared_powerbi"
+        }
+      },
+      "shared_office365_1": {
+        "runtimeSource": "invoker",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapOutlookConn"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)": {
+          "defaultValue": "thasi@orsted.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapErrorNotifiers"
+          }
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "5a0b6d70-5431-4ada-8f88-7ac4e758ba53"
+          },
+          "type": "Request",
+          "kind": "PowerAppV2",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "description": "Please enter your input",
+                  "title": "VendorNumberPar",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Initialize_variable-data": {
+          "runAfter": {
+            "Initialize_variable": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "7f339a91-84c4-4c43-a832-76b1a0753e55"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "data",
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "Try": {
+          "actions": {
+            "Run_a_query_against_a_dataset": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "346306f7-60f8-4fee-8b3f-d614c43cfc78"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_powerbi-1",
+                  "operationId": "ExecuteDatasetQuery",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_powerbi"
+                },
+                "parameters": {
+                  "groupid": "26d062ec-3014-4cd3-9313-ced0cfe497b9",
+                  "datasetid": "fadc4a40-342b-41e3-a1ef-aa4af8bb9e09",
+                  "specification/query": "EVALUATE\nFILTER (\n    Vendors,\nVendors[Vendor Number]=@{triggerBody()?['text']}\n)\nORDER BY\nVendors[Vendor Number]",
+                  "specification/serializerSettings/includeNulls": false
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Compose-data": {
+              "runAfter": {
+                "Run_a_query_against_a_dataset": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "15c61915-2250-4924-8a27-9166881aee53"
+              },
+              "type": "Compose",
+              "inputs": "@outputs('Run_a_query_against_a_dataset')?['body/firstTableRows']"
+            },
+            "Parse_JSON": {
+              "runAfter": {
+                "Compose-data": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "7e72f72e-f48f-4a02-94b9-8dbcd285b18e"
+              },
+              "type": "ParseJson",
+              "inputs": {
+                "content": "@outputs('Compose-data')",
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "Vendors[Vendor Name]": {
+                        "type": "string"
+                      },
+                      "Vendors[Vendor Number]": {
+                        "type": "integer"
+                      },
+                      "Vendors[Country Key]": {
+                        "type": "string"
+                      },
+                      "Vendors[Country]": {
+                        "type": "string"
+                      },
+                      "Vendors[Postal Code]": {
+                        "type": "string"
+                      },
+                      "Vendors[City]": {
+                        "type": "string"
+                      },
+                      "Vendors[Street]": {
+                        "type": "string"
+                      },
+                      "Vendors[Vendor Search]": {
+                        "type": "string"
+                      }
+                    },
+                    "required": []
+                  }
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "Initialize_FlowRunHistoryLink": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "eeea69d7-ec3a-4d42-9af1-25d32698dd7b"
+          },
+          "type": "Scope"
+        },
+        "Finally": {
+          "actions": {
+            "Respond_to_a_Power_App_or_flow": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "ca9ce24b-46a7-4c96-a1b5-33e33fdf387c"
+              },
+              "type": "Response",
+              "kind": "PowerApp",
+              "inputs": {
+                "statusCode": 200,
+                "body": {
+                  "vendoroutput": "@{outputs('Compose-data')}",
+                  "vendoroutputcompleted": "VendorOutputCompleted"
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "vendoroutput": {
+                      "title": "VendorOutput",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    },
+                    "vendoroutputcompleted": {
+                      "title": "VendorOutputCompleted",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "Catch": [
+              "Succeeded",
+              "TimedOut",
+              "Failed",
+              "Skipped"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "f610b6ba-ca2a-429b-b0dc-28e4579adf9e"
+          },
+          "type": "Scope"
+        },
+        "Initialize_variable": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "522ce0d2-86d2-47e1-8892-c22c59b87184"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "VendorNumberVar",
+                "type": "boolean"
+              }
+            ]
+          }
+        },
+        "Catch": {
+          "actions": {
+            "Convert_UTC_time_to_DK_time_zone": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "a5a8c8b3-3418-4a96-9c0b-3190061c1d11"
+              },
+              "type": "Expression",
+              "kind": "ConvertTimeZone",
+              "inputs": {
+                "baseTime": "@utcNow()",
+                "formatString": "G",
+                "sourceTimeZone": "UTC",
+                "destinationTimeZone": "Romance Standard Time"
+              }
+            },
+            "Send_notification_to_development_team": {
+              "runAfter": {
+                "Convert_UTC_time_to_DK_time_zone": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "d7e649b4-8625-486f-a8a2-9f8c573a8faf"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365_1",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                },
+                "parameters": {
+                  "emailMessage/To": "@parameters('BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)')",
+                  "emailMessage/Subject": "An error occured in the flow - @{workflow()?['tags']?['flowDisplayName']}",
+                  "emailMessage/Body": "<p><span style=\"font-family: arial\">Hi,<br>\n<br>\nAn error was detected in the following flow instance.<br>\n<br>\n&gt;Timestamp<br>\n</span><span style=\"font-family: arial\">@{body('Convert_UTC_time_to_DK_time_zone')}</span><span style=\"font-family: arial\"><br>\n<br>\n<br>\n&gt;Run History<br>\n</span><span style=\"font-family: arial\">@{variables('FlowRunHistoryLink')}</span><span style=\"font-family: arial\"><br>\n<br>\nPlease assign to yourself if you are looking into the issue. Kindly update the resolution for future referrence.<br>\n<br>\n<br>\nThank you</span></p>",
+                  "emailMessage/Importance": "Normal"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            }
+          },
+          "runAfter": {
+            "Try": [
+              "TimedOut",
+              "Skipped",
+              "Failed"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "8dbbeab7-f423-4f3b-81f7-794829653c14"
+          },
+          "type": "Scope"
+        },
+        "Initialize_FlowRunHistoryLink": {
+          "runAfter": {
+            "Initialize_variable-data": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "e4d34a34-38aa-4d80-a349-ecf80844b24a"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "FlowRunHistoryLink",
+                "type": "string",
+                "value": "<a href=\"@{concat('https://make.powerautomate.com/environments/', workflow()?['tags']['environmentName'], '/flows/', workflow()?['name'], '/runs/', workflow()?['run']['name'])}\">Link to Run History</a>"
+              }
+            ]
+          },
+          "description": "Holds the hyperlink to current run of the flow. Used in error notification"
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

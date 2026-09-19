@@ -1,0 +1,201 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline_1": {
+        "runtimeSource": "invoker",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapSharePointConn"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_office365": {
+        "runtimeSource": "invoker",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapOutlookConn"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "BioSap-SiteUrl (orsted_BioSapSiteUrl)": {
+          "defaultValue": "https://orsted.sharepoint.com/teams/BioSAPDev",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapSiteUrl"
+          }
+        },
+        "BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)": {
+          "defaultValue": "thasi@orsted.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapErrorNotifiers"
+          }
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "be804474-56fb-4716-86da-6c8804ea59f0"
+          },
+          "type": "Request",
+          "kind": "PowerAppV2",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "title": "Identifier",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input",
+                  "x-ms-content-hint": "TEXT"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Try": {
+          "actions": {
+            "Delete_file": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "60633a53-519d-4e85-9653-2ac65450b0b4"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_sharepointonline_1",
+                  "operationId": "DeleteFile",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                },
+                "parameters": {
+                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                  "id": "@triggerBody()['text']"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            }
+          },
+          "runAfter": {
+            "Initialize_FlowRunHistoryLink": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "3d690f2d-e5a5-41c3-8328-40efbdfb0650"
+          },
+          "type": "Scope"
+        },
+        "Catch": {
+          "actions": {
+            "Convert_UTC_time_to_DK_time_zone": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "a5a8c8b3-3418-4a96-9c0b-3190061c1d11"
+              },
+              "type": "Expression",
+              "kind": "ConvertTimeZone",
+              "inputs": {
+                "baseTime": "@utcNow()",
+                "formatString": "G",
+                "sourceTimeZone": "UTC",
+                "destinationTimeZone": "Romance Standard Time"
+              }
+            },
+            "Send_notification_to_development_team": {
+              "runAfter": {
+                "Convert_UTC_time_to_DK_time_zone": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "d7e649b4-8625-486f-a8a2-9f8c573a8faf"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                },
+                "parameters": {
+                  "emailMessage/To": "@parameters('BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)')",
+                  "emailMessage/Subject": "An error occured in the flow - @{workflow()?['tags']?['flowDisplayName']}",
+                  "emailMessage/Body": "<p><span style=\"font-family: arial\">Hi,<br>\n<br>\nAn error was detected in the following flow instance.<br>\n<br>\n&gt;Timestamp<br>\n</span><span style=\"font-family: arial\">@{body('Convert_UTC_time_to_DK_time_zone')}</span><span style=\"font-family: arial\"><br>\n<br>\n<br>\n&gt;Run History<br>\n</span><span style=\"font-family: arial\">@{variables('FlowRunHistoryLink')}</span><span style=\"font-family: arial\"><br>\n<br>\nPlease assign to yourself if you are looking into the issue. Kindly update the resolution for future referrence.<br>\n<br>\n<br>\nThank you</span></p>",
+                  "emailMessage/Importance": "Normal"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            }
+          },
+          "runAfter": {
+            "Try": [
+              "Failed",
+              "Skipped",
+              "TimedOut"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "49505d4a-4e40-4fd3-a2d0-2c2aa0c7e89f"
+          },
+          "type": "Scope"
+        },
+        "Finally": {
+          "actions": {},
+          "runAfter": {
+            "Catch": [
+              "Succeeded",
+              "Failed",
+              "Skipped",
+              "TimedOut"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "a9e52d6a-8030-414e-8e80-536ac7a28379"
+          },
+          "type": "Scope"
+        },
+        "Initialize_FlowRunHistoryLink": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "e4d34a34-38aa-4d80-a349-ecf80844b24a"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "FlowRunHistoryLink",
+                "type": "string",
+                "value": "<a href=\"@{concat('https://make.powerautomate.com/environments/', workflow()?['tags']['environmentName'], '/flows/', workflow()?['name'], '/runs/', workflow()?['run']['name'])}\">Link to Run History</a>"
+              }
+            ]
+          },
+          "description": "Holds the hyperlink to current run of the flow. Used in error notification"
+        }
+      },
+      "outputs": {}
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

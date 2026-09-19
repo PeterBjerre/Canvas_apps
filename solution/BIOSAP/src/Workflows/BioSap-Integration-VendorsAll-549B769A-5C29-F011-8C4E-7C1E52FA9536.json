@@ -1,0 +1,324 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_office365_1": {
+        "runtimeSource": "invoker",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapOutlookConn"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      },
+      "shared_powerbi": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapPowerBIConn"
+        },
+        "api": {
+          "name": "shared_powerbi"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)": {
+          "defaultValue": "thasi@orsted.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapErrorNotifiers"
+          }
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "7dbe8b25-a0b5-4669-b502-5507394a3185"
+          },
+          "type": "Request",
+          "kind": "PowerAppV2",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "description": "Please enter your input",
+                  "title": "VendorFilterPar",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Initialize_FlowRunHistoryLink": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "e4d34a34-38aa-4d80-a349-ecf80844b24a"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "FlowRunHistoryLink",
+                "type": "string",
+                "value": "<a href=\"@{concat('https://make.powerautomate.com/environments/', workflow()?['tags']['environmentName'], '/flows/', workflow()?['name'], '/runs/', workflow()?['run']['name'])}\">Link to Run History</a>"
+              }
+            ]
+          },
+          "description": "Holds the hyperlink to current run of the flow. Used in error notification"
+        },
+        "Catch": {
+          "actions": {
+            "Convert_UTC_time_to_DK_time_zone": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "a5a8c8b3-3418-4a96-9c0b-3190061c1d11"
+              },
+              "type": "Expression",
+              "kind": "ConvertTimeZone",
+              "inputs": {
+                "baseTime": "@utcNow()",
+                "formatString": "G",
+                "sourceTimeZone": "UTC",
+                "destinationTimeZone": "Romance Standard Time"
+              }
+            },
+            "Send_notification_to_development_team": {
+              "runAfter": {
+                "Convert_UTC_time_to_DK_time_zone": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "d7e649b4-8625-486f-a8a2-9f8c573a8faf"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365_1",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                },
+                "parameters": {
+                  "emailMessage/To": "@parameters('BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)')",
+                  "emailMessage/Subject": "An error occured in the flow - @{workflow()?['tags']?['flowDisplayName']}",
+                  "emailMessage/Body": "<p><span style=\"font-family: arial\">Hi,<br>\n<br>\nAn error was detected in the following flow instance.<br>\n<br>\n&gt;Timestamp<br>\n</span><span style=\"font-family: arial\">@{body('Convert_UTC_time_to_DK_time_zone')}</span><span style=\"font-family: arial\"><br>\n<br>\n<br>\n&gt;Run History<br>\n</span><span style=\"font-family: arial\">@{variables('FlowRunHistoryLink')}</span><span style=\"font-family: arial\"><br>\n<br>\nPlease assign to yourself if you are looking into the issue. Kindly update the resolution for future referrence.<br>\n<br>\n<br>\nThank you</span></p>",
+                  "emailMessage/Importance": "Normal"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            }
+          },
+          "runAfter": {
+            "Try": [
+              "TimedOut",
+              "Skipped",
+              "Failed"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "8dbbeab7-f423-4f3b-81f7-794829653c14"
+          },
+          "type": "Scope"
+        },
+        "Finally": {
+          "actions": {
+            "Respond_to_a_Power_App_or_flow": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "e2ed60f3-53f2-4751-a0b3-8f5294d8b9e9"
+              },
+              "type": "Response",
+              "kind": "PowerApp",
+              "inputs": {
+                "statusCode": 200,
+                "body": {
+                  "vendoroutput": "@{outputs('Compose')}",
+                  "vendoroutputcompleted": "VendorOutputCompleted"
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "vendoroutput": {
+                      "title": "VendorOutput",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    },
+                    "vendoroutputcompleted": {
+                      "title": "VendorOutputCompleted",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "Catch": [
+              "TimedOut",
+              "Succeeded",
+              "Skipped",
+              "Failed"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "037383fc-1cc5-4f20-aa0f-6e806553a4fd"
+          },
+          "type": "Scope"
+        },
+        "Try": {
+          "actions": {
+            "Run_a_query_against_a_dataset": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "686f0bd9-aa4c-4b62-af45-9a126abc6645"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_powerbi",
+                  "operationId": "ExecuteDatasetQuery",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_powerbi"
+                },
+                "parameters": {
+                  "groupid": "26d062ec-3014-4cd3-9313-ced0cfe497b9",
+                  "datasetid": "fadc4a40-342b-41e3-a1ef-aa4af8bb9e09",
+                  "specification/query": "// DAX Query\nDEFINE\n\tVAR __DS0FilterTable = \n\t\tTREATAS({BLANK()}, 'Vendors'[Block Purchasing])\n\n\tVAR __DS0FilterTable2 = \n\t\tTREATAS({BLANK()}, 'Vendors'[Centr. Del. Flag])\n\n\tVAR __DS0FilterTable3 = \n\t\tFILTER(\n\t\t\tKEEPFILTERS(VALUES('Vendors'[Vendor Search])),\n\t\t\tSEARCH(\"@{triggerBody()?['text']}\", 'Vendors'[Vendor Search], 1, 0) >= 1\n\t\t)\n\n\tVAR __SQDS0Core = \n\t\tSUMMARIZECOLUMNS(\n\t\t\t'Vendors'[Vendor Search],\n\t\t\t__DS0FilterTable,\n\t\t\t__DS0FilterTable2,\n\t\t\t__DS0FilterTable3,\n\t\t\t\"SumVendor_Number\", CALCULATE(SUM('Vendors'[Vendor Number]))\n\t\t)\n\n\tVAR __SQDS0BodyLimited = \n\t\tTOPN(100, __SQDS0Core, 'Vendors'[Vendor Search], 1)\n\n\tVAR __DS0Core = \n\t\tSUMMARIZECOLUMNS(\n\t\t\tROLLUPADDISSUBTOTAL('Vendors'[Vendor Search], \"IsGrandTotalRowTotal\"),\n\t\t\t__DS0FilterTable,\n\t\t\t__DS0FilterTable2,\n\t\t\t__DS0FilterTable3,\n\t\t\t__SQDS0BodyLimited,\n\t\t\t\"SumVendor_Number\", CALCULATE(SUM('Vendors'[Vendor Number]))\n\t\t)\n\n\tVAR __DS0PrimaryWindowed = \n\t\tTOPN(502, __DS0Core, [IsGrandTotalRowTotal], 0, 'Vendors'[Vendor Search], 1)\n\nEVALUATE\n\t__DS0PrimaryWindowed\n\nORDER BY\n\t'Vendors'[Vendor Search]\n",
+                  "specification/serializerSettings/includeNulls": false
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Compose": {
+              "runAfter": {
+                "Run_a_query_against_a_dataset": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "fc29877d-5712-4d98-b7f5-e745135531a1"
+              },
+              "type": "Compose",
+              "inputs": "@outputs('Run_a_query_against_a_dataset')?['body/firstTableRows']"
+            },
+            "Parse_JSON": {
+              "runAfter": {
+                "Compose": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "ad4759bd-7fcf-430f-a75f-d118d550fb5d"
+              },
+              "type": "ParseJson",
+              "inputs": {
+                "content": "@outputs('Compose')",
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "Vendors[Vendor Name]": {
+                        "type": "string"
+                      },
+                      "Vendors[Vendor Number]": {
+                        "type": "integer"
+                      },
+                      "Vendors[Country Key]": {
+                        "type": "string"
+                      },
+                      "Vendors[Country]": {
+                        "type": "string"
+                      },
+                      "Vendors[Postal Code]": {
+                        "type": "string"
+                      },
+                      "Vendors[City]": {
+                        "type": "string"
+                      },
+                      "Vendors[Street]": {
+                        "type": "string"
+                      },
+                      "Vendors[Vendor Search]": {
+                        "type": "string"
+                      }
+                    },
+                    "required": []
+                  }
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "Initialize_variable-query": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "eeea69d7-ec3a-4d42-9af1-25d32698dd7b"
+          },
+          "type": "Scope"
+        },
+        "Initialize_variable": {
+          "runAfter": {
+            "Initialize_FlowRunHistoryLink": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "bec48d36-2da4-4c4c-8317-45d1ee9e516c"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Data",
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "Initialize_variable-query": {
+          "runAfter": {
+            "Initialize_variable": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "4ed8c9ca-5599-4b6a-8ec5-d5d0880f39a6"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "QueryVar",
+                "type": "string",
+                "value": "EVALUATE\nSELECTCOLUMNS(\n    FILTER(\n        FILTER(\n            Vendors,\n            Vendors[Centr. Del. Flag] = \"\"\n        ),\n        Vendors[Block Purchasing] = \"\"\n    ),\n    \"Vendor Number\", Vendors[Vendor Number],\n    \"Vendor Search\", Vendors[Vendor Search]\n)\n"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}
