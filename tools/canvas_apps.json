@@ -28,23 +28,32 @@
       "app_id": null
     },
     "_kommentar_appid": [
-      "Id'et staar IKKE i solution-eksporten. Det Id, der staar i en app's",
-      "Properties.json, er DOKUMENTETS id, ikke app'ens. De to nedenfor er",
-      "app'ernes, hentet i Studio-URL'en.",
+      "folder = null paa begge domaeneapps, og det er MED VILJE.",
       "",
-      "Equipment peger paa 'Equipments' - den NYE app i solutionen, ikke",
-      "dd9544e2-a0aa-4713-a076-7637080a40fc, som er den aeldre app udenfor.",
-      "Deployer du hertil, bliver app'ens indhold ERSTATTET af det,",
-      "builderne laver."
+      "Der ER kilder i repoet ('Equipment App/' og 'Material App/'), men de",
+      "er bygget ud fra en ANTAGELSE om, at apperne var tomme - det var det,",
+      "solution-eksporten viste. Skaermbilledet fra Studio viser noget andet:",
+      "Equipment-appen har en udfyldt formular med Status, Plant, Fabrikat,",
+      "garantidatoer, dokumenttype og en soegbar Saved Rows-liste.",
+      "",
+      "Deploy ERSTATTER appens indhold med repoets kilder. Med de forkerte",
+      "kilder ville det slette det, der er bygget i Studio. Derfor spaerrer",
+      "app_dir() i canvas_mcp.py for deploy, saa laenge folder er null.",
+      "",
+      "'pull' virker stadig - den skriver i .canvas-sync/ og roerer ikke",
+      "folder. Det er den vej, appernes rigtige felter skal hentes ned.",
+      "",
+      "Saet folder tilbage, naar felterne i domain_config.py er rettet til",
+      "det, apperne faktisk indeholder."
     ],
     "equipment": {
       "navn": "Equipments",
-      "folder": "Equipment App",
+      "folder": null,
       "app_id": "24bf3bbc-601f-480d-a8fe-7cd3180906d1"
     },
     "material": {
       "navn": "Materials",
-      "folder": "Material App",
+      "folder": null,
       "app_id": "d7762919-c716-4bd0-9abd-24bab436221f"
     }
   }
