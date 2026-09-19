@@ -1,0 +1,365 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  ScreenDetails:
+    Properties:
+      Fill: =RGBA(237, 241, 247, 1)
+    Children:
+      - conDetRoot:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            BorderStyle: =BorderStyle.None
+            DropShadow: =DropShadow.None
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            Width: =Parent.Width
+          Children:
+            - conDetShell:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: =BorderStyle.None
+                  DropShadow: =DropShadow.None
+                  FillPortions: =0
+                  Height: =40 + conDetHeader.Height + 20 + conDetCard.Height + 20 + conDetEmpty.Height
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =20
+                  LayoutMinWidth: =0
+                  PaddingBottom: =20
+                  PaddingLeft: =24
+                  PaddingRight: =24
+                  PaddingTop: =20
+                  Width: =Parent.Width
+                Children:
+                  - conDetHeader:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        BorderColor: =RGBA(215, 222, 232, 1)
+                        BorderThickness: =1
+                        DropShadow: =DropShadow.None
+                        Fill: =RGBA(250, 251, 253, 1)
+                        FillPortions: =0
+                        Height: =If(App.Width < 640, 204, If(App.Width < 720, 152, 108))
+                        LayoutAlignItems: =If(App.Width < 640, LayoutAlignItems.Stretch, LayoutAlignItems.Center)
+                        LayoutDirection: =If(App.Width < 640, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                        LayoutGap: =16
+                        LayoutMinWidth: =0
+                        LayoutWrap: =true
+                        PaddingBottom: =20
+                        PaddingLeft: =20
+                        PaddingRight: =20
+                        PaddingTop: =20
+                        RadiusBottomLeft: =14
+                        RadiusBottomRight: =14
+                        RadiusTopLeft: =14
+                        RadiusTopRight: =14
+                        Width: =Parent.Width
+                      Children:
+                        - btnDetBack:
+                            Control: ModernButton@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Back to Materialer"
+                              AlignInContainer: =AlignInContainer.Center
+                              Appearance: =ButtonAppearance.Secondary
+                              BorderColor: =RGBA(215, 222, 232, 1)
+                              BorderStyle: =BorderStyle.Solid
+                              BorderThickness: =1
+                              Color: =RGBA(26, 34, 49, 1)
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =36
+                              Layout: =ButtonLayout.TextOnly
+                              OnSelect: =Navigate(ScreenMaterialer)
+                              RadiusBottomLeft: =10
+                              RadiusBottomRight: =10
+                              RadiusTopLeft: =10
+                              RadiusTopRight: =10
+                              Size: =15
+                              Text: ="Back to Materialer"
+                              Width: =If(App.Width < 640, Parent.Width - 40, 200)
+                        - txtDetStatusPill:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: |-
+                                ="Status: " & Switch(LookUp(colMaterialRows, RowId = varSelectedRowId, Status), "valid", "Valid", "invalid", "Invalid", "submitted", "Submitted", "-")
+                              Align: =Align.Center
+                              AlignInContainer: =AlignInContainer.Center
+                              BorderStyle: =BorderStyle.None
+                              BorderThickness: =0
+                              Color: =Switch(LookUp(colMaterialRows, RowId = varSelectedRowId, Status), "valid", RGBA(21, 127, 92, 1), "invalid", RGBA(179, 50, 60, 1), "submitted", RGBA(0, 83, 140, 1), RGBA(89, 102, 122, 1))
+                              Fill: =Switch(LookUp(colMaterialRows, RowId = varSelectedRowId, Status), "valid", RGBA(232, 245, 238, 1), "invalid", RGBA(253, 236, 236, 1), "submitted", RGBA(222, 240, 252, 1), RGBA(228, 233, 241, 1))
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =28
+                              PaddingBottom: =0
+                              PaddingLeft: =10
+                              PaddingRight: =10
+                              PaddingTop: =0
+                              RadiusBottomLeft: =18
+                              RadiusBottomRight: =18
+                              RadiusTopLeft: =18
+                              RadiusTopRight: =18
+                              Size: =12
+                              Text: =Switch(LookUp(colMaterialRows, RowId = varSelectedRowId, Status), "valid", "Valid", "invalid", "Invalid", "submitted", "Submitted", "-")
+                              Visible: =!IsBlank(varSelectedRowId) && !IsBlank(LookUp(colMaterialRows, RowId = varSelectedRowId, RowId))
+                              Width: =110
+                              Wrap: =false
+                        - conDetTitleGroup:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              AlignInContainer: =AlignInContainer.Center
+                              BorderStyle: =BorderStyle.None
+                              DropShadow: =DropShadow.None
+                              Height: =68
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =4
+                              LayoutMinWidth: =0
+                            Children:
+                              - txtDetEyebrow:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: |-
+                                      ="Section: Materiale"
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =0
+                                    Color: =RGBA(89, 102, 122, 1)
+                                    Fill: =RGBA(0, 0, 0, 0)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =20
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =12
+                                    Text: ="MATERIALE"
+                                    Wrap: =false
+                              - txtDetTitle:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    AccessibleLabel: |-
+                                      ="Material description: " & If(IsBlank(varSelectedRowId), "No row selected.", LookUp(colMaterialRows, RowId = varSelectedRowId, MaterialDescription))
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =0
+                                    Color: =RGBA(26, 34, 49, 1)
+                                    Fill: =RGBA(0, 0, 0, 0)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    LayoutMinWidth: =260
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =30
+                                    Text: =If(IsBlank(varSelectedRowId), "No row selected.", LookUp(colMaterialRows, RowId = varSelectedRowId, MaterialDescription))
+                                    Wrap: =false
+                  - conDetCard:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        BorderColor: =RGBA(215, 222, 232, 1)
+                        BorderThickness: =1
+                        DropShadow: =DropShadow.None
+                        Fill: =RGBA(250, 251, 253, 1)
+                        FillPortions: =0
+                        Height: =If(!IsBlank(varSelectedRowId) && !IsBlank(LookUp(colMaterialRows, RowId = varSelectedRowId, RowId)), 40 + 30 + 12 + RoundUp(18 / If(App.Width < 640, 1, If(App.Width < 1024, 2, 3)), 0) * 72, 0)
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =12
+                        LayoutMinWidth: =0
+                        PaddingBottom: =20
+                        PaddingLeft: =20
+                        PaddingRight: =20
+                        PaddingTop: =20
+                        RadiusBottomLeft: =14
+                        RadiusBottomRight: =14
+                        RadiusTopLeft: =14
+                        RadiusTopRight: =14
+                        Visible: =!IsBlank(varSelectedRowId) && !IsBlank(LookUp(colMaterialRows, RowId = varSelectedRowId, RowId))
+                        Width: =Parent.Width
+                      Children:
+                        - txtDetCardHeading:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Materialedetaljer"
+                              BorderStyle: =BorderStyle.None
+                              BorderThickness: =0
+                              Color: =RGBA(26, 34, 49, 1)
+                              Fill: =RGBA(0, 0, 0, 0)
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =30
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =19
+                              Text: ="Materialedetaljer"
+                              Wrap: =false
+                        - galDetFields:
+                            Control: Gallery@2.15.0
+                            Variant: Vertical
+                            Properties:
+                              AccessibleLabel: ="Material detail fields"
+                              BorderStyle: =BorderStyle.None
+                              FillPortions: =0
+                              Height: =RoundUp(18 / If(App.Width < 640, 1, If(App.Width < 1024, 2, 3)), 0) * 72
+                              Items: |
+                                =With(
+                                    { r: LookUp(colMaterialRows, RowId = varSelectedRowId) },
+                                    Table(
+                                        { L: "Row ID",                V: Text(r.RowId) },
+                                        { L: "Functional Location",   V: r.FunctionalLocation },
+                                        { L: "Plant",                 V: r.Plant },
+                                        { L: "Manufacturer",          V: r.Manufacturer },
+                                        { L: "Model Number",          V: r.ModelNumber },
+                                        { L: "Manufacturer Part No.", V: r.ManufacturerPartNo },
+                                        { L: "Material Description",  V: r.MaterialDescription },
+                                        { L: "Documentation",         V: r.Documentation },
+                                        { L: "Stock Unit",            V: r.StockUnit },
+                                        { L: "Price",                 V: Text(r.Price) },
+                                        { L: "Price unit",            V: r.PriceUnit },
+                                        { L: "Delivering time",       V: Text(r.DeliveringTime) },
+                                        { L: "Recommended stock",     V: Text(r.RecommendedStock) },
+                                        { L: "Supplier",              V: r.Supplier },
+                                        { L: "Supplier's Part no.",   V: r.SupplierPartNo },
+                                        { L: "Strategic part",        V: r.StrategicPart },
+                                        { L: "Wear part",             V: r.WearPart },
+                                        { L: "Status",                V: Switch(r.Status, "valid", "Valid", "invalid", "Invalid", "submitted", "Submitted", "-") }
+                                    )
+                                )
+                              LayoutMinWidth: =0
+                              LoadingSpinner: =LoadingSpinner.None
+                              Selectable: =false
+                              ShowScrollbar: =false
+                              TabIndex: =0
+                              TemplatePadding: =0
+                              TemplateSize: =72
+                              Width: =Parent.Width - 40
+                              WrapCount: =If(App.Width < 640, 1, If(App.Width < 1024, 2, 3))
+                            Children:
+                              - conDetFieldCell:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: =BorderStyle.None
+                                    DropShadow: =DropShadow.None
+                                    Height: =Parent.TemplateHeight
+                                    LayoutAlignItems: =LayoutAlignItems.Stretch
+                                    LayoutDirection: =LayoutDirection.Vertical
+                                    LayoutGap: =2
+                                    PaddingBottom: =8
+                                    PaddingRight: =16
+                                    Width: =Parent.TemplateWidth
+                                  Children:
+                                    - txtDetFieldLabel:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          AccessibleLabel: =ThisItem.L
+                                          BorderStyle: =BorderStyle.None
+                                          BorderThickness: =0
+                                          Color: =RGBA(89, 102, 122, 1)
+                                          Fill: =RGBA(0, 0, 0, 0)
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =20
+                                          PaddingBottom: =0
+                                          PaddingLeft: =0
+                                          PaddingRight: =0
+                                          PaddingTop: =0
+                                          Size: =12
+                                          Text: =ThisItem.L
+                                          Wrap: =false
+                                    - txtDetFieldValue:
+                                        Control: ModernText@1.0.0
+                                        Properties:
+                                          AccessibleLabel: |-
+                                            =ThisItem.L & ": " & ThisItem.V
+                                          BorderStyle: =BorderStyle.None
+                                          BorderThickness: =0
+                                          Color: =RGBA(26, 34, 49, 1)
+                                          Fill: =RGBA(0, 0, 0, 0)
+                                          Font: =Font.'Segoe UI'
+                                          Height: =42
+                                          LayoutMinWidth: =180
+                                          PaddingBottom: =0
+                                          PaddingLeft: =0
+                                          PaddingRight: =0
+                                          PaddingTop: =0
+                                          Size: =14
+                                          Text: =ThisItem.V
+                  - conDetEmpty:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        BorderColor: =RGBA(215, 222, 232, 1)
+                        BorderThickness: =1
+                        DropShadow: =DropShadow.None
+                        Fill: =RGBA(250, 251, 253, 1)
+                        FillPortions: =0
+                        Height: =If(IsBlank(varSelectedRowId) || IsBlank(LookUp(colMaterialRows, RowId = varSelectedRowId, RowId)), 120, 0)
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =8
+                        LayoutMinWidth: =0
+                        PaddingBottom: =20
+                        PaddingLeft: =20
+                        PaddingRight: =20
+                        PaddingTop: =20
+                        RadiusBottomLeft: =14
+                        RadiusBottomRight: =14
+                        RadiusTopLeft: =14
+                        RadiusTopRight: =14
+                        Visible: =IsBlank(varSelectedRowId) || IsBlank(LookUp(colMaterialRows, RowId = varSelectedRowId, RowId))
+                        Width: =Parent.Width
+                      Children:
+                        - txtDetEmpty:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="No row selected."
+                              Align: =Align.Center
+                              BorderStyle: =BorderStyle.None
+                              BorderThickness: =0
+                              Color: =RGBA(89, 102, 122, 1)
+                              Fill: =RGBA(0, 0, 0, 0)
+                              Font: =Font.'Segoe UI'
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Text: ="No row selected."
+                              Width: =Parent.Width - 40
+                        - txtDetEmptyHint:
+                            Control: ModernText@1.0.0
+                            Properties:
+                              AccessibleLabel: ="Gå tilbage til Materialer og vælg Details på en række."
+                              Align: =Align.Center
+                              BorderStyle: =BorderStyle.None
+                              BorderThickness: =0
+                              Color: =RGBA(89, 102, 122, 1)
+                              Fill: =RGBA(0, 0, 0, 0)
+                              Font: =Font.'Segoe UI'
+                              Height: =38
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =13
+                              Text: ="Gå tilbage til Materialer og vælg Details på en række."
+                              Width: =Parent.Width - 40

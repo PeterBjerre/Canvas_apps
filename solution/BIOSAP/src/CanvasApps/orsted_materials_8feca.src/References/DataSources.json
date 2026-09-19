@@ -1,3 +1,78 @@
 {
-  "DataSources": []
+  "DataSources": [
+    {
+      "Type": "ServiceInfo",
+      "Name": "BioSap-DeleteSubmittedAttachments",
+      "ServiceKind": "ConnectedWadl",
+      "WadlMetadata": {
+        "WadlXml": "<application xmlns:xml=\"http://www.w3.org/XML/1998/namespace\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:service=\"https://europe-002.azure-apim.net/apim/logicflows\" xmlns:siena=\"http://schemas.microsoft.com/MicrosoftProjectSiena/WADL/2014/11\" siena:serviceId=\"BioSap-DeleteSubmittedAttachments\" xmlns=\"http://wadl.dev.java.net/2009/02\">\r\n  <doc title=\"BioSap-DeleteSubmittedAttachments\" />\r\n  <grammars>\r\n    <jsonTypes targetNamespace=\"https://europe-002.azure-apim.net/apim/logicflows\" xmlns=\"http://schemas.microsoft.com/MicrosoftProjectSiena/WADL/2014/11\">\r\n      <string name=\"ManualTriggerInput_text_def\" />\r\n      <object name=\"ManualTriggerInput\">\r\n        <property name=\"text\" type=\"string\" />\r\n      </object>\r\n    </jsonTypes>\r\n  </grammars>\r\n  <resources siena:authenticationProviderHref=\"#PowerAppAuth\" base=\"https://europe-002.azure-apim.net/apim/logicflows\">\r\n    <resource path=\"/{connectionId}/triggers/manual/run\">\r\n      <param style=\"template\" name=\"connectionId\" type=\"xs:string\" required=\"true\" />\r\n      <method siena:requiresAuthentication=\"true\" name=\"POST\" id=\"Run\">\r\n        <doc title=\"Runs a logic flow trigger.\" />\r\n        <request>\r\n          <param style=\"query\" name=\"api-version\" type=\"xs:string\" required=\"true\" fixed=\"2015-02-01-preview\">\r\n            <doc title=\"The api version\" />\r\n          </param>\r\n          <representation mediaType=\"application/json\">\r\n            <param style=\"plain\" name=\"text\" path=\"/text\" type=\"xs:string\" required=\"true\">\r\n              <doc title=\"Identifier\" />\r\n            </param>\r\n          </representation>\r\n        </request>\r\n      </method>\r\n    </resource>\r\n  </resources>\r\n  <authenticationProviders xmlns=\"http://schemas.microsoft.com/MicrosoftProjectSiena/WADL/2014/11\">\r\n    <connectionProvider id=\"PowerAppAuth\" siena:connectionProviderId=\"logicflows\" />\r\n  </authenticationProviders>\r\n  <template xmlns=\"http://schemas.microsoft.com/MicrosoftProjectSiena/WADL/2014/11\">\r\n    <variable name=\"connectionId\">\r\n      <modifyParams style=\"template\" name=\"connectionId\" attribute=\"fixed\" />\r\n    </variable>\r\n  </template>\r\n</application>"
+      },
+      "ApiId": "/providers/microsoft.powerapps/apis/shared_logicflows",
+      "FlowNameId": "59ee4247-b074-4240-bd5d-01df17f412e0",
+      "WorkflowEntityId": "60694893-af5b-f011-bec1-000d3add01fc"
+    },
+    {
+      "Type": "ServiceInfo",
+      "Name": "BioSap-GetSubmittedAttachments",
+      "ServiceKind": "ConnectedWadl",
+      "WadlMetadata": {
+        "WadlXml": "<application xmlns:xml=\"http://www.w3.org/XML/1998/namespace\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:service=\"https://europe-002.azure-apim.net/apim/logicflows\" xmlns:siena=\"http://schemas.microsoft.com/MicrosoftProjectSiena/WADL/2014/11\" siena:serviceId=\"BioSap-GetSubmittedAttachments\" xmlns=\"http://wadl.dev.java.net/2009/02\">\r\n  <doc title=\"BioSap-GetSubmittedAttachments\" />\r\n  <grammars>\r\n    <jsonTypes targetNamespace=\"https://europe-002.azure-apim.net/apim/logicflows\" xmlns=\"http://schemas.microsoft.com/MicrosoftProjectSiena/WADL/2014/11\">\r\n      <string name=\"ManualTriggerInput_text_def\" />\r\n      <object name=\"ManualTriggerInput\">\r\n        <property name=\"text\" type=\"string\" />\r\n      </object>\r\n      <string name=\"ResponseActionOutput_files_def\" />\r\n      <object name=\"ResponseActionOutput\">\r\n        <property name=\"files\" type=\"string\" />\r\n      </object>\r\n      <object name=\"Run_responses_default_def\" />\r\n    </jsonTypes>\r\n  </grammars>\r\n  <resources siena:authenticationProviderHref=\"#PowerAppAuth\" base=\"https://europe-002.azure-apim.net/apim/logicflows\">\r\n    <resource path=\"/{connectionId}/triggers/manual/run\">\r\n      <param style=\"template\" name=\"connectionId\" type=\"xs:string\" required=\"true\" />\r\n      <method siena:requiresAuthentication=\"true\" name=\"POST\" id=\"Run\">\r\n        <doc title=\"Runs a logic flow trigger.\" />\r\n        <request>\r\n          <param style=\"query\" name=\"api-version\" type=\"xs:string\" required=\"true\" fixed=\"2015-02-01-preview\">\r\n            <doc title=\"The api version\" />\r\n          </param>\r\n          <representation mediaType=\"application/json\">\r\n            <param style=\"plain\" name=\"text\" path=\"/text\" type=\"xs:string\" required=\"true\">\r\n              <doc title=\"TaskListID\" />\r\n            </param>\r\n          </representation>\r\n        </request>\r\n        <response>\r\n          <representation mediaType=\"application/json\" element=\"service:ResponseActionOutput\" />\r\n        </response>\r\n      </method>\r\n    </resource>\r\n  </resources>\r\n  <authenticationProviders xmlns=\"http://schemas.microsoft.com/MicrosoftProjectSiena/WADL/2014/11\">\r\n    <connectionProvider id=\"PowerAppAuth\" siena:connectionProviderId=\"logicflows\" />\r\n  </authenticationProviders>\r\n  <template xmlns=\"http://schemas.microsoft.com/MicrosoftProjectSiena/WADL/2014/11\">\r\n    <variable name=\"connectionId\">\r\n      <modifyParams style=\"template\" name=\"connectionId\" attribute=\"fixed\" />\r\n    </variable>\r\n  </template>\r\n</application>"
+      },
+      "ApiId": "/providers/microsoft.powerapps/apis/shared_logicflows",
+      "FlowNameId": "58bea013-b80a-4649-bd75-1a726616d0b5",
+      "WorkflowEntityId": "9e0c7c09-595b-f011-bec2-7c1e52fa9536"
+    },
+    {
+      "Type": "ServiceInfo",
+      "Name": "BioSap-Integration-FunctionalLocations",
+      "ServiceKind": "ConnectedWadl",
+      "WadlMetadata": {
+        "WadlXml": "<application xmlns:xml=\"http://www.w3.org/XML/1998/namespace\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:service=\"https://europe-002.azure-apim.net/apim/logicflows\" xmlns:siena=\"http://schemas.microsoft.com/MicrosoftProjectSiena/WADL/2014/11\" siena:serviceId=\"BioSap-Integration-FunctionalLocations\" xmlns=\"http://wadl.dev.java.net/2009/02\">\r\n  <doc title=\"BioSap-Integration-FunctionalLocations\" />\r\n  <grammars>\r\n    <jsonTypes targetNamespace=\"https://europe-002.azure-apim.net/apim/logicflows\" xmlns=\"http://schemas.microsoft.com/MicrosoftProjectSiena/WADL/2014/11\">\r\n      <string name=\"ManualTriggerInput_text_def\" />\r\n      <object name=\"ManualTriggerInput\">\r\n        <property name=\"text\" type=\"string\" />\r\n      </object>\r\n      <string name=\"ResponseActionOutput_functionallocationoutput_def\" />\r\n      <object name=\"ResponseActionOutput\">\r\n        <property name=\"functionallocationoutput\" type=\"string\" />\r\n      </object>\r\n      <object name=\"Run_responses_default_def\" />\r\n    </jsonTypes>\r\n  </grammars>\r\n  <resources siena:authenticationProviderHref=\"#PowerAppAuth\" base=\"https://europe-002.azure-apim.net/apim/logicflows\">\r\n    <resource path=\"/{connectionId}/triggers/manual/run\">\r\n      <param style=\"template\" name=\"connectionId\" type=\"xs:string\" required=\"true\" />\r\n      <method siena:requiresAuthentication=\"true\" name=\"POST\" id=\"Run\">\r\n        <doc title=\"Runs a logic flow trigger.\" />\r\n        <request>\r\n          <param style=\"query\" name=\"api-version\" type=\"xs:string\" required=\"true\" fixed=\"2015-02-01-preview\">\r\n            <doc title=\"The api version\" />\r\n          </param>\r\n          <representation mediaType=\"application/json\">\r\n            <param style=\"plain\" name=\"text\" path=\"/text\" type=\"xs:string\" required=\"true\">\r\n              <doc title=\"SearchText\" />\r\n            </param>\r\n          </representation>\r\n        </request>\r\n        <response>\r\n          <representation mediaType=\"application/json\" element=\"service:ResponseActionOutput\" />\r\n        </response>\r\n      </method>\r\n    </resource>\r\n  </resources>\r\n  <authenticationProviders xmlns=\"http://schemas.microsoft.com/MicrosoftProjectSiena/WADL/2014/11\">\r\n    <connectionProvider id=\"PowerAppAuth\" siena:connectionProviderId=\"logicflows\" />\r\n  </authenticationProviders>\r\n  <template xmlns=\"http://schemas.microsoft.com/MicrosoftProjectSiena/WADL/2014/11\">\r\n    <variable name=\"connectionId\">\r\n      <modifyParams style=\"template\" name=\"connectionId\" attribute=\"fixed\" />\r\n    </variable>\r\n  </template>\r\n</application>"
+      },
+      "ApiId": "/providers/microsoft.powerapps/apis/shared_logicflows",
+      "FlowNameId": "6b5b4699-5b65-451a-bb94-5ba65ebddb51",
+      "WorkflowEntityId": "6177aa4d-3f2a-f011-8c4e-000d3ab1fa37"
+    },
+    {
+      "Type": "ServiceInfo",
+      "Name": "BioSap-TaskListAttachment",
+      "ServiceKind": "ConnectedWadl",
+      "WadlMetadata": {
+        "WadlXml": "<application xmlns:xml=\"http://www.w3.org/XML/1998/namespace\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:service=\"https://europe-002.azure-apim.net/apim/logicflows\" xmlns:siena=\"http://schemas.microsoft.com/MicrosoftProjectSiena/WADL/2014/11\" siena:serviceId=\"BioSap-TaskListAttachment\" xmlns=\"http://wadl.dev.java.net/2009/02\">\r\n  <doc title=\"BioSap-TaskListAttachment\" />\r\n  <grammars>\r\n    <jsonTypes targetNamespace=\"https://europe-002.azure-apim.net/apim/logicflows\" xmlns=\"http://schemas.microsoft.com/MicrosoftProjectSiena/WADL/2014/11\">\r\n      <string name=\"ManualTriggerInput_text_def\" />\r\n      <string name=\"ManualTriggerInput_file_def_name_def\" />\r\n      <base64Binary name=\"ManualTriggerInput_file_def_contentBytes_def\" />\r\n      <object name=\"ManualTriggerInput_file_def\">\r\n        <property name=\"name\" type=\"string\" />\r\n        <property name=\"contentBytes\" typeRef=\"ManualTriggerInput_file_def_contentBytes_def\" />\r\n      </object>\r\n      <object name=\"ManualTriggerInput\">\r\n        <property name=\"text\" type=\"string\" />\r\n        <property name=\"file\" typeRef=\"ManualTriggerInput_file_def\" />\r\n      </object>\r\n      <string name=\"ResponseActionOutput_flowrunsuccess_def\" />\r\n      <object name=\"ResponseActionOutput\">\r\n        <property name=\"flowrunsuccess\" type=\"string\" />\r\n      </object>\r\n      <object name=\"Run_responses_default_def\" />\r\n    </jsonTypes>\r\n  </grammars>\r\n  <resources siena:authenticationProviderHref=\"#PowerAppAuth\" base=\"https://europe-002.azure-apim.net/apim/logicflows\">\r\n    <resource path=\"/{connectionId}/triggers/manual/run\">\r\n      <param style=\"template\" name=\"connectionId\" type=\"xs:string\" required=\"true\" />\r\n      <method siena:requiresAuthentication=\"true\" name=\"POST\" id=\"Run\">\r\n        <doc title=\"Runs a logic flow trigger.\" />\r\n        <request>\r\n          <param style=\"query\" name=\"api-version\" type=\"xs:string\" required=\"true\" fixed=\"2015-02-01-preview\">\r\n            <doc title=\"The api version\" />\r\n          </param>\r\n          <representation mediaType=\"application/json\">\r\n            <param style=\"plain\" name=\"text\" path=\"/text\" type=\"xs:string\" required=\"true\">\r\n              <doc title=\"TaskListID\" />\r\n            </param>\r\n            <param style=\"plain\" name=\"file\" path=\"/file\" type=\"service:ManualTriggerInput_file_def\">\r\n              <doc title=\"File Content\" />\r\n            </param>\r\n          </representation>\r\n        </request>\r\n        <response>\r\n          <representation mediaType=\"application/json\" element=\"service:ResponseActionOutput\" />\r\n        </response>\r\n      </method>\r\n    </resource>\r\n  </resources>\r\n  <authenticationProviders xmlns=\"http://schemas.microsoft.com/MicrosoftProjectSiena/WADL/2014/11\">\r\n    <connectionProvider id=\"PowerAppAuth\" siena:connectionProviderId=\"logicflows\" />\r\n  </authenticationProviders>\r\n  <template xmlns=\"http://schemas.microsoft.com/MicrosoftProjectSiena/WADL/2014/11\">\r\n    <variable name=\"connectionId\">\r\n      <modifyParams style=\"template\" name=\"connectionId\" attribute=\"fixed\" />\r\n    </variable>\r\n  </template>\r\n</application>"
+      },
+      "ApiId": "/providers/microsoft.powerapps/apis/shared_logicflows",
+      "FlowNameId": "8e364cd5-5718-41ad-abaf-9c97e159bfdc",
+      "WorkflowEntityId": "d551b494-fb5a-f011-bec2-7c1e52faf57b"
+    },
+    {
+      "Name": "CustomGallerySample",
+      "Schema": "*[SampleHeading:s, SampleImage:i, SampleText:s]",
+      "IsSampleData": true,
+      "IsWritable": false,
+      "Type": "StaticDataSourceInfo",
+      "OriginalSchema": "*[SampleHeading:s, SampleImage:i, SampleText:s]",
+      "Data": "[{\"SampleHeading\":\"Lorem ipsum 1\",\"SampleImage\":\"/ctrllib/image/images/SampleImage.svg\",\"SampleText\":\"Lorem ipsum dolor sit amet, consectetur adipiscing elit.\"},{\"SampleHeading\":\"Lorem ipsum 2\",\"SampleImage\":\"/ctrllib/image/images/SampleImage.svg\",\"SampleText\":\"Suspendisse enim metus, tincidunt quis lobortis a, fringilla dignissim neque.\"},{\"SampleHeading\":\"Lorem ipsum 3\",\"SampleImage\":\"/ctrllib/image/images/SampleImage.svg\",\"SampleText\":\"Ut pharetra a dolor ac vehicula.\"},{\"SampleHeading\":\"Lorem ipsum 4\",\"SampleImage\":\"/ctrllib/image/images/SampleImage.svg\",\"SampleText\":\"Vestibulum dui felis, fringilla nec mi sed, tristique dictum nisi.\"}]",
+      "OriginalName": "CustomGallerySample",
+      "OrderedColumnNames": [
+        "SampleImage",
+        "SampleHeading",
+        "SampleText"
+      ]
+    },
+    {
+      "Name": "ComboBoxSample",
+      "Schema": "*[Value1:s, Value2:n, Value3:n]",
+      "IsSampleData": true,
+      "IsWritable": false,
+      "Type": "StaticDataSourceInfo",
+      "OriginalSchema": "*[Value1:s, Value2:n, Value3:n]",
+      "Data": "[{\"Value1\":\"Item 1\",\"Value2\":1,\"Value3\":10},{\"Value1\":\"Item 2\",\"Value2\":2,\"Value3\":20},{\"Value1\":\"Item 3\",\"Value2\":3,\"Value3\":30},{\"Value1\":\"Item 4\",\"Value2\":4,\"Value3\":40},{\"Value1\":\"Item 5\",\"Value2\":5,\"Value3\":50},{\"Value1\":\"Item 6\",\"Value2\":6,\"Value3\":60},{\"Value1\":\"Item 7\",\"Value2\":7,\"Value3\":70},{\"Value1\":\"Item 8\",\"Value2\":8,\"Value3\":80},{\"Value1\":\"Item 9\",\"Value2\":9,\"Value3\":90},{\"Value1\":\"Item 10\",\"Value2\":10,\"Value3\":100},{\"Value1\":\"Item 11\",\"Value2\":11,\"Value3\":110},{\"Value1\":\"Item 12\",\"Value2\":12,\"Value3\":120},{\"Value1\":\"Item 13\",\"Value2\":13,\"Value3\":130},{\"Value1\":\"Item 14\",\"Value2\":14,\"Value3\":140},{\"Value1\":\"Item 15\",\"Value2\":15,\"Value3\":150}]",
+      "OriginalName": "ComboBoxSample",
+      "OrderedColumnNames": [
+        "Value1",
+        "Value2",
+        "Value3"
+      ]
+    }
+  ]
 }
