@@ -158,14 +158,25 @@ alt andet virker.
 
 Der er tre i miljøet:
 
-| Solution-navn | Hedder | Indhold |
+| Solution-navn | Hedder | Rolle |
 |---|---|---|
-| — (ikke i solutionen) | Equipment | Det hubben peger på i dag |
-| `cr871_equipment_bd0a4` | Equipment | Tom |
-| `orsted_equipments_ebf7d` | Equipments | Tom (den nye) |
+| `orsted_equipments_ebf7d` | Equipments | **Målet.** Tom i dag, ligger i solutionen |
+| — (ikke i solutionen) | Equipment | Det hubben peger på i dag. Ældre, har indhold |
+| `cr871_equipment_bd0a4` | Equipment | Tom skal fra tidligere — kan ryddes ud |
 
-Hubben peger stadig på den første. Deployes builderne til en anden, skal
-`app_id` i `hub_config.py` og `canvas_apps.json` følge med.
+**Builderne skal deploye til `Equipments`.** Den ligger i solutionen og
+følger derfor med ved eksport, hvilket den ældre ikke gør.
+
+Indtil dens app-id er fundet:
+
+- `tools/canvas_apps.json` har `app_id: null`. Det er med vilje tomt og
+  ikke gættet: et forkert id deployer ind i en anden app og overskriver
+  den. **Tomt id stopper et deploy; forkert id ødelægger et.**
+- Hubbens EQ-flise peger stadig på den ældre app, så et fungerende link
+  ikke bliver til "Kommer snart" i mellemtiden.
+
+De to skal flyttes **samtidig**, ellers deployer builderne ét sted og
+flisen åbner et andet.
 
 ### Før der kan deployes
 
