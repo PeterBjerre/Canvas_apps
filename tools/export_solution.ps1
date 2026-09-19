@@ -145,6 +145,17 @@ try {
     & $python @scrub
     $scrubCode = $LASTEXITCODE
 
+    # --- msapp maa aldrig spores ---------------------------------------
+    # .gitignore holder dem ude, saa laenge de er USPORede - men en
+    # ignoreringsregel gaelder ikke filer, git allerede kender. Er de
+    # sluppet ind en gang (fx under en merge), foelger de med hver eneste
+    # eksport derefter. Derfor tages de ud af sporingen her, hver gang.
+    # Filerne bliver liggende paa disken; det er kun git, der slipper dem.
+    if (Get-Command git -ErrorAction SilentlyContinue) {
+        & git rm --cached --quiet --ignore-unmatch -- "$OutputDirectory/**/*.msapp" 2>$null
+        if ($LASTEXITCODE -ne 0) { $global:LASTEXITCODE = 0 }
+    }
+
     Write-Host ""
     if ($ReportOnly) {
         Write-Host "-ReportOnly: der er IKKE renset. Koer uden flaget, foer du committer." -ForegroundColor Yellow
