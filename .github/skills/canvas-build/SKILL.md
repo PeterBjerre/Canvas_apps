@@ -17,12 +17,14 @@ kører builderen — og du efterlader en fil, der ikke længere matcher sin kild
 Det gælder også, når ændringen er lille, og når du har travlt. Der findes
 ingen undtagelse.
 
-## To apps — hver med sin selvstændige build-mappe
+## Fire apps — hver med sin selvstændige build-mappe
 
 | App | Mappe | Skærm | Byg |
 |---|---|---|---|
 | VH-plan | `Maintenance Plan App/` | `ScreenVhPlan.pa.yaml` | `generate_app_onstart.py` + `assemble_screen.py` |
 | Landingsside | `Masterdata Hub/` | `ScreenMdHub.pa.yaml` | `generate_hub_onstart.py` + `assemble_hub.py` |
+| Equipment | `Equipment App/` | `ScreenEquipment.pa.yaml` | `generate_app_onstart.py` + `assemble_screen.py` |
+| Materials | `Material App/` | `ScreenMaterial.pa.yaml` | `generate_app_onstart.py` + `assemble_screen.py` |
 
 Hver build-mappe er **selvbærende**. Der er ingen `shared/`-mappe, og der
 må ikke laves en: Power Apps' egen VS Code-værktøjskæde arbejder pr.
@@ -96,18 +98,41 @@ Disse fem er **historiske og bruges ikke**: `build_diag_screen.py`,
 `build_vhplan_screen.py`, `gen_options.py`, `gen_tasklists.py`,
 `rename_collections.py`. Ret ikke i dem, og lad dig ikke forvirre af dem.
 
+## Hvem ejer hvad — Equipment og Materials
+
+De to apps er **den samme app**. Fire filer er ordret ens i de to
+build-mapper, og `tools/build_all.py` tjekker det ved hver bygning —
+præcis som med `gen_screen.py`, `build_helpers.py` og `check_layout.py`:
+
+| Fil | Ejer |
+|---|---|
+| `domain_config.py` | **Den eneste fil der må være forskellig**: listenavne, præfiks, `SECTIONS` (felterne), `PLAY_URL` |
+| `build_domain.py` | Formen: bar, header, postliste, detaljer, dokumentrude, gem |
+| `attflows.py` | **Flow-kontrakten for dokumenter** — de tre attachment-flows, mappenavnet og de to former af `text` |
+| `generate_app_onstart.py` | Samlingsskema + `?reqid`-loaderen → `../App.pa.yaml` |
+| `assemble_screen.py` | Samler skærmen → `../Screen<Domæne>.pa.yaml` |
+
+`SECTIONS` i `domain_config.py` bestemmer **både** kontrollen på skærmen,
+kolonnen i samlingen og formen i `Patch`. Ret et felt dér, og alle tre
+følger med. Ret det i `build_domain.py`, og de tre kommer fra hinanden.
+
+Skal der et felt til eller fra, er det **én linje i `SECTIONS` og én linje
+i `sharepoint/provision/Provision-EqMatLists.ps1`.** Intet andet.
+
+Se `docs/23-eq-mat-apps.md`.
+
 ## Hvem ejer hvad — Masterdata Hub
 
 | Builder | Ejer |
 |---|---|
-| `hub_config.py` | **Al tilpasning**: listenavn, de fem domæner (navn, farve, app-URL) og statusordforrådet |
+| `hub_config.py` | **Al tilpasning**: listenavn, `ENV_ID`, de fem domæner (navn, farve, `app_id`) og statusordforrådet |
 | `build_hub.py` | Toplinje, domænefliser, filtre, listen |
 | `assemble_hub.py` | Samler skærmen → `../ScreenMdHub.pa.yaml` |
 | `generate_hub_onstart.py` | `App.OnStart` → `../App.pa.yaml` |
 
 Skal en ny domæneapp kobles på, eller skal en status skifte farve eller
 tekst, så er svaret **altid `hub_config.py`** og aldrig `build_hub.py`.
-Når en satellit-app er bygget, indsættes dens play-URL i `DOMAINS`, og
+Når en satellit-app er bygget, indsættes dens `app_id` i `DOMAINS`, og
 flisen skifter selv fra "Kommer snart" til "Opret ny".
 
 ### Landingssidens to ufravigelige ydelseskrav
@@ -180,6 +205,13 @@ canvas-authoring-get_accessibility_errors
 |---|---|
 | VH-plan | `11fa8d90-868a-45a4-ba23-28f2cf0671a2` |
 | Masterdata Hub | *(udfyldes når appen er oprettet i Studio)* |
+| Equipment | `dd9544e2-a0aa-4713-a076-7637080a40fc` — men der er **tre** Equipment-apps i miljøet, se `docs/23-eq-mat-apps.md` |
+| Materials | *(mangler — står IKKE i solution-eksporten)* |
+
+App-id'et står **ikke** i solution-eksporten. Det `Id`, en apps
+`Properties.json` bærer, er *dokumentets* id, ikke appens — de to er
+forskellige, og play-URL'en vil have appens. Hent det i Studio-URL'en
+eller med `pac canvas list`.
 
 **Compile før sync.** Fejler compile, så stop — synk ikke en app, der ikke
 kan oversættes. Det er `compile_canvas`, der sender YAML'en ind i den åbne

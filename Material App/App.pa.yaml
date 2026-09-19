@@ -1,0 +1,110 @@
+App:
+  Properties:
+    Formulas: |
+      =// Vaerkerne. Eneste opslagsliste appen laeser, og den laeses foerst,
+      // naar dropdownen aabnes.
+      colDomPlants = Sort(ForAll(PlantList As R, { Value: R.Title }), Value);
+    OnStart: |
+      =ClearCollect(colDomItems, { LocalId: 0, SpId: 0, ItemKey: "", ItemText: "", ChangeType: "", MaterialNo: "", MaterialType: "", IndustrySector: "", MaterialGroup: "", BaseUnit: "", OldMaterialNo: "", ManufacturerName: "", ManufPartNo: "", EAN: "", GrossWeight: 0, NetWeight: 0, WeightUnit: "", Volume: 0, VolumeUnit: "", SizeDimension: "", Plant: "", StorageLocation: "", StorageBin: "", PurchasingGroup: "", PurchaseOrderUnit: "", PlannedDeliveryTime: 0, GRProcessingTime: 0, PreferredVendor: "", MRPType: "", MRPController: "", ProcurementType: "", SpecialProcurement: "", LotSizeKey: "", ReorderPoint: 0, SafetyStock: 0, MinLotSize: 0, MaxLotSize: 0, RoundingValue: 0, ValuationClass: "", PriceControl: "", StandardPrice: 0, PriceUnit: 0, Currency: "", SerialNoProfile: "", BatchManaged: false, ABCIndicator: "", IsSpare: false, FunctionalLocation: "", EquipmentNo: "" });
+      Clear(colDomItems);
+
+      ClearCollect(colDomAttachments, { LocalId: 0, FileName: "", FileUrl: "", Identifier: "", Selected: false });
+      Clear(colDomAttachments);
+
+      ClearCollect(colDomAttUp, { Name: "", Ok: false });
+      Clear(colDomAttUp);
+
+      ClearCollect(colDomSaved, { LocalId: 0, SpId: 0, ItemKey: "" });
+      Clear(colDomSaved);
+
+      Set(varDomMe, Lower(User().Email));
+      Set(varDomStatus, "Kladde");
+      Set(varDomReqId, 0);
+      Set(varDomRequestNo, "");
+      Set(varDomGuid, GUID());
+      Set(varDomShortText, "");
+      Set(varDomPlant, "");
+      Set(varDomActiveItemId, Blank());
+      Set(varDomNextLocalId, 0);
+      Set(varDomAttJson, "");
+      Set(varDomPlayUrl, "");
+
+      // Aabnet fra landingssiden med ?reqid=<guid>. Den ENESTE datahentning
+      // i OnStart, og den koerer kun i det tilfaelde.
+      If(
+          !IsBlank(Param("reqid")),
+          With(
+              { hdr: LookUp(MaterialRequests, RequestGuid = Param("reqid")) },
+              If(
+                  !IsBlank(hdr),
+                  Set(varDomReqId, hdr.ID);
+                  Set(varDomRequestNo, hdr.RequestNo);
+                  Set(varDomGuid, hdr.RequestGuid);
+                  Set(varDomStatus, hdr.Status.Value);
+                  Set(varDomShortText, hdr.ShortText);
+                  Set(varDomPlant, hdr.Plant);
+                  ClearCollect(
+                      colDomItems,
+                      ForAll(
+                          Filter(MaterialItems, RequestNo = hdr.RequestNo) As R,
+                          {
+                              LocalId: R.LineId,
+                              SpId: R.ID,
+                              ItemKey: R.ItemKey,
+                              ItemText: R.MaterialText,
+                              ChangeType: Coalesce(R.ChangeType.Value, ""),
+                              MaterialNo: Coalesce(R.MaterialNo, ""),
+                              MaterialType: Coalesce(R.MaterialType.Value, ""),
+                              IndustrySector: Coalesce(R.IndustrySector.Value, ""),
+                              MaterialGroup: Coalesce(R.MaterialGroup, ""),
+                              BaseUnit: Coalesce(R.BaseUnit, ""),
+                              OldMaterialNo: Coalesce(R.OldMaterialNo, ""),
+                              ManufacturerName: Coalesce(R.ManufacturerName, ""),
+                              ManufPartNo: Coalesce(R.ManufPartNo, ""),
+                              EAN: Coalesce(R.EAN, ""),
+                              GrossWeight: Coalesce(R.GrossWeight, 0),
+                              NetWeight: Coalesce(R.NetWeight, 0),
+                              WeightUnit: Coalesce(R.WeightUnit, ""),
+                              Volume: Coalesce(R.Volume, 0),
+                              VolumeUnit: Coalesce(R.VolumeUnit, ""),
+                              SizeDimension: Coalesce(R.SizeDimension, ""),
+                              Plant: Coalesce(R.Plant, ""),
+                              StorageLocation: Coalesce(R.StorageLocation, ""),
+                              StorageBin: Coalesce(R.StorageBin, ""),
+                              PurchasingGroup: Coalesce(R.PurchasingGroup, ""),
+                              PurchaseOrderUnit: Coalesce(R.PurchaseOrderUnit, ""),
+                              PlannedDeliveryTime: Coalesce(R.PlannedDeliveryTime, 0),
+                              GRProcessingTime: Coalesce(R.GRProcessingTime, 0),
+                              PreferredVendor: Coalesce(R.PreferredVendor, ""),
+                              MRPType: Coalesce(R.MRPType, ""),
+                              MRPController: Coalesce(R.MRPController, ""),
+                              ProcurementType: Coalesce(R.ProcurementType.Value, ""),
+                              SpecialProcurement: Coalesce(R.SpecialProcurement, ""),
+                              LotSizeKey: Coalesce(R.LotSizeKey, ""),
+                              ReorderPoint: Coalesce(R.ReorderPoint, 0),
+                              SafetyStock: Coalesce(R.SafetyStock, 0),
+                              MinLotSize: Coalesce(R.MinLotSize, 0),
+                              MaxLotSize: Coalesce(R.MaxLotSize, 0),
+                              RoundingValue: Coalesce(R.RoundingValue, 0),
+                              ValuationClass: Coalesce(R.ValuationClass, ""),
+                              PriceControl: Coalesce(R.PriceControl.Value, ""),
+                              StandardPrice: Coalesce(R.StandardPrice, 0),
+                              PriceUnit: Coalesce(R.PriceUnit, 0),
+                              Currency: Coalesce(R.Currency, ""),
+                              SerialNoProfile: Coalesce(R.SerialNoProfile, ""),
+                              BatchManaged: Coalesce(R.BatchManaged, false),
+                              ABCIndicator: Coalesce(R.ABCIndicator.Value, ""),
+                              IsSpare: Coalesce(R.IsSpare, false),
+                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                              EquipmentNo: Coalesce(R.EquipmentNo, "")
+                          }
+                      )
+                  );
+                  Set(varDomNextLocalId, Coalesce(Max(colDomItems, LocalId), 0))
+              )
+          )
+      )
+    StartScreen: |-
+        =ScreenMaterial
+    Theme: |-
+        =PowerAppsTheme
