@@ -187,6 +187,25 @@ coauthoring-session; `sync_canvas` skriver bagefter serverens tilstand
 genererede kilder — derfor arbejder `tools/canvas_mcp.py` på en kopi i
 `.canvas-deploy/`.
 
+## Solution-eksporten er læsestof, ikke en kilde
+
+`solution/` er et øjebliksbillede af BIO SAP, hentet med
+`tools/export_solution.ps1`. Den findes, så flows, miljøvariabler og
+connection references kan læses her i repoet i stedet for i browseren.
+
+**De to canvas apps bygges stadig af Python-builderne.** Eksporten
+indeholder også appene som `.msapp` — de er *resultatet* af sidste deploy,
+ikke kilden til den næste. Retter nogen i en `.msapp` eller pakker
+solutionen tilbage, er ændringen væk ved næste `python3 tools/build_all.py`,
+og så er der to sandheder om den samme skærm.
+
+`.msapp`-filerne er derfor i `.gitignore`. Skal du se, hvad der faktisk
+ligger i Studio, så brug `python tools/canvas_mcp.py pull` — den henter den
+kørende app ned som læsbar YAML.
+
+Eksporten er et øjebliksbillede: ændrer nogen et flow, ved repoet det først,
+når den er hentet igen.
+
 ## Efter synk: skriv ikke Studios YAML tilbage
 
 Power Apps normaliserer egenskaber, den betragter som standardværdier, væk.
