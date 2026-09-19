@@ -17,14 +17,17 @@ kører builderen — og du efterlader en fil, der ikke længere matcher sin kild
 Det gælder også, når ændringen er lille, og når du har travlt. Der findes
 ingen undtagelse.
 
-## Fire apps — hver med sin selvstændige build-mappe
+## To apps bygges herfra — hver med sin selvstændige build-mappe
 
 | App | Mappe | Skærm | Byg |
 |---|---|---|---|
 | VH-plan | `Maintenance Plan App/` | `ScreenVhPlan.pa.yaml` | `generate_app_onstart.py` + `assemble_screen.py` |
 | Landingsside | `Masterdata Hub/` | `ScreenMdHub.pa.yaml` | `generate_hub_onstart.py` + `assemble_hub.py` |
-| Equipment | `Equipment App/` | `ScreenEquipment.pa.yaml` | `generate_app_onstart.py` + `assemble_screen.py` |
-| Materials | `Material App/` | `ScreenMaterial.pa.yaml` | `generate_app_onstart.py` + `assemble_screen.py` |
+
+**Equipments og Materials bygges IKKE herfra.** De er håndbyggede i Studio,
+og deres YAML læses i solution-eksporten. `folder` er `null` på begge i
+`tools/canvas_apps.json`, så `deploy` ikke kan overskrive dem — se
+`docs/23-eq-mat-apps.md`.
 
 Hver build-mappe er **selvbærende**. Der er ingen `shared/`-mappe, og der
 må ikke laves en: Power Apps' egen VS Code-værktøjskæde arbejder pr.
@@ -97,29 +100,6 @@ nævner kontrollen.
 Disse fem er **historiske og bruges ikke**: `build_diag_screen.py`,
 `build_vhplan_screen.py`, `gen_options.py`, `gen_tasklists.py`,
 `rename_collections.py`. Ret ikke i dem, og lad dig ikke forvirre af dem.
-
-## Hvem ejer hvad — Equipment og Materials
-
-De to apps er **den samme app**. Fire filer er ordret ens i de to
-build-mapper, og `tools/build_all.py` tjekker det ved hver bygning —
-præcis som med `gen_screen.py`, `build_helpers.py` og `check_layout.py`:
-
-| Fil | Ejer |
-|---|---|
-| `domain_config.py` | **Den eneste fil der må være forskellig**: listenavne, præfiks, `SECTIONS` (felterne), `PLAY_URL` |
-| `build_domain.py` | Formen: bar, header, postliste, detaljer, dokumentrude, gem |
-| `attflows.py` | **Flow-kontrakten for dokumenter** — de tre attachment-flows, mappenavnet og de to former af `text` |
-| `generate_app_onstart.py` | Samlingsskema + `?reqid`-loaderen → `../App.pa.yaml` |
-| `assemble_screen.py` | Samler skærmen → `../Screen<Domæne>.pa.yaml` |
-
-`SECTIONS` i `domain_config.py` bestemmer **både** kontrollen på skærmen,
-kolonnen i samlingen og formen i `Patch`. Ret et felt dér, og alle tre
-følger med. Ret det i `build_domain.py`, og de tre kommer fra hinanden.
-
-Skal der et felt til eller fra, er det **én linje i `SECTIONS` og én linje
-i `sharepoint/provision/Provision-EqMatLists.ps1`.** Intet andet.
-
-Se `docs/23-eq-mat-apps.md`.
 
 ## Hvem ejer hvad — Masterdata Hub
 
@@ -212,6 +192,11 @@ App-id'et står **ikke** i solution-eksporten. Det `Id`, en apps
 `Properties.json` bærer, er *dokumentets* id, ikke appens — de to er
 forskellige, og play-URL'en vil have appens. Hent det i Studio-URL'en
 eller med `pac canvas list`.
+
+**Publicér før eksport.** En canvas app i en solution eksporteres fra den
+PUBLICEREDE udgave — gemt er ikke nok. To eksporter i træk viste to blanke
+skabeloner, fordi apperne var gemt men ikke publiceret. `Status: Ready` i
+`meta.xml` siger intet om, hvorvidt indholdet er med.
 
 **En domæneapps id står tre steder**, og det er tre forskellige spørgsmål:
 `tools/canvas_apps.json` (hvor der deployes til), `hub_config.py` (hvad

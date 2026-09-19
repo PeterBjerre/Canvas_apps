@@ -1,21 +1,32 @@
 ﻿<#
 .SYNOPSIS
-    Provisionerer de SharePoint-lister, Equipment- og Materials-appen
-    skriver i.
+    Provisionerer de SharePoint-lister, Equipment- og Materials-appen skal
+    skrive i.
 
 .DESCRIPTION
-    De to apps er de domaeneapps, der mangler bag EQ- og MAT-fliserne paa
-    landingssiden. De arbejder som VH-plan-appen:
+    FELTERNE ER LAEST AF APPERNE, IKKE VALGT HER
+    -------------------------------------------
+    Hver kolonne nedenfor svarer til eet felt i den Collect(), appen koerer,
+    naar der trykkes "Save row":
 
-        een INDMELDING (header)  ->  EquipmentRequests / MaterialRequests
-        een eller flere POSTER   ->  EquipmentItems    / MaterialItems
-        een raekke i indekset    ->  MD_RequestIndex   (allerede provisioneret)
+        colEquipmentRows   ScreenEquipment.pa.yaml
+        colMaterialRows    ScreenMaterialer.pa.yaml
 
-    Indekset roeres IKKE her - det hoerer til Provision-RequestIndex.ps1 og
-    deles af alle fem domaener.
+    Begge samlinger lever KUN i hukommelsen. Lukker brugeren appen, er
+    raekkerne vaek - der er ikke eet Patch mod en datakilde i nogen af de to
+    apps. Det er praecis det hul, listerne her lukker.
 
-    Scriptet er idempotent. Eksisterende lister og kolonner springes over,
-    saa det ogsaa kan koeres igen, naar der kommer et felt mere.
+    EEN LISTE PR. DOMAENE
+    --------------------
+    Apperne har ingen "indmeldingshoved" - der er een flad formular og en
+    liste af raekker. Derfor er der ogsaa kun een liste pr. domaene. Det,
+    der binder en portion raekker sammen, er RequestNo og RequestGuid, som
+    skrives paa HVER raekke ved indsendelse, sammen med een raekke i
+    MD_RequestIndex til landingssiden.
+
+    En header-liste ville vaere en tom skal, saa laenge apperne ser saadan ud.
+
+    Scriptet er idempotent og kan koeres igen, naar der kommer et felt mere.
 
     Kraever PnP.PowerShell:
         Install-Module PnP.PowerShell -Scope CurrentUser
@@ -35,15 +46,15 @@
     .\Provision-EqMatLists.ps1 -SiteUrl "https://orsted.sharepoint.com/teams/BioSAPDev"
 
 .EXAMPLE
-    .\Provision-EqMatLists.ps1 -SiteUrl "https://..." -Domain Equipment
+    .\Provision-EqMatLists.ps1 -SiteUrl "https://..." -Domain Equipment -WhatIfReport
 
 .NOTES
     Kolonnernes INTERNE navne laases ved oprettelse og kan ikke aendres
     bagefter - derfor saettes -InternalName eksplicit overalt.
 
-    Power Fx binder paa VISNINGSNAVN. Title bliver derfor omdoebt, og
-    appen skal bruge det NYE navn i sine Patch-kald. Et Patch med
-    { Title: ... } rammer ved siden af. Samme faelde som i MD_RequestIndex.
+    Power Fx binder paa VISNINGSNAVN. Title bliver omdoebt, og appen skal
+    bruge det NYE navn i sine Patch-kald. Et Patch med { Title: ... } rammer
+    ved siden af. Samme faelde som i MD_RequestIndex.
 #>
 
 [CmdletBinding()]
@@ -56,20 +67,17 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# ---------------------------------------------------------------------------
-# Det faelles ordforraad. ORDRET det samme som i Provision-RequestIndex.ps1
-# og i "Masterdata Hub/build/hub_config.py". En stavefejl her giver en
-# raekke uden farve og uden navn paa landingssiden - ikke en fejl, man kan se.
-# ---------------------------------------------------------------------------
-$STATUS = 'Kladde', 'Indsendt', 'UnderBehandling', 'AfventerInfo', 'KlarTilSAP',
-          'OprettetISAP', 'Afvist', 'Annulleret'
+# Raekkens egen tilstand i appen - IKKE det faelles statusordforraad fra
+# MD_RequestIndex. De to er forskellige ting: den her siger om raekken er
+# udfyldt og afsendt, den anden siger hvor indmeldingen er i SAP-forloebet.
+# Apperne skriver praecis disse to vaerdier og ingen andre.
+$ROWSTATUS = 'valid', 'submitted'
 
 # Dokumentbiblioteket. De tre attachment-flows er HAARDKODET til dette
 # bibliotek - upload-flowet skriver i /TaskListDocuments/<mappe>/, og
 # get-flowet slaar biblioteket op paa miljoevariablen
 # BioSap-Library-TaskListDocuments. Derfor deler alle tre domaeneapps det
-# samme bibliotek og holdes fra hinanden paa MAPPENAVNET i stedet.
-# Se docs/23-eq-mat-apps.md.
+# samme bibliotek og holdes fra hinanden paa MAPPENAVNET.
 $LIBRARY = 'TaskListDocuments'
 
 $conn = @{ Url = $SiteUrl; Interactive = $true }
@@ -130,147 +138,98 @@ function New-MdNoteField {
 }
 
 function Rename-TitleTo {
-    param([string]$List, [string]$NewName, [switch]$Unique)
-    $values = @{ Title = $NewName; Indexed = $true }
-    if ($Unique) { $values.EnforceUniqueValues = $true }
-    Set-PnPField -List $List -Identity 'Title' -Values $values
+    param([string]$List, [string]$NewName)
+    Set-PnPField -List $List -Identity 'Title' -Values @{ Title = $NewName; Indexed = $true }
     Write-Host "    ~ Title -> $NewName" -ForegroundColor Green
 }
 
 # ---------------------------------------------------------------------------
-# Headeren. Den er ENS for de to domaener - det er posterne, der er
-# forskellige. Derfor een funktion og ikke to naesten ens blokke.
+# Det der binder en portion raekker sammen
+#
+# Apperne har ingen header-formular, saa portionen findes kun som de samme
+# vaerdier gentaget paa hver raekke. Det er ikke paent normaliseret, men det
+# er hvad apperne kan levere - og det er nok til at finde en indmelding igen
+# og til at haenge dokumenter paa den enkelte raekke.
 # ---------------------------------------------------------------------------
-function Add-RequestHeader {
+function Add-BatchColumns {
     param([string]$List)
 
-    # Indmeldingsnummeret, fx EQ-000912. Kolonnen hedder det SAMME som i
-    # MD_RequestIndex - RequestNo - saa den, der laeser paa tvaers, ikke
-    # skal holde styr paa to navne for det samme tal. Praefikset sidder i
-    # VAERDIEN, ikke i kolonnenavnet.
-    Rename-TitleTo $List 'RequestNo' -Unique
+    # RowId er appens EGET loebenummer i colXxxRows. Det er ikke unikt paa
+    # tvaers af indmeldinger - kun inden for een.
+    New-MdField $List 'RowId'          Number
 
-    # Saettes af appen og haenges paa play-URL'en som ?reqid=, saa "Open"
-    # paa landingssiden lander paa den rigtige indmelding.
-    New-MdField $List 'RequestGuid'      Text -Indexed
+    New-MdField $List 'RequestNo'      Text -Indexed
+    New-MdField $List 'RequestGuid'    Text -Indexed
 
-    New-MdField $List 'Status'           Choice -Choices $STATUS -Indexed -Required
-    New-MdField $List 'StatusStep'       Number
-    New-MdField $List 'IsOpen'           Boolean -Indexed
-
-    # TEKST, ikke Person. Person-kolonner kan ikke filtreres delegerbart, og
-    # det er praecis det filter, "Mine indmeldinger" bygger paa. Skriv
-    # Lower(User().Email).
-    New-MdField $List 'RequesterEmail'   Text -Indexed -Required
-    New-MdField $List 'RequesterName'    Text
-    New-MdField $List 'AssignedToEmail'  Text -Indexed
-    New-MdField $List 'AssignedToName'   Text
-
-    New-MdField $List 'Plant'            Text -Indexed
-    New-MdField $List 'ShortText'        Text
-    New-MdField $List 'ItemCount'        Number
-
-    New-MdField $List 'SubmittedOn'      DateTime
-    New-MdField $List 'LastActionOn'     DateTime -Indexed
-    New-MdField $List 'LastActionBy'     Text
-
-    New-MdNoteField $List 'Comments'
-}
-
-# Faelles for begge postlister: koblingen op til headeren, og mappen i
-# dokumentbiblioteket.
-function Add-ItemCommon {
-    param([string]$List)
-
-    New-MdField $List 'RequestNo' Text   -Indexed -Required
-    New-MdField $List 'RequestId' Number -Indexed
-    New-MdField $List 'LineId'    Number
-
-    # ItemKey er postens noegle OG mappenavnet i dokumentbiblioteket -
-    # samme konstruktion som MI0007 i VH-plan-appen. Den skal derfor vaere
-    # unik paa tvaers af HELE listen, ikke bare inden for indmeldingen:
-    # to mapper med samme navn ville dele dokumenter.
-    New-MdField $List 'ItemKey'            Text -Unique -Required
+    # ItemKey er raekkens noegle OG mappenavnet i dokumentbiblioteket.
+    # Den skal vaere unik paa tvaers af HELE listen, ikke bare inden for
+    # indmeldingen: to mapper med samme navn ville dele dokumenter.
+    New-MdField $List 'ItemKey'        Text -Unique
 
     # Skrives eksplicit, selv om den kan regnes ud af ItemKey. Flowet
     # gaetter ikke, og den, der aabner listen i browseren, kan se hvor
     # dokumenterne ligger.
-    New-MdField $List 'AttachmentFolder'   Text
+    New-MdField $List 'AttachmentFolder' Text
+    New-MdField $List 'FileCount'      Number
 
-    New-MdField $List 'FileCount'          Number
+    # TEKST, ikke Person. Person-kolonner kan ikke filtreres delegerbart,
+    # og det er praecis det filter, "Mine indmeldinger" bygger paa.
+    New-MdField $List 'RequesterEmail' Text -Indexed
+    New-MdField $List 'RequesterName'  Text
+    New-MdField $List 'SubmittedOn'    DateTime -Indexed
+
+    # Raekkens egen tilstand. Apperne skriver "valid" ved Save row og
+    # "submitted" ved Submit.
+    New-MdField $List 'RowStatus'      Choice -Choices $ROWSTATUS -Indexed
 }
 
 # ---------------------------------------------------------------------------
 # EQUIPMENT
 #
-# Felterne foelger SAP's udstyrsstamdata (IE01). De er grupperet som
-# fanerne i SAP, saa listen kan holdes op mod skaermbilledet felt for felt.
-# Koder er TEKST, ikke Choice: de kommer fra SAP og aendrer sig uden at
-# nogen spoerger SharePoint. Kun de vokabularer, der er lukkede i SAP
-# selv, staar som Choice.
+# Kolonnerne er raekke for raekke den Collect(), ScreenEquipment.pa.yaml
+# koerer ved "Save row". Staar der et felt her, som ikke er i appen, eller
+# omvendt, er det en fejl - ikke en udvidelse.
 # ---------------------------------------------------------------------------
-function New-EquipmentLists {
-    Write-Host "`n=== EquipmentRequests ===" -ForegroundColor Cyan
-    New-MdList 'EquipmentRequests' 'Indmeldinger af udstyrsstamdata (EQ). Headeren - posterne staar i EquipmentItems.'
-    Add-RequestHeader 'EquipmentRequests'
-
+function New-EquipmentList {
     Write-Host "`n=== EquipmentItems ===" -ForegroundColor Cyan
-    New-MdList 'EquipmentItems' 'Een raekke pr. udstyr i en EQ-indmelding.'
+    New-MdList 'EquipmentItems' 'Een raekke pr. udstyr. Skrives af appen Equipments (colEquipmentRows).'
 
-    # EQKTX. 40 tegn i SAP - SharePoint haandhaever det ikke, appen goer.
-    Rename-TitleTo 'EquipmentItems' 'EquipmentText'
-    Add-ItemCommon 'EquipmentItems'
+    # Description er raekkens tekst og dermed Title.
+    Rename-TitleTo 'EquipmentItems' 'Description'
+    Add-BatchColumns 'EquipmentItems'
 
-    # --- hvad der skal ske ------------------------------------------------
-    New-MdField 'EquipmentItems' 'ChangeType' Choice -Choices 'Create','Change','Dismantle','Scrap' -Required
-    # Tom ved Create - udfyldes af SAP, og skrives tilbage af flowet.
-    New-MdField 'EquipmentItems' 'EquipmentNo'       Text -Indexed
+    # Dropdown mod colEqRequestTypeOptions. Den samling defineres ikke i
+    # appen (se .NOTES nederst), saa ordforraadet kendes ikke - kun at
+    # standardvaerdien er "new". Derfor TEKST og ikke Choice: en
+    # valgkolonne med gaettede vaerdier ville afvise alt andet.
+    New-MdField 'EquipmentItems' 'RequestType'        Text -Indexed
 
-    # --- generelt ---------------------------------------------------------
-    # EQTYP. Lukket vokabular i SAP.
-    New-MdField 'EquipmentItems' 'EquipmentCategory' Choice -Choices 'M','S','P','Q','F' -Required
-    New-MdField 'EquipmentItems' 'TechObjectType'    Text     # EQART
-    New-MdField 'EquipmentItems' 'InventoryNo'       Text
-    New-MdField 'EquipmentItems' 'SerialNumber'      Text
-    New-MdField 'EquipmentItems' 'Quantity'          Number
-    New-MdField 'EquipmentItems' 'BaseUnit'          Text
-    New-MdField 'EquipmentItems' 'StartUpDate'       DateTime
-    New-MdField 'EquipmentItems' 'AcquisitionValue'  Number
-    New-MdField 'EquipmentItems' 'Currency'          Text
-    New-MdField 'EquipmentItems' 'AcquisitionDate'   DateTime
-    New-MdField 'EquipmentItems' 'ManufacturerName'  Text     # HERST
-    New-MdField 'EquipmentItems' 'ManufPartNo'       Text     # TYPBZ
-    New-MdField 'EquipmentItems' 'ManufSerialNo'     Text     # SERGE
-    New-MdField 'EquipmentItems' 'ManufCountry'      Text     # HERLD
-    New-MdField 'EquipmentItems' 'ConstructionYear'  Number   # BAUJJ
-    New-MdField 'EquipmentItems' 'ConstructionMonth' Number   # BAUMM
-    New-MdField 'EquipmentItems' 'SizeDimension'     Text     # GROES
-    New-MdField 'EquipmentItems' 'Weight'            Number
-    New-MdField 'EquipmentItems' 'WeightUnit'        Text
+    New-MdField 'EquipmentItems' 'Plant'              Text -Indexed
+    New-MdField 'EquipmentItems' 'EquipmentNumber'    Text -Indexed
+    New-MdField 'EquipmentItems' 'EquipmentCategory'  Text
+    New-MdField 'EquipmentItems' 'Manufacturer'       Text
+    New-MdField 'EquipmentItems' 'TypeDesignation'    Text
+    New-MdField 'EquipmentItems' 'SerialNumber'       Text -Indexed
 
-    # --- placering --------------------------------------------------------
-    New-MdField 'EquipmentItems' 'MaintPlant'        Text -Indexed   # SWERK
-    New-MdField 'EquipmentItems' 'Location'          Text            # STORT
-    New-MdField 'EquipmentItems' 'Room'              Text            # MSGRP
-    New-MdField 'EquipmentItems' 'PlantSection'      Text            # BEBER
-    New-MdField 'EquipmentItems' 'WorkCenter'        Text            # INGRP-arbejdsplads
-    New-MdField 'EquipmentItems' 'ABCIndicator'      Choice -Choices 'A','B','C'
-    New-MdField 'EquipmentItems' 'SortField'         Text            # EQFNR
+    New-MdField 'EquipmentItems' 'FunctionalLocation'  Text -Indexed
+    New-MdField 'EquipmentItems' 'FunctionalLocation1' Text
+    New-MdField 'EquipmentItems' 'FunctionalLocation2' Text
 
-    # --- organisation -----------------------------------------------------
-    New-MdField 'EquipmentItems' 'PlanningPlant'     Text            # IWERK
-    New-MdField 'EquipmentItems' 'PlannerGroup'      Text            # INGRP
-    New-MdField 'EquipmentItems' 'MainWorkCenter'    Text            # GEWRK
-    New-MdField 'EquipmentItems' 'CatalogProfile'    Text            # RBNR
-    New-MdField 'EquipmentItems' 'BusinessArea'      Text            # GSBER
-    New-MdField 'EquipmentItems' 'CostCenter'        Text            # KOSTL
-    New-MdField 'EquipmentItems' 'CompanyCode'       Text            # BUKRS
-    New-MdField 'EquipmentItems' 'WBSElement'        Text            # PROID
+    New-MdField 'EquipmentItems' 'ClassData'          Text
+    New-MdField 'EquipmentItems' 'RoomCoordinates'    Text
+    New-MdField 'EquipmentItems' 'Placement'          Text
 
-    # --- struktur ---------------------------------------------------------
-    New-MdField 'EquipmentItems' 'FunctionalLocation'  Text -Indexed # TPLNR
-    New-MdField 'EquipmentItems' 'SuperiorEquipment'   Text          # HEQUI
-    New-MdField 'EquipmentItems' 'PositionInFl'        Text          # HEQNR
+    # DATO, ikke tekst. Appen gemmer i dag
+    #     Text(txtEqWarrantyStart.SelectedDate, "dd/mm/yyyy")
+    # altsaa en formateret STRENG. Den kan ikke sorteres, ikke filtreres
+    # paa interval, og betyder noget forskelligt alt efter hvilket
+    # landeformat der laeser den. Kolonnen er en rigtig dato her, og appen
+    # skal sende .SelectedDate direkte.
+    New-MdField 'EquipmentItems' 'WarrantyStart'      DateTime
+    New-MdField 'EquipmentItems' 'WarrantyEnd'        DateTime
+
+    New-MdField 'EquipmentItems' 'DocumentType'       Text
+    New-MdField 'EquipmentItems' 'DocumentLink'       Text
 
     New-MdNoteField 'EquipmentItems' 'LongText' 10
 }
@@ -278,107 +237,62 @@ function New-EquipmentLists {
 # ---------------------------------------------------------------------------
 # MATERIAL
 #
-# Felterne foelger SAP's materialestamdata (MM01), grupperet efter de
-# visninger, der skal udfyldes for et reservedelsmateriale: Grunddata,
-# Indkoeb, Disponering, Lager og Regnskab.
+# Samme regel: kolonnerne er den Collect(), ScreenMaterialer.pa.yaml koerer.
+#
+# Bemaerk at det IKKE er SAP's materialestamdata (MM01). Der er hverken
+# materialenummer, materialetype eller materialegruppe. Det, appen samler
+# ind, er reservedelsoplysninger: leverandoer, pris, leveringstid og
+# anbefalet lager - knyttet til en funktionsplads.
 # ---------------------------------------------------------------------------
-function New-MaterialLists {
-    Write-Host "`n=== MaterialRequests ===" -ForegroundColor Cyan
-    New-MdList 'MaterialRequests' 'Indmeldinger af materialestamdata (MAT). Headeren - posterne staar i MaterialItems.'
-    Add-RequestHeader 'MaterialRequests'
-
+function New-MaterialList {
     Write-Host "`n=== MaterialItems ===" -ForegroundColor Cyan
-    New-MdList 'MaterialItems' 'Een raekke pr. materiale i en MAT-indmelding.'
+    New-MdList 'MaterialItems' 'Een raekke pr. materiale. Skrives af appen Materials (colMaterialRows).'
 
-    # MAKTX. 40 tegn i SAP.
-    Rename-TitleTo 'MaterialItems' 'MaterialText'
-    Add-ItemCommon 'MaterialItems'
+    Rename-TitleTo 'MaterialItems' 'MaterialDescription'
+    Add-BatchColumns 'MaterialItems'
 
-    # --- hvad der skal ske ------------------------------------------------
-    # Extend = materialet findes, men skal udvides til et nyt vaerk eller
-    # lagersted. Det er en anden transaktion i SAP end en aendring.
-    New-MdField 'MaterialItems' 'ChangeType' Choice -Choices 'Create','Change','Extend','Block' -Required
-    # Tom ved Create - udfyldes af SAP.
-    New-MdField 'MaterialItems' 'MaterialNo'       Text -Indexed
+    New-MdField 'MaterialItems' 'Plant'               Text -Indexed
+    New-MdField 'MaterialItems' 'FunctionalLocation'  Text -Indexed
 
-    # --- grunddata --------------------------------------------------------
-    New-MdField 'MaterialItems' 'MaterialType'     Choice -Choices 'ERSA','HIBE','NLAG','UNBW','DIEN','HALB','FERT','ROH' -Required
-    New-MdField 'MaterialItems' 'IndustrySector'   Choice -Choices 'M','C','P','A' -Required
-    New-MdField 'MaterialItems' 'MaterialGroup'    Text -Indexed -Required   # MATKL
-    New-MdField 'MaterialItems' 'BaseUnit'         Text -Required            # MEINS
-    New-MdField 'MaterialItems' 'OldMaterialNo'    Text                      # BISMT
-    New-MdField 'MaterialItems' 'ManufacturerName' Text                      # MFRNR
-    New-MdField 'MaterialItems' 'ManufPartNo'      Text                      # MFRPN
-    New-MdField 'MaterialItems' 'GrossWeight'      Number
-    New-MdField 'MaterialItems' 'NetWeight'        Number
-    New-MdField 'MaterialItems' 'WeightUnit'       Text
-    New-MdField 'MaterialItems' 'Volume'           Number
-    New-MdField 'MaterialItems' 'VolumeUnit'       Text
-    New-MdField 'MaterialItems' 'SizeDimension'    Text
-    New-MdField 'MaterialItems' 'EAN'              Text
+    New-MdField 'MaterialItems' 'Manufacturer'        Text
+    New-MdField 'MaterialItems' 'ModelNumber'         Text
+    New-MdField 'MaterialItems' 'ManufacturerPartNo'  Text -Indexed
 
-    # --- hvor ------------------------------------------------------------
-    New-MdField 'MaterialItems' 'Plant'            Text -Indexed -Required   # WERKS
-    New-MdField 'MaterialItems' 'StorageLocation'  Text                      # LGORT
-    New-MdField 'MaterialItems' 'StorageBin'       Text                      # LGPBE
+    New-MdField 'MaterialItems' 'Supplier'            Text
+    New-MdField 'MaterialItems' 'SupplierPartNo'      Text
 
-    # --- indkoeb ----------------------------------------------------------
-    New-MdField 'MaterialItems' 'PurchasingGroup'      Text                  # EKGRP
-    New-MdField 'MaterialItems' 'PurchaseOrderUnit'    Text                  # BSTME
-    New-MdField 'MaterialItems' 'PlannedDeliveryTime'  Number                # PLIFZ
-    New-MdField 'MaterialItems' 'GRProcessingTime'     Number                # WEBAZ
-    New-MdField 'MaterialItems' 'PreferredVendor'      Text
+    # Tal, ikke tekst - appen sender allerede Value(...) og Blank().
+    New-MdField 'MaterialItems' 'Price'               Number
+    New-MdField 'MaterialItems' 'PriceUnit'           Text
+    New-MdField 'MaterialItems' 'StockUnit'           Text
+    New-MdField 'MaterialItems' 'DeliveringTime'      Number
+    New-MdField 'MaterialItems' 'RecommendedStock'    Number
 
-    # --- disponering ------------------------------------------------------
-    New-MdField 'MaterialItems' 'MRPType'            Text                    # DISMM
-    New-MdField 'MaterialItems' 'MRPController'      Text                    # DISPO
-    New-MdField 'MaterialItems' 'ProcurementType'    Choice -Choices 'E','F','X'
-    New-MdField 'MaterialItems' 'SpecialProcurement' Text                    # SOBSL
-    New-MdField 'MaterialItems' 'LotSizeKey'         Text                    # DISLS
-    New-MdField 'MaterialItems' 'ReorderPoint'       Number                  # MINBE
-    New-MdField 'MaterialItems' 'SafetyStock'        Number                  # EISBE
-    New-MdField 'MaterialItems' 'MinLotSize'         Number
-    New-MdField 'MaterialItems' 'MaxLotSize'         Number
-    New-MdField 'MaterialItems' 'RoundingValue'      Number
+    # Dropdowns mod colYesNo, som heller ikke defineres i appen. Tekst af
+    # samme grund som RequestType ovenfor - ikke Boolean: appen sender
+    # .Selected.Value, altsaa etiketten, ikke sand/falsk.
+    New-MdField 'MaterialItems' 'StrategicPart'       Text
+    New-MdField 'MaterialItems' 'WearPart'            Text
 
-    # --- regnskab ---------------------------------------------------------
-    New-MdField 'MaterialItems' 'ValuationClass' Text                        # BKLAS
-    New-MdField 'MaterialItems' 'PriceControl'   Choice -Choices 'S','V'
-    New-MdField 'MaterialItems' 'StandardPrice'  Number
-    New-MdField 'MaterialItems' 'PriceUnit'      Number
-    New-MdField 'MaterialItems' 'Currency'       Text
-
-    # --- styring ----------------------------------------------------------
-    New-MdField 'MaterialItems' 'SerialNoProfile' Text                       # SERNP
-    New-MdField 'MaterialItems' 'BatchManaged'    Boolean                    # XCHPF
-    New-MdField 'MaterialItems' 'ABCIndicator'    Choice -Choices 'A','B','C'
-    New-MdField 'MaterialItems' 'IsSpare'         Boolean
-
-    # --- hvad det sidder i ------------------------------------------------
-    # Et reservedelsmateriale giver foerst mening, naar man ved hvad det
-    # hoerer til. Begge er tekst og ikke opslag: udstyret kan vaere meldt
-    # ind i samme ombaering og har derfor ikke noget SAP-nummer endnu.
-    New-MdField 'MaterialItems' 'FunctionalLocation' Text -Indexed
-    New-MdField 'MaterialItems' 'EquipmentNo'        Text -Indexed
-
+    # Fritekst i appen i dag - ofte et link. Note, saa der er plads.
+    New-MdNoteField 'MaterialItems' 'Documentation' 4
     New-MdNoteField 'MaterialItems' 'LongText' 10
 }
 
 # ---------------------------------------------------------------------------
-# Standardvisninger. Uden dem viser listen Title og intet andet, og saa er
-# den ubrugelig for den, der aabner den i browseren for at se hvad appen
-# har skrevet.
-# ---------------------------------------------------------------------------
+# Standardvisninger
+#
 # Fields er INTERNE navne. Den omdoebte Title-kolonne hedder stadig 'Title'
 # indeni - omdoebningen aendrer kun visningsnavnet, og en visning bygget paa
-# 'RequestNo' ville fejle med "kolonnen findes ikke".
+# 'Description' ville fejle med "kolonnen findes ikke".
+# ---------------------------------------------------------------------------
 function Set-MdView {
-    param([string]$List, [string[]]$Fields, [string]$OrderBy)
+    param([string]$List, [string[]]$Fields)
     $view = Get-PnPView -List $List | Where-Object { $_.DefaultView } | Select-Object -First 1
     if (-not $view) { return }
     Set-PnPView -List $List -Identity $view.Id -Fields $Fields -Values @{
         RowLimit  = 50
-        ViewQuery = "<OrderBy><FieldRef Name='$OrderBy' Ascending='FALSE'/></OrderBy>"
+        ViewQuery = "<OrderBy><FieldRef Name='Modified' Ascending='FALSE'/></OrderBy>"
     }
     Write-Host "    ~ standardvisning sat paa $List" -ForegroundColor Green
 }
@@ -386,10 +300,10 @@ function Set-MdView {
 # ---------------------------------------------------------------------------
 # Dokumentbiblioteket
 #
-# Det oprettes ikke her, det KONTROLLERES. Findes det ikke, er det fordi
-# sitet er et andet end det, miljoevariablen BioSap-SiteUrl peger paa - og
-# saa hjaelper det ikke at oprette et nyt tomt bibliotek ved siden af; saa
-# ville VH-plan-appens dokumenter ligge et tredje sted.
+# Det oprettes ikke her, det KONTROLLERES. Findes det ikke, er sitet et
+# andet end det, miljoevariablen BioSap-SiteUrl peger paa - og saa hjaelper
+# det ikke at oprette et nyt tomt bibliotek ved siden af; saa ville
+# VH-plan-appens dokumenter ligge et tredje sted.
 # ---------------------------------------------------------------------------
 function Test-DocumentLibrary {
     $lib = Get-PnPList -Identity $LIBRARY -ErrorAction SilentlyContinue
@@ -397,15 +311,15 @@ function Test-DocumentLibrary {
     if ($lib) {
         Write-Host "  = '$LIBRARY' findes ($($lib.ItemCount) element(er))" -ForegroundColor DarkGray
         Write-Host "    id: $($lib.Id)" -ForegroundColor DarkGray
-        Write-Host "    Det er dette id, miljoevariablen" -ForegroundColor DarkGray
-        Write-Host "    BioSap-Library-TaskListDocuments skal have." -ForegroundColor DarkGray
+        Write-Host "    Hold det op mod miljoevariablen" -ForegroundColor DarkGray
+        Write-Host "    BioSap-Library-TaskListDocuments." -ForegroundColor DarkGray
     } else {
         Write-Host "  ! '$LIBRARY' findes IKKE paa $SiteUrl" -ForegroundColor Red
         Write-Host ""
         Write-Host "    De tre attachment-flows er haardkodet til det bibliotek." -ForegroundColor Yellow
         Write-Host "    Enten er sitet et andet end det, BioSap-SiteUrl peger paa," -ForegroundColor Yellow
         Write-Host "    eller ogsaa er biblioteket ikke oprettet endnu. Ret det" -ForegroundColor Yellow
-        Write-Host "    FOER appene tages i brug - ellers lander dokumenterne" -ForegroundColor Yellow
+        Write-Host "    FOER dokumentruden tages i brug - ellers lander filerne" -ForegroundColor Yellow
         Write-Host "    ingen steder, og flowet svarer alligevel 'ingen filer'." -ForegroundColor Yellow
     }
 }
@@ -413,35 +327,28 @@ function Test-DocumentLibrary {
 # ---------------------------------------------------------------------------
 Write-Host "`nProvisionerer mod $SiteUrl" -ForegroundColor Cyan
 
-$headerView = @('Title', 'Status', 'ShortText', 'Plant', 'ItemCount',
-                'RequesterEmail', 'LastActionOn')
-
 if ($Domain -eq 'Equipment' -or $Domain -eq 'Both') {
-    New-EquipmentLists
-    Set-MdView 'EquipmentRequests' $headerView 'LastActionOn'
-    Set-MdView 'EquipmentItems' @('Title', 'RequestNo', 'ItemKey', 'ChangeType',
-                                  'EquipmentCategory', 'FunctionalLocation', 'MaintPlant',
-                                  'EquipmentNo') 'Modified'
+    New-EquipmentList
+    Set-MdView 'EquipmentItems' @('Title', 'RequestNo', 'Plant', 'EquipmentNumber',
+                                  'FunctionalLocation', 'SerialNumber', 'RowStatus',
+                                  'RequesterEmail', 'SubmittedOn')
 }
 
 if ($Domain -eq 'Material' -or $Domain -eq 'Both') {
-    New-MaterialLists
-    Set-MdView 'MaterialRequests' $headerView 'LastActionOn'
-    Set-MdView 'MaterialItems' @('Title', 'RequestNo', 'ItemKey', 'ChangeType',
-                                 'MaterialType', 'MaterialGroup', 'Plant',
-                                 'MaterialNo') 'Modified'
+    New-MaterialList
+    Set-MdView 'MaterialItems' @('Title', 'RequestNo', 'Plant', 'FunctionalLocation',
+                                 'ManufacturerPartNo', 'Supplier', 'Price', 'RowStatus',
+                                 'RequesterEmail', 'SubmittedOn')
 }
 
 if (-not $SkipLibrary) { Test-DocumentLibrary }
 
 Write-Host "`nFaerdig.`n" -ForegroundColor Cyan
 Write-Host "Naeste skridt:" -ForegroundColor Yellow
-Write-Host "  1. Giv indmelderne Contribute paa de fire lister."
-Write-Host "  2. Tilfoej listerne som datakilder i de to apps i Studio."
-Write-Host "  3. Tilfoej de tre flows som datakilder i BEGGE apps:"
-Write-Host "       BioSap-TaskListAttachment"
-Write-Host "       BioSap-GetSubmittedAttachments"
-Write-Host "       BioSap-DeleteSubmittedAttachments"
-Write-Host "  4. Koer  python3 tools/build_all.py  og deploy med"
-Write-Host "       python tools/canvas_mcp.py deploy --app equipment"
-Write-Host "       python tools/canvas_mcp.py deploy --app material"
+Write-Host "  1. Giv indmelderne Contribute paa listerne."
+Write-Host "  2. Tilfoej listen som datakilde i appen i Studio."
+Write-Host "  3. Apperne skriver INTET til SharePoint i dag - alt ligger i"
+Write-Host "     colEquipmentRows / colMaterialRows og forsvinder, naar appen"
+Write-Host "     lukkes. Gem-knappen skal have et Patch mod listen her."
+Write-Host "  4. WarrantyStart/WarrantyEnd er DATO-kolonner. Appen sender i dag"
+Write-Host "     Text(..., ""dd/mm/yyyy"") - send .SelectedDate direkte i stedet."

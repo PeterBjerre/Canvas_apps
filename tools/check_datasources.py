@@ -343,8 +343,7 @@ def main():
     problems, stats = [], {"checked": 0}
     prov = provisioned_columns()
     screens = []
-    for app in ("Maintenance Plan App", "Masterdata Hub",
-                "Equipment App", "Material App"):
+    for app in ("Maintenance Plan App", "Masterdata Hub"):
         d = os.path.join(ROOT, app)
         if not os.path.isdir(d):
             continue

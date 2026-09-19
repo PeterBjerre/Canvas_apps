@@ -82,6 +82,23 @@ sandheder om den samme skærm.
 
 `.msapp`-filerne er derfor i `.gitignore`.
 
+## Publicér før du eksporterer
+
+En canvas app i en solution eksporteres fra den **publicerede** udgave.
+Gemt er ikke nok.
+
+Det kostede to eksporter: Equipment- og Materials-appen kom begge ud som
+den blanke skabelon — én tom `Screen1`, `DataSources: []` — selv om de i
+Studio havde fulde formularer. De var gemt, men aldrig publiceret, så
+eksporten hentede den oprindelige tomme udgave hver gang.
+
+`Status: Ready` i `meta.xml` siger **intet** om, hvorvidt indholdet er med.
+Begge tomme eksporter stod som `Ready`.
+
+Så: publicér alle apps, *derefter* eksportér. Er du i tvivl om en app kom
+med, så tæl linjerne — `unpack_msapp.py` skriver dem ud, og en app med to
+filer på under 1 KB er den blanke skabelon.
+
 ## Men så kunne app'erne ikke læses — det er rettet
 
 `.msapp` er en zip, og inde i den ligger app'ens skærme som `.pa.yaml`.
