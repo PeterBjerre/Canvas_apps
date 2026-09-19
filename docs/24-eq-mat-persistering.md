@@ -1,0 +1,505 @@
+# Equipment og Materials: gem, indsend, dokumenter
+
+Power Fx til at sætte direkte ind i Studio. Kontrolnavnene er appernes
+egne, læst i solution-eksporten — ikke opfundet her.
+
+## De to valg
+
+**Gem-knappen patcher direkte til listen.** Rækken findes i SharePoint, så
+snart der er trykket *Save row* — ikke først ved *Submit*.
+
+> Dit svar var "Ja" til et enten-eller, så jeg har valgt den gren, der får
+> dit andet svar til at virke. Dokumentmappen hedder rækkens `ItemKey`, og
+> den findes først, når rækken er skrevet. Skrev vi først ved Submit, kunne
+> man ikke vedhæfte noget, før indmeldingen var afsendt — og så er det for
+> sent. Skulle det alligevel være VH-plan-modellen, er det `Submit`-formlen
+> nedenfor, der skal gøre begge dele, og `Save row` der kun rører
+> samlingen.
+
+**Dokumentruden erstatter `DocumentLink`.** `DocumentType`, `DocumentLink`
+og Materials' `Documentation` bliver **ikke** provisioneret. Fjern de tre
+kontroller fra formularerne.
+
+Materials' `Documentation` er i øvrigt værre end et link: ved siden af den
+står `addMatFilePicker`, som ved valg af en fil kører
+
+```
+Set(varFormDocumentation, Self.FileName); Reset(txtMatDoc)
+```
+
+— altså gemmer **filnavnet** og intet andet. Filen bliver aldrig lagt op.
+Appen ser ud til at vedhæfte.
+
+## Identiteten flytter til SharePoint
+
+I dag er `RowId` et tal, appen selv tæller op i `varEqNextRowId`. Det holder
+ikke, når to brugere gemmer samtidig, og det siger intet om rækken i
+SharePoint.
+
+Herefter er **`RowId` = SharePoint-rækkens `ID`**. Så virker galleriet,
+filtrene og detaljemodalen uændret — de slår alle op på `RowId` — og der er
+kun ét tal at holde styr på.
+
+`ItemKey` er `EQ-000912` / `MAT-000441`, dannet af samme `ID`. Den er
+mappenavnet i `TaskListDocuments` og skal derfor være unik på tværs af
+domæner. Det er den, fordi præfikset er det.
+
+---
+
+# Equipment
+
+## 1. `ScreenEquipment.OnVisible`
+
+Henter det, brugeren har liggende. Erstatter ingenting — der er ingen
+`OnVisible` i dag.
+
+```
+Set(varEqMe, Lower(User().Email));
+ClearCollect(
+    colEquipmentRows,
+    ForAll(
+        Filter(EquipmentItems, RequesterEmail = varEqMe) As R,
+        {
+            RowId: R.ID,
+            ItemKey: R.ItemKey,
+            RequestType: R.RequestType,
+            Plant: R.Plant,
+            EquipmentNumber: R.EquipmentNumber,
+            Description: R.Description,
+            EquipmentCategory: R.EquipmentCategory,
+            Manufacturer: R.Manufacturer,
+            TypeDesignation: R.TypeDesignation,
+            SerialNumber: R.SerialNumber,
+            FunctionalLocation: R.FunctionalLocation,
+            FunctionalLocation1: R.FunctionalLocation1,
+            FunctionalLocation2: R.FunctionalLocation2,
+            ClassData: R.ClassData,
+            RoomCoordinates: R.RoomCoordinates,
+            Placement: R.Placement,
+            WarrantyStart: If(IsBlank(R.WarrantyStart), "", Text(R.WarrantyStart, "dd/mm/yyyy")),
+            WarrantyEnd: If(IsBlank(R.WarrantyEnd), "", Text(R.WarrantyEnd, "dd/mm/yyyy")),
+            Status: Coalesce(R.RowStatus.Value, "valid"),
+            FileCount: Coalesce(R.FileCount, 0)
+        }
+    )
+)
+```
+
+**Datoerne bliver tekst igen her — med vilje.** Galleriet viser dem som
+tekst i dag, og det skal ikke laves om i samme ombæring. Det, der betyder
+noget, er at SharePoint har en rigtig dato at sortere og filtrere på.
+
+`Filter(… RequesterEmail = varEqMe)` er delegerbart: `=` på en indekseret
+tekstkolonne. `RowStatus` er en valgkolonne, derfor `.Value`.
+
+## 2. `Save row` → `btnEqSaveRow.OnSelect`
+
+Erstatter blokken fra `Set(varEqDetectedPlant, …)` og ned til og med
+`Set(varEqNextRowId, varEqNextRowId + 1)` / `Patch(colEquipmentRows, …)`.
+Valideringsgrenen ovenover (`Set(varEqRowStatus, "Invalid")` …) bliver.
+
+```
+Set(varEqDetectedPlant, drpEqPlant.Selected.Label);
+Set(
+    varEqSpRow,
+    Patch(
+        EquipmentItems,
+        If(
+            IsBlank(varEqEditRowId),
+            Defaults(EquipmentItems),
+            LookUp(EquipmentItems, ID = varEqEditRowId)
+        ),
+        {
+            Description: Trim(txtEqDescription.Text),
+            RequestType: varFormRequestType,
+            Plant: drpEqPlant.Selected.Label,
+            EquipmentNumber: Trim(txtEqEquipmentNumber.Text),
+            EquipmentCategory: drpEqEquipmentCategory.Selected.Value,
+            Manufacturer: Trim(txtEqManufacturer.Text),
+            TypeDesignation: Trim(txtEqTypeDesignation.Text),
+            SerialNumber: Trim(txtEqSerialNumber.Text),
+            FunctionalLocation: Trim(txtEqFunctionalLocation.Text),
+            FunctionalLocation1: Trim(txtEqFunctionalLocation1.Text),
+            FunctionalLocation2: Trim(txtEqFunctionalLocation2.Text),
+            ClassData: Trim(txtEqClassData.Text),
+            RoomCoordinates: Trim(txtEqRoomCoordinates.Text),
+            Placement: Trim(txtEqPlacement.Text),
+            WarrantyStart: txtEqWarrantyStart.SelectedDate,
+            WarrantyEnd: txtEqWarrantyEnd.SelectedDate,
+            RowStatus: { Value: "valid" },
+            RequesterEmail: Lower(User().Email),
+            RequesterName: User().FullName
+        }
+    )
+);
+
+// Noeglen kan foerst dannes, naar raekken findes - den er lavet af
+// raekkens eget ID. Derfor to skrivninger paa en ny raekke og een paa en
+// gammel.
+If(
+    IsBlank(varEqSpRow.ItemKey),
+    Patch(
+        EquipmentItems,
+        varEqSpRow,
+        {
+            ItemKey: "EQ-" & Text(varEqSpRow.ID, "000000"),
+            AttachmentFolder: "TaskListDocuments/EQ-" & Text(varEqSpRow.ID, "000000")
+        }
+    )
+);
+
+Set(varEqSaveRowId, varEqSpRow.ID);
+```
+
+Derefter bliver den eksisterende hale stående uændret — `Set(varEqSaveReceiptId, …)`,
+`Set(varEqRowStatus, "Valid")`, nulstillingen af `varForm*` — med **én**
+tilføjelse til sidst, så galleriet viser det, der faktisk står i listen:
+
+```
+Set(varEqEditRowId, If(false, 0));
+Set(varEqRuntimeInfo, "Row " & varEqSaveRowId & " saved to SharePoint.");
+Concurrent(
+    ClearCollect(
+        colEquipmentRows,
+        ForAll(
+            Filter(EquipmentItems, RequesterEmail = varEqMe) As R,
+            { /* samme record som i OnVisible */ }
+        )
+    )
+)
+```
+
+> `varEqNextRowId` bruges ikke længere. Lad `Set(varEqNextRowId, …)` stå,
+> hvis andet peger på den — den gør ingen skade — men `RowId` kommer nu fra
+> SharePoint.
+
+## 3. `Submit` → `btnEqSubmit.OnSelect`
+
+Erstatter `Set(varEqSubmitCount, …); UpdateIf(colEquipmentRows, Status = "valid", { Status: "submitted" })`.
+
+```
+If(
+    CountRows(Filter(colEquipmentRows, Status = "valid")) = 0,
+    Notify("Der er ingen gyldige raekker at indsende.", NotificationType.Warning),
+
+    Set(varEqRequestGuid, GUID());
+
+    // Indekset foerst: dets raekke-id bliver til indmeldingsnummeret.
+    // Ingen taeller, intet flow, og to brugere der indsender samtidig kan
+    // ikke faa det samme nummer.
+    Set(
+        varEqIdx,
+        Patch(
+            MD_RequestIndex,
+            Defaults(MD_RequestIndex),
+            {
+                Domain: { Value: "Equipment" },
+                Status: { Value: "Indsendt" },
+                StatusStep: 2,
+                IsOpen: true,
+                RequesterEmail: Lower(User().Email),
+                RequesterName: User().FullName,
+                ShortText: "Equipment: " & CountRows(Filter(colEquipmentRows, Status = "valid")) & " raekke(r)",
+                Plant: First(Filter(colEquipmentRows, Status = "valid")).Plant,
+                ItemCount: CountRows(Filter(colEquipmentRows, Status = "valid")),
+                RequestGuid: varEqRequestGuid,
+                AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47"
+                        & "/a/24bf3bbc-601f-480d-a8fe-7cd3180906d1?reqid=" & varEqRequestGuid,
+                LastActionOn: Now(),
+                LastActionBy: Lower(User().Email)
+            }
+        )
+    );
+    Set(varEqRequestNo, "EQ-" & Text(varEqIdx.ID, "000000"));
+    Patch(MD_RequestIndex, varEqIdx, { RequestNo: varEqRequestNo });
+
+    ForAll(
+        Filter(colEquipmentRows, Status = "valid") As R,
+        Patch(
+            EquipmentItems,
+            LookUp(EquipmentItems, ID = R.RowId),
+            {
+                RequestNo: varEqRequestNo,
+                RequestGuid: varEqRequestGuid,
+                RowStatus: { Value: "submitted" },
+                SubmittedOn: Now()
+            }
+        )
+    );
+
+    Set(varEqSubmitCount, CountRows(Filter(colEquipmentRows, Status = "valid")));
+    UpdateIf(colEquipmentRows, Status = "valid", { Status: "submitted" });
+    Notify("Indsendt som " & varEqRequestNo, NotificationType.Success)
+)
+```
+
+`MD_RequestIndex.Domain` og `.Status` er **valgkolonner**, derfor
+`{ Value: … }`. Værdierne skal være ordret dem, `hub_config.py` kender —
+`"Equipment"` og `"Indsendt"`, ikke oversættelser.
+
+---
+
+# Dokumentruden
+
+Den erstatter `DocumentType` og `DocumentLink`. Den hører til den **valgte,
+gemte** række — ikke til formularen: mappen hedder rækkens `ItemKey`, og
+den findes først efter Gem.
+
+## Kontroller at tilføje
+
+| Navn | Type |
+|---|---|
+| `attEqPicker` | Attachments (`Attachments@2.3.0`) |
+| `btnEqAttUpload` | Button, "Upload to SharePoint" |
+| `btnEqAttRefresh` | Button, "Refresh" |
+| `btnEqAttRemove` | Button, "Remove document" |
+| `galEqAttachments` | Gallery, `Items = Sort(Filter(colEqAttachments, RowId = varEqSelectedRowId), FileName)` |
+| `txtEqAttEmpty` | Label |
+
+**`Sort` på `FileName`, ikke på et løbenummer.** Der er ingen `LineId` på
+dokumenter. VH-plan-appen sorterede på en kolonne, der ikke fandtes; `Items`
+gik i fejl, galleriet stod tomt, og filerne lå i biblioteket hele tiden.
+
+## Mappen
+
+```
+LookUp(colEquipmentRows, RowId = varEqSelectedRowId).ItemKey
+```
+
+Upload-flowet lægger selv `/TaskListDocuments/` foran. Get-flowet gør
+**ikke** — det skal have hele stien. Samme oplysning, to former; det er
+sådan flowene er.
+
+## `btnEqAttUpload.OnSelect`
+
+```
+With(
+    { key: LookUp(colEquipmentRows, RowId = varEqSelectedRowId).ItemKey },
+    If(
+        IsBlank(key),
+        Notify("Gem raekken foerst - mappen hedder raekkens noegle.", NotificationType.Warning),
+
+        If(
+            CountRows(attEqPicker.Attachments) = 0,
+            Notify("Vaelg en eller flere filer foerst.", NotificationType.Warning),
+
+            Clear(colEqAttUp);
+            ForAll(
+                attEqPicker.Attachments As F,
+                Collect(
+                    colEqAttUp,
+                    {
+                        Name: F.Name,
+                        Ok: IfError(
+                            Lower(
+                                Text(
+                                    'BioSap-TaskListAttachment'.Run(
+                                        key,
+                                        { file: { contentBytes: F.Value, name: F.Name } }
+                                    ).flowrunsuccess
+                                )
+                            ) = "true",
+                            false
+                        )
+                    }
+                )
+            );
+            Reset(attEqPicker);
+            Select(btnEqAttRefresh);
+            If(
+                CountRows(Filter(colEqAttUp, Ok = false)) > 0,
+                Notify(
+                    "SharePoint afviste: " & Concat(Filter(colEqAttUp, Ok = false), Name, ", "),
+                    NotificationType.Error
+                ),
+                Notify("Dokument(er) lagt op.", NotificationType.Success)
+            )
+        )
+    )
+)
+```
+
+**Svaret bliver læst.** VH-plan-appen sagde `Notify("Document(s) uploaded.")`
+lige efter `ForAll`, uanset hvad flowet svarede — en kvittering, appen selv
+fandt på. Her samles `flowrunsuccess` pr. fil, og de filer, der ikke kom
+igennem, står med navn.
+
+## `btnEqAttRefresh.OnSelect`
+
+```
+With(
+    { key: LookUp(colEquipmentRows, RowId = varEqSelectedRowId).ItemKey },
+    If(
+        IsBlank(key),
+        Notify("Gem raekken foerst - mappen hedder raekkens noegle.", NotificationType.Warning),
+
+        Set(
+            varEqAttJson,
+            'BioSap-GetSubmittedAttachments'.Run("TaskListDocuments/" & key).files
+        );
+        RemoveIf(colEqAttachments, RowId = varEqSelectedRowId);
+        Collect(
+            colEqAttachments,
+            ForAll(
+                ParseJSON(Coalesce(varEqAttJson, "[]")) As J,
+                {
+                    RowId: varEqSelectedRowId,
+                    FileName: Text(J.Name),
+                    FileUrl: Text(J.Link),
+                    Identifier: Text(J.Identifier),
+                    Selected: false
+                }
+            )
+        );
+        Patch(
+            EquipmentItems,
+            LookUp(EquipmentItems, ID = varEqSelectedRowId),
+            { FileCount: CountRows(Filter(colEqAttachments, RowId = varEqSelectedRowId)) }
+        );
+        UpdateIf(
+            colEquipmentRows,
+            RowId = varEqSelectedRowId,
+            { FileCount: CountRows(Filter(colEqAttachments, RowId = varEqSelectedRowId)) }
+        )
+    )
+)
+```
+
+`Coalesce(varEqAttJson, "[]")` er ikke pynt: svarer flowet ingenting, river
+en tom værdi hele resten af kæden med sig, og brugeren ser hverken filer
+eller fejl.
+
+## `btnEqAttRemove.OnSelect`
+
+```
+If(
+    CountRows(Filter(colEqAttachments, RowId = varEqSelectedRowId, Selected = true)) = 0,
+    Notify("Vaelg et eller flere dokumenter foerst.", NotificationType.Warning),
+
+    ForAll(
+        Filter(colEqAttachments, RowId = varEqSelectedRowId, Selected = true) As D,
+        If(!IsBlank(D.Identifier), 'BioSap-DeleteSubmittedAttachments'.Run(D.Identifier))
+    );
+    RemoveIf(colEqAttachments, RowId = varEqSelectedRowId, Selected = true);
+    Select(btnEqAttRefresh)
+)
+```
+
+## `txtEqAttEmpty.Text`
+
+```
+With(
+    { key: LookUp(colEquipmentRows, RowId = varEqSelectedRowId).ItemKey },
+    If(
+        IsBlank(key),
+        "Gem raekken foerst - mappen hedder raekkens noegle.",
+        "Ingen dokumenter i TaskListDocuments/" & key & " endnu."
+    )
+)
+```
+
+**Stien står i beskeden med vilje.** Get-flowet svarer `files: "[]"` både
+når mappen ikke findes og når den er tom — `Condition_2` tester
+`statusCode = 200` på mappeopslaget, og else-grenen svarer det samme som
+"mappen er tom". De to kan ikke skelnes fra appen, så stien skal kunne
+holdes op mod biblioteket.
+
+`Visible`: `IfError(CountRows(Filter(colEqAttachments, RowId = varEqSelectedRowId)) = 0, false)`
+
+---
+
+# Materials
+
+Samme tre formler med `Mat`-navnene. Forskellene:
+
+| | Equipment | Materials |
+|---|---|---|
+| Liste | `EquipmentItems` | `MaterialItems` |
+| Samling | `colEquipmentRows` | `colMaterialRows` |
+| Titel-kolonne | `Description` | `MaterialDescription` |
+| Præfiks | `EQ-` | `MAT-` |
+| Domæne i indekset | `"Equipment"` | `"Material"` |
+| App-id i `AppUrl` | `24bf3bbc-601f-480d-a8fe-7cd3180906d1` | `d7762919-c716-4bd0-9abd-24bab436221f` |
+| Redigerings-var | `varEqEditRowId` | `varEditRowId` |
+| Valgt række | `varEqSelectedRowId` | `varSelectedRowId` |
+
+`Save row` for Materials:
+
+```
+Set(
+    varMatSpRow,
+    Patch(
+        MaterialItems,
+        If(IsBlank(varEditRowId), Defaults(MaterialItems), LookUp(MaterialItems, ID = varEditRowId)),
+        {
+            MaterialDescription: Trim(txtMatDesc.Text),
+            Plant: varDetectedPlant,
+            FunctionalLocation: Trim(txtMatFL.Text),
+            Manufacturer: Trim(txtMatManufacturer.Text),
+            ModelNumber: Trim(txtMatModel.Text),
+            ManufacturerPartNo: Trim(txtMatMfrPartNo.Text),
+            Supplier: Trim(txtMatSupplier.Text),
+            SupplierPartNo: Trim(txtMatSupplierPartNo.Text),
+            StockUnit: drpMatStockUnit.Selected.Code,
+            PriceUnit: drpMatPriceUnit.Selected.Code,
+            Price: If(IsBlank(Trim(txtMatPrice.Text)), Blank(), Value(txtMatPrice.Text)),
+            DeliveringTime: If(IsBlank(Trim(txtMatDelivery.Text)), Blank(), Value(txtMatDelivery.Text)),
+            RecommendedStock: If(IsBlank(Trim(txtMatRecStock.Text)), Blank(), Value(txtMatRecStock.Text)),
+            StrategicPart: drpMatStrategic.Selected.Value,
+            WearPart: drpMatWear.Selected.Value,
+            RowStatus: { Value: "valid" },
+            RequesterEmail: Lower(User().Email),
+            RequesterName: User().FullName
+        }
+    )
+);
+If(
+    IsBlank(varMatSpRow.ItemKey),
+    Patch(
+        MaterialItems,
+        varMatSpRow,
+        {
+            ItemKey: "MAT-" & Text(varMatSpRow.ID, "000000"),
+            AttachmentFolder: "TaskListDocuments/MAT-" & Text(varMatSpRow.ID, "000000")
+        }
+    )
+);
+Set(varSaveRowId, varMatSpRow.ID);
+```
+
+---
+
+# Før det virker
+
+1. **Kør provisioneringen.**
+   ```powershell
+   .\sharepoint\provision\Provision-EqMatLists.ps1 -SiteUrl "https://orsted.sharepoint.com/teams/BioSAPDev"
+   ```
+   Den slutter med at slå `TaskListDocuments` op og skrive dets id ud —
+   hold det op mod miljøvariablen `BioSap-Library-TaskListDocuments`.
+
+2. **Tilføj datakilder i hver app:** `EquipmentItems` (hhv.
+   `MaterialItems`) og `MD_RequestIndex`. De tre flows er der allerede.
+
+3. **Fjern** `drpEqDocumentType`, `txtEqDocumentLink`, `txtMatDoc` og
+   `addMatFilePicker` fra formularerne.
+
+4. **Kør `Export-ListSchema.ps1` igen bagefter**, så
+   `tools/check_datasources.py` kan efterprøve de nye kolonnenavne. Indtil
+   da står listerne som "provisioneres, men findes ikke i udtrækket endnu",
+   og kolonnerne er **ikke** kontrolleret.
+
+## Det der stadig mangler
+
+De elleve dropdown-samlinger defineres stadig ingen steder, så Status-,
+Plant-, kategori- og enhedsdropdownene er tomme. Du skrev, at der kommer
+lister til dem senere. Når de findes, er det en `OnVisible` i stil med:
+
+```
+ClearCollect(colEqPlantOptions, ForAll(PlantList As R, { Label: R.Title }));
+```
+
+Indtil da: `RequestType`, `EquipmentCategory`, `StockUnit`, `PriceUnit`,
+`StrategicPart` og `WearPart` er **tekstkolonner** i SharePoint, ikke
+valgkolonner. Det er med vilje — en valgkolonne med gættede værdier ville
+afvise alt andet, og ordforrådet findes ikke nogen steder endnu.
