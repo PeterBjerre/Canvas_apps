@@ -83,21 +83,73 @@ en datakilde, der har vedhæftninger. I praksis en SharePoint-liste.
 Det betyder, at filen skal **landes et sted i SharePoint først**, og derefter
 kan flowet flytte den til dokumentbiblioteket.
 
-### Spørgsmålet der skal afklares
+### Spørgsmålet er besvaret: flowene findes
 
-Hvad vil jeres attachments-flow have ind? Det afgør designet:
+Da dette blev skrevet, var det uklart, hvad flowet ville have ind. Nu ligger
+solutionen i repoet, og kontrakten kan læses direkte af
+`solution/BIOSAP/src/Workflows/`. Den er **målt, ikke gættet.**
 
-| Hvis flowet vil have… | …så skal appen |
-|---|---|
-| **En SharePoint-vedhæftning** (listenavn + item-ID) | Landes på en listerække. Enklest: slå vedhæftninger til på `MaintenancePlans` og sæt en formular med Attachment-kontrollen på planens række |
-| **Filindhold som base64 + filnavn** | Stadig hente filen gennem Attachment-kontrollen først — appen kan ikke få fat i bytes på anden vis. Derefter sendes de videre |
-| **En URL til en fil der allerede ligger et sted** | Så er der ingen upload i appen. Brugeren lægger filen i biblioteket selv, og appen registrerer kun navn og operationskobling |
+Tre flows håndterer dokumenterne, og de udgør tilsammen en lille CRUD mod
+biblioteket `TaskListDocuments`:
 
-Den tredje mulighed er markant billigere end de to første. Er den brugbar i
-praksis, er der ingen grund til at bygge upload ind i appen.
+#### `BioSap-TaskListAttachment` — læg filen op
 
-Uanset hvilken vej: **operationskoblingen hører hjemme i appen**, ikke i
-flowet. Den del ligger klar.
+```
+ind   text  = TaskListID        (bruges som mappenavn)
+      file  = { name, contentBytes }
+gør   SharePoint CreateFile i  /TaskListDocuments/<TaskListID>/<name>
+      på sitet fra miljøvariablen BioSap-SiteUrl
+ud    flowrunsuccess = "true"
+```
+
+Det afgør spørgsmålet i tabellen ovenfor: flowet vil have **filindhold som
+bytes plus navn** — altså den midterste mulighed. Filen skal stadig hentes
+gennem en Attachment-kontrol først, for appen kan ikke få fat i bytes på
+anden vis.
+
+#### `BioSap-GetSubmittedAttachments` — list mappen
+
+```
+ind   text  = mappesti
+gør   tjekker at mappen findes med
+      GetFolderByServerRelativeUrl('/teams/<BioSap-SiteName>/<text>'),
+      henter så filerne med GetFileItems i biblioteket fra
+      miljøvariablen BioSap-Library-TaskListDocuments
+ud    files = en STRENG med et JSON-array af { Name, Link, Identifier }
+```
+
+Strengen skal parses med `ParseJSON` — samme mønster som FL-søgningen, og
+dermed en konstruktion appen allerede beviser virker.
+
+#### `BioSap-DeleteSubmittedAttachments` — slet én fil
+
+```
+ind   text  = Identifier   (feltet fra Get)
+gør   SharePoint DeleteFile
+```
+
+#### `text` betyder ikke det samme i upload og get
+
+Upload lægger selv `/TaskListDocuments/` foran værdien. Get bruger værdien,
+som den er — både i mappetjekket og i `GetFileItems`. Samme app skal altså
+sende **to forskellige former** af den samme oplysning. Det er ikke pænt,
+men det er sådan, flowene er, og det er billigere at kende det end at rette
+to flows.
+
+### Flowet retter ikke `UploadStatus` — det troede vi ellers
+
+`build_save.py` skriver `UploadStatus: Pending` med den begrundelse, at
+*"det er FLOWET der retter den, naar filen ligger i biblioteket"*.
+
+**Det gør flowet ikke.** Upload-flowet består af én handling — `CreateFile`
+— og et svar. Det rører aldrig `MD_TasklistAttachment`. Hverken
+`UploadStatus` eller `FileUrl` bliver sat af nogen i dag, så en række, der
+skrives som `Pending`, bliver stående sådan for altid.
+
+Det skal **appen** gøre. Den kender svaret: `flowrunsuccess` fortæller, om
+filen kom op, og `Get`-flowets `Link` giver URL'en. Alternativet — at bygge
+en `Update item` ind i flowet — ville kræve, at flowet kendte listerækkens
+id, og det gør det ikke; appen opretter rækken først bagefter, ved Gem.
 
 ---
 
