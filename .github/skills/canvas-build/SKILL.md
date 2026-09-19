@@ -83,6 +83,7 @@ nævner kontrollen.
 | `build_plan_header.py` | Planhoved, plantype, strategivalg, `section_header` |
 | `build_items.py` | Items-skinne, Item Editor, FL-felt, objektliste |
 | `build_flsearch.py` | **Flow-kontrakten for FL-søgning** — outputnavn og feltnavne ligger kun her |
+| `build_attflows.py` | **Flow-kontrakten for dokumenter** — de tre attachment-flows, mappenavnet og de to former af `text` |
 | `build_tasklist.py` | Tasklist, operationstabel, dispatch, mailknap |
 | `build_strategy.py` | Pakkematricen (strategiplaner) |
 | `build_modal.py` | Tasklist-picker |

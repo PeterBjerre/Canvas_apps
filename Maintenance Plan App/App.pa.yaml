@@ -46,8 +46,14 @@ App:
       ClearCollect(colVhpMaterials, { ItemId: 0, LineId: 0, MaterialNo: "", Description: "", Unit: "", Quantity: 0, OperationNo: "", Selected: false });
       Clear(colVhpMaterials);
 
-      ClearCollect(colVhpAttachments, { ItemId: 0, LineId: 0, FileName: "", FileSize: 0, OperationsKey: ";", Status: "", Selected: false });
+      ClearCollect(colVhpAttachments, { ItemId: 0, FileName: "", FileUrl: "", Identifier: "", FileSize: 0, OperationsKey: ";", Status: "", Selected: false });
       Clear(colVhpAttachments);
+
+      ClearCollect(colVhpAttFiles, { Name: "", Link: "", Identifier: "" });
+      Clear(colVhpAttFiles);
+
+      ClearCollect(colVhpAttKeep, { FileName: "", OperationsKey: ";" });
+      Clear(colVhpAttKeep);
 
       ClearCollect(colVhpSavedItems, { LocalId: 0, SpId: 0, ItemKey: "" });
       Clear(colVhpSavedItems);
@@ -111,6 +117,9 @@ App:
       Set(varVhpLastValidationErrors, "");
       Set(varVhpExportJson, "");
       Set(varVhpTasklistPickerOpen, false);
+
+      // Get-flowet svarer med en STRENG, der skal gennem ParseJSON.
+      Set(varVhpAttJson, "");
 
       // Popup'en til lang tekst paa en operation. Operationen udpeges af
       // BEGGE noegler - OperationNo er kun unikt inden for et item.
@@ -303,8 +312,9 @@ App:
                               Filter(MD_TasklistAttachment, PlanKey = pl.PlanID) As AT,
                               {
                                   ItemId: LookUp(colVhpSavedItems, ItemKey = AT.ItemKey).LocalId,
-                                  LineId: AT.LineId,
                                   FileName: AT.FileName,
+                                  FileUrl: AT.FileUrl,
+                                  Identifier: "",
                                   FileSize: AT.FileSize,
                                   OperationsKey: Coalesce(AT.OperationsKey, ";"),
                                   Status: AT.UploadStatus.Value,

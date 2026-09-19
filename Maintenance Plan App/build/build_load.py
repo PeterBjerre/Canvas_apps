@@ -131,8 +131,12 @@ MAT_FIELDS = [
 
 ATT_FIELDS = [
     ("ItemId", "LookUp(colVhpSavedItems, ItemKey = AT.ItemKey).LocalId"),
-    ("LineId", "AT.LineId"),
     ("FileName", f"AT.{cfg.C_FILE_NAME}"),
+    ("FileUrl", "AT.FileUrl"),
+    # Identifier gemmes ikke - den hoerer til biblioteket, ikke til listen.
+    # Knappen "Refresh from SharePoint" henter den, og foerst derefter kan
+    # en genaabnet plan slette filen og ikke kun appens raekke.
+    ("Identifier", '""'),
     ("FileSize", "AT.FileSize"),
     ("OperationsKey", 'Coalesce(AT.OperationsKey, ";")'),
     ("Status", "AT.UploadStatus.Value"),
