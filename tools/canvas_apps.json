@@ -27,27 +27,27 @@
       "folder": "Masterdata Hub",
       "app_id": null
     },
-    "_kommentar_equipment": [
-      "Der findes MERE END EEN Equipment-app i miljoeet. Den her er den,",
-      "hubbens EQ-flise har peget paa hele tiden, og den har indhold.",
-      "Solutionen indeholder desuden to tomme: 'Equipment' (cr871_equipment)",
-      "og den nye 'Equipments' (orsted_equipments). Hvilken af dem der skal",
-      "vaere den rigtige, er ikke afgjort - se docs/23-eq-mat-apps.md.",
+    "_kommentar_appid": [
+      "app_id mangler paa begge domaeneapps, og det er MED VILJE tomt i",
+      "stedet for gaettet: et forkert id deployer ind i en anden app og",
+      "overskriver den. Tomt id stopper deploy; forkert id oedelaegger.",
       "",
-      "folder peger nu paa builderne i repoet. Deployer du dertil, bliver",
-      "app'ens indhold ERSTATTET af det, builderne laver."
+      "Id'et staar IKKE i solution-eksporten. Det Id, der staar i en app's",
+      "Properties.json, er DOKUMENTETS id, ikke app'ens - play-URL'en vil",
+      "have app'ens. Hent det i Studio-URL'en:",
+      "  ...&app-id=...%2Fapps%2F<app_id>",
+      "",
+      "Equipment: maalet er 'Equipments' (orsted_equipments_ebf7d), den nye",
+      "i solutionen - ikke dd9544e2-a0aa-4713-a076-7637080a40fc, som er den",
+      "aeldre app uden for solutionen. Hubbens EQ-flise peger stadig paa den",
+      "aeldre, saa linket ikke gaar i stykker i mellemtiden; flyt den i",
+      "hub_config.py samtidig med at id'et saettes her."
     ],
     "equipment": {
-      "navn": "Equipment",
+      "navn": "Equipments",
       "folder": "Equipment App",
-      "app_id": "dd9544e2-a0aa-4713-a076-7637080a40fc"
+      "app_id": null
     },
-    "_kommentar_material": [
-      "app_id mangler. Det staar IKKE i solution-eksporten - det Id, der",
-      "staar i Properties.json, er dokumentets, ikke app'ens. Hent det i",
-      "Studio-URL'en eller med 'pac canvas list', og saet det her OG som",
-      "PLAY_URL i 'Material App/build/domain_config.py'."
-    ],
     "material": {
       "navn": "Materials",
       "folder": "Material App",
