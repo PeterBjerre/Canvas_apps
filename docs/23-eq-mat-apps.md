@@ -98,7 +98,11 @@ lukkes. Submit sætter kun `Status` til `"submitted"` på rækkerne i
 hukommelsen.
 
 Det er præcis det hul, `Provision-EqMatLists.ps1` lukker — men listerne gør
-det ikke alene. Gem-knappen skal have et `Patch` mod dem.
+det ikke alene. **Afgjort: Gem-knappen patcher direkte til listen**, ikke
+først ved Submit. Rækken skal findes i SharePoint, før den har en `ItemKey`,
+og uden `ItemKey` er der ingen dokumentmappe at lægge filer i.
+
+Formlerne står i [`24-eq-mat-persistering.md`](24-eq-mat-persistering.md).
 
 ### 2. Seks dropdowns har ingen værdier
 
@@ -132,9 +136,15 @@ BioSap-DeleteSubmittedAttachments
 to tekstfelter, `DocumentType` og `DocumentLink` — altså et link, brugeren
 selv skal skaffe, ikke en fil der lægges op.
 
-De to modeller kan sagtens leve side om side (linket peger på et dokument i
-et andet system; ruden holder filer, der hører til indmeldingen), men de er
-ikke det samme, og valget er ikke truffet endnu.
+**Afgjort: ruden erstatter linket.** `DocumentType`, `DocumentLink` og
+Materials' `Documentation` bliver ikke provisioneret, og de tre kontroller
+fjernes fra formularerne. Power Fx'en står i
+[`24-eq-mat-persistering.md`](24-eq-mat-persistering.md).
+
+Materials' felt er i øvrigt værre end et link. Ved siden af det står
+`addMatFilePicker`, som ved valg af en fil kører
+`Set(varFormDocumentation, Self.FileName)` og intet andet — **filen bliver
+aldrig lagt op.** Appen ser ud til at vedhæfte og gemmer et filnavn.
 
 ## Listerne
 

@@ -228,8 +228,16 @@ function New-EquipmentList {
     New-MdField 'EquipmentItems' 'WarrantyStart'      DateTime
     New-MdField 'EquipmentItems' 'WarrantyEnd'        DateTime
 
-    New-MdField 'EquipmentItems' 'DocumentType'       Text
-    New-MdField 'EquipmentItems' 'DocumentLink'       Text
+    # DocumentType og DocumentLink er BEVIDST ikke her.
+    #
+    # De to felter er et link, brugeren selv skal skaffe - ikke en fil, der
+    # ligger nogen steder. Dokumenterne haandteres i stedet af de tre
+    # attachment-flows mod TaskListDocuments/<ItemKey>/, og saa er
+    # ItemKey + AttachmentFolder + FileCount ovenfor hele modellen.
+    #
+    # Skal dokumenttypen overleve som en KATEGORI pr. fil (Datablad,
+    # Manual, Tegning), hoerer den til som en kolonne paa biblioteket - paa
+    # filen - og ikke paa udstyrsraekken. Det er en anden opgave.
 
     New-MdNoteField 'EquipmentItems' 'LongText' 10
 }
@@ -274,8 +282,13 @@ function New-MaterialList {
     New-MdField 'MaterialItems' 'StrategicPart'       Text
     New-MdField 'MaterialItems' 'WearPart'            Text
 
-    # Fritekst i appen i dag - ofte et link. Note, saa der er plads.
-    New-MdNoteField 'MaterialItems' 'Documentation' 4
+    # Documentation er BEVIDST ikke her - samme grund som DocumentType og
+    # DocumentLink paa udstyret.
+    #
+    # Feltet er i oevrigt vaerre end et link: ved siden af det staar
+    # addMatFilePicker, som ved valg af en fil gemmer Self.FileName i
+    # varFormDocumentation og ikke andet. Filen bliver ALDRIG lagt op.
+    # Appen ser ud til at vedhaefte og gemmer et filnavn.
     New-MdNoteField 'MaterialItems' 'LongText' 10
 }
 
@@ -352,3 +365,6 @@ Write-Host "     colEquipmentRows / colMaterialRows og forsvinder, naar appen"
 Write-Host "     lukkes. Gem-knappen skal have et Patch mod listen her."
 Write-Host "  4. WarrantyStart/WarrantyEnd er DATO-kolonner. Appen sender i dag"
 Write-Host "     Text(..., ""dd/mm/yyyy"") - send .SelectedDate direkte i stedet."
+Write-Host "  5. Dokumentfelterne er ikke provisioneret. Dokumenter hoerer i"
+Write-Host "     TaskListDocuments/<ItemKey>/ via de tre flows - se"
+Write-Host "     docs/24-eq-mat-persistering.md."
