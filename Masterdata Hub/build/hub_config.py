@@ -28,7 +28,9 @@ DOMAINS = [
     {"key": "FunctionalLocation", "short": "FL",  "name": "Functional location",
      "color": "RGBA(0, 103, 174, 1)",  "url": ""},
     {"key": "Equipment",          "short": "EQ",  "name": "Equipment",
-     "color": "RGBA(14, 124, 134, 1)", "url": ""},
+     "color": "RGBA(14, 124, 134, 1)",
+     "url": "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47"
+            "/a/dd9544e2-a0aa-4713-a076-7637080a40fc"},
     {"key": "MeasuringPoint",     "short": "MP",  "name": "Measuring point",
      "color": "RGBA(21, 127, 92, 1)",  "url": ""},
     {"key": "Material",           "short": "MAT", "name": "Material",
