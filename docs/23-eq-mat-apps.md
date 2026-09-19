@@ -1,6 +1,17 @@
 # Equipment- og Materials-appen
 
-## De to apps var tomme
+> **RETTELSE (senere samme dag).** Afsnittet nedenfor holder for
+> solution-eksporten, men **ikke** for apperne, som de står i Studio.
+> Et skærmbillede af Equipment-appen viser en udfyldt formular — Status,
+> Plant, Fabrikat, typebetegnelse, tre functional-location-felter,
+> garantidatoer, dokumenttype og en søgbar *Saved Rows*-liste.
+>
+> Eksporten viser altså ikke appen. Se **"Eksporten viser ikke appen"**
+> nedenfor. Feltmodellen i `domain_config.py` er derfor stadig et forslag,
+> og `folder` er sat til `null` i `tools/canvas_apps.json`, så et deploy
+> ikke kan overskrive det, der er bygget i Studio.
+
+## Hvad solution-eksporten indeholder
 
 Første skridt var at læse dem. Det tog ingen tid:
 
@@ -21,6 +32,50 @@ byte for byte identiske med de to nye.
 
 Felterne nedenfor er derfor **valgt her, ikke aftalt.** De følger SAP's
 stamdatatransaktioner, og de står ét sted, så de er billige at rette.
+
+## Eksporten viser ikke appen
+
+Skærmbilledet og eksporten kan ikke begge have ret. Eksporten siger om
+`orsted_equipments_ebf7d` ("Equipments"):
+
+| Felt i `meta.xml` / `identity.json` | Equipments | VH-plan (til sammenligning) |
+|---|---|---|
+| `ConnectionReferences` | `{}` | 14 SharePoint-lister + et flow |
+| `CdsDependencies` | `[]` | to afhængigheder |
+| Kontroller i `identity.json` | **4** (`App`, `Host`, `Screen1`, `Test_…`) | flere hundrede |
+| `Src/` i `.msapp` | `App.pa.yaml` + `Screen1.pa.yaml` | 3 filer, 778 KB |
+
+En app med Status- og Plant-**dropdowns**, en søgbar liste og en
+Export-knap kan ikke have `ConnectionReferences: {}`. Den eksporterede
+`Equipments` er altså **ikke** appen på skærmen.
+
+Og søgningen efter skærmbilledets egne tekster — `Equipment Drift`,
+`Fabrikat`, `Garanti start`, `Rum koordinater` — giver **nul træffere i
+hele eksporten**, på tværs af alle ni apps.
+
+To forklaringer, og de kræver hver sin handling:
+
+1. **Det er to forskellige apps.** App-id'et i Studio-URL'en er
+   `24bf3bbc-…`, og den redigeres i solution `43fe3e8a-…`. Er det ikke
+   BIOSAP, kommer appen aldrig med i en BIOSAP-eksport, uanset hvor mange
+   gange den køres.
+2. **Eksporten tog en ældre udgave.** En canvas app i en solution
+   eksporteres fra den gemte/publicerede udgave — ikke fra det, der ligger
+   i Studio-fanen lige nu.
+
+Indtil det er afgjort, er `folder` sat til `null` i
+`tools/canvas_apps.json`, og `app_dir()` i `canvas_mcp.py` afviser deploy
+med en forklaring. **`pull` virker stadig** — den skriver i
+`.canvas-sync/` og rører ikke `folder`:
+
+```powershell
+python tools\canvas_mcp.py pull --app equipment
+python tools\canvas_mcp.py pull --app material
+```
+
+Det henter appen ned **fra den kørende Studio-session** og går dermed helt
+uden om solution-eksporten. Det er den korteste vej til at se de rigtige
+felter.
 
 ## Hvad der blev bygget
 

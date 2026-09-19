@@ -360,6 +360,28 @@ def indent(text, pad="   "):
 # ------------------------------------------------------------------ filer
 
 def app_dir(app):
+    """Mappen med appens byggede .pa.yaml.
+
+    folder = null betyder: der er kilder i repoet, men de er IKKE godkendt
+    som sandheden om den app endnu. Deploy sender YAML ind i en LEVENDE
+    app og erstatter dens indhold - saa et halvfaerdigt skelet ville
+    slette det, nogen har bygget i Studio. Det skal fejle hoejlydt her og
+    ikke stille med en TypeError midt i en kopiering.
+
+    'pull' rammer ikke herned: den skriver i .canvas-sync/ og kan derfor
+    bruges til at HENTE appen ned, ogsaa mens folder er null. Det er
+    netop den vej rundt, man skal, naar man vil se hvad der staar i en app
+    man ikke selv har bygget."""
+    if not app.get("folder"):
+        raise SystemExit(
+            "App '%s' har folder = null i tools/canvas_apps.json.\n"
+            "Det er med vilje: deploy ville ERSTATTE appens indhold med\n"
+            "repoets kilder, og de er ikke godkendt som sandheden om den\n"
+            "app endnu.\n\n"
+            "Vil du se hvad der faktisk staar i appen, saa hent den ned:\n"
+            "    python tools/canvas_mcp.py pull --app %s\n\n"
+            "Skal der deployes, saa saet folder - og vid at appens\n"
+            "nuvaerende indhold forsvinder." % (app.get("key"), app.get("key")))
     return os.path.join(ROOT, app["folder"])
 
 
