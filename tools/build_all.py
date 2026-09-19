@@ -64,6 +64,55 @@ def check_shared():
     return bad
 
 
+def check_app_ids():
+    """Det samme app-id skal staa de samme steder.
+
+    En domaeneapp har sit id TRE steder: tools/canvas_apps.json (hvor der
+    deployes til), hub_config.py (hvad flisen aabner) og appens egen
+    PLAY_URL (hvad der skrives i MD_RequestIndex.AppUrl, saa "Open" lander
+    paa den rigtige indmelding).
+
+    Glider de fra hinanden, fejler ingenting - builderne deployer bare eet
+    sted, flisen aabner et andet, og dyblinket et tredje. Det ses foerst,
+    naar en bruger klikker "Open" og lander i en tom app.
+    """
+    import json, re
+    bad = []
+    cfg_path = os.path.join(ROOT, "tools", "canvas_apps.json")
+    hub_path = os.path.join(ROOT, "Masterdata Hub", "build", "hub_config.py")
+    if not (os.path.exists(cfg_path) and os.path.exists(hub_path)):
+        return bad
+
+    with open(cfg_path, encoding="utf-8") as f:
+        apps = json.load(f).get("apps", {})
+    sys.path.insert(0, os.path.dirname(hub_path))
+    hub = {}
+    try:
+        import hub_config
+        hub = {d["key"]: d.get("app_id") for d in hub_config.DOMAINS}
+    except Exception as e:                      # hub_config er ikke vores
+        bad.append(f"kan ikke laese hub_config.py: {e}")
+        return bad
+
+    # (noeglen i canvas_apps.json, noeglen i hub_config.DOMAINS, app-mappe)
+    for key, domain, folder in (("equipment", "Equipment", "Equipment App"),
+                                ("material", "Material", "Material App")):
+        want = (apps.get(key) or {}).get("app_id")
+        if not want:
+            continue
+        if hub.get(domain) != want:
+            bad.append(f"{key}: canvas_apps.json har {want}, men "
+                       f"hub_config.py har {hub.get(domain)}")
+        dc = os.path.join(ROOT, folder, "build", "domain_config.py")
+        if os.path.exists(dc):
+            with open(dc, encoding="utf-8") as f:
+                m = re.search(r'PLAY_URL\s*=\s*"([^"]*)"', f.read())
+            url = m.group(1) if m else ""
+            if url and not url.endswith("/" + want):
+                bad.append(f"{key}: PLAY_URL i {folder} peger ikke paa {want}")
+    return bad
+
+
 def drop_pycache():
     """Slet __pycache__ foer der bygges.
 
@@ -100,6 +149,15 @@ def main():
         for b in bad:
             print("  " + b)
         print("\nRet i EEN app-mappe og kopier filen til de oevrige.")
+        return 1
+
+    bad = check_app_ids()
+    if bad:
+        print("App-id'erne er gledet fra hinanden:\n")
+        for b in bad:
+            print("  " + b)
+        print("\nDe skal vaere det samme tre steder: tools/canvas_apps.json,")
+        print("hub_config.py og appens egen PLAY_URL.")
         return 1
 
     rc = 0

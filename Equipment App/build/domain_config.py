@@ -44,9 +44,9 @@ L_PLANTS = "PlantList"
 # Play-URL'en, appen skriver i MD_RequestIndex.AppUrl, saa "Open" paa
 # landingssiden lander paa den rigtige indmelding og ikke bare i appen.
 #
-# TOM INDTIL NOGEN UDFYLDER DEN. App-id'et staar IKKE i solution-
-# eksporten - det Id, der staar i Properties.json, er dokumentets, ikke
-# app'ens. Hent det i Studio-URL'en:
+# App-id'et staar IKKE i solution-eksporten - det Id, der staar i
+# Properties.json, er dokumentets, ikke app'ens. Id'et nedenfor er
+# app'ens, hentet i Studio-URL'en:
 #
 #   https://make.powerapps.com/e/<env>/canvas/?action=edit&app-id=...%2Fapps%2F<app_id>
 #
@@ -55,9 +55,10 @@ L_PLANTS = "PlantList"
 # Formatet er:
 #   https://apps.powerapps.com/play/e/<env>/a/<app_id>
 #
-# Appen haenger selv "?reqid=" & varDomGuid paa. Er den tom, skrives
-# AppUrl tom, og hubbens "Open" aabner ikke noget - alt andet virker.
-PLAY_URL = ""
+# Appen haenger selv "?reqid=" & varDomGuid paa. Den SKAL vaere det
+# samme id som i tools/canvas_apps.json og hub_config.py - ellers
+# aabner hubbens "Open" en anden app end den, raekken blev skrevet i.
+PLAY_URL = "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/24bf3bbc-601f-480d-a8fe-7cd3180906d1"
 
 # Provisioneringen omdoeber Title. Power Fx binder paa VISNINGSNAVN, saa et
 # Patch med { Title: ... } rammer ved siden af.

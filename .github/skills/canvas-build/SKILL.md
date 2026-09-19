@@ -205,13 +205,24 @@ canvas-authoring-get_accessibility_errors
 |---|---|
 | VH-plan | `11fa8d90-868a-45a4-ba23-28f2cf0671a2` |
 | Masterdata Hub | *(udfyldes når appen er oprettet i Studio)* |
-| Equipment | `dd9544e2-a0aa-4713-a076-7637080a40fc` — men der er **tre** Equipment-apps i miljøet, se `docs/23-eq-mat-apps.md` |
-| Materials | *(mangler — står IKKE i solution-eksporten)* |
+| Equipments | `24bf3bbc-601f-480d-a8fe-7cd3180906d1` |
+| Materials | `d7762919-c716-4bd0-9abd-24bab436221f` |
 
 App-id'et står **ikke** i solution-eksporten. Det `Id`, en apps
 `Properties.json` bærer, er *dokumentets* id, ikke appens — de to er
 forskellige, og play-URL'en vil have appens. Hent det i Studio-URL'en
 eller med `pac canvas list`.
+
+**En domæneapps id står tre steder**, og det er tre forskellige spørgsmål:
+`tools/canvas_apps.json` (hvor der deployes til), `hub_config.py` (hvad
+flisen åbner) og appens `PLAY_URL` (hvad der skrives i
+`MD_RequestIndex.AppUrl`). Glider de fra hinanden, fejler ingenting — det
+ses først, når en bruger trykker "Open" og lander i en tom app. Derfor
+tjekker `tools/build_all.py` det ved hver bygning.
+
+Equipment-appen er **`Equipments`** (`orsted_equipments_ebf7d`, i
+solutionen). Den ældre `dd9544e2-…` uden for solutionen findes stadig, men
+intet i repoet peger på den længere.
 
 **Compile før sync.** Fejler compile, så stop — synk ikke en app, der ikke
 kan oversættes. Det er `compile_canvas`, der sender YAML'en ind i den åbne

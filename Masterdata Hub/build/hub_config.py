@@ -38,21 +38,19 @@ ENV_ID = "e0f8f822-d16a-e878-ba4e-fb42bc617e47"
 DOMAINS = [
     {"key": "FunctionalLocation", "short": "FL",  "name": "Functional location",
      "color": "RGBA(0, 103, 174, 1)",  "app_id": None},
-    # MIDLERTIDIGT den AELDRE Equipment-app. Builderne i "Equipment App/"
-    # skal deploye til den NYE "Equipments" (orsted_equipments_ebf7d) i
-    # solutionen - men dens app-id er ikke fundet endnu, og et fungerende
-    # link er bedre end en flise, der siger "Kommer snart".
-    # Saet det nye id her SAMTIDIG med tools/canvas_apps.json.
+    # "Equipments" i solutionen - IKKE den aeldre app udenfor
+    # (dd9544e2-a0aa-4713-a076-7637080a40fc), som flisen pegede paa,
+    # indtil den nye havde et id. De to skal blive ved med at foelges ad
+    # med tools/canvas_apps.json: deployer builderne eet sted og aabner
+    # flisen et andet, ser appen bare forkert ud for brugeren.
     {"key": "Equipment",          "short": "EQ",  "name": "Equipment",
      "color": "RGBA(14, 124, 134, 1)",
-     "app_id": "dd9544e2-a0aa-4713-a076-7637080a40fc"},
+     "app_id": "24bf3bbc-601f-480d-a8fe-7cd3180906d1"},
     {"key": "MeasuringPoint",     "short": "MP",  "name": "Measuring point",
      "color": "RGBA(21, 127, 92, 1)",  "app_id": None},
-    # Materials-appen er bygget i repoet ("Material App"), men dens app-id
-    # er ikke fundet endnu - se kommentaren ovenfor. Saet det her, og
-    # flisen aabner den.
     {"key": "Material",           "short": "MAT", "name": "Material",
-     "color": "RGBA(154, 99, 0, 1)",   "app_id": None},
+     "color": "RGBA(154, 99, 0, 1)",
+     "app_id": "d7762919-c716-4bd0-9abd-24bab436221f"},
     {"key": "MaintenancePlan",    "short": "VHP", "name": "Maintenance plan",
      "color": "RGBA(109, 74, 166, 1)",
      "app_id": "11fa8d90-868a-45a4-ba23-28f2cf0671a2"},

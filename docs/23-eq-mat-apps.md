@@ -136,25 +136,39 @@ En tom valgkolonne er `Blank()`, ikke `{ Value: "" }` — derfor `If`'en.
 
 ## Det der mangler
 
-### App-id'erne
+### ~~App-id'erne~~ — på plads
 
-Fliserne og `AppUrl` skal bruge appens **play-id**, og det står **ikke** i
-solution-eksporten. Det `Id`, der står i en apps `Properties.json`, er
-*dokumentets* id — ikke appens. De to er forskellige, og play-URL'en vil
-have appens.
+| App | `app_id` |
+|---|---|
+| Equipments | `24bf3bbc-601f-480d-a8fe-7cd3180906d1` |
+| Materials | `d7762919-c716-4bd0-9abd-24bab436221f` |
 
-Hent det i Studio-URL'en eller med `pac canvas list`, og sæt det to steder:
+De står **tre** steder, og det er ikke redundans — det er tre forskellige
+spørgsmål:
+
+| Fil | Svarer på |
+|---|---|
+| `tools/canvas_apps.json` | Hvor `canvas_mcp.py deploy` sender YAML'en hen |
+| `Masterdata Hub/build/hub_config.py` | Hvad flisen på landingssiden åbner |
+| `<App>/build/domain_config.py` → `PLAY_URL` | Hvad der skrives i `MD_RequestIndex.AppUrl`, så "Open" lander på den rigtige indmelding |
+
+Glider de fra hinanden, **fejler ingenting**. Builderne deployer ét sted,
+flisen åbner et andet, og dyblinket et tredje. Det ses først, når en bruger
+trykker "Open" og lander i en tom app.
+
+Derfor tjekker `tools/build_all.py` det nu ved hver bygning:
 
 ```
-Masterdata Hub/build/hub_config.py     DOMAINS[...]["app_id"]
-Material App/build/domain_config.py    PLAY_URL
-tools/canvas_apps.json                 apps.material.app_id
+App-id'erne er gledet fra hinanden:
+
+  material: PLAY_URL i Material App peger ikke paa d7762919-...
 ```
 
-Indtil da står MAT-flisen som "Kommer snart", og `AppUrl` skrives tom —
-alt andet virker.
+Bemærk at det **ikke** er dokumentets id. Det `Id`, en apps
+`Properties.json` bærer, er dokumentets — play-URL'en vil have appens, og
+de to er forskellige. Hent appens i Studio-URL'en efter `%2Fapps%2F`.
 
-### Hvilken Equipment-app er den rigtige?
+### Hvilken Equipment-app er den rigtige? — afgjort
 
 Der er tre i miljøet:
 
@@ -164,19 +178,12 @@ Der er tre i miljøet:
 | — (ikke i solutionen) | Equipment | Det hubben peger på i dag. Ældre, har indhold |
 | `cr871_equipment_bd0a4` | Equipment | Tom skal fra tidligere — kan ryddes ud |
 
-**Builderne skal deploye til `Equipments`.** Den ligger i solutionen og
-følger derfor med ved eksport, hvilket den ældre ikke gør.
+**Builderne deployer til `Equipments`.** Den ligger i solutionen og følger
+derfor med ved eksport, hvilket den ældre ikke gør. EQ-flisen er flyttet
+med, så deploy-mål og flise peger samme sted.
 
-Indtil dens app-id er fundet:
-
-- `tools/canvas_apps.json` har `app_id: null`. Det er med vilje tomt og
-  ikke gættet: et forkert id deployer ind i en anden app og overskriver
-  den. **Tomt id stopper et deploy; forkert id ødelægger et.**
-- Hubbens EQ-flise peger stadig på den ældre app, så et fungerende link
-  ikke bliver til "Kommer snart" i mellemtiden.
-
-De to skal flyttes **samtidig**, ellers deployer builderne ét sted og
-flisen åbner et andet.
+Den ældre app (`dd9544e2-a0aa-4713-a076-7637080a40fc`) er stadig der og
+har stadig indhold — den er bare ikke længere den, noget i repoet peger på.
 
 ### Før der kan deployes
 
