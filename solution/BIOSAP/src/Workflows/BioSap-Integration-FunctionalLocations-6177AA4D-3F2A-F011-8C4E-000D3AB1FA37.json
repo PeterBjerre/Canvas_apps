@@ -1,0 +1,385 @@
+{
+  "properties": {
+    "connectionReferences": {},
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "BioSap-WOC-Client-Secret (orsted_BioSapWOCClientSecret)": {
+          "defaultValue": "9yk8Q~jIjeWsqKxR6A9sABmbdVCsf3fEsiQZkaT2",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapWOCClientSecret"
+          }
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "90daf31a-da0a-4fb9-81f7-674b4e8b0816"
+          },
+          "type": "Request",
+          "kind": "PowerAppV2",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "description": "SearchText input from Power App",
+                  "title": "SearchText",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Catch": {
+          "actions": {
+            "Convert_UTC_time_to_DK_time_zone": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "b1d446ed-e601-4141-82ea-99371b6c6d11"
+              },
+              "type": "Expression",
+              "kind": "ConvertTimeZone",
+              "inputs": {
+                "baseTime": "@utcNow()",
+                "formatString": "G",
+                "sourceTimeZone": "UTC",
+                "destinationTimeZone": "Romance Standard Time"
+              }
+            }
+          },
+          "runAfter": {
+            "Try": [
+              "TimedOut",
+              "Skipped",
+              "Failed"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "8dbbeab7-f423-4f3b-81f7-794829653c14"
+          },
+          "type": "Scope"
+        },
+        "Finally": {
+          "actions": {
+            "Respond_to_a_Power_App_or_flow": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "1f85946f-6950-4a3f-b343-1709ac4c1198"
+              },
+              "type": "Response",
+              "kind": "PowerApp",
+              "inputs": {
+                "statusCode": 200,
+                "body": {
+                  "functionallocationoutput": "@{string(body('Call_FunctionalLocations_API')?['_embedded']?['ISerialNumbers'])}"
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "functionallocationoutput": {
+                      "title": "FunctionalLocationOutput",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "Catch": [
+              "Succeeded",
+              "TimedOut",
+              "Skipped",
+              "Failed"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "65bd5a7c-1de2-4381-9761-99c2da8e955e"
+          },
+          "type": "Scope"
+        },
+        "Initialize_variable-FlowRunHistoryLink": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "afab2524-54f5-478a-ba84-6e07bcf1a73a"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "FlowRunHistoryLink",
+                "type": "string",
+                "value": "<a href=\"@{concat('https://make.powerautomate.com/environments/', workflow()?['tags']['environmentName'], '/flows/', workflow()?['name'], '/runs/', workflow()?['run']['name'])}\">Link to Run History</a>"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_BearerToken": {
+          "runAfter": {
+            "Initialize_variable-FlowRunHistoryLink": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "924fffae-9b58-40fe-9658-651265de3561"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "BearerToken",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Try": {
+          "actions": {
+            "Set_variable_PlantPrefix": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "cb8233c8-a43f-4992-989a-17af6f7dd911"
+              },
+              "type": "SetVariable",
+              "inputs": {
+                "name": "PlantPrefix",
+                "value": "@if(greaterOrEquals(length(string(triggerBody()?['text'])),3),substring(string(triggerBody()?['text']),0,3),string(triggerBody()?['text']))"
+              }
+            },
+            "Set_variable_SearchRemainder": {
+              "runAfter": {
+                "Set_variable_PlantPrefix": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "b0afc43e-f5da-4cc4-9b42-4ad5caffd85f"
+              },
+              "type": "SetVariable",
+              "inputs": {
+                "name": "SearchRemainder",
+                "value": "@toUpper(if(greater(length(string(triggerBody()?['text'])),3),substring(string(triggerBody()?['text']),3,sub(length(string(triggerBody()?['text'])),3)),''))"
+              }
+            },
+            "Set_variable_SearchHex_Reset": {
+              "runAfter": {
+                "Set_variable_SearchRemainder": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "6c79c3c0-d9d3-4635-9a57-23b2b30d53c3"
+              },
+              "type": "SetVariable",
+              "inputs": {
+                "name": "SearchHex",
+                "value": "@{''}"
+              }
+            },
+            "For_each_SearchChar": {
+              "foreach": "@chunk(variables('SearchRemainder'),1)",
+              "actions": {
+                "Append_to_string_variable_SearchHex": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "65ae8488-3651-493f-b97b-5cedbb6a4bfd"
+                  },
+                  "type": "AppendToStringVariable",
+                  "inputs": {
+                    "name": "SearchHex",
+                    "value": "@if(equals(item(),'0'),'30',if(equals(item(),'1'),'31',if(equals(item(),'2'),'32',if(equals(item(),'3'),'33',if(equals(item(),'4'),'34',if(equals(item(),'5'),'35',if(equals(item(),'6'),'36',if(equals(item(),'7'),'37',if(equals(item(),'8'),'38',if(equals(item(),'9'),'39',if(equals(item(),' '),'20',if(equals(item(),'A'),'41',if(equals(item(),'B'),'42',if(equals(item(),'C'),'43',if(equals(item(),'D'),'44',if(equals(item(),'E'),'45',if(equals(item(),'F'),'46',if(equals(item(),'G'),'47',if(equals(item(),'H'),'48',if(equals(item(),'I'),'49',if(equals(item(),'J'),'4A',if(equals(item(),'K'),'4B',if(equals(item(),'L'),'4C',if(equals(item(),'M'),'4D',if(equals(item(),'N'),'4E',if(equals(item(),'O'),'4F',if(equals(item(),'P'),'50',if(equals(item(),'Q'),'51',if(equals(item(),'R'),'52',if(equals(item(),'S'),'53',if(equals(item(),'T'),'54',if(equals(item(),'U'),'55',if(equals(item(),'V'),'56',if(equals(item(),'W'),'57',if(equals(item(),'X'),'58',if(equals(item(),'Y'),'59',if(equals(item(),'Z'),'5A','3F')))))))))))))))))))))))))))))))))))))"
+                  }
+                }
+              },
+              "runAfter": {
+                "Set_variable_SearchHex_Reset": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "5304aa79-99db-4129-8f6d-54aaf847d1e3"
+              },
+              "type": "Foreach"
+            },
+            "Get_Bearer_Token": {
+              "runAfter": {
+                "For_each_SearchChar": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "f2c861ae-19ed-44a9-a247-209a7e381fb2"
+              },
+              "type": "Http",
+              "inputs": {
+                "method": "POST",
+                "uri": "https://login.microsoftonline.com/100b3c99-f3e2-4da0-9c8a-b9d345742c36/oauth2/v2.0/token",
+                "headers": {
+                  "Content-Type": "application/x-www-form-urlencoded"
+                },
+                "body": "grant_type=client_credentials\n&client_id=6b699286-72e8-4e8a-8e93-ce166f5c22d0\n&client_secret=@{parameters('BioSap-WOC-Client-Secret (orsted_BioSapWOCClientSecret)')}\n&scope=api://b6772340-5812-4132-abf0-74a74e14fac9/.default"
+              }
+            },
+            "Parse_JSON_BearerToken": {
+              "runAfter": {
+                "Get_Bearer_Token": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "750155a6-6ffd-4658-9c70-f4af45ffc3a7"
+              },
+              "type": "ParseJson",
+              "inputs": {
+                "content": "@body('Get_Bearer_Token')",
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token_type": {
+                      "type": "string"
+                    },
+                    "expires_in": {
+                      "type": "integer"
+                    },
+                    "ext_expires_in": {
+                      "type": "integer"
+                    },
+                    "access_token": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "Set_variable_BearerToken": {
+              "runAfter": {
+                "Parse_JSON_BearerToken": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "92253703-e44e-4b58-af70-e79baeb8d358"
+              },
+              "type": "SetVariable",
+              "inputs": {
+                "name": "BearerToken",
+                "value": "@body('Parse_JSON_BearerToken')?['access_token']"
+              }
+            },
+            "Call_FunctionalLocations_API": {
+              "runAfter": {
+                "Set_variable_BearerToken": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "03732293-83b2-46fd-a726-6c654dcb5ccf"
+              },
+              "type": "Http",
+              "inputs": {
+                "method": "GET",
+                "uri": "@{concat('https://api.orsted.dk/powerplants/thermal/DNK/', variables('PlantPrefix'), '/serials/search?limit=10000&serialNumber=', variables('SearchHex'))}",
+                "headers": {
+                  "Authorization": "***REDACTED***",
+                  "Content-Type": "application/json",
+                  "x-apikey": "BtpWocaf2edd3900b0f85d2feed4300fae46ec"
+                }
+              },
+              "runtimeConfiguration": {
+                "contentTransfer": {
+                  "transferMode": "Chunked"
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "Initialize_variable_SearchHex": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "10e7b050-0fe9-41bf-bed3-f82f1ba89fc2"
+          },
+          "type": "Scope"
+        },
+        "Initialize_variable_PlantPrefix": {
+          "runAfter": {
+            "Initialize_variable_BearerToken": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "e2bbd0cd-302f-462e-84eb-61a6e18763f4"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "PlantPrefix",
+                "type": "string",
+                "value": ""
+              }
+            ]
+          }
+        },
+        "Initialize_variable_SearchRemainder": {
+          "runAfter": {
+            "Initialize_variable_PlantPrefix": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "be97af03-1172-4cea-8ecf-426289290d32"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "SearchRemainder",
+                "type": "string",
+                "value": ""
+              }
+            ]
+          }
+        },
+        "Initialize_variable_SearchHex": {
+          "runAfter": {
+            "Initialize_variable_SearchRemainder": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "8600c698-56b5-41e3-b1ae-dc1179e08630"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "SearchHex",
+                "type": "string",
+                "value": ""
+              }
+            ]
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

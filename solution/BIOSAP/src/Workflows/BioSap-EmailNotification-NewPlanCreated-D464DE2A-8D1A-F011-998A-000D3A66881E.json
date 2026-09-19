@@ -1,0 +1,502 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_office365": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapOutlookConn"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      },
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapSharePointConn"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "BioSap-SiteUrl (orsted_BioSapSiteUrl)": {
+          "defaultValue": "https://orsted.sharepoint.com/teams/BioSAPDev",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapSiteUrl"
+          }
+        },
+        "BioSap-List-MaintenancePlans (orsted_BioSapListMaintenancePlans)": {
+          "defaultValue": "55c96ba9-52b8-4018-8945-f736b001d6a2",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapListMaintenancePlans"
+          }
+        },
+        "BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)": {
+          "defaultValue": "thasi@orsted.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapErrorNotifiers"
+          }
+        },
+        "BioSap-ListItemEntityTypeMaintenancePlan (orsted_BioSapListItemEntityTypeMaintenancePlan)": {
+          "defaultValue": "SP.Data.MaintenancePlansListItem",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapListItemEntityTypeMaintenancePlan"
+          }
+        },
+        "BioSap-List-MaintenancePlansName (orsted_BioSapListMaintenancePlansName)": {
+          "defaultValue": "MaintenancePlans",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapListMaintenancePlansName"
+          }
+        },
+        "BioSap-List-AppSettings (orsted_BioSapListAppSettings)": {
+          "defaultValue": "97ec3f9c-8f7b-4a22-a1e6-7cad07f9431e",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapListAppSettings"
+          }
+        }
+      },
+      "triggers": {
+        "When_an_item_is_created_or_modified": {
+          "recurrence": {
+            "interval": 1,
+            "frequency": "Minute"
+          },
+          "splitOn": "@triggerOutputs()?['body/value']",
+          "metadata": {
+            "operationMetadataId": "775e5c8b-5281-4a74-bd22-33d5f9d97dcd"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline",
+              "operationId": "GetOnUpdatedItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+              "table": "@parameters('BioSap-List-MaintenancePlans (orsted_BioSapListMaintenancePlans)')"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "conditions": [
+            {
+              "expression": "@equals(triggerBody()?['Status/Value'],'In Progress')"
+            },
+            {
+              "expression": "@equals(triggerBody()?['InitialEmailSent'], false)"
+            }
+          ]
+        }
+      },
+      "actions": {
+        "Catch": {
+          "actions": {
+            "Convert_UTC_time_to_DK_time_zone": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "a5a8c8b3-3418-4a96-9c0b-3190061c1d11"
+              },
+              "type": "Expression",
+              "kind": "ConvertTimeZone",
+              "inputs": {
+                "baseTime": "@utcNow()",
+                "formatString": "G",
+                "sourceTimeZone": "UTC",
+                "destinationTimeZone": "Romance Standard Time"
+              }
+            },
+            "Send_notification_to_development_team": {
+              "runAfter": {
+                "Convert_UTC_time_to_DK_time_zone": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "d7e649b4-8625-486f-a8a2-9f8c573a8faf"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                },
+                "parameters": {
+                  "emailMessage/To": "@parameters('BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)')",
+                  "emailMessage/Subject": "An error occured in the flow - @{workflow()?['tags']?['flowDisplayName']}",
+                  "emailMessage/Body": "<p><span style=\"font-family: arial\">Hi,<br>\n<br>\nAn error was detected in the following flow instance.<br>\n<br>\n&gt;Timestamp<br>\n</span><span style=\"font-family: arial\">@{body('Convert_UTC_time_to_DK_time_zone')}</span><span style=\"font-family: arial\"><br>\n<br>\n<br>\n&gt;Run History<br>\n</span><span style=\"font-family: arial\">@{variables('FlowRunHistoryLink')}</span><span style=\"font-family: arial\"><br>\n<br>\nPlease assign to yourself if you are looking into the issue. Kindly update the resolution for future referrence.<br>\n<br>\n<br>\nThank you</span></p>",
+                  "emailMessage/Importance": "Normal"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            }
+          },
+          "runAfter": {
+            "Try": [
+              "TimedOut",
+              "Skipped",
+              "Failed"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "8dbbeab7-f423-4f3b-81f7-794829653c14"
+          },
+          "type": "Scope"
+        },
+        "Initialize_FlowRunHistoryLink": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "e4d34a34-38aa-4d80-a349-ecf80844b24a"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "FlowRunHistoryLink",
+                "type": "string",
+                "value": "<a href=\"@{concat('https://make.powerautomate.com/environments/', workflow()?['tags']['environmentName'], '/flows/', workflow()?['name'], '/runs/', workflow()?['run']['name'])}\">Link to Run History</a>"
+              }
+            ]
+          },
+          "description": "Holds the hyperlink to current run of the flow. Used in error notification"
+        },
+        "Try": {
+          "actions": {
+            "Send_an_email_(V2)-EmailRequestor": {
+              "runAfter": {
+                "Compose-EmailContent": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "c4d6631f-d48b-4bcd-b358-95d40ca64fde"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                },
+                "parameters": {
+                  "emailMessage/To": "@triggerBody()?['Author/Email']",
+                  "emailMessage/Subject": "Bio Sap: New Maintenance Plan Created",
+                  "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">Dear @{triggerBody()?['Author/DisplayName']},</p>\n\n<p style=\"font-family: Arial, sans-serif;\">\n  You have submitted a new maintenance plan as below:<br />\n  @{outputs('Compose-EmailContent')}\n</p>\n\n<p style=\"font-family: Arial, sans-serif;\">\n  Click <a href=\"@{variables('EditLink')}\">here</a> to view the plan.\n</p>\n\n<p style=\"font-family: Arial, sans-serif;\">Thank you.</p>",
+                  "emailMessage/Importance": "Normal"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Compose-EmailContent": {
+              "runAfter": {
+                "Set_App_Url_and_Edit_Link": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "0181ec1c-0ad8-4b87-8b1f-9c205555c50e"
+              },
+              "type": "Compose",
+              "inputs": "<table style=\"width: 80%; font-family: Arial, Helvetica, sans-serif; border-collapse: collapse; border: 1px solid #ddd;\">\n  <tr style=\"background-color: #4099da; color: white;\">\n    <th style=\"padding: 6px; text-align: left; border: 1px solid #ddd;\">Plan ID</th>\n    <td style=\"padding: 6px; border: 1px solid #ddd;\">@{triggerOutputs()?['body/PlanID']}</td>\n  </tr>\n  <tr>\n    <th style=\"padding: 6px; text-align: left; border: 1px solid #ddd;\">Title</th>\n    <td style=\"padding: 6px; border: 1px solid #ddd;\">@{triggerBody()?['Title']}</td>\n  </tr>\n  <tr>\n    <th style=\"padding: 6px; text-align: left; border: 1px solid #ddd;\">Sort Field</th>\n    <td style=\"padding: 6px; border: 1px solid #ddd;\">@{triggerBody()?['SortField/Value']}</td>\n  </tr>\n  <tr>\n    <th style=\"padding: 6px; text-align: left; border: 1px solid #ddd;\">Cycle</th>\n    <td style=\"padding: 6px; border: 1px solid #ddd;\">@{triggerBody()?['Cycle']}</td>\n  </tr>\n  <tr>\n    <th style=\"padding: 6px; text-align: left; border: 1px solid #ddd;\">Unit</th>\n    <td style=\"padding: 6px; border: 1px solid #ddd;\">@{triggerBody()?['Unit/Value']}</td>\n  </tr>\n  <tr>\n    <th style=\"padding: 6px; text-align: left; border: 1px solid #ddd;\">First Planned Date</th>\n    <td style=\"padding: 6px; border: 1px solid #ddd;\">@{triggerBody()?['PlannedDate']}</td>\n  </tr>\n</table>"
+            },
+            "Set_App_Url_and_Edit_Link": {
+              "actions": {
+                "Get_AppUrl_based_on_environment": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "1021f5e3-97da-4593-a3b7-7068aa33e45a"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_sharepointonline",
+                      "operationId": "GetItems",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                    },
+                    "parameters": {
+                      "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                      "table": "@parameters('BioSap-List-AppSettings (orsted_BioSapListAppSettings)')",
+                      "$filter": "EnvironmentID eq '@{variables('EnviromentID')}'",
+                      "$top": 1
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Set_the_App_Url_": {
+                  "foreach": "@outputs('Get_AppUrl_based_on_environment')?['body/value']",
+                  "actions": {
+                    "Set_variable-_EditLink": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "e42cb9c3-f1b6-4d62-890b-17a88a7607e8"
+                      },
+                      "type": "SetVariable",
+                      "inputs": {
+                        "name": "EditLink",
+                        "value": "@{items('Set_the_App_Url_')?['AppUrl']}&ID=@{triggerBody()?['ID']}"
+                      }
+                    }
+                  },
+                  "runAfter": {
+                    "Get_AppUrl_based_on_environment": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "82d84e6d-c98a-4de0-bd8f-4cfa8f09f944"
+                  },
+                  "type": "Foreach"
+                },
+                "Set_variable-_AppUrl": {
+                  "runAfter": {
+                    "Set_the_App_Url_": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "b1f9c18f-cd29-4f3c-a1dc-3a40260008f3"
+                  },
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "AppUrl",
+                    "value": "<a href=\"@{variables('EditLink')}\">here</a>"
+                  }
+                }
+              },
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "c6a86387-d20d-411f-9364-4742d6c76984"
+              },
+              "type": "Scope"
+            },
+            "Send_an_HTTP_request_to_SharePoint": {
+              "runAfter": {
+                "Send_an_email_(V2)-EmailRequestor": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "558ad703-83a3-4d0f-b899-cfb70f3142c0"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_sharepointonline",
+                  "operationId": "HttpRequest",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                },
+                "parameters": {
+                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                  "parameters/method": "POST",
+                  "parameters/uri": "_api/web/lists/GetByTitle('@{parameters('BioSap-List-MaintenancePlansName (orsted_BioSapListMaintenancePlansName)')}')/items(@{triggerOutputs()?['body/ID']})",
+                  "parameters/headers": {
+                    "Content-Type": "application/json;odata=verbose",
+                    "If-Match": "*",
+                    "X-HTTP-Method": "MERGE"
+                  },
+                  "parameters/body": "{\"__metadata\":{\"type\":\"@{parameters('BioSap-ListItemEntityTypeMaintenancePlan (orsted_BioSapListItemEntityTypeMaintenancePlan)')}\"},\n\"InitialEmailSent\": true\n}"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            }
+          },
+          "runAfter": {
+            "Initialize_variable-_EnviromentID": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "23ad705d-0d44-48a4-8f47-2fd0eafa9faf"
+          },
+          "type": "Scope"
+        },
+        "Finally": {
+          "actions": {},
+          "runAfter": {
+            "Catch": [
+              "Succeeded",
+              "TimedOut",
+              "Skipped",
+              "Failed"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "bf5d15fa-c0f1-43a2-9e24-5b025017a813"
+          },
+          "type": "Scope"
+        },
+        "Initialize_variable-EditLink": {
+          "runAfter": {
+            "Initialize_FlowRunHistoryLink": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "a3a4f4d9-f55b-4879-a325-28f7975955c6"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "EditLink",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_variable-AppUrl": {
+          "runAfter": {
+            "Initialize_variable-EditLink": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "6f43e966-7aeb-48df-b2f5-99bec04ce152"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "AppUrl",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_variable-_Worfklow": {
+          "runAfter": {
+            "Initialize_variable-AppUrl": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "ef6ec7b1-1b18-46c6-a773-3eb834d65cdc"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Worfklow",
+                "type": "object",
+                "value": "@workflow()"
+              }
+            ]
+          }
+        },
+        "Parse_JSON-_Workflow": {
+          "runAfter": {
+            "Initialize_variable-_Worfklow": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "00b998f4-52f9-4135-bf30-d6746fd6a2b2"
+          },
+          "type": "ParseJson",
+          "inputs": {
+            "content": "@variables('Worfklow')",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "location": {
+                  "type": "string"
+                },
+                "tags": {
+                  "type": "object",
+                  "properties": {
+                    "flowDisplayName": {
+                      "type": "string"
+                    },
+                    "environmentName": {
+                      "type": "string"
+                    },
+                    "logicAppName": {
+                      "type": "string"
+                    },
+                    "environmentWorkflowId": {
+                      "type": "string"
+                    },
+                    "xrmWorkflowId": {
+                      "type": "string"
+                    },
+                    "environmentFlowSuspensionReason": {
+                      "type": "string"
+                    },
+                    "sharingType": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "run": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "Initialize_variable-_EnviromentID": {
+          "runAfter": {
+            "Parse_JSON-_Workflow": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "e1a8e165-1968-40e3-b5f9-04966acf7566"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "EnviromentID",
+                "type": "string",
+                "value": "@body('Parse_JSON-_Workflow')?['tags']?['environmentName']"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

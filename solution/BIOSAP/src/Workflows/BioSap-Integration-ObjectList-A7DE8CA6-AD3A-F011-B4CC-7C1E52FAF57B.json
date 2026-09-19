@@ -1,0 +1,284 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_powerbi": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapPowerBIConn"
+        },
+        "api": {
+          "name": "shared_powerbi"
+        }
+      },
+      "shared_office365_1": {
+        "runtimeSource": "invoker",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapOutlookConn"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)": {
+          "defaultValue": "thasi@orsted.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapErrorNotifiers"
+          }
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "2165f7b9-937a-4c54-9676-ec8f3591b5a1"
+          },
+          "type": "Request",
+          "kind": "PowerAppV2",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "title": "FuncLocationPar",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input",
+                  "x-ms-content-hint": "TEXT"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Initialize_variable-FlowRunHistoryLink": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "d6c84b80-73bd-459a-aec8-afdf716c598c"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "FlowRunHistoryLink",
+                "type": "string",
+                "value": "<a href=\"@{concat('https://make.powerautomate.com/environments/', workflow()?['tags']['environmentName'], '/flows/', workflow()?['name'], '/runs/', workflow()?['run']['name'])}\">Link to Run History</a>"
+              }
+            ]
+          }
+        },
+        "Try": {
+          "actions": {
+            "Run_a_query_against_a_dataset": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "e40c493c-7091-4d8a-af69-a251e12bd845"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_powerbi",
+                  "operationId": "ExecuteDatasetQuery",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_powerbi"
+                },
+                "parameters": {
+                  "groupid": "26d062ec-3014-4cd3-9313-ced0cfe497b9",
+                  "datasetid": "fadc4a40-342b-41e3-a1ef-aa4af8bb9e09",
+                  "specification/query": "// DAX Query\nDEFINE\n\tVAR __DS0FilterTable = \n\t\tTREATAS({\"INO\"}, 'Functional Locations Man'[UserStatus])\n\n\tVAR __DS0FilterTable2 = \n                FILTER(\n\t\t\tKEEPFILTERS(VALUES('Functional Locations Man'[FL Search])),\n                SEARCH(\"@{triggerBody()['text']}\", 'Functional Locations Man'[FL Search], 1, 0) >= 1)\n\n\tVAR __SQDS0Core = \n\t\tCALCULATETABLE(\n\t\t\tSUMMARIZE(\n\t\t\t\t'Functional Locations Man',\n\t\t\t\t'Functional Locations Man'[UserStatus],\n\t\t\t\t'Functional Locations Man'[Functional Location],\n\t\t\t\t'Functional Locations Man'[FL Search],\n\t\t\t\t'Functional Locations Man'[Safety Critical Equip.]\n\t\t\t),\n\t\t\tKEEPFILTERS(__DS0FilterTable),\n\t\t\tKEEPFILTERS(__DS0FilterTable2)\n\t\t)\n\n\tVAR __SQDS0BodyLimited = \n\t\tTOPN(\n\t\t\t100,\n\t\t\t__SQDS0Core,\n\t\t\t'Functional Locations Man'[UserStatus],\n\t\t\t1,\n\t\t\t'Functional Locations Man'[Functional Location],\n\t\t\t1,\n\t\t\t'Functional Locations Man'[FL Search],\n\t\t\t1,\n\t\t\t'Functional Locations Man'[Safety Critical Equip.],\n\t\t\t1\n\t\t)\n\n\tVAR __DS0Core = \n\t\tCALCULATETABLE(\n\t\t\tSUMMARIZE(\n\t\t\t\t'Functional Locations Man',\n\t\t\t\t'Functional Locations Man'[UserStatus],\n\t\t\t\t'Functional Locations Man'[Functional Location],\n\t\t\t\t'Functional Locations Man'[FL Search],\n\t\t\t\t'Functional Locations Man'[Safety Critical Equip.]\n\t\t\t),\n\t\t\tKEEPFILTERS(__DS0FilterTable),\n\t\t\tKEEPFILTERS(__DS0FilterTable2),\n\t\t\tKEEPFILTERS(__SQDS0BodyLimited)\n\t\t)\n\n\tVAR __DS0PrimaryWindowed = \n\t\tTOPN(\n\t\t\t501,\n\t\t\t__DS0Core,\n\t\t\t'Functional Locations Man'[UserStatus],\n\t\t\t1,\n\t\t\t'Functional Locations Man'[Functional Location],\n\t\t\t1,\n\t\t\t'Functional Locations Man'[FL Search],\n\t\t\t1,\n\t\t\t'Functional Locations Man'[Safety Critical Equip.],\n\t\t\t1\n\t\t)\n\nEVALUATE\n\t__DS0PrimaryWindowed\n\nORDER BY\n\t'Functional Locations Man'[UserStatus],\n\t'Functional Locations Man'[Functional Location],\n\t'Functional Locations Man'[FL Search],\n\t'Functional Locations Man'[Safety Critical Equip.]\n",
+                  "specification/serializerSettings/includeNulls": false
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Parse_JSON-PowerBIOutput": {
+              "runAfter": {
+                "Compose_1": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "973ceac6-3364-43a0-a038-476f72814c62"
+              },
+              "type": "ParseJson",
+              "inputs": {
+                "content": "@outputs('Run_a_query_against_a_dataset')?['body/firstTableRows']",
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "Functional Locations[Functional Location]": {
+                        "type": "string"
+                      },
+                      "Functional Locations[Safety Critical Equip.]": {
+                        "type": "string"
+                      },
+                      "Functional Locations[Plant Section Key]": {
+                        "type": "string"
+                      },
+                      "Functional Locations[Plant Key]": {
+                        "type": "string"
+                      },
+                      "Functional Locations[Plant Unit]": {
+                        "type": "string"
+                      },
+                      "Functional Locations[Functional Location Description]": {
+                        "type": "string"
+                      }
+                    },
+                    "required": []
+                  }
+                }
+              }
+            },
+            "Compose": {
+              "runAfter": {
+                "Run_a_query_against_a_dataset": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "9741804d-3979-429a-8034-bc3527add2ce"
+              },
+              "type": "Compose",
+              "inputs": "@outputs('Run_a_query_against_a_dataset')?['body/firstTableRows']"
+            },
+            "Compose_1": {
+              "runAfter": {
+                "Compose": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "6025359a-0c5d-4c4f-82cf-013d65253541"
+              },
+              "type": "Compose",
+              "inputs": "@length(outputs('Compose'))"
+            }
+          },
+          "runAfter": {
+            "Initialize_variable-FlowRunHistoryLink": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "10e7b050-0fe9-41bf-bed3-f82f1ba89fc2"
+          },
+          "type": "Scope"
+        },
+        "Catch": {
+          "actions": {
+            "Convert_UTC_time_to_DK_time_zone": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "a5a8c8b3-3418-4a96-9c0b-3190061c1d11"
+              },
+              "type": "Expression",
+              "kind": "ConvertTimeZone",
+              "inputs": {
+                "baseTime": "@utcNow()",
+                "formatString": "G",
+                "sourceTimeZone": "UTC",
+                "destinationTimeZone": "Romance Standard Time"
+              }
+            },
+            "Send_notification_to_development_team": {
+              "runAfter": {
+                "Convert_UTC_time_to_DK_time_zone": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "d7e649b4-8625-486f-a8a2-9f8c573a8faf"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365_1",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                },
+                "parameters": {
+                  "emailMessage/To": "@parameters('BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)')",
+                  "emailMessage/Subject": "An error occured in the flow - @{workflow()?['tags']?['flowDisplayName']}",
+                  "emailMessage/Body": "<p><span style=\"font-family: arial\">Hi,<br>\n<br>\nAn error was detected in the following flow instance.<br>\n<br>\n&gt;Timestamp<br>\n</span><span style=\"font-family: arial\">@{body('Convert_UTC_time_to_DK_time_zone')}</span><span style=\"font-family: arial\"><br>\n<br>\n<br>\n&gt;Run History<br>\n</span><span style=\"font-family: arial\">@{variables('FlowRunHistoryLink')}</span><span style=\"font-family: arial\"><br>\n<br>\nPlease assign to yourself if you are looking into the issue. Kindly update the resolution for future referrence.<br>\n<br>\n<br>\nThank you</span></p>",
+                  "emailMessage/Importance": "Normal"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            }
+          },
+          "runAfter": {
+            "Try": [
+              "TimedOut",
+              "Skipped",
+              "Failed"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "8dbbeab7-f423-4f3b-81f7-794829653c14"
+          },
+          "type": "Scope"
+        },
+        "Finally": {
+          "actions": {
+            "Respond_to_a_Power_App_or_flow": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "1f85946f-6950-4a3f-b343-1709ac4c1198"
+              },
+              "type": "Response",
+              "kind": "PowerApp",
+              "inputs": {
+                "statusCode": 200,
+                "body": {
+                  "objectlistoutput": "@{outputs('Compose')}"
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "objectlistoutput": {
+                      "title": "ObjectListOutput",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "Catch": [
+              "Succeeded",
+              "TimedOut",
+              "Skipped",
+              "Failed"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "65bd5a7c-1de2-4381-9761-99c2da8e955e"
+          },
+          "type": "Scope"
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}
