@@ -21,19 +21,25 @@ SHARED = ["gen_screen.py", "build_helpers.py", "check_layout.py"]
 APPS = [
     ("Maintenance Plan App", ["generate_app_onstart.py", "assemble_screen.py"]),
     ("Masterdata Hub",       ["generate_hub_onstart.py", "assemble_hub.py"]),
+    ("Equipment App",        ["generate_app_onstart.py", "assemble_screen.py"]),
+    ("Material App",         ["generate_app_onstart.py", "assemble_screen.py"]),
 ]
+
+# Equipment og Materials er DEN SAMME app. Kun domain_config.py skiller
+# dem - felterne og listenavnene. Resten skal derfor ogsaa vaere ordret
+# ens, og bliver det kun, hvis nogen tjekker det.
+DOMAIN_APPS = ["Equipment App", "Material App"]
+DOMAIN_SHARED = ["build_domain.py", "attflows.py",
+                 "generate_app_onstart.py", "assemble_screen.py"]
 
 
 def build_dirs():
     return [(app, os.path.join(ROOT, app, "build")) for app, _ in APPS]
 
 
-def check_shared():
-    """De tre faelles filer skal vaere ordret ens i alle build-mapper."""
-    dirs = build_dirs()
+def _compare(dirs, names, bad):
     base_app, base_dir = dirs[0]
-    bad = []
-    for name in SHARED:
+    for name in names:
         base = os.path.join(base_dir, name)
         if not os.path.exists(base):
             bad.append(f"{name}: mangler i '{base_app}'")
@@ -46,6 +52,15 @@ def check_shared():
                 newer = base_app if os.path.getmtime(base) > os.path.getmtime(other) else app
                 bad.append(f"{name}: '{base_app}' og '{app}' er ikke ens "
                            f"(nyest rettet i '{newer}' - kopier derfra)")
+
+
+def check_shared():
+    """De faelles filer skal vaere ordret ens - de tre i ALLE build-mapper,
+    og de fire domaenefiler i de to domaeneapper."""
+    bad = []
+    _compare(build_dirs(), SHARED, bad)
+    _compare([(a, os.path.join(ROOT, a, "build")) for a in DOMAIN_APPS],
+             DOMAIN_SHARED, bad)
     return bad
 
 

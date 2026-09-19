@@ -310,7 +310,7 @@ def provisioned_columns():
         if not fn.endswith(".ps1"):
             continue
         txt = open(os.path.join(d, fn), encoding="utf-8-sig").read()
-        for m in re.finditer(r"(?:Add-Col|New-MdField|New-IdxField)\s+'?([\w ]+)'?\s+'?([\w]+)'?", txt):
+        for m in re.finditer(r"(?:Add-Col|New-MdField|New-MdNoteField|New-IdxField)\s+'?([\w ]+)'?\s+'?([\w]+)'?", txt):
             out.add((m.group(1).strip(), m.group(2).strip()))
         for m in re.finditer(r"Add-Col\s+'([^']+)'\s+'?([\w]+)'?", txt):
             out.add((m.group(1).strip(), m.group(2).strip()))
@@ -343,7 +343,8 @@ def main():
     problems, stats = [], {"checked": 0}
     prov = provisioned_columns()
     screens = []
-    for app in ("Maintenance Plan App", "Masterdata Hub"):
+    for app in ("Maintenance Plan App", "Masterdata Hub",
+                "Equipment App", "Material App"):
         d = os.path.join(ROOT, app)
         if not os.path.isdir(d):
             continue

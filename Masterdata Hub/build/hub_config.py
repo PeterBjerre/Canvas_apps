@@ -20,26 +20,44 @@ COL_NO = "RequestNo"
 # ---------------------------------------------------------------------------
 # De fem domaener.
 #
-# url  = satellittens play-URL. Udfyldes naar appen findes; indtil da staar
-#        tile'en som "Kommer snart" og kan ikke aabnes.
-#        Formatet er:  https://apps.powerapps.com/play/e/<env>/a/<appid>
+# app_id = satellittens app-id. Flisen bygger selv play-URL'en af ENV_ID og
+#          app_id, saa miljoeet staar EET sted i stedet for fem.
+#          Er app_id None, staar flisen som "Kommer snart" og kan ikke
+#          aabnes - appen findes ikke, eller ingen har fundet id'et endnu.
+#
+# App-id'et staar IKKE i solution-eksporten. Det Id, der staar i en app's
+# Properties.json, er DOKUMENTETS id, ikke app'ens - de to er forskellige,
+# og play-URL'en vil have app'ens. Hent det i Studio-URL'en:
+#
+#   https://make.powerapps.com/e/<env>/canvas/?action=edit&app-id=...%2Fapps%2F<app_id>
+#
+# eller med:  pac canvas list
 # ---------------------------------------------------------------------------
+ENV_ID = "e0f8f822-d16a-e878-ba4e-fb42bc617e47"
+
 DOMAINS = [
     {"key": "FunctionalLocation", "short": "FL",  "name": "Functional location",
-     "color": "RGBA(0, 103, 174, 1)",  "url": ""},
+     "color": "RGBA(0, 103, 174, 1)",  "app_id": None},
     {"key": "Equipment",          "short": "EQ",  "name": "Equipment",
      "color": "RGBA(14, 124, 134, 1)",
-     "url": "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47"
-            "/a/dd9544e2-a0aa-4713-a076-7637080a40fc"},
+     "app_id": "dd9544e2-a0aa-4713-a076-7637080a40fc"},
     {"key": "MeasuringPoint",     "short": "MP",  "name": "Measuring point",
-     "color": "RGBA(21, 127, 92, 1)",  "url": ""},
+     "color": "RGBA(21, 127, 92, 1)",  "app_id": None},
+    # Materials-appen er bygget i repoet ("Material App"), men dens app-id
+    # er ikke fundet endnu - se kommentaren ovenfor. Saet det her, og
+    # flisen aabner den.
     {"key": "Material",           "short": "MAT", "name": "Material",
-     "color": "RGBA(154, 99, 0, 1)",   "url": ""},
+     "color": "RGBA(154, 99, 0, 1)",   "app_id": None},
     {"key": "MaintenancePlan",    "short": "VHP", "name": "Maintenance plan",
      "color": "RGBA(109, 74, 166, 1)",
-     "url": "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47"
-            "/a/11fa8d90-868a-45a4-ba23-28f2cf0671a2"},
+     "app_id": "11fa8d90-868a-45a4-ba23-28f2cf0671a2"},
 ]
+
+PLAY = "https://apps.powerapps.com/play/e/{env}/a/{app}"
+
+for _d in DOMAINS:
+    _d["url"] = PLAY.format(env=ENV_ID, app=_d["app_id"]) if _d["app_id"] else ""
+
 
 # ---------------------------------------------------------------------------
 # Det faelles statusordforraad.

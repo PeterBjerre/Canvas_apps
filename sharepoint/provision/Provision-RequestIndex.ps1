@@ -148,7 +148,10 @@ function Add-IndexColumns {
 
 function Set-IdxView {
     param([string]$List)
-    $cols = @($COL_NO, 'Domain', 'ShortText', 'Plant', 'Status', 'StatusStep',
+    # INTERNE navne. Title er omdoebt til RequestNo, men hedder stadig Title
+    # indeni - her stod $COL_NO, og saa fejler visningen med "kolonnen
+    # findes ikke". Omdoebningen aendrer kun visningsnavnet.
+    $cols = @('Title', 'Domain', 'ShortText', 'Plant', 'Status', 'StatusStep',
               'IsOpen', 'RequesterEmail', 'LastActionOn', 'SapObjectNo')
     $view = Get-PnPView -List $List | Where-Object { $_.DefaultView } | Select-Object -First 1
     if ($view) {
