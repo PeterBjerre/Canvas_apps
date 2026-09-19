@@ -16,6 +16,14 @@ Private Const CFG_LIST_ITEMS As String = "MaintenanceItems"
 Private Const CFG_LIST_TLH As String = "TaskListMain"
 Private Const CFG_LIST_TL As String = "TaskListMain"
 
+' Materialer og dokumenter. De hoerer til arbejdsplanen og ligger i egne
+' lister - en materialelinje baerer sine egne vaerdier (nummer, maengde,
+' enhed) og kan ikke ligge i en semikolonstreng paa TaskListMain, og et
+' dokument kan haenge paa flere operationer og skal kunne haenge paa ingen.
+' Begrundelsen staar i docs/18-materialer-og-attachments.md.
+Private Const CFG_LIST_MATERIALS As String = "MD_TasklistMaterial"
+Private Const CFG_LIST_ATTACHMENTS As String = "MD_TasklistAttachment"
+
 ' Tom = auto: bruger Environ("USERNAME"), fx PKBJE
 Private Const CFG_SHAREPOINT_CREDENTIAL_TARGET As String = ""
 Private Const CFG_SHAREPOINT_CREDENTIAL_PREFIX As String = ""
@@ -111,6 +119,8 @@ Public Sub ImportSharePointMaintenanceData(Optional ByVal showSummary As Boolean
     Dim cntObjectList As Long
     Dim cntTlh As Long
     Dim cntTl As Long
+    Dim cntMaterials As Long
+    Dim cntAttachments As Long
 
     stage = WS_MAINTENANCE_PLANS
     cntPlans = ImportSharePointListToSheet( _
@@ -170,6 +180,22 @@ Public Sub ImportSharePointMaintenanceData(Optional ByVal showSummary As Boolean
     stage = "MaintenanceTlPostProcessing"
     ApplyMaintenanceTlDisplayAndColors
 
+    stage = WS_MAINTENANCE_MATERIALS
+    cntMaterials = ImportTasklistChildList( _
+        CFG_LIST_MATERIALS, _
+        WS_MAINTENANCE_MATERIALS, _
+        DefaultHeadersMaterials(), _
+        BuildAliasMapMaterials(), _
+        authHeader)
+
+    stage = WS_MAINTENANCE_ATTACHMENTS
+    cntAttachments = ImportTasklistChildList( _
+        CFG_LIST_ATTACHMENTS, _
+        WS_MAINTENANCE_ATTACHMENTS, _
+        DefaultHeadersAttachments(), _
+        BuildAliasMapAttachments(), _
+        authHeader)
+
     If showSummary Then
         MsgBox modEnvironment.DescribeEnvironment() & vbCrLf & vbCrLf & _
                "SharePoint import faerdig." & vbCrLf & _
@@ -177,7 +203,9 @@ Public Sub ImportSharePointMaintenanceData(Optional ByVal showSummary As Boolean
                WS_MAINTENANCE_ITEMS & ": " & CStr(cntItems) & vbCrLf & _
                WS_OBJECT_LIST & ": " & CStr(cntObjectList) & vbCrLf & _
                WS_MAINTENANCE_TLH & ": " & CStr(cntTlh) & vbCrLf & _
-               WS_MAINTENANCE_TL & ": " & CStr(cntTl), vbInformation + vbOKOnly
+               WS_MAINTENANCE_TL & ": " & CStr(cntTl) & vbCrLf & _
+               WS_MAINTENANCE_MATERIALS & ": " & CStr(cntMaterials) & vbCrLf & _
+               WS_MAINTENANCE_ATTACHMENTS & ": " & CStr(cntAttachments), vbInformation + vbOKOnly
     End If
 
     Exit Sub
@@ -629,6 +657,89 @@ EH:
     Else
         Err.Raise Err.Number, , errText
     End If
+End Sub
+
+' ===========================================================================
+' Materialer og dokumenter
+' ===========================================================================
+' De to lister kommer ind ad EEN vej i stedet for hver sin kopi af det
+' samme forloeb. Trin 4 i planen - de 13 naesten ens importprocedurer samlet
+' til een - er ikke lavet, fordi den bortfalder helt, hvis hentningen
+' skifter til Power Query. Men de to nye skal ikke goere bunken stoerre
+' imens.
+'
+' GUI-delen laeser dem ikke endnu. De hentes alligevel nu, fordi arkene og
+' miljoestemplingen skal ligge klar, foer der bygges oven paa dem - og fordi
+' en fane, der er tom, er lettere at forholde sig til end en, der ikke
+' findes.
+'
+' NOEGLERNE, saadan som appen skriver dem (Maintenance Plan App/build/build_save.py):
+'
+'     PlanKey     -> Maintenance_Plans.PlanID      MP0068
+'     ItemKey     -> Maintenance_Items.ItemID      MI0112
+'     TaskItemID  -> Maintenance_TL.TaskItemID     TI0341   (kun materialer)
+'
+' Et materiale hoerer til EEN operation - derfor TaskItemID. Et dokument kan
+' haenge paa flere eller ingen, og baerer i stedet OperationsKey, ";0010;0020;",
+' hvor bar ";" betyder hele itemet.
+'
+' Title er doebt om i SharePoint - MaterialNo paa den ene liste, FileName paa
+' den anden - men det INTERNE navn er stadig Title. Det er derfor "Title"
+' staar foerst i begge aliasopslag. Samme faelde som RequestNo i appen.
+
+Private Function ImportTasklistChildList( _
+    ByVal listTitle As String, _
+    ByVal targetSheetName As String, _
+    ByVal headers As Variant, _
+    ByVal aliasMap As Object, _
+    ByVal authHeader As String) As Long
+
+    ' Samme select/expand som Items. Felterne laeses primaert med deres
+    ' interne navn; FieldValuesAsText staar som reserve, saa et valgfelt
+    ' (UploadStatus) eller et felt, der en dag bliver et opslag, kommer ud
+    ' som den tekst SharePoint viser, og ikke som en record.
+    ImportTasklistChildList = ImportSharePointListToSheet( _
+        modEnvironment.GetListUrl(listTitle), _
+        ITEMS_SELECT_EXPAND_CLAUSE, _
+        targetSheetName, _
+        START_ROW_DEFAULT, _
+        headers, _
+        aliasMap, _
+        authHeader)
+End Function
+
+Public Sub ImportSharePointTasklistMaterials(Optional ByVal showSummary As Boolean = True)
+    On Error GoTo EH
+
+    Dim cnt As Long
+    cnt = ImportTasklistChildList( _
+        CFG_LIST_MATERIALS, _
+        WS_MAINTENANCE_MATERIALS, _
+        DefaultHeadersMaterials(), _
+        BuildAliasMapMaterials(), _
+        GetSharePointAuthHeader())
+
+    If showSummary Then MsgBox WS_MAINTENANCE_MATERIALS & " importeret: " & CStr(cnt) & " raekker.", vbInformation + vbOKOnly
+    Exit Sub
+EH:
+    MsgBox "Import fejl (" & WS_MAINTENANCE_MATERIALS & "): " & Err.Description, vbCritical + vbOKOnly
+End Sub
+
+Public Sub ImportSharePointTasklistAttachments(Optional ByVal showSummary As Boolean = True)
+    On Error GoTo EH
+
+    Dim cnt As Long
+    cnt = ImportTasklistChildList( _
+        CFG_LIST_ATTACHMENTS, _
+        WS_MAINTENANCE_ATTACHMENTS, _
+        DefaultHeadersAttachments(), _
+        BuildAliasMapAttachments(), _
+        GetSharePointAuthHeader())
+
+    If showSummary Then MsgBox WS_MAINTENANCE_ATTACHMENTS & " importeret: " & CStr(cnt) & " raekker.", vbInformation + vbOKOnly
+    Exit Sub
+EH:
+    MsgBox "Import fejl (" & WS_MAINTENANCE_ATTACHMENTS & "): " & Err.Description, vbCritical + vbOKOnly
 End Sub
 
 Private Function BuildAllFieldsClause(ByVal rawClause As String) As String
@@ -1371,7 +1482,11 @@ Private Function ShouldForceTextField(ByVal targetHeader As String) As Boolean
     normalized = NormalizeFieldName(targetHeader)
 
     Select Case normalized
-        Case "id", "sortfieldid", "vendorid"
+        ' MaterialNo og OperationNo ser ud som tal og er det ikke.
+        ' "0010" og "000000000010203945" mister deres foranstillede nuller,
+        ' i det sekund Excel faar lov at laese dem som tal - og et
+        ' materialenummer uden nuller findes ikke i SAP.
+        Case "id", "sortfieldid", "vendorid", "materialno", "operationno"
             ShouldForceTextField = True
     End Select
 End Function
@@ -4229,6 +4344,21 @@ Private Function DefaultHeadersTl() As Variant
     "StandartTasklistInitials", "StandardTaskItemID")
 End Function
 
+' Raekkefoelgen er noegler foerst, saa indhold - som paa de oevrige faner,
+' saa man kan se sammenhaengen uden at rulle. Id staar foerst, fordi en
+' senere tilbageskrivning skal bruge den.
+Private Function DefaultHeadersMaterials() As Variant
+    DefaultHeadersMaterials = Array( _
+    "Id", "PlanKey", "ItemKey", "TaskItemID", "OperationNo", _
+    "MaterialNo", "Quantity", "MaterialText", "Unit", "LineId")
+End Function
+
+Private Function DefaultHeadersAttachments() As Variant
+    DefaultHeadersAttachments = Array( _
+    "Id", "PlanKey", "ItemKey", "OperationsKey", _
+    "FileName", "FileUrl", "FileSize", "UploadStatus", "LineId")
+End Function
+
 Private Function BuildAliasMapPlans() As Object
     Dim map As Object
     Set map = CreateObject("Scripting.Dictionary")
@@ -4331,6 +4461,56 @@ Private Function BuildAliasMapTl() As Object
                                       "FieldValuesAsText/SAP_x0020_Task_x0020_List", "SAP_x0020_Task_x0020_List")
 
     Set BuildAliasMapTl = map
+End Function
+
+Private Function BuildAliasMapMaterials() As Object
+    Dim map As Object
+    Set map = CreateObject("Scripting.Dictionary")
+    map.CompareMode = vbTextCompare
+
+    map.Add "Id", Array("Id", "ID", "FieldValuesAsText/ID")
+    map.Add "PlanKey", Array("PlanKey", "FieldValuesAsText/PlanKey")
+    map.Add "ItemKey", Array("ItemKey", "FieldValuesAsText/ItemKey")
+    map.Add "TaskItemID", Array("TaskItemID", "FieldValuesAsText/TaskItemID")
+    map.Add "OperationNo", Array("OperationNo", "FieldValuesAsText/OperationNo")
+
+    ' Title FOERST. Kolonnen hedder MaterialNo i SharePoints visning, men
+    ' det interne navn er Title, og det er det interne navn OData svarer
+    ' med. "MaterialNo" staar med som reserve, hvis listen en dag faar en
+    ' rigtig kolonne af det navn.
+    map.Add "MaterialNo", Array("Title", "FieldValuesAsText/Title", "MaterialNo", "FieldValuesAsText/MaterialNo")
+
+    map.Add "Quantity", Array("Quantity", "FieldValuesAsText/Quantity")
+    map.Add "MaterialText", Array("MaterialText", "FieldValuesAsText/MaterialText")
+    map.Add "Unit", Array("Unit", "FieldValuesAsText/Unit")
+    map.Add "LineId", Array("LineId", "FieldValuesAsText/LineId")
+
+    Set BuildAliasMapMaterials = map
+End Function
+
+Private Function BuildAliasMapAttachments() As Object
+    Dim map As Object
+    Set map = CreateObject("Scripting.Dictionary")
+    map.CompareMode = vbTextCompare
+
+    map.Add "Id", Array("Id", "ID", "FieldValuesAsText/ID")
+    map.Add "PlanKey", Array("PlanKey", "FieldValuesAsText/PlanKey")
+    map.Add "ItemKey", Array("ItemKey", "FieldValuesAsText/ItemKey")
+    map.Add "OperationsKey", Array("OperationsKey", "FieldValuesAsText/OperationsKey")
+
+    ' Samme faelde som MaterialNo: visningsnavnet er FileName, det interne
+    ' navn er Title.
+    map.Add "FileName", Array("Title", "FieldValuesAsText/Title", "FileName", "FieldValuesAsText/FileName")
+
+    ' FileUrl og UploadStatus skrives af attachments-flowet, ikke af appen.
+    ' Staar de tomme, er filen ikke landet i biblioteket endnu - det er en
+    ' oplysning, ikke en fejl i importen.
+    map.Add "FileUrl", Array("FileUrl", "FieldValuesAsText/FileUrl")
+    map.Add "FileSize", Array("FileSize", "FieldValuesAsText/FileSize")
+    map.Add "UploadStatus", Array("UploadStatus", "FieldValuesAsText/UploadStatus")
+    map.Add "LineId", Array("LineId", "FieldValuesAsText/LineId")
+
+    Set BuildAliasMapAttachments = map
 End Function
 
 Private Sub AppendCollection(ByVal destination As Collection, ByVal source As Collection)

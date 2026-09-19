@@ -161,10 +161,18 @@ mønsteret passer.
 Kort sagt: pakkemønsteret er rigtigt til referencer og forkert til rækker med
 egne felter.
 
+## VH-plan-regnearket henter dem nu
+
+`modSharePointImport` henter begge lister ind i fanerne
+`Maintenance_Materials` og `Maintenance_Attachments`. Nøglerne er dem,
+`build_save.py` skriver — `PlanKey`, `ItemKey` og, kun for materialer,
+`TaskItemID`. GUI-delen, der skal oprette dem i SAP, er ikke bygget endnu.
+
+Detaljerne står i [`20-excel-vhplan-plan.md`](20-excel-vhplan-plan.md) under
+*Bygget: materialer, dokumenter og de tre rettelser*.
+
 ## Endnu ikke bygget
 
-- **Gemning til SharePoint.** `colVhpMaterials` og `colVhpAttachments` bor
-  stadig kun i appen. `build_save.py` skal udvides, når listerne er oprettet.
 - **Materialeopslaget** mod SAP (OData).
 - **Validering.** Fx materialelinje uden operation, eller mængde 0. Ingen af
   delene er meldt ud som en regel endnu.

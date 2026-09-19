@@ -582,3 +582,195 @@ opstår; den anden forhindrer, at det slipper ud. Jeg vil lave dem begge.
 **Svaret på dit spørgsmål er altså:** du skal ikke gøre noget. Den skriver
 selv tilbage, når GUI'en er færdig. Men jeg vil ikke anbefale dig at stole
 på den, før de to rettelser er inde.
+
+---
+
+# Bygget: materialer, dokumenter og de tre rettelser
+
+Du bad om to ting: at materialerne og dokumenterne også bliver hentet, og at
+de foreslåede rettelser bliver lavet. Begge dele står her. **Spørgsmål 2 —
+hvordan Excel må få fat i data — er stadig ubesvaret, og intet herunder
+afhænger af svaret.**
+
+## De to nye faner
+
+`MD_TasklistMaterial` og `MD_TasklistAttachment` hentes nu sammen med de
+fire andre lister, ind i `Maintenance_Materials` og
+`Maintenance_Attachments`. Fanerne oprettes af importen selv, første gang
+den kører — de behøver ikke findes på forhånd.
+
+| Fane | Liste | Kolonner |
+|---|---|---|
+| `Maintenance_Materials` | `MD_TasklistMaterial` | Id, PlanKey, ItemKey, TaskItemID, OperationNo, MaterialNo, Quantity, MaterialText, Unit, LineId |
+| `Maintenance_Attachments` | `MD_TasklistAttachment` | Id, PlanKey, ItemKey, OperationsKey, FileName, FileUrl, FileSize, UploadStatus, LineId |
+
+### Nøglerne, så de kan kobles til det, der allerede ligger
+
+Appen skriver dem sådan her (`Maintenance Plan App/build/build_save.py`):
+
+| Kolonne | Passer til | Ser ud som |
+|---|---|---|
+| `PlanKey` | `Maintenance_Plans.PlanID` | `MP0068` |
+| `ItemKey` | `Maintenance_Items.ItemID` | `MI0112` |
+| `TaskItemID` | `Maintenance_TL.TaskItemID` | `TI0341` |
+
+Kun materialerne har `TaskItemID` — et materiale hører til **én** operation,
+og det er den relation SAP har. Et dokument kan hænge på flere eller ingen,
+og bærer i stedet `OperationsKey`, `";0010;0020;"`, hvor bare `";"` betyder
+hele itemet.
+
+### To ting der ville have givet stille fejl
+
+**Title hedder ikke Title.** Kolonnen hedder `MaterialNo` på den ene liste og
+`FileName` på den anden — men det er kun **visningsnavnet**. Det interne navn
+er stadig `Title`, og det er det interne navn, OData svarer med. Derfor står
+`"Title"` først i begge aliasopslag. Det er samme fælde som `RequestNo` i
+appen, og den er allerede fanget én gang i det her projekt.
+
+**`MaterialNo` og `OperationNo` ser ud som tal og er det ikke.** `0010`
+bliver til `10`, og `000000000010203945` til `10203945`, i det sekund Excel
+får lov at læse dem som tal. Et materialenummer uden foranstillede nuller
+findes ikke i SAP. Begge er derfor tilføjet til `ShouldForceTextField`, hvor
+`Id`, `SortFieldId` og `VendorID` i forvejen står.
+
+### Miljøstemplet gælder også dem
+
+De to nye faner er skrevet ind i `modEnvironment.DataSheetNames`, så de
+stemples ved import og kontrolleres før oprettelse — på lige fod med de fem
+andre. Ikke fordi GUI-delen bruger dem endnu, men fordi ventetiden ville
+være et hul: hent fra DEV, byg GUI'en, skift til PROD, og to faner bærer
+stadig DEV, uden at noget siger fra.
+
+### Én vej ind, ikke to nye kopier
+
+De to lister deler én `ImportTasklistChildList`. Trin 4 i planen — de 13
+næsten ens importprocedurer samlet til én — er **ikke** lavet, fordi den
+bortfalder helt, hvis hentningen skifter til Power Query. Men de to nye
+skulle ikke gøre bunken større imens.
+
+**GUI-delen er urørt.** Den er din, som aftalt. Det, der ligger klar, er
+fanerne, nøglerne og stemplingen.
+
+## Statuslinjen læses nu med sin type
+
+Det var den første af de to, der betyder noget.
+
+`sbar` har en `MessageType` ved siden af sin tekst: `S` succes, `W`
+advarsel, `E` fejl, `A` abend. Før blev kun teksten læst, og **første tal i
+den** blev skrevet i SAP-nummer-kolonnen. Fejlbeskeder indeholder ofte et tal
+— et feltnummer, en position, et ordrenummer der netop **ikke** blev
+oprettet.
+
+Nu tages et nummer kun fra en `S`-besked (`TryReadCreatedNumber`). Er svaret
+noget andet, skrives statusteksten selv i kolonnen: den er ikke cifre alene,
+så tilbageskrivningen afviser den, og man kan se på arket, hvad SAP sagde.
+
+**`W` tæller som gennemført.** En advarsel kan stå på noget, der blev
+oprettet, og at kassere det ville være den modsatte fejl af den, der lige er
+lukket.
+
+### Og én konsekvens jeg ikke kunne lade ligge
+
+`CreateTLH` læste den samme statuslinje efter gem, men skrev kun teksten i
+`Status_Message`. Gik gemningen galt, blev **gruppenummeret stående på
+arket** — og `CreateItems` slår netop det nummer op. Så ville itemet blive
+hængt på en arbejdsplan, der aldrig blev til noget.
+
+Nu ryddes `Status_Code`, `TL_Group_Number` og `TL_Counter`, når SAP svarer
+`E` eller `A`. Det er samme fejl som de to andre, bare et sted mere.
+
+## Én fejl stopper ikke længere hele kørslen
+
+`CreateTLH`, `CreateItems` og `CreatePlans` har nu hver en
+fejlhåndtering **inde i løkken**, efter samme mønster som
+`Update_Sharepoint_Lists` har brugt hele tiden: skriv fejlen i rækkens eget
+statusfelt, og `Resume` til næste række.
+
+To ting hører med, for at det er noget værd:
+
+**SAP skal bringes tilbage til et kendt billede.** Efter en fejl står
+sessionen et sted, ingen ved hvor — måske med en dialog åben, og så kan
+`okcd`-feltet ikke nås. `RecoverSapScreen` lukker modale vinduer bagfra
+(højst fem, så en dialog, der ikke vil lukke, ikke kører i ring) og går
+tilbage til transaktionen. Uden den ville række 13 fejle af en anden grund
+end sin egen.
+
+**Kvitteringen skal kunne sige nej.** `CreatePlans` sluttede med *"Alle
+planer er oprettet!"* — også når de ikke var det. Alle tre procedurer siger
+nu, hvor mange rækker der ikke kom igennem, og hvilken kolonne man skal se i.
+Kun når der faktisk var nogen.
+
+## Tilbageskrivningen: blokliste vendt til hvidliste
+
+`IsSyncableSapValue` afviste tre ting — `SKIPPED`, `ERROR` og *"ingen task
+list"* — og accepterede alt andet. Også en hel SAP-fejlsætning. En blokliste
+kan kun afvise det, man har set før.
+
+Den er delt i to og vendt om:
+
+| Funktion | Bruges på | Accepterer |
+|---|---|---|
+| `IsSyncableSapNumber` | Plans, Items | cifre, og intet andet |
+| `IsSyncableTaskListValue` | Task lists | `A-<gruppe>-<tæller>`, eller et bart gruppenummer |
+
+**Den anden er grunden til, at det ikke bare blev "cifre".** Arbejdsplanens
+nøgle er ikke et tal — `ComposeTaskListSapValue` sætter den sammen som
+`A-50012345-1`. En ren cifferkontrol ville have afvist hver eneste
+tasklist-række og lukket den halvdel af synkroniseringen helt, uden at det
+lignede en fejl. Det bare gruppenummer accepteres også, fordi ældre rækker i
+SharePoint bærer den form; at afvise dem ville være en ny fejl i stedet for
+den, der blev lukket.
+
+De to rettelser hænger sammen: den i `GUI_Script` forhindrer, at et forkert
+tal opstår, og den her forhindrer, at det slipper ud.
+
+## Oprydning
+
+De to Excel-låsefiler er slettet fra git, og `~$*` står nu i `.gitignore`.
+
+De fire `SHAREPOINT_MAINTENANCE_*_URL`-konstanter i `Constants.bas` er
+fjernet. De var ubrugte, efter `GetListUrl` overtog — men de pegede alle fire
+på BioSap, og en hardkodet PROD-URL, der ligger og venter på at blive
+genfundet, er præcis den fejl, miljøvælgeren skulle lukke.
+
+## Hvad jeg ikke gjorde
+
+**Hentningen selv.** Spørgsmål 2 står åbent. `GetSharePointAuthHeader` er
+uændret, med sin `CFG_SHAREPOINT_ALLOW_NO_TOKEN` og sin genforsøg-uden-header.
+De nye lister hentes ad samme vej som de fire gamle — og har derfor samme
+problem. Det er ikke glemt; det venter på dit valg.
+
+**De fem Power Query-queries** læser stadig den lokale fil på din OneDrive.
+Uændret.
+
+**De 13 importprocedurer** er ikke samlet. Se ovenfor.
+
+**`TLH` og `TL` peger stadig begge på `TaskListMain`.** Uændret, af samme
+grund som sidst.
+
+**De fire mindre GUI-ting** — `ScreenUpdating`, `ws.Activate`, celler læst én
+ad gangen, de 140 fulde `FindById`-stier — er ikke rørt. De ændrer ikke noget
+for brugeren, og de gør diff'en større, end den behøver være, mens de to
+rettelser, der betyder noget, skal efterprøves.
+
+## Kontrollen
+
+```
+44 moduler, 655 procedurer
+ingen problemer
+```
+
+`tools/check_vba.py` fanger det, der ellers først dukker op i Excels egen
+kompilering. Den kan ikke fange, om SAP svarer, som jeg antager.
+
+**Tre ting kan kun efterprøves i Excel, og de bør efterprøves, før der
+oprettes noget i produktion:**
+
+1. At `sbar.MessageType` faktisk er `S` på en vellykket oprettelse i jeres
+   release. Det er dokumenteret sådan, men det er dét, hele rettelsen hviler
+   på.
+2. At `RecoverSapScreen` kommer tilbage til transaktionen fra en fejlet
+   række. Prøv den med vilje: giv en række en ugyldig funktionsplads, og se,
+   om de efterfølgende rækker stadig oprettes.
+3. At de to nye faner får kolonnerne udfyldt, og at `MaterialNo` beholder
+   sine foranstillede nuller. Det er én hentning, ikke en ombygning.
