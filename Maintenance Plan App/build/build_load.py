@@ -109,6 +109,10 @@ OP_FIELDS = [
     ("Selected", "false"),
     ("ControlKey", "OP.Ctrl"),
     ("Cost", "OP.Price"),
+    # Satsen gemmes ikke - TaskListMain har kun beloebet. Den regnes tilbage
+    # af beloeb og timer, saa en genaabnet PM03-linje stadig kan regne sit
+    # beloeb om, naar timerne rettes.
+    ("UnitCost", 'If(Coalesce(OP.Work, 0) > 0, OP.Price / OP.Work, OP.Price)'),
     ("Currency", "OP.Currency"),
     ("CostElement", "OP.CostElem"),
     ("MaterialGroup", "OP.MaterialGroup"),

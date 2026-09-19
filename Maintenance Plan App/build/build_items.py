@@ -10,6 +10,7 @@ from build_helpers import (text_ctrl, group, button, button_row, text_input, num
                            TWO_COL_MIN, HINTS_ON)
 from build_plan_header import section_header, help_panel
 import build_help as bh
+from build_helpers import HINTS_ON as bh_hints
 from build_flsearch import search_action, MIN_SEARCH_LEN
 
 DM_ITEM = "If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)"
@@ -535,26 +536,42 @@ def build_item_editor():
                        container_w=LEFT_W, cols=2, hint_text=bh.hint("Initials")),
         ], container_w=LEFT_W),
     ]
+    # justify=Start: naar raekken er hoejere end hoejrekolonnens indhold,
+    # skal de to blokke blive staaende OEVERST i stedet for at blive
+    # fordelt ud over hele hoejden.
+    #
+    # Hoejrekolonnen bygges FOERST, fordi lang tekst regner sin hoejde ud af
+    # den.
+    rightCol = group("conVhpItemRightCol", [flBlock, objBlock], direction="Vertical",
+                     gap=16, width=RIGHT, justify="Start")
+
     # Lang tekst laa foer UNDER hele gitteret i fuld bredde. Den hoerer til
     # itemets egne oplysninger, saa den staar nu nederst i venstre kolonne -
-    # over begge kolonner dernede, og dermed til venstre for objektlisten,
-    # der bliver staaende i hoejre kolonne.
+    # over begge kolonner dernede, og dermed til venstre for objektlisten.
     #
-    # cols=1: cellen deler ikke raekken med nogen, den fylder kolonnen.
+    # Feltet fylder RESTEN af kolonnen, saa venstre side slutter i samme
+    # hoejde som objektlisten - lige over Save. Hoejden regnes i Python af
+    # hoejrekolonnens egen hoejde minus de tre raekker ovenover, deres gaps
+    # og cellens label. Den maa IKKE laese en anden kontrols .Height: i en
+    # AutoLayout-container saetter forfaelderen boernenes stoerrelse, saa en
+    # saadan formel ville laese sin egen udregning tilbage.
+    #
+    # Hint-linjen taeller kun med, naar hjaelpeteksterne er slaaet til -
+    # samme betingelse, som stack_height selv bruger.
+    LT_LABEL = 20 + 6                      # label_row + cellens gap
+    LT_HINT = f"If({bh_hints}, 6 + 32, 0)"
+    LT_ROWS = " + ".join(f"({r.h})" for r in leftRows) + f" + {16 * len(leftRows)}"
+    LT_H = (f"Max(120, ({rightCol.h}) - ({LT_ROWS}) - {LT_LABEL} - {LT_HINT})")
+
     txtLongText = text_input("txtVhpItemLongText",
-                             "LookUp(colVhpItems, ItemId = varVhpActiveItemId).LongText", height=80,
-                             display_mode=DM_ITEM, ttype="Multiline")
+                             "LookUp(colVhpItems, ItemId = varVhpActiveItemId).LongText",
+                             height=LT_H, display_mode=DM_ITEM, ttype="Multiline")
     longTextCell = field_cell("conVhpCellItemLongText", "Item Long Text", txtLongText,
                               container_w=LEFT_W, cols=1, fill_portions_formula="0",
                               hint_text=bh.hint("ItemLongText"))
 
     leftCol = group("conVhpItemLeftCol", leftRows + [longTextCell], direction="Vertical",
                     gap=16, width=LEFT)
-    # justify=Start: naar raekken er hoejere end hoejrekolonnens indhold
-    # (venstre side har tre raekker), skal de to blokke blive staaende
-    # OEVERST i stedet for at blive fordelt ud over hele hoejden.
-    rightCol = group("conVhpItemRightCol", [flBlock, objBlock], direction="Vertical",
-                     gap=16, width=RIGHT, justify="Start")
 
     mainRow = row_n("conVhpItemMainRow", [leftCol, rightCol], container_w=CW)
 
@@ -564,12 +581,21 @@ def build_item_editor():
         "txtVhpItemMeta",
         "If(IsBlank(varVhpActiveItemId), \"No item selected.\", \"Item \" & Text(varVhpActiveItemId) & \" - status: \" & Upper(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status))",
         size=12, color=C_MUTED, height=18, wrap="true")
+    # Hvert udfald siger det HOEJT. Knappen skrev foer kun i
+    # varVhpRuntimeInfo, som staar i hero-kortet oeverst paa skaermen - er
+    # man scrollet ned til Item Editoren, kan man ikke se den, og saa ser et
+    # klik ud som om der ikke skete noget. Notify staar oven paa skaermen,
+    # uanset hvor man er.
+    #
+    # Den tredje besked er en faelde, der ellers ikke kunne ses: rammer
+    # UpdateIf ingen raekke, goer den ingenting og siger heller ingenting.
     btnSaveItem = button(
         "btnVhpSaveItem", "\"Save\"",
         (
             "If(\n"
             "    IsBlank(varVhpActiveItemId),\n"
-            "    Set(varVhpRuntimeInfo, \"Select or add an item first.\"),\n"
+            "    Set(varVhpRuntimeInfo, \"Select or add an item first.\");\n"
+            "    Notify(varVhpRuntimeInfo, NotificationType.Warning),\n"
             "\n"
             "    Set(varVhpItemValidated, true);\n"
             "    If(\n"
@@ -578,7 +604,8 @@ def build_item_editor():
             "        IsBlank(drpVhpItemActivityType.Selected.Value) ||\n"
             "        IsBlank(drpVhpItemFL.Selected.Code),\n"
             "        UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { Status: \"invalid\" });\n"
-            "        Set(varVhpRuntimeInfo, \"Item contains issues. Fix required fields (marked with *).\"),\n"
+            "        Set(varVhpRuntimeInfo, \"Item contains issues. Fix required fields (marked with *).\");\n"
+            "        Notify(varVhpRuntimeInfo, NotificationType.Warning),\n"
             "\n"
             # colVhpItemObjects er allerede sandheden - Tilfoej/Fjern skriver
             # direkte i den. Der er ikke laengere en kontrol med en
@@ -604,7 +631,22 @@ def build_item_editor():
             "                }\n"
             "            )\n"
             "        );\n"
-            "        Set(varVhpRuntimeInfo, \"Item saved: \" & Trim(txtVhpItemShortText.Text) & \".\")\n"
+            "        Set(\n"
+            "            varVhpRuntimeInfo,\n"
+            "            If(\n"
+            "                CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId)) = 0,\n"
+            "                \"Item \" & Text(varVhpActiveItemId) & \" is not in the list - nothing was saved.\",\n"
+            "                \"Item saved: \" & Trim(txtVhpItemShortText.Text) & \".\"\n"
+            "            )\n"
+            "        );\n"
+            "        Notify(\n"
+            "            varVhpRuntimeInfo,\n"
+            "            If(\n"
+            "                CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId)) = 0,\n"
+            "                NotificationType.Error,\n"
+            "                NotificationType.Success\n"
+            "            )\n"
+            "        )\n"
             "    )\n"
             ")"
         ), primary=True, width=110,

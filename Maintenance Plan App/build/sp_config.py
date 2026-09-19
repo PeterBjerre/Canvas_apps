@@ -187,7 +187,13 @@ def named_formulas():
          ("ControlKey", "O.ControlKey"),
          # Baeres med, saa en linje hentet fra standardplanen kommer ind
          # UDFYLDT. Brugeren skal kun redigere dem ved PM02.
-         ("Cost", "O.Price"),
+         #
+         # Price ER en timesats: hver linje i standardplanen staar med
+         # Work = 1, og Price er prisen for den ene time (SSVXSTIL 494,
+         # SSVXISOL 420). Beloebet er derfor timer gange sats - det holder
+         # ogsaa, naar Work er 1, hvor de to er ens.
+         ("UnitCost", "O.Price"),
+         ("Cost", "O.Work * O.Price"),
          ("Currency", "O.Currency"),
          ("CostElement", "O.CostElement"),
          ("MaterialGroup", "O.MaterialGroup"),
@@ -241,8 +247,11 @@ WORKING_COLLECTIONS = [
       "PackagesKey": '";"', "Selected": "false",
       # Styres af reglerne i operationstabellen: kontrolnoeglen kan kun
       # aendres paa *SUP og *TECH, og de tre indkoebsfelter kun ved PM02.
-      "ControlKey": '""', "Cost": 0, "Currency": '""', "CostElement": 0,
-      "MaterialGroup": '""'}),
+      # Cost er BELOEBET paa linjen. UnitCost er satsen bag det - kr/time
+      # fra standardarbejdsplanen - saa beloebet kan regnes om, naar
+      # timerne rettes. Se cost_expr() i build_tasklist.py.
+      "ControlKey": '""', "Cost": 0, "UnitCost": 0, "Currency": '""',
+      "CostElement": 0, "MaterialGroup": '""'}),
     ("colVhpFlSearch",
      {"Code": '""', "Description": '""', "Display": '""',
       "Maintainable": "false", "Level": '""'}),

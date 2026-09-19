@@ -5,7 +5,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQU
                         C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, C_VALID_FG, C_INVALID_FG,
                         C_DIVIDER, C_TRANSPARENT, C_INPUT_BG, FONT, SHELL_W)
 from build_helpers import (text_ctrl, group, button, button_row, text_input, number_input, dropdown,
-                           label_row, field_cell, two_col_row, badge, card)
+                           label_row, field_cell, two_col_row, badge, card, pin_widths)
 from build_plan_header import section_header, help_panel
 import build_help as bh
 from build_strategy import build_strategy_body, IS_STRATEGY
@@ -54,11 +54,32 @@ OPS_COLS = [
 # Begge udtryk laeses pr. raekke, saa en aendring slaar igennem med det
 # samme uden at nogen skal trykke noget.
 CTRL_CHOICES = ("ZB01", "PM01")
-WC_INTERNAL = ('(StartsWith(Upper(Coalesce(ThisItem.MainWorkCenter, "")), "*SUP") || '
-               'StartsWith(Upper(Coalesce(ThisItem.MainWorkCenter, "")), "*TECH"))')
+# Reglen ledte foer efter "*SUP" og "*TECH" med stjerne. De navne findes
+# ikke: arbejdscentrene hedder SSVSUP, AVVSUP, HEVSUP - vaerket foerst.
+# Dropdownen kom derfor ALDRIG frem, og kontrolnoeglen var laast overalt.
+#
+# Udtraekket viser hvorfor netop SUP: det er det eneste arbejdscenter, hvor
+# standardplanerne bruger baade ZB01 og PM01. De eksterne X-centre har PM03
+# fast, LEV har PM02, og resten PM01.
+WC_INTERNAL = 'EndsWith(Upper(Coalesce(ThisItem.MainWorkCenter, "")), "SUP")'
 DM_CTRL = f'If({WC_INTERNAL}, DisplayMode.Edit, DisplayMode.View)'
 IS_PM02 = 'Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02"'
 DM_PURCHASE = f'If({IS_PM02}, DisplayMode.Edit, DisplayMode.View)'
+
+# PM03 er eksternt arbejde, og prisen i standardarbejdsplanen er en TIMESATS
+# (Work staar som 1 paa hver linje, og Price er satsen: SSVXSTIL 494,
+# SSVXISOL 420). Beloebet er derfor timer gange sats, og det skal foelge med,
+# naar timerne rettes. Ved PM02 taster man selv beloebet; ved PM01 og ZB01 er
+# der ingen.
+IS_PM03 = 'Upper(Coalesce(ThisItem.ControlKey, "")) = "PM03"'
+
+
+def cost_expr(work):
+    return (f'If(\n'
+            f'            {IS_PM03},\n'
+            f'            {work} * Coalesce(ThisItem.UnitCost, 0),\n'
+            f'            ThisItem.Cost\n'
+            f'        )')
 OPS_GAP = 10
 OPS_TABLE_W = sum(w for _, w in OPS_COLS) + OPS_GAP * (len(OPS_COLS) - 1)
 
@@ -286,7 +307,7 @@ def _materials_pane():
     drpOp.props["OnChange"] = ("Patch(colVhpMaterials, ThisItem, "
                                "{ OperationNo: Self.Selected.OperationNo })")
 
-    row = group("conVhpMatRow", [chkSel, txtNo, txtDesc, numQty, txtUnit, drpOp],
+    row = group("conVhpMatRow", pin_widths([chkSel, txtNo, txtDesc, numQty, txtUnit, drpOp]),
                 direction="Horizontal", gap=MAT_GAP, height="Parent.TemplateHeight - 2",
                 align_items="Center", width="Parent.TemplateWidth")
 
@@ -464,7 +485,7 @@ def _attachments_pane():
         "WrapCount": "1",
     }, children=[_att_ops_cell()], h=26)
 
-    row = group("conVhpAttRow", [chkSel, txtName, txtScope, opsGal],
+    row = group("conVhpAttRow", pin_widths([chkSel, txtName, txtScope, opsGal]),
                 direction="Horizontal", gap=10, height="Parent.TemplateHeight - 2",
                 align_items="Center", width="Parent.TemplateWidth")
 
@@ -654,7 +675,8 @@ def build_tasklist_section():
         "    colVhpOperations, ThisItem,\n"
         "    {\n"
         "        WorkHours: Self.Value,\n"
-        f"        DurationHours: {cfg.duration_expr('Self.Value', 'ThisItem.Persons')}\n"
+        f"        DurationHours: {cfg.duration_expr('Self.Value', 'ThisItem.Persons')},\n"
+        f"        Cost: {cost_expr('Self.Value')}\n"
         "    }\n"
         ")")
     numOpPersons = number_input("numVhpOpPersons", "ThisItem.Persons", width=w["NO."], height=32)
@@ -669,8 +691,13 @@ def build_tasklist_section():
     # Varigheden vises, men tastes ikke - den ER Work / No.
     numOpDur = number_input("numVhpOpDur", "ThisItem.DurationHours", width=w["DUR. (H)"], height=32,
                             display_mode="DisplayMode.View")
-    txtOpMwc = text_input("txtVhpOpMwc", "ThisItem.MainWorkCenter", width=w["MAIN WORK CENTER"], height=32,
-                          onchange="Patch(colVhpOperations, ThisItem, { MainWorkCenter: Self.Text })")
+    # Arbejdscenteret kommer fra standardarbejdsplanen og bestemmer baade
+    # kontrolnoeglen og indkoebsfelterne. Kan man rette det i hoejre hus,
+    # skifter de andre felters regler under haanden paa en linje, SAP i
+    # forvejen har bestemt. Det laeses nu - og ser graat ud som resten af
+    # det, man ikke kan redigere.
+    txtOpMwc = text_input("txtVhpOpMwc", "ThisItem.MainWorkCenter", width=w["MAIN WORK CENTER"],
+                          height=32, display_mode="DisplayMode.View")
     # Kontrolnoeglen: kun to valg at SKIFTE imellem, men listen skal
     # ogsaa kunne VISE den vaerdi, linjen allerede har - fx PM02 eller PM03
     # fra standardplanen. Ellers stod cellen tom paa alle de linjer, man
@@ -747,9 +774,10 @@ def build_tasklist_section():
             f"{C_INVALID_FG}, {C_MUTED})"
         ))
 
-    opRow = group("conVhpOpRow", [chkSel, txtOpNo, txtOpShort, numOpWork, numOpPersons, numOpDur, txtOpMwc,
-                                  drpOpCtrl, txtOpVendor, numOpCost, txtOpMatGrp,
-                                  btnOpLongText, txtOpPackages], direction="Horizontal", gap=OPS_GAP,
+    opRow = group("conVhpOpRow",
+                  pin_widths([chkSel, txtOpNo, txtOpShort, numOpWork, numOpPersons, numOpDur, txtOpMwc,
+                              drpOpCtrl, txtOpVendor, numOpCost, txtOpMatGrp,
+                              btnOpLongText, txtOpPackages]), direction="Horizontal", gap=OPS_GAP,
                   height="Parent.TemplateHeight - 2", align_items="Center", width="Parent.TemplateWidth")
 
     OPS_ROW_H = 38 + 2
