@@ -53,6 +53,7 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 | Sti | Indhold |
 |---|---|
 | `tools/canvas_mcp.py` | Byg, compile og synk til Studio via canvas-authoring MCP-serveren — uden VS Code |
+| `tools/export_solution.ps1` | Hent solution BIO SAP ned som læsbare filer — flows, miljøvariabler, connection references |
 | `powerfx/01-app-formulas.fx` | Named formulas, opstart, navigation |
 | `powerfx/02-pakkematrix.fx` | Pakkematricen – nested gallery, toggle, genveje |
 | `powerfx/03-validering.fx` | Regelsæt S1–S9 som én meddelelsestabel |
