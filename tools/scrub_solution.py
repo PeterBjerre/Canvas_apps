@@ -39,20 +39,26 @@ import sys
 TEXT_EXT = {".json", ".xml", ".yml", ".yaml", ".txt", ".config", ".resx",
             ".csv", ".md", ".cdsproj", ".props", ".targets"}
 
-# Mapper hvis INDHOLD er vaerdier og ikke definitioner.
+# Miljoevariablernes VAERDIER. pac skriver dem som en fil inde i hver
+# definitionsmappe - ikke som en mappe for sig, som foerste udgave af det
+# her script gik ud fra. Begge former haandteres nu.
 VALUE_DIRS = {"environmentvariablevalues", "environmentvariablevalue"}
+VALUE_FILES = {"environmentvariablevalues.json", "environmentvariablevalue.json"}
 
-# Noeglenavne, hvis vaerdi aldrig hoerer hjemme i et repo. Matcher baade
-# JSON ("key": "vaerdi") og XML (<key>vaerdi</key>).
-SECRET_KEYS = [
-    "clientsecret", "client_secret", "secret", "secretvalue",
-    "password", "pwd", "apikey", "api_key", "x-functions-key",
-    "functionkey", "accountkey", "sharedaccesskey", "primarykey",
-    "secondarykey", "connectionstring", "authorization", "access_token",
-    "refresh_token", "id_token", "privatekey", "certificatepassword",
-]
+# Ord i et FELTNAVN, der goer vaerdien hemmelig. Der matches paa
+# DELSTRENG, ikke paa hele navnet: den foerste udgave ledte efter feltet
+# "apikey" og gik derfor lige forbi "x-apikey", som er praecis det navn,
+# de to SAP-flows bruger. Et feltnavn kan hedde hvad som helst rundt om
+# ordet - ocp-apim-subscription-key, X-API-Key, clientSecret.
+SECRET_WORDS = (
+    "secret", "password", "pwd", "apikey", "api-key", "api_key",
+    "accountkey", "sharedaccesskey", "subscriptionkey", "subscription-key",
+    "functionskey", "functions-key", "privatekey", "access_token",
+    "refresh_token", "id_token", "sastoken", "connectionstring",
+    "authorization", "credential",
+)
 
-# Moenstre der er hemmelige uanset hvad de hedder.
+# Moenstre der er hemmelige uanset hvad feltet hedder.
 INLINE_PATTERNS = [
     (re.compile(r"(?i)\bBearer\s+[A-Za-z0-9\-._~+/]{20,}=*"), "Bearer-token"),
     (re.compile(r"(?i)\bsig=[A-Za-z0-9%\-._~+/]{20,}"), "SAS-signatur"),
@@ -60,37 +66,58 @@ INLINE_PATTERNS = [
     (re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}"), "JWT"),
 ]
 
+# Et felt og dets vaerdi - vilkaarligt navn. Navnet vurderes bagefter, saa
+# et nyt feltnavn ikke kraever et nyt moenster.
+JSON_PAIR = re.compile(r'"([A-Za-z0-9_\-.:]{1,80})"\s*:\s*"((?:[^"\\]|\\.){0,4096})"')
+XML_PAIR = re.compile(r"<([A-Za-z0-9_\-.:]{1,80})>([^<>]{1,4096})</\1>")
+
 REDACTED = "***REDACTED***"
 
 
-def _key_patterns():
-    """Eet moenster pr. noeglenavn, for JSON og for XML."""
-    out = []
-    for k in SECRET_KEYS:
-        esc = re.escape(k)
-        out.append((re.compile(r'(?i)("' + esc + r'"\s*:\s*")([^"]{1,4096})(")'),
-                    k, lambda m: m.group(1) + REDACTED + m.group(3)))
-        out.append((re.compile(r'(?i)(<' + esc + r'>)([^<]{1,4096})(</' + esc + r'>)'),
-                    k, lambda m: m.group(1) + REDACTED + m.group(3)))
-    return out
+def is_secret_key(name):
+    low = name.lower()
+    return any(w in low for w in SECRET_WORDS)
 
 
-KEY_PATTERNS = _key_patterns()
+def looks_like_credential(value):
+    """Er vaerdien noget, der KAN vaere en hemmelighed?
+
+    Det vigtigste nej staar foerst: "@{parameters('...')}" er en henvisning
+    til en miljoevariabel - altsaa netop den rigtige maade at holde
+    hemmeligheden UDE af flowet. Overskrev man den, ville filen lyve om,
+    hvordan flowet virker, og den rigtige hemmelighed var der alligevel
+    ikke.
+
+    Derefter det trivielle: tal, ja/nej og korte vaerdier. <secretstore>0<>
+    hedder noget hemmeligt og er det ikke."""
+    v = value.strip()
+    if not v or "@{" in v or v.startswith("@"):
+        return False
+    if len(v) < 8:
+        return False
+    if v.isdigit() or v.lower() in ("true", "false", "null", "none"):
+        return False
+    return True
 
 
 def scrub_text(text):
     """Returnerer (ny tekst, [hvad der blev roert])."""
     hits = []
-    for rx, name, repl in KEY_PATTERNS:
-        def _sub(m):
-            if m.group(2).strip() in ("", REDACTED):
-                return m.group(0)
-            hits.append(name)
-            return repl(m)
-        text = rx.sub(_sub, text)
-    for rx, name in INLINE_PATTERNS:
+
+    def _pair(m, joiner):
+        name, value = m.group(1), m.group(2)
+        if not is_secret_key(name) or not looks_like_credential(value):
+            return m.group(0)
+        if value == REDACTED:
+            return m.group(0)
+        hits.append(name)
+        return joiner(name)
+
+    text = JSON_PAIR.sub(lambda m: _pair(m, lambda n: f'"{n}": "{REDACTED}"'), text)
+    text = XML_PAIR.sub(lambda m: _pair(m, lambda n: f"<{n}>{REDACTED}</{n}>"), text)
+    for rx, label in INLINE_PATTERNS:
         text, n = rx.subn(REDACTED, text)
-        hits.extend([name] * n)
+        hits.extend([label] * n)
     return text, hits
 
 
@@ -121,9 +148,9 @@ def main(argv=None):
 
     removed, edited, scanned = [], [], 0
 
-    # 1) vaerdifilerne
+    # 1) vaerdifilerne - baade som mappe og som enkeltfil
     if not args.keep_values:
-        for d, subdirs, _ in os.walk(root):
+        for d, subdirs, files in os.walk(root):
             for sub in list(subdirs):
                 if sub.lower() in VALUE_DIRS:
                     path = os.path.join(d, sub)
@@ -131,6 +158,12 @@ def main(argv=None):
                     if not args.report_only:
                         shutil.rmtree(path, ignore_errors=True)
                     subdirs.remove(sub)
+            for f in files:
+                if f.lower() in VALUE_FILES:
+                    path = os.path.join(d, f)
+                    removed.append(os.path.relpath(path, root))
+                    if not args.report_only:
+                        os.remove(path)
 
     # 2) hemmeligheder i teksten
     for path in walk(root):
