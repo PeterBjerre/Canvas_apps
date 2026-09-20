@@ -44,6 +44,32 @@ gledet fra hinanden, og skriver hvilken app der har den nyest rettede udgave.
 cp "Maintenance Plan App/build/build_helpers.py" "Masterdata Hub/build/"
 ```
 
+## `--app` bygger kun den ene
+
+```
+python3 tools/build_all.py                 alle fire
+python3 tools/build_all.py --app equipment kun den
+```
+
+Nøglerne er `vhplan`, `hub`, `equipment`, `material`, eller mappenavnet.
+`deploy` bruger den selv, så et Equipment-deploy kun bygger Equipment.
+
+Det handler ikke om tid — hele byggeriet tager fire sekunder. Det handler
+om, at de tre andre apps' output ikke skal rulle det væk, man faktisk
+skulle se: en advarsel i VH-plan midt i et Equipment-deploy ligner en, der
+hører til.
+
+**To ting kører altid, også målrettet:** at de fælles filer er ordret ens,
+og at app-id'erne ikke er gledet fra hinanden. De tager millisekunder, og
+de handler netop om det, en målrettet bygning ellers ville springe over.
+Datakilde-tjekket læser også alle skærme — de øvrige ligger på disken i
+forvejen, og et kolonnenavn, der ændrer sig ét sted, kan brække en anden
+app.
+
+`check_ps1.py` springes over ved en målrettet bygning: PowerShell-scripterne
+har intet med den app at gøre, og et deploy skal ikke stoppe på en kommentar
+i et provisioneringsscript.
+
 ## Arbejdsgangen
 
 Alt på én gang — bruger denne, medmindre du har en grund til andet:

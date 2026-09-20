@@ -12,6 +12,7 @@ kan naa at glide fra hinanden - derfor tjekker dette script, at de er
 ordret ens, FOER der bygges. Er de ikke, staar der hvilken fil det er, og
 hvilken app der har den nyeste udgave.
 """
+import argparse
 import os, shutil, subprocess, sys, filecmp
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -135,15 +136,55 @@ def drop_pycache():
     return n
 
 
-def main():
+def pick_apps(which):
+    """Hvilke apps der skal bygges.
+
+    Uden argument: alle. Med: den ene, valgt paa mappenavn eller paa
+    noeglen i tools/canvas_apps.json (equipment, material, vhplan, hub).
+
+    Hvorfor overhovedet kunne vaelge? Ikke for tidens skyld - hele
+    byggeriet tager fire sekunder. Men naar deploy bygger alle fire, ruller
+    de tre andre apps' output det vaek, man faktisk skulle se, og en
+    advarsel i VH-plan dukker op midt i et Equipment-deploy som om den
+    hoerte til."""
+    if not which:
+        return APPS
+    alias = {"vhplan": "Maintenance Plan App", "hub": "Masterdata Hub",
+             "equipment": "Equipment App", "material": "Material App"}
+    want = alias.get(which.lower(), which)
+    hit = [(a, s) for a, s in APPS if a.lower() == want.lower()]
+    if not hit:
+        raise SystemExit(
+            "Kender ikke app '%s'. Vaelg en af:\n  %s\neller en noegle:\n  %s"
+            % (which, "\n  ".join(a for a, _ in APPS),
+               ", ".join(sorted(alias))))
+    return hit
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(
+        description="Bygger canvas apps og efterregner layoutet.")
+    ap.add_argument("--app", help="byg kun denne app (mappenavn eller noegle)")
+    args = ap.parse_args(argv)
+    apps = pick_apps(args.app)
+
+    drop_pycache()
+
     # PowerShell-scripterne hoerer ikke til canvas-byggeriet, men det her er
     # den ene kommando alle koerer - saa tjekket ligger her, hvor det ikke
     # kan glemmes. Se tools/check_ps1.py for hvorfor det er noedvendigt.
-    drop_pycache()
-    r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "check_ps1.py")])
-    if r.returncode:
-        return r.returncode
+    #
+    # Ved en maalrettet bygning springes det over: det har intet med den
+    # app at goere, og et deploy skal ikke stoppe paa en kommentar i et
+    # PowerShell-script.
+    if not args.app:
+        r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "check_ps1.py")])
+        if r.returncode:
+            return r.returncode
 
+    # De to tjek nedenfor koerer ALTID, ogsaa maalrettet. De tager
+    # millisekunder, og de handler netop om det, en maalrettet bygning
+    # ellers ville springe over: at apperne ikke glider fra hinanden.
     bad = check_shared()
     if bad:
         print("De faelles filer er gledet fra hinanden:\n")
@@ -162,7 +203,7 @@ def main():
         return 1
 
     rc = 0
-    for app, scripts in APPS:
+    for app, scripts in apps:
         d = os.path.join(ROOT, app, "build")
         print(f"\n=== {app} ===")
         for s in scripts + ["check_layout.py"]:
@@ -172,6 +213,11 @@ def main():
 
     # Til sidst, fordi det laeser de .pa.yaml, byggeriet lige har skrevet:
     # findes hver SharePoint-kolonne, formlerne bruger, i virkeligheden?
+    #
+    # Den laeser ALLE skaerme, ogsaa ved en maalrettet bygning. De oevrige
+    # ligger paa disken i forvejen, og et kolonnenavn, der aendrer sig eet
+    # sted, kan braekke en anden app - det er billigere at opdage her end
+    # ved dens naeste deploy.
     print()
     r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "check_datasources.py")])
     if r.returncode:

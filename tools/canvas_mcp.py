@@ -445,10 +445,25 @@ def report_drift(staging, app, files):
     out("   builderne bevidst saetter, er netop dem normaliseringen fjerner.")
 
 
-def run_build():
-    out("=== byg (tools/build_all.py) ===")
-    r = subprocess.run([sys.executable,
-                        os.path.join(ROOT, "tools", "build_all.py")], cwd=ROOT)
+def run_build(app_key=None):
+    """Byg FOER serveren startes - fejler layout-tjekket, er der ingen
+    grund til at logge ind.
+
+    Kun den app, der skal deployes. Det er ikke tiden, det handler om -
+    hele byggeriet tager fire sekunder - men om at de tre andre apps'
+    output ikke skal rulle det vaek, man faktisk skulle se. En advarsel i
+    VH-plan midt i et Equipment-deploy ligner en, der hoerer til.
+
+    build_all.py koerer stadig sine to sammenhaengstjek (faelles filer og
+    app-id'er) og datakilde-tjekket paa ALLE apps - de tager
+    millisekunder, og de handler netop om det, en maalrettet bygning
+    ellers ville springe over."""
+    cmd = [sys.executable, os.path.join(ROOT, "tools", "build_all.py")]
+    if app_key:
+        cmd += ["--app", app_key]
+    out("=== byg (%s) ===" % " ".join(
+        ["tools/build_all.py"] + (["--app", app_key] if app_key else [])))
+    r = subprocess.run(cmd, cwd=ROOT)
     if r.returncode:
         raise SystemExit("Byggeriet eller layout-tjekket fejlede - stopper her. "
                          "Synk aldrig en app, der ikke er groen.")
@@ -637,10 +652,8 @@ def main(argv=None):
             args.command == "raw" and args.app):
         pick_app(cfg, args.app)
 
-    # Byg foer serveren startes: fejler layout-tjekket, er der ingen grund
-    # til at logge ind.
     if args.command == "deploy" and not args.no_build:
-        run_build()
+        run_build(args.app)
 
     client = McpClient(resolve_command(cfg, args.mcp_command),
                        verbose=args.verbose, timeout=args.timeout)
