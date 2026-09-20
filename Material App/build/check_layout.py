@@ -503,6 +503,43 @@ def main():
                         f"- eet kald pr. raekke. Saml skrivningen udenfor")
                     break
 
+    # --- 16. Dropdown-Default der ikke er en RECORD ------------------------
+    # ModernDropdown.Default vil have en RECORD fra kontrollens egen
+    # Items-tabel - ikke vaerdien inde i den. Staar der en variabel eller
+    # en streng, svarer compile:
+    #     [Control 'drpX', Property 'Default'] Expected a valid input
+    #     matching Items
+    # Det koster en hel runde gennem Studio at faa at vide.
+    #
+    # En record kommer fra LookUp(), First(), en record-literal, ThisItem
+    # eller Blank(). Er ingen af dem i udtrykket, er det en skalar.
+    RECORDISH = ("LookUp(", "First(", "Last(", "{", "ThisItem", "Blank()",
+                 "Self.Selected", ".Selected")
+    for p_, name, body in all_nodes:
+        if (body.get("Control") or "").strip().split("@")[0] != "ModernDropdown":
+            continue
+        props = body.get("Properties") or {}
+        default = (props.get("Default") or "").strip().lstrip("=").strip()
+        if not default:
+            continue
+        if not any(tok in default for tok in RECORDISH):
+            problems.append(f"[16] {name}.Default: '{default}' er ikke en "
+                            f"record fra Items - compile vil fejle")
+            continue
+
+    # Her stod en regel 17: "Default laeser en variabel, men der er ingen
+    # OnChange". Den er FJERNET igen. Den gav elleve fund i VH-plan-appen,
+    # og alle elleve var falske: dropdownene der laeses som
+    # drpVhpPlant.Selected.Value, hvor variablen kun saetter startvaerdien.
+    # Moenstret er fuldt gyldigt.
+    #
+    # Den fejl, den skulle have fanget - at brugerens valg aldrig naaede
+    # frem til den variabel, gem-knappen laeser - kraever at vide HVEM der
+    # forbruger vaerdien. Det kan en regel paa een kontrol ikke se.
+    #
+    # Elleve falske fund ville laere nogen at springe advarsler over, og
+    # saa gaar regel 15's rigtige fund samme vej.
+
     print(f"Kontroller i alt: {len(all_nodes)}")
     if warnings:
         print(f"\n{len(warnings)} advarsel(er) - byggeriet stopper ikke:\n")

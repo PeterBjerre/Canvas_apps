@@ -183,6 +183,31 @@ Et barn med `Visible = false` regnes ikke med i højden — præcis som
 AutoLayout gør det. Kun det *litterale* `false`; en `Visible`-formel kan jo
 være sand, og så skal pladsen være der.
 
+## Dropdown-`Default` er en RECORD, ikke en værdi
+
+`ModernDropdown.Default` vil have en **record fra kontrollens egen
+`Items`-tabel** — ikke værdien inde i den:
+
+```
+Default: =LookUp(colDomPlants, Value = varDomFPlant)     rigtigt
+Default: =varDomFPlant                                    compile-fejl
+```
+
+Fejlen lyder `[Control 'drpX', Property 'Default'] Expected a valid input
+matching Items`, og den koster en hel runde gennem Studio. **Regel 16** i
+`check_layout.py` fanger den lokalt: en `Default`, der ikke indeholder
+`LookUp(`, `First(`, `{`, `ThisItem` eller `Blank()`, er en skalar.
+
+Og husk `OnChange`. En dropdown uden den lader brugeren vælge frit, mens
+variablen står stille — formlen er gyldig, så hverken compile eller App
+checker siger noget. Læses variablen af gem-knappen, kan der aldrig gemmes.
+
+> Der lå kort en regel 17, der skulle fange netop det. Den er fjernet
+> igen: elleve fund i VH-plan, alle falske, fordi de dropdowns læses som
+> `drpVhpPlant.Selected.Value`, hvor variablen kun sætter startværdien.
+> Elleve falske fund ville lære nogen at springe advarsler over — og så
+> går regel 15's rigtige fund samme vej.
+
 ## Regel 15 er en advarsel, ikke en fejl
 
 `check_layout.py` melder `Collect`, `Patch`, `Remove` og deres slægtninge

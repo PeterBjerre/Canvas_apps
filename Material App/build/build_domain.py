@@ -143,8 +143,10 @@ def _input_for(col, kind, choices):
                           ttype="Multiline",
                           onchange=f"Set({v}, Self.Text)")
     if kind == "choice":
+        # Default er en RECORD fra Items - ikke vaerdien inde i den.
         items = "[" + ", ".join(f'"{x}"' for x in choices) + "]"
-        c = dropdown(name, items, v, display_mode=DM_ROW)
+        c = dropdown(name, items, f"LookUp({items}, Value = {v})",
+                     display_mode=DM_ROW)
         c.props["OnChange"] = f"Set({v}, Self.Selected.Value)"
         return c
     c = text_input(name, v, max_length=255, display_mode=DM_ROW,
@@ -153,6 +155,26 @@ def _input_for(col, kind, choices):
 
 
 COLS_PER_ROW = 3
+
+
+def _plant_dropdown():
+    """Vaerkfeltet.
+
+    TO fejl sad her, og de laa oven i hinanden:
+
+    1. Default var "varDomFPlant" - en STRENG. En ModernDropdown vil have
+       en RECORD fra sin egen Items-tabel, ikke vaerdien inde i den.
+       Compile svarede: [Control 'drpDomPlant', Property 'Default']
+       Expected a valid input matching Items.
+
+    2. Der var slet ingen OnChange. Variablen blev altsaa aldrig sat, og
+       da Gem kraever den udfyldt, kunne der ALDRIG gemmes - en fejl,
+       compile ikke kan se, fordi formlen i sig selv er gyldig."""
+    c = dropdown("drpDomPlant", "colDomPlants",
+                 "LookUp(colDomPlants, Value = varDomFPlant)",
+                 required_formula="true", display_mode=DM_ROW)
+    c.props["OnChange"] = "Set(varDomFPlant, Self.Selected.Value)"
+    return c
 
 
 def build_form():
@@ -178,8 +200,7 @@ def build_form():
                               onchange="Set(varDomFText, Self.Text)"),
                    required=True, container_w=EDITOR_W, cols=2),
         field_cell("conDomPlant", cfg.PLANT_LABEL,
-                   dropdown("drpDomPlant", "colDomPlants", "varDomFPlant",
-                            required_formula="true", display_mode=DM_ROW),
+                   _plant_dropdown(),
                    required=True, container_w=EDITOR_W, cols=2),
     ], container_w=EDITOR_W)
 
@@ -501,8 +522,10 @@ def build_rows():
     search = text_input("txtDomSearch", '""',
                         placeholder='"Soeg i beskrivelse, funktionsplads, nummer"',
                         width="360")
-    status = dropdown("drpDomStatusFilter", '["alle", "valid", "submitted"]',
-                      '"alle"', width="160")
+    # Samme regel som paa vaerkfeltet: Default er en RECORD fra Items.
+    filt = '["alle", "valid", "submitted"]'
+    status = dropdown("drpDomStatusFilter", filt,
+                      f'LookUp({filt}, Value = "alle")', width="160")
     toolbar = group("conDomToolbar", pin_widths([search, status]),
                     direction="Horizontal", gap=12, align_items="Center")
 
