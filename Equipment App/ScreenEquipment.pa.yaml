@@ -885,7 +885,7 @@ Screens:
                                                       Color: |-
                                                           =RGBA(26, 34, 49, 1)
                                                       Default: |-
-                                                          =varDomFPlant
+                                                          =LookUp(colDomPlants, Value = varDomFPlant)
                                                       DisplayMode: |-
                                                           =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                                       Fill: |-
@@ -900,6 +900,8 @@ Screens:
                                                           =colDomPlants
                                                       LayoutMinWidth: |-
                                                           =0
+                                                      OnChange: |-
+                                                          =Set(varDomFPlant, Self.Selected.Value)
                                                       RadiusBottomLeft: |-
                                                           =10
                                                       RadiusBottomRight: |-
@@ -4202,7 +4204,7 @@ Screens:
                                     Color: |-
                                         =RGBA(26, 34, 49, 1)
                                     Default: |-
-                                        ="alle"
+                                        =LookUp(["alle", "valid", "submitted"], Value = "alle")
                                     Fill: |-
                                         =RGBA(255, 255, 255, 1)
                                     Font: |-
