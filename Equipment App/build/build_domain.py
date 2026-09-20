@@ -109,24 +109,30 @@ def _input_for(col, kind, choices):
         # filtreres paa interval, og betyder noget forskelligt alt efter
         # hvilket landeformat der laeser den. Kolonnen er DateTime, og her
         # sendes datoen som en dato.
-        c = Ctrl(name, "ModernDatePicker", props={
+        # DefaultDate saetter datoen. SelectedDate LAESER den og kan ikke
+        # skrives - her stod "SelectedDate: v", og compile svarede
+        # "Unknown property 'SelectedDate' for control type
+        # 'ModernDatePicker'". Formen nedenfor er kopieret fra den
+        # haandbyggede app, hvor datovaelgerne virker.
+        return Ctrl(name, "ModernDatePicker", props={
             "AccessibleLabel": f'"{col}"',
+            "Appearance": "Appearance.Outline",
             "BorderColor": C_CARD_BORDER,
             "BorderStyle": "BorderStyle.Solid",
             "BorderThickness": "1",
-            "DateTimeZone": "DateTimeZone.Local",
+            "DefaultDate": v,
             "DisplayMode": DM_ROW,
             "Font": FONT,
+            "Format": "DatePickerFormat.Short",
             "Height": "36",
             "LayoutMinWidth": "0",
             "OnChange": f"Set({v}, Self.SelectedDate)",
+            "Placeholder": '"dd/mm/yyyy"',
             "RadiusBottomLeft": "10", "RadiusBottomRight": "10",
             "RadiusTopLeft": "10", "RadiusTopRight": "10",
-            "SelectedDate": v,
             "Size": "14",
             "Width": "Parent.Width",
         }, h=36)
-        return c
     if kind == "long":
         # ttype="Multiline" -> Type: TextInputType.Multiline. Det er den
         # form, VH-plan-appens langtekstboks bruger, og dermed den eneste

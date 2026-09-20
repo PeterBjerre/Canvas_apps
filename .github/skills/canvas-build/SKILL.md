@@ -238,7 +238,16 @@ solutionen). Den ældre `dd9544e2-…` uden for solutionen findes stadig, men
 intet i repoet peger på den længere.
 
 **Compile før sync.** Fejler compile, så stop — synk ikke en app, der ikke
-kan oversættes. Det er `compile_canvas`, der sender YAML'en ind i den åbne
+kan oversættes. `cmd_deploy` i `tools/canvas_mcp.py` håndhæver det nu selv:
+den læser fejltallet ud af `compile_canvas`' svar og afbryder. Før stod
+reglen kun her, og et deploy med to fejl så ud til at lykkes — `Synced 3
+file(s)`, `No app checker issues found`, `Faerdig`. Fejlene stod fire
+linjer længere oppe og blev rullet væk af resten.
+
+Og driftrapporten bagefter var værre end ingenting: når compile afviser,
+er serverens tilstand den **gamle** app, så rapporten sammenlignede det,
+vi sendte, med noget der aldrig blev taget imod — og kaldte forskellen
+normalisering. Det er `compile_canvas`, der sender YAML'en ind i den åbne
 coauthoring-session; `sync_canvas` skriver bagefter serverens tilstand
 **ned** i mappen igen. Peger du den på app-mappen, overskriver den de
 genererede kilder — derfor arbejder `tools/canvas_mcp.py` på en kopi i
