@@ -599,7 +599,13 @@ def build_attachments():
 # ---------------------------------------------------------------------------
 GAP = 10
 FIXED = sum(w for _n, w in cfg.LIST_COLS) + GAP * (len(cfg.LIST_COLS) - 1)
-MAIN_W = f"Parent.Width - {FIXED}"
+# Beskrivelseskolonnen tager RESTEN af bredden - men hoejst 460.
+#
+# Uden loftet aad den alt: paa en bred skaerm blev den over tusind pixels,
+# de oevrige kolonner blev skubbet helt ud til hoejre kant, og imellem dem
+# laa en tom flade paa halvdelen af vinduet. En tabel skal vaere saa bred
+# som sit indhold, ikke som sin beholder.
+MAIN_W = f"Min(Parent.Width - {FIXED}, 460)"
 
 SEARCH = " || ".join(
     f"Trim(txtDomSearch.Text) in {c}" for c in cfg.SEARCH_FIELDS)
@@ -654,9 +660,12 @@ def build_rows():
     cells.append(button("btnDomRowOpen", '"Aabn"', load_row_fx(),
                         width=cfg.LIST_COLS[-1][1], height=28))
 
+    # align_items="Start" og ikke Stretch: raekken skal vaere saa bred som
+    # sine celler, ikke som skabelonen - ellers straekkes den sidste celle
+    # ud over den tomme flade til hoejre.
     row = group("conDomRow", pin_widths(cells), direction="Horizontal", gap=GAP,
                 height="Parent.TemplateHeight - 2", align_items="Center",
-                width="Parent.TemplateWidth")
+                justify="Start", width="Parent.TemplateWidth")
 
     gal_h = f"Max(Min(CountRows({SCOPE}), {GAL_ROWS}), 1) * {ROW_H + 2}"
     gal = Ctrl("galDomRows", "Gallery", variant="Vertical", props={
@@ -696,60 +705,80 @@ def build_rows():
 # intet flow og ingen aftale mellem apps om hvem der uddeler numre - og to
 # brugere, der indsender samtidig, kan ikke faa det samme nummer.
 # ---------------------------------------------------------------------------
+# Raekker der kan sendes med. En kladde tager ALT, der ikke allerede er
+# afsendt - ogsaa de halvfaerdige; det er meningen med en kladde. Indsend
+# tager kun dem, der er meldt faerdige.
+SENDABLE = 'Filter(colDomRows, Status <> "submitted")'
 VALID = 'Filter(colDomRows, Status = "valid")'
 
 
-def submit_fx():
-    """Send de gyldige raekker, og skriv EEN raekke i indekset.
+def send_fx(submit):
+    """Skriv indmeldingen til MD_RequestIndex - som kladde eller indsendt.
 
-    RequestNo skrives i FOERSTE Patch, ikke bagefter. MD_RequestIndex's
-    Title er OBLIGATORISK, og RequestNo ER Title - omdoebt. En raekke uden
-    den bliver afvist af SharePoint, og saa skete der praecis ingenting:
-    ingen indeksraekke, intet nummer, og ingen fejl at se, fordi
-    resultatet aldrig blev laest. Nummeret kan foerst dannes af raekkens
-    eget ID, saa GUID'en staar der indtil da - den er unik og ikke tom,
-    og det er alt, kravet handler om.
+    EEN INDEKSRAEKKE, IKKE EEN PR. TRYK
+    -----------------------------------
+    Raekken slaas op paa RequestGuid og oprettes kun, hvis den ikke findes.
+    Ellers ville "Send som kladde" og derefter "Indsend" give TO raekker
+    paa landingssiden for den samme indmelding - og den foerste ville
+    blive staaende som kladde for evigt. Det er samme konstruktion som
+    VH-plan-appens gem.
 
-    Og hele kaeden ligger i IfError. Uden den forsvinder en afvisning fra
-    SharePoint i stilhed - knappen ser ud til at virke, og listen i hubben
-    bliver bare staaende."""
+    RequestNo skrives med i FOERSTE Patch. MD_RequestIndex's Title er
+    obligatorisk, og RequestNo ER Title, omdoebt - en raekke uden den
+    bliver afvist. Nummeret laves af raekkens eget ID og kan derfor foerst
+    kendes bagefter; indtil da staar GUID'en der.
+    """
+    rows = VALID if submit else SENDABLE
+    status = "Indsendt" if submit else "Kladde"
+    step = 2 if submit else 1
+    label = "Indsendt" if submit else "Gemt som kladde"
+    empty = ("Der er ingen faerdige raekker at indsende."
+             if submit else "Der er ingen raekker at gemme.")
+
+    # Kun en indsendelse laaser raekkerne. En kladde skal stadig kunne
+    # rettes - ellers er det ikke en kladde.
+    row_patch = [
+        "                    RequestNo: varDomRequestNo,",
+        "                    RequestGuid: varDomRequestGuid,",
+    ]
+    if submit:
+        row_patch += [
+            '                    RowStatus: { Value: "submitted" },',
+            "                    SubmittedOn: Now()",
+        ]
+    else:
+        row_patch[-1] = row_patch[-1].rstrip(",")
+
     return (
         "If(\n"
-        f"    CountRows({VALID}) = 0,\n"
-        '    Notify("Der er ingen gyldige raekker at indsende.", '
-        "NotificationType.Warning),\n"
+        f"    CountRows({rows}) = 0,\n"
+        f'    Notify("{empty}", NotificationType.Warning),\n'
         "\n"
         "    IfError(\n"
-        # Text(GUID()), ikke GUID().
-        #
-        # varDomRequestGuid er erklaeret som "" i App.OnStart - altsaa
-        # TEKST. Power Fx laaser en global variabels type ved foerste
-        # tildeling, og GUID() er sin egen type. Tildelingen gik derfor
-        # ikke igennem, variablen blev staaende tom, og RequestNo - som ER
-        # listens Title, omdoebt - blev sendt tom afsted:
-        #
-        #     [MD_RequestIndex] Field 'Title' is required.
-        #
-        # Fejlen pegede paa Title og handlede om en GUID. VH-plan-appen har
-        # skrevet Text(GUID()) hele tiden.
-        "        Set(varDomRequestGuid, Text(GUID()));\n"
+        "        If(\n"
+        "            IsBlank(varDomRequestGuid),\n"
+        "            Set(varDomRequestGuid, Text(GUID()))\n"
+        "        );\n"
         "        Set(\n"
         "            varDomIdx,\n"
         "            Patch(\n"
         f"                {cfg.L_INDEX},\n"
-        f"                Defaults({cfg.L_INDEX}),\n"
+        "                Coalesce(\n"
+        f"                    LookUp({cfg.L_INDEX}, RequestGuid = varDomRequestGuid),\n"
+        f"                    Defaults({cfg.L_INDEX})\n"
+        "                ),\n"
         "                {\n"
-        "                    RequestNo: varDomRequestGuid,\n"
+        "                    RequestNo: Coalesce(varDomRequestNo, varDomRequestGuid),\n"
         f'                    Domain: {{ Value: "{cfg.DOMAIN}" }},\n'
-        '                    Status: { Value: "Indsendt" },\n'
-        "                    StatusStep: 2,\n"
+        f'                    Status: {{ Value: "{status}" }},\n'
+        f"                    StatusStep: {step},\n"
         "                    IsOpen: true,\n"
         "                    RequesterEmail: varDomMe,\n"
         "                    RequesterName: User().FullName,\n"
-        f'                    ShortText: "{cfg.TITLE}: " & CountRows({VALID}) '
+        f'                    ShortText: "{cfg.TITLE}: " & CountRows({rows}) '
         '& " raekke(r)",\n'
-        f"                    Plant: First({VALID}).Plant,\n"
-        f"                    ItemCount: CountRows({VALID}),\n"
+        f"                    Plant: First({rows}).Plant,\n"
+        f"                    ItemCount: CountRows({rows}),\n"
         "                    RequestGuid: varDomRequestGuid,\n"
         f'                    AppUrl: "{cfg.PLAY_URL}?reqid=" & varDomRequestGuid,\n'
         "                    LastActionOn: Now(),\n"
@@ -758,36 +787,35 @@ def submit_fx():
         "            )\n"
         "        );\n"
         "\n"
-        "        // Nu findes raekken, og dens ID bliver til nummeret\n"
-        f'        Set(varDomRequestNo, "{cfg.PREFIX}-" & Text(varDomIdx.ID, "000000"));\n'
-        f"        Patch({cfg.L_INDEX}, varDomIdx, {{ RequestNo: varDomRequestNo }});\n"
+        "        // Foerste gang bliver indeksraekkens eget ID til nummeret\n"
+        "        If(\n"
+        "            IsBlank(varDomRequestNo),\n"
+        f'            Set(varDomRequestNo, "{cfg.PREFIX}-" & Text(varDomIdx.ID, "000000"));\n'
+        f"            Patch({cfg.L_INDEX}, varDomIdx, {{ RequestNo: varDomRequestNo }})\n"
+        "        );\n"
         "\n"
         "        Patch(\n"
         f"            {cfg.L_ROWS},\n"
         "            ForAll(\n"
-        f"                {VALID} As R,\n"
+        f"                {rows} As R,\n"
         f"                LookUp({cfg.L_ROWS}, ID = R.RowId)\n"
         "            ),\n"
         "            ForAll(\n"
-        f"                {VALID} As R,\n"
+        f"                {rows} As R,\n"
         "                {\n"
-        "                    RequestNo: varDomRequestNo,\n"
-        "                    RequestGuid: varDomRequestGuid,\n"
-        '                    RowStatus: { Value: "submitted" },\n'
-        "                    SubmittedOn: Now()\n"
+        + "\n".join(row_patch) + "\n"
         "                }\n"
         "            )\n"
         "        );\n"
         "\n"
         + refresh_rows_fx(8) + ";\n"
         "\n"
-        '        Set(varDomRowStatus, "submitted");\n'
-        '        Set(varDomInfo, "Indsendt som " & varDomRequestNo);\n'
-        '        Notify("Indsendt som " & varDomRequestNo & " - den ligger nu '
-        'paa landingssiden.", NotificationType.Success),\n'
+        f'        Set(varDomInfo, "{label}: " & varDomRequestNo);\n'
+        f'        Notify("{label} som " & varDomRequestNo & " - se den paa '
+        'landingssiden.", NotificationType.Success),\n'
         "\n"
-        '        Set(varDomInfo, "Indsendelsen fejlede: " & FirstError.Message);\n'
-        '        Notify("Indsendelsen fejlede: " & FirstError.Message, '
+        '        Set(varDomInfo, "Det fejlede: " & FirstError.Message);\n'
+        '        Notify("Det fejlede: " & FirstError.Message, '
         "NotificationType.Error)\n"
         "    )\n"
         ")"
@@ -795,16 +823,30 @@ def submit_fx():
 
 
 def build_submit():
-    submit = button("btnDomSubmit", '"Indsend"', submit_fx(), primary=True,
-                    width=150,
-                    display_mode=f'If(CountRows({VALID}) = 0, DisplayMode.Disabled, DisplayMode.Edit)')
+    draft = button(
+        "btnDomSendDraft", '"Send som kladde"', send_fx(False), width=180,
+        display_mode=f'If(CountRows({SENDABLE}) = 0, DisplayMode.Disabled, DisplayMode.Edit)')
+    submit = button(
+        "btnDomSubmit", '"Indsend"', send_fx(True), primary=True, width=150,
+        display_mode=f'If(CountRows({VALID}) = 0, DisplayMode.Disabled, DisplayMode.Edit)')
     reload_ = button("btnDomReload", '"Hent forfra"',
                      refresh_rows_fx() + ';\nSet(varDomInfo, "Hentet forfra.")',
                      width=150)
     note = text_ctrl(
         "txtDomSubmitNote",
-        ('"Indsend skriver een raekke i MD_RequestIndex, saa indmeldingen '
-         'kan ses paa landingssiden. Kun raekker med status valid sendes."'),
+        ('"Send som kladde laegger indmeldingen paa landingssiden med status '
+         'Kladde - den kan stadig rettes. Indsend laaser raekkerne og saetter '
+         'status til Indsendt. Begge skriver i den SAMME raekke i indekset."'),
         size=12, color=C_MUTED, height=18, wrap="false")
+    state = text_ctrl(
+        "txtDomSubmitState",
+        ('If(\n'
+         '    IsBlank(varDomRequestNo),\n'
+         '    "Indmeldingen er ikke sendt til hubben endnu.",\n'
+         '    "Indmelding " & varDomRequestNo & " ligger paa landingssiden."\n'
+         ')'),
+        size=13, height=20, wrap="false")
     return card("conDomSubmitCard",
-                [button_row("conDomSubmitRow", [submit, reload_], SHELL_W), note])
+                [state,
+                 button_row("conDomSubmitRow", [draft, submit, reload_], SHELL_W),
+                 note])
