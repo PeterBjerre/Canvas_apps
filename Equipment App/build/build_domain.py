@@ -627,7 +627,19 @@ def submit_fx():
         "NotificationType.Warning),\n"
         "\n"
         "    IfError(\n"
-        "        Set(varDomRequestGuid, GUID());\n"
+        # Text(GUID()), ikke GUID().
+        #
+        # varDomRequestGuid er erklaeret som "" i App.OnStart - altsaa
+        # TEKST. Power Fx laaser en global variabels type ved foerste
+        # tildeling, og GUID() er sin egen type. Tildelingen gik derfor
+        # ikke igennem, variablen blev staaende tom, og RequestNo - som ER
+        # listens Title, omdoebt - blev sendt tom afsted:
+        #
+        #     [MD_RequestIndex] Field 'Title' is required.
+        #
+        # Fejlen pegede paa Title og handlede om en GUID. VH-plan-appen har
+        # skrevet Text(GUID()) hele tiden.
+        "        Set(varDomRequestGuid, Text(GUID()));\n"
         "        Set(\n"
         "            varDomIdx,\n"
         "            Patch(\n"
