@@ -21,14 +21,16 @@ SHARED = ["gen_screen.py", "build_helpers.py", "check_layout.py"]
 APPS = [
     ("Maintenance Plan App", ["generate_app_onstart.py", "assemble_screen.py"]),
     ("Masterdata Hub",       ["generate_hub_onstart.py", "assemble_hub.py"]),
+    ("Equipment App",        ["generate_app_onstart.py", "assemble_screen.py"]),
+    ("Material App",         ["generate_app_onstart.py", "assemble_screen.py"]),
 ]
 
-# Equipment og Materials bygges IKKE herfra. De er haandbyggede i Studio,
-# og deres .pa.yaml laeses i solution-eksporten. Her laa engang to
-# build-mapper, skrevet ud fra at apperne var tomme - det var de ikke, det
-# var eksporten der manglede en publicering. Se docs/23-eq-mat-apps.md.
-DOMAIN_APPS = []
-DOMAIN_SHARED = []
+# Equipment og Materials er DEN SAMME app. Kun domain_config.py skiller
+# dem - felterne og listenavnet. Resten skal derfor ogsaa vaere ordret
+# ens, og bliver det kun, hvis nogen tjekker det.
+DOMAIN_APPS = ["Equipment App", "Material App"]
+DOMAIN_SHARED = ["build_domain.py", "attflows.py",
+                 "generate_app_onstart.py", "assemble_screen.py"]
 
 
 def build_dirs():
