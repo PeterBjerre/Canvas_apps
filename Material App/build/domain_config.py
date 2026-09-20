@@ -55,6 +55,11 @@ PLAY_URL = ("https://apps.powerapps.com/play/e/"
 # tjekker at de to ikke glider fra hinanden.
 HUB_URL = ("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/f387047d-86af-4d6a-8370-afcf35939436")
 
+# Feltet der skal have FL-SOEGNING i stedet for et tekstfelt.
+# Konstruktionen er VH-plan-appens - soegefelt, soegeknap og dropdown -
+# kopieret i build_flsearch.py. Flowet er allerede datakilde i begge apps.
+FL_FIELD = "FunctionalLocation"
+
 # --- felterne ---------------------------------------------------------
 # Se Equipment-appens domain_config.py for hvad "art" betyder.
 #
@@ -93,8 +98,8 @@ SECTIONS = [
 
 PLANT_LABEL = "Plant"
 
-LIST_COLS = [("MATERIALE", 0), ("FABRIKANTENS NR.", 170), ("LEVERANDOER", 160),
-             ("PLANT", 70), ("STATUS", 90), ("FILER", 60)]
+LIST_COLS = [("MATERIALE", 0), ("FABRIKANTENS NR.", 160), ("LEVERANDOER", 150),
+             ("PLANT", 70), ("STATUS", 90), ("FILER", 50), ("", 70)]
 LIST_FIELDS = ["ManufacturerPartNo", "Supplier", "Plant"]
 
 SEARCH_FIELDS = ["MaterialDescription", "FunctionalLocation",

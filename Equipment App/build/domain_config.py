@@ -58,6 +58,11 @@ PLAY_URL = ("https://apps.powerapps.com/play/e/"
 # tjekker at de to ikke glider fra hinanden.
 HUB_URL = ("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/f387047d-86af-4d6a-8370-afcf35939436")
 
+# Feltet der skal have FL-SOEGNING i stedet for et tekstfelt.
+# Konstruktionen er VH-plan-appens - soegefelt, soegeknap og dropdown -
+# kopieret i build_flsearch.py. Flowet er allerede datakilde i begge apps.
+FL_FIELD = "FunctionalLocation"
+
 # --- felterne ---------------------------------------------------------
 # (kolonne, etiket, art, valgmuligheder)
 #
@@ -112,8 +117,8 @@ PLANT_LABEL = "Plant"
 
 # Kolonner i raekkeoversigten. Foerste er altid raekkens tekst, sidste er
 # altid antallet af dokumenter; bredden 0 betyder "tag resten".
-LIST_COLS = [("BESKRIVELSE", 0), ("EQUIPMENTNR.", 130), ("FUNC. LOCATION", 190),
-             ("PLANT", 70), ("STATUS", 90), ("FILER", 60)]
+LIST_COLS = [("BESKRIVELSE", 0), ("EQUIPMENTNR.", 130), ("FUNC. LOCATION", 180),
+             ("PLANT", 70), ("STATUS", 90), ("FILER", 50), ("", 70)]
 LIST_FIELDS = ["EquipmentNumber", "FunctionalLocation", "Plant"]
 
 # Felter soegefeltet kigger i. Skal vaere tekstfelter i samlingen.
