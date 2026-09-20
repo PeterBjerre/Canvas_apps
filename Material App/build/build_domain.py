@@ -75,8 +75,13 @@ def build_bar():
     no = text_ctrl("txtDomReqNo",
                    'If(IsBlank(varDomRequestNo), "Ikke indsendt", varDomRequestNo)',
                    size=15, weight="Semibold", height=24, width=160, wrap="false")
+    # Launch, ikke Back. Her stod Back(ScreenTransition.Fade), og den
+    # gjorde INGENTING: hubben aabner appen i en ny fane som en selvstaendig
+    # app, og Back() navigerer mellem skaerme i samme app - der er kun een.
+    # Replace genbruger fanen i stedet for at aabne en tredje.
     back = button("btnDomBack", '"Tilbage til hubben"',
-                  "Back(ScreenTransition.Fade)", width=180)
+                  f'Launch("{cfg.HUB_URL}", {{ }}, LaunchTarget.Replace)',
+                  width=180)
     right = group("conDomBarRight", pin_widths([count, no, back]),
                   direction="Horizontal", gap=12, align_items="Center",
                   width="500")

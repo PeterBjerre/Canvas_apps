@@ -96,9 +96,21 @@ def check_app_ids():
         bad.append(f"kan ikke laese hub_config.py: {e}")
         return bad
 
+    # Hubbens eget id staar i canvas_apps.json OG i de to domaeneapps'
+    # HUB_URL - knappen "Tilbage til hubben". Glider de fra hinanden,
+    # aabner knappen en anden app end den, flisen kom fra.
+    hub_id = (apps.get("hub") or {}).get("app_id")
+
     # (noeglen i canvas_apps.json, noeglen i hub_config.DOMAINS, app-mappe)
     for key, domain, folder in (("equipment", "Equipment", "Equipment App"),
                                 ("material", "Material", "Material App")):
+        dc_path = os.path.join(ROOT, folder, "build", "domain_config.py")
+        if hub_id and os.path.exists(dc_path):
+            with open(dc_path, encoding="utf-8") as f:
+                m = re.search(r'HUB_URL\s*=\s*\(?\s*"([^"]*)"', f.read())
+            if m and not m.group(1).endswith("/" + hub_id):
+                bad.append(f"{key}: HUB_URL i {folder} peger ikke paa "
+                           f"hubbens app_id {hub_id}")
         want = (apps.get(key) or {}).get("app_id")
         if not want:
             continue
