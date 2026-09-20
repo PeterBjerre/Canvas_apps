@@ -123,11 +123,14 @@ def upload_fx():
         f"        CountRows({PICKER}.Attachments) = 0,\n"
         "        Notify(\"Choose one or more files first.\", NotificationType.Warning),\n"
         "\n"
-        "        Clear(colDomAttUp);\n"
-        "        ForAll(\n"
-        f"            {PICKER}.Attachments As F,\n"
-        "            Collect(\n"
-        "                colDomAttUp,\n"
+        # ForAll returnerer en TABEL, og ClearCollect tager den i EET
+        # kald. Her stod Collect INDE i ForAll - een mutation pr. fil, og
+        # App checker melder det som ForAllWithMutation. Flowet koerer
+        # stadig een gang pr. fil; det er kun skrivningen, der er samlet.
+        "        ClearCollect(\n"
+        "            colDomAttUp,\n"
+        "            ForAll(\n"
+        f"                {PICKER}.Attachments As F,\n"
         "                {\n"
         "                    Name: F.Name,\n"
         "                    Ok: IfError(\n"
