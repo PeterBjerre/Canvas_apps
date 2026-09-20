@@ -1,6 +1,6 @@
 ﻿# SharePoint-lister bag VH-plan appen
 
-Udtrukket 2026-09-16 20:12 fra https://orsted.sharepoint.com/teams/BioSAPDEV
+Udtrukket 2026-09-20 21:41 fra https://orsted.sharepoint.com/teams/BioSAPDev
 
 | Liste | Raekker | Kolonner |
 |---|---:|---:|
@@ -8,26 +8,28 @@ Udtrukket 2026-09-16 20:12 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `ASV Standard Tasklist` | 26 | 42 |
 | `AVV Standard Tasklist` | 37 | 43 |
 | `CallHorizonMatrix` | 16 | 10 |
+| `EquipmentItems` | 0 | 32 |
 | `HEV Standard Tasklist` | 30 | 42 |
 | `KYV Standard Tasklist` | 20 | 42 |
 | `LubricationTaskTypeList` | 2 | 6 |
 | `MaintenanceActivityTypeList` | 7 | 7 |
-| `MaintenanceItems` | 60 | 34 |
-| `MaintenancePlans` | 37 | 28 |
+| `MaintenanceItems` | 63 | 34 |
+| `MaintenancePlans` | 41 | 28 |
 | `MainWorkCenters` | 53 | 8 |
-| `MD_RequestIndex` | 21 | 23 |
+| `MaterialItems` | 0 | 31 |
+| `MD_RequestIndex` | 25 | 23 |
 | `MD_StandardTaskOperations` | 176 | 31 |
 | `MD_Strategy` | 53 | 11 |
 | `MD_StrategyPackage` | 3 | 14 |
 | `MD_TasklistAttachment` | 1 | 13 |
-| `MD_TasklistMaterial` | 1 | 14 |
+| `MD_TasklistMaterial` | 6 | 14 |
 | `PlantList` | 6 | 6 |
 | `SKV Standard Tasklist` | 31 | 42 |
 | `SortFieldList` | 28 | 6 |
 | `SSV Standard Tasklist` | 32 | 42 |
 | `StandardStrategyList` | 3 | 6 |
 | `StandardTaskList` | 3 | 12 |
-| `TaskListMain` | 313 | 30 |
+| `TaskListMain` | 324 | 31 |
 | `UserAndGroups` | 7 | 7 |
 | `Vendors` | 20 | 7 |
 
@@ -159,6 +161,43 @@ Udtrukket 2026-09-16 20:12 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
+## `EquipmentItems`  -  0 raekker
+
+| Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
+|---|---|---|:-:|:-:|---|
+| `Title` | **Description** | Text | x | x |  |
+| `RowId` | RowId | Number |  |  |  |
+| `RequestNo` | RequestNo | Text |  | x |  |
+| `RequestGuid` | RequestGuid | Text |  | x |  |
+| `ItemKey` | ItemKey | Text |  | x |  |
+| `AttachmentFolder` | AttachmentFolder | Text |  |  |  |
+| `FileCount` | FileCount | Number |  |  |  |
+| `RequesterEmail` | RequesterEmail | Text |  | x |  |
+| `RequesterName` | RequesterName | Text |  |  |  |
+| `SubmittedOn` | SubmittedOn | DateTime |  | x |  |
+| `RowStatus` | RowStatus | Choice |  | x | valg: valid, submitted |
+| `RequestType` | RequestType | Text |  | x |  |
+| `Plant` | Plant | Text |  | x |  |
+| `EquipmentNumber` | EquipmentNumber | Text |  | x |  |
+| `EquipmentCategory` | EquipmentCategory | Text |  |  |  |
+| `Manufacturer` | Manufacturer | Text |  |  |  |
+| `TypeDesignation` | TypeDesignation | Text |  |  |  |
+| `SerialNumber` | SerialNumber | Text |  | x |  |
+| `FunctionalLocation` | FunctionalLocation | Text |  | x |  |
+| `FunctionalLocation1` | FunctionalLocation1 | Text |  |  |  |
+| `FunctionalLocation2` | FunctionalLocation2 | Text |  |  |  |
+| `ClassData` | ClassData | Text |  |  |  |
+| `RoomCoordinates` | RoomCoordinates | Text |  |  |  |
+| `Placement` | Placement | Text |  |  |  |
+| `WarrantyStart` | WarrantyStart | DateTime |  |  |  |
+| `WarrantyEnd` | WarrantyEnd | DateTime |  |  |  |
+| `LongText` | LongText | Note |  |  |  |
+| `ID` | ID | Counter |  |  | skrivebeskyttet |
+| `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
+| `Created` | Created | DateTime |  |  | skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+
 ## `HEV Standard Tasklist`  -  30 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
@@ -276,7 +315,7 @@ Udtrukket 2026-09-16 20:12 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `MaintenanceItems`  -  60 raekker
+## `MaintenanceItems`  -  63 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -315,7 +354,7 @@ Udtrukket 2026-09-16 20:12 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `MaintenancePlans`  -  37 raekker
+## `MaintenancePlans`  -  41 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -361,7 +400,43 @@ Udtrukket 2026-09-16 20:12 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `MD_RequestIndex`  -  21 raekker
+## `MaterialItems`  -  0 raekker
+
+| Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
+|---|---|---|:-:|:-:|---|
+| `Title` | **MaterialDescription** | Text | x | x |  |
+| `RowId` | RowId | Number |  |  |  |
+| `RequestNo` | RequestNo | Text |  | x |  |
+| `RequestGuid` | RequestGuid | Text |  | x |  |
+| `ItemKey` | ItemKey | Text |  | x |  |
+| `AttachmentFolder` | AttachmentFolder | Text |  |  |  |
+| `FileCount` | FileCount | Number |  |  |  |
+| `RequesterEmail` | RequesterEmail | Text |  | x |  |
+| `RequesterName` | RequesterName | Text |  |  |  |
+| `SubmittedOn` | SubmittedOn | DateTime |  | x |  |
+| `RowStatus` | RowStatus | Choice |  | x | valg: valid, submitted |
+| `Plant` | Plant | Text |  | x |  |
+| `FunctionalLocation` | FunctionalLocation | Text |  | x |  |
+| `Manufacturer` | Manufacturer | Text |  |  |  |
+| `ModelNumber` | ModelNumber | Text |  |  |  |
+| `ManufacturerPartNo` | ManufacturerPartNo | Text |  | x |  |
+| `Supplier` | Supplier | Text |  |  |  |
+| `SupplierPartNo` | SupplierPartNo | Text |  |  |  |
+| `Price` | Price | Number |  |  |  |
+| `PriceUnit` | PriceUnit | Text |  |  |  |
+| `StockUnit` | StockUnit | Text |  |  |  |
+| `DeliveringTime` | DeliveringTime | Number |  |  |  |
+| `RecommendedStock` | RecommendedStock | Number |  |  |  |
+| `StrategicPart` | StrategicPart | Text |  |  |  |
+| `WearPart` | WearPart | Text |  |  |  |
+| `LongText` | LongText | Note |  |  |  |
+| `ID` | ID | Counter |  |  | skrivebeskyttet |
+| `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
+| `Created` | Created | DateTime |  |  | skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+
+## `MD_RequestIndex`  -  25 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -478,7 +553,7 @@ Udtrukket 2026-09-16 20:12 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `MD_TasklistMaterial`  -  1 raekker
+## `MD_TasklistMaterial`  -  6 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -641,7 +716,7 @@ Udtrukket 2026-09-16 20:12 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `TaskListMain`  -  313 raekker
+## `TaskListMain`  -  324 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -670,6 +745,7 @@ Udtrukket 2026-09-16 20:12 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `Currency` | Currency | Text |  |  |  |
 | `OperationNo` | OperationNo | Number |  | x |  |
 | `PackagesKey` | PackagesKey | Text |  |  |  |
+| `MaterialGroup` | MaterialGroup | Text |  |  |  |
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
