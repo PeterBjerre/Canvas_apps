@@ -446,6 +446,28 @@ Det er også mere ensartet: alle felter i Item Editor ser nu ens ud.
 Mønsteret er værd at huske ud over denne app: **når data er der, men ikke
 vises, så mistænk kontrollens eget filter før dine egne formler.**
 
+## `Text(GUID())`, aldrig `GUID()`
+
+En global variabels type låses ved **første** tildeling. Er den erklæret
+som `""` i `App.OnStart`, er den tekst — og `GUID()` er sin egen type, ikke
+tekst. Tildelingen går ikke igennem, variablen bliver stående tom, og
+fejlen dukker op et helt andet sted:
+
+```
+Set(varDomRequestGuid, GUID());
+Patch(MD_RequestIndex, Defaults(...), { RequestNo: varDomRequestGuid, … })
+
+  -> [MD_RequestIndex] Field 'Title' is required.
+```
+
+Fejlen pegede på `Title` og handlede om en GUID. `RequestNo` **er** Title,
+omdøbt, og den er obligatorisk — så en tom værdi blev afvist.
+
+Der er **ingen regel** i `check_layout.py` for det her, og det er med
+vilje: at fange det kræver typeudledning, og en regel der gætter, er
+værre end ingen (se regel 17, der blev fjernet igen). `Text(GUID())` står
+i stedet her og i VH-plan-appen, som har gjort det rigtigt hele tiden.
+
 ## Power Fx binder på VISNINGSNAVN
 
 Det gælder hver eneste SharePoint-kolonne. Tre gange i dette projekt har den
