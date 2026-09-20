@@ -343,9 +343,10 @@ def save_row_fx():
     return (
         "If(\n"
         "    IsBlank(Trim(Coalesce(varDomFText, \"\"))) || IsBlank(varDomFPlant),\n"
-        '    Set(varDomInfo, "' + cfg.TEXT_LABEL + ' og ' + cfg.PLANT_LABEL
-        + ' skal udfyldes."),\n'
+        '    Notify("' + cfg.TEXT_LABEL + ' og ' + cfg.PLANT_LABEL
+        + ' skal udfyldes.", NotificationType.Warning),\n'
         "\n"
+        "    IfError(\n"
         "    Set(\n"
         "        varDomSpRow,\n"
         "        Patch(\n"
@@ -381,7 +382,14 @@ def save_row_fx():
         "\n"
         + refresh_rows_fx(4) + ";\n"
         "\n"
-        '    Set(varDomInfo, "Gemt som " & ' + ACTIVE + '.ItemKey)\n'
+        '    Set(varDomInfo, "Gemt som " & ' + ACTIVE + '.ItemKey);\n'
+        '    Notify("Gemt som " & ' + ACTIVE + '.ItemKey, '
+        "NotificationType.Success),\n"
+        "\n"
+        '    Set(varDomInfo, "Gemning fejlede: " & FirstError.Message);\n'
+        '    Notify("Gemning fejlede: " & FirstError.Message, '
+        "NotificationType.Error)\n"
+        "    )\n"
         ")"
     )
 
@@ -599,63 +607,84 @@ VALID = 'Filter(colDomRows, Status = "valid")'
 
 
 def submit_fx():
+    """Send de gyldige raekker, og skriv EEN raekke i indekset.
+
+    RequestNo skrives i FOERSTE Patch, ikke bagefter. MD_RequestIndex's
+    Title er OBLIGATORISK, og RequestNo ER Title - omdoebt. En raekke uden
+    den bliver afvist af SharePoint, og saa skete der praecis ingenting:
+    ingen indeksraekke, intet nummer, og ingen fejl at se, fordi
+    resultatet aldrig blev laest. Nummeret kan foerst dannes af raekkens
+    eget ID, saa GUID'en staar der indtil da - den er unik og ikke tom,
+    og det er alt, kravet handler om.
+
+    Og hele kaeden ligger i IfError. Uden den forsvinder en afvisning fra
+    SharePoint i stilhed - knappen ser ud til at virke, og listen i hubben
+    bliver bare staaende."""
     return (
         "If(\n"
         f"    CountRows({VALID}) = 0,\n"
-        '    Set(varDomInfo, "Der er ingen gyldige raekker at indsende."),\n'
+        '    Notify("Der er ingen gyldige raekker at indsende.", '
+        "NotificationType.Warning),\n"
         "\n"
-        "    Set(varDomRequestGuid, GUID());\n"
-        "    Set(\n"
-        "        varDomIdx,\n"
+        "    IfError(\n"
+        "        Set(varDomRequestGuid, GUID());\n"
+        "        Set(\n"
+        "            varDomIdx,\n"
+        "            Patch(\n"
+        f"                {cfg.L_INDEX},\n"
+        f"                Defaults({cfg.L_INDEX}),\n"
+        "                {\n"
+        "                    RequestNo: varDomRequestGuid,\n"
+        f'                    Domain: {{ Value: "{cfg.DOMAIN}" }},\n'
+        '                    Status: { Value: "Indsendt" },\n'
+        "                    StatusStep: 2,\n"
+        "                    IsOpen: true,\n"
+        "                    RequesterEmail: varDomMe,\n"
+        "                    RequesterName: User().FullName,\n"
+        f'                    ShortText: "{cfg.TITLE}: " & CountRows({VALID}) '
+        '& " raekke(r)",\n'
+        f"                    Plant: First({VALID}).Plant,\n"
+        f"                    ItemCount: CountRows({VALID}),\n"
+        "                    RequestGuid: varDomRequestGuid,\n"
+        f'                    AppUrl: "{cfg.PLAY_URL}?reqid=" & varDomRequestGuid,\n'
+        "                    LastActionOn: Now(),\n"
+        "                    LastActionBy: varDomMe\n"
+        "                }\n"
+        "            )\n"
+        "        );\n"
+        "\n"
+        "        // Nu findes raekken, og dens ID bliver til nummeret\n"
+        f'        Set(varDomRequestNo, "{cfg.PREFIX}-" & Text(varDomIdx.ID, "000000"));\n'
+        f"        Patch({cfg.L_INDEX}, varDomIdx, {{ RequestNo: varDomRequestNo }});\n"
+        "\n"
         "        Patch(\n"
-        f"            {cfg.L_INDEX},\n"
-        f"            Defaults({cfg.L_INDEX}),\n"
-        "            {\n"
-        f'                Domain: {{ Value: "{cfg.DOMAIN}" }},\n'
-        '                Status: { Value: "Indsendt" },\n'
-        "                StatusStep: 2,\n"
-        "                IsOpen: true,\n"
-        "                RequesterEmail: varDomMe,\n"
-        "                RequesterName: User().FullName,\n"
-        f'                ShortText: "{cfg.TITLE}: " & CountRows({VALID}) & " raekke(r)",\n'
-        f"                Plant: First({VALID}).Plant,\n"
-        f"                ItemCount: CountRows({VALID}),\n"
-        "                RequestGuid: varDomRequestGuid,\n"
-        f'                AppUrl: "{cfg.PLAY_URL}?reqid=" & varDomRequestGuid,\n'
-        "                LastActionOn: Now(),\n"
-        "                LastActionBy: varDomMe\n"
-        "            }\n"
-        "        )\n"
-        "    );\n"
-        f'    Set(varDomRequestNo, "{cfg.PREFIX}-" & Text(varDomIdx.ID, "000000"));\n'
-        f"    Patch({cfg.L_INDEX}, varDomIdx, {{ RequestNo: varDomRequestNo }});\n"
+        f"            {cfg.L_ROWS},\n"
+        "            ForAll(\n"
+        f"                {VALID} As R,\n"
+        f"                LookUp({cfg.L_ROWS}, ID = R.RowId)\n"
+        "            ),\n"
+        "            ForAll(\n"
+        f"                {VALID} As R,\n"
+        "                {\n"
+        "                    RequestNo: varDomRequestNo,\n"
+        "                    RequestGuid: varDomRequestGuid,\n"
+        '                    RowStatus: { Value: "submitted" },\n'
+        "                    SubmittedOn: Now()\n"
+        "                }\n"
+        "            )\n"
+        "        );\n"
         "\n"
-        # Patch(kilde, RAEKKER, AENDRINGER) - een skrivning, ikke een pr.
-        # raekke. Her stod Patch inde i ForAll, og App checker melder det
-        # som ForAllWithMutation: mod en datakilde er det eet netvaerkskald
-        # pr. iteration. De to tabeller kommer fra samme filter i samme
-        # raekkefoelge, saa de staar over for hinanden.
-        "    Patch(\n"
-        f"        {cfg.L_ROWS},\n"
-        "        ForAll(\n"
-        f"            {VALID} As R,\n"
-        f"            LookUp({cfg.L_ROWS}, ID = R.RowId)\n"
-        "        ),\n"
-        "        ForAll(\n"
-        f"            {VALID} As R,\n"
-        "            {\n"
-        "                RequestNo: varDomRequestNo,\n"
-        "                RequestGuid: varDomRequestGuid,\n"
-        '                RowStatus: { Value: "submitted" },\n'
-        "                SubmittedOn: Now()\n"
-        "            }\n"
-        "        )\n"
-        "    );\n"
+        + refresh_rows_fx(8) + ";\n"
         "\n"
-        + refresh_rows_fx(4) + ";\n"
+        '        Set(varDomRowStatus, "submitted");\n'
+        '        Set(varDomInfo, "Indsendt som " & varDomRequestNo);\n'
+        '        Notify("Indsendt som " & varDomRequestNo & " - den ligger nu '
+        'paa landingssiden.", NotificationType.Success),\n'
         "\n"
-        '    Set(varDomRowStatus, "submitted");\n'
-        '    Set(varDomInfo, "Indsendt som " & varDomRequestNo)\n'
+        '        Set(varDomInfo, "Indsendelsen fejlede: " & FirstError.Message);\n'
+        '        Notify("Indsendelsen fejlede: " & FirstError.Message, '
+        "NotificationType.Error)\n"
+        "    )\n"
         ")"
     )
 

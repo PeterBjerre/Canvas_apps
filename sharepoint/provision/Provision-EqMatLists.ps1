@@ -209,9 +209,24 @@ function Add-BatchColumns {
     New-MdField $List 'RequestGuid'    Text -Indexed
 
     # ItemKey er raekkens noegle OG mappenavnet i dokumentbiblioteket.
-    # Den skal vaere unik paa tvaers af HELE listen, ikke bare inden for
-    # indmeldingen: to mapper med samme navn ville dele dokumenter.
-    New-MdField $List 'ItemKey'        Text -Unique
+    #
+    # INDEKSERET, IKKE UNIK - og det er ikke en slendrian.
+    #
+    # Noeglen er "EQ-" & raekkens eget ID. Den kan derfor foerst dannes,
+    # NAAR raekken findes, saa appen skriver raekken foerst og noeglen
+    # bagefter. Med EnforceUniqueValues faldt det fra hinanden paa raekke
+    # nummer to: SharePoint regner TOM som en vaerdi, og to raekker maa
+    # ikke dele den - saa den anden raekke blev afvist med "this value
+    # already exists", mens den foerste gik igennem.
+    #
+    # Og der er intet at beskytte: ID er unikt i forvejen, og noeglen er
+    # lavet af det. Praefikset holder den fra hinanden paa tvaers af
+    # domaener.
+    #
+    # -Values saettes eksplicit, saa en KOER IGEN ogsaa fjerner kravet fra
+    # en liste, der allerede er oprettet med det.
+    New-MdField $List 'ItemKey'        Text -Indexed
+    Set-PnPField -List $List -Identity 'ItemKey' -Values @{ EnforceUniqueValues = $false }
 
     # Skrives eksplicit, selv om den kan regnes ud af ItemKey. Flowet
     # gaetter ikke, og den, der aabner listen i browseren, kan se hvor

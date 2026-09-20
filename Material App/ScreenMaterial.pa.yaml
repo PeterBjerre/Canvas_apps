@@ -3055,8 +3055,9 @@ Screens:
                                                 OnSelect: |-
                                                     =If(
                                                         IsBlank(Trim(Coalesce(varDomFText, ""))) || IsBlank(varDomFPlant),
-                                                        Set(varDomInfo, "Materialebeskrivelse og Plant skal udfyldes."),
+                                                        Notify("Materialebeskrivelse og Plant skal udfyldes.", NotificationType.Warning),
                                                     
+                                                        IfError(
                                                         Set(
                                                             varDomSpRow,
                                                             Patch(
@@ -3138,7 +3139,12 @@ Screens:
                                                             )
                                                         );
                                                     
-                                                        Set(varDomInfo, "Gemt som " & LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey)
+                                                        Set(varDomInfo, "Gemt som " & LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey);
+                                                        Notify("Gemt som " & LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey, NotificationType.Success),
+                                                    
+                                                        Set(varDomInfo, "Gemning fejlede: " & FirstError.Message);
+                                                        Notify("Gemning fejlede: " & FirstError.Message, NotificationType.Error)
+                                                        )
                                                     )
                                                 RadiusBottomLeft: |-
                                                     =10
@@ -4857,83 +4863,92 @@ Screens:
                                     OnSelect: |-
                                         =If(
                                             CountRows(Filter(colDomRows, Status = "valid")) = 0,
-                                            Set(varDomInfo, "Der er ingen gyldige raekker at indsende."),
+                                            Notify("Der er ingen gyldige raekker at indsende.", NotificationType.Warning),
                                         
-                                            Set(varDomRequestGuid, GUID());
-                                            Set(
-                                                varDomIdx,
+                                            IfError(
+                                                Set(varDomRequestGuid, GUID());
+                                                Set(
+                                                    varDomIdx,
+                                                    Patch(
+                                                        MD_RequestIndex,
+                                                        Defaults(MD_RequestIndex),
+                                                        {
+                                                            RequestNo: varDomRequestGuid,
+                                                            Domain: { Value: "Material" },
+                                                            Status: { Value: "Indsendt" },
+                                                            StatusStep: 2,
+                                                            IsOpen: true,
+                                                            RequesterEmail: varDomMe,
+                                                            RequesterName: User().FullName,
+                                                            ShortText: "Materials: " & CountRows(Filter(colDomRows, Status = "valid")) & " raekke(r)",
+                                                            Plant: First(Filter(colDomRows, Status = "valid")).Plant,
+                                                            ItemCount: CountRows(Filter(colDomRows, Status = "valid")),
+                                                            RequestGuid: varDomRequestGuid,
+                                                            AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/d7762919-c716-4bd0-9abd-24bab436221f?reqid=" & varDomRequestGuid,
+                                                            LastActionOn: Now(),
+                                                            LastActionBy: varDomMe
+                                                        }
+                                                    )
+                                                );
+                                        
+                                                // Nu findes raekken, og dens ID bliver til nummeret
+                                                Set(varDomRequestNo, "MAT-" & Text(varDomIdx.ID, "000000"));
+                                                Patch(MD_RequestIndex, varDomIdx, { RequestNo: varDomRequestNo });
+                                        
                                                 Patch(
-                                                    MD_RequestIndex,
-                                                    Defaults(MD_RequestIndex),
-                                                    {
-                                                        Domain: { Value: "Material" },
-                                                        Status: { Value: "Indsendt" },
-                                                        StatusStep: 2,
-                                                        IsOpen: true,
-                                                        RequesterEmail: varDomMe,
-                                                        RequesterName: User().FullName,
-                                                        ShortText: "Materials: " & CountRows(Filter(colDomRows, Status = "valid")) & " raekke(r)",
-                                                        Plant: First(Filter(colDomRows, Status = "valid")).Plant,
-                                                        ItemCount: CountRows(Filter(colDomRows, Status = "valid")),
-                                                        RequestGuid: varDomRequestGuid,
-                                                        AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/d7762919-c716-4bd0-9abd-24bab436221f?reqid=" & varDomRequestGuid,
-                                                        LastActionOn: Now(),
-                                                        LastActionBy: varDomMe
-                                                    }
-                                                )
-                                            );
-                                            Set(varDomRequestNo, "MAT-" & Text(varDomIdx.ID, "000000"));
-                                            Patch(MD_RequestIndex, varDomIdx, { RequestNo: varDomRequestNo });
+                                                    MaterialItems,
+                                                    ForAll(
+                                                        Filter(colDomRows, Status = "valid") As R,
+                                                        LookUp(MaterialItems, ID = R.RowId)
+                                                    ),
+                                                    ForAll(
+                                                        Filter(colDomRows, Status = "valid") As R,
+                                                        {
+                                                            RequestNo: varDomRequestNo,
+                                                            RequestGuid: varDomRequestGuid,
+                                                            RowStatus: { Value: "submitted" },
+                                                            SubmittedOn: Now()
+                                                        }
+                                                    )
+                                                );
                                         
-                                            Patch(
-                                                MaterialItems,
-                                                ForAll(
-                                                    Filter(colDomRows, Status = "valid") As R,
-                                                    LookUp(MaterialItems, ID = R.RowId)
-                                                ),
-                                                ForAll(
-                                                    Filter(colDomRows, Status = "valid") As R,
-                                                    {
-                                                        RequestNo: varDomRequestNo,
-                                                        RequestGuid: varDomRequestGuid,
-                                                        RowStatus: { Value: "submitted" },
-                                                        SubmittedOn: Now()
-                                                    }
-                                                )
-                                            );
+                                                ClearCollect(
+                                                    colDomRows,
+                                                    ForAll(
+                                                        Filter(MaterialItems, RequesterEmail = varDomMe) As R,
+                                                        {
+                                                            RowId: R.ID,
+                                                            ItemKey: Coalesce(R.ItemKey, ""),
+                                                            RequestNo: Coalesce(R.RequestNo, ""),
+                                                            Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                            FileCount: Coalesce(R.FileCount, 0),
+                                                            MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                                            Plant: Coalesce(R.Plant, ""),
+                                                            FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                            Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                            ModelNumber: Coalesce(R.ModelNumber, ""),
+                                                            ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                                            Supplier: Coalesce(R.Supplier, ""),
+                                                            SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                                            DeliveringTime: R.DeliveringTime,
+                                                            Price: R.Price,
+                                                            PriceUnit: Coalesce(R.PriceUnit, ""),
+                                                            StockUnit: Coalesce(R.StockUnit, ""),
+                                                            RecommendedStock: R.RecommendedStock,
+                                                            StrategicPart: Coalesce(R.StrategicPart, ""),
+                                                            WearPart: Coalesce(R.WearPart, ""),
+                                                            LongText: Coalesce(R.LongText, "")
+                                                        }
+                                                    )
+                                                );
                                         
-                                            ClearCollect(
-                                                colDomRows,
-                                                ForAll(
-                                                    Filter(MaterialItems, RequesterEmail = varDomMe) As R,
-                                                    {
-                                                        RowId: R.ID,
-                                                        ItemKey: Coalesce(R.ItemKey, ""),
-                                                        RequestNo: Coalesce(R.RequestNo, ""),
-                                                        Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                        FileCount: Coalesce(R.FileCount, 0),
-                                                        MaterialDescription: Coalesce(R.MaterialDescription, ""),
-                                                        Plant: Coalesce(R.Plant, ""),
-                                                        FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                        Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                        ModelNumber: Coalesce(R.ModelNumber, ""),
-                                                        ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
-                                                        Supplier: Coalesce(R.Supplier, ""),
-                                                        SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
-                                                        DeliveringTime: R.DeliveringTime,
-                                                        Price: R.Price,
-                                                        PriceUnit: Coalesce(R.PriceUnit, ""),
-                                                        StockUnit: Coalesce(R.StockUnit, ""),
-                                                        RecommendedStock: R.RecommendedStock,
-                                                        StrategicPart: Coalesce(R.StrategicPart, ""),
-                                                        WearPart: Coalesce(R.WearPart, ""),
-                                                        LongText: Coalesce(R.LongText, "")
-                                                    }
-                                                )
-                                            );
+                                                Set(varDomRowStatus, "submitted");
+                                                Set(varDomInfo, "Indsendt som " & varDomRequestNo);
+                                                Notify("Indsendt som " & varDomRequestNo & " - den ligger nu paa landingssiden.", NotificationType.Success),
                                         
-                                            Set(varDomRowStatus, "submitted");
-                                            Set(varDomInfo, "Indsendt som " & varDomRequestNo)
+                                                Set(varDomInfo, "Indsendelsen fejlede: " & FirstError.Message);
+                                                Notify("Indsendelsen fejlede: " & FirstError.Message, NotificationType.Error)
+                                            )
                                         )
                                     RadiusBottomLeft: |-
                                         =10
