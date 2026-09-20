@@ -93,7 +93,14 @@ $MAP = @(
 )
 
 $conn = @{ Url = $SiteUrl; Interactive = $true }
-if ($ClientId) { $conn.ClientId = $ClientId }
+# PnP.PowerShell 2.x har ingen faelles app-registrering, saa -Interactive
+# KRAEVER et ClientId. Uden et fejler MSAL med "User canceled
+# authentication" - hvilket lyder som om brugeren trykkede fortryd, men
+# ikke er det. Her stod "if ($ClientId) { ... }", saa scriptet koerte
+# videre uden. Nu er der en standard.
+# Et client id er ikke en hemmelighed - se docs/08-datamapning.md 6B.
+if (-not $ClientId) { $ClientId = '9bc3ab49-b65d-410a-85ad-de819febfddc' }
+$conn.ClientId = $ClientId
 Connect-PnPOnline @conn
 
 # ---------------------------------------------------------------------------

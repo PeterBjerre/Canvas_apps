@@ -42,6 +42,16 @@
 .PARAMETER SkipLibrary
     Spring kontrollen af dokumentbiblioteket over.
 
+.PARAMETER ClientId
+    App-registreringen, logins skal gaa igennem. Standard er den app,
+    resten af scriptene i mappen bruger. Kan ogsaa saettes med
+    miljoevariablen PNP_CLIENT_ID.
+
+.PARAMETER DeviceLogin
+    Log ind med en kode i en browser i stedet for et popup-vindue. Brug
+    den, naar det almindelige login-vindue ikke kan aabnes eller lukker
+    sig selv.
+
 .EXAMPLE
     .\Provision-EqMatLists.ps1 -SiteUrl "https://orsted.sharepoint.com/teams/BioSAPDev"
 
@@ -62,7 +72,8 @@ param(
     [Parameter(Mandatory = $true)][string] $SiteUrl,
     [ValidateSet('Equipment', 'Material', 'Both')][string] $Domain = 'Both',
     [switch] $SkipLibrary,
-    [string] $ClientId = $env:PNP_CLIENT_ID
+    [string] $ClientId = $env:PNP_CLIENT_ID,
+    [switch] $DeviceLogin
 )
 
 $ErrorActionPreference = 'Stop'
@@ -80,9 +91,45 @@ $ROWSTATUS = 'valid', 'submitted'
 # samme bibliotek og holdes fra hinanden paa MAPPENAVNET.
 $LIBRARY = 'TaskListDocuments'
 
-$conn = @{ Url = $SiteUrl; Interactive = $true }
-if ($ClientId) { $conn.ClientId = $ClientId }
-Connect-PnPOnline @conn
+# PnP.PowerShell 2.x har ikke laengere en faelles app-registrering, saa
+# -Interactive KRAEVER et ClientId. Uden et gaar MSAL i gang mod en app,
+# tenanten ikke kender, og fejler med "User canceled authentication" -
+# hvilket lyder som om brugeren trykkede fortryd, men ikke er det.
+#
+# Appen nedenfor findes allerede i tenanten og bruges af de oevrige
+# scripts i mappen. Et client id er ikke en hemmelighed; det er et navn,
+# ikke en noegle - se docs/08-datamapning.md 6B.
+$PNP_APP = '9bc3ab49-b65d-410a-85ad-de819febfddc'
+if (-not $ClientId) { $ClientId = $PNP_APP }
+
+$conn = @{ Url = $SiteUrl; ClientId = $ClientId }
+if ($DeviceLogin) { $conn.DeviceLogin = $true } else { $conn.Interactive = $true }
+
+try {
+    Connect-PnPOnline @conn
+}
+catch {
+    Write-Host ""
+    Write-Host "Login mislykkedes: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "'User canceled authentication' betyder EN af to ting:" -ForegroundColor Yellow
+    Write-Host "  1. Browservinduet blev lukket, foer login var faerdigt."
+    Write-Host "  2. Appen $ClientId er ikke godkendt i tenanten, saa"
+    Write-Host "     browseren viste 'Needs admin approval' i stedet for et login."
+    Write-Host ""
+    Write-Host "Virker browservinduet ikke, saa brug enhedslogin i stedet:" -ForegroundColor Yellow
+    Write-Host "  .\sharepoint\provision\Provision-EqMatLists.ps1 ``"
+    Write-Host "      -SiteUrl '$SiteUrl' -DeviceLogin"
+    Write-Host ""
+    Write-Host "Har du en anden app-registrering, saa giv den med:" -ForegroundColor Yellow
+    Write-Host "  -ClientId <app id>"
+    Write-Host ""
+    Write-Host "Har du ingen, kan du oprette en:" -ForegroundColor Yellow
+    Write-Host "  Register-PnPEntraIDAppForInteractiveLogin ``"
+    Write-Host "      -ApplicationName 'PnP Masterdata' ``"
+    Write-Host "      -Tenant <tenant>.onmicrosoft.com -Interactive"
+    throw
+}
 
 # ---------------------------------------------------------------------------
 # Hjaelpefunktioner
