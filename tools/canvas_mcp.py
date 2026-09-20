@@ -36,6 +36,7 @@ import argparse
 import difflib
 import json
 import os
+import re
 import shlex
 import shutil
 import subprocess
@@ -501,6 +502,25 @@ def cmd_pull(client, args, cfg):
         out("   %-28s %6d linjer" % (f, n))
 
 
+def compile_errors(text):
+    """Antallet af fejl i compile_canvas' svar.
+
+    Serveren svarer med tekst, ikke med en statuskode, saa den skal
+    laeses. To former ses:
+
+        Errors: 2
+        ScreenEquipment.pa.yaml(2799,55): error: Unknown property ...
+
+    Begge taelles; den foerste vinder, hvis den findes, fordi den er
+    serverens eget tal."""
+    if not text:
+        return 0
+    m = re.search(r"^\s*Errors:\s*(\d+)", text, re.M)
+    if m:
+        return int(m.group(1))
+    return len(re.findall(r"\berror:", text))
+
+
 def cmd_deploy(client, args, cfg):
     app = pick_app(cfg, args.app)
     staging = os.path.abspath(args.stage or os.path.join(
@@ -510,8 +530,31 @@ def cmd_deploy(client, args, cfg):
     connect(client, app, args.login_hint, args.auth_flow)
 
     out("=== compile_canvas (her naar aendringen Studio) ===")
-    out(indent(client.call("compile_canvas", {"directoryPath": staging},
-                           timeout=args.timeout)))
+    txt = client.call("compile_canvas", {"directoryPath": staging},
+                      timeout=args.timeout)
+    out(indent(txt))
+
+    # Compile FOER sync - og stop, hvis compile fejlede.
+    #
+    # Her blev der synket videre uanset hvad. Et deploy med to fejl saa
+    # derfor ud til at lykkes: "Synced 3 file(s)", "No app checker issues
+    # found", og til sidst "Faerdig. Tjek appen i Studio". Fejlene stod
+    # fire linjer laengere oppe og blev rullet vaek af resten.
+    #
+    # sync_canvas henter serverens tilstand NED. Naar compile blev afvist,
+    # er serverens tilstand den GAMLE app - saa driftrapporten nedenfor
+    # sammenligner det, vi sendte, med noget, der aldrig blev taget imod,
+    # og kalder forskellen "normalisering".
+    n = compile_errors(txt)
+    if n:
+        out("")
+        out("STOP: compile afviste %d fejl. Der synkes ikke." % n)
+        out("Appen i Studio er UAENDRET - rettelsen naaede aldrig frem.")
+        out("")
+        out("Ret fejlen i builderen, ikke i YAML'en:")
+        out("    python3 tools/build_all.py")
+        out("og koer saa deploy igen.")
+        raise SystemExit(1)
 
     if args.compile_only:
         out("")

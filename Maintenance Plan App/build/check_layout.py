@@ -338,12 +338,17 @@ def main():
     # ModernText er en label, ikke en kontrol man kan naa med tastaturet,
     # og den kender den ikke. Et forsoeg paa at laegge feltforklaringerne
     # der fejlede i compile 21 gange.
+    #
+    # ModernDatePicker: SelectedDate LAESER datoen, DefaultDate saetter
+    # den. Forskellen ses ikke i en skaerm, der ser rigtig ud - kun i
+    # compile, efter en hel runde gennem Studio. Den kostede et deploy.
     UNSUPPORTED = {
         "Gallery": ("RadiusBottomLeft", "RadiusBottomRight",
                     "RadiusTopLeft", "RadiusTopRight"),
         "ModernText": ("Tooltip",),
         "GroupContainer": ("Tooltip",),
         "HtmlViewer": ("Tooltip",),
+        "ModernDatePicker": ("SelectedDate", "DateTimeZone"),
     }
     for p_, name, body in all_nodes:
         bad = UNSUPPORTED.get((body.get("Control") or "").strip())
