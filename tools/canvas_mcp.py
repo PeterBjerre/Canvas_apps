@@ -273,8 +273,39 @@ class McpClient:
 # ------------------------------------------------------------ konfiguration
 
 def load_config():
-    with open(CONFIG, "r", encoding="utf-8") as f:
-        return json.load(f)
+    """Laes tools/canvas_apps.json - og sig hvad der er galt, hvis den er
+    i stykker.
+
+    Filen redigeres i haanden, hvert eneste gang et app-id skal ind.
+    Derfor er en oedelagt JSON ikke et kantetilfaelde, det er DEN
+    forventede fejl - og en raa JSONDecodeError med ti linjer traceback
+    fortaeller hverken hvilken fil eller hvilken linje det drejer sig om.
+    """
+    try:
+        with open(CONFIG, "r", encoding="utf-8") as f:
+            raw = f.read()
+    except OSError as e:
+        raise SystemExit("Kan ikke laese %s: %s" % (CONFIG, e))
+    try:
+        return json.loads(raw)
+    except ValueError as e:
+        lines = raw.splitlines()
+        n = getattr(e, "lineno", 0) or 0
+        out("")
+        out("tools/canvas_apps.json er ikke gyldig JSON:")
+        out("   %s" % e)
+        out("")
+        for i in range(max(1, n - 2), min(len(lines), n + 2) + 1):
+            out("   %s%4d | %s" % (">" if i == n else " ", i, lines[i - 1]))
+        if n:
+            out("")
+        out("De to almindelige aarsager, naar et app-id er sat ind i haanden:")
+        out("  - et komma for meget efter den SIDSTE linje i en blok")
+        out("  - et komma for lidt efter linjen foer den nye")
+        out("")
+        out("Filen ligger i git og er gyldig der. Hurtigste vej tilbage:")
+        out("    git checkout tools/canvas_apps.json")
+        raise SystemExit(1)
 
 
 def pick_app(cfg, key):
