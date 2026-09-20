@@ -287,7 +287,7 @@ canvas-authoring-get_accessibility_errors
 | App | `app_id` |
 |---|---|
 | VH-plan | `11fa8d90-868a-45a4-ba23-28f2cf0671a2` |
-| Masterdata Hub | *(udfyldes når appen er oprettet i Studio)* |
+| Masterdata Hub | `f387047d-86af-4d6a-8370-afcf35939436` |
 | Equipments | `24bf3bbc-601f-480d-a8fe-7cd3180906d1` |
 | Materials | `d7762919-c716-4bd0-9abd-24bab436221f` |
 
@@ -307,6 +307,13 @@ flisen åbner) og appens `PLAY_URL` (hvad der skrives i
 `MD_RequestIndex.AppUrl`). Glider de fra hinanden, fejler ingenting — det
 ses først, når en bruger trykker "Open" og lander i en tom app. Derfor
 tjekker `tools/build_all.py` det ved hver bygning.
+
+**Hubbens eget id** står i `canvas_apps.json` og i de to domæneapps'
+`HUB_URL` — knappen "Tilbage til hubben". Den skal være et `Launch`, ikke
+et `Back`: hubben åbner satellitten med `LaunchTarget.New`, altså som en
+**selvstændig app i en ny fane**, og `Back()` navigerer kun mellem skærme
+i samme app. Med én skærm gjorde knappen ingenting. Også den kobling
+tjekkes ved hver bygning.
 
 Equipment-appen er **`Equipments`** (`orsted_equipments_ebf7d`, i
 solutionen). Den ældre `dd9544e2-…` uden for solutionen findes stadig, men

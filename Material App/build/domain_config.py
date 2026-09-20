@@ -46,6 +46,15 @@ PLAY_URL = ("https://apps.powerapps.com/play/e/"
             "e0f8f822-d16a-e878-ba4e-fb42bc617e47"
             "/a/d7762919-c716-4bd0-9abd-24bab436221f")
 
+# Landingssiden. De to domaeneapps aabnes af hubben med
+# Launch(..., LaunchTarget.New) - altsaa i en NY fane, som en anden app.
+# Back() kan derfor ikke foere tilbage: den navigerer mellem SKAERME i
+# samme app, og der er kun een. Knappen skal aabne hubben.
+#
+# Samme id som apps.hub.app_id i tools/canvas_apps.json; build_all.py
+# tjekker at de to ikke glider fra hinanden.
+HUB_URL = ("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/f387047d-86af-4d6a-8370-afcf35939436")
+
 # --- felterne ---------------------------------------------------------
 # Se Equipment-appens domain_config.py for hvad "art" betyder.
 #
