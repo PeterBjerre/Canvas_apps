@@ -1,0 +1,27 @@
+App:
+  Properties:
+    Formulas: |
+      =// Vaerkerne. Eneste opslagsliste appen laeser, og den laeses foerst,
+      // naar dropdownen aabnes.
+      colDomPlants = Sort(ForAll(PlantList As R, { Value: R.Title }), Value);
+    OnStart: |
+      =ClearCollect(colDomRows, { RowId: 0, ItemKey: "", RequestNo: "", Status: "", FileCount: 0, Description: "", Plant: "", RequestType: "", EquipmentNumber: "", EquipmentCategory: "", Manufacturer: "", TypeDesignation: "", SerialNumber: "", FunctionalLocation: "", FunctionalLocation1: "", FunctionalLocation2: "", ClassData: "", RoomCoordinates: "", Placement: "", WarrantyStart: Blank(), WarrantyEnd: Blank(), LongText: "" });
+      Clear(colDomRows);
+
+      ClearCollect(colDomAttachments, { RowId: 0, FileName: "", FileUrl: "", Identifier: "", Selected: false });
+      Clear(colDomAttachments);
+
+      ClearCollect(colDomAttUp, { Name: "", Ok: false });
+      Clear(colDomAttUp);
+
+      Set(varDomMe, Lower(User().Email));
+      Set(varDomRequestNo, "");
+      Set(varDomRequestGuid, "");
+      Set(varDomActiveRowId, Blank());
+      Set(varDomRowStatus, "valid");
+      Set(varDomAttJson, "");
+      Set(varDomInfo, "")
+    StartScreen: |-
+        =ScreenEquipment
+    Theme: |-
+        =PowerAppsTheme

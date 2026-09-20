@@ -22,21 +22,29 @@ Efter publicering:
 > ikke det, der kører. `Status: Ready` i `meta.xml` siger intet om, hvorvidt
 > indholdet er med — begge tomme eksporter stod som `Ready`.
 
-## Apperne er håndbyggede i Studio, ikke bygget herfra
+## Apperne bygges nu herfra
 
-Derfor er der **ingen** `Equipment App/`- eller `Material App/`-mappe i
-repoet. Der lå to, skrevet mens apperne så tomme ud; de er fjernet igen
-(de kan hentes frem fra commit `44d9af5`, hvis skelettet skal bruges).
+`Equipment App/` og `Material App/` er buildere som de to andre apps. Det
+er en omvej værd at forklare, for de har været fjernet én gang undervejs:
 
-At lade dem ligge var ikke gratis: `deploy` **erstatter** en apps indhold
-med repoets kilder, så en enkelt kommando ville have slettet det, der er
-bygget i Studio. `folder` er `null` på begge i `tools/canvas_apps.json`, og
-`app_dir()` i `canvas_mcp.py` afviser deploy med en forklaring.
+1. De blev skrevet, mens eksporten viste to tomme skabeloner.
+2. Da det viste sig at være en manglende **publicering**, var de bygget på
+   en forkert feltmodel — og farlige, fordi `deploy` erstatter en apps
+   indhold. De blev fjernet.
+3. Nu er feltmodellen læst af den håndbyggede formular, provisioneret som
+   SharePoint-lister, og **verificeret**: `check_datasources.py` efterprøver
+   307 kolonnereferencer mod `schema.md` ved hver bygning.
 
-Skal apperne læses igen, er vejen solution-eksporten (publicér først) eller:
+Kæden er altså **formular → liste → builder**, og intet led er gættet.
+
+`folder` peger igen på repoet, så `deploy` virker. Husk at det **erstatter**
+appens indhold — en skærm, nogen bygger i Studio uden om repoet, forsvinder
+ved næste deploy. Det er prisen for at have én sandhed.
+
+Skal du se, hvad der faktisk ligger i Studio lige nu:
 
 ```powershell
-python tools\canvas_mcp.py pull --app equipment
+python tools\canvas_mcp.py pull --app equipment --out app-pull\equipment
 ```
 
 ## Felterne, som apperne faktisk skriver
