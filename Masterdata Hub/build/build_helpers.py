@@ -206,6 +206,18 @@ def text_input(name, default, placeholder="\"\"", max_length=None, required_form
         "ValidationState": f"If({required_formula} && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)",
         "Width": width,
     }
+    # ROEDT naar der MANGLER, GROENT naar der STAAR noget.
+    #
+    # Kun paa de kraevede felter: en groen kant om hvert eneste udfyldt felt
+    # goer farven meningsloes. Det er stadig det ene spoergsmaal, der
+    # afgoer den - mangler der noget her, foer der kan gemmes?
+    if required_formula != "false":
+        props["BorderColor"] = (
+            f"If(\n"
+            f"    {required_formula} && IsBlank(Trim(Self.Text)),\n"
+            f"    {C_REQUIRED},\n"
+            f"    If(IsBlank(Trim(Self.Text)), {C_CARD_BORDER}, {C_VALID_FG})\n"
+            f")")
     if max_length is not None:
         props["MaxLength"] = str(max_length)
     if display_mode is not None:
@@ -222,7 +234,12 @@ def number_input(name, default, min_v=None, max_v=None, required_formula="false"
     props = {
         "AccessibleLabel": f"\"{name}\"",
         "Appearance": "Appearance.Outline",
-        "BorderColor": f"If({required_formula} && IsBlank(Self.Value), {C_REQUIRED}, {C_CARD_BORDER})",
+        "BorderColor": (
+            f"If(\n"
+            f"    {required_formula} && IsBlank(Self.Value),\n"
+            f"    {C_REQUIRED},\n"
+            f"    If(IsBlank(Self.Value), {C_CARD_BORDER}, {C_VALID_FG})\n"
+            f")"),
         "BorderStyle": "BorderStyle.Solid",
         "BorderThickness": "1",
         "Color": C_TITLE,
@@ -253,7 +270,12 @@ def dropdown(name, items, default, item_display="ThisItem.Value", required_formu
     props = {
         "AccessibleLabel": f"\"{name}\"",
         "Appearance": "Appearance.Outline",
-        "BorderColor": f"If({required_formula} && IsBlank(Self.Selected.{value_field}), {C_REQUIRED}, {C_CARD_BORDER})",
+        "BorderColor": (
+            f"If(\n"
+            f"    {required_formula} && IsBlank(Self.Selected.{value_field}),\n"
+            f"    {C_REQUIRED},\n"
+            f"    If(IsBlank(Self.Selected.{value_field}), {C_CARD_BORDER}, {C_VALID_FG})\n"
+            f")"),
         "BorderStyle": "BorderStyle.Solid",
         "BorderThickness": "1",
         "Color": C_TITLE,

@@ -317,6 +317,35 @@ def provisioned_columns():
     return out
 
 
+def provisioned_choices():
+    """Valgvaerdier, som et provisioneringsscript opretter.
+
+    Samme sondring som for kolonner: en vaerdi, der er lagt ind i
+    scriptet, men endnu ikke oprettet i SharePoint, er ikke en kodefejl -
+    den er en paamindelse om at koere scriptet og eksportere skemaet igen.
+    Uden den blev byggeriet roedt af en god grund, og saa bliver det
+    ignoreret naeste gang det er roedt af en daarlig.
+
+    To former laeses:
+        -Choices 'a','b','c'        direkte paa feltet
+        $NAVN = 'a', 'b', 'c'       en variabel, der sendes som -Choices
+    """
+    out = set()
+    d = os.path.join(ROOT, "sharepoint", "provision")
+    if not os.path.isdir(d):
+        return out
+    for fn in os.listdir(d):
+        if not fn.endswith(".ps1"):
+            continue
+        txt = open(os.path.join(d, fn), encoding="utf-8-sig").read()
+        for m in re.finditer(r"-Choices\s+((?:'[^']*'\s*,\s*)*'[^']*')", txt):
+            out.update(re.findall(r"'([^']*)'", m.group(1)))
+        for m in re.finditer(r"^\s*\$[A-Za-z_]\w*\s*=\s*"
+                             r"((?:'[^']*'\s*,\s*)+'[^']*')\s*$", txt, re.M):
+            out.update(re.findall(r"'([^']*)'", m.group(1)))
+    return out
+
+
 def provisioned_lists():
     """Lister, som et provisioneringsscript opretter."""
     out = set()
@@ -342,6 +371,7 @@ def main():
 
     problems, stats = [], {"checked": 0}
     prov = provisioned_columns()
+    prov_choices = provisioned_choices()
     screens = []
     for app in ("Maintenance Plan App", "Masterdata Hub",
                 "Equipment App", "Material App"):
@@ -378,8 +408,11 @@ def main():
             continue
         seen.add(key)
         m = re.search(r"'([\w]+)'", msg)
+        mv = re.search(r'valgvaerdien "([^"]*)" findes ikke', msg)
         if m and (lst, m.group(1)) in prov:
             pending.append(f"{lst}.{m.group(1)}")
+        elif mv and mv.group(1) in prov_choices:
+            pending.append("%s (valgvaerdi \"%s\")" % (lst, mv.group(1)))
         else:
             uniq.append(f"{lst}: {msg}")
 

@@ -588,3 +588,70 @@ git push
 
 `pull` rører ikke `folder`, så den virker, selv om deploy er spærret.
 Coauthoring-fanen skal være åben på appen.
+
+
+---
+
+# Runde to: kladde, FL-søgning og layout
+
+## Kladde og færdig er to knapper
+
+`RowStatus` har fået en tredje værdi:
+
+| | Kræver | |
+|---|---|---|
+| `draft` | kun beskrivelsen | Listens `Title` er obligatorisk, så helt tom kan rækken ikke være. Alt andet må mangle — det er hele pointen |
+| `valid` | også værket | Det er **dem**, Indsend tager med |
+| `submitted` | — | Afsendt, og dermed låst i appen |
+
+Provisioneringen skal køres igen, før `draft` findes i listen.
+
+## Gemte rækker kan åbnes
+
+Hver række har nu en **Åbn**-knap. Galleriets `OnSelect` virkede også før,
+men den er usynlig — der er intet, der siger at rækken *kan* åbnes, og så
+er det de færreste der prøver.
+
+## Functional location søges som i VH-plan
+
+`build_flsearch.py` er kopieret ind i begge apps — samme fil, kun
+variabelnavnet er skiftet. Flowet var allerede datakilde i begge.
+
+Konstruktionen er tekstfelt + søgeknap + dropdown, **uden** skjult
+filtrering. VH-plans første udgave brugte en combobox med indbygget
+søgning; den fik 819 rækker fra flowet og viste nul.
+
+## Layout
+
+**Dokumenterne ligger nederst**, ikke i en skinne til højre. To grunde:
+ruden hører til den *valgte* række, og rækken vælges i listen længere nede
+— så øjet skulle hele vejen op igen for at se hvad der skete. Og skinnen
+gjorde formularen smal, hvilket er dyrt, når den har fire kolonner.
+
+Rækkefølgen følger nu arbejdet: udfyld → gem → vælg i listen → læg
+dokumenter på → indsend.
+
+**Topsektionen har fire kolonner.** Beskrivelse og værk hører til første
+sektion — ikke til en række for sig — så rækken fyldes op med sektionens
+to første felter.
+
+**Toplinjens knapper blev klippet væk.** Venstre side stod som
+`Parent.Width - 520` og højre som faste `500`; på et smalt vindue blev
+venstre side negativ. Nu bryder linjen om i stedet.
+
+## Rødt når der mangler, grønt når der står noget
+
+Kun på de **krævede** felter. En grøn kant om hvert eneste udfyldt felt
+gør farven meningsløs; det er stadig det ene spørgsmål, der afgør den —
+mangler der noget her, før der kan gemmes?
+
+Reglen ligger i `build_helpers.py`, som er delt af alle fire apps, så
+VH-plan og hubben får den samme opførsel.
+
+## Og en regel i datakilde-tjekket
+
+En valgværdi, provisioneringen opretter men skemaudtrækket endnu ikke
+kender, er ikke en kodefejl — den er en påmindelse om at køre scriptet.
+`draft` gjorde byggeriet rødt af en god grund, og et tjek der er rødt af
+gode grunde bliver ignoreret, næste gang det er rødt af en dårlig.
+Afprøvet: en værdi, *ingen* provisionering opretter, fejler stadig.

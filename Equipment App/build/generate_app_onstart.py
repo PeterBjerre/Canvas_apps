@@ -52,6 +52,12 @@ COLLECTIONS = [
     # Hvad upload-flowet svarede pr. fil. Uden den kunne knappen kun
     # kvittere paa tro og love.
     ("colDomAttUp", {"Name": '""', "Ok": "false"}),
+    # FL-soegningens resultat. Samme form som VH-plan-appens - se
+    # build_flsearch.py for hvorfor der er baade Code, Description og
+    # Display.
+    ("colDomFl",
+     {"Code": '""', "Description": '""', "Display": '""',
+      "Maintainable": "false", "Level": '""'}),
 ]
 
 
@@ -77,6 +83,8 @@ Set(varDomRequestGuid, "");
 Set(varDomActiveRowId, Blank());
 Set(varDomRowStatus, "valid");
 Set(varDomAttJson, "");
+Set(varDomFlMsg, "");
+Set(varDomFlLast, "");
 Set(varDomInfo, "")'''
 
 

@@ -14,7 +14,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
-from gen_screen import render_screen, C_APP_BG, OUT_DIR, SHELL_W, RAIL_W, SPLIT_GAP
+from gen_screen import render_screen, C_APP_BG, OUT_DIR, SHELL_W
 from build_helpers import group
 import domain_config as cfg
 from build_domain import (build_bar, build_form, build_attachments,
@@ -31,19 +31,19 @@ def on_visible():
 
 
 def build_screen():
-    # Formularen til venstre, dokumenterne til hoejre - og under
-    # braekpunktet stablet, fordi to kolonner paa en telefon er een for meget.
-    left = group("conDomLeft", [build_form()], direction="Vertical", gap=16,
-                 width=f"If(App.Width < 1100, {SHELL_W}, "
-                       f"{SHELL_W} - {RAIL_W} - {SPLIT_GAP})")
-    right = group("conDomRight", [build_attachments()], direction="Vertical",
-                  gap=16,
-                  width=f"If(App.Width < 1100, {SHELL_W}, {RAIL_W})")
-    split = group("conDomSplit", [left, right], direction="Horizontal",
-                  gap=SPLIT_GAP, wrap="true", wrap_rows=1)
-
+    # DOKUMENTERNE LIGGER NEDERST
+    #
+    # De sad foer i en skinne til hoejre for formularen. Det var forkert af
+    # to grunde: ruden hoerer til den VALGTE raekke, og raekken vaelges i
+    # listen laengere nede - saa oejet skulle hele vejen op igen for at se,
+    # hvad der skete. Og skinnen gjorde formularen smal, hvilket er dyrt,
+    # naar den har fire kolonner.
+    #
+    # Raekkefoelgen foelger nu arbejdet: udfyld, gem, vaelg i listen, laeg
+    # dokumenter paa, indsend.
     shell = group("conDomShell",
-                  [build_bar(), split, build_rows(), build_submit()],
+                  [build_bar(), build_form(), build_rows(),
+                   build_attachments(), build_submit()],
                   direction="Vertical", gap=16, pad=(20, 24, 40, 24))
     root = group("conDomRoot", [shell], direction="Vertical",
                  height="Parent.Height", width="Parent.Width",

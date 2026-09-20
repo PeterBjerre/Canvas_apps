@@ -82,7 +82,11 @@ $ErrorActionPreference = 'Stop'
 # MD_RequestIndex. De to er forskellige ting: den her siger om raekken er
 # udfyldt og afsendt, den anden siger hvor indmeldingen er i SAP-forloebet.
 # Apperne skriver praecis disse to vaerdier og ingen andre.
-$ROWSTATUS = 'valid', 'submitted'
+$ROWSTATUS = 'draft', 'valid', 'submitted'
+#
+# draft     gemt, men ikke faerdig - kun beskrivelsen kraeves
+# valid     udfyldt og klar; det er DEM, Indsend tager
+# submitted afsendt, og dermed laast i appen
 
 # Dokumentbiblioteket. De tre attachment-flows er HAARDKODET til dette
 # bibliotek - upload-flowet skriver i /TaskListDocuments/<mappe>/, og
@@ -240,8 +244,7 @@ function Add-BatchColumns {
     New-MdField $List 'RequesterName'  Text
     New-MdField $List 'SubmittedOn'    DateTime -Indexed
 
-    # Raekkens egen tilstand. Apperne skriver "valid" ved Save row og
-    # "submitted" ved Submit.
+    # Raekkens egen tilstand. Se $ROWSTATUS oeverst.
     New-MdField $List 'RowStatus'      Choice -Choices $ROWSTATUS -Indexed
 }
 

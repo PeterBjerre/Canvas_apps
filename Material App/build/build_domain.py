@@ -44,6 +44,7 @@ from build_helpers import (text_ctrl, group, button, button_row, text_input,
                            label_row, pin_widths, badge)
 import domain_config as cfg
 import attflows as att
+import build_flsearch as fl
 
 # Raekkens felter i een flad liste - raekkefoelgen er sektionernes.
 FIELDS = [f for _sec, fields in cfg.SECTIONS for f in fields]
@@ -63,30 +64,37 @@ DM_SEL = ('If(IsBlank(varDomActiveRowId), DisplayMode.Disabled, DisplayMode.Edit
 # Den flade top
 # ---------------------------------------------------------------------------
 def build_bar():
+    """Toplinjen.
+
+    BREDDERNE MAA IKKE KUNNE BLIVE NEGATIVE
+    ---------------------------------------
+    Her stod venstre side som "Parent.Width - 520" og hoejre som faste 500.
+    Paa et smalt vindue blev venstre side negativ, og hoejre side - med
+    nummeret, status og knappen tilbage til hubben - blev klippet vaek.
+    Knapperne var der; de kunne bare ikke ses.
+
+    Nu bryder linjen om i stedet: under braekpunktet staar de to grupper
+    under hinanden, og wrap_rows=2 faar hoejden til at taelle begge rader
+    med."""
     title = text_ctrl("txtDomTitle", f'"{cfg.TITLE}"', size=22, weight="Semibold",
                       height=30, wrap="false")
     sub = text_ctrl("txtDomSub", f'"{cfg.SUBTITLE}"', size=13, color=C_MUTED,
                     height=20, wrap="false")
     left = group("conDomBarLeft", [title, sub], direction="Vertical", gap=2,
-                 width="Parent.Width - 520")
+                 width=f"If(App.Width < 900, {SHELL_W}, {SHELL_W} - 500)")
 
-    count = badge("txtDomCount",
-                  '"Raekker: " & CountRows(colDomRows)', width=120)
+    count = badge("txtDomCount", '"Raekker: " & CountRows(colDomRows)', width=110)
     no = text_ctrl("txtDomReqNo",
                    'If(IsBlank(varDomRequestNo), "Ikke indsendt", varDomRequestNo)',
-                   size=15, weight="Semibold", height=24, width=160, wrap="false")
-    # Launch, ikke Back. Her stod Back(ScreenTransition.Fade), og den
-    # gjorde INGENTING: hubben aabner appen i en ny fane som en selvstaendig
-    # app, og Back() navigerer mellem skaerme i samme app - der er kun een.
-    # Replace genbruger fanen i stedet for at aabne en tredje.
-    back = button("btnDomBack", '"Tilbage til hubben"',
+                   size=15, weight="Semibold", height=24, width=150, wrap="false")
+    back = button("btnDomBack", '"Til hubben"',
                   f'Launch("{cfg.HUB_URL}", {{ }}, LaunchTarget.Replace)',
-                  width=180)
+                  width=140)
     right = group("conDomBarRight", pin_widths([count, no, back]),
-                  direction="Horizontal", gap=12, align_items="Center",
-                  width="500")
+                  direction="Horizontal", gap=10, align_items="Center",
+                  justify="End", width="440")
     return group("conDomBar", [left, right], direction="Horizontal", gap=20,
-                 align_items="Center")
+                 align_items="Center", wrap="true", wrap_rows=2)
 
 
 # ---------------------------------------------------------------------------
@@ -159,7 +167,7 @@ def _input_for(col, kind, choices):
     return c
 
 
-COLS_PER_ROW = 3
+COLS_PER_ROW = 4
 
 
 def _plant_dropdown():
@@ -182,6 +190,43 @@ def _plant_dropdown():
     return c
 
 
+def build_fl_block():
+    """Functional Location - soegefelt, soegeknap og dropdown.
+
+    Praecis VH-plan-appens konstruktion, kopieret i build_flsearch.py.
+    Der er INGEN skjult filtrering: et tekstfelt siger HVAD der soeges, en
+    knap siger HVORNAAR, og dropdownen viser praecis det, samlingen
+    indeholder. Den foerste udgave i VH-plan brugte en combobox med
+    indbygget soegning - den fik 819 raekker og viste nul."""
+    q = text_input("txtDomFlQuery", '""',
+                   placeholder=f'"Mindst {fl.MIN_SEARCH_LEN} tegn - fx SSV10 KAB10"',
+                   width="Parent.Width", display_mode=DM_ROW)
+    btn = button("btnDomFlSearch", '"Soeg"',
+                 fl.search_action("txtDomFlQuery", "colDomFl",
+                                  "varDomFlLast", "varDomFlMsg"),
+                 width=90, display_mode=DM_ROW)
+    row = group("conDomFlSearchRow", pin_widths([q, btn]),
+                direction="Horizontal", gap=8, height=36, align_items="Center")
+
+    drop = dropdown("drpDomFl", "colDomFl",
+                    f"LookUp(colDomFl, Code = {_var(cfg.FL_FIELD)})",
+                    item_display="ThisItem.Display", value_field="Code",
+                    display_mode=DM_ROW)
+    drop.props["OnChange"] = f"Set({_var(cfg.FL_FIELD)}, Self.Selected.Code)"
+
+    chosen = text_ctrl(
+        "txtDomFlChosen",
+        f'If(IsBlank({_var(cfg.FL_FIELD)}), "Ingen valgt", "Valgt: " & {_var(cfg.FL_FIELD)})',
+        size=12, color=C_MUTED, height=18, wrap="false")
+    msg = text_ctrl("txtDomFlMsg", "varDomFlMsg", size=12, color=C_MUTED,
+                    height=18, wrap="false")
+
+    return group("conDomFlBlock",
+                 [label_row("conDomFlLbl", "Functional location"),
+                  row, drop, chosen, msg],
+                 direction="Vertical", gap=6, width="Parent.Width")
+
+
 def build_form():
     head = group("conDomFormHead", [
         text_ctrl("txtDomFormH", '"Raekke"', size=16, weight="Semibold",
@@ -190,33 +235,46 @@ def build_form():
                   ('If(\n'
                    '    IsBlank(varDomActiveRowId),\n'
                    '    "Ny raekke - ikke gemt endnu",\n'
-                   '    "Redigerer " & Coalesce(' + ACTIVE + '.ItemKey, "raekke " & varDomActiveRowId)\n'
+                   '    "Redigerer " & Coalesce(' + ACTIVE + '.ItemKey, "raekke " & varDomActiveRowId) &\n'
+                   '        " (" & varDomRowStatus & ")"\n'
                    ')'),
                   size=13, color=C_MUTED, height=20, wrap="false"),
     ], direction="Vertical", gap=2)
 
-    # Teksten og vaerket staar oeverst: den ene er listens Title og
-    # obligatorisk, den anden afgoer hvilket vaerk raekken hoerer til.
-    top = row_n("conDomTopRow", [
+    # FIRE KOLONNER I TOPSEKTIONEN
+    #
+    # Teksten og vaerket hoerer til foerste sektion - ikke til en raekke for
+    # sig. Ved at laegge dem foerst i den, fyldes raekken op til fire med de
+    # to foerste af sektionens egne felter, og toppen bliver saa taet som
+    # resten af formularen.
+    top_cells = [
         field_cell("conDomText", cfg.TEXT_LABEL,
                    text_input("inpDomText", "varDomFText", max_length=40,
                               placeholder=cfg.TEXT_PLACEHOLDER,
                               required_formula="true", display_mode=DM_ROW,
                               onchange="Set(varDomFText, Self.Text)"),
-                   required=True, container_w=EDITOR_W, cols=2),
-        field_cell("conDomPlant", cfg.PLANT_LABEL,
-                   _plant_dropdown(),
-                   required=True, container_w=EDITOR_W, cols=2),
-    ], container_w=EDITOR_W)
+                   required=True, container_w=EDITOR_W, cols=COLS_PER_ROW),
+        field_cell("conDomPlant", cfg.PLANT_LABEL, _plant_dropdown(),
+                   required=True, container_w=EDITOR_W, cols=COLS_PER_ROW),
+    ]
 
-    kids = [head, top]
+    kids = [head]
     for s_i, (section, fields) in enumerate(cfg.SECTIONS):
         kids.append(text_ctrl(f"txtDomSec{s_i}", f'"{section}"', size=13,
                               weight="Semibold", color=C_MUTED, height=20,
                               wrap="false"))
-        chunk = []
+        chunk = top_cells if s_i == 0 else []
+        top_cells = []
         for f_i, (col, label, kind, choices) in enumerate(fields):
-            # Langtekst faar hele bredden - den er hoejere end de andre.
+            # FL-feltet er ikke et tekstfelt - det er en soegning, og den
+            # fylder sin egen raekke.
+            if col == getattr(cfg, "FL_FIELD", None):
+                if chunk:
+                    kids.append(row_n(f"conDomRow{s_i}_{f_i}", chunk,
+                                      container_w=EDITOR_W))
+                    chunk = []
+                kids.append(build_fl_block())
+                continue
             wide = kind == "long"
             cell = field_cell(f"con{col}", label, _input_for(col, kind, choices),
                               container_w=EDITOR_W,
@@ -237,12 +295,21 @@ def build_form():
         if chunk:
             kids.append(row_n(f"conDomRow{s_i}_end", chunk, container_w=EDITOR_W))
 
-    save = button("btnDomSave", '"Gem raekke"', save_row_fx(), primary=True,
-                  width=150, display_mode=DM_ROW)
+    # KLADDE OG FAERDIG ER TO KNAPPER
+    #
+    # En kladde kraever kun beskrivelsen - listens Title er obligatorisk i
+    # SharePoint, saa helt tom kan en raekke ikke vaere. Alt andet maa
+    # mangle. "Gem" kraever ogsaa vaerket, og det er DEN status, Indsend
+    # tager med.
+    draft = button("btnDomSaveDraft", '"Gem kladde"', save_row_fx("draft"),
+                   width=150, display_mode=DM_ROW)
+    save = button("btnDomSave", '"Gem"', save_row_fx("valid"), primary=True,
+                  width=130, display_mode=DM_ROW)
     new = button("btnDomNew", '"Ny raekke"', clear_form_fx(), width=130)
     delete = button("btnDomDelete", '"Slet raekke"', delete_row_fx(),
                     danger=True, width=150, display_mode=DM_SEL)
-    kids.append(button_row("conDomFormActions", [save, new, delete], EDITOR_W))
+    kids.append(button_row("conDomFormActions",
+                           [draft, save, new, delete], EDITOR_W))
     kids.append(text_ctrl("txtDomFormInfo", "varDomInfo", size=12,
                           color=C_MUTED, height=18, wrap="false"))
     return card("conDomFormCard", kids)
@@ -304,6 +371,8 @@ def clear_form_fx():
              'Set(varDomFPlant, "");']
     for col, _lab, kind, _ch in FIELDS:
         lines.append(f"Set({_var(col)}, {_blank(kind)});")
+    lines.append('Set(varDomFlMsg, "");')
+    lines.append('Reset(txtDomFlQuery);')
     lines.append('Set(varDomInfo, "Ny raekke - udfyld og gem.")')
     return "\n".join(lines)
 
@@ -327,7 +396,16 @@ def load_row_fx():
     return "\n".join(lines)
 
 
-def save_row_fx():
+def save_row_fx(status="valid"):
+    """Gem raekken i SharePoint - som kladde eller som faerdig.
+
+    En KLADDE kraever kun beskrivelsen. Listens Title er obligatorisk, saa
+    helt tom kan raekken ikke vaere, men alt andet maa mangle - det er
+    hele pointen med en kladde.
+
+    En FAERDIG raekke kraever ogsaa vaerket, og det er den status, Indsend
+    tager med.
+    """
     patch = [
         f"            {cfg.C_TEXT}: Trim(varDomFText),",
         "            Plant: varDomFPlant,",
@@ -335,16 +413,26 @@ def save_row_fx():
     for col, _lab, kind, _ch in FIELDS:
         patch.append(f"            {col}: {_patch_value(col, kind)},")
     patch += [
-        '            RowStatus: { Value: "valid" },',
+        '            RowStatus: { Value: "%s" },' % status,
         "            RequesterEmail: varDomMe,",
         "            RequesterName: User().FullName",
     ]
     key = f'"{cfg.PREFIX}-" & Text(varDomSpRow.ID, "000000")'
+
+    if status == "draft":
+        guard = 'IsBlank(Trim(Coalesce(varDomFText, "")))'
+        msg = "%s skal udfyldes - ogsaa paa en kladde." % cfg.TEXT_LABEL
+        done = "Kladde gemt som "
+    else:
+        guard = ('IsBlank(Trim(Coalesce(varDomFText, ""))) || '
+                 "IsBlank(varDomFPlant)")
+        msg = "%s og %s skal udfyldes." % (cfg.TEXT_LABEL, cfg.PLANT_LABEL)
+        done = "Gemt som "
+
     return (
         "If(\n"
-        "    IsBlank(Trim(Coalesce(varDomFText, \"\"))) || IsBlank(varDomFPlant),\n"
-        '    Notify("' + cfg.TEXT_LABEL + ' og ' + cfg.PLANT_LABEL
-        + ' skal udfyldes.", NotificationType.Warning),\n'
+        f"    {guard},\n"
+        f'    Notify("{msg}", NotificationType.Warning),\n'
         "\n"
         "    IfError(\n"
         "    Set(\n"
@@ -364,7 +452,7 @@ def save_row_fx():
         "\n"
         "    // Noeglen er lavet af raekkens eget ID og kan derfor foerst\n"
         "    // dannes, naar raekken findes. Derfor to skrivninger paa en ny\n"
-        "    // raekke og een paa en gammel.\n"
+        "    // raekke og een paa en gammel\n"
         "    If(\n"
         "        IsBlank(varDomSpRow.ItemKey),\n"
         "        Patch(\n"
@@ -378,12 +466,12 @@ def save_row_fx():
         "        )\n"
         "    );\n"
         "    Set(varDomActiveRowId, varDomSpRow.ID);\n"
-        '    Set(varDomRowStatus, "valid");\n'
+        f'    Set(varDomRowStatus, "{status}");\n'
         "\n"
         + refresh_rows_fx(4) + ";\n"
         "\n"
-        '    Set(varDomInfo, "Gemt som " & ' + ACTIVE + '.ItemKey);\n'
-        '    Notify("Gemt som " & ' + ACTIVE + '.ItemKey, '
+        f'    Set(varDomInfo, "{done}" & ' + ACTIVE + '.ItemKey);\n'
+        f'    Notify("{done}" & ' + ACTIVE + '.ItemKey, '
         "NotificationType.Success),\n"
         "\n"
         '    Set(varDomInfo, "Gemning fejlede: " & FirstError.Message);\n'
@@ -536,7 +624,7 @@ def build_rows():
                         placeholder='"Soeg i beskrivelse, funktionsplads, nummer"',
                         width="360")
     # Samme regel som paa vaerkfeltet: Default er en RECORD fra Items.
-    filt = '["alle", "valid", "submitted"]'
+    filt = '["alle", "draft", "valid", "submitted"]'
     status = dropdown("drpDomStatusFilter", filt,
                       f'LookUp({filt}, Value = "alle")', width="160")
     toolbar = group("conDomToolbar", pin_widths([search, status]),
@@ -559,7 +647,12 @@ def build_rows():
                        width=cfg.LIST_COLS[-2][1]))
     cells.append(text_ctrl("txtDomRowFiles", "Text(ThisItem.FileCount)",
                            size=13, color=C_MUTED, height=20,
-                           width=cfg.LIST_COLS[-1][1], wrap="false"))
+                           width=cfg.LIST_COLS[-2][1], wrap="false"))
+    # En knap, ikke kun et klik paa raekken. Galleriets OnSelect virker
+    # ogsaa, men den er usynlig - der er intet, der siger at raekken KAN
+    # aabnes, og saa er det de faerreste der proever.
+    cells.append(button("btnDomRowOpen", '"Aabn"', load_row_fx(),
+                        width=cfg.LIST_COLS[-1][1], height=28))
 
     row = group("conDomRow", pin_widths(cells), direction="Horizontal", gap=GAP,
                 height="Parent.TemplateHeight - 2", align_items="Center",
