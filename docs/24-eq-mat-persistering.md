@@ -489,8 +489,9 @@ Set(varSaveRowId, varMatSpRow.ID);
 2. **Tilføj datakilder i hver app:** `EquipmentItems` (hhv.
    `MaterialItems`) og `MD_RequestIndex`. De tre flows er der allerede.
 
-3. **Fjern** `drpEqDocumentType`, `txtEqDocumentLink`, `txtMatDoc` og
-   `addMatFilePicker` fra formularerne.
+3. **Fjern dokumentkontrollerne** — se listen nedenfor. Det er ikke nok at
+   slette dem: de er nævnt 20 steder tilsammen, og hver dinglende reference
+   er en compile-fejl.
 
 4. **Kør `Export-ListSchema.ps1` igen bagefter**, så
    `tools/check_datasources.py` kan efterprøve de nye kolonnenavne. Indtil
@@ -511,3 +512,79 @@ Indtil da: `RequestType`, `EquipmentCategory`, `StockUnit`, `PriceUnit`,
 `StrategicPart` og `WearPart` er **tekstkolonner** i SharePoint, ikke
 valgkolonner. Det er med vilje — en valgkolonne med gættede værdier ville
 afvise alt andet, og ordforrådet findes ikke nogen steder endnu.
+
+
+---
+
+# Punkt 3: hvad der skal væk
+
+Det svære er ikke at slette kontrollerne — det er de **20 referencer**, der
+bliver tilbage. Hver af dem er en compile-fejl, indtil den er ryddet.
+Linjenumrene er fra solution-eksporten og flytter sig, når du retter;
+brug navnene.
+
+## Equipment
+
+**Slet to containere** (de tager label og felt med sig):
+
+| Container | Indeholder |
+|---|---|
+| `conEqCellDocumentType` | label + `drpEqDocumentType` |
+| `conEqCellDocumentLink` | label + `txtEqDocumentLink` |
+
+**Ryd derefter disse referencer:**
+
+| Sted | Linje i eksporten | Gør |
+|---|---|---|
+| *Reset form*-knappen | 1710–1711 | slet `Reset(drpEqDocumentType);` og `Reset(txtEqDocumentLink);` |
+| *Save row* — nulstilling efter gem | 1858–1859 | samme to linjer |
+| *Edit*-knappen i Saved Rows | 2923–2924 | samme to linjer |
+| *Reset form* — variabler | 1692–1693 | slet `Set(varFormDocumentType, "");` og `Set(varFormDocumentLink, "");` |
+| *Save row* — variabler | 1840–1841 | samme to linjer |
+| *Edit* — indlæs række | 2905–2906 | slet `Set(varFormDocumentType, ThisItem.DocumentType);` og `…DocumentLink…` |
+| `Collect` / `Patch` | 1787–1788, 1814–1815 | `DocumentType:` og `DocumentLink:` — **væk allerede**, hvis du har erstattet Save-formlen |
+
+> **Pas på semikolonnet ved linje 1859.** `Reset(txtEqDocumentLink)` er det
+> **sidste** led i kæden og står uden semikolon. Sletter du begge linjer,
+> skal `Reset(txtEqWarrantyEnd);` ovenover miste sit semikolon — ellers
+> står der et `;` lige før `)`, og Power Fx afviser det. Det er samme fælde
+> som regel 11 i `check_layout.py`.
+
+## Materials
+
+**Slet én container:** `conMatDocRow`. Den indeholder `txtMatDoc`,
+`addMatFilePicker` og `btnMatSelectFile` — alle tre forsvinder med den, og
+det tager to referencer med sig (`Reset(txtMatDoc)` inde i filvælgerens
+`OnSelect`, og `Select(addMatFilePicker)` på knappen).
+
+**Ryd derefter:**
+
+| Sted | Linje i eksporten | Gør |
+|---|---|---|
+| `Collect` / `Patch` | 2190, 2215 | `Documentation: Trim(txtMatDoc.Text),` — væk allerede med den nye Save-formel |
+| tre nulstillinger | 2254, 2306, 3254 | slet `Reset(txtMatDoc);` |
+| to variabelnulstillinger | 2239, 2291 | slet `Set(varFormDocumentation, "");` |
+| *Edit* — indlæs række | 3239 | slet `Set(varFormDocumentation, ThisItem.Documentation);` |
+
+## Eller lad mig gøre det
+
+Jeg kan lave rettelserne i YAML'en og lægge dem klar til `deploy` — så er
+der ingen dinglende referencer, fordi en maskine tæller dem.
+
+Det kræver appen **som den ser ud nu**. Solution-eksporten er fra før
+formlerne blev sat ind, så et deploy af den ville rulle punkt 4 tilbage.
+Hent den kørende app ned først:
+
+```powershell
+python tools\canvas_mcp.py pull --app equipment --out app-pull\equipment
+python tools\canvas_mcp.py pull --app material  --out app-pull\material
+git add app-pull
+git commit -m "Pull af EQ og MAT foer oprydning"
+git push
+```
+
+`--out` er ikke pynt: uden den lander pullet i `.canvas-sync\`, som står i
+`.gitignore` — og så når det aldrig frem til mig.
+
+`pull` rører ikke `folder`, så den virker, selv om deploy er spærret.
+Coauthoring-fanen skal være åben på appen.
