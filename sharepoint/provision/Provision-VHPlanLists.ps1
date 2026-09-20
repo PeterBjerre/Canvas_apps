@@ -21,11 +21,19 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)][string] $SiteUrl,
-    [switch] $SeedMasterData
+    [switch] $SeedMasterData,
+    [string] $ClientId = $env:PNP_CLIENT_ID
 )
 
 $ErrorActionPreference = 'Stop'
-Connect-PnPOnline -Url $SiteUrl -Interactive
+
+# PnP.PowerShell 2.x har ingen faelles app-registrering, saa -Interactive
+# KRAEVER et ClientId. Her stod kaldet helt uden, og saa fejler MSAL med
+# "User canceled authentication" - hvilket lyder som om brugeren trykkede
+# fortryd, men ikke er det.
+# Et client id er ikke en hemmelighed - se docs/08-datamapning.md 6B.
+if (-not $ClientId) { $ClientId = '9bc3ab49-b65d-410a-85ad-de819febfddc' }
+Connect-PnPOnline -Url $SiteUrl -Interactive -ClientId $ClientId
 
 # ---------------------------------------------------------------------------
 # Hjaelpefunktioner

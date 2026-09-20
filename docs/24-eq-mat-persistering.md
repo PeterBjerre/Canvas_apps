@@ -478,6 +478,14 @@ Set(varSaveRowId, varMatSpRow.ID);
    Den slutter med at slå `TaskListDocuments` op og skrive dets id ud —
    hold det op mod miljøvariablen `BioSap-Library-TaskListDocuments`.
 
+   Lukker login-vinduet sig selv, eller siger PnP *"User canceled
+   authentication"*, så brug enhedslogin i stedet:
+
+   ```powershell
+   .\sharepoint\provision\Provision-EqMatLists.ps1 `
+       -SiteUrl "https://orsted.sharepoint.com/teams/BioSAPDev" -DeviceLogin
+   ```
+
 2. **Tilføj datakilder i hver app:** `EquipmentItems` (hhv.
    `MaterialItems`) og `MD_RequestIndex`. De tre flows er der allerede.
 
