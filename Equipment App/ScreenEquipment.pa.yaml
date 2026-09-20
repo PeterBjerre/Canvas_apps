@@ -101,7 +101,7 @@ Screens:
                           (IsBlank(Trim(txtDomSearch.Text)) || Trim(txtDomSearch.Text) in Description || Trim(txtDomSearch.Text) in FunctionalLocation || Trim(txtDomSearch.Text) in SerialNumber || Trim(txtDomSearch.Text) in EquipmentNumber),
                           (drpDomStatusFilter.Selected.Value = "alle" ||
                            Status = drpDomStatusFilter.Selected.Value)
-                      )), 8), 1) * 46) + If(IfError(CountRows(colDomRows) = 0, false), 14 + (22), 0)) + 16 + (232 + 14 + (Max(CountRows(Filter(colDomAttachments, RowId = varDomActiveRowId)), 1) * 34) + If(IfError(CountRows(Filter(colDomAttachments, RowId = varDomActiveRowId)) = 0, false), 14 + (36), 0)) + 16 + (104)
+                      )), 8), 1) * 46) + If(IfError(CountRows(colDomRows) = 0, false), 14 + (22), 0)) + 16 + (232 + 14 + (Max(CountRows(Filter(colDomAttachments, RowId = varDomActiveRowId)), 1) * 34) + If(IfError(CountRows(Filter(colDomAttachments, RowId = varDomActiveRowId)) = 0, false), 14 + (36), 0)) + 16 + (138)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -3984,7 +3984,7 @@ Screens:
                                     Text: |-
                                         ="BESKRIVELSE"
                                     Width: |-
-                                        =Parent.Width - 650
+                                        =Min(Parent.Width - 650, 460)
                                     Wrap: |-
                                         =false
                               - txtDomHead1:
@@ -4327,6 +4327,8 @@ Screens:
                                         =LayoutDirection.Horizontal
                                     LayoutGap: |-
                                         =10
+                                    LayoutJustifyContent: |-
+                                        =LayoutJustifyContent.Start
                                     LayoutMinWidth: |-
                                         =0
                                     Width: |-
@@ -4362,7 +4364,7 @@ Screens:
                                           Text: |-
                                               =If(IsBlank(Trim(ThisItem.Description)), "(uden tekst)", ThisItem.Description)
                                           Width: |-
-                                              =Parent.Width - 650
+                                              =Min(Parent.Width - 650, 460)
                                           Wrap: |-
                                               =false
                                     - txtDomRow0:
@@ -5283,7 +5285,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =104
+                            =138
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -5311,6 +5313,45 @@ Screens:
                         Width: |-
                             =Parent.Width
                       Children:
+                        - txtDomSubmitState:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  =If(
+                                      IsBlank(varDomRequestNo),
+                                      "Indmeldingen er ikke sendt til hubben endnu.",
+                                      "Indmelding " & varDomRequestNo & " ligger paa landingssiden."
+                                  )
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =RGBA(26, 34, 49, 1)
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =20
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =13
+                              Text: |-
+                                  =If(
+                                      IsBlank(varDomRequestNo),
+                                      "Indmeldingen er ikke sendt til hubben endnu.",
+                                      "Indmelding " & varDomRequestNo & " ligger paa landingssiden."
+                                  )
+                              Wrap: |-
+                                  =false
                         - conDomSubmitRow:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -5334,6 +5375,148 @@ Screens:
                               Width: |-
                                   =Parent.Width
                             Children:
+                              - btnDomSendDraft:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Send som kladde"
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Secondary
+                                    BorderColor: |-
+                                        =RGBA(215, 222, 232, 1)
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =RGBA(26, 34, 49, 1)
+                                    DisplayMode: |-
+                                        =If(CountRows(Filter(colDomRows, Status <> "submitted")) = 0, DisplayMode.Disabled, DisplayMode.Edit)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =36
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    LayoutMinWidth: |-
+                                        =0
+                                    OnSelect: |-
+                                        =If(
+                                            CountRows(Filter(colDomRows, Status <> "submitted")) = 0,
+                                            Notify("Der er ingen raekker at gemme.", NotificationType.Warning),
+                                        
+                                            IfError(
+                                                If(
+                                                    IsBlank(varDomRequestGuid),
+                                                    Set(varDomRequestGuid, Text(GUID()))
+                                                );
+                                                Set(
+                                                    varDomIdx,
+                                                    Patch(
+                                                        MD_RequestIndex,
+                                                        Coalesce(
+                                                            LookUp(MD_RequestIndex, RequestGuid = varDomRequestGuid),
+                                                            Defaults(MD_RequestIndex)
+                                                        ),
+                                                        {
+                                                            RequestNo: Coalesce(varDomRequestNo, varDomRequestGuid),
+                                                            Domain: { Value: "Equipment" },
+                                                            Status: { Value: "Kladde" },
+                                                            StatusStep: 1,
+                                                            IsOpen: true,
+                                                            RequesterEmail: varDomMe,
+                                                            RequesterName: User().FullName,
+                                                            ShortText: "Equipment: " & CountRows(Filter(colDomRows, Status <> "submitted")) & " raekke(r)",
+                                                            Plant: First(Filter(colDomRows, Status <> "submitted")).Plant,
+                                                            ItemCount: CountRows(Filter(colDomRows, Status <> "submitted")),
+                                                            RequestGuid: varDomRequestGuid,
+                                                            AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/24bf3bbc-601f-480d-a8fe-7cd3180906d1?reqid=" & varDomRequestGuid,
+                                                            LastActionOn: Now(),
+                                                            LastActionBy: varDomMe
+                                                        }
+                                                    )
+                                                );
+                                        
+                                                // Foerste gang bliver indeksraekkens eget ID til nummeret
+                                                If(
+                                                    IsBlank(varDomRequestNo),
+                                                    Set(varDomRequestNo, "EQ-" & Text(varDomIdx.ID, "000000"));
+                                                    Patch(MD_RequestIndex, varDomIdx, { RequestNo: varDomRequestNo })
+                                                );
+                                        
+                                                Patch(
+                                                    EquipmentItems,
+                                                    ForAll(
+                                                        Filter(colDomRows, Status <> "submitted") As R,
+                                                        LookUp(EquipmentItems, ID = R.RowId)
+                                                    ),
+                                                    ForAll(
+                                                        Filter(colDomRows, Status <> "submitted") As R,
+                                                        {
+                                                            RequestNo: varDomRequestNo,
+                                                            RequestGuid: varDomRequestGuid
+                                                        }
+                                                    )
+                                                );
+                                        
+                                                ClearCollect(
+                                                    colDomRows,
+                                                    ForAll(
+                                                        Filter(EquipmentItems, RequesterEmail = varDomMe) As R,
+                                                        {
+                                                            RowId: R.ID,
+                                                            ItemKey: Coalesce(R.ItemKey, ""),
+                                                            RequestNo: Coalesce(R.RequestNo, ""),
+                                                            Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                            FileCount: Coalesce(R.FileCount, 0),
+                                                            Description: Coalesce(R.Description, ""),
+                                                            Plant: Coalesce(R.Plant, ""),
+                                                            RequestType: Coalesce(R.RequestType, ""),
+                                                            EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
+                                                            EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                            Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                            TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                            SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                            FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                            FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
+                                                            FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
+                                                            ClassData: Coalesce(R.ClassData, ""),
+                                                            RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                            Placement: Coalesce(R.Placement, ""),
+                                                            WarrantyStart: R.WarrantyStart,
+                                                            WarrantyEnd: R.WarrantyEnd,
+                                                            LongText: Coalesce(R.LongText, "")
+                                                        }
+                                                    )
+                                                );
+                                        
+                                                Set(varDomInfo, "Gemt som kladde: " & varDomRequestNo);
+                                                Notify("Gemt som kladde som " & varDomRequestNo & " - se den paa landingssiden.", NotificationType.Success),
+                                        
+                                                Set(varDomInfo, "Det fejlede: " & FirstError.Message);
+                                                Notify("Det fejlede: " & FirstError.Message, NotificationType.Error)
+                                            )
+                                        )
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="Send som kladde"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =((App.Width - 64) - 16) / 3
                               - btnDomSubmit:
                                   Control: ModernButton
                                   Properties:
@@ -5362,17 +5545,23 @@ Screens:
                                     OnSelect: |-
                                         =If(
                                             CountRows(Filter(colDomRows, Status = "valid")) = 0,
-                                            Notify("Der er ingen gyldige raekker at indsende.", NotificationType.Warning),
+                                            Notify("Der er ingen faerdige raekker at indsende.", NotificationType.Warning),
                                         
                                             IfError(
-                                                Set(varDomRequestGuid, Text(GUID()));
+                                                If(
+                                                    IsBlank(varDomRequestGuid),
+                                                    Set(varDomRequestGuid, Text(GUID()))
+                                                );
                                                 Set(
                                                     varDomIdx,
                                                     Patch(
                                                         MD_RequestIndex,
-                                                        Defaults(MD_RequestIndex),
+                                                        Coalesce(
+                                                            LookUp(MD_RequestIndex, RequestGuid = varDomRequestGuid),
+                                                            Defaults(MD_RequestIndex)
+                                                        ),
                                                         {
-                                                            RequestNo: varDomRequestGuid,
+                                                            RequestNo: Coalesce(varDomRequestNo, varDomRequestGuid),
                                                             Domain: { Value: "Equipment" },
                                                             Status: { Value: "Indsendt" },
                                                             StatusStep: 2,
@@ -5390,9 +5579,12 @@ Screens:
                                                     )
                                                 );
                                         
-                                                // Nu findes raekken, og dens ID bliver til nummeret
-                                                Set(varDomRequestNo, "EQ-" & Text(varDomIdx.ID, "000000"));
-                                                Patch(MD_RequestIndex, varDomIdx, { RequestNo: varDomRequestNo });
+                                                // Foerste gang bliver indeksraekkens eget ID til nummeret
+                                                If(
+                                                    IsBlank(varDomRequestNo),
+                                                    Set(varDomRequestNo, "EQ-" & Text(varDomIdx.ID, "000000"));
+                                                    Patch(MD_RequestIndex, varDomIdx, { RequestNo: varDomRequestNo })
+                                                );
                                         
                                                 Patch(
                                                     EquipmentItems,
@@ -5442,12 +5634,11 @@ Screens:
                                                     )
                                                 );
                                         
-                                                Set(varDomRowStatus, "submitted");
-                                                Set(varDomInfo, "Indsendt som " & varDomRequestNo);
-                                                Notify("Indsendt som " & varDomRequestNo & " - den ligger nu paa landingssiden.", NotificationType.Success),
+                                                Set(varDomInfo, "Indsendt: " & varDomRequestNo);
+                                                Notify("Indsendt som " & varDomRequestNo & " - se den paa landingssiden.", NotificationType.Success),
                                         
-                                                Set(varDomInfo, "Indsendelsen fejlede: " & FirstError.Message);
-                                                Notify("Indsendelsen fejlede: " & FirstError.Message, NotificationType.Error)
+                                                Set(varDomInfo, "Det fejlede: " & FirstError.Message);
+                                                Notify("Det fejlede: " & FirstError.Message, NotificationType.Error)
                                             )
                                         )
                                     RadiusBottomLeft: |-
@@ -5465,7 +5656,7 @@ Screens:
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
-                                        =((App.Width - 64) - 8) / 2
+                                        =((App.Width - 64) - 16) / 3
                               - btnDomReload:
                                   Control: ModernButton
                                   Properties:
@@ -5540,12 +5731,12 @@ Screens:
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
-                                        =((App.Width - 64) - 8) / 2
+                                        =((App.Width - 64) - 16) / 3
                         - txtDomSubmitNote:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  ="Indsend skriver een raekke i MD_RequestIndex, saa indmeldingen kan ses paa landingssiden. Kun raekker med status valid sendes."
+                                  ="Send som kladde laegger indmeldingen paa landingssiden med status Kladde - den kan stadig rettes. Indsend laaser raekkerne og saetter status til Indsendt. Begge skriver i den SAMME raekke i indekset."
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -5569,6 +5760,6 @@ Screens:
                               Size: |-
                                   =12
                               Text: |-
-                                  ="Indsend skriver een raekke i MD_RequestIndex, saa indmeldingen kan ses paa landingssiden. Kun raekker med status valid sendes."
+                                  ="Send som kladde laegger indmeldingen paa landingssiden med status Kladde - den kan stadig rettes. Indsend laaser raekkerne og saetter status til Indsendt. Begge skriver i den SAMME raekke i indekset."
                               Wrap: |-
                                   =false

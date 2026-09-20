@@ -655,3 +655,60 @@ kender, er ikke en kodefejl — den er en påmindelse om at køre scriptet.
 `draft` gjorde byggeriet rødt af en god grund, og et tjek der er rødt af
 gode grunde bliver ignoreret, næste gang det er rødt af en dårlig.
 Afprøvet: en værdi, *ingen* provisionering opretter, fejler stadig.
+
+
+---
+
+# Runde tre: to slags kladde, og én indeksrække
+
+## De to kladder er ikke det samme
+
+Det var en misforståelse fra min side, og den er værd at holde adskilt:
+
+| | Hvor | Hvad |
+|---|---|---|
+| **Gem kladde** | på rækken | Én række er ikke færdig. `RowStatus = draft`. Den bliver **ikke** sendt med ved Indsend |
+| **Send som kladde** | på indmeldingen | Hele indmeldingen lægges på landingssiden med `Status = Kladde`, så den kan ses og arbejdes videre på. Rækkerne låses **ikke** |
+
+Det var den nederste, du bad om. Den øverste beholder jeg — en halvfærdig
+række skal kunne ligge uden at blive sendt med.
+
+## Én indeksrække, ikke én pr. tryk
+
+Rækken slås op på `RequestGuid` og oprettes kun, hvis den ikke findes:
+
+```
+Patch(
+    MD_RequestIndex,
+    Coalesce(
+        LookUp(MD_RequestIndex, RequestGuid = varDomRequestGuid),
+        Defaults(MD_RequestIndex)
+    ),
+    { … }
+)
+```
+
+Uden `Coalesce` ville *Send som kladde* og derefter *Indsend* give **to**
+rækker på landingssiden for den samme indmelding — og den første ville stå
+som kladde for evigt. Det er samme konstruktion som VH-plan-appens gem.
+
+Nummeret dannes kun første gang. Bagefter er det det samme, uanset hvor
+mange gange der sendes.
+
+**Kun Indsend låser rækkerne.** `RowStatus: submitted` står i præcis én
+gren; en kladde skal stadig kunne rettes, ellers er det ikke en kladde.
+
+## Beskrivelseskolonnen havde intet loft
+
+`MAIN_W` var `Parent.Width - FIXED` — altså "tag resten". På en bred skærm
+blev den over tusind pixels: de øvrige kolonner blev skubbet helt ud til
+højre kant, og imellem dem lå en tom flade på halvdelen af vinduet.
+
+```
+MAIN_W = Min(Parent.Width - 650, 460)
+```
+
+En tabel skal være så bred som sit indhold, ikke som sin beholder.
+
+**Inputfelterne står stadig øverst** — rækkefølgen er `bar → formular →
+liste → dokumenter → indsend`, og det er den, arbejdet følger.
