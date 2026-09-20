@@ -3464,7 +3464,7 @@ Screens:
                                           Height: |-
                                               =110
                                           MaxAttachmentSize: |-
-                                              =50
+                                              =10
                                           MaxAttachments: |-
                                               =10
                                           NoAttachmentsText: |-
@@ -3536,11 +3536,10 @@ Screens:
                                                             CountRows(attDomPicker.Attachments) = 0,
                                                             Notify("Choose one or more files first.", NotificationType.Warning),
                                                     
-                                                            Clear(colDomAttUp);
-                                                            ForAll(
-                                                                attDomPicker.Attachments As F,
-                                                                Collect(
-                                                                    colDomAttUp,
+                                                            ClearCollect(
+                                                                colDomAttUp,
+                                                                ForAll(
+                                                                    attDomPicker.Attachments As F,
                                                                     {
                                                                         Name: F.Name,
                                                                         Ok: IfError(
@@ -4884,11 +4883,14 @@ Screens:
                                             Set(varDomRequestNo, "MAT-" & Text(varDomIdx.ID, "000000"));
                                             Patch(MD_RequestIndex, varDomIdx, { RequestNo: varDomRequestNo });
                                         
-                                            ForAll(
-                                                Filter(colDomRows, Status = "valid") As R,
-                                                Patch(
-                                                    MaterialItems,
-                                                    LookUp(MaterialItems, ID = R.RowId),
+                                            Patch(
+                                                MaterialItems,
+                                                ForAll(
+                                                    Filter(colDomRows, Status = "valid") As R,
+                                                    LookUp(MaterialItems, ID = R.RowId)
+                                                ),
+                                                ForAll(
+                                                    Filter(colDomRows, Status = "valid") As R,
                                                     {
                                                         RequestNo: varDomRequestNo,
                                                         RequestGuid: varDomRequestGuid,

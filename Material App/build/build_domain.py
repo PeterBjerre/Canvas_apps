@@ -401,7 +401,12 @@ def build_attachments():
         "DisplayMode": DM_SEL,
         "Height": "110",
         "MaxAttachments": "10",
-        "MaxAttachmentSize": "50",
+        # 10 MB, ikke 50. App checker advarer ved store filer, og den har
+        # ret i mere end den siger: Attachments-kontrollen holder filen i
+        # hukommelsen som base64, og flowet sender den videre i samme form.
+        # En datablad eller en manual er langt under; 50 MB var et tal, der
+        # stod der, fordi det var stort nok - ikke fordi nogen havde valgt det.
+        "MaxAttachmentSize": "10",
         "NoAttachmentsText": '"Traek dokumenter hertil, eller gennemse"',
         "PaddingBottom": "5", "PaddingLeft": "5",
         "PaddingRight": "5", "PaddingTop": "5",
@@ -597,11 +602,19 @@ def submit_fx():
         f'    Set(varDomRequestNo, "{cfg.PREFIX}-" & Text(varDomIdx.ID, "000000"));\n'
         f"    Patch({cfg.L_INDEX}, varDomIdx, {{ RequestNo: varDomRequestNo }});\n"
         "\n"
-        "    ForAll(\n"
-        f"        {VALID} As R,\n"
-        "        Patch(\n"
-        f"            {cfg.L_ROWS},\n"
-        f"            LookUp({cfg.L_ROWS}, ID = R.RowId),\n"
+        # Patch(kilde, RAEKKER, AENDRINGER) - een skrivning, ikke een pr.
+        # raekke. Her stod Patch inde i ForAll, og App checker melder det
+        # som ForAllWithMutation: mod en datakilde er det eet netvaerkskald
+        # pr. iteration. De to tabeller kommer fra samme filter i samme
+        # raekkefoelge, saa de staar over for hinanden.
+        "    Patch(\n"
+        f"        {cfg.L_ROWS},\n"
+        "        ForAll(\n"
+        f"            {VALID} As R,\n"
+        f"            LookUp({cfg.L_ROWS}, ID = R.RowId)\n"
+        "        ),\n"
+        "        ForAll(\n"
+        f"            {VALID} As R,\n"
         "            {\n"
         "                RequestNo: varDomRequestNo,\n"
         "                RequestGuid: varDomRequestGuid,\n"

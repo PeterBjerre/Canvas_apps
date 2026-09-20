@@ -452,7 +452,62 @@ def main():
             problems.append(f"[14] {name}: vandret scroll, men Stretch klemmer "
                             f"indholdet ned i containerens bredde - brug Start")
 
+    # --- 15. Mutation inde i ForAll (ADVARSEL, ikke fejl) ------------------
+    #
+    # Den her staar for sig og staekker ikke byggeriet. VH-plan-appen har
+    # otte af dem og har koert i lang tid; det er en ydelsessag, ikke en
+    # oversaettelsesfejl, og at goere den til en stopklods ville betyde,
+    # at ingen kunne bygge noget som helst, foer de otte var lavet om.
+    #
+    # App checker melder den samme sag ved deploy. Forskellen er, at den
+    # staar HER, foer en hel runde gennem Studio.
+    # Collect, Patch, Remove og deres slaegtninge inde i et ForAll muterer
+    # maalet EEN gang pr. gennemloeb. Mod en samling betyder det en
+    # regelgenberegning pr. raekke; mod en DATAKILDE betyder det et
+    # netvaerkskald pr. raekke. App checker melder det som
+    # ForAllWithMutation - men foerst efter en hel runde gennem Studio.
+    #
+    # ForAll returnerer en TABEL. Skrivningen kan derfor samles:
+    #     ClearCollect(col, ForAll(kilde, { ... }))
+    #     Patch(kilde, ForAll(raekker), ForAll(aendringer))
+    # Flowkald eller anden per-raekke-adfaerd maa gerne blive i loekken -
+    # det er kun SKRIVNINGEN, der skal ud.
+    warnings = []
+    MUTATORS = ("Collect", "ClearCollect", "Patch", "Remove", "RemoveIf",
+                "UpdateIf", "Clear")
+    MUT_RE = re.compile(r"\b(" + "|".join(MUTATORS) + r")\s*\(")
+
+    def forall_bodies(expr):
+        """Indholdet af hvert ForAll( ... ), parenteserne talt efter."""
+        for m in re.finditer(r"\bForAll\s*\(", expr):
+            i, depth = m.end() - 1, 0
+            while i < len(expr):
+                if expr[i] == "(":
+                    depth += 1
+                elif expr[i] == ")":
+                    depth -= 1
+                    if depth == 0:
+                        break
+                i += 1
+            yield expr[m.end():i]
+
+    for p_, name, body in all_nodes:
+        for key, val in (body.get("Properties") or {}).items():
+            if not isinstance(val, str) or "ForAll" not in val:
+                continue
+            for inner in forall_bodies(val):
+                hits = sorted(set(MUT_RE.findall(inner)))
+                if hits:
+                    warnings.append(
+                        f"[15] {name}.{key}: {', '.join(hits)} inde i ForAll "
+                        f"- eet kald pr. raekke. Saml skrivningen udenfor")
+                    break
+
     print(f"Kontroller i alt: {len(all_nodes)}")
+    if warnings:
+        print(f"\n{len(warnings)} advarsel(er) - byggeriet stopper ikke:\n")
+        for x in warnings:
+            print("  " + x)
     if problems:
         print(f"\n{len(problems)} problem(er):\n")
         for x in problems:

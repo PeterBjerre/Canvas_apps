@@ -183,6 +183,30 @@ Et barn med `Visible = false` regnes ikke med i højden — præcis som
 AutoLayout gør det. Kun det *litterale* `false`; en `Visible`-formel kan jo
 være sand, og så skal pladsen være der.
 
+## Regel 15 er en advarsel, ikke en fejl
+
+`check_layout.py` melder `Collect`, `Patch`, `Remove` og deres slægtninge
+**inde i et `ForAll`** — men stopper ikke byggeriet.
+
+Mod en samling er det én regelgenberegning pr. række; mod en **datakilde**
+er det et netværkskald pr. række. App checker melder det samme ved deploy
+som `ForAllWithMutation`. Forskellen er, at det står her, før en hel runde
+gennem Studio.
+
+`ForAll` returnerer en **tabel**, så skrivningen kan samles:
+
+```
+ClearCollect(col, ForAll(kilde, { ... }))
+Patch(kilde, ForAll(raekker), ForAll(aendringer))
+```
+
+Flowkald og anden adfærd pr. række må gerne blive i løkken — det er kun
+**skrivningen**, der skal ud.
+
+VH-plan-appen har otte af dem og kører. Derfor er den en advarsel: at gøre
+den til en stopklods ville betyde, at ingen kunne bygge noget, før de otte
+var lavet om. De to domæneapps er rene.
+
 ## Synkronisér til Studio
 
 Uden agent, i en terminal — samme MCP-server, uden credits:
