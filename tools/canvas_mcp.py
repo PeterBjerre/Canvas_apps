@@ -272,40 +272,15 @@ class McpClient:
 
 # ------------------------------------------------------------ konfiguration
 
-def load_config():
-    """Laes tools/canvas_apps.json - og sig hvad der er galt, hvis den er
-    i stykker.
+def load_config(env_name=None):
+    """Det valgte miljoe, fladt - som resten af filen forventer.
 
-    Filen redigeres i haanden, hvert eneste gang et app-id skal ind.
-    Derfor er en oedelagt JSON ikke et kantetilfaelde, det er DEN
-    forventede fejl - og en raa JSONDecodeError med ti linjer traceback
-    fortaeller hverken hvilken fil eller hvilken linje det drejer sig om.
-    """
-    try:
-        with open(CONFIG, "r", encoding="utf-8") as f:
-            raw = f.read()
-    except OSError as e:
-        raise SystemExit("Kan ikke laese %s: %s" % (CONFIG, e))
-    try:
-        return json.loads(raw)
-    except ValueError as e:
-        lines = raw.splitlines()
-        n = getattr(e, "lineno", 0) or 0
-        out("")
-        out("tools/canvas_apps.json er ikke gyldig JSON:")
-        out("   %s" % e)
-        out("")
-        for i in range(max(1, n - 2), min(len(lines), n + 2) + 1):
-            out("   %s%4d | %s" % (">" if i == n else " ", i, lines[i - 1]))
-        if n:
-            out("")
-        out("De to almindelige aarsager, naar et app-id er sat ind i haanden:")
-        out("  - et komma for meget efter den SIDSTE linje i en blok")
-        out("  - et komma for lidt efter linjen foer den nye")
-        out("")
-        out("Filen ligger i git og er gyldig der. Hurtigste vej tilbage:")
-        out("    git checkout tools/canvas_apps.json")
-        raise SystemExit(1)
+    Selve laesningen ligger i tools/env_config.py, saa builderne og deploy
+    ser PRAECIS det samme miljoe. Laa den to steder, kunne man bygge mod
+    eet miljoe og deploye til et andet - og det ville ingenting sige."""
+    import env_config
+    cfg = env_config.resolve(env_name)
+    return cfg
 
 
 def pick_app(cfg, key):
@@ -330,7 +305,8 @@ def pick_app(cfg, key):
         if not app.get(k):
             app[k] = cfg.get(k)
     if not app.get("environment_id"):
-        raise SystemExit("environment_id mangler i tools/canvas_apps.json.")
+        raise SystemExit("environment_id mangler i tools/canvas_apps.json "
+                         "for miljoeet '%s'." % cfg.get("name"))
     return app
 
 

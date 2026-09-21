@@ -1,53 +1,64 @@
 {
   "_kommentar": [
-    "Konfiguration til tools/canvas_mcp.py.",
+    "MILJOE OG APP-ID'ER - eet sted.",
+    "",
+    "Foer stod det samme miljoe-id og de samme app-id'er FIRE steder:",
+    "her, i hub_config.py, i de to domaineapps' domain_config.py og i",
+    "VH-plans sp_config.py. De blev holdt sammen af check_app_ids() i",
+    "build_all.py - 60 linjer, der laeste tre af filerne med REGEX.",
+    "",
+    "Nu laeser builderne dem herfra via tools/env_config.py, og vagten er",
+    "slettet: den fejlklasse kan ikke opstaa laengere.",
+    "",
+    "AT TILFOEJE ET MILJOE er en blok mere under 'environments'. Byg mod",
+    "det med:   python3 tools/build_all.py --env prod",
+    "",
     "environment_id og app_id staar i Studio-URL'en:",
     "  https://make.powerapps.com/e/<environment_id>/canvas/?action=edit&app-id=...%2Fapps%2F<app_id>",
-    "environment_category udledes af vaertsnavnet: make.powerapps.com -> prod,",
-    "make.preprod.powerapps.com -> preprod, make.gov.powerapps.us -> gov,",
-    "make.high.powerapps.us -> high, make.apps.appsplatform.us -> dod,",
+    "App-id'et staar IKKE i solution-eksporten. Det Id, der staar i en",
+    "apps Properties.json, er DOKUMENTETS id, ikke appens.",
+    "",
+    "environment_category udledes af vaertsnavnet: make.powerapps.com ->",
+    "prod, make.preprod.powerapps.com -> preprod, make.gov.powerapps.us ->",
+    "gov, make.high.powerapps.us -> high, make.apps.appsplatform.us -> dod,",
     "make.powerapps.cn -> china, alt andet -> test.",
-    "Aeldre serverudgaver kender ikke environment_category; scriptet sender",
-    "kun de parametre, serverens eget skema naevner."
+    "",
+    "DEPLOY ERSTATTER APPENS INDHOLD med det, builderne laver - det er hele",
+    "pointen, men det betyder ogsaa, at en skaerm, nogen har bygget i",
+    "Studio uden om repoet, forsvinder. Byg foerst, deploy bagefter."
   ],
-  "environment_id": "e0f8f822-d16a-e878-ba4e-fb42bc617e47",
-  "environment_category": "prod",
+  "default_environment": "dev",
   "mcp_package_args": [
     "Microsoft.PowerApps.CanvasAuthoring.McpServer",
     "--yes"
   ],
-  "apps": {
-    "vhplan": {
-      "navn": "VH-plan",
-      "folder": "Maintenance Plan App",
-      "app_id": "11fa8d90-868a-45a4-ba23-28f2cf0671a2"
-    },
-    "hub": {
-      "navn": "Masterdata Hub",
-      "folder": "Masterdata Hub",
-      "app_id": "f387047d-86af-4d6a-8370-afcf35939436"
-    },
-    "_kommentar_appid": [
-      "Id'et staar IKKE i solution-eksporten. Det Id, der staar i en app's",
-      "Properties.json, er DOKUMENTETS id, ikke app'ens. De to nedenfor er",
-      "app'ernes, hentet i Studio-URL'en.",
-      "",
-      "folder peger nu paa builderne. DEPLOY ERSTATTER APP'ENS INDHOLD med",
-      "det, builderne laver - det er hele pointen, men det betyder ogsaa,",
-      "at en skaerm, nogen har bygget i Studio uden om repoet, forsvinder.",
-      "Byg foerst, deploy bagefter:",
-      "    python3 tools/build_all.py",
-      "    python tools/canvas_mcp.py deploy --app equipment"
-    ],
-    "equipment": {
-      "navn": "Equipments",
-      "folder": "Equipment App",
-      "app_id": "24bf3bbc-601f-480d-a8fe-7cd3180906d1"
-    },
-    "material": {
-      "navn": "Materials",
-      "folder": "Material App",
-      "app_id": "d7762919-c716-4bd0-9abd-24bab436221f"
+  "environments": {
+    "dev": {
+      "_navn": "Bioenergy Solutions DEV, solution BIO SAP",
+      "environment_id": "e0f8f822-d16a-e878-ba4e-fb42bc617e47",
+      "environment_category": "prod",
+      "apps": {
+        "hub": {
+          "navn": "Masterdata Hub",
+          "folder": "Masterdata Hub",
+          "app_id": "f387047d-86af-4d6a-8370-afcf35939436"
+        },
+        "vhplan": {
+          "navn": "VH-plan",
+          "folder": "Maintenance Plan App",
+          "app_id": "11fa8d90-868a-45a4-ba23-28f2cf0671a2"
+        },
+        "equipment": {
+          "navn": "Equipments",
+          "folder": "Equipment App",
+          "app_id": "24bf3bbc-601f-480d-a8fe-7cd3180906d1"
+        },
+        "material": {
+          "navn": "Materials",
+          "folder": "Material App",
+          "app_id": "d7762919-c716-4bd0-9abd-24bab436221f"
+        }
+      }
     }
   }
 }
