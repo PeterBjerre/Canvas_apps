@@ -10,6 +10,11 @@ from build_plan_header import section_header, help_panel
 import build_help as bh
 from build_strategy import build_strategy_body, IS_STRATEGY
 import sp_config as cfg
+from design_tokens import ref_hex
+
+# HTML kender ikke RGBA(). ref_hex giver den SAMME token som hex.
+MUT_HEX = ref_hex("text-muted")
+PRI_HEX = ref_hex("text-primary")
 import build_attflows as att
 
 DM_ITEM = "If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)"
@@ -97,7 +102,11 @@ def _ops_header_html():
         "\"<style>html,body{margin:0;padding:0;overflow:hidden}</style>"
         f"<div style='display:grid;grid-template-columns:{cols};"
         f"column-gap:{OPS_GAP}px;align-items:center;height:21px;line-height:21px;overflow:hidden;"
-        "color:#59667A;font-family:Segoe UI;font-size:11px;font-weight:600;white-space:nowrap;'>"
+        # Farven kommer fra den SAMME token som resten af appen. Foer stod
+        # der "#59667A" - det rigtige tal, men uden nogen forbindelse til
+        # 'text-muted'. I moerk tilstand blev overskriften staaende
+        # moerkegraa paa moerk baggrund.
+        "color:\" & " + MUT_HEX + " & \";font-family:Segoe UI;font-size:11px;font-weight:600;white-space:nowrap;'>"
         f"{spans}</div>\""
     )
 
@@ -129,12 +138,13 @@ def _ops_totals_html():
         "span{overflow:hidden;text-overflow:ellipsis}</style>"
         f"<div style='display:grid;grid-template-columns:{cols};"
         f"column-gap:{OPS_GAP}px;align-items:center;height:23px;line-height:23px;overflow:hidden;"
-        "color:#1B2A41;font-family:Segoe UI;font-size:12px;font-weight:700;white-space:nowrap;'>\""
+        "color:\" & " + PRI_HEX + " & \";font-family:Segoe UI;font-size:12px;font-weight:700;white-space:nowrap;'>\""
     )
     parts = [head]
     for title, _ in OPS_COLS:
         if title == "OPERATION SHORT TEXT":
-            parts.append("\"<span style='color:#59667A;font-weight:600'>Total for this item</span>\"")
+            parts.append("\"<span style='color:\" & " + MUT_HEX +
+                         " & \";font-weight:600'>Total for this item</span>\"")
         elif title in _TOTALS:
             parts.append("\"<span>\" & " + _TOTALS[title] + " & \"</span>\"")
         else:
@@ -221,7 +231,7 @@ def _mat_header_html():
     return ("\"<style>html,body{margin:0;padding:0;overflow:hidden}</style>"
             f"<div style='display:grid;grid-template-columns:{cols};"
             f"column-gap:{MAT_GAP}px;align-items:center;height:21px;line-height:21px;"
-            "overflow:hidden;color:#59667A;font-family:Segoe UI;font-size:11px;"
+            "overflow:hidden;color:\" & " + MUT_HEX + " & \";font-family:Segoe UI;font-size:11px;"
             f"font-weight:600;white-space:nowrap;'>{spans}</div>\"")
 
 

@@ -13,7 +13,7 @@ ordret ens, FOER der bygges. Er de ikke, staar der hvilken fil det er, og
 hvilken app der har den nyeste udgave.
 """
 import argparse
-import os, shutil, subprocess, sys, filecmp
+import os, re, shutil, subprocess, sys, filecmp
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SHARED = ["gen_screen.py", "build_helpers.py", "check_layout.py"]
@@ -63,6 +63,68 @@ def check_shared():
     if DOMAIN_APPS:
         _compare([(a, os.path.join(ROOT, a, "build")) for a in DOMAIN_APPS],
                  DOMAIN_SHARED, bad)
+    return bad
+
+
+def check_no_raw_colors():
+    """Ingen builder maa skrive en farve. Farver er DESIGNTOKENS.
+
+    Fanger to ting:
+
+      RGBA(...)   en farve skrevet direkte i en kontrol. Den ville ikke
+                  skifte med temaet - kontrollen ville blive staaende lys
+                  i moerk tilstand.
+      #rrggbb     det samme inde i en HTML-streng. Den fejl er vaerre,
+                  fordi den ikke ligner en farve for den, der laeser
+                  koden: den staar midt i "font-family:Segoe UI".
+
+    Begge har vaeret der. Se tools/design_tokens.py for hvor farven hoerer
+    hjemme, og brug ref() eller ref_hex().
+
+    HVORFOR ast OG IKKE ET REGEX OVER LINJERNE
+    ------------------------------------------
+    Foerste udgave laeste linjer og forsoegte at klippe kommentarer af ved
+    et '#'. Den gav to falske fund med det samme - begge var en kommentar,
+    der FORKLAREDE, at farven ikke maa staa der. En vagt, der melder om
+    sin egen dokumentation, bliver slaaet fra.
+
+    Her laeses kun STRENGKONSTANTER, og docstrings springes over. En
+    kommentar findes slet ikke i et syntakstrae, saa den kan ikke tages
+    fejl af kode. f-strenge er med: deres faste dele er ogsaa konstanter.
+    """
+    import ast, glob
+    rgba = re.compile(r"RGBA\s*\(")
+    hexc = re.compile(r"#[0-9a-fA-F]{6}\b")
+    bad = []
+    for app, _ in APPS:
+        for path in sorted(glob.glob(os.path.join(ROOT, app, "build", "*.py"))):
+            rel = os.path.relpath(path, ROOT)
+            src = open(path, encoding="utf-8").read()
+            try:
+                tree = ast.parse(src)
+            except SyntaxError as e:
+                bad.append(f"{rel}: kan ikke parses ({e})")
+                continue
+            docs = set()
+            for node in ast.walk(tree):
+                if isinstance(node, (ast.Module, ast.FunctionDef,
+                                     ast.AsyncFunctionDef, ast.ClassDef)):
+                    b = node.body
+                    if (b and isinstance(b[0], ast.Expr)
+                            and isinstance(b[0].value, ast.Constant)
+                            and isinstance(b[0].value.value, str)):
+                        docs.add(id(b[0].value))
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.Constant):
+                    continue
+                if not isinstance(node.value, str) or id(node) in docs:
+                    continue
+                if rgba.search(node.value):
+                    bad.append(f"{rel}:{node.lineno}: RGBA(...) i en builder "
+                               f"- brug design_tokens.ref()")
+                elif hexc.search(node.value):
+                    bad.append(f"{rel}:{node.lineno}: hex-farve i en builder "
+                               f"- brug design_tokens.ref_hex()")
     return bad
 
 
@@ -218,6 +280,15 @@ def main(argv=None):
         for b in bad:
             print("  " + b)
         print("\nRet i EEN app-mappe og kopier filen til de oevrige.")
+        return 1
+
+    bad = check_no_raw_colors()
+    if bad:
+        print("Der staar farver i builderne:\n")
+        for b in bad:
+            print("  " + b)
+        print("\nFarver hoerer i tools/design_tokens.py. En farve skrevet")
+        print("her ville ikke skifte med temaet.")
         return 1
 
     bad = check_app_ids()

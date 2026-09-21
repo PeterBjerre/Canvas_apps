@@ -6,6 +6,13 @@ Landingssiden har EEN datakilde: SharePoint-listen MD_RequestIndex. De fem
 domaeneapps skriver hver en opsummeringsraekke til den fra deres submit-flow.
 Se docs/07-landingsside.md.
 """
+import os
+import sys
+
+sys.path.insert(0, os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    "tools"))
+from design_tokens import ref as _t
 
 # Navnet paa listen som den hedder, naar den er tilfoejet appen som datakilde.
 LIST = "MD_RequestIndex"
@@ -35,24 +42,28 @@ COL_NO = "RequestNo"
 # ---------------------------------------------------------------------------
 ENV_ID = "e0f8f822-d16a-e878-ba4e-fb42bc617e47"
 
+# Flisernes stribefarve er en DESIGNTOKEN, ikke et tal. Otte af de ni
+# statusfarver herunder var i forvejen vaerdier, der havde et navn i
+# gen_screen.py - de var bare skrevet af som tal, saa de ikke fulgte med,
+# naar nogen aendrede navnet. Se tools/design_tokens.py.
 DOMAINS = [
     {"key": "FunctionalLocation", "short": "FL",  "name": "Functional location",
-     "color": "RGBA(0, 103, 174, 1)",  "app_id": None},
+     "color": _t("domain-fl"),  "app_id": None},
     # "Equipments" i solutionen - IKKE den aeldre app udenfor
     # (dd9544e2-a0aa-4713-a076-7637080a40fc), som flisen pegede paa,
     # indtil den nye havde et id. De to skal blive ved med at foelges ad
     # med tools/canvas_apps.json: deployer builderne eet sted og aabner
     # flisen et andet, ser appen bare forkert ud for brugeren.
     {"key": "Equipment",          "short": "EQ",  "name": "Equipment",
-     "color": "RGBA(14, 124, 134, 1)",
+     "color": _t("domain-eq"),
      "app_id": "24bf3bbc-601f-480d-a8fe-7cd3180906d1"},
     {"key": "MeasuringPoint",     "short": "MP",  "name": "Measuring point",
-     "color": "RGBA(21, 127, 92, 1)",  "app_id": None},
+     "color": _t("domain-mp"),  "app_id": None},
     {"key": "Material",           "short": "MAT", "name": "Material",
-     "color": "RGBA(154, 99, 0, 1)",
+     "color": _t("domain-mat"),
      "app_id": "d7762919-c716-4bd0-9abd-24bab436221f"},
     {"key": "MaintenancePlan",    "short": "VHP", "name": "Maintenance plan",
-     "color": "RGBA(109, 74, 166, 1)",
+     "color": _t("domain-vhp"),
      "app_id": "11fa8d90-868a-45a4-ba23-28f2cf0671a2"},
 ]
 
@@ -86,16 +97,15 @@ for _d in DOMAINS:
 # step 1-5 baeres som tal i indekset, saa hubben kan tegne forloebet uden at
 # kende domaenespecifikke statusvaerdier. step 0 = afsluttet uden oprettelse.
 # ---------------------------------------------------------------------------
-C_MUTED_ = "RGBA(89, 102, 122, 1)"
 STATUS = [
-    ("Kladde",          "Draft",          1, C_MUTED_,               "RGBA(228, 233, 241, 1)"),
-    ("Indsendt",        "Submitted",      2, "RGBA(0, 83, 140, 1)",  "RGBA(222, 240, 252, 1)"),
-    ("UnderBehandling", "In progress",    3, "RGBA(0, 83, 140, 1)",  "RGBA(222, 240, 252, 1)"),
-    ("AfventerInfo",    "Awaiting info",  3, "RGBA(138, 90, 0, 1)",  "RGBA(253, 243, 226, 1)"),
-    ("KlarTilSAP",      "Ready for SAP",  4, "RGBA(21, 127, 92, 1)", "RGBA(232, 245, 238, 1)"),
-    ("OprettetISAP",    "Created in SAP", 5, "RGBA(21, 127, 92, 1)", "RGBA(232, 245, 238, 1)"),
-    ("Afvist",          "Rejected",       0, "RGBA(179, 50, 60, 1)", "RGBA(253, 236, 236, 1)"),
-    ("Annulleret",      "Cancelled",      0, C_MUTED_,               "RGBA(228, 233, 241, 1)"),
+    ("Kladde",          "Draft",          1, _t("state-neutral-fg"), _t("state-neutral-bg")),
+    ("Indsendt",        "Submitted",      2, _t("state-info-fg"),    _t("state-info-bg")),
+    ("UnderBehandling", "In progress",    3, _t("state-info-fg"),    _t("state-info-bg")),
+    ("AfventerInfo",    "Awaiting info",  3, _t("state-warn-fg"),    _t("state-warn-bg")),
+    ("KlarTilSAP",      "Ready for SAP",  4, _t("state-ok-fg"),      _t("state-ok-bg")),
+    ("OprettetISAP",    "Created in SAP", 5, _t("state-ok-fg"),      _t("state-ok-bg")),
+    ("Afvist",          "Rejected",       0, _t("state-error-fg"),   _t("state-error-bg")),
+    ("Annulleret",      "Cancelled",      0, _t("state-neutral-fg"), _t("state-neutral-bg")),
 ]
 
 

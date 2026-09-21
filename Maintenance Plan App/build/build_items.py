@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED, C_PRIMARY, C_WHITE,
                         C_INFO_FG, C_INFO_BG, C_VALID_FG, C_VALID_BG, C_INVALID_FG, C_INVALID_BG,
                         C_NEUTRAL_FG, C_NEUTRAL_BG, C_INPUT_BG, FONT, SHELL_W, EDITOR_W, RAIL_W,
-                        SPLIT_GAP)
+                        SPLIT_GAP, C_TRANSPARENT)
 from build_helpers import (text_ctrl, group, button, button_row, text_input, number_input, dropdown,
                            label_row, field_cell, row_n, col_width, badge, card, combobox, poll_timer,
                            TWO_COL_MIN, HINTS_ON)
@@ -238,7 +238,7 @@ def build_items_rail():
         props={
             "AccessibleLabel": "\"VH-plan items\"",
             "BorderStyle": "BorderStyle.None",
-            "Fill": "RGBA(0, 0, 0, 0)",
+            "Fill": C_TRANSPARENT,
             "FillPortions": "0",
             "Height": ITEMS_GAL_H,
             "Items": "Sort(colVhpItems, ItemId)",

@@ -27,34 +27,68 @@ stack_height()/row_height() taeller selv padding og gaps med, saa de ikke kan
 glemmes et enkelt sted.
 """
 import os
+import sys
 
-OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+HERE = os.path.dirname(os.path.abspath(__file__))
+OUT_DIR = os.path.join(HERE, "..")
+
+# Designtokens ligger EET sted for hele repoet - ikke i en kopi pr.
+# build-mappe som denne fil selv. Farven er det eneste, de fire apps skal
+# vaere enige om ned til vaerdien, og en kopi ville netop kunne glide.
+#
+# tools/ er udenfor app-mappen, og det er med vilje ufarligt her:
+# canvas_mcp.stage() kopierer KUN *.pa.yaml over til serveren, saa hverken
+# build/ eller tools/ naar nogensinde ud i Studio.
+ROOT = os.path.dirname(os.path.dirname(HERE))
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+from design_tokens import ref as _t, TRANSPARENT
 
 # ---------------------------------------------------------------------------
-# Style constants (matched to ScreenMaterialer.pa.yaml / ScreenDetails.pa.yaml)
+# Farver
+#
+# Ingen vaerdi staar her. Hvert navn peger paa en DESIGNTOKEN, og tokenens
+# vaerdi staar i tools/design_tokens.py - eet sted for alle fire apps.
+#
+# Det, en builder skriver i en skaerm, er derfor ikke "RGBA(250, 251, 253, 1)"
+# men "C.'bg-card'". C er en navngiven formel i App.Formulas, der vaelger
+# mellem det lyse og det moerke saet. Derfor skifter hele appen tema uden at
+# en eneste kontrol ved, at moerk tilstand findes.
+#
+# Navnene nedenfor er de GAMLE C_*-navne. De staar i knap 500 kald ude i
+# builderne, og at doebe dem om ville vaere en anden aendring end den her.
 # ---------------------------------------------------------------------------
-C_APP_BG = "RGBA(237, 241, 247, 1)"
-C_CARD_BG = "RGBA(250, 251, 253, 1)"
-C_CARD_BORDER = "RGBA(215, 222, 232, 1)"
-C_TITLE = "RGBA(26, 34, 49, 1)"
-C_MUTED = "RGBA(89, 102, 122, 1)"
-C_REQUIRED = "RGBA(179, 50, 60, 1)"
-C_PRIMARY = "RGBA(0, 103, 174, 1)"
-C_PRIMARY2 = "RGBA(0, 122, 204, 1)"
-C_WHITE = "RGBA(255, 255, 255, 1)"
-C_TRANSPARENT = "RGBA(0, 0, 0, 0)"
-C_INPUT_BG = "RGBA(255, 255, 255, 1)"
-C_DISABLED_BG = "RGBA(240, 243, 248, 1)"
-C_DIVIDER = "RGBA(228, 233, 241, 1)"
+C_APP_BG = _t("bg-app")
+C_CARD_BG = _t("bg-card")
+C_SURFACE = _t("bg-surface")
+C_MUTED_BG = _t("bg-muted")
+C_CARD_BORDER = _t("border-default")
+C_TITLE = _t("text-primary")
+C_MUTED = _t("text-muted")
+C_REQUIRED = _t("state-error-fg")
+C_PRIMARY = _t("color-brand-primary")
+C_PRIMARY2 = _t("color-brand-primary-hover")
+C_PRIMARY_SOFT = _t("color-brand-primary-soft")
+C_WHITE = _t("text-on-primary")
+C_INPUT_BG = _t("input-bg")
+C_DISABLED_BG = _t("input-bg-disabled")
+C_DIVIDER = _t("border-subtle")
+C_MODAL_BG = _t("bg-modal")
+C_OVERLAY = _t("overlay")
 
-C_VALID_FG = "RGBA(21, 127, 92, 1)"
-C_VALID_BG = "RGBA(232, 245, 238, 1)"
-C_INVALID_FG = "RGBA(179, 50, 60, 1)"
-C_INVALID_BG = "RGBA(253, 236, 236, 1)"
-C_INFO_FG = "RGBA(0, 83, 140, 1)"
-C_INFO_BG = "RGBA(222, 240, 252, 1)"
-C_NEUTRAL_FG = "RGBA(89, 102, 122, 1)"
-C_NEUTRAL_BG = "RGBA(228, 233, 241, 1)"
+# Gennemsigtig er IKKE en token: den er den samme i begge temaer, og der
+# er ingen beslutning at traeffe om den.
+C_TRANSPARENT = TRANSPARENT
+
+C_VALID_FG = _t("state-ok-fg")
+C_VALID_BG = _t("state-ok-bg")
+C_INVALID_FG = _t("state-error-fg")
+C_INVALID_BG = _t("state-error-bg")
+C_WARN_FG = _t("state-warn-fg")
+C_WARN_BG = _t("state-warn-bg")
+C_INFO_FG = _t("state-info-fg")
+C_INFO_BG = _t("state-info-bg")
+C_NEUTRAL_FG = _t("state-neutral-fg")
+C_NEUTRAL_BG = _t("state-neutral-bg")
 
 FONT = "Font.'Segoe UI'"
 

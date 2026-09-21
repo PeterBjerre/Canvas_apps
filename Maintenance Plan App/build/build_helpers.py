@@ -9,6 +9,7 @@ YAML'en refererer andre kontrollers .Height. Se gen_screen.stack_height.
 """
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from design_tokens import DARK_VAR, toggle_action
 from gen_screen import (
     Ctrl, render, render_screen, stack_height, row_height,
     C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED,
@@ -164,6 +165,35 @@ def button(name, text, onselect, primary=False, danger=False, width=140, height=
     if visible is not None:
         props["Visible"] = visible
     return Ctrl(name, "ModernButton", props=props, h=height, vis=visible)
+
+
+def theme_button(name="btnThemeToggle", light_label='"Moerk"',
+                 dark_label='"Lys"', width=92, height=34):
+    """Knappen der skifter mellem lyst og moerkt tema.
+
+    SAMME KONSTRUKTION I ALLE FIRE APPS. Det er hele pointen: en knap, der
+    ser forskellig ud fra app til app, er praecis den slags drift, der har
+    gjort de fire apps forskellige indtil nu.
+
+    TEKSTEN SIGER HVAD DER SKER, IKKE HVAD DER ER
+    ---------------------------------------------
+    Staar appen lyst, staar der "Moerk" paa knappen. Det er den samme
+    konvention som i Windows og i browsere - en knap er en handling, ikke
+    en tilstandsvisning. AccessibleLabel siger det udfoerligt, fordi et
+    enkelt ord uden knappens udseende ikke er nok for en skaermlaeser.
+
+    HVORFOR SEKUNDAER
+    -----------------
+    Den skal kunne findes og ellers vaere i fred. En primaerfarvet knap
+    ville traekke oejet til sig hver gang skaermen tegnes, og temaskift er
+    noget man goer een gang.
+
+    Handlingen staar i tools/design_tokens.py - baade Set() og SaveData,
+    saa valget ogsaa er der i morgen."""
+    lbl = f"If({DARK_VAR}, {dark_label}, {light_label})"
+    acc = (f'If({DARK_VAR}, "Skift til lyst tema", "Skift til moerkt tema")')
+    return button(name, lbl, toggle_action(), width=width, height=height,
+                  accessible=acc)
 
 
 def button_row(name, buttons, container_w, gap=8, height=36, align_items="Center"):

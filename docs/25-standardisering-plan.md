@@ -1,6 +1,6 @@
 # 25 – Standardisering af de fire apps og af Python-builderne
 
-Oplæg til beslutning. **Intet er ændret endnu.** Alt nedenfor er målt på
+Oplæg til beslutning. Alt nedenfor var målt på
 repoet som det står i dag (bygget og efterprøvet med
 `python3 tools/build_all.py` — alt grønt, og byggeriet er deterministisk:
 `git status` er rent bagefter).
@@ -10,6 +10,17 @@ de er *forskellige*, hvert sted hvor en beslutning blev taget i den ene app
 en måned før den anden. Det her er listen over de steder.
 
 ---
+
+> **Status 21-09-2026:** §1 (ét farvemodul) er lavet — og gik videre end
+> planen her foreslog. Farverne er ikke bare samlet ét sted; de er lagt om
+> til **designtokens** læst gennem en navngiven formel, hvilket gav mørk
+> tilstand med. Se `docs/26-designtokens.md`.
+>
+> §2 (feltfarvning), §3 (miljø og app-id'er), §4 (`shared/`), §5
+> (`check_layout`), §6 (`AccessibleLabel`) og §7 (døde filer) står stadig.
+> §5 fik dog en delrettelse undervejs: regel 8 så ikke på skærmens egne
+> egenskaber, og overså dermed de samlinger, Equipment og Material henter
+> i `OnVisible`.
 
 ## Sammenfatning: hvad der bør gøres, i den rækkefølge
 
