@@ -16,7 +16,21 @@ import argparse
 import os, re, shutil, subprocess, sys, filecmp
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SHARED = ["gen_screen.py", "build_helpers.py", "check_layout.py"]
+# EN UDGAVE, IKKE FIRE KOPIER
+#
+# gen_screen.py, build_helpers.py, check_layout.py, build_domain.py,
+# attflows.py og build_flsearch.py laa foer som ordrette kopier i hver
+# app's build-mappe - 5.863 af 14.825 linjer Python, 39%. De ligger nu i
+# tools/ i EEN udgave, og indgangene saetter tools/ paa sys.path.
+#
+# Derfor er check_shared() og _compare() vaek: der ER ikke kopier, der kan
+# glide fra hinanden. Det eneste, der stadig skal holdes i trit, er de to
+# domaeneindgange - se DOMAIN_SHARED.
+#
+# Begrundelsen for kopierne var, at Power Apps' VS Code-vaerktoejskaede
+# fjernede et delt modul udenfor app-mappen igen. Den gaelder ikke den vej,
+# der bruges i dag: canvas_mcp.stage() kopierer KUN *.pa.yaml over til
+# serveren, saa hverken build/ eller tools/ naar nogensinde derud.
 
 # (app-mappe, [scripts der skal koeres, i raekkefoelge])
 APPS = [
@@ -26,12 +40,13 @@ APPS = [
     ("Material App",         ["generate_app_onstart.py", "assemble_screen.py"]),
 ]
 
-# Equipment og Materials er DEN SAMME app. Kun domain_config.py skiller
-# dem - felterne og listenavnet. Resten skal derfor ogsaa vaere ordret
-# ens, og bliver det kun, hvis nogen tjekker det.
 DOMAIN_APPS = ["Equipment App", "Material App"]
-DOMAIN_SHARED = ["build_domain.py", "attflows.py",
-                 "generate_app_onstart.py", "assemble_screen.py"]
+
+# Equipment og Materials er den samme app. Efter flytningen til tools/ er
+# kun de to INDGANGE tilbage som kopier - resten ligger i tools/. De er
+# smaa, men de skal stadig vaere ordret ens, ellers bygger de to apps
+# forskelligt.
+DOMAIN_SHARED = ["generate_app_onstart.py", "assemble_screen.py"]
 
 
 def build_dirs():
@@ -55,14 +70,11 @@ def _compare(dirs, names, bad):
                            f"(nyest rettet i '{newer}' - kopier derfra)")
 
 
-def check_shared():
-    """De faelles filer skal vaere ordret ens - de tre i ALLE build-mapper,
-    og de fire domaenefiler i de to domaeneapper."""
+def check_domain_shared():
+    """De to domaeneindgange skal vaere ordret ens."""
     bad = []
-    _compare(build_dirs(), SHARED, bad)
-    if DOMAIN_APPS:
-        _compare([(a, os.path.join(ROOT, a, "build")) for a in DOMAIN_APPS],
-                 DOMAIN_SHARED, bad)
+    _compare([(a, os.path.join(ROOT, a, "build")) for a in DOMAIN_APPS],
+             DOMAIN_SHARED, bad)
     return bad
 
 
@@ -294,12 +306,12 @@ def main(argv=None):
     # De to tjek nedenfor koerer ALTID, ogsaa maalrettet. De tager
     # millisekunder, og de handler netop om det, en maalrettet bygning
     # ellers ville springe over: at apperne ikke glider fra hinanden.
-    bad = check_shared()
+    bad = check_domain_shared()
     if bad:
-        print("De faelles filer er gledet fra hinanden:\n")
+        print("Equipments og Materials er gledet fra hinanden:\n")
         for b in bad:
             print("  " + b)
-        print("\nRet i EEN app-mappe og kopier filen til de oevrige.")
+        print("\nRet i EEN af de to mapper og kopier filen til den anden.")
         return 1
 
     bad = check_no_raw_colors()
@@ -338,6 +350,25 @@ def main(argv=None):
                 print(f"  -> {s} fejlede. Springer resten af '{app}' over, "
                       f"saa tjekkene ikke svarer paa en gammel skaerm.")
                 break
+
+    # Landede der en skaerm det forkerte sted?
+    #
+    # Den her fandtes ikke, og det kostede: da gen_screen.py flyttede fra
+    # hver app's build-mappe til tools/, blev dens OUT_DIR ("HERE/..") til
+    # REPO-RODEN. Alle fire skaerme blev skrevet dér, app-mapperne beholdt
+    # deres gamle udgaver, og layout-tjekket sagde "OK" - fordi det laeste
+    # de gamle filer. Groent byggeri, ingen aendring, ingen fejl.
+    #
+    # gen_screen regner nu OUT_DIR ud af indgangen og siger selv fra. Det
+    # her er den anden spaerring, og den er to linjer.
+    stray = sorted(f for f in os.listdir(ROOT) if f.endswith(".pa.yaml"))
+    if stray:
+        print("\nDer ligger skaerme i repo-roden:\n")
+        for f in stray:
+            print("  " + f)
+        print("\nDe hoerer i app-mapperne. Slet dem, og find ud af hvilken")
+        print("builder der skrev dem det forkerte sted.")
+        return 1
 
     # Til sidst, fordi det laeser de .pa.yaml, byggeriet lige har skrevet:
     # findes hver SharePoint-kolonne, formlerne bruger, i virkeligheden?

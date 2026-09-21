@@ -110,26 +110,49 @@ Det hele står i `docs/27-layouttokens.md`.
 | Equipments | `Equipment App/` | `ScreenEquipment.pa.yaml` | `generate_app_onstart.py` + `assemble_screen.py` |
 | Materials | `Material App/` | `ScreenMaterial.pa.yaml` | `generate_app_onstart.py` + `assemble_screen.py` |
 
-Hver build-mappe er **selvbærende**. Der er ingen `shared/`-mappe, og der
-må ikke laves en: Power Apps' egen VS Code-værktøjskæde arbejder pr.
-app-mappe, og et delt modul uden for mappen blev fjernet igen af den.
+**De fælles filer ligger i `tools/` — i én udgave, ikke fire kopier.**
 
-Tre filer er derfor **kopieret ordret** ind i begge build-mapper:
-
-    gen_screen.py      DSL, højde-algebra, og de C_*-navne der peger på tokens
-    build_helpers.py   byggeklodser: card, group, button_row, inputs, combobox
-    check_layout.py    layout-tjekket
-
-**Retter du i en af de tre, skal du kopiere filen til de TRE andre med det
-samme** og køre alle fire byg. `tools/build_all.py` nægter at bygge, hvis de
-er gledet fra hinanden, og skriver hvilken app der har den nyest rettede
-udgave.
-
-```bash
-for d in "Masterdata Hub" "Equipment App" "Material App"; do
-  cp "Maintenance Plan App/build/build_helpers.py" "$d/build/"
-done
 ```
+tools/gen_screen.py      DSL, højde-algebra, C_*-navnene der peger på tokens
+tools/build_helpers.py   byggeklodser: card, group, button_row, inputs, theme_button
+tools/check_layout.py    layout-tjekket
+tools/build_domain.py    Equipments og Materials' fælles skærm
+tools/attflows.py        flow-kontrakten for dokumenter
+tools/build_flsearch.py  flow-kontrakten for FL-søgning
+tools/design_tokens.py   alle farver
+tools/layout_tokens.py   alle breakpoints
+```
+
+De lå før som ordrette kopier i hver `build/`-mappe — 5.863 af 14.825
+linjer, 39 %. Begrundelsen var, at Power Apps' VS Code-værktøjskæde
+fjernede et delt modul uden for app-mappen. **Den gælder ikke den vej, der
+bruges i dag:** `canvas_mcp.stage()` kopierer kun `*.pa.yaml` over til
+serveren, så hverken `build/` eller `tools/` når nogensinde derud.
+
+`sys.path` er procesglobal, så det rækker at sætte `tools/` på den i
+**indgangen** (`assemble_screen.py`, `generate_app_onstart.py`,
+`check_layout.py`-shimmen). Alt, der importeres bagefter, finder dem selv.
+
+Hver `build/`-mappe indeholder nu kun det, der er appens eget:
+
+| App | Egne filer |
+|---|---|
+| VH-plan | `sp_config.py` + de ni `build_*.py`, der bygger dens skærm |
+| Masterdata Hub | `hub_config.py`, `build_hub.py` |
+| Equipments / Materials | **kun `domain_config.py`** + de to indgange |
+
+> **To fælder, begge ramt under flytningen — og begge nu spærret:**
+>
+> 1. `gen_screen.OUT_DIR` regnede app-mappen ud af `__file__`. Da filen
+>    flyttede til `tools/`, blev `HERE/..` til **repo-roden**. Alle fire
+>    skærme blev skrevet dér, app-mapperne beholdt deres gamle, og
+>    layout-tjekket sagde *"OK"* — fordi det læste de gamle filer.
+>    `OUT_DIR` kommer nu af **indgangen** (`sys.argv[0]`), og `build_all`
+>    fejler, hvis der ligger en `.pa.yaml` i roden.
+> 2. `build_flsearch.py` lå i tre kopier, der **ikke var ens**: VH-plan
+>    skrev `varVhpFlRaw`, de to andre `varDomFlRaw`. `check_shared()`
+>    kiggede aldrig på den fil. Variabelnavnet er nu en parameter
+>    (`raw_var=`), så der ikke er en linje tilbage, der kan skille to apps.
 
 ## `--app` bygger kun den ene
 
