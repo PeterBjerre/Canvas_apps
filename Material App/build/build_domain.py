@@ -40,6 +40,7 @@ from gen_screen import (Ctrl, SHELL_W, FONT,
                         C_NEUTRAL_BG, C_INFO_FG, C_INFO_BG,
                         C_VALID_FG, C_VALID_BG)
 from design_tokens import theme_query
+from layout_tokens import below, if_below, fits
 from build_helpers import (text_ctrl, group, button, button_row, text_input, theme_button,
                            number_input, dropdown, card, field_cell, row_n,
                            label_row, pin_widths, badge)
@@ -73,11 +74,30 @@ FORM_W = f"({SHELL_W} - 36)"
 # 1600, ikke 1400. Listen har syv kolonner og knap 540 pixels i faste
 # bredder; under det bliver beskrivelseskolonnen smallere end sit eget
 # gulv, og raekken flyder ud over ruden i stedet for at dele sig.
-HALF_W = f"If(App.Width < 1600, {SHELL_W}, ({SHELL_W} - 20) / 2)"
+HALF_W = if_below("Wide", SHELL_W, f"({SHELL_W} - 20) / 2")
 PANE_W = f"({HALF_W} - 36)"
 
 # Indsendte raekker kan ikke redigeres - saa ejer SAP-processen dem.
 DM_ROW = ('If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)')
+
+# ---------------------------------------------------------------------------
+# Topbjaelkens regnestykke. Se build_bar() for hvorfor det er regnet ud.
+# ---------------------------------------------------------------------------
+BAR_GAP = 10
+BAR_SLACK = 20                       # luft i HOEJRESIDEN, taelles kun EEN gang:
+                                     # den er en del af BAR_RIGHT_W, og venstresiden
+                                     # traekker derfor kun BAR_RIGHT_W + BAR_GAP fra.
+                                     # Blev den talt med begge steder, fik titlen 220
+                                     # px ved braekpunktet, hvor der staar 240.
+BAR_MIN_TITLE = 240                  # under det er titlen ikke laeselig
+BAR_RIGHT = [("txtDomCount", 110), ("txtDomReqNo", 150),
+             ("btnDomTheme", 92), ("btnDomBack", 140)]
+BAR_RIGHT_W = (sum(w for _, w in BAR_RIGHT)
+               + BAR_GAP * (len(BAR_RIGHT) - 1) + BAR_SLACK)
+# Braekpunktet: er der plads til BAADE hoejresiden og en laeselig titel?
+# Det er en CONTAINER-graense og ikke en enhedsklasse - en bjaelke med een
+# knap mere skal ombryde tidligere, uanset hvad slags enhed det er.
+BAR_MIN_W = BAR_RIGHT_W + BAR_GAP + BAR_MIN_TITLE
 DM_SEL = ('If(IsBlank(varDomActiveRowId), DisplayMode.Disabled, DisplayMode.Edit)')
 
 
@@ -101,12 +121,19 @@ def build_bar():
                       height=30, wrap="false")
     sub = text_ctrl("txtDomSub", f'"{cfg.SUBTITLE}"', size=13, color=C_MUTED,
                     height=20, wrap="false")
-    # 602 = hoejresidens 542 + de 20 px gap + de samme 40 px slup, der
-    # stod her foer. Tallet SKAL foelge conDomBarRight: staar der 500, mens
-    # hoejresiden fylder 542, er raekken bredere end skaermen, og hele
-    # bjaelken ombryder til to rader paa enhver skaermbredde.
+    # BREDDERNE ER REGNET UD, IKKE SKREVET AF
+    #
+    # Her stod tre tal, der skulle passe sammen, og som intet knyttede
+    # sammen: hoejresiden var 440, venstresiden reserverede 500, og
+    # braekpunktet var 900. Da temaknappen gjorde hoejresiden 102 px
+    # bredere, fulgte de to andre ikke med - og bjaelken ville have
+    # ombrudt paa enhver skaermbredde.
+    #
+    # Nu kommer alle tre af BAR_RIGHT. Tilfoejes en knap, flytter
+    # braekpunktet sig med.
     left = group("conDomBarLeft", [title, sub], direction="Vertical", gap=2,
-                 width=f"If(App.Width < 900, {SHELL_W}, {SHELL_W} - 602)")
+                 width=fits(SHELL_W, BAR_MIN_W, SHELL_W,
+                            f"{SHELL_W} - {BAR_RIGHT_W + BAR_GAP}"))
 
     count = badge("txtDomCount", '"Raekker: " & CountRows(colDomRows)', width=110)
     no = text_ctrl("txtDomReqNo",
@@ -119,9 +146,14 @@ def build_bar():
                   f'LaunchTarget.Replace)',
                   width=140)
     theme = theme_button("btnDomTheme")
-    right = group("conDomBarRight", pin_widths([count, no, theme, back]),
-                  direction="Horizontal", gap=10, align_items="Center",
-                  justify="End", width="542")
+    row = pin_widths([count, no, theme, back])
+    got = [(c.name, int(c.props["Width"])) for c in row]
+    if got != BAR_RIGHT:
+        raise SystemExit("BAR_RIGHT passer ikke paa bjaelkens hoejreside:\n"
+                         "  BAR_RIGHT: %s\n  raekken:   %s" % (BAR_RIGHT, got))
+    right = group("conDomBarRight", row,
+                  direction="Horizontal", gap=BAR_GAP, align_items="Center",
+                  justify="End", width=str(BAR_RIGHT_W))
     return group("conDomBar", [left, right], direction="Horizontal", gap=20,
                  align_items="Center", wrap="true", wrap_rows=2)
 

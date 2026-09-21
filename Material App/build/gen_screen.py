@@ -42,6 +42,7 @@ OUT_DIR = os.path.join(HERE, "..")
 ROOT = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 from design_tokens import ref as _t, TRANSPARENT
+from layout_tokens import below, if_below
 
 # ---------------------------------------------------------------------------
 # Farver
@@ -103,7 +104,13 @@ SHELL_W = "(App.Width - 64)"
 RAIL_W = 360
 SPLIT_GAP = 20
 # Bredden af Item Editor-kortet, udtrykt uden at referere nogen kontrol.
-EDITOR_W = f"If(App.Width < 1000, {SHELL_W}, {SHELL_W} - {RAIL_W} - {SPLIT_GAP})"
+#
+# Her stod "App.Width < 1000". Det var eet af FIRE braekpunkter mellem 996
+# og 1024, spredt over fire filer - heroen stablede ved 996, det her ved
+# 1000, hubbens fliser ved 1004 og FillPortions ved 1024. Alle fire stod
+# for det samme skift, og ingen af dem var valgt i forhold til de tre
+# andre. Nu er de eet tal. Se tools/layout_tokens.py.
+EDITOR_W = if_below("Desktop", SHELL_W, f"{SHELL_W} - {RAIL_W} - {SPLIT_GAP}")
 
 
 # ---------------------------------------------------------------------------

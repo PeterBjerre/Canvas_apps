@@ -10,6 +10,7 @@ YAML'en refererer andre kontrollers .Height. Se gen_screen.stack_height.
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from design_tokens import DARK_VAR, toggle_action
+from layout_tokens import below, fits, if_below, TWO_COL_MIN
 from gen_screen import (
     Ctrl, render, render_screen, stack_height, row_height,
     C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED,
@@ -22,8 +23,10 @@ from gen_screen import (
 # Alle feltforklaringer ser paa den samme variabel.
 HINTS_ON = "IfError(varVhpShowHints, false)"
 
-# Braekpunkt hvor et to-kolonne-felt stables lodret.
-TWO_COL_MIN = 640
+# Braekpunktet, hvor et to-kolonne-felt stables lodret, staar i
+# tools/layout_tokens.py. Det er en CONTAINER-graense og ikke en
+# enhedsklasse: et smalt kort stabler sine felter, ogsaa paa en bred
+# skaerm.
 
 
 def text_ctrl(name, text, size=14, color=C_TITLE, weight=None, wrap="false",
@@ -451,12 +454,17 @@ def col_width(container_w, cols, gap=20):
     """Bredden af eet ud af `cols` felter side om side i en container med
     bredden container_w. Under braekpunktet TWO_COL_MIN staar alle felter
     fuld bredde (raekken stables lodret af row_n / two_col_row)."""
-    return f"If({container_w} < {TWO_COL_MIN}, {container_w}, ({container_w} - {gap * (cols - 1)}) / {cols})"
+    return fits(container_w, TWO_COL_MIN, container_w,
+                f"({container_w} - {gap * (cols - 1)}) / {cols}")
 
 
 def field_cell(name, label_text, input_ctrl, required=False, hint_text=None, width=None,
-               container_w=SHELL_W, fill_portions_formula="If(App.Width < 1024, 0, 1)", cols=2, gap=20):
-    """Et felt med label over. Hoejden regnes af indholdet - den er ikke laengere
+               container_w=SHELL_W, fill_portions_formula=None, cols=2, gap=20):
+    """Et felt med label over.
+
+    fill_portions_formula=None betyder braekpunktet: feltet vokser kun,
+    naar der er desktop-plads. Stod foer som "If(App.Width < 1024, 0, 1)"
+    - et af fire naesten ens tal. Se tools/layout_tokens.py. Hoejden regnes af indholdet - den er ikke laengere
     et magisk tal, saa et hoejere input (fx multiline) giver automatisk en
     hoejere felt.
 
@@ -475,8 +483,10 @@ def field_cell(name, label_text, input_ctrl, required=False, hint_text=None, wid
                               height=32, wrap="true",
                               visible=HINTS_ON))
     w = width or col_width(container_w, cols, gap)
+    fp = (if_below("Desktop", "0", "1")
+          if fill_portions_formula is None else fill_portions_formula)
     return group(name, kids, direction="Vertical", gap=6, width=w,
-                 align_items="Stretch", fill_portions=fill_portions_formula,
+                 align_items="Stretch", fill_portions=fp,
                  align_in_container="Start")
 
 
@@ -495,7 +505,7 @@ def row_n(name, cells, container_w=SHELL_W, gap=20):
         terms = ", ".join(f"({h})" for h in heights)
         tall = f"Max({terms})"
         stacked = " + ".join(f"({h})" for h in heights) + f" + {gap * (len(cells) - 1)}"
-    h = f"If({container_w} < {TWO_COL_MIN}, {stacked}, {tall})"
+    h = fits(container_w, TWO_COL_MIN, stacked, tall)
     return group(name, cells, direction="Horizontal", gap=gap, height=h, wrap="true")
 
 

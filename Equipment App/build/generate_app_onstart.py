@@ -25,6 +25,7 @@ sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), "tools"))
 
 import design_tokens as tok
+import layout_tokens as lay
 import domain_config as cfg
 from build_domain import FIELDS
 
@@ -68,7 +69,7 @@ COLLECTIONS = [
 
 def formulas_block():
     return (
-        tok.formula() + "\n\n"
+        tok.formula() + "\n\n" + lay.formula() + "\n\n"
         "// Vaerkerne. Eneste opslagsliste appen laeser, og den laeses foerst,\n"
         "// naar dropdownen aabnes.\n"
         f"colDomPlants = Sort(ForAll({cfg.L_PLANTS} As R, {{ Value: R.Title }}), Value);"

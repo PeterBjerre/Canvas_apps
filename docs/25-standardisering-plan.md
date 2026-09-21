@@ -16,6 +16,10 @@ en måned før den anden. Det her er listen over de steder.
 > til **designtokens** læst gennem en navngiven formel, hvilket gav mørk
 > tilstand med. Se `docs/26-designtokens.md`.
 >
+> **Også lavet:** layouttokens (`docs/27-layouttokens.md`) — ni breakpoints
+> i ni filer, heraf fire inden for 28 px, samlet til fire navngivne tiers.
+> Det stod ikke i planen her; det kom af det samme spørgsmål om ensartethed.
+>
 > §2 (feltfarvning), §3 (miljø og app-id'er), §4 (`shared/`), §5
 > (`check_layout`), §6 (`AccessibleLabel`) og §7 (døde filer) står stadig.
 > §5 fik dog en delrettelse undervejs: regel 8 så ikke på skærmens egne

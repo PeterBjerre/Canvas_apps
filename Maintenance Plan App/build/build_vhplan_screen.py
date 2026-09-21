@@ -61,11 +61,11 @@ def build_hero():
     actionsRow = group("conVhpHeroActionsRow", [btnValidate, btnExport], direction="Horizontal", gap=10,
                         height=36, justify="End")
     heroActions = group("conVhpHeroActions", [actionsRow], direction="Vertical", gap=8, height=36,
-                         align_items="End", width="If(App.Width < 900, Parent.Width, 320)")
+                         align_items="End", width="If(LayoutRank < 3, Parent.Width, 320)")
 
     heroGrid = group("conVhpHeroGrid", [heroLeft, heroActions],
-                      direction="If(App.Width < 900, LayoutDirection.Vertical, LayoutDirection.Horizontal)".replace("If(App.Width < 900, LayoutDirection.Vertical, LayoutDirection.Horizontal)", "Horizontal"),
-                      gap=16, height="If(App.Width < 900, 108 + 12 + 36, 108)", wrap="true")
+                      direction="If(LayoutRank < 3, LayoutDirection.Vertical, LayoutDirection.Horizontal)".replace("If(LayoutRank < 3, LayoutDirection.Vertical, LayoutDirection.Horizontal)", "Horizontal"),
+                      gap=16, height="If(LayoutRank < 3, 108 + 12 + 36, 108)", wrap="true")
     # NOTE: direction kept Horizontal with wrap=true so it stacks responsively without formula in enum slot.
 
     steps = []
@@ -103,7 +103,7 @@ def build_hero():
 
     hero = group(
         "conVhpHero", [heroGrid, processStrip, runtimeInfo, legend], direction="Vertical", gap=12,
-        height="If(App.Width < 900, 108 + 12 + 36, 108) + 12 + 26 + 12 + 36 + 12 + 20 + 28",
+        height="If(LayoutRank < 3, 108 + 12 + 36, 108) + 12 + 26 + 12 + 36 + 12 + 20 + 28",
         fill=C_CARD_BG, border_color=C_CARD_BORDER, radius=14, pad=(16, 16, 16, 16))
     return hero
 
