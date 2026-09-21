@@ -39,7 +39,8 @@ from gen_screen import (Ctrl, SHELL_W, FONT,
                         C_PRIMARY, C_WHITE, C_TRANSPARENT, C_DIVIDER,
                         C_NEUTRAL_BG, C_INFO_FG, C_INFO_BG,
                         C_VALID_FG, C_VALID_BG)
-from build_helpers import (text_ctrl, group, button, button_row, text_input,
+from design_tokens import theme_query
+from build_helpers import (text_ctrl, group, button, button_row, text_input, theme_button,
                            number_input, dropdown, card, field_cell, row_n,
                            label_row, pin_widths, badge)
 import domain_config as cfg
@@ -100,19 +101,27 @@ def build_bar():
                       height=30, wrap="false")
     sub = text_ctrl("txtDomSub", f'"{cfg.SUBTITLE}"', size=13, color=C_MUTED,
                     height=20, wrap="false")
+    # 602 = hoejresidens 542 + de 20 px gap + de samme 40 px slup, der
+    # stod her foer. Tallet SKAL foelge conDomBarRight: staar der 500, mens
+    # hoejresiden fylder 542, er raekken bredere end skaermen, og hele
+    # bjaelken ombryder til to rader paa enhver skaermbredde.
     left = group("conDomBarLeft", [title, sub], direction="Vertical", gap=2,
-                 width=f"If(App.Width < 900, {SHELL_W}, {SHELL_W} - 500)")
+                 width=f"If(App.Width < 900, {SHELL_W}, {SHELL_W} - 602)")
 
     count = badge("txtDomCount", '"Raekker: " & CountRows(colDomRows)', width=110)
     no = text_ctrl("txtDomReqNo",
                    'If(IsBlank(varDomRequestNo), "Ikke indsendt", varDomRequestNo)',
                    size=15, weight="Semibold", height=24, width=150, wrap="false")
+    # Temaet med TILBAGE til hubben. Uden det skiftede hubben farve,
+    # fordi brugeren gik retur - lageret er isoleret pr. app-id.
     back = button("btnDomBack", '"Til hubben"',
-                  f'Launch("{cfg.HUB_URL}", {{ }}, LaunchTarget.Replace)',
+                  f'Launch("{cfg.HUB_URL}" & {theme_query("?")}, {{ }}, '
+                  f'LaunchTarget.Replace)',
                   width=140)
-    right = group("conDomBarRight", pin_widths([count, no, back]),
+    theme = theme_button("btnDomTheme")
+    right = group("conDomBarRight", pin_widths([count, no, theme, back]),
                   direction="Horizontal", gap=10, align_items="Center",
-                  justify="End", width="440")
+                  justify="End", width="542")
     return group("conDomBar", [left, right], direction="Horizontal", gap=20,
                  align_items="Center", wrap="true", wrap_rows=2)
 

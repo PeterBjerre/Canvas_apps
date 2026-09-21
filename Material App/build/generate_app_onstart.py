@@ -22,7 +22,9 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), "tools"))
 
+import design_tokens as tok
 import domain_config as cfg
 from build_domain import FIELDS
 
@@ -58,11 +60,15 @@ COLLECTIONS = [
     ("colDomFl",
      {"Code": '""', "Description": '""', "Display": '""',
       "Maintainable": "false", "Level": '""'}),
+    # Brugerens temavalg. Skrives af SaveData og laeses af LoadData - se
+    # tools/design_tokens.py.
+    tok.prefs_schema(),
 ]
 
 
 def formulas_block():
     return (
+        tok.formula() + "\n\n"
         "// Vaerkerne. Eneste opslagsliste appen laeser, og den laeses foerst,\n"
         "// naar dropdownen aabnes.\n"
         f"colDomPlants = Sort(ForAll({cfg.L_PLANTS} As R, {{ Value: R.Title }}), Value);"
@@ -89,7 +95,10 @@ Set(varDomInfo, "")'''
 
 
 def main():
-    onstart = collection_block() + "\n\n" + STATE
+    # Temaet saettes FOER resten: skaermen tegner sig selv ud af C, og C
+    # laeser darkModeEnabled.
+    onstart = (collection_block() + "\n\n" + tok.onstart_block()
+               + "\n\n" + STATE)
 
     lines = ["App:", "  Properties:", "    Formulas: |"]
     first = True

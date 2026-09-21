@@ -18,8 +18,16 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_PRIMARY, C_WHITE,
                         C_INFO_FG, C_INFO_BG, C_NEUTRAL_BG, C_DIVIDER, C_TRANSPARENT,
                         C_APP_BG, FONT, SHELL_W)
-from build_helpers import text_ctrl, group, button, card
+from build_helpers import text_ctrl, group, button, card, theme_button
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, APP_TARGET
+from design_tokens import theme_query
+
+# Hubben aabner satellitterne. Temaet skal med i URL'en, fordi
+# SaveData-lageret er isoleret pr. app-id: uden den ville en moerk hub
+# aabne en lys Equipment-app, og brugeren ville se appen skifte farve som
+# foelge af sit eget klik. Satellitten laeser Param("theme") i OnStart.
+THEME_Q = theme_query("?")      # flisen sender ingen andre parametre
+THEME_Q_AMP = theme_query("&")  # "Open" sender allerede ?reqid=
 
 # ---------------------------------------------------------------------------
 # Afgraensningen. Begge grene er delegerbare hver for sig:
@@ -101,8 +109,16 @@ def build_bar():
                     size=12, color=C_MUTED, height=34, align="Right", wrap="false",
                     width=f"Max(160, {SHELL_W} - 300 - 336 - 24)")
 
-    return group("conMdBar", [left, seg, who], direction="Horizontal", gap=12, height=34,
-                 align_items="Center", wrap="true")
+    # Temaknappen staar YDERST TIL HOEJRE og med engelsk tekst som resten
+    # af hubben. Den er den samme kontrol som i de tre satellitter - se
+    # build_helpers.theme_button.
+    theme = theme_button("btnMdTheme", light_label='"Dark"', dark_label='"Light"')
+
+    # who-feltet skal give plads til knappen, ellers skubber den linjen om.
+    who.props["Width"] = f"Max(120, {SHELL_W} - 300 - 336 - 92 - 36)"
+
+    return group("conMdBar", [left, seg, who, theme], direction="Horizontal", gap=12,
+                 height=34, align_items="Center", wrap="true")
 
 
 # ---------------------------------------------------------------------------
@@ -137,7 +153,10 @@ def build_tiles():
                          f'Set(gblDomain, If(gblDomain = "{d["key"]}", "", "{d["key"]}"))',
                          width=bw, height=28)
         if d["url"]:
-            new_action = (f'Launch("{d["url"]}", {{ }}, {APP_TARGET})')
+            # Temaet sendes MED i URL'en. SaveData er isoleret pr. app-id,
+            # saa uden det ville satellitten aabne i sit eget gamle tema -
+            # og brugeren ville se appen skifte farve, fordi han klikkede.
+            new_action = (f'Launch("{d["url"]}" & {THEME_Q}, {{ }}, {APP_TARGET})')
         else:
             new_action = ('Notify("This app has not been built yet.", NotificationType.Warning)')
         bNew = button(f"btnMdTileNew{n}",
@@ -270,7 +289,7 @@ def build_list():
                        '    Notify("This request has no app URL.", NotificationType.Error),\n'
                        "    Launch(\n"
                        '        ThisItem.AppUrl & If(Find("?", ThisItem.AppUrl) > 0, "&", "?") &\n'
-                       '            "reqid=" & ThisItem.RequestGuid,\n'
+                       f'            "reqid=" & ThisItem.RequestGuid & {THEME_Q_AMP},\n'
                        "        { },\n"
                        f"        {APP_TARGET}\n"
                        "    )\n"

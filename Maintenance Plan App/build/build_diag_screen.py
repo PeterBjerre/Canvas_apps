@@ -10,7 +10,8 @@ isn't rendering in Power Apps Studio. Contains:
 """
 import sys
 sys.path.insert(0, r"c:\Users\PKBJE\.copilot\session-state\e93d42be-2820-4dcf-8776-8328cfe9a7c9\files")
-from gen_screen import Ctrl, render_screen, C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED
+from gen_screen import (Ctrl, render_screen, C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_TITLE,
+                        C_MUTED, C_REQUIRED, C_WHITE, C_INVALID_FG)
 from build_helpers import group, text_ctrl, button, dropdown, field_cell, two_col_row
 
 OUT_DIR = r"C:\Temp\powerapp-vhplan"
@@ -19,9 +20,9 @@ OUT_DIR = r"C:\Temp\powerapp-vhplan"
 def main():
     banner = text_ctrl(
         "txtDiagBanner", "\"TEST BANNER - HVIS DU KAN SE DETTE, ER AENDRINGER LIVE (v3)\"",
-        size=22, weight="Semibold", color="RGBA(255,255,255,1)", height=60, wrap="false",
+        size=22, weight="Semibold", color=C_WHITE, height=60, wrap="false",
         extra={
-            "Fill": "RGBA(200, 30, 30, 1)",
+            "Fill": C_INVALID_FG,
             "Align": "Align.Center",
             "Width": "Parent.Width",
             "X": "0",

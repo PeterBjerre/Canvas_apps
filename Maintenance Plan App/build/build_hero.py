@@ -3,7 +3,8 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED,
                         C_PRIMARY, C_WHITE, C_NEUTRAL_BG, C_INFO_FG, SHELL_W)
-from build_helpers import text_ctrl, group, button, card
+from build_helpers import text_ctrl, group, button, card, theme_button
+from design_tokens import theme_query
 import sp_config as cfg
 
 HERO_CW = f"({SHELL_W} - 32)"
@@ -20,7 +21,11 @@ def build_hero():
 
     heroLeft = group("conVhpHeroLeft", [eyebrow, title, subtitle], direction="Vertical", gap=6,
                      align_items="Stretch", fill_portions=1,
-                     width=f"If({HERO_CW} < 900, Parent.Width, Parent.Width - 250 - 16)")
+                     # 352 = 250 + de 102 px, temaknappen og dens gap lagde
+                     # til conVhpHeroActionsRow. Tallet skal foelge den
+                     # raekkes bredde, ellers regner de to sider med den
+                     # samme plads.
+                     width=f"If({HERO_CW} < 900, Parent.Width, Parent.Width - 352 - 16)")
 
     # ------------------------------------------------------------------
     # Validering. Reglerne er de samme som i oplaegget (docs/01) - S1, S3,
@@ -206,15 +211,21 @@ def build_hero():
     # Tilbage til hubben. De to domaeneapps har den; VH-plan havde ingen vej
     # tilbage overhovedet - man skulle bruge browserens tilbageknap eller
     # kende URL'en.
+    # Temaet foelger med tilbage. Uden det ville hubben skifte farve, fordi
+    # brugeren gik retur - SaveData-lageret er isoleret pr. app-id.
     btnHub = button(
         "btnVhpBackToHub", "\"Til hubben\"",
-        f'Launch("{cfg.HUB_URL}", {{ }}, LaunchTarget.Replace)',
+        f'Launch("{cfg.HUB_URL}" & {theme_query("?")}, {{ }}, LaunchTarget.Replace)',
         primary=False, width=120, height=36)
 
-    actionsRow = group("conVhpHeroActionsRow", [btnHub, btnValidate, btnExport],
+    # Samme knap som i de tre andre apps - se build_helpers.theme_button.
+    btnTheme = theme_button("btnVhpTheme", height=36)
+
+    actionsRow = group("conVhpHeroActionsRow",
+                       [btnTheme, btnHub, btnValidate, btnExport],
                        direction="Horizontal", gap=10,
-                       height=36, justify="End", width=380, align_items="Center")
-    heroActions = group("conVhpHeroActions", [actionsRow], direction="Vertical", gap=8, width=380,
+                       height=36, justify="End", width=482, align_items="Center")
+    heroActions = group("conVhpHeroActions", [actionsRow], direction="Vertical", gap=8, width=482,
                         align_items="End")
 
     heroGrid = group("conVhpHeroGrid", [heroLeft, heroActions], direction="Horizontal", gap=16,

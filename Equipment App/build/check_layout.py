@@ -21,6 +21,9 @@ Tjekket foretager fire kontroller:
   4. Faste bredder i en vandret raekke maa ikke overstige raekkens bredde
   8. Enhver samling, skaermen bruger, findes i App.pa.yaml - som navngiven
      formel eller som ClearCollect
+  8b. Enhver designtoken, skaermen bruger, findes i temaformlen C. En
+     token, der ikke findes, giver BLANK - og blank er gennemsigtig, saa
+     kontrollen ville forsvinde uden en fejlmeddelelse
   9. Ingen LODRET container har et barn med FillPortions <> 0
      (knapraekken var 336 px bred i et kort med 324 px indhold, ombroed til
      to linjer og fik sin sidste knap klippet af).
@@ -312,19 +315,59 @@ def main():
     # - men fejlen dukker foerst op i Studio. Da opslagslisterne blev flyttet
     # fra haardkodede tabeller til navngivne formler, blev tre referencer
     # haengende. Det her fanger det inden synk.
+    # Kontrollernes egenskaber PLUS skaermens egne. De to sidste regler
+    # herunder skal se begge dele.
+    screen_and_controls = [(body.get("Properties") or {}) for _, _, body in all_nodes]
+    screen_and_controls.append(screen.get("Properties") or {})
+
     app_path = os.path.join(os.path.dirname(SCREEN), "App.pa.yaml")
+    app = open(app_path, encoding="utf-8").read() if os.path.exists(app_path) else ""
     if os.path.exists(app_path):
-        app = open(app_path, encoding="utf-8").read()
         defined = set(re.findall(r"^\s*=?(col[A-Z]\w*)\s*=", app, re.M))
         defined |= set(re.findall(r"ClearCollect\(\s*(col\w+)", app))
+        # SKAERMENS EGNE EGENSKABER TAELLER MED.
+        #
+        # Her stod foer kun all_nodes, altsaa kontrollerne. Men skaermens
+        # OnVisible er netop dér, Equipment og Material henter deres
+        # raekker - saa en samling, der KUN bruges i OnVisible, blev ikke
+        # efterproevet af det her tjek overhovedet.
         used = set()
-        for _, _, body in all_nodes:
-            for val in (body.get("Properties") or {}).values():
+        for props in screen_and_controls:
+            for val in props.values():
                 if isinstance(val, str):
                     used |= set(re.findall(r"\bcol[A-Z]\w*", val))
         for name in sorted(used - defined):
             problems.append(f"[8] samlingen '{name}' bruges i skaermen, "
                             f"men defineres ikke i App.pa.yaml")
+
+    # --- 8b. Designtokens skal findes i temaformlen -----------------------
+    # Hver farve i skaermen staar som C.'et-navn', og navnene defineres af
+    # den navngivne formel C i App.pa.yaml (skrevet af
+    # tools/design_tokens.py).
+    #
+    # Power Fx siger IKKE fra, hvis et felt ikke findes i en record - den
+    # giver blank. Og en blank farve er GENNEMSIGTIG. En stavefejl ville
+    # derfor ikke fejle i compile; kontrollen ville bare forsvinde, og det
+    # ville ses foerst i den koerende app - maaske kun i det ene tema.
+    #
+    # ref() i design_tokens.py fanger det allerede paa vej ud. Det her
+    # fanger den anden vej: at de to generatorer er kommet ud af trit, saa
+    # skaermen er bygget med en token, App.pa.yaml ikke laengere kender.
+    if os.path.exists(app_path):
+        known = set(re.findall(r"'([a-z0-9-]+)'\s*:", app))
+        # Skaermens egen Fill ER appbaggrunden - den vigtigste farve i
+        # appen og den ene, der ikke staar paa en kontrol.
+        used_tokens = set()
+        for props in screen_and_controls:
+            for val in props.values():
+                if isinstance(val, str):
+                    used_tokens |= set(re.findall(r"\bC\.'([a-z0-9-]+)'", val))
+        for name in sorted(used_tokens - known):
+            problems.append(f"[8b] designtokenen '{name}' bruges i skaermen, "
+                            f"men staar ikke i temaformlen C i App.pa.yaml")
+        if used_tokens and not known:
+            problems.append("[8b] skaermen bruger designtokens, men App.pa.yaml "
+                            "har ingen temaformel C")
 
     # --- 10. Egenskaber kontroltypen ikke kender ---------------------------
     # Studio afviser en ukendt egenskab ved compile, ikke ved synk, saa

@@ -2,8 +2,12 @@
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED, C_PRIMARY, C_WHITE, \
-    C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, FONT
+    C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, C_TRANSPARENT, C_DIVIDER, \
+    C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY, FONT
 from build_helpers import text_ctrl, group, button, text_input
+from design_tokens import ref_hex
+
+MUT_HEX = ref_hex("text-muted")
 
 VISIBLE_OPS = (
     "Filter(\n"
@@ -36,7 +40,7 @@ def _picker_header_html():
         "\"<style>html,body{margin:0;padding:0;overflow:hidden}</style>"
         f"<div style='display:grid;grid-template-columns:{cols};"
         f"column-gap:{PICKER_GAP}px;align-items:center;height:21px;line-height:21px;overflow:hidden;"
-        "color:#59667A;font-family:Segoe UI;font-size:11px;font-weight:600;white-space:nowrap;'>"
+        "color:\" & " + MUT_HEX + " & \";font-family:Segoe UI;font-size:11px;font-weight:600;white-space:nowrap;'>"
         f"{spans}</div>\""
     )
 
@@ -78,10 +82,10 @@ def build_tasklist_picker_modal():
         ), size=12, color=C_MUTED, height=18, wrap="false")
 
     headHtml = Ctrl("conVhpPickerHeaderHtml", "HtmlViewer", props={
-        "Fill": "RGBA(0, 0, 0, 0)", "Height": "22", "HtmlText": PICKER_HEADER_HTML,
+        "Fill": C_TRANSPARENT, "Height": "22", "HtmlText": PICKER_HEADER_HTML,
         "PaddingBottom": "0", "PaddingLeft": "0", "PaddingRight": "0", "PaddingTop": "0", "Width": "636",
     }, h=22)
-    divider = group("conVhpPickerDivider", [], height=1, fill="RGBA(228, 233, 241, 1)", direction="Horizontal")
+    divider = group("conVhpPickerDivider", [], height=1, fill=C_DIVIDER, direction="Horizontal")
 
     chkRowSel = Ctrl("chkVhpPickerRowSel", "ModernCheckbox", props={
         "AccessibleLabel": "\"Select line\"",
@@ -111,7 +115,7 @@ def build_tasklist_picker_modal():
         props={
             "AccessibleLabel": "\"Tasklist line picker\"",
             "BorderStyle": "BorderStyle.None",
-            "Fill": "RGBA(215, 222, 232, 1)",
+            "Fill": C_CARD_BORDER,
             "FillPortions": "0",
             "Height": "280",
             "Items": VISIBLE_OPS,
@@ -172,7 +176,7 @@ def build_tasklist_picker_modal():
 
     modal = group(
         "conVhpPickerModal", [headRow, toolbar, infoText, listWrap, footer], direction="Vertical", gap=12,
-        fill="RGBA(255, 255, 255, 0.98)", border_color="RGBA(198, 224, 249, 1)", radius=16,
+        fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=16,
         pad=(18, 18, 18, 18), width=680, drop_shadow="ExtraBold", visible="varVhpTasklistPickerOpen")
     modal.props["X"] = "(App.Width - Self.Width) / 2"
     modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
@@ -235,7 +239,7 @@ def build_longtext_modal():
 
     modal = group(
         "conVhpLongTextModal", [headRow, hint, box, footer], direction="Vertical", gap=12,
-        fill="RGBA(255, 255, 255, 0.98)", border_color="RGBA(198, 224, 249, 1)", radius=16,
+        fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=16,
         pad=(18, 18, 18, 18), width=620, drop_shadow="ExtraBold",
         visible="varVhpLongTextOpen")
     modal.props["X"] = "(App.Width - Self.Width) / 2"
@@ -247,7 +251,7 @@ def build_modal_backdrop():
     return Ctrl("conVhpPickerBackdrop", "GroupContainer", variant="AutoLayout", props={
         "BorderStyle": "BorderStyle.None",
         "DropShadow": "DropShadow.None",
-        "Fill": "RGBA(15, 23, 42, 0.35)",
+        "Fill": C_OVERLAY,
         "Height": "App.Height",
         "LayoutDirection": "LayoutDirection.Vertical",
         "Visible": "varVhpTasklistPickerOpen || varVhpLongTextOpen",

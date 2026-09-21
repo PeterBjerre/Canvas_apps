@@ -2,7 +2,7 @@ Screens:
   ScreenEquipment:
     Properties:
       Fill: |-
-          =RGBA(237, 241, 247, 1)
+          =C.'bg-app'
       OnVisible: |-
           =Set(varDomMe, Lower(User().Email));
           ClearCollect(
@@ -67,7 +67,7 @@ Screens:
             DropShadow: |-
                 =DropShadow.None
             Fill: |-
-                =RGBA(237, 241, 247, 1)
+                =C.'bg-app'
             FillPortions: |-
                 =0
             Height: |-
@@ -167,7 +167,7 @@ Screens:
                               LayoutMinWidth: |-
                                   =0
                               Width: |-
-                                  =If(App.Width < 900, (App.Width - 64), (App.Width - 64) - 500)
+                                  =If(App.Width < 900, (App.Width - 64), (App.Width - 64) - 602)
                             Children:
                               - txtDomTitle:
                                   Control: ModernText
@@ -179,7 +179,7 @@ Screens:
                                     BorderThickness: |-
                                         =0
                                     Color: |-
-                                        =RGBA(26, 34, 49, 1)
+                                        =C.'text-primary'
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
                                     Font: |-
@@ -212,7 +212,7 @@ Screens:
                                     BorderThickness: |-
                                         =0
                                     Color: |-
-                                        =RGBA(89, 102, 122, 1)
+                                        =C.'text-muted'
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
                                     Font: |-
@@ -256,7 +256,7 @@ Screens:
                               LayoutMinWidth: |-
                                   =0
                               Width: |-
-                                  =440
+                                  =542
                             Children:
                               - txtDomCount:
                                   Control: ModernText
@@ -272,9 +272,9 @@ Screens:
                                     BorderThickness: |-
                                         =0
                                     Color: |-
-                                        =RGBA(89, 102, 122, 1)
+                                        =C.'text-muted'
                                     Fill: |-
-                                        =RGBA(228, 233, 241, 1)
+                                        =C.'state-neutral-bg'
                                     Font: |-
                                         =Font.'Segoe UI'
                                     FontWeight: |-
@@ -317,7 +317,7 @@ Screens:
                                     BorderThickness: |-
                                         =0
                                     Color: |-
-                                        =RGBA(26, 34, 49, 1)
+                                        =C.'text-primary'
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
                                     Font: |-
@@ -344,6 +344,53 @@ Screens:
                                         =150
                                     Wrap: |-
                                         =false
+                              - btnDomTheme:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =If(darkModeEnabled, "Skift til lyst tema", "Skift til moerkt tema")
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Secondary
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =34
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    LayoutMinWidth: |-
+                                        =92
+                                    OnSelect: |-
+                                        =Set(darkModeEnabled, !darkModeEnabled);
+                                        ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
+                                        IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        =If(darkModeEnabled, "Lys", "Moerk")
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =92
                               - btnDomBack:
                                   Control: ModernButton
                                   Properties:
@@ -356,11 +403,11 @@ Screens:
                                     Appearance: |-
                                         =ButtonAppearance.Secondary
                                     BorderColor: |-
-                                        =RGBA(215, 222, 232, 1)
+                                        =C.'border-default'
                                     BorderThickness: |-
                                         =1
                                     Color: |-
-                                        =RGBA(26, 34, 49, 1)
+                                        =C.'text-primary'
                                     Font: |-
                                         =Font.'Segoe UI'
                                     FontWeight: |-
@@ -372,7 +419,7 @@ Screens:
                                     LayoutMinWidth: |-
                                         =140
                                     OnSelect: |-
-                                        =Launch("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/f387047d-86af-4d6a-8370-afcf35939436", { }, LaunchTarget.Replace)
+                                        =Launch("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/f387047d-86af-4d6a-8370-afcf35939436" & "?theme=" & If(darkModeEnabled, "dark", "light"), { }, LaunchTarget.Replace)
                                     RadiusBottomLeft: |-
                                         =10
                                     RadiusBottomRight: |-
@@ -394,13 +441,13 @@ Screens:
                       Variant: AutoLayout
                       Properties:
                         BorderColor: |-
-                            =RGBA(215, 222, 232, 1)
+                            =C.'border-default'
                         BorderThickness: |-
                             =1
                         DropShadow: |-
                             =DropShadow.None
                         Fill: |-
-                            =RGBA(250, 251, 253, 1)
+                            =C.'bg-card'
                         FillPortions: |-
                             =0
                         Height: |-
@@ -465,7 +512,7 @@ Screens:
                                     BorderThickness: |-
                                         =0
                                     Color: |-
-                                        =RGBA(26, 34, 49, 1)
+                                        =C.'text-primary'
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
                                     Font: |-
@@ -503,7 +550,7 @@ Screens:
                                     BorderThickness: |-
                                         =0
                                     Color: |-
-                                        =RGBA(89, 102, 122, 1)
+                                        =C.'text-muted'
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
                                     Font: |-
@@ -539,7 +586,7 @@ Screens:
                               BorderThickness: |-
                                   =0
                               Color: |-
-                                  =RGBA(89, 102, 122, 1)
+                                  =C.'text-muted'
                               Fill: |-
                                   =RGBA(0, 0, 0, 0)
                               Font: |-
@@ -645,7 +692,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =RGBA(26, 34, 49, 1)
+                                                    =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Font: |-
@@ -678,7 +725,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =RGBA(179, 50, 60, 1)
+                                                    =C.'state-error-fg'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Font: |-
@@ -711,21 +758,21 @@ Screens:
                                           BorderColor: |-
                                               =If(
                                                   true && IsBlank(Trim(Self.Text)),
-                                                  RGBA(179, 50, 60, 1),
-                                                  If(IsBlank(Trim(Self.Text)), RGBA(215, 222, 232, 1), RGBA(21, 127, 92, 1))
+                                                  C.'state-error-fg',
+                                                  If(IsBlank(Trim(Self.Text)), C.'border-default', C.'state-ok-fg')
                                               )
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =RGBA(26, 34, 49, 1)
+                                              =C.'text-primary'
                                           Default: |-
                                               =varDomFText
                                           DisplayMode: |-
                                               =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                           Fill: |-
-                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, RGBA(255, 255, 255, 1), RGBA(240, 243, 248, 1))
+                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
                                               =Font.'Segoe UI'
                                           Height: |-
@@ -810,7 +857,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =RGBA(26, 34, 49, 1)
+                                                    =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Font: |-
@@ -843,7 +890,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =RGBA(179, 50, 60, 1)
+                                                    =C.'state-error-fg'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Font: |-
@@ -878,21 +925,21 @@ Screens:
                                           BorderColor: |-
                                               =If(
                                                   true && IsBlank(Self.Selected.Value),
-                                                  RGBA(179, 50, 60, 1),
-                                                  If(IsBlank(Self.Selected.Value), RGBA(215, 222, 232, 1), RGBA(21, 127, 92, 1))
+                                                  C.'state-error-fg',
+                                                  If(IsBlank(Self.Selected.Value), C.'border-default', C.'state-ok-fg')
                                               )
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =RGBA(26, 34, 49, 1)
+                                              =C.'text-primary'
                                           Default: |-
                                               =LookUp(colDomPlants, Value = varDomFPlant)
                                           DisplayMode: |-
                                               =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                           Fill: |-
-                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, RGBA(255, 255, 255, 1), RGBA(240, 243, 248, 1))
+                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
                                               =Font.'Segoe UI'
                                           Height: |-
@@ -977,7 +1024,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =RGBA(26, 34, 49, 1)
+                                                    =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Font: |-
@@ -1010,13 +1057,13 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =RGBA(26, 34, 49, 1)
+                                              =C.'text-primary'
                                           Default: |-
                                               =varDomFRequestType
                                           DisplayMode: |-
                                               =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                           Fill: |-
-                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, RGBA(255, 255, 255, 1), RGBA(240, 243, 248, 1))
+                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
                                               =Font.'Segoe UI'
                                           Height: |-
@@ -1101,7 +1148,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =RGBA(26, 34, 49, 1)
+                                                    =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Font: |-
@@ -1134,13 +1181,13 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =RGBA(26, 34, 49, 1)
+                                              =C.'text-primary'
                                           Default: |-
                                               =varDomFEquipmentNumber
                                           DisplayMode: |-
                                               =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                           Fill: |-
-                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, RGBA(255, 255, 255, 1), RGBA(240, 243, 248, 1))
+                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
                                               =Font.'Segoe UI'
                                           Height: |-
@@ -1177,7 +1224,7 @@ Screens:
                               BorderThickness: |-
                                   =0
                               Color: |-
-                                  =RGBA(89, 102, 122, 1)
+                                  =C.'text-muted'
                               Fill: |-
                                   =RGBA(0, 0, 0, 0)
                               Font: |-
@@ -1283,7 +1330,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =RGBA(26, 34, 49, 1)
+                                                    =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Font: |-
@@ -1316,13 +1363,13 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =RGBA(26, 34, 49, 1)
+                                              =C.'text-primary'
                                           Default: |-
                                               =varDomFEquipmentCategory
                                           DisplayMode: |-
                                               =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                           Fill: |-
-                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, RGBA(255, 255, 255, 1), RGBA(240, 243, 248, 1))
+                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
                                               =Font.'Segoe UI'
                                           Height: |-
@@ -1407,7 +1454,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =RGBA(26, 34, 49, 1)
+                                                    =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Font: |-
@@ -1440,13 +1487,13 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =RGBA(26, 34, 49, 1)
+                                              =C.'text-primary'
                                           Default: |-
                                               =varDomFManufacturer
                                           DisplayMode: |-
                                               =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                           Fill: |-
-                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, RGBA(255, 255, 255, 1), RGBA(240, 243, 248, 1))
+                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
                                               =Font.'Segoe UI'
                                           Height: |-
@@ -1531,7 +1578,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =RGBA(26, 34, 49, 1)
+                                                    =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Font: |-
@@ -1564,13 +1611,13 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =RGBA(26, 34, 49, 1)
+                                              =C.'text-primary'
                                           Default: |-
                                               =varDomFTypeDesignation
                                           DisplayMode: |-
                                               =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                           Fill: |-
-                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, RGBA(255, 255, 255, 1), RGBA(240, 243, 248, 1))
+                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
                                               =Font.'Segoe UI'
                                           Height: |-
@@ -1655,7 +1702,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =RGBA(26, 34, 49, 1)
+                                                    =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Font: |-
@@ -1688,13 +1735,13 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =RGBA(26, 34, 49, 1)
+                                              =C.'text-primary'
                                           Default: |-
                                               =varDomFSerialNumber
                                           DisplayMode: |-
                                               =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                           Fill: |-
-                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, RGBA(255, 255, 255, 1), RGBA(240, 243, 248, 1))
+                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
                                               =Font.'Segoe UI'
                                           Height: |-
@@ -1731,7 +1778,7 @@ Screens:
                               BorderThickness: |-
                                   =0
                               Color: |-
-                                  =RGBA(89, 102, 122, 1)
+                                  =C.'text-muted'
                               Fill: |-
                                   =RGBA(0, 0, 0, 0)
                               Font: |-
@@ -1810,7 +1857,7 @@ Screens:
                                           BorderThickness: |-
                                               =0
                                           Color: |-
-                                              =RGBA(26, 34, 49, 1)
+                                              =C.'text-primary'
                                           Fill: |-
                                               =RGBA(0, 0, 0, 0)
                                           Font: |-
@@ -1866,13 +1913,13 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =RGBA(26, 34, 49, 1)
+                                              =C.'text-primary'
                                           Default: |-
                                               =""
                                           DisplayMode: |-
                                               =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                           Fill: |-
-                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, RGBA(255, 255, 255, 1), RGBA(240, 243, 248, 1))
+                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
                                               =Font.'Segoe UI'
                                           Height: |-
@@ -1907,11 +1954,11 @@ Screens:
                                           Appearance: |-
                                               =ButtonAppearance.Secondary
                                           BorderColor: |-
-                                              =RGBA(215, 222, 232, 1)
+                                              =C.'border-default'
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =RGBA(26, 34, 49, 1)
+                                              =C.'text-primary'
                                           DisplayMode: |-
                                               =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                           Font: |-
@@ -2004,21 +2051,21 @@ Screens:
                                     BorderColor: |-
                                         =If(
                                             false && IsBlank(Self.Selected.Code),
-                                            RGBA(179, 50, 60, 1),
-                                            If(IsBlank(Self.Selected.Code), RGBA(215, 222, 232, 1), RGBA(21, 127, 92, 1))
+                                            C.'state-error-fg',
+                                            If(IsBlank(Self.Selected.Code), C.'border-default', C.'state-ok-fg')
                                         )
                                     BorderStyle: |-
                                         =BorderStyle.Solid
                                     BorderThickness: |-
                                         =1
                                     Color: |-
-                                        =RGBA(26, 34, 49, 1)
+                                        =C.'text-primary'
                                     Default: |-
                                         =LookUp(colDomFl, Code = varDomFFunctionalLocation)
                                     DisplayMode: |-
                                         =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                     Fill: |-
-                                        =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, RGBA(255, 255, 255, 1), RGBA(240, 243, 248, 1))
+                                        =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
@@ -2055,7 +2102,7 @@ Screens:
                                     BorderThickness: |-
                                         =0
                                     Color: |-
-                                        =RGBA(89, 102, 122, 1)
+                                        =C.'text-muted'
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
                                     Font: |-
@@ -2086,7 +2133,7 @@ Screens:
                                     BorderThickness: |-
                                         =0
                                     Color: |-
-                                        =RGBA(89, 102, 122, 1)
+                                        =C.'text-muted'
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
                                     Font: |-
@@ -2190,7 +2237,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =RGBA(26, 34, 49, 1)
+                                                    =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Font: |-
@@ -2223,13 +2270,13 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =RGBA(26, 34, 49, 1)
+                                              =C.'text-primary'
                                           Default: |-
                                               =varDomFFunctionalLocation1
                                           DisplayMode: |-
                                               =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                           Fill: |-
-                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, RGBA(255, 255, 255, 1), RGBA(240, 243, 248, 1))
+                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
                                               =Font.'Segoe UI'
                                           Height: |-
@@ -2314,7 +2361,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =RGBA(26, 34, 49, 1)
+                                                    =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Font: |-
@@ -2347,13 +2394,13 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =RGBA(26, 34, 49, 1)
+                                              =C.'text-primary'
                                           Default: |-
                                               =varDomFFunctionalLocation2
                                           DisplayMode: |-
                                               =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                           Fill: |-
-                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, RGBA(255, 255, 255, 1), RGBA(240, 243, 248, 1))
+                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
                                               =Font.'Segoe UI'
                                           Height: |-
@@ -2438,7 +2485,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =RGBA(26, 34, 49, 1)
+                                                    =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Font: |-
@@ -2471,13 +2518,13 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =RGBA(26, 34, 49, 1)
+                                              =C.'text-primary'
                                           Default: |-
                                               =varDomFClassData
                                           DisplayMode: |-
                                               =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                           Fill: |-
-                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, RGBA(255, 255, 255, 1), RGBA(240, 243, 248, 1))
+                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
                                               =Font.'Segoe UI'
                                           Height: |-
@@ -2562,7 +2609,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =RGBA(26, 34, 49, 1)
+                                                    =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Font: |-
@@ -2595,13 +2642,13 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =RGBA(26, 34, 49, 1)
+                                              =C.'text-primary'
                                           Default: |-
                                               =varDomFRoomCoordinates
                                           DisplayMode: |-
                                               =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                           Fill: |-
-                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, RGBA(255, 255, 255, 1), RGBA(240, 243, 248, 1))
+                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
                                               =Font.'Segoe UI'
                                           Height: |-
@@ -2711,7 +2758,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =RGBA(26, 34, 49, 1)
+                                                    =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Font: |-
@@ -2744,13 +2791,13 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =RGBA(26, 34, 49, 1)
+                                              =C.'text-primary'
                                           Default: |-
                                               =varDomFPlacement
                                           DisplayMode: |-
                                               =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                           Fill: |-
-                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, RGBA(255, 255, 255, 1), RGBA(240, 243, 248, 1))
+                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
                                               =Font.'Segoe UI'
                                           Height: |-
@@ -2787,7 +2834,7 @@ Screens:
                               BorderThickness: |-
                                   =0
                               Color: |-
-                                  =RGBA(89, 102, 122, 1)
+                                  =C.'text-muted'
                               Fill: |-
                                   =RGBA(0, 0, 0, 0)
                               Font: |-
@@ -2893,7 +2940,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =RGBA(26, 34, 49, 1)
+                                                    =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Font: |-
@@ -2924,7 +2971,7 @@ Screens:
                                           Appearance: |-
                                               =Appearance.Outline
                                           BorderColor: |-
-                                              =RGBA(215, 222, 232, 1)
+                                              =C.'border-default'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -3015,7 +3062,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =RGBA(26, 34, 49, 1)
+                                                    =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Font: |-
@@ -3046,7 +3093,7 @@ Screens:
                                           Appearance: |-
                                               =Appearance.Outline
                                           BorderColor: |-
-                                              =RGBA(215, 222, 232, 1)
+                                              =C.'border-default'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -3089,7 +3136,7 @@ Screens:
                               BorderThickness: |-
                                   =0
                               Color: |-
-                                  =RGBA(89, 102, 122, 1)
+                                  =C.'text-muted'
                               Fill: |-
                                   =RGBA(0, 0, 0, 0)
                               Font: |-
@@ -3170,7 +3217,7 @@ Screens:
                                           BorderThickness: |-
                                               =0
                                           Color: |-
-                                              =RGBA(26, 34, 49, 1)
+                                              =C.'text-primary'
                                           Fill: |-
                                               =RGBA(0, 0, 0, 0)
                                           Font: |-
@@ -3203,13 +3250,13 @@ Screens:
                                     BorderThickness: |-
                                         =1
                                     Color: |-
-                                        =RGBA(26, 34, 49, 1)
+                                        =C.'text-primary'
                                     Default: |-
                                         =varDomFLongText
                                     DisplayMode: |-
                                         =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                     Fill: |-
-                                        =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, RGBA(255, 255, 255, 1), RGBA(240, 243, 248, 1))
+                                        =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
@@ -3271,11 +3318,11 @@ Screens:
                                     Appearance: |-
                                         =ButtonAppearance.Secondary
                                     BorderColor: |-
-                                        =RGBA(215, 222, 232, 1)
+                                        =C.'border-default'
                                     BorderThickness: |-
                                         =1
                                     Color: |-
-                                        =RGBA(26, 34, 49, 1)
+                                        =C.'text-primary'
                                     DisplayMode: |-
                                         =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                     Font: |-
@@ -3410,9 +3457,9 @@ Screens:
                                     AlignInContainer: |-
                                         =AlignInContainer.Center
                                     BasePaletteColor: |-
-                                        =RGBA(0, 103, 174, 1)
+                                        =C.'color-brand-primary'
                                     Color: |-
-                                        =RGBA(255, 255, 255, 1)
+                                        =C.'text-on-primary'
                                     DisplayMode: |-
                                         =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                     Font: |-
@@ -3549,11 +3596,11 @@ Screens:
                                     Appearance: |-
                                         =ButtonAppearance.Secondary
                                     BorderColor: |-
-                                        =RGBA(215, 222, 232, 1)
+                                        =C.'border-default'
                                     BorderThickness: |-
                                         =1
                                     Color: |-
-                                        =RGBA(26, 34, 49, 1)
+                                        =C.'text-primary'
                                     Font: |-
                                         =Font.'Segoe UI'
                                     FontWeight: |-
@@ -3615,11 +3662,11 @@ Screens:
                                     Appearance: |-
                                         =ButtonAppearance.Secondary
                                     BorderColor: |-
-                                        =RGBA(179, 50, 60, 1)
+                                        =C.'state-error-fg'
                                     BorderThickness: |-
                                         =1
                                     Color: |-
-                                        =RGBA(179, 50, 60, 1)
+                                        =C.'state-error-fg'
                                     DisplayMode: |-
                                         =If(IsBlank(varDomActiveRowId), DisplayMode.Disabled, DisplayMode.Edit)
                                     Font: |-
@@ -3720,7 +3767,7 @@ Screens:
                               BorderThickness: |-
                                   =0
                               Color: |-
-                                  =RGBA(89, 102, 122, 1)
+                                  =C.'text-muted'
                               Fill: |-
                                   =RGBA(0, 0, 0, 0)
                               Font: |-
@@ -3804,13 +3851,13 @@ Screens:
                                   Variant: AutoLayout
                                   Properties:
                                     BorderColor: |-
-                                        =RGBA(215, 222, 232, 1)
+                                        =C.'border-default'
                                     BorderThickness: |-
                                         =1
                                     DropShadow: |-
                                         =DropShadow.None
                                     Fill: |-
-                                        =RGBA(250, 251, 253, 1)
+                                        =C.'bg-card'
                                     FillPortions: |-
                                         =0
                                     Height: |-
@@ -3857,7 +3904,7 @@ Screens:
                                           BorderThickness: |-
                                               =0
                                           Color: |-
-                                              =RGBA(26, 34, 49, 1)
+                                              =C.'text-primary'
                                           Fill: |-
                                               =RGBA(0, 0, 0, 0)
                                           Font: |-
@@ -3913,11 +3960,11 @@ Screens:
                                                 BorderThickness: |-
                                                     =1
                                                 Color: |-
-                                                    =RGBA(26, 34, 49, 1)
+                                                    =C.'text-primary'
                                                 Default: |-
                                                     =""
                                                 Fill: |-
-                                                    =RGBA(255, 255, 255, 1)
+                                                    =C.'input-bg'
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
@@ -3950,19 +3997,19 @@ Screens:
                                                 BorderColor: |-
                                                     =If(
                                                         false && IsBlank(Self.Selected.Value),
-                                                        RGBA(179, 50, 60, 1),
-                                                        If(IsBlank(Self.Selected.Value), RGBA(215, 222, 232, 1), RGBA(21, 127, 92, 1))
+                                                        C.'state-error-fg',
+                                                        If(IsBlank(Self.Selected.Value), C.'border-default', C.'state-ok-fg')
                                                     )
                                                 BorderStyle: |-
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
                                                     =1
                                                 Color: |-
-                                                    =RGBA(26, 34, 49, 1)
+                                                    =C.'text-primary'
                                                 Default: |-
                                                     =LookUp(["alle", "draft", "valid", "submitted"], Value = "alle")
                                                 Fill: |-
-                                                    =RGBA(255, 255, 255, 1)
+                                                    =C.'input-bg'
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
@@ -4020,7 +4067,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =RGBA(89, 102, 122, 1)
+                                                    =C.'text-muted'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Font: |-
@@ -4055,7 +4102,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =RGBA(89, 102, 122, 1)
+                                                    =C.'text-muted'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Font: |-
@@ -4092,7 +4139,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =RGBA(89, 102, 122, 1)
+                                                    =C.'text-muted'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Font: |-
@@ -4129,7 +4176,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =RGBA(89, 102, 122, 1)
+                                                    =C.'text-muted'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Font: |-
@@ -4166,7 +4213,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =RGBA(89, 102, 122, 1)
+                                                    =C.'text-muted'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Font: |-
@@ -4203,7 +4250,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =RGBA(89, 102, 122, 1)
+                                                    =C.'text-muted'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Font: |-
@@ -4240,7 +4287,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =RGBA(89, 102, 122, 1)
+                                                    =C.'text-muted'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Font: |-
@@ -4402,7 +4449,7 @@ Screens:
                                                       BorderThickness: |-
                                                           =0
                                                       Color: |-
-                                                          =RGBA(26, 34, 49, 1)
+                                                          =C.'text-primary'
                                                       Fill: |-
                                                           =RGBA(0, 0, 0, 0)
                                                       Font: |-
@@ -4435,7 +4482,7 @@ Screens:
                                                       BorderThickness: |-
                                                           =0
                                                       Color: |-
-                                                          =RGBA(89, 102, 122, 1)
+                                                          =C.'text-muted'
                                                       Fill: |-
                                                           =RGBA(0, 0, 0, 0)
                                                       Font: |-
@@ -4470,7 +4517,7 @@ Screens:
                                                       BorderThickness: |-
                                                           =0
                                                       Color: |-
-                                                          =RGBA(89, 102, 122, 1)
+                                                          =C.'text-muted'
                                                       Fill: |-
                                                           =RGBA(0, 0, 0, 0)
                                                       Font: |-
@@ -4505,7 +4552,7 @@ Screens:
                                                       BorderThickness: |-
                                                           =0
                                                       Color: |-
-                                                          =RGBA(89, 102, 122, 1)
+                                                          =C.'text-muted'
                                                       Fill: |-
                                                           =RGBA(0, 0, 0, 0)
                                                       Font: |-
@@ -4544,9 +4591,9 @@ Screens:
                                                       BorderThickness: |-
                                                           =0
                                                       Color: |-
-                                                          =RGBA(89, 102, 122, 1)
+                                                          =C.'text-muted'
                                                       Fill: |-
-                                                          =RGBA(228, 233, 241, 1)
+                                                          =C.'state-neutral-bg'
                                                       Font: |-
                                                           =Font.'Segoe UI'
                                                       FontWeight: |-
@@ -4589,7 +4636,7 @@ Screens:
                                                       BorderThickness: |-
                                                           =0
                                                       Color: |-
-                                                          =RGBA(89, 102, 122, 1)
+                                                          =C.'text-muted'
                                                       Fill: |-
                                                           =RGBA(0, 0, 0, 0)
                                                       Font: |-
@@ -4626,11 +4673,11 @@ Screens:
                                                       Appearance: |-
                                                           =ButtonAppearance.Secondary
                                                       BorderColor: |-
-                                                          =RGBA(215, 222, 232, 1)
+                                                          =C.'border-default'
                                                       BorderThickness: |-
                                                           =1
                                                       Color: |-
-                                                          =RGBA(26, 34, 49, 1)
+                                                          =C.'text-primary'
                                                       Font: |-
                                                           =Font.'Segoe UI'
                                                       FontWeight: |-
@@ -4722,7 +4769,7 @@ Screens:
                                           BorderThickness: |-
                                               =0
                                           Color: |-
-                                              =RGBA(89, 102, 122, 1)
+                                              =C.'text-muted'
                                           Fill: |-
                                               =RGBA(0, 0, 0, 0)
                                           Font: |-
@@ -4773,13 +4820,13 @@ Screens:
                                   Variant: AutoLayout
                                   Properties:
                                     BorderColor: |-
-                                        =RGBA(215, 222, 232, 1)
+                                        =C.'border-default'
                                     BorderThickness: |-
                                         =1
                                     DropShadow: |-
                                         =DropShadow.None
                                     Fill: |-
-                                        =RGBA(250, 251, 253, 1)
+                                        =C.'bg-card'
                                     FillPortions: |-
                                         =0
                                     Height: |-
@@ -4821,7 +4868,7 @@ Screens:
                                           BorderThickness: |-
                                               =0
                                           Color: |-
-                                              =RGBA(26, 34, 49, 1)
+                                              =C.'text-primary'
                                           Fill: |-
                                               =RGBA(0, 0, 0, 0)
                                           Font: |-
@@ -4850,7 +4897,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Vaelg dokumenter"
                                           BorderColor: |-
-                                              =RGBA(215, 222, 232, 1)
+                                              =C.'border-default'
                                           BorderThickness: |-
                                               =1
                                           DisplayMode: |-
@@ -4906,9 +4953,9 @@ Screens:
                                                 AlignInContainer: |-
                                                     =AlignInContainer.Center
                                                 BasePaletteColor: |-
-                                                    =RGBA(0, 103, 174, 1)
+                                                    =C.'color-brand-primary'
                                                 Color: |-
-                                                    =RGBA(255, 255, 255, 1)
+                                                    =C.'text-on-primary'
                                                 DisplayMode: |-
                                                     =If(IsBlank(varDomActiveRowId), DisplayMode.Disabled, DisplayMode.Edit)
                                                 Font: |-
@@ -5023,11 +5070,11 @@ Screens:
                                                 Appearance: |-
                                                     =ButtonAppearance.Secondary
                                                 BorderColor: |-
-                                                    =RGBA(215, 222, 232, 1)
+                                                    =C.'border-default'
                                                 BorderThickness: |-
                                                     =1
                                                 Color: |-
-                                                    =RGBA(26, 34, 49, 1)
+                                                    =C.'text-primary'
                                                 DisplayMode: |-
                                                     =If(IsBlank(varDomActiveRowId), DisplayMode.Disabled, DisplayMode.Edit)
                                                 Font: |-
@@ -5105,11 +5152,11 @@ Screens:
                                                 Appearance: |-
                                                     =ButtonAppearance.Secondary
                                                 BorderColor: |-
-                                                    =RGBA(179, 50, 60, 1)
+                                                    =C.'state-error-fg'
                                                 BorderThickness: |-
                                                     =1
                                                 Color: |-
-                                                    =RGBA(179, 50, 60, 1)
+                                                    =C.'state-error-fg'
                                                 DisplayMode: |-
                                                     =If(IsBlank(varDomActiveRowId), DisplayMode.Disabled, DisplayMode.Edit)
                                                 Font: |-
@@ -5240,7 +5287,7 @@ Screens:
                                                       BorderThickness: |-
                                                           =0
                                                       Color: |-
-                                                          =RGBA(26, 34, 49, 1)
+                                                          =C.'text-primary'
                                                       Fill: |-
                                                           =RGBA(0, 0, 0, 0)
                                                       Font: |-
@@ -5277,11 +5324,11 @@ Screens:
                                                       Appearance: |-
                                                           =ButtonAppearance.Secondary
                                                       BorderColor: |-
-                                                          =RGBA(215, 222, 232, 1)
+                                                          =C.'border-default'
                                                       BorderThickness: |-
                                                           =1
                                                       Color: |-
-                                                          =RGBA(26, 34, 49, 1)
+                                                          =C.'text-primary'
                                                       Font: |-
                                                           =Font.'Segoe UI'
                                                       FontWeight: |-
@@ -5324,7 +5371,7 @@ Screens:
                                           BorderThickness: |-
                                               =0
                                           Color: |-
-                                              =RGBA(89, 102, 122, 1)
+                                              =C.'text-muted'
                                           Fill: |-
                                               =RGBA(0, 0, 0, 0)
                                           Font: |-
@@ -5356,13 +5403,13 @@ Screens:
                       Variant: AutoLayout
                       Properties:
                         BorderColor: |-
-                            =RGBA(215, 222, 232, 1)
+                            =C.'border-default'
                         BorderThickness: |-
                             =1
                         DropShadow: |-
                             =DropShadow.None
                         Fill: |-
-                            =RGBA(250, 251, 253, 1)
+                            =C.'bg-card'
                         FillPortions: |-
                             =0
                         Height: |-
@@ -5408,7 +5455,7 @@ Screens:
                               BorderThickness: |-
                                   =0
                               Color: |-
-                                  =RGBA(26, 34, 49, 1)
+                                  =C.'text-primary'
                               Fill: |-
                                   =RGBA(0, 0, 0, 0)
                               Font: |-
@@ -5468,11 +5515,11 @@ Screens:
                                     Appearance: |-
                                         =ButtonAppearance.Secondary
                                     BorderColor: |-
-                                        =RGBA(215, 222, 232, 1)
+                                        =C.'border-default'
                                     BorderThickness: |-
                                         =1
                                     Color: |-
-                                        =RGBA(26, 34, 49, 1)
+                                        =C.'text-primary'
                                     DisplayMode: |-
                                         =If(CountRows(Filter(colDomRows, Status <> "submitted")) = 0, DisplayMode.Disabled, DisplayMode.Edit)
                                     Font: |-
@@ -5608,9 +5655,9 @@ Screens:
                                     AlignInContainer: |-
                                         =AlignInContainer.Center
                                     BasePaletteColor: |-
-                                        =RGBA(0, 103, 174, 1)
+                                        =C.'color-brand-primary'
                                     Color: |-
-                                        =RGBA(255, 255, 255, 1)
+                                        =C.'text-on-primary'
                                     DisplayMode: |-
                                         =If(CountRows(Filter(colDomRows, Status = "valid")) = 0, DisplayMode.Disabled, DisplayMode.Edit)
                                     Font: |-
@@ -5750,11 +5797,11 @@ Screens:
                                     Appearance: |-
                                         =ButtonAppearance.Secondary
                                     BorderColor: |-
-                                        =RGBA(215, 222, 232, 1)
+                                        =C.'border-default'
                                     BorderThickness: |-
                                         =1
                                     Color: |-
-                                        =RGBA(26, 34, 49, 1)
+                                        =C.'text-primary'
                                     Font: |-
                                         =Font.'Segoe UI'
                                     FontWeight: |-
@@ -5823,7 +5870,7 @@ Screens:
                               BorderThickness: |-
                                   =0
                               Color: |-
-                                  =RGBA(89, 102, 122, 1)
+                                  =C.'text-muted'
                               Fill: |-
                                   =RGBA(0, 0, 0, 0)
                               Font: |-

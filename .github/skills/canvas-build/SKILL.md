@@ -17,6 +17,45 @@ kører builderen — og du efterlader en fil, der ikke længere matcher sin kild
 Det gælder også, når ændringen er lille, og når du har travlt. Der findes
 ingen undtagelse.
 
+## Den anden regel: farver er tokens, ikke tal
+
+**Ingen builder må indeholde en farve.** Hverken `RGBA(...)` eller
+`#rrggbb`. `tools/build_all.py` nægter at bygge, hvis nogen skriver en, og
+den læser syntakstræet, så en kommentar må gerne nævne en farve.
+
+Alle 31 farver står i `tools/design_tokens.py` — ét sted for alle fire
+apps, i to udgaver. Builderne skriver en **tokenreference**:
+
+```python
+from gen_screen import C_CARD_BG, C_TITLE      # peger paa tokens
+...
+"Fill": C_CARD_BG                               # -> =C.'bg-card'
+```
+
+`C` er en navngiven formel i `App.Formulas`:
+
+```
+C = If(!darkModeEnabled, { ...lyse vaerdier... }, { ...moerke... });
+```
+
+Derfor er **mørk tilstand ikke en funktion**. Skifter `darkModeEnabled`,
+genberegner Power Fx formlen, og hver kontrol, der læser
+`C.'et-eller-andet'`, skifter med. Ingen kontrol ved, at mørk tilstand
+findes.
+
+Skal en farve ændres, rettes den **i begge temaer** i
+`tools/design_tokens.py`, og alle fire apps skifter sammen.
+
+Skal en farve bruges inde i en **HTML-streng** (`HtmlViewer`), så brug
+`design_tokens.ref_hex()` — hex-værdierne afledes af de samme tokens og
+kan derfor ikke glide fra dem.
+
+Temaknappen er `build_helpers.theme_button()` og er **den samme kontrol i
+alle fire apps**. Byg ikke en ny.
+
+Det hele står i `docs/26-designtokens.md`, inkl. hvorfor farverne ikke kan
+ligge i miljøvariabler, og hvordan valget huskes.
+
 ## Fire apps — hver med sin selvstændige build-mappe
 
 | App | Mappe | Skærm | Byg |
@@ -32,7 +71,7 @@ app-mappe, og et delt modul uden for mappen blev fjernet igen af den.
 
 Tre filer er derfor **kopieret ordret** ind i begge build-mapper:
 
-    gen_screen.py      DSL, stylingkonstanter, højde-algebra
+    gen_screen.py      DSL, højde-algebra, og de C_*-navne der peger på tokens
     build_helpers.py   byggeklodser: card, group, button_row, inputs, combobox
     check_layout.py    layout-tjekket
 
@@ -197,6 +236,10 @@ operationer:
 7. Ingen formel refererer en kontrol, der ikke findes
 8. Enhver `col*`, skærmen bruger, findes i `App.pa.yaml` — som navngiven
    formel eller som `ClearCollect`
+8b. Enhver designtoken, skærmen bruger, findes i temaformlen `C`. Power Fx
+   siger **ikke** fra ved et felt, en record ikke har — den giver blank, og
+   blank er gennemsigtig. En stavefejl ville derfor ikke fejle i compile;
+   kontrollen ville bare forsvinde, måske kun i det ene tema
 9. Ingen **lodret** container har et barn med `FillPortions <> 0`
 
 Punkt 7 fanger den klassiske: du sletter en kontrol og glemmer en
@@ -404,9 +447,12 @@ egenskaber, builderne bevidst sætter.
    bliver strakt, og så passer den udregnede højde ikke længere til det, der
    tegnes. Flytter du en celle fra en gitterrække ned i en kolonne, så **sæt
    `fill_portions=0`**. Check 9 håndhæver det.
-4. **Stylingen skal være uændret.** Farver, radier, skriftstørrelser og
-   polstring matcher Materialer-appen, og de to apps skal blive ved at ligne
-   hinanden.
+4. **Stylingen skal være uændret.** Radier, skriftstørrelser og polstring
+   matcher Materialer-appen, og apperne skal blive ved at ligne hinanden.
+   Farver er nu designtokens: de skal ændres i `tools/design_tokens.py` og
+   **i begge temaer**, aldrig i en builder. En ny token uden en mørk værdi
+   bliver gennemsigtig — og det ses kun af de brugere, der har slået mørk
+   tilstand til.
 5. **Brug konstruktioner, der allerede findes i skærmen.** `ModernDropdown`,
    `Classic/ComboBox` til søg-og-vælg, gallery med `ModernCheckbox`, vandret
    gallery til dynamiske kolonner. Hver ubevist konstruktion i dette projekt
@@ -460,6 +506,12 @@ Med `New` får man **en fane pr. klik**. Åbn tre indmeldinger, og der er
 fire faner med Power Apps i, som alle ser ens ud i proceslinjen.
 
 Målet står som `APP_TARGET` i `hub_config.py`, så det kun er ét sted.
+
+**Temaet skal med i URL'en.** `SaveData`-lageret er isoleret pr. app-id, så
+uden `?theme=dark` ville et klik fra en mørk hub lande i en lys satellit —
+og brugeren ville se appen skifte farve som følge af sit eget klik. Både
+hubbens fliser, dens "Open", og satellitternes "Til hubben" hænger
+`design_tokens.theme_query()` på.
 
 **Undtagelsen er dokumenter.** `btnDomAttOpen` åbner en fil fra
 biblioteket i en **ny** fane. `Replace` ville smide appen væk — og en
