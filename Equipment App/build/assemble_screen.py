@@ -19,7 +19,7 @@ from build_helpers import group
 import domain_config as cfg
 from build_domain import (build_bar, build_form, build_attachments,
                           build_rows, build_submit, refresh_rows_fx,
-                          clear_form_fx)
+                          clear_form_fx, HALF_W)
 
 
 def on_visible():
@@ -31,19 +31,23 @@ def on_visible():
 
 
 def build_screen():
-    # DOKUMENTERNE LIGGER NEDERST
+    # LISTEN OG DOKUMENTERNE SIDE OM SIDE
     #
-    # De sad foer i en skinne til hoejre for formularen. Det var forkert af
-    # to grunde: ruden hoerer til den VALGTE raekke, og raekken vaelges i
-    # listen laengere nede - saa oejet skulle hele vejen op igen for at se,
-    # hvad der skete. Og skinnen gjorde formularen smal, hvilket er dyrt,
-    # naar den har fire kolonner.
+    # Ruden hoerer til den raekke, der er valgt i listen. Staar de under
+    # hinanden, skal oejet hele vejen ned og op igen for at se, hvad
+    # valget gjorde. Ved siden af hinanden ses begge dele paa een gang.
     #
-    # Raekkefoelgen foelger nu arbejdet: udfyld, gem, vaelg i listen, laeg
-    # dokumenter paa, indsend.
+    # Under braekpunktet stables de alligevel: to kolonner paa et smalt
+    # vindue er een kolonne for meget, og listen har syv.
+    left = group("conDomLeft", [build_rows()], direction="Vertical", gap=16,
+                 width=HALF_W)
+    right = group("conDomRight", [build_attachments()], direction="Vertical",
+                  gap=16, width=HALF_W)
+    split = group("conDomSplit", [left, right], direction="Horizontal",
+                  gap=20, wrap="true", wrap_rows=1)
+
     shell = group("conDomShell",
-                  [build_bar(), build_form(), build_rows(),
-                   build_attachments(), build_submit()],
+                  [build_bar(), build_form(), split, build_submit()],
                   direction="Vertical", gap=16, pad=(20, 24, 40, 24))
     root = group("conDomRoot", [shell], direction="Vertical",
                  height="Parent.Height", width="Parent.Width",
