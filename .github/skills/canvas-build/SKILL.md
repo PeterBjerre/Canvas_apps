@@ -345,8 +345,11 @@ Punkt 8 fanger den samme fejl for data: flytter du en opslagsliste fra en
 hårdkodet tabel til en navngiven formel, bliver referencerne let hængende.
 
 Et barn med `Visible = false` regnes ikke med i højden — præcis som
-AutoLayout gør det. Kun det *litterale* `false`; en `Visible`-formel kan jo
-være sand, og så skal pladsen være der.
+AutoLayout gør det. Og et barn med en `Visible`-**formel** tælles kun med,
+når formlen er sand *i netop det testtilfælde*: `stack_height` skriver
+forælderens højde som `If(betingelse, gap + h, 0)`, så de to skal være
+enige. Kan betingelsen ikke regnes ud, tælles barnet med — hellere et fund
+for meget end en container, der klipper sit indhold.
 
 ## Dropdown-`Default` er en RECORD, ikke en værdi
 
