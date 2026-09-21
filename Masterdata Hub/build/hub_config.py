@@ -58,6 +58,17 @@ DOMAINS = [
 
 PLAY = "https://apps.powerapps.com/play/e/{env}/a/{app}"
 
+# SAMME FANE, IKKE EN NY
+#
+# LaunchTarget.Replace sender browseren videre i den fane, brugeren staar
+# i. Med New fik man en fane pr. klik: aabn tre indmeldinger, og der er
+# fire faner med Power Apps i, som alle ser ens ud i proceslinjen.
+#
+# Gaelder navigation MELLEM APPS. Et dokument fra biblioteket aabnes
+# stadig i en ny fane - dér ville Replace smide appen vaek, og en
+# halvudfyldt formular med den.
+APP_TARGET = "LaunchTarget.Replace"
+
 for _d in DOMAINS:
     _d["url"] = PLAY.format(env=ENV_ID, app=_d["app_id"]) if _d["app_id"] else ""
 

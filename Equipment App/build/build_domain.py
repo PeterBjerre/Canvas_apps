@@ -574,6 +574,9 @@ def build_attachments():
     }, h=24)
     name = text_ctrl("txtDomAttName", "ThisItem.FileName", size=13, height=28,
                      width=340, wrap="false")
+    # NY fane her, og kun her. Navigation mellem apps bruger Replace, saa
+    # der ikke bliver en fane pr. klik - men et dokument er ikke en app.
+    # Replace ville smide appen vaek, og en halvudfyldt formular med den.
     link = button("btnDomAttOpen", '"Aabn"',
                   "Launch(ThisItem.FileUrl, { }, LaunchTarget.New)",
                   width=80, height=28)

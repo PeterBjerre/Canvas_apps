@@ -19,7 +19,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_PRIM
                         C_INFO_FG, C_INFO_BG, C_NEUTRAL_BG, C_DIVIDER, C_TRANSPARENT,
                         C_APP_BG, FONT, SHELL_W)
 from build_helpers import text_ctrl, group, button, card
-from hub_config import LIST, COL_NO, DOMAINS, STATUS
+from hub_config import LIST, COL_NO, DOMAINS, STATUS, APP_TARGET
 
 # ---------------------------------------------------------------------------
 # Afgraensningen. Begge grene er delegerbare hver for sig:
@@ -137,7 +137,7 @@ def build_tiles():
                          f'Set(gblDomain, If(gblDomain = "{d["key"]}", "", "{d["key"]}"))',
                          width=bw, height=28)
         if d["url"]:
-            new_action = (f'Launch("{d["url"]}", {{ }}, LaunchTarget.New)')
+            new_action = (f'Launch("{d["url"]}", {{ }}, {APP_TARGET})')
         else:
             new_action = ('Notify("This app has not been built yet.", NotificationType.Warning)')
         bNew = button(f"btnMdTileNew{n}",
@@ -272,7 +272,7 @@ def build_list():
                        '        ThisItem.AppUrl & If(Find("?", ThisItem.AppUrl) > 0, "&", "?") &\n'
                        '            "reqid=" & ThisItem.RequestGuid,\n'
                        "        { },\n"
-                       "        LaunchTarget.New\n"
+                       f"        {APP_TARGET}\n"
                        "    )\n"
                        ")"),
                       width=COLS[5][1], height=28,
