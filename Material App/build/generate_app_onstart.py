@@ -92,7 +92,12 @@ Set(varDomRowStatus, "valid");
 Set(varDomAttJson, "");
 Set(varDomFlMsg, "");
 Set(varDomFlLast, "");
-Set(varDomInfo, "")'''
+Set(varDomInfo, "");
+
+// Er formularen blevet tjekket? Styrer om en kraevet feltkant maa vaere
+// roed. false ved opstart: en tom formular, ingen har roert, skal ikke
+// staa og lyse roedt. Saettes af Gem/Indsend - se domain_parts.REQUIRED.
+Set(varDomValidated, false)'''
 
 
 def main():

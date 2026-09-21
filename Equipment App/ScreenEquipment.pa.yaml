@@ -37,6 +37,7 @@ Screens:
           );
           Set(varDomActiveRowId, Blank());
           Set(varDomRowStatus, "valid");
+          Set(varDomValidated, false);
           Set(varDomFText, "");
           Set(varDomFPlant, "");
           Set(varDomFRequestType, "");
@@ -757,7 +758,7 @@ Screens:
                                               ="Beskrivelse, paakraevet"
                                           BorderColor: |-
                                               =If(
-                                                  true && IsBlank(Trim(Self.Text)),
+                                                  varDomValidated && IsBlank(Trim(Self.Text)),
                                                   C.'state-error-fg',
                                                   If(IsBlank(Trim(Self.Text)), C.'border-default', C.'state-ok-fg')
                                               )
@@ -796,7 +797,7 @@ Screens:
                                           Size: |-
                                               =14
                                           ValidationState: |-
-                                              =If(true && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                                              =If(varDomValidated && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                           Width: |-
                                               =Parent.Width
                               - conDomPlant:
@@ -924,7 +925,7 @@ Screens:
                                               =Appearance.Outline
                                           BorderColor: |-
                                               =If(
-                                                  true && IsBlank(Self.Selected.Value),
+                                                  varDomValidated && IsBlank(Self.Selected.Value),
                                                   C.'state-error-fg',
                                                   If(IsBlank(Self.Selected.Value), C.'border-default', C.'state-ok-fg')
                                               )
@@ -963,7 +964,7 @@ Screens:
                                           Size: |-
                                               =14
                                           ValidationState: |-
-                                              =If(true && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
+                                              =If(varDomValidated && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                                           Width: |-
                                               =Parent.Width
                               - conRequestType:
@@ -1052,6 +1053,8 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Type"
+                                          BorderColor: |-
+                                              =C.'border-default'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -1176,6 +1179,8 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Equipmentnummer"
+                                          BorderColor: |-
+                                              =C.'border-default'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -1358,6 +1363,8 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Equipment type"
+                                          BorderColor: |-
+                                              =C.'border-default'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -1482,6 +1489,8 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Fabrikat"
+                                          BorderColor: |-
+                                              =C.'border-default'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -1606,6 +1615,8 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Type betegnelse"
+                                          BorderColor: |-
+                                              =C.'border-default'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -1730,6 +1741,8 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Serienummer"
+                                          BorderColor: |-
+                                              =C.'border-default'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -1908,6 +1921,8 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Soeg funktionsplads"
+                                          BorderColor: |-
+                                              =C.'border-default'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -2049,11 +2064,7 @@ Screens:
                                     Appearance: |-
                                         =Appearance.Outline
                                     BorderColor: |-
-                                        =If(
-                                            false && IsBlank(Self.Selected.Code),
-                                            C.'state-error-fg',
-                                            If(IsBlank(Self.Selected.Code), C.'border-default', C.'state-ok-fg')
-                                        )
+                                        =C.'border-default'
                                     BorderStyle: |-
                                         =BorderStyle.Solid
                                     BorderThickness: |-
@@ -2265,6 +2276,8 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Func. loc. 1"
+                                          BorderColor: |-
+                                              =C.'border-default'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -2389,6 +2402,8 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Functional location 2"
+                                          BorderColor: |-
+                                              =C.'border-default'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -2513,6 +2528,8 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Klasse data"
+                                          BorderColor: |-
+                                              =C.'border-default'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -2637,6 +2654,8 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Rum koordinater"
+                                          BorderColor: |-
+                                              =C.'border-default'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -2786,6 +2805,8 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Placeringstekst"
+                                          BorderColor: |-
+                                              =C.'border-default'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -2967,7 +2988,7 @@ Screens:
                                         Control: ModernDatePicker
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="WarrantyStart"
+                                              ="Garanti start"
                                           Appearance: |-
                                               =Appearance.Outline
                                           BorderColor: |-
@@ -2980,6 +3001,8 @@ Screens:
                                               =varDomFWarrantyStart
                                           DisplayMode: |-
                                               =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                          Fill: |-
+                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
                                               =Font.'Segoe UI'
                                           Format: |-
@@ -3089,7 +3112,7 @@ Screens:
                                         Control: ModernDatePicker
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="WarrantyEnd"
+                                              ="Garanti slut"
                                           Appearance: |-
                                               =Appearance.Outline
                                           BorderColor: |-
@@ -3102,6 +3125,8 @@ Screens:
                                               =varDomFWarrantyEnd
                                           DisplayMode: |-
                                               =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                          Fill: |-
+                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
                                               =Font.'Segoe UI'
                                           Format: |-
@@ -3245,6 +3270,8 @@ Screens:
                                   Properties:
                                     AccessibleLabel: |-
                                         ="Langtekst"
+                                    BorderColor: |-
+                                        =C.'border-default'
                                     BorderStyle: |-
                                         =BorderStyle.Solid
                                     BorderThickness: |-
@@ -3336,7 +3363,8 @@ Screens:
                                     LayoutMinWidth: |-
                                         =0
                                     OnSelect: |-
-                                        =If(
+                                        =Set(varDomValidated, true);
+                                        If(
                                             IsBlank(Trim(Coalesce(varDomFText, ""))),
                                             Notify("Beskrivelse skal udfyldes - ogsaa paa en kladde.", NotificationType.Warning),
                                         
@@ -3473,7 +3501,8 @@ Screens:
                                     LayoutMinWidth: |-
                                         =0
                                     OnSelect: |-
-                                        =If(
+                                        =Set(varDomValidated, true);
+                                        If(
                                             IsBlank(Trim(Coalesce(varDomFText, ""))) || IsBlank(varDomFPlant),
                                             Notify("Beskrivelse og Plant skal udfyldes.", NotificationType.Warning),
                                         
@@ -3614,6 +3643,7 @@ Screens:
                                     OnSelect: |-
                                         =Set(varDomActiveRowId, Blank());
                                         Set(varDomRowStatus, "valid");
+                                        Set(varDomValidated, false);
                                         Set(varDomFText, "");
                                         Set(varDomFPlant, "");
                                         Set(varDomFRequestType, "");
@@ -3720,6 +3750,7 @@ Screens:
                                         
                                         Set(varDomActiveRowId, Blank());
                                             Set(varDomRowStatus, "valid");
+                                            Set(varDomValidated, false);
                                             Set(varDomFText, "");
                                             Set(varDomFPlant, "");
                                             Set(varDomFRequestType, "");
@@ -3955,6 +3986,8 @@ Screens:
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Soeg i raekkerne"
+                                                BorderColor: |-
+                                                    =C.'border-default'
                                                 BorderStyle: |-
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
@@ -3995,11 +4028,7 @@ Screens:
                                                 Appearance: |-
                                                     =Appearance.Outline
                                                 BorderColor: |-
-                                                    =If(
-                                                        false && IsBlank(Self.Selected.Value),
-                                                        C.'state-error-fg',
-                                                        If(IsBlank(Self.Selected.Value), C.'border-default', C.'state-ok-fg')
-                                                    )
+                                                    =C.'border-default'
                                                 BorderStyle: |-
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
@@ -4347,6 +4376,7 @@ Screens:
                                           OnSelect: |-
                                               =Set(varDomActiveRowId, ThisItem.RowId);
                                               Set(varDomRowStatus, ThisItem.Status);
+                                              Set(varDomValidated, false);
                                               Set(varDomFText, ThisItem.Description);
                                               Set(varDomFPlant, ThisItem.Plant);
                                               Set(varDomFRequestType, ThisItem.RequestType);
@@ -4691,6 +4721,7 @@ Screens:
                                                       OnSelect: |-
                                                           =Set(varDomActiveRowId, ThisItem.RowId);
                                                           Set(varDomRowStatus, ThisItem.Status);
+                                                          Set(varDomValidated, false);
                                                           Set(varDomFText, ThisItem.Description);
                                                           Set(varDomFPlant, ThisItem.Plant);
                                                           Set(varDomFRequestType, ThisItem.RequestType);

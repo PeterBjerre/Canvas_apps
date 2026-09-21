@@ -351,6 +351,30 @@ forælderens højde som `If(betingelse, gap + h, 0)`, så de to skal være
 enige. Kan betingelsen ikke regnes ud, tælles barnet med — hellere et fund
 for meget end en container, der klipper sit indhold.
 
+## Feltkanten har ÉN regel
+
+Alle fem inputtyper — `text_input`, `number_input`, `dropdown`,
+`date_picker`, `combobox` — kalder `build_helpers.border_rule()` og
+`input_fill()`. Byg ikke en sjette.
+
+```
+ikke krævet        ->  border-default   (eksplicit — ikke platformens standard)
+krævet + tom       ->  state-error-fg
+krævet + udfyldt   ->  state-ok-fg
+```
+
+**Grøn kun på krævede felter.** En grøn kant om hvert eneste udfyldt felt
+gør farven meningsløs; grøn skal betyde "dette krav er opfyldt", ikke "du
+har tastet noget".
+
+**Rød betyder "jeg har tjekket".** VH-plan gater på `varVhpPlanValidated`
+(Validér-knappen), Equipment og Material på `varDomValidated`, som sættes
+når brugeren trykker Gem eller Indsend. Ingen app viser rødt, før brugeren
+har bedt om et tjek — "rød fra første sekund" lærer brugeren at se bort fra
+rødt.
+
+Det hele står i `docs/28-feltfarvning.md`.
+
 ## Dropdown-`Default` er en RECORD, ikke en værdi
 
 `ModernDropdown.Default` vil have en **record fra kontrollens egen

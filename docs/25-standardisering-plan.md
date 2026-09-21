@@ -17,11 +17,11 @@ en måned før den anden. Det her er listen over de steder.
 > |---|---|---|
 > | 0 | Client secret | **Halvt.** Ude af arbejdstræet, `scrub_solution.py` hærdet og kører nu i byggeriet. **Nøglen skal stadig rulles i Entra ID** — den er i historikken |
 > | 1 | Ét farvemodul | **Færdig**, og gik videre: designtokens + mørk tilstand. `docs/26-designtokens.md` |
-> | 2 | Én regel for feltfarvning | Står stadig. Kræver ét valg fra dig — se §2 |
+> | 2 | Én regel for feltfarvning | **Færdig.** Fire regler → én. `docs/28-feltfarvning.md` |
 > | 3 | Ét sted for miljø og app-id'er | **Færdig.** `tools/env_config.py`, `--env` virker, `check_app_ids()` slettet |
 > | 4 | Duplikerede builderfiler | **Færdig.** 39 % → 4 %. Build-mapperne fra 14.825 til 5.982 linjer |
-> | 5 | check_layout blind | **Delvis.** Regel 8 så ikke skærmens egne egenskaber; bredderne kommer nu fra breakpointene. 42 højder er stadig blokeret af `Coalesce(` og `Parent.` |
-> | 6 | AccessibleLabel | Står stadig. 75 felter |
+> | 5 | check_layout blind | **Færdig.** 87 % → 96 %; de resterende er `Parent.`/`Self.`, som ikke kan kendes udefra. Tidligere: Regel 8 så ikke skærmens egne egenskaber; bredderne kommer nu fra breakpointene. 42 højder er stadig blokeret af `Coalesce(` og `Parent.` |
+> | 6 | AccessibleLabel | **Færdig.** 75 → 0, og regel 19 holder det der |
 > | 7 | Døde filer og docs | **Færdig.** 997 linjer slettet, README/SKILL/copilot rettet |
 > | 8 | Navngivning | Frarådes fortsat |
 >
