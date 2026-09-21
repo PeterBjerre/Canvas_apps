@@ -351,96 +351,103 @@ App:
                       Set(varVhpRequestGuid, idx.RequestGuid);
                       Set(varVhpPlanCommitted, true);
 
-                      // --- items ---------------------------------------
-                      ClearCollect(
-                          colVhpItems,
-                          ForAll(
-                              Filter(MaintenanceItems, MaintenancePlanNo.Id = pl.ID) As IT,
-                              {
-                                  ItemId: IT.ID,
-                                  ShortText: IT.Title,
-                                  FunctionalLocation: IT.FunctionalLocation,
-                                  FlDescription: "",
-                                  MainWorkCenter: IT.MainWorkCenter.Value,
-                                  ActivityType: IT.MaintenanceActivityType.Value,
-                                  ObjectList: IT.ObjectList,
-                                  Revision: IT.RevisionMark.Value,
-                                  OrstedResponsible: IT.OrstedResponsibleEmail,
-                                  Initials: IT.InitialOrstedResponsible,
-                                  LongText: IT.ItemDescription,
-                                  TasklistKey: "",
-                                  TasklistName: "",
-                                  Status: "valid"
-                              }
-                          )
-                      );
-
-                      // Den samme oversaettelse, gemningen selv bygger.
-                      // Materialer og dokumenter peger paa ItemKey.
-                      ClearCollect(
-                          colVhpSavedItems,
-                          ForAll(
-                              Filter(MaintenanceItems, MaintenancePlanNo.Id = pl.ID) As IT,
-                              { LocalId: IT.ID, SpId: IT.ID, ItemKey: IT.ItemID }
-                          )
-                      );
-
-                      // --- operationer, materialer, dokumenter ---------
-                      ClearCollect(
-                          colVhpOperations,
-                          ForAll(
-                              Filter(TaskListMain, MaintenancePlanID.Id = pl.ID) As OP,
-                              {
-                                  ItemId: OP.MaintenanceItemNo.Id,
-                                  OperationNo: Text(OP.OperationNo, "0000"),
-                                  OperationShortText: OP.OperationShortText,
-                                  WorkHours: OP.Work,
-                                  Persons: OP.Num,
-                                  DurationHours: OP.Duration,
-                                  MainWorkCenter: OP.WorkCtr,
-                                  Vendor: OP.Vendor,
-                                  LongText: OP.LongText,
-                                  PackagesKey: Coalesce(OP.PackagesKey, ";"),
-                                  Selected: false,
-                                  ControlKey: OP.Ctrl,
-                                  Cost: OP.Price,
-                                  UnitCost: If(Coalesce(OP.Work, 0) > 0, OP.Price / OP.Work, OP.Price),
-                                  Currency: OP.Currency,
-                                  CostElement: OP.CostElem,
-                                  MaterialGroup: OP.MaterialGroup
-                              }
-                          )
-                      );
-                      ClearCollect(
-                          colVhpMaterials,
-                          ForAll(
-                              Filter(MD_TasklistMaterial, PlanKey = pl.PlanID) As MT,
-                              {
-                                  ItemId: LookUp(colVhpSavedItems, ItemKey = MT.ItemKey).LocalId,
-                                  LineId: MT.LineId,
-                                  MaterialNo: MT.MaterialNo,
-                                  Description: MT.MaterialText,
-                                  Unit: MT.Unit,
-                                  Quantity: MT.Quantity,
-                                  OperationNo: MT.OperationNo,
-                                  Selected: false
-                              }
-                          )
-                      );
-                      ClearCollect(
-                          colVhpAttachments,
-                          ForAll(
-                              Filter(MD_TasklistAttachment, PlanKey = pl.PlanID) As AT,
-                              {
-                                  ItemId: LookUp(colVhpSavedItems, ItemKey = AT.ItemKey).LocalId,
-                                  FileName: AT.FileName,
-                                  FileUrl: AT.FileUrl,
-                                  Identifier: "",
-                                  FileSize: AT.FileSize,
-                                  OperationsKey: Coalesce(AT.OperationsKey, ";"),
-                                  Status: AT.UploadStatus.Value,
-                                  Selected: false
-                              }
+                      // --- de fem hentninger, PAA EEN GANG -------------
+                      //
+                      // Fem lister i kaede er fem rundture efter hinanden;
+                      // appen venter paa SUMMEN. I Concurrent venter den kun
+                      // paa den laengste.
+                      //
+                      // De fem er uafhaengige af hinanden. De afhaenger alle
+                      // af 'pl' - men den er sat UDENFOR og er faerdig, foer
+                      // Concurrent starter. Og varVhpActiveItemId nedenfor
+                      // laeser colVhpItems: ogsaa sikkert, for Concurrent
+                      // venter paa dem alle, foer den gaar videre.
+                      Concurrent(
+                          ClearCollect(
+                              colVhpItems,
+                              ForAll(
+                                  Filter(MaintenanceItems, MaintenancePlanNo.Id = pl.ID) As IT,
+                                  {
+                                      ItemId: IT.ID,
+                                      ShortText: IT.Title,
+                                      FunctionalLocation: IT.FunctionalLocation,
+                                      FlDescription: "",
+                                      MainWorkCenter: IT.MainWorkCenter.Value,
+                                      ActivityType: IT.MaintenanceActivityType.Value,
+                                      ObjectList: IT.ObjectList,
+                                      Revision: IT.RevisionMark.Value,
+                                      OrstedResponsible: IT.OrstedResponsibleEmail,
+                                      Initials: IT.InitialOrstedResponsible,
+                                      LongText: IT.ItemDescription,
+                                      TasklistKey: "",
+                                      TasklistName: "",
+                                      Status: "valid"
+                                  }
+                              )
+                          ),
+                          ClearCollect(
+                              colVhpSavedItems,
+                              ForAll(
+                                  Filter(MaintenanceItems, MaintenancePlanNo.Id = pl.ID) As IT,
+                                  { LocalId: IT.ID, SpId: IT.ID, ItemKey: IT.ItemID }
+                              )
+                          ),
+                          ClearCollect(
+                              colVhpOperations,
+                              ForAll(
+                                  Filter(TaskListMain, MaintenancePlanID.Id = pl.ID) As OP,
+                                  {
+                                      ItemId: OP.MaintenanceItemNo.Id,
+                                      OperationNo: Text(OP.OperationNo, "0000"),
+                                      OperationShortText: OP.OperationShortText,
+                                      WorkHours: OP.Work,
+                                      Persons: OP.Num,
+                                      DurationHours: OP.Duration,
+                                      MainWorkCenter: OP.WorkCtr,
+                                      Vendor: OP.Vendor,
+                                      LongText: OP.LongText,
+                                      PackagesKey: Coalesce(OP.PackagesKey, ";"),
+                                      Selected: false,
+                                      ControlKey: OP.Ctrl,
+                                      Cost: OP.Price,
+                                      UnitCost: If(Coalesce(OP.Work, 0) > 0, OP.Price / OP.Work, OP.Price),
+                                      Currency: OP.Currency,
+                                      CostElement: OP.CostElem,
+                                      MaterialGroup: OP.MaterialGroup
+                                  }
+                              )
+                          ),
+                          ClearCollect(
+                              colVhpMaterials,
+                              ForAll(
+                                  Filter(MD_TasklistMaterial, PlanKey = pl.PlanID) As MT,
+                                  {
+                                      ItemId: LookUp(colVhpSavedItems, ItemKey = MT.ItemKey).LocalId,
+                                      LineId: MT.LineId,
+                                      MaterialNo: MT.MaterialNo,
+                                      Description: MT.MaterialText,
+                                      Unit: MT.Unit,
+                                      Quantity: MT.Quantity,
+                                      OperationNo: MT.OperationNo,
+                                      Selected: false
+                                  }
+                              )
+                          ),
+                          ClearCollect(
+                              colVhpAttachments,
+                              ForAll(
+                                  Filter(MD_TasklistAttachment, PlanKey = pl.PlanID) As AT,
+                                  {
+                                      ItemId: LookUp(colVhpSavedItems, ItemKey = AT.ItemKey).LocalId,
+                                      FileName: AT.FileName,
+                                      FileUrl: AT.FileUrl,
+                                      Identifier: "",
+                                      FileSize: AT.FileSize,
+                                      OperationsKey: Coalesce(AT.OperationsKey, ";"),
+                                      Status: AT.UploadStatus.Value,
+                                      Selected: false
+                                  }
+                              )
                           )
                       );
 
