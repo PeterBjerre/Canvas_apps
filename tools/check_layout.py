@@ -95,6 +95,79 @@ def _iferror(a, b):
     return a
 
 
+def _balanced(expr, start):
+    """Slutindekset paa den parentes, der aabner ved 'start'."""
+    depth, i, in_str = 0, start, False
+    while i < len(expr):
+        c = expr[i]
+        if c == '"':
+            in_str = not in_str
+        elif not in_str:
+            if c == "(":
+                depth += 1
+            elif c == ")":
+                depth -= 1
+                if depth == 0:
+                    return i
+        i += 1
+    return -1
+
+
+def _sub_countrows(e, n):
+    """Erstat ETHVERT CountRows(...) med et proevetal.
+
+    Her stod foer tre erstatninger paa ORDRET tekst - og de tre var
+    VH-plans. Enhver anden apps CountRows overlevede, udtrykket indeholdt
+    dermed et navn, tjekket ikke kendte, og hele hoejden blev sprunget over
+    med et tavst "kan ikke". Det var derfor Equipment og Material havde
+    deres skal og alle fire kort uefterregnet.
+
+    Hvad der staar INDE i CountRows er tjekket uvedkommende: det er data,
+    ikke hoejdealgebra. Filtret kan indeholde Trim, Coalesce, StartsWith,
+    SortByColumns - det aendrer ikke, at resultatet er et tal, og at
+    hoejden skal passe for baade 0 og mange raekker."""
+    out, i = [], 0
+    while True:
+        j = e.find("CountRows(", i)
+        if j < 0:
+            out.append(e[i:])
+            return "".join(out)
+        k = _balanced(e, j + len("CountRows"))
+        if k < 0:
+            out.append(e[i:])
+            return "".join(out)
+        out.append(e[i:j])
+        out.append(str(n))
+        i = k + 1
+
+
+def _isblank(x):
+    """Alt, tjekket har sat ind, ER noget. En variabel er erstattet med
+    True, et CountRows med et tal - saa svaret er altid nej."""
+    return False
+
+
+# DET, evaluate KAN REGNE PAA - EEN liste, brugt begge steder.
+#
+# Her stod to vagter med hver sin haandskrevne opremsning: een der
+# afviste ukendte FUNKTIONSKALD og een der afviste ukendte NAVNE. Begge
+# naevnte "max" med lille og ingen af dem "Max" med stort - som er den,
+# Power Fx skriver, og den row_height() saetter i hver eneste vandrette
+# containers hoejde. Resultatet var, at 48 hoejder blev sprunget over med
+# et tavst "kan ikke", fordi vagten ikke kendte sin egen regnemaskine.
+#
+# Naar de to vagter deler een liste, kan de ikke laengere vaere uenige.
+KNOWN = ("_if", "_iferror", "_isblank", "_coalesce", "max", "Max", "min", "Min")
+_KNOWN_RE = "|".join(KNOWN)
+
+
+def _coalesce(*a):
+    for x in a:
+        if x not in (None, False, ""):
+            return x
+    return a[-1] if a else None
+
+
 def evaluate(expr, w, n_items, n_ops, n_pkgs):
     """Evaluer et genereret hoejdeudtryk. Returnerer None hvis udtrykket
     indeholder noget, tjekket ikke kan regne paa (fx Parent.TemplateHeight
@@ -107,9 +180,9 @@ def evaluate(expr, w, n_items, n_ops, n_pkgs):
     if "Parent." in e or "Self." in e:
         return None
 
-    e = e.replace("CountRows(colVhpItems)", str(n_items))
-    e = e.replace("CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId))", str(n_ops))
-    e = e.replace("CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy))", str(n_pkgs))
+    # De tre specifikke erstatninger her var VH-plans egne, paa ORDRET
+    # tekst. _sub_countrows tager dem alle - ogsaa de tre andre apps'.
+    e = _sub_countrows(e, max(n_items, n_ops, n_pkgs))
     # LayoutContext og LayoutRank er NAVNGIVNE FORMLER i App.pa.yaml, ikke
     # tal i udtrykket. Uden de to linjer kunne tjekket ikke regne paa en
     # eneste hoejde, der afhaenger af et braekpunkt - altsaa netop dem, der
@@ -126,19 +199,37 @@ def evaluate(expr, w, n_items, n_ops, n_pkgs):
     e = re.sub(r"IsBlank\(varVhpActiveItemId\)", "False", e)
     e = re.sub(r"\bvarVhp[A-Za-z0-9_]*\b", "True", e)
 
+    # IsBlank og Coalesce staar i de betingelser, hoejderne haenger paa.
+    # De maa erstattes FOER If, ellers bliver "IsBlank(" til "Is_if("...
+    e = e.replace("IsBlank(", "_isblank(").replace("Coalesce(", "_coalesce(")
     e = e.replace("IfError(", "_iferror(").replace("If(", "_if(")
     e = e.replace("&&", " and ").replace("||", " or ")
     e = re.sub(r"\btrue\b", "True", e)
     e = re.sub(r"\bfalse\b", "False", e)
     e = re.sub(r"(?<![<>!=])=(?!=)", "==", e)
 
-    if re.search(r"[A-Za-z_][A-Za-z0-9_.]*\s*\(", e.replace("_if(", "").replace("_iferror(", "").replace("max(", "")):
+    # Et funktionskald, tjekket ikke kender, kan det ikke regne paa.
+    stripped = e
+    for fn in KNOWN:
+        stripped = stripped.replace(fn + "(", "")
+    if re.search(r"[A-Za-z_][A-Za-z0-9_.]*\s*\(", stripped):
         return None
-    if re.search(r"\b(?!True|False|max|_if|_iferror|and|or|not)[A-Za-z_][A-Za-z0-9_.]*", e):
+    # HVIDLISTEN SKAL NAEVNE Max MED STORT.
+    #
+    # Her stod kun "max". Power Fx skriver Max(), og row_height() saetter
+    # den i hver eneste vandrette containers hoejde. Vagten saa derfor et
+    # "ukendt navn" i 41 af de 81 hoejder, den sprang over - og det var
+    # ikke data den ikke kunne regne paa, det var dens egen hvidliste.
+    if re.search(r"\b(?!True|False|and|or|not|" + _KNOWN_RE + r")"
+                 r"[A-Za-z_][A-Za-z0-9_.]*", e):
         return None
     try:
-        return float(eval(e, {"__builtins__": {}}, {"_if": _if, "_iferror": _iferror, "max": max, "Max": max,
-                                                    "True": True, "False": False}))
+        return float(eval(e, {"__builtins__": {}},
+                          {"_if": _if, "_iferror": _iferror,
+                           "max": max, "Max": max,
+                           "min": min, "Min": min,
+                           "_isblank": _isblank, "_coalesce": _coalesce,
+                           "True": True, "False": False}))
     except Exception:
         return None
 
@@ -200,7 +291,30 @@ def main():
                         ok = True
                         for k in kids:
                             (kn, kb), = k.items()
-                            kh = evaluate((kb.get("Properties") or {}).get("Height"), w, ni, no, npk)
+                            kprops = kb.get("Properties") or {}
+                            # ER BARNET SYNLIGT I NETOP DETTE TILFAELDE?
+                            #
+                            # gen_screen.stack_height skriver forelderens
+                            # hoejde som "If(betingelse, gap + h, 0)" - altsaa
+                            # kun naar barnet vises. Taeller tjekket barnet
+                            # med ALTID, sammenligner det forelderens
+                            # betingede hoejde med et ubetinget indhold, og
+                            # melder overloeb der ikke findes.
+                            #
+                            # Det var skjult, saa laenge hoejderne ikke kunne
+                            # regnes ud. Da de kunne, gav det seks fund i tre
+                            # apps - alle falske, alle paa den tomme-liste-
+                            # besked, der netop KUN vises naar listen er tom.
+                            #
+                            # Kan betingelsen ikke regnes ud, taelles barnet
+                            # med som foer: hellere et fund for meget end en
+                            # container, der klipper sit indhold.
+                            vis = kprops.get("Visible")
+                            if vis is not None:
+                                shown = evaluate(vis, w, ni, no, npk)
+                                if shown is not None and not shown:
+                                    continue
+                            kh = evaluate(kprops.get("Height"), w, ni, no, npk)
                             if kh is None:
                                 ok = False
                                 break
