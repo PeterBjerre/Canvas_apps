@@ -499,6 +499,16 @@ def _attachments_pane():
         "LoadingSpinner": "LoadingSpinner.None",
         "Selectable": "false",
         "ShowScrollbar": "true",
+        # TabIndex 0 - som de fjorten andre gallerier i repoet.
+        #
+        # Den manglede HER og kun her, og App checker fangede det ved
+        # deploy: "galVhpAttOps.TabIndex: Missing tab stop". En Gallery er
+        # en interaktiv kontrol for tastaturet, ogsaa naar Selectable er
+        # false - uden et tab stop kan man ikke naa dens indhold uden mus.
+        #
+        # check_layout regel 18 haandhaever det nu, saa det ikke skal
+        # opdages af en deploy-runde igen.
+        "TabIndex": "0",
         "TemplatePadding": "0",
         "TemplateSize": str(ATT_CELL_W),
         "Width": "Parent.Width - 540",
