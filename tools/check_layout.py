@@ -28,6 +28,8 @@ Tjekket foretager fire kontroller:
      tools/layout_tokens.py og laeses som LayoutRank/LayoutContext
   18. Enhver Gallery har TabIndex. Uden den er den ikke et tab stop, og
      App checker melder det foerst ved deploy
+  19. Ingen AccessibleLabel er kontrollens eget navn - en skaermlaeser
+     ville laese "inpManufacturer" op i stedet for "Fabrikat"
   9. Ingen LODRET container har et barn med FillPortions <> 0
      (knapraekken var 336 px bred i et kort med 324 px indhold, ombroed til
      to linjer og fik sin sidste knap klippet af).
@@ -774,6 +776,24 @@ def main():
         if "TabIndex" not in (body.get("Properties") or {}):
             problems.append(f"[18] {name}: Gallery uden TabIndex - App checker "
                             f"melder 'Missing tab stop'. Saet TabIndex til 0")
+
+    # --- 19. AccessibleLabel maa ikke vaere kontrollens navn --------------
+    # En skaermlaeser laeser AccessibleLabel op. Staar der "inpManufacturer",
+    # hoerer brugeren "inp Manufacturer" i stedet for "Fabrikat".
+    #
+    # Det var 75 felter i tre apps, og det stod der, fordi inputbyggerne
+    # falder tilbage paa kontrollens navn, naar kalderen ikke giver en
+    # etiket. field_cell retter det nu selv - men et input UDEN for en
+    # field_cell har ingen, der kender etiketten, og det er dem, den her
+    # regel fanger.
+    for _p, name, body in all_nodes:
+        acc = (body.get("Properties") or {}).get("AccessibleLabel")
+        if acc is None:
+            continue
+        v = str(acc).strip().lstrip("=").strip().strip('"')
+        if v == name:
+            problems.append(f"[19] {name}.AccessibleLabel er kontrollens navn "
+                            f"- en skaermlaeser laeser det op. Giv label=")
 
     print(f"Kontroller i alt: {len(all_nodes)}")
     if warnings:

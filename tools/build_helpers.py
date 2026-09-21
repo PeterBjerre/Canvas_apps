@@ -218,9 +218,9 @@ def button_row(name, buttons, container_w, gap=8, height=36, align_items="Center
 
 def text_input(name, default, placeholder="\"\"", max_length=None, required_formula="false",
                width="Parent.Width", height=36, display_mode=None, ttype=None,
-               onchange=None):
+               onchange=None, label=None):
     props = {
-        "AccessibleLabel": f"\"{name}\"",
+        "AccessibleLabel": label if label else f"\"{name}\"",
         "BorderStyle": "BorderStyle.Solid",
         "BorderThickness": "1",
         "Color": C_TITLE,
@@ -263,9 +263,9 @@ def text_input(name, default, placeholder="\"\"", max_length=None, required_form
 
 
 def number_input(name, default, min_v=None, max_v=None, required_formula="false",
-                 width="Parent.Width", height=36, display_mode=None):
+                 width="Parent.Width", height=36, display_mode=None, label=None):
     props = {
-        "AccessibleLabel": f"\"{name}\"",
+        "AccessibleLabel": label if label else f"\"{name}\"",
         "Appearance": "Appearance.Outline",
         "BorderColor": (
             f"If(\n"
@@ -299,9 +299,9 @@ def number_input(name, default, min_v=None, max_v=None, required_formula="false"
 
 
 def dropdown(name, items, default, item_display="ThisItem.Value", required_formula="false",
-             width="Parent.Width", height=36, display_mode=None, value_field="Value"):
+             width="Parent.Width", height=36, display_mode=None, value_field="Value", label=None):
     props = {
-        "AccessibleLabel": f"\"{name}\"",
+        "AccessibleLabel": label if label else f"\"{name}\"",
         "Appearance": "Appearance.Outline",
         "BorderColor": (
             f"If(\n"
@@ -332,7 +332,7 @@ def dropdown(name, items, default, item_display="ThisItem.Value", required_formu
 
 def combobox(name, items, display_field="Display", multi=False, default_items=None,
              placeholder="\"Soeg\"", required_formula="false", width="Parent.Width",
-             height=40, display_mode=None, onchange=None):
+             height=40, display_mode=None, onchange=None, label=None):
     """Soegefelt og valgliste i EEN kontrol.
 
     BRUGES IKKE LAENGERE. Staar her, fordi ideen er god - men i praksis
@@ -360,7 +360,7 @@ def combobox(name, items, display_field="Display", multi=False, default_items=No
     sel_test = ("CountRows(Self.SelectedItems) = 0" if multi
                 else f"IsBlank(Self.Selected.{display_field})")
     props = {
-        "AccessibleLabel": f"\"{name}\"",
+        "AccessibleLabel": label if label else f"\"{name}\"",
         "BorderColor": f"If({required_formula} && {sel_test}, {C_REQUIRED}, {C_CARD_BORDER})",
         "BorderStyle": "BorderStyle.Solid",
         "BorderThickness": "1",
@@ -482,6 +482,24 @@ def field_cell(name, label_text, input_ctrl, required=False, hint_text=None, wid
         kids.append(text_ctrl(f"{name}Hint", hint_text, size=12, color=C_MUTED,
                               height=32, wrap="true",
                               visible=HINTS_ON))
+    # SKAERMLAESEREN SKAL HOERE ETIKETTEN, IKKE KONTROLNAVNET
+    #
+    # De fire inputbyggere saetter AccessibleLabel til kontrollens eget
+    # navn, naar kalderen ikke giver andet. Det betoed, at en skaermlaeser
+    # sagde "inp Manufacturer" i stedet for "Fabrikat" - 75 felter i tre
+    # apps. Hubben gjorde det rigtigt, fordi den ikke har raa inputs.
+    #
+    # field_cell KENDER etiketten. Den retter derfor det, der stadig staar
+    # som standarden - og kun det: har kalderen sat en rigtig etiket, er
+    # den bevaret. Standarden kendes paa, at den er kontrollens eget navn.
+    #
+    # "Paakraevet" haenges paa, fordi stjernen ved siden af etiketten er
+    # synlig og dermed ingenting for den, der lytter.
+    default_label = '"%s"' % input_ctrl.name
+    if str(input_ctrl.props.get("AccessibleLabel", "")).strip() == default_label:
+        acc = label_text + (", paakraevet" if required else "")
+        input_ctrl.props["AccessibleLabel"] = '"%s"' % acc.replace('"', '""')
+
     w = width or col_width(container_w, cols, gap)
     fp = (if_below("Desktop", "0", "1")
           if fill_portions_formula is None else fill_portions_formula)

@@ -286,7 +286,7 @@ def build_item_editor():
     txtFlQuery = text_input(
         "txtVhpFlQuery", "\"\"",
         placeholder=("\"At least %d characters, e.g. SSV13 HFC\"" % MIN_SEARCH_LEN),
-        display_mode=DM_ITEM, width=f"Parent.Width - {FL_BTN_W} - 8")
+        display_mode=DM_ITEM, width=f"Parent.Width - {FL_BTN_W} - 8", label="\"Soeg funktionsplads\"")
     btnFlSearch = button(
         "btnVhpFlSearch", "\"Soeg\"",
         # raw_var foelger VH-plans egen navnekonvention. Den stod foer som
@@ -303,7 +303,7 @@ def build_item_editor():
     drpFl = dropdown(
         "drpVhpItemFL", "Sort(colVhpFlSearch, Code)", FL_DEFAULT,
         item_display="ThisItem.Display",
-        required_formula=REQ_ITEM, display_mode=DM_ITEM, value_field="Code")
+        required_formula=REQ_ITEM, display_mode=DM_ITEM, value_field="Code", label="\"Vaelg funktionsplads\"")
 
     flDescription = text_ctrl(
         "txtVhpItemFlDescription",

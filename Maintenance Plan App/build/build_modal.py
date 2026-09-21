@@ -58,7 +58,7 @@ def build_tasklist_picker_modal():
                     justify="SpaceBetween", align_items="Center")
 
     txtSearch = text_input("txtVhpPickerSearch", "\"\"", placeholder="\"Search operation no, text, work center\"",
-                            width="Parent.Width - 220", height=36)
+                            width="Parent.Width - 220", height=36, label="\"Soeg i operationer\"")
     chkSelectAll = Ctrl("chkVhpPickerSelectAll", "ModernCheckbox", props={
         "AccessibleLabel": "\"Select all visible\"",
         "Default": (
@@ -218,7 +218,7 @@ def build_longtext_modal():
 
     box = text_input("txtVhpLongTextBox", "varVhpLongTextDraft",
                      placeholder='"Instructions for this operation"',
-                     width="Parent.Width", height=260, ttype="Multiline")
+                     width="Parent.Width", height=260, ttype="Multiline", label="\"Langtekst\"")
 
     # Gemmer paa knappen, ikke paa hvert tastetryk. Et OnChange pr. tegn ville
     # skrive i samlingen, mens man skriver - og Annuller ville ikke kunne

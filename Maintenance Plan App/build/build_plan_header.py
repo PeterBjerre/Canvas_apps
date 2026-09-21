@@ -140,11 +140,11 @@ def build_plan_header():
                               display_mode=DM_PLAN)
     txtSchedInd = text_input("txtVhpSchedInd", "varVhpPlan.SchedulingIndicator", display_mode=DM_PLAN)
     numFirstCallDay = number_input("numVhpFirstCallDay", "varVhpPlan.FirstCallDay", min_v=1, max_v=31,
-                                   required_formula=REQ_PLAN, display_mode=DM_PLAN)
+                                   required_formula=REQ_PLAN, display_mode=DM_PLAN, label="\"Foerste kald, dag\"")
     numFirstCallMonth = number_input("numVhpFirstCallMonth", "varVhpPlan.FirstCallMonth", min_v=1, max_v=12,
-                                     required_formula=REQ_PLAN, display_mode=DM_PLAN)
+                                     required_formula=REQ_PLAN, display_mode=DM_PLAN, label="\"Foerste kald, maaned\"")
     numFirstCallYear = number_input("numVhpFirstCallYear", "varVhpPlan.FirstCallYear", min_v=2020, max_v=2100,
-                                    required_formula=REQ_PLAN, display_mode=DM_PLAN)
+                                    required_formula=REQ_PLAN, display_mode=DM_PLAN, label="\"Foerste kald, aar\"")
     txtStatutorySortField = text_input("txtVhpStatutorySortField", "varVhpPlan.StatutorySortField",
                                        display_mode=DM_PLAN)
 
