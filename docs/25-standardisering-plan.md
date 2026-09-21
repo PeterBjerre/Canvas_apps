@@ -11,20 +11,23 @@ en måned før den anden. Det her er listen over de steder.
 
 ---
 
-> **Status 21-09-2026:** §1 (ét farvemodul) er lavet — og gik videre end
-> planen her foreslog. Farverne er ikke bare samlet ét sted; de er lagt om
-> til **designtokens** læst gennem en navngiven formel, hvilket gav mørk
-> tilstand med. Se `docs/26-designtokens.md`.
+> ## Status
 >
-> **Også lavet:** layouttokens (`docs/27-layouttokens.md`) — ni breakpoints
-> i ni filer, heraf fire inden for 28 px, samlet til fire navngivne tiers.
-> Det stod ikke i planen her; det kom af det samme spørgsmål om ensartethed.
+> | § | Emne | Status |
+> |---|---|---|
+> | 0 | Client secret | **Halvt.** Ude af arbejdstræet, `scrub_solution.py` hærdet og kører nu i byggeriet. **Nøglen skal stadig rulles i Entra ID** — den er i historikken |
+> | 1 | Ét farvemodul | **Færdig**, og gik videre: designtokens + mørk tilstand. `docs/26-designtokens.md` |
+> | 2 | Én regel for feltfarvning | Står stadig. Kræver ét valg fra dig — se §2 |
+> | 3 | Ét sted for miljø og app-id'er | **Færdig.** `tools/env_config.py`, `--env` virker, `check_app_ids()` slettet |
+> | 4 | Duplikerede builderfiler | **Færdig.** 39 % → 4 %. Build-mapperne fra 14.825 til 5.982 linjer |
+> | 5 | check_layout blind | **Delvis.** Regel 8 så ikke skærmens egne egenskaber; bredderne kommer nu fra breakpointene. 42 højder er stadig blokeret af `Coalesce(` og `Parent.` |
+> | 6 | AccessibleLabel | Står stadig. 75 felter |
+> | 7 | Døde filer og docs | **Færdig.** 997 linjer slettet, README/SKILL/copilot rettet |
+> | 8 | Navngivning | Frarådes fortsat |
 >
-> §2 (feltfarvning), §3 (miljø og app-id'er), §4 (`shared/`), §5
-> (`check_layout`), §6 (`AccessibleLabel`) og §7 (døde filer) står stadig.
-> §5 fik dog en delrettelse undervejs: regel 8 så ikke på skærmens egne
-> egenskaber, og overså dermed de samlinger, Equipment og Material henter
-> i `OnVisible`.
+> **Ikke i planen, men lavet undervejs:** layouttokens
+> (`docs/27-layouttokens.md`) — ni breakpoints, heraf fire inden for 28 px,
+> samlet til fire navngivne tiers.
 
 ## Sammenfatning: hvad der bør gøres, i den rækkefølge
 
