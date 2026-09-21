@@ -34,7 +34,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
-from gen_screen import (Ctrl, SHELL_W, RAIL_W, SPLIT_GAP, EDITOR_W, FONT,
+from gen_screen import (Ctrl, SHELL_W, FONT,
                         C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
                         C_PRIMARY, C_WHITE, C_TRANSPARENT, C_DIVIDER,
                         C_NEUTRAL_BG, C_INFO_FG, C_INFO_BG,
@@ -54,6 +54,26 @@ GAL_ROWS = 8
 
 # Den aktive raekke i samlingen. Blank betyder "ny raekke".
 ACTIVE = "LookUp(colDomRows, RowId = varDomActiveRowId)"
+
+# BREDDERNE SKAL PASSE TIL DET KORT, FELTERNE FAKTISK STAAR I
+#
+# Her stod EDITOR_W - og den er SHELL_W minus en skinne paa 380, fra
+# dengang formularen havde dokumentruden ved siden af sig. Skinnen er
+# vaek, kortet fylder hele bredden, og saa regnede hver eneste celle med
+# 380 pixels, den ikke havde. Resultatet var fire kolonner, der laa
+# spredt ud over raekken med huller imellem sig - en labelrad hoejere
+# oppe end den foerste, og inputfelter, man ikke kunne finde.
+#
+# Kortets padding er 18 i hver side; det er de 36.
+FORM_W = f"({SHELL_W} - 36)"
+
+# Listen og dokumenterne staar side om side over braekpunktet og under
+# hinanden derunder. 20 er mellemrummet mellem dem.
+# 1600, ikke 1400. Listen har syv kolonner og knap 540 pixels i faste
+# bredder; under det bliver beskrivelseskolonnen smallere end sit eget
+# gulv, og raekken flyder ud over ruden i stedet for at dele sig.
+HALF_W = f"If(App.Width < 1600, {SHELL_W}, ({SHELL_W} - 20) / 2)"
+PANE_W = f"({HALF_W} - 36)"
 
 # Indsendte raekker kan ikke redigeres - saa ejer SAP-processen dem.
 DM_ROW = ('If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)')
@@ -253,9 +273,9 @@ def build_form():
                               placeholder=cfg.TEXT_PLACEHOLDER,
                               required_formula="true", display_mode=DM_ROW,
                               onchange="Set(varDomFText, Self.Text)"),
-                   required=True, container_w=EDITOR_W, cols=COLS_PER_ROW),
+                   required=True, container_w=FORM_W, cols=COLS_PER_ROW),
         field_cell("conDomPlant", cfg.PLANT_LABEL, _plant_dropdown(),
-                   required=True, container_w=EDITOR_W, cols=COLS_PER_ROW),
+                   required=True, container_w=FORM_W, cols=COLS_PER_ROW),
     ]
 
     kids = [head]
@@ -271,29 +291,29 @@ def build_form():
             if col == getattr(cfg, "FL_FIELD", None):
                 if chunk:
                     kids.append(row_n(f"conDomRow{s_i}_{f_i}", chunk,
-                                      container_w=EDITOR_W))
+                                      container_w=FORM_W))
                     chunk = []
                 kids.append(build_fl_block())
                 continue
             wide = kind == "long"
             cell = field_cell(f"con{col}", label, _input_for(col, kind, choices),
-                              container_w=EDITOR_W,
+                              container_w=FORM_W,
                               cols=1 if wide else COLS_PER_ROW,
                               fill_portions_formula="0" if wide else None)
             if wide:
                 if chunk:
                     kids.append(row_n(f"conDomRow{s_i}_{f_i}", chunk,
-                                      container_w=EDITOR_W))
+                                      container_w=FORM_W))
                     chunk = []
                 kids.append(cell)
                 continue
             chunk.append(cell)
             if len(chunk) == COLS_PER_ROW:
                 kids.append(row_n(f"conDomRow{s_i}_{f_i}", chunk,
-                                  container_w=EDITOR_W))
+                                  container_w=FORM_W))
                 chunk = []
         if chunk:
-            kids.append(row_n(f"conDomRow{s_i}_end", chunk, container_w=EDITOR_W))
+            kids.append(row_n(f"conDomRow{s_i}_end", chunk, container_w=FORM_W))
 
     # KLADDE OG FAERDIG ER TO KNAPPER
     #
@@ -309,7 +329,7 @@ def build_form():
     delete = button("btnDomDelete", '"Slet raekke"', delete_row_fx(),
                     danger=True, width=150, display_mode=DM_SEL)
     kids.append(button_row("conDomFormActions",
-                           [draft, save, new, delete], EDITOR_W))
+                           [draft, save, new, delete], FORM_W))
     kids.append(text_ctrl("txtDomFormInfo", "varDomInfo", size=12,
                           color=C_MUTED, height=18, wrap="false"))
     return card("conDomFormCard", kids)
@@ -537,11 +557,11 @@ def build_attachments():
 
     up = button("btnDomAttUpload", '"Laeg op i SharePoint"', att.upload_fx(),
                 primary=True, display_mode=DM_SEL)
-    refresh = button("btnDomAttRefresh", '"Hent forfra"',
+    refresh = button("btnDomAttRefresh", '"Hent dokumenter"',
                      att.refresh_button_fx(), display_mode=DM_SEL)
     rem = button("btnDomAttRemove", '"Fjern dokument"', att.delete_fx(),
                  danger=True, display_mode=DM_SEL)
-    actions = button_row("conDomAttActions", [up, refresh, rem], EDITOR_W)
+    actions = button_row("conDomAttActions", [up, refresh, rem], PANE_W)
 
     chk = Ctrl("chkDomAttSel", "ModernCheckbox", props={
         "AccessibleLabel": '"Vaelg dokument"',
@@ -605,7 +625,7 @@ FIXED = sum(w for _n, w in cfg.LIST_COLS) + GAP * (len(cfg.LIST_COLS) - 1)
 # de oevrige kolonner blev skubbet helt ud til hoejre kant, og imellem dem
 # laa en tom flade paa halvdelen af vinduet. En tabel skal vaere saa bred
 # som sit indhold, ikke som sin beholder.
-MAIN_W = f"Min(Parent.Width - {FIXED}, 460)"
+MAIN_W = f"Max(Min(Parent.Width - {FIXED}, 460), 150)"
 
 SEARCH = " || ".join(
     f"Trim(txtDomSearch.Text) in {c}" for c in cfg.SEARCH_FIELDS)
@@ -824,12 +844,14 @@ def send_fx(submit):
 
 def build_submit():
     draft = button(
-        "btnDomSendDraft", '"Send som kladde"', send_fx(False), width=180,
+        "btnDomSendDraft", '"Gem som kladde"', send_fx(False), width=180,
         display_mode=f'If(CountRows({SENDABLE}) = 0, DisplayMode.Disabled, DisplayMode.Edit)')
     submit = button(
         "btnDomSubmit", '"Indsend"', send_fx(True), primary=True, width=150,
         display_mode=f'If(CountRows({VALID}) = 0, DisplayMode.Disabled, DisplayMode.Edit)')
-    reload_ = button("btnDomReload", '"Hent forfra"',
+    # "Hent forfra" stod BEGGE steder - her og paa dokumentruden - og
+    # betoed to forskellige ting. Nu siger navnet hvad der hentes.
+    reload_ = button("btnDomReload", '"Hent raekker forfra"',
                      refresh_rows_fx() + ';\nSet(varDomInfo, "Hentet forfra.")',
                      width=150)
     note = text_ctrl(

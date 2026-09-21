@@ -712,3 +712,60 @@ En tabel skal være så bred som sit indhold, ikke som sin beholder.
 
 **Inputfelterne står stadig øverst** — rækkefølgen er `bar → formular →
 liste → dokumenter → indsend`, og det er den, arbejdet følger.
+
+
+---
+
+# Runde fire: bredderne
+
+## Formularen regnede med en bredde, den ikke havde
+
+Felterne lå spredt ud over rækken med huller imellem sig, en labelrad
+højere oppe end den første, og inputfelter man ikke kunne finde.
+
+Årsagen var én konstant. Cellerne blev regnet af `EDITOR_W`:
+
+```
+EDITOR_W = If(App.Width < 1000, SHELL_W, SHELL_W - 360 - 20)
+```
+
+Den stammer fra dengang formularen havde dokumentruden i en **skinne ved
+siden af sig**. Skinnen er væk, kortet fylder hele bredden — og så regnede
+hver eneste celle med 380 pixels, den ikke havde.
+
+```
+FORM_W = (SHELL_W - 36)      36 = kortets padding, 18 i hver side
+```
+
+En bredde skal regnes af den beholder, tingen faktisk står i. Det lyder
+selvindlysende; fejlen opstod, fordi beholderen blev skiftet ud, og
+konstanten blev stående.
+
+## Listen og dokumenterne står side om side
+
+Ruden hører til den række, der er valgt i listen. Står de under hinanden,
+skal øjet hele vejen ned og op igen for at se, hvad valget gjorde.
+
+Over **1600 px** deler de bredden; derunder stables de. Grænsen er ikke
+valgt på følelse: listen har syv kolonner og ~540 px i faste bredder, så
+under det bliver beskrivelseskolonnen smallere end sit eget gulv, og
+rækken flyder ud over ruden i stedet for at dele sig.
+
+## To knapper hed det samme
+
+`Hent forfra` stod **begge** steder og betød to forskellige ting:
+
+| Nu | Hvad den gør |
+|---|---|
+| **Hent dokumenter** | Spørger `BioSap-GetSubmittedAttachments` hvad der ligger i `TaskListDocuments/<ItemKey>` for den valgte række, og opdaterer listen + filtællingen |
+| **Hent raekker forfra** | Læser `EquipmentItems` / `MaterialItems` forfra fra SharePoint, så skærmen viser det, der faktisk står i listen |
+
+Den sidste er sjældent nødvendig — alt gem og indsend henter selv forfra
+bagefter. Den er der til, når nogen **anden** har rettet i listen, mens
+appen var åben.
+
+## `Gem som kladde` er den første knap
+
+Den hed `Send som kladde`. "Send" er misvisende, når hele pointen er, at
+den *ikke* er sendt endnu — den ligger bare på landingssiden, så den kan
+ses og arbejdes videre på.

@@ -98,8 +98,8 @@ SECTIONS = [
 
 PLANT_LABEL = "Plant"
 
-LIST_COLS = [("MATERIALE", 0), ("FABRIKANTENS NR.", 160), ("LEVERANDOER", 150),
-             ("PLANT", 70), ("STATUS", 90), ("FILER", 50), ("", 70)]
+LIST_COLS = [("MATERIALE", 0), ("FABRIKANTENS NR.", 130), ("LEVERANDOER", 120),
+             ("PLANT", 55), ("STATUS", 75), ("FILER", 40), ("", 60)]
 LIST_FIELDS = ["ManufacturerPartNo", "Supplier", "Plant"]
 
 SEARCH_FIELDS = ["MaterialDescription", "FunctionalLocation",
