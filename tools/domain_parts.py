@@ -53,6 +53,7 @@ from gen_screen import (Ctrl, SHELL_W, FONT,
 from design_tokens import theme_query
 from layout_tokens import below, if_below, fits
 from build_helpers import (text_ctrl, group, button, button_row, text_input, theme_button,
+                           date_picker,
                            number_input, dropdown, card, field_cell, row_n,
                            label_row, pin_widths, badge)
 import domain_config as cfg
@@ -90,6 +91,22 @@ PANE_W = f"({HALF_W} - 36)"
 
 # Indsendte raekker kan ikke redigeres - saa ejer SAP-processen dem.
 DM_ROW = ('If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)')
+
+# HVORNAAR BLIVER EN FELTKANT ROED?
+#
+# Her stod "true": kanten var roed fra det oejeblik feltet var tomt -
+# altsaa fra appen aabnede, foer brugeren havde roert noget. VH-plan gjorde
+# det modsatte og ventede til brugeren trykkede Validér.
+#
+# To apps i samme familie sagde dermed to forskellige ting med den samme
+# farve. Og "roed fra foerste sekund" er den af de to, der skader: den
+# laerer brugeren at se bort fra roedt, og saa er farven ingenting vaerd,
+# naar den endelig betyder noget.
+#
+# varDomValidated saettes, naar brugeren TRYKKER Gem eller Indsend - det
+# er appens "jeg har tjekket". Den nulstilles, naar formularen ryddes
+# eller en anden raekke hentes, for saa er det en ny formular.
+REQUIRED = "varDomValidated"
 
 # ---------------------------------------------------------------------------
 # Topbjaelkens regnestykke. Se build_bar() for hvorfor det er regnet ud.
@@ -194,30 +211,13 @@ def _input_for(col, kind, choices):
         # filtreres paa interval, og betyder noget forskelligt alt efter
         # hvilket landeformat der laeser den. Kolonnen er DateTime, og her
         # sendes datoen som en dato.
-        # DefaultDate saetter datoen. SelectedDate LAESER den og kan ikke
-        # skrives - her stod "SelectedDate: v", og compile svarede
-        # "Unknown property 'SelectedDate' for control type
-        # 'ModernDatePicker'". Formen nedenfor er kopieret fra den
-        # haandbyggede app, hvor datovaelgerne virker.
-        return Ctrl(name, "ModernDatePicker", props={
-            "AccessibleLabel": f'"{col}"',
-            "Appearance": "Appearance.Outline",
-            "BorderColor": C_CARD_BORDER,
-            "BorderStyle": "BorderStyle.Solid",
-            "BorderThickness": "1",
-            "DefaultDate": v,
-            "DisplayMode": DM_ROW,
-            "Font": FONT,
-            "Format": "DatePickerFormat.Short",
-            "Height": "36",
-            "LayoutMinWidth": "0",
-            "OnChange": f"Set({v}, Self.SelectedDate)",
-            "Placeholder": '"dd/mm/yyyy"',
-            "RadiusBottomLeft": "10", "RadiusBottomRight": "10",
-            "RadiusTopLeft": "10", "RadiusTopRight": "10",
-            "Size": "14",
-            "Width": "Parent.Width",
-        }, h=36)
+        #
+        # Selve kontrollen stod foer bygget i haanden HER, med en fast
+        # graa kant og uden Fill - altsaa uden baade validerings- og
+        # graatonefarven, alle andre felter har. Den ligger nu i
+        # build_helpers sammen med de fire andre og deler deres regel.
+        return date_picker(name, v, display_mode=DM_ROW,
+                           onchange=f"Set({v}, Self.SelectedDate)")
     if kind == "long":
         # ttype="Multiline" -> Type: TextInputType.Multiline. Det er den
         # form, VH-plan-appens langtekstboks bruger, og dermed den eneste
@@ -257,7 +257,7 @@ def _plant_dropdown():
        compile ikke kan se, fordi formlen i sig selv er gyldig."""
     c = dropdown("drpDomPlant", "colDomPlants",
                  "LookUp(colDomPlants, Value = varDomFPlant)",
-                 required_formula="true", display_mode=DM_ROW)
+                 required_formula=REQUIRED, display_mode=DM_ROW)
     c.props["OnChange"] = "Set(varDomFPlant, Self.Selected.Value)"
     return c
 
@@ -323,7 +323,7 @@ def build_form():
         field_cell("conDomText", cfg.TEXT_LABEL,
                    text_input("inpDomText", "varDomFText", max_length=40,
                               placeholder=cfg.TEXT_PLACEHOLDER,
-                              required_formula="true", display_mode=DM_ROW,
+                              required_formula=REQUIRED, display_mode=DM_ROW,
                               onchange="Set(varDomFText, Self.Text)"),
                    required=True, container_w=FORM_W, cols=COLS_PER_ROW),
         field_cell("conDomPlant", cfg.PLANT_LABEL, _plant_dropdown(),
@@ -439,6 +439,7 @@ def refresh_rows_fx(indent=0):
 def clear_form_fx():
     lines = ['Set(varDomActiveRowId, Blank());',
              'Set(varDomRowStatus, "valid");',
+             f'Set({REQUIRED}, false);',
              'Set(varDomFText, "");',
              'Set(varDomFPlant, "");']
     for col, _lab, kind, _ch in FIELDS:
@@ -455,6 +456,7 @@ def load_row_fx():
     listen koste et flow-kald."""
     lines = ['Set(varDomActiveRowId, ThisItem.RowId);',
              'Set(varDomRowStatus, ThisItem.Status);',
+             f'Set({REQUIRED}, false);',
              f'Set(varDomFText, ThisItem.{cfg.C_TEXT});',
              'Set(varDomFPlant, ThisItem.Plant);']
     for col, _lab, _kind, _ch in FIELDS:
@@ -502,6 +504,8 @@ def save_row_fx(status="valid"):
         done = "Gemt som "
 
     return (
+        # "Jeg har tjekket" - herfra maa kanterne vaere roede.
+        f"Set({REQUIRED}, true);\n"
         "If(\n"
         f"    {guard},\n"
         f'    Notify("{msg}", NotificationType.Warning),\n'

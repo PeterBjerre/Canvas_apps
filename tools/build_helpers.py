@@ -216,19 +216,68 @@ def button_row(name, buttons, container_w, gap=8, height=36, align_items="Center
                  align_items=align_items)
 
 
+def border_rule(empty_test, required_formula="false"):
+    """DEN ENE REGEL om, hvad en feltkant siger.
+
+    Foer var der FIRE, og de sad i samme formular ved siden af hinanden:
+
+      text_input uden required   ingen BorderColor overhovedet - altsaa
+                                 platformens standard, som ingen havde valgt
+      text_input med required    roed / graa / GROEN
+      number_input, dropdown     roed / graa / GROEN, OGSAA naar feltet
+                                 ikke var kraevet
+      ModernDatePicker           fast graa. Aldrig roed, aldrig groen -
+                                 og bygget i haanden uden for den her fil
+
+    I Equipments formular stod fire felter side om side, hvor et tekstfelt
+    aldrig skiftede farve, et talfelt blev groent naar man skrev i det, og
+    en datovaelger var graa uanset hvad.
+
+    HVORFOR KUN DE KRAEVEDE FELTER FAAR FARVE
+    -----------------------------------------
+    Argumentet stod allerede i text_input og var rigtigt: en groen kant om
+    hvert eneste udfyldt felt goer farven meningsloes. Groen skal betyde
+    "det her krav er opfyldt", ikke "du har tastet noget".
+
+    Derfor ensrettes der PAA text_inputs regel - ikke paa de to andres.
+    Et felt, der ikke er kraevet, faar en almindelig kant, og den saettes
+    EKSPLICIT: gjorde den ikke det, arvede feltet platformens standard,
+    som ingen i projektet har valgt.
+
+        ikke kraevet        ->  border-default
+        kraevet + tom       ->  state-error-fg
+        kraevet + udfyldt   ->  state-ok-fg
+    """
+    if required_formula == "false":
+        return C_CARD_BORDER
+    return (f"If(\n"
+            f"    {required_formula} && {empty_test},\n"
+            f"    {C_REQUIRED},\n"
+            f"    If({empty_test}, {C_CARD_BORDER}, {C_VALID_FG})\n"
+            f")")
+
+
+def input_fill(display_mode):
+    """Graat = kan ikke redigeres.
+
+    Det ENE spoergsmaal, der afgoer et inputfelts baggrund. Datovaelgeren
+    havde ingen - den saa redigerbar ud i visningstilstand."""
+    if not display_mode:
+        return C_INPUT_BG
+    return f"If({display_mode} = DisplayMode.Edit, {C_INPUT_BG}, {C_DISABLED_BG})"
+
+
 def text_input(name, default, placeholder="\"\"", max_length=None, required_formula="false",
                width="Parent.Width", height=36, display_mode=None, ttype=None,
                onchange=None, label=None):
     props = {
         "AccessibleLabel": label if label else f"\"{name}\"",
+        "BorderColor": border_rule("IsBlank(Trim(Self.Text))", required_formula),
         "BorderStyle": "BorderStyle.Solid",
         "BorderThickness": "1",
         "Color": C_TITLE,
         "Default": default,
-        # Graat = kan ikke redigeres. Det gjaldt foer kun DisplayMode.Disabled,
-        # saa et View-felt saa redigerbart ud - hvidt felt med kant, der ikke
-        # reagerer. Nu afgoer det ENE spoergsmaal farven: kan man skrive i den?
-        "Fill": C_INPUT_BG if not display_mode else f"If({display_mode} = DisplayMode.Edit, {C_INPUT_BG}, {C_DISABLED_BG})",
+        "Fill": input_fill(display_mode),
         "Font": FONT,
         "Height": str(height),
         "LayoutMinWidth": "0",
@@ -239,18 +288,7 @@ def text_input(name, default, placeholder="\"\"", max_length=None, required_form
         "ValidationState": f"If({required_formula} && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)",
         "Width": width,
     }
-    # ROEDT naar der MANGLER, GROENT naar der STAAR noget.
-    #
-    # Kun paa de kraevede felter: en groen kant om hvert eneste udfyldt felt
-    # goer farven meningsloes. Det er stadig det ene spoergsmaal, der
-    # afgoer den - mangler der noget her, foer der kan gemmes?
-    if required_formula != "false":
-        props["BorderColor"] = (
-            f"If(\n"
-            f"    {required_formula} && IsBlank(Trim(Self.Text)),\n"
-            f"    {C_REQUIRED},\n"
-            f"    If(IsBlank(Trim(Self.Text)), {C_CARD_BORDER}, {C_VALID_FG})\n"
-            f")")
+
     if max_length is not None:
         props["MaxLength"] = str(max_length)
     if display_mode is not None:
@@ -267,18 +305,12 @@ def number_input(name, default, min_v=None, max_v=None, required_formula="false"
     props = {
         "AccessibleLabel": label if label else f"\"{name}\"",
         "Appearance": "Appearance.Outline",
-        "BorderColor": (
-            f"If(\n"
-            f"    {required_formula} && IsBlank(Self.Value),\n"
-            f"    {C_REQUIRED},\n"
-            f"    If(IsBlank(Self.Value), {C_CARD_BORDER}, {C_VALID_FG})\n"
-            f")"),
+        "BorderColor": border_rule("IsBlank(Self.Value)", required_formula),
         "BorderStyle": "BorderStyle.Solid",
         "BorderThickness": "1",
         "Color": C_TITLE,
         "Default": default,
-        # Samme regel som text_input: graat naar der ikke kan skrives.
-        "Fill": C_INPUT_BG if not display_mode else f"If({display_mode} = DisplayMode.Edit, {C_INPUT_BG}, {C_DISABLED_BG})",
+        "Fill": input_fill(display_mode),
         "Font": FONT,
         "Height": str(height),
         "LayoutMinWidth": "0",
@@ -298,22 +330,57 @@ def number_input(name, default, min_v=None, max_v=None, required_formula="false"
     return Ctrl(name, "ModernNumberInput", props=props, h=height)
 
 
+def date_picker(name, default_date, required_formula="false",
+                width="Parent.Width", height=36, display_mode=None,
+                onchange=None, label=None, placeholder='"dd/mm/yyyy"'):
+    """Datovaelger - med SAMME kant- og baggrundsregel som de andre felter.
+
+    Den var bygget i haanden inde i domain_parts.py og havde en FAST graa
+    kant og INGEN Fill. Den blev derfor aldrig roed, naar den manglede,
+    aldrig groen naar den var udfyldt, og den saa redigerbar ud i
+    visningstilstand - hvidt felt med kant, der ikke reagerer.
+
+    DefaultDate SAETTER datoen. SelectedDate LAESER den og kan ikke
+    skrives - "Unknown property 'SelectedDate' for control type
+    'ModernDatePicker'". Det er derfor OnChange laeser Self.SelectedDate,
+    mens DefaultDate faar variablen."""
+    props = {
+        "AccessibleLabel": label if label else f'"{name}"',
+        "Appearance": "Appearance.Outline",
+        "BorderColor": border_rule("IsBlank(Self.SelectedDate)", required_formula),
+        "BorderStyle": "BorderStyle.Solid",
+        "BorderThickness": "1",
+        "DefaultDate": default_date,
+        "Fill": input_fill(display_mode),
+        "Font": FONT,
+        "Format": "DatePickerFormat.Short",
+        "Height": str(height),
+        "LayoutMinWidth": "0",
+        "Placeholder": placeholder,
+        "RadiusBottomLeft": "10", "RadiusBottomRight": "10",
+        "RadiusTopLeft": "10", "RadiusTopRight": "10",
+        "Size": "14",
+        "Width": width,
+    }
+    if display_mode is not None:
+        props["DisplayMode"] = display_mode
+    if onchange is not None:
+        props["OnChange"] = onchange
+    return Ctrl(name, "ModernDatePicker", props=props, h=height)
+
+
 def dropdown(name, items, default, item_display="ThisItem.Value", required_formula="false",
              width="Parent.Width", height=36, display_mode=None, value_field="Value", label=None):
     props = {
         "AccessibleLabel": label if label else f"\"{name}\"",
         "Appearance": "Appearance.Outline",
-        "BorderColor": (
-            f"If(\n"
-            f"    {required_formula} && IsBlank(Self.Selected.{value_field}),\n"
-            f"    {C_REQUIRED},\n"
-            f"    If(IsBlank(Self.Selected.{value_field}), {C_CARD_BORDER}, {C_VALID_FG})\n"
-            f")"),
+        "BorderColor": border_rule(f"IsBlank(Self.Selected.{value_field})",
+                                   required_formula),
         "BorderStyle": "BorderStyle.Solid",
         "BorderThickness": "1",
         "Color": C_TITLE,
         "Default": default,
-        "Fill": C_INPUT_BG if not display_mode else f"If({display_mode} = DisplayMode.Edit, {C_INPUT_BG}, {C_DISABLED_BG})",
+        "Fill": input_fill(display_mode),
         "Font": FONT,
         "Height": str(height),
         "ItemDisplayText": item_display,
@@ -361,7 +428,7 @@ def combobox(name, items, display_field="Display", multi=False, default_items=No
                 else f"IsBlank(Self.Selected.{display_field})")
     props = {
         "AccessibleLabel": label if label else f"\"{name}\"",
-        "BorderColor": f"If({required_formula} && {sel_test}, {C_REQUIRED}, {C_CARD_BORDER})",
+        "BorderColor": border_rule(sel_test, required_formula),
         "BorderStyle": "BorderStyle.Solid",
         "BorderThickness": "1",
         "ChevronBackground": C_PRIMARY,
