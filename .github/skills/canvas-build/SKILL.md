@@ -1,15 +1,15 @@
 ---
 name: canvas-build
-description: Arbejdsgang for canvas apperne i dette repo — "Maintenance Plan App" (VH-plan) og "Masterdata Hub" (landingssiden). Brug den ved ENHVER ændring af en skærm, App.OnStart, layout, Power Fx-formler, kontroller eller datakilder. Ret builderne i Python, generér .pa.yaml, kør layout-tjekket, og synkronisér først derefter til Power Apps Studio.
+description: Arbejdsgang for de FIRE canvas apps i dette repo — "Maintenance Plan App" (VH-plan), "Masterdata Hub" (landingssiden), "Equipment App" (Equipments) og "Material App" (Materials). Brug den ved ENHVER ændring af en skærm, App.OnStart, layout, farver, breakpoints, Power Fx-formler, kontroller eller datakilder. Ret builderne i Python, generér .pa.yaml, kør layout-tjekket, og synkronisér først derefter til Power Apps Studio.
 ---
 
 # Canvas apps: byg og deploy
 
 ## Den ene regel
 
-`.pa.yaml`-filerne er **genereret**. `ScreenVhPlan.pa.yaml` er godt 9.700
-linjer, `ScreenMdHub.pa.yaml` godt 3.000. `App.pa.yaml` er også genereret i
-begge apps. Retter du direkte i dem, er ændringen væk, næste gang nogen
+`.pa.yaml`-filerne er **genereret**. `ScreenVhPlan.pa.yaml` er godt 15.000
+linjer, `ScreenEquipment.pa.yaml` og `ScreenMaterial.pa.yaml` knap 6.000 hver,
+`ScreenMdHub.pa.yaml` godt 3.000. `App.pa.yaml` er også genereret i alle fire. Retter du direkte i dem, er ændringen væk, næste gang nogen
 kører builderen — og du efterlader en fil, der ikke længere matcher sin kilde.
 
 **Ret i `build/*.py`. Altid.**
@@ -120,12 +120,15 @@ Tre filer er derfor **kopieret ordret** ind i begge build-mapper:
     build_helpers.py   byggeklodser: card, group, button_row, inputs, combobox
     check_layout.py    layout-tjekket
 
-**Retter du i en af de tre, skal du kopiere filen til den anden app med det
-samme** og køre begge byg. `tools/build_all.py` nægter at bygge, hvis de er
-gledet fra hinanden, og skriver hvilken app der har den nyest rettede udgave.
+**Retter du i en af de tre, skal du kopiere filen til de TRE andre med det
+samme** og køre alle fire byg. `tools/build_all.py` nægter at bygge, hvis de
+er gledet fra hinanden, og skriver hvilken app der har den nyest rettede
+udgave.
 
 ```bash
-cp "Maintenance Plan App/build/build_helpers.py" "Masterdata Hub/build/"
+for d in "Masterdata Hub" "Equipment App" "Material App"; do
+  cp "Maintenance Plan App/build/build_helpers.py" "$d/build/"
+done
 ```
 
 ## `--app` bygger kun den ene
@@ -204,13 +207,14 @@ nævner kontrollen.
 | `assemble_screen.py` | Samler skærmen → `../ScreenVhPlan.pa.yaml` |
 | `generate_app_onstart.py` | `App.Formulas` + `App.OnStart` → `../App.pa.yaml` |
 
-Disse fem er **historiske og bruges ikke**: `build_diag_screen.py`,
-`build_vhplan_screen.py`, `gen_options.py`, `gen_tasklists.py`,
-`rename_collections.py`. Ret ikke i dem, og lad dig ikke forvirre af dem.
+De fem historiske buildere (`build_diag_screen.py`, `build_vhplan_screen.py`,
+`gen_options.py`, `gen_tasklists.py`, `rename_collections.py`) og deres fem
+mellemresultat-`.txt` er **slettet** — 997 linjer, som ingenting importerede.
+Git husker dem; mappen skal ikke.
 
 ## Hvem ejer hvad — Equipments og Materials
 
-De to apps er **den samme app**. Fire filer er ordret ens i de to
+Equipments og Materials er **den samme app**. Fire filer er ordret ens i de to
 build-mapper, og `tools/build_all.py` tjekker det ved hver bygning:
 
 | Fil | Ejer |
