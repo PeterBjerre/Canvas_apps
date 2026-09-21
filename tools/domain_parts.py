@@ -272,7 +272,7 @@ def build_fl_block():
     indbygget soegning - den fik 819 raekker og viste nul."""
     q = text_input("txtDomFlQuery", '""',
                    placeholder=f'"Mindst {fl.MIN_SEARCH_LEN} tegn - fx SSV10 KAB10"',
-                   width="Parent.Width", display_mode=DM_ROW)
+                   width="Parent.Width", display_mode=DM_ROW, label="\"Soeg funktionsplads\"")
     btn = button("btnDomFlSearch", '"Soeg"',
                  fl.search_action("txtDomFlQuery", "colDomFl",
                                   "varDomFlLast", "varDomFlMsg"),
@@ -283,7 +283,7 @@ def build_fl_block():
     drop = dropdown("drpDomFl", "colDomFl",
                     f"LookUp(colDomFl, Code = {_var(cfg.FL_FIELD)})",
                     item_display="ThisItem.Display", value_field="Code",
-                    display_mode=DM_ROW)
+                    display_mode=DM_ROW, label="\"Vaelg funktionsplads\"")
     drop.props["OnChange"] = f"Set({_var(cfg.FL_FIELD)}, Self.Selected.Code)"
 
     chosen = text_ctrl(
@@ -703,11 +703,11 @@ def _head_cell(i, label, width):
 def build_rows():
     search = text_input("txtDomSearch", '""',
                         placeholder='"Soeg i beskrivelse, funktionsplads, nummer"',
-                        width="360")
+                        width="360", label="\"Soeg i raekkerne\"")
     # Samme regel som paa vaerkfeltet: Default er en RECORD fra Items.
     filt = '["alle", "draft", "valid", "submitted"]'
     status = dropdown("drpDomStatusFilter", filt,
-                      f'LookUp({filt}, Value = "alle")', width="160")
+                      f'LookUp({filt}, Value = "alle")', width="160", label="\"Filtrer paa status\"")
     toolbar = group("conDomToolbar", pin_widths([search, status]),
                     direction="Horizontal", gap=12, align_items="Center")
 

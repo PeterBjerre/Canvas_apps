@@ -300,12 +300,12 @@ def _materials_pane():
         "Width": str(w["SEL"]),
     }, h=24)
     txtNo = text_input("txtVhpMatNo", "ThisItem.MaterialNo", width=w["MATERIAL"], height=30,
-                       onchange="Patch(colVhpMaterials, ThisItem, { MaterialNo: Self.Text })")
+                       onchange="Patch(colVhpMaterials, ThisItem, { MaterialNo: Self.Text })", label="\"Materialenummer\"")
     # Kommer fra materialeopslaget, ikke fra brugeren.
     txtDesc = text_ctrl("txtVhpMatDesc",
                         'If(IsBlank(ThisItem.Description), "-", ThisItem.Description)',
                         size=12, color=C_MUTED, height=30, width=w["DESCRIPTION"], wrap="false")
-    numQty = number_input("numVhpMatQty", "ThisItem.Quantity", width=w["QTY"], height=30)
+    numQty = number_input("numVhpMatQty", "ThisItem.Quantity", width=w["QTY"], height=30, label="\"Antal\"")
     numQty.props["OnChange"] = "Patch(colVhpMaterials, ThisItem, { Quantity: Self.Value })"
     txtUnit = text_ctrl("txtVhpMatUnit",
                         'If(IsBlank(ThisItem.Unit), "-", ThisItem.Unit)',
@@ -315,7 +315,7 @@ def _materials_pane():
         "Sort(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Value(OperationNo))",
         "LookUp(Filter(colVhpOperations, ItemId = varVhpActiveItemId), OperationNo = ThisItem.OperationNo)",
         item_display="ThisItem.OperationNo", value_field="OperationNo",
-        width=w["OPERATION"], height=30)
+        width=w["OPERATION"], height=30, label="\"Operation\"")
     drpOp.props["OnChange"] = ("Patch(colVhpMaterials, ThisItem, "
                                "{ OperationNo: Self.Selected.OperationNo })")
 
@@ -698,12 +698,12 @@ def build_tasklist_section():
     txtOpNo = text_ctrl("txtVhpOpNo", "ThisItem.OperationNo", size=13, height=32, width=w["OP NO."], wrap="false")
     txtOpShort = text_input("txtVhpOpShortText", "ThisItem.OperationShortText", width=w["OPERATION SHORT TEXT"],
                             height=32,
-                            onchange="Patch(colVhpOperations, ThisItem, { OperationShortText: Self.Text })")
+                            onchange="Patch(colVhpOperations, ThisItem, { OperationShortText: Self.Text })", label="\"Operationstekst\"")
     # Work og No. skriver BEGGE varigheden, fordi den er regnet af dem
     # begge. Gjorde kun den ene det, ville et skift i den anden efterlade en
     # varighed, der ikke passer til linjen - og det er varigheden, der
     # gemmes i TaskListMain.Duration og sendes videre til SAP.
-    numOpWork = number_input("numVhpOpWork", "ThisItem.WorkHours", width=w["WORK (H)"], height=32)
+    numOpWork = number_input("numVhpOpWork", "ThisItem.WorkHours", width=w["WORK (H)"], height=32, label="\"Arbejdstimer\"")
     numOpWork.props["OnChange"] = (
         "Patch(\n"
         "    colVhpOperations, ThisItem,\n"
@@ -713,7 +713,7 @@ def build_tasklist_section():
         f"        Cost: {cost_expr('Self.Value')}\n"
         "    }\n"
         ")")
-    numOpPersons = number_input("numVhpOpPersons", "ThisItem.Persons", width=w["NO."], height=32)
+    numOpPersons = number_input("numVhpOpPersons", "ThisItem.Persons", width=w["NO."], height=32, label="\"Antal personer\"")
     numOpPersons.props["OnChange"] = (
         "Patch(\n"
         "    colVhpOperations, ThisItem,\n"
@@ -724,14 +724,14 @@ def build_tasklist_section():
         ")")
     # Varigheden vises, men tastes ikke - den ER Work / No.
     numOpDur = number_input("numVhpOpDur", "ThisItem.DurationHours", width=w["DUR. (H)"], height=32,
-                            display_mode="DisplayMode.View")
+                            display_mode="DisplayMode.View", label="\"Varighed\"")
     # Arbejdscenteret kommer fra standardarbejdsplanen og bestemmer baade
     # kontrolnoeglen og indkoebsfelterne. Kan man rette det i hoejre hus,
     # skifter de andre felters regler under haanden paa en linje, SAP i
     # forvejen har bestemt. Det laeses nu - og ser graat ud som resten af
     # det, man ikke kan redigere.
     txtOpMwc = text_input("txtVhpOpMwc", "ThisItem.MainWorkCenter", width=w["MAIN WORK CENTER"],
-                          height=32, display_mode="DisplayMode.View")
+                          height=32, display_mode="DisplayMode.View", label="\"Vaerk\"")
     # Kontrolnoeglen: kun to valg at SKIFTE imellem, men listen skal
     # ogsaa kunne VISE den vaerdi, linjen allerede har - fx PM02 eller PM03
     # fra standardplanen. Ellers stod cellen tom paa alle de linjer, man
@@ -754,19 +754,19 @@ def build_tasklist_section():
     drpOpCtrl = dropdown(
         "drpVhpOpCtrl", ctrl_items,
         'LookUp(' + ctrl_items + ', Value = ThisItem.ControlKey)',
-        width=w["CTRL"], height=32, display_mode=DM_CTRL)
+        width=w["CTRL"], height=32, display_mode=DM_CTRL, label="\"Styringsnoegle\"")
     drpOpCtrl.props["OnChange"] = ("Patch(colVhpOperations, ThisItem, "
                                    "{ ControlKey: Self.Selected.Value })")
 
     txtOpVendor = text_input("txtVhpOpVendor", "ThisItem.Vendor", width=w["VENDOR"], height=32,
                              display_mode=DM_PURCHASE,
-                             onchange="Patch(colVhpOperations, ThisItem, { Vendor: Self.Text })")
+                             onchange="Patch(colVhpOperations, ThisItem, { Vendor: Self.Text })", label="\"Leverandoer\"")
     numOpCost = number_input("numVhpOpCost", "ThisItem.Cost", width=w["COST"], height=32,
-                             display_mode=DM_PURCHASE)
+                             display_mode=DM_PURCHASE, label="\"Pris\"")
     numOpCost.props["OnChange"] = "Patch(colVhpOperations, ThisItem, { Cost: Self.Value })"
     txtOpMatGrp = text_input("txtVhpOpMatGrp", "ThisItem.MaterialGroup", width=w["MAT.GRP"],
                              height=32, display_mode=DM_PURCHASE,
-                             onchange="Patch(colVhpOperations, ThisItem, { MaterialGroup: Self.Text })")
+                             onchange="Patch(colVhpOperations, ThisItem, { MaterialGroup: Self.Text })", label="\"Materialegruppe\"")
     # Cellen viser begyndelsen af teksten; skrivningen sker i popup'en, hvor
     # der er plads til en instruktion. Reset FOER popup'en aabnes, saa feltet
     # viser den linje, man klikkede paa, og ikke den forrige.
