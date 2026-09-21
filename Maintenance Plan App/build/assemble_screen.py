@@ -7,6 +7,14 @@ gen_screen.stack_height). Ingen Height-formel refererer en anden kontrol -
 det var den cirkelreference, der gav baade kaskade-vaeksten og de klippede
 kort.
 """
+# tools/ paa sys.path. De tre store faellesfiler - gen_screen.py,
+# build_helpers.py og check_layout.py - ligger DER og ikke i en kopi pr.
+# app-mappe. sys.path er procesglobal, saa det raekker at saette den her i
+# indgangen: alt hvad builderne importerer bagefter, finder dem selv.
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.dirname(
+    _os.path.dirname(_os.path.abspath(__file__)))), "tools"))
+
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import Ctrl, render_screen, C_APP_BG, OUT_DIR

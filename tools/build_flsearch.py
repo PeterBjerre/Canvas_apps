@@ -68,10 +68,22 @@ MIN_SEARCH_LEN = 7
 # Over dette antal traef siger beskeden til, at der boer soeges smallere.
 LONG_RESULT = 50
 
-_RAW = "varDomFlRaw"
+# Mellemvariablen, flowets svar lander i.
+#
+# HVORFOR DEN ER EN PARAMETER OG IKKE EN KONSTANT
+# -----------------------------------------------
+# Filen laa i TRE kopier - VH-plan, Equipment og Material - og kun den her
+# ene linje skilte dem: VH-plan skrev varVhpFlRaw, de to andre varDomFlRaw.
+# check_shared() i build_all.py kiggede aldrig paa build_flsearch.py, saa
+# driften var usynlig. Da de tre kopier blev til een i tools/, fik VH-plan
+# pludselig Equipment-appens variabelnavn.
+#
+# Navnet foelger appens egen konvention (varVhp* / varDom*), saa det hoerer
+# hos KALDEREN. Nu er der ingen linje tilbage, der kan skille to apps ad.
+DEFAULT_RAW = "varDomFlRaw"
 
 
-def _array_expr():
+def _array_expr(_RAW=DEFAULT_RAW):
     """Udtrykket der giver JSON-arrayet fra flow-svaret."""
     base = f"ParseJSON({_RAW}.{FLOW_OUTPUT})"
     if JSON_ARRAY_PATH:
@@ -79,7 +91,7 @@ def _array_expr():
     return f"Table({base})"
 
 
-def collect_results(target_collection):
+def collect_results(target_collection, raw_var=DEFAULT_RAW):
     """ClearCollect af flow-svaret ind i en samling til comboboksen.
 
     Display er kode + beskrivelse i eet felt. Comboboksen soeger og viser paa
@@ -90,7 +102,7 @@ def collect_results(target_collection):
         f"ClearCollect(\n"
         f"    {target_collection},\n"
         f"    ForAll(\n"
-        f"        {_array_expr()} As R,\n"
+        f"        {_array_expr(raw_var)} As R,\n"
         f"        {{\n"
         f"            Code: Text(R.Value.{JSON_CODE_FIELD}),\n"
         f"            Description: Text(R.Value.{JSON_DESC_FIELD}),\n"
@@ -105,7 +117,7 @@ def collect_results(target_collection):
 
 
 def search_action(query_ctrl, target_collection, last_search_var, msg_var,
-                  label="Functional Locations"):
+                  label="Functional Locations", raw_var=DEFAULT_RAW):
     """Soegningen, som den ser ud bag en SOEGEKNAP.
 
     HVORFOR IKKE LAENGERE EN TIMER OG EN COMBOBOX
@@ -139,11 +151,11 @@ def search_action(query_ctrl, target_collection, last_search_var, msg_var,
         f"\n"
         f"        Set({msg_var}, \"Searching for \" & q & \" ...\");\n"
         f"        IfError(\n"
-        f"            Set({_RAW}, {FLOW_NAME}.Run(q));\n"
+        f"            Set({raw_var}, {FLOW_NAME}.Run(q));\n"
         f"            If(\n"
-        f"                IsBlank({_RAW}) || IsBlank({_RAW}.{FLOW_OUTPUT}),\n"
+        f"                IsBlank({raw_var}) || IsBlank({raw_var}.{FLOW_OUTPUT}),\n"
         f"                Clear({target_collection}),\n"
-        f"                {collect_results(target_collection)}\n"
+        f"                {collect_results(target_collection, raw_var)}\n"
         f"            );\n"
         f"            Set({last_search_var}, q);\n"
         f"            Set(\n"

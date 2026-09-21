@@ -289,8 +289,12 @@ def build_item_editor():
         display_mode=DM_ITEM, width=f"Parent.Width - {FL_BTN_W} - 8")
     btnFlSearch = button(
         "btnVhpFlSearch", "\"Soeg\"",
+        # raw_var foelger VH-plans egen navnekonvention. Den stod foer som
+        # en konstant i appens EGEN kopi af build_flsearch.py - og det var
+        # netop den ene linje, de tre kopier havde glidt fra hinanden paa.
         search_action("txtVhpFlQuery", "colVhpFlSearch",
-                      "varVhpFlLastSearch", "varVhpFlMeta"),
+                      "varVhpFlLastSearch", "varVhpFlMeta",
+                      raw_var="varVhpFlRaw"),
         primary=True, width=FL_BTN_W, height=36, display_mode=DM_ITEM)
     flSearchRow = group("conVhpItemFlSearchRow", [txtFlQuery, btnFlSearch],
                         direction="Horizontal", gap=8, height=36,

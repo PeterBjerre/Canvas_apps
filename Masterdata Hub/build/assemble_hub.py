@@ -1,5 +1,13 @@
 # -*- coding: utf-8 -*-
 """Samler ScreenMdHub.pa.yaml."""
+# tools/ paa sys.path. De tre store faellesfiler - gen_screen.py,
+# build_helpers.py og check_layout.py - ligger DER og ikke i en kopi pr.
+# app-mappe. sys.path er procesglobal, saa det raekker at saette den her i
+# indgangen: alt hvad builderne importerer bagefter, finder dem selv.
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.dirname(
+    _os.path.dirname(_os.path.abspath(__file__)))), "tools"))
+
 import os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)

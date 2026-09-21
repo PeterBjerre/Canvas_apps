@@ -30,7 +30,36 @@ import os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT_DIR = os.path.join(HERE, "..")
+
+
+def _out_dir():
+    """App-mappen, skaermen skal skrives i.
+
+    DEN MAA IKKE REGNES UD AF __file__. Her stod "HERE/..", og da filen
+    flyttede fra hver app's build-mappe til tools/, blev HERE/.. til
+    REPO-RODEN. Alle fire skaerme blev skrevet dér, app-mapperne beholdt
+    deres gamle udgaver - og layout-tjekket sagde "OK", fordi det laeste de
+    gamle filer. Groent byggeri, ingen aendring, ingen fejlmeddelelse.
+
+    Den rigtige kilde er INDGANGEN: assemble_screen.py ligger altid i
+    app'ens egen build-mappe. sys.argv[0] er den fil, der koeres.
+    """
+    entry = os.path.abspath(sys.argv[0]) if sys.argv and sys.argv[0] else ""
+    build = os.path.dirname(entry) if entry else os.getcwd()
+    app = os.path.abspath(os.path.join(build, ".."))
+    # Et app-mappe HAR en build-mappe. Uden det tjek ville en forkert sti
+    # bare skrive filen et tilfaeldigt sted - praecis som den gjorde.
+    if not os.path.isdir(os.path.join(app, "build")):
+        raise SystemExit(
+            "gen_screen: kan ikke finde app-mappen.\n"
+            "  indgang: %s\n  udledt:  %s\n"
+            "Koer builderen fra app'ens build-mappe:\n"
+            "    cd \"<App>/build\" && python3 assemble_screen.py\n"
+            "eller brug: python3 tools/build_all.py" % (entry or "(ingen)", app))
+    return app
+
+
+OUT_DIR = _out_dir()
 
 # Designtokens ligger EET sted for hele repoet - ikke i en kopi pr.
 # build-mappe som denne fil selv. Farven er det eneste, de fire apps skal
