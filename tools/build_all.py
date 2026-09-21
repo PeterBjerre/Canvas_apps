@@ -102,6 +102,21 @@ def check_app_ids():
     hub_id = (apps.get("hub") or {}).get("app_id")
 
     # (noeglen i canvas_apps.json, noeglen i hub_config.DOMAINS, app-mappe)
+    # VH-plan har ogsaa en knap til hubben - dens HUB_URL staar i
+    # sp_config.py og skal foelge det samme id.
+    vp = os.path.join(ROOT, "Maintenance Plan App", "build", "sp_config.py")
+    if hub_id and os.path.exists(vp):
+        with open(vp, encoding="utf-8") as f:
+            m = re.search(r'HUB_URL\s*=\s*\(?\s*"([^"]*)"[^)]*\)?', f.read(), re.S)
+        if m:
+            with open(vp, encoding="utf-8") as f:
+                joined = "".join(re.findall(r'"([^"]*)"',
+                                            re.search(r"HUB_URL\s*=\s*\((.*?)\)",
+                                                      f.read(), re.S).group(1)))
+            if not joined.endswith("/" + hub_id):
+                bad.append("vhplan: HUB_URL i sp_config.py peger ikke paa "
+                           f"hubbens app_id {hub_id}")
+
     for key, domain, folder in (("equipment", "Equipment", "Equipment App"),
                                 ("material", "Material", "Material App")):
         dc_path = os.path.join(ROOT, folder, "build", "domain_config.py")

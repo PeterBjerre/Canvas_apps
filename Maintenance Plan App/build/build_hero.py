@@ -4,6 +4,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED,
                         C_PRIMARY, C_WHITE, C_NEUTRAL_BG, C_INFO_FG, SHELL_W)
 from build_helpers import text_ctrl, group, button, card
+import sp_config as cfg
 
 HERO_CW = f"({SHELL_W} - 32)"
 
@@ -202,9 +203,18 @@ def build_hero():
         ),
         primary=False, width=130, height=36)
 
-    actionsRow = group("conVhpHeroActionsRow", [btnValidate, btnExport], direction="Horizontal", gap=10,
-                       height=36, justify="End", width=250, align_items="Center")
-    heroActions = group("conVhpHeroActions", [actionsRow], direction="Vertical", gap=8, width=250,
+    # Tilbage til hubben. De to domaeneapps har den; VH-plan havde ingen vej
+    # tilbage overhovedet - man skulle bruge browserens tilbageknap eller
+    # kende URL'en.
+    btnHub = button(
+        "btnVhpBackToHub", "\"Til hubben\"",
+        f'Launch("{cfg.HUB_URL}", {{ }}, LaunchTarget.Replace)',
+        primary=False, width=120, height=36)
+
+    actionsRow = group("conVhpHeroActionsRow", [btnHub, btnValidate, btnExport],
+                       direction="Horizontal", gap=10,
+                       height=36, justify="End", width=380, align_items="Center")
+    heroActions = group("conVhpHeroActions", [actionsRow], direction="Vertical", gap=8, width=380,
                         align_items="End")
 
     heroGrid = group("conVhpHeroGrid", [heroLeft, heroActions], direction="Horizontal", gap=16,
