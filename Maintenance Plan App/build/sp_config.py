@@ -46,6 +46,18 @@ L_INDEX       = "MD_RequestIndex"
 L_MATERIALS   = "MD_TasklistMaterial"
 L_ATTACHMENTS = "MD_TasklistAttachment"
 
+# --- landingssiden --------------------------------------------------------
+# VH-plan-appen aabnes af hubbens VHP-flise som en SELVSTAENDIG app, ikke
+# som en skaerm i den. Back() kan derfor ikke foere tilbage - der skal et
+# Launch til. LaunchTarget.Replace, saa det sker i den fane, brugeren
+# staar i; ellers faar man en fane pr. klik.
+#
+# Samme id som apps.hub.app_id i tools/canvas_apps.json. build_all.py
+# tjekker, at de to ikke glider fra hinanden.
+HUB_URL = ("https://apps.powerapps.com/play/e/"
+           "e0f8f822-d16a-e878-ba4e-fb42bc617e47"
+           "/a/f387047d-86af-4d6a-8370-afcf35939436")
+
 # --- kolonnenavne der IKKE er selvindlysende -------------------------------
 # MainWorkCenters er oprettet fra Excel, saa de interne navne er field_1 og
 # field_2. Visningsnavnet paa field_1 er 'Description' med 33 efterfoelgende
