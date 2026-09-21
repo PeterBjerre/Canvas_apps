@@ -81,6 +81,25 @@ App:
           }
       );
 
+      // LAYOUTTOKENS. Genereret af tools/layout_tokens.py - ret ikke her.
+      //
+      // LayoutContext er den, man kan LAESE. LayoutRank er den, man kan
+      // SAMMENLIGNE med: "desktop eller bredere" er LayoutRank >= 3.
+      // Braekpunkterne staar eet sted for alle fire apps.
+      LayoutContext = If(
+          App.Width >= 1600, "Wide",
+          App.Width >= 1024, "Desktop",
+          App.Width >= 720, "Tablet",
+          "Mobile"
+      );
+
+      LayoutRank = If(
+          App.Width >= 1600, 4,
+          App.Width >= 1024, 3,
+          App.Width >= 720, 2,
+          1
+      );
+
       // Vaerkerne. Eneste opslagsliste appen laeser, og den laeses foerst,
       // naar dropdownen aabnes.
       colDomPlants = Sort(ForAll(PlantList As R, { Value: R.Title }), Value);

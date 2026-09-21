@@ -5,9 +5,35 @@ from gen_screen import (Ctrl, C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUT
                         C_PRIMARY, C_WHITE, C_NEUTRAL_BG, C_INFO_FG, SHELL_W)
 from build_helpers import text_ctrl, group, button, card, theme_button
 from design_tokens import theme_query
+from layout_tokens import below, if_below, fits
 import sp_config as cfg
 
 HERO_CW = f"({SHELL_W} - 32)"
+
+# Bredden af handlingsraekken i heroen, REGNET UD af de knapper, den
+# indeholder - ikke skrevet af.
+#
+# Det er ikke pedanteri. Da temaknappen kom til, blev raekken 102 px
+# bredere, mens venstresiden stadig reserverede den gamle plads. De to tal
+# stod i hver sin ende af filen, og intet knyttede dem sammen. Nu goer det:
+# tilfoejes en knap, foelger begge sider med.
+HERO_BTNS = [("btnVhpTheme", 92), ("btnVhpBackToHub", 120),
+             ("btnVhpValidate", 110), ("btnVhpExport", 130)]
+HERO_BTN_GAP = 10
+ACTIONS_W = (sum(w for _, w in HERO_BTNS)
+             + HERO_BTN_GAP * (len(HERO_BTNS) - 1))
+BW = dict(HERO_BTNS)   # knapperne bygges af DEN HER, ikke af egne tal
+
+# Navnene skal vaere de kontroller, raekken faktisk indeholder. Er de det
+# ikke, regner ACTIONS_W paa noget andet end det, der staar paa skaermen -
+# og saa er hele koblingen ingenting vaerd. build_hero() efterproever det
+# nedenfor, naar raekken er samlet.
+
+# Procesindikatorens fem chips. Ombryder naar de ikke kan staa paa een
+# linje - en CONTAINER-graense, ikke en enhedsklasse: fem chips fylder det
+# samme, uanset om skaermen er en telefon eller en 4K-skaerm.
+CHIP_W, CHIP_GAP, N_CHIPS = 118, 8, 5
+CHIPS_W = CHIP_W * N_CHIPS + CHIP_GAP * (N_CHIPS - 1)
 
 
 def build_hero():
@@ -25,7 +51,8 @@ def build_hero():
                      # til conVhpHeroActionsRow. Tallet skal foelge den
                      # raekkes bredde, ellers regner de to sider med den
                      # samme plads.
-                     width=f"If({HERO_CW} < 900, Parent.Width, Parent.Width - 352 - 16)")
+                     width=if_below("Desktop", "Parent.Width",
+                                    f"Parent.Width - {ACTIONS_W} - 16"))
 
     # ------------------------------------------------------------------
     # Validering. Reglerne er de samme som i oplaegget (docs/01) - S1, S3,
@@ -147,7 +174,7 @@ def build_hero():
             "    If(IsBlank(varVhpLastValidationErrors), \" No validation issues.\", \" See validation report.\")\n"
             ")"
         ),
-        primary=True, width=110, height=36)
+        primary=True, width=BW["btnVhpValidate"], height=36)
 
     btnExport = button(
         "btnVhpExport", "\"Export JSON\"",
@@ -206,7 +233,7 @@ def build_hero():
             ");\n"
             "Set(varVhpRuntimeInfo, \"JSON exported: \" & Text(CountRows(colVhpItems)) & \" item(s), \" & Text(Len(varVhpExportJson)) & \" characters.\")"
         ),
-        primary=False, width=130, height=36)
+        primary=False, width=BW["btnVhpExport"], height=36)
 
     # Tilbage til hubben. De to domaeneapps har den; VH-plan havde ingen vej
     # tilbage overhovedet - man skulle bruge browserens tilbageknap eller
@@ -216,20 +243,29 @@ def build_hero():
     btnHub = button(
         "btnVhpBackToHub", "\"Til hubben\"",
         f'Launch("{cfg.HUB_URL}" & {theme_query("?")}, {{ }}, LaunchTarget.Replace)',
-        primary=False, width=120, height=36)
+        primary=False, width=BW["btnVhpBackToHub"], height=36)
 
     # Samme knap som i de tre andre apps - se build_helpers.theme_button.
-    btnTheme = theme_button("btnVhpTheme", height=36)
+    btnTheme = theme_button("btnVhpTheme", width=BW["btnVhpTheme"], height=36)
 
-    actionsRow = group("conVhpHeroActionsRow",
-                       [btnTheme, btnHub, btnValidate, btnExport],
-                       direction="Horizontal", gap=10,
-                       height=36, justify="End", width=482, align_items="Center")
-    heroActions = group("conVhpHeroActions", [actionsRow], direction="Vertical", gap=8, width=482,
+    row = [btnTheme, btnHub, btnValidate, btnExport]
+    # ACTIONS_W er regnet af HERO_BTNS. Passer listen ikke paa raekken,
+    # regner den paa noget andet end det, der tegnes.
+    got = [(c.name, int(c.props["Width"])) for c in row]
+    if got != HERO_BTNS:
+        raise SystemExit("HERO_BTNS passer ikke paa handlingsraekken:\n"
+                         "  HERO_BTNS: %s\n  raekken:   %s" % (HERO_BTNS, got))
+
+    actionsRow = group("conVhpHeroActionsRow", row,
+                       direction="Horizontal", gap=HERO_BTN_GAP,
+                       height=36, justify="End", width=ACTIONS_W, align_items="Center")
+    heroActions = group("conVhpHeroActions", [actionsRow], direction="Vertical", gap=8, width=ACTIONS_W,
                         align_items="End")
 
     heroGrid = group("conVhpHeroGrid", [heroLeft, heroActions], direction="Horizontal", gap=16,
-                     height=f"If({HERO_CW} < 900, ({heroLeft.h}) + 16 + ({heroActions.h}), Max(({heroLeft.h}), ({heroActions.h})))",
+                     height=if_below("Desktop",
+                                     f"({heroLeft.h}) + 16 + ({heroActions.h})",
+                                     f"Max(({heroLeft.h}), ({heroActions.h}))"),
                      wrap="true")
 
     step_defs = [
@@ -259,7 +295,7 @@ def build_hero():
     # Fem chips a 118 px + 4 gaps a 8 = 622 px. Under det ombryder raekken
     # til to linjer, og hoejden skal foelge med.
     processStrip = group("conVhpProcessStrip", steps, direction="Horizontal", gap=8, wrap="true",
-                         height=f"If({HERO_CW} < 622, 26 + 8 + 26, 26)")
+                         height=fits(HERO_CW, CHIPS_W, "26 + 8 + 26", "26"))
 
     runtimeInfo = text_ctrl("txtVhpRuntimeInfo", "varVhpRuntimeInfo", size=13, color=C_MUTED, height=36,
                             wrap="true")

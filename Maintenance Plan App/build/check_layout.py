@@ -24,11 +24,15 @@ Tjekket foretager fire kontroller:
   8b. Enhver designtoken, skaermen bruger, findes i temaformlen C. En
      token, der ikke findes, giver BLANK - og blank er gennemsigtig, saa
      kontrollen ville forsvinde uden en fejlmeddelelse
+  8c. Ingen formel sammenligner App.Width med et tal. Braekpunkter staar i
+     tools/layout_tokens.py og laeses som LayoutRank/LayoutContext
   9. Ingen LODRET container har et barn med FillPortions <> 0
      (knapraekken var 336 px bred i et kort med 324 px indhold, ombroed til
      to linjer og fik sin sidste knap klippet af).
 
-Hoejdeudtrykkene evalueres for flere skaermbredder og datamaengder.
+Hoejdeudtrykkene evalueres for flere skaermbredder og datamaengder -
+bredderne kommer fra braekpunkterne i tools/layout_tokens.py, saa
+baade graensen og pixlen under den bliver proevet.
 
     python3 check_layout.py            # finder skaermen selv
     python3 check_layout.py ../ScreenVhPlan.pa.yaml
@@ -36,6 +40,8 @@ Hoejdeudtrykkene evalueres for flere skaermbredder og datamaengder.
 import os, re, sys, yaml
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), "tools"))
+import layout_tokens as lay
 
 # Skaermen findes af sig selv, saa denne fil er ordret ens i alle apps i
 # repoet (se .github/skills/canvas-build/SKILL.md). Er der mere end een
@@ -55,7 +61,15 @@ def _find_screen():
 
 SCREEN = _find_screen()
 
-WIDTHS = [420, 640, 900, 1024, 1366, 1920]
+# BREDDERNE KOMMER FRA BRAEKPUNKTERNE, IKKE FRA EN HAANDPLUKKET LISTE.
+#
+# Her stod [420, 640, 900, 1024, 1366, 1920]. Den sprang henover 1023 -
+# altsaa pixlen lige foer layoutet skifter - og det er praecis dér,
+# layoutfejl bor: en container, der er hoej nok paa 1024 og tolv pixels
+# for lav paa 1023, var usynlig for tjekket.
+#
+# lay.test_widths() giver hver graense OG pixlen under den.
+WIDTHS = lay.test_widths()
 ITEM_COUNTS = [0, 1, 3, 8]
 OP_COUNTS = [0, 1, 4, 12]
 PKG_COUNTS = [3, 4]
@@ -86,6 +100,14 @@ def evaluate(expr, w, n_items, n_ops, n_pkgs):
     e = e.replace("CountRows(colVhpItems)", str(n_items))
     e = e.replace("CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId))", str(n_ops))
     e = e.replace("CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy))", str(n_pkgs))
+    # LayoutContext og LayoutRank er NAVNGIVNE FORMLER i App.pa.yaml, ikke
+    # tal i udtrykket. Uden de to linjer kunne tjekket ikke regne paa en
+    # eneste hoejde, der afhaenger af et braekpunkt - altsaa netop dem, der
+    # skifter. De blev alle 15 sprunget over med et tavst "kan ikke".
+    e = re.sub(r'LayoutContext\s*=\s*"(\w+)"',
+               lambda m: "True" if m.group(1) == lay.tier_for(w) else "False", e)
+    e = re.sub(r"\bLayoutRank\b", str(lay.rank_for(w)), e)
+
     e = e.replace("App.Width", str(w)).replace("App.Height", "900")
 
     # Booleske testvaerdier: det ugunstigste tilfaelde er at alt er synligt.
@@ -339,6 +361,30 @@ def main():
         for name in sorted(used - defined):
             problems.append(f"[8] samlingen '{name}' bruges i skaermen, "
                             f"men defineres ikke i App.pa.yaml")
+
+    # --- 8c. Ingen skaerm maa sammenligne App.Width med et tal ------------
+    # Et braekpunkt hoerer til i tools/layout_tokens.py, ikke i en kontrol.
+    #
+    # Hvorfor det skal haandhaeves PAA SKAERMEN og ikke i builderne: tallet
+    # bliver som regel interpoleret ind i en f-streng, saa en vagt, der
+    # laeser Python-kildens strengkonstanter, ser hverken bredden eller
+    # tallet. I den byggede YAML staar begge dele.
+    #
+    # Det, reglen beskytter: apperne havde fire braekpunkter mellem 996 og
+    # 1024 i fire filer. Ingen af dem var valgt i forhold til de tre andre.
+    # Mindst to par af dem SKULLE have vaeret ens - skinnens bredde og
+    # splittets hoejde, flisernes bredde og deres beholders hoejde - og
+    # intet i koden sagde det.
+    #
+    # Aritmetik er i orden: SHELL_W er "(App.Width - 64)". Det er kun
+    # SAMMENLIGNINGEN, der er en beslutning om enhedsklasse.
+    bp = re.compile(r"App\.Width\s*[<>]=?\s*[0-9]")
+    for props in screen_and_controls:
+        for key, val in props.items():
+            if isinstance(val, str) and bp.search(val):
+                problems.append(f"[8c] {key}: sammenligner App.Width med et tal "
+                                f"- braekpunkter hoerer i tools/layout_tokens.py "
+                                f"(below()/if_below()/fits())")
 
     # --- 8b. Designtokens skal findes i temaformlen -----------------------
     # Hver farve i skaermen staar som C.'et-navn', og navnene defineres af

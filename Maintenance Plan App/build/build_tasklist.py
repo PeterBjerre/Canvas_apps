@@ -11,6 +11,7 @@ import build_help as bh
 from build_strategy import build_strategy_body, IS_STRATEGY
 import sp_config as cfg
 from design_tokens import ref_hex
+from layout_tokens import fits, TWO_COL_MIN
 
 # HTML kender ikke RGBA(). ref_hex giver den SAMME token som hex.
 MUT_HEX = ref_hex("text-muted")
@@ -574,7 +575,7 @@ def build_tasklist_section():
         "    Set(varVhpRuntimeInfo, \"Tasklist \" & Self.Selected.Key & \" selected for this item.\")\n"
         ")")
     tasklistCell = field_cell("conVhpCellTasklist", "Tasklist For Active Item", drpTasklist, required=True,
-                              width=f"If({OPS_CW} < 640, {OPS_CW}, 360)", container_w=OPS_CW,
+                              width=fits(OPS_CW, TWO_COL_MIN, OPS_CW, "360"), container_w=OPS_CW,
                               fill_portions_formula="0")
 
     btnAddLines = button(

@@ -5,6 +5,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQU
                         C_INFO_FG, C_INFO_BG, C_VALID_FG, C_VALID_BG, C_INVALID_FG, C_INVALID_BG,
                         C_NEUTRAL_FG, C_NEUTRAL_BG, C_INPUT_BG, FONT, SHELL_W, EDITOR_W, RAIL_W,
                         SPLIT_GAP, C_TRANSPARENT)
+from layout_tokens import if_below
 from build_helpers import (text_ctrl, group, button, button_row, text_input, number_input, dropdown,
                            label_row, field_cell, row_n, col_width, badge, card, combobox, poll_timer,
                            TWO_COL_MIN, HINTS_ON)
@@ -663,9 +664,16 @@ def build_items_section():
     editor = build_item_editor()
     # Hoejden er de to korts BEREGNEDE hoejder - ikke .Height paa kontrollerne.
     # Det var netop den reference, der gav cirkelreferencen og kaskade-vaeksten.
-    h = (f"If(App.Width < 1000, ({rail.h}) + {SPLIT_GAP} + ({editor.h}), "
-         f"Max(({rail.h}), ({editor.h})))")
-    rail.props["Width"] = f"If(App.Width < 1000, Parent.Width, {RAIL_W})"
+    # De TRE udtryk herunder skal bruge det SAMME braekpunkt: hoejden,
+    # skinnens bredde og EDITOR_W. Er de uenige, tror skinnen at den staar
+    # under editoren, mens editoren tror den staar ved siden af - og
+    # hoejden passer til ingen af delene. Derfor kommer de alle tre fra
+    # tools/layout_tokens.py nu, hvor de foer havde 1000 skrevet i sig hver
+    # for sig.
+    h = if_below("Desktop",
+                 f"({rail.h}) + {SPLIT_GAP} + ({editor.h})",
+                 f"Max(({rail.h}), ({editor.h}))")
+    rail.props["Width"] = if_below("Desktop", "Parent.Width", str(RAIL_W))
     editor.props["Width"] = EDITOR_W
     return group("conVhpItemsSplit", [rail, editor], direction="Horizontal", gap=SPLIT_GAP,
                  height=h, wrap="true")

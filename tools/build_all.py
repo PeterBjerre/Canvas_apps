@@ -304,10 +304,20 @@ def main(argv=None):
     for app, scripts in apps:
         d = os.path.join(ROOT, app, "build")
         print(f"\n=== {app} ===")
+        # STOPPER VED FOERSTE FEJL I DENNE APP.
+        #
+        # Foer koerte den videre: fejlede assemble_screen.py, laa den
+        # FORRIGE skaerm stadig paa disken, og check_layout.py svarede
+        # "Layout-tjek OK" paa den. Beskeden var sand om filen og loegn om
+        # byggeriet - og den stod nedenfor fejlen, saa den var det sidste,
+        # man saa.
         for s in scripts + ["check_layout.py"]:
             r = subprocess.run([sys.executable, s], cwd=d)
             if r.returncode:
                 rc = r.returncode
+                print(f"  -> {s} fejlede. Springer resten af '{app}' over, "
+                      f"saa tjekkene ikke svarer paa en gammel skaerm.")
+                break
 
     # Til sidst, fordi det laeser de .pa.yaml, byggeriet lige har skrevet:
     # findes hver SharePoint-kolonne, formlerne bruger, i virkeligheden?

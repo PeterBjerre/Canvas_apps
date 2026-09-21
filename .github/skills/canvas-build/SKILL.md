@@ -56,6 +56,51 @@ alle fire apps**. Byg ikke en ny.
 Det hele står i `docs/26-designtokens.md`, inkl. hvorfor farverne ikke kan
 ligge i miljøvariabler, og hvordan valget huskes.
 
+## Den tredje regel: breakpoints er tokens, ikke tal
+
+**Ingen skærm må sammenligne `App.Width` med et tal.** `check_layout.py`
+regel 8c stopper byggeriet. Aritmetik er fint — `SHELL_W` *er*
+`(App.Width - 64)` — det er kun **sammenligningen**, der er en beslutning.
+
+Alle breakpoints står i `tools/layout_tokens.py` og bliver til to
+navngivne formler i `App.Formulas`:
+
+```
+LayoutContext = "Mobile" | "Tablet" | "Desktop" | "Wide"   (læses)
+LayoutRank    =    1     |    2     |     3     |   4      (sammenlignes)
+```
+
+Tiers: Mobile 0, Tablet 720, Desktop **1024**, Wide 1600.
+
+```python
+from layout_tokens import below, if_below, at_least, fits, TWO_COL_MIN
+
+TILE_W = if_below("Desktop", f"({SHELL_W} - 10) / 2", f"({SHELL_W} - 40) / 5")
+```
+
+### To slags grænser — vælg den rigtige
+
+| Spørgsmålet | Værktøj |
+|---|---|
+| "Hvor stor er **skærmen**?" — fem fliser eller to, hero ved siden af eller ovenpå | `below("Desktop")` / `if_below()` / `at_least()` |
+| "Er der plads i **denne kasse**?" — et 600 px kort stabler sine felter også på en 4K-skærm | `fits(container_w, needs, narrow, wide)` |
+
+`fits()`' `needs` skal **regnes ud af indholdet**, ikke skrives af.
+Topbjælken havde `900` skrevet i sig, mens højresiden fyldte 440 — da
+temaknappen gjorde højresiden 542 bred, fulgte de 900 ikke med, og bjælken
+ville have ombrudt på enhver skærmbredde.
+
+### Tal, der skal være ens, skal komme fra det samme sted
+
+Fire steder i repoet skulle to-tre tal passe sammen, og intet sagde det:
+splittets højde vs. skinnens bredde vs. `EDITOR_W`; flisernes bredde vs.
+deres beholders højde; knaprækkens bredde vs. venstresidens reservation
+(to steder). Knapperækkerne regnes nu af `HERO_BTNS` / `BAR_RIGHT`, og
+builderen **efterprøver sig selv** — tilføjer du en knap uden at skrive den
+i tabellen, stopper byggeriet.
+
+Det hele står i `docs/27-layouttokens.md`.
+
 ## Fire apps — hver med sin selvstændige build-mappe
 
 | App | Mappe | Skærm | Byg |
@@ -224,8 +269,11 @@ indekserede boolske `IsOpen` — ikke på en række OR'ede statusværdier.
 ## Hvad check_layout.py fanger
 
 Canvas-layout kan ikke renderes uden for Studio, så det regnes efter i
-stedet, for skærmbredder fra 420 til 1920 px og for 0–8 items og 0–12
-operationer:
+stedet, for 0–8 items og 0–12 operationer og for de skærmbredder,
+`layout_tokens.test_widths()` giver — **hver breakpoint-grænse og pixlen
+under den** (420, 719, 720, 1023, 1024, 1366, 1599, 1600, 1920). Før stod
+der en håndplukket liste, der sprang henover 1023, og det er præcis dér,
+layoutfejl bor:
 
 1. Ingen `Height`-formel refererer en anden kontrols `.Height`
 2. Lodrette containere er høje nok til børn + gaps + egen polstring
@@ -240,6 +288,8 @@ operationer:
    siger **ikke** fra ved et felt, en record ikke har — den giver blank, og
    blank er gennemsigtig. En stavefejl ville derfor ikke fejle i compile;
    kontrollen ville bare forsvinde, måske kun i det ene tema
+8c. Ingen formel sammenligner `App.Width` med et tal — breakpoints hører i
+   `tools/layout_tokens.py`
 9. Ingen **lodret** container har et barn med `FillPortions <> 0`
 
 Punkt 7 fanger den klassiske: du sletter en kontrol og glemmer en

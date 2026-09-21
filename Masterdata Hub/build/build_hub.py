@@ -21,6 +21,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_PRIM
 from build_helpers import text_ctrl, group, button, card, theme_button
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, APP_TARGET
 from design_tokens import theme_query
+from layout_tokens import if_below
 
 # Hubben aabner satellitterne. Temaet skal med i URL'en, fordi
 # SaveData-lageret er isoleret pr. app-id: uden den ville en moerk hub
@@ -124,8 +125,11 @@ def build_bar():
 # ---------------------------------------------------------------------------
 # Domaenefliser
 # ---------------------------------------------------------------------------
-TILE_MIN = 940
-TILE_W = f"If({SHELL_W} < {TILE_MIN}, ({SHELL_W} - 10) / 2, ({SHELL_W} - 40) / 5)"
+# Fem fliser eller to. Det er en beslutning om, hvor stor skaermen er -
+# altsaa et viewport-braekpunkt, ikke en udregning paa indholdet. Stod foer
+# som SHELL_W < 940, hvilket er App.Width < 1004: et af fire naesten ens
+# tal. Se tools/layout_tokens.py.
+TILE_W = if_below("Desktop", f"({SHELL_W} - 10) / 2", f"({SHELL_W} - 40) / 5")
 
 
 def build_tiles():
@@ -174,7 +178,10 @@ def build_tiles():
 
     tile_h = tiles[0].h
     return group("conMdTiles", tiles, direction="Horizontal", gap=10, wrap="true",
-                 height=f"If({SHELL_W} < {TILE_MIN}, 3 * ({tile_h}) + 20, {tile_h})")
+                 # SAMME braekpunkt som TILE_W. Var de uenige, ville beholderen
+                  # have hoejde til een raekke fliser, mens fliserne selv stod i
+                  # tre - og de to nederste raekker blev klippet af.
+                  height=if_below("Desktop", f"3 * ({tile_h}) + 20", tile_h))
 
 
 # ---------------------------------------------------------------------------
