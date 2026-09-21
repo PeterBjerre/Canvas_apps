@@ -237,16 +237,35 @@ Git husker dem; mappen skal ikke.
 
 ## Hvem ejer hvad — Equipments og Materials
 
-Equipments og Materials er **den samme app**. Fire filer er ordret ens i de to
-build-mapper, og `tools/build_all.py` tjekker det ved hver bygning:
+**De er IKKE længere den samme app.** De var det: de to build-mapper
+indeholdt ordret de samme filer, og `build_all.py` nægtede at bygge, hvis
+de gled fra hinanden. Det holdt, så længe de to kun havde forskellige
+*felter*. Det gælder ikke længere — de skal kunne to forskellige ting.
 
-| Fil | Ejer |
-|---|---|
-| `domain_config.py` | **Den eneste fil der må være forskellig**: listenavn, præfiks, `SECTIONS` (felterne), `PLAY_URL` |
-| `build_domain.py` | Formen: bar, formular, dokumentrude, rækketabel, indsend — og al adfærd |
-| `attflows.py` | **Flow-kontrakten for dokumenter** — de tre attachment-flows, mappenavnet og de to former af `text` |
-| `generate_app_onstart.py` | Samlingsskema + tilstandsvariabler → `../App.pa.yaml` |
-| `assemble_screen.py` | Samler skærmen, og skriver skærmens `OnVisible` |
+| Fil | Ejer | Må afvige? |
+|---|---|---|
+| `tools/domain_parts.py` | **Byggeklodserne**: bar, formular, dokumentrude, rækketabel, indsend, og Power Fx'en bag gem/hent/slet | Fælles |
+| `tools/attflows.py` | Flow-kontrakten for dokumenter | Fælles |
+| `tools/build_flsearch.py` | Flow-kontrakten for FL-søgning | Fælles |
+| `<App>/build/domain_config.py` | Felterne, listenavnet, præfikset | **Ja** |
+| `<App>/build/assemble_screen.py` | **Kompositionen** — hvilke dele, i hvilken rækkefølge | **Ja** |
+| `<App>/build/generate_app_onstart.py` | Samlingsskemaet og tilstandsvariablerne | **Ja** |
+
+Der er **ingen vagt** der kræver at de to er ens. Det er med vilje.
+
+### Hvordan en af dem afviger
+
+1. **Komponer anderledes.** Lad appens `assemble_screen.py` kalde andre
+   dele, i en anden rækkefølge, eller udelade en.
+2. **Erstat en del.** Skriv funktionen i appens **egen** build-mappe og kald
+   den i stedet. Delene kalder ikke hinanden på kryds — de returnerer
+   kontroller, som assembleren sætter sammen.
+3. **Er ændringen rigtig for BEGGE apps**, hører den i `tools/domain_parts.py`.
+   Er den kun rigtig for den ene, hører den i appens egen mappe.
+
+Den skelnen er hele grunden til, at delene ligger i `tools/` og ikke er
+kopieret ind i hver mappe. Kopier dem ikke tilbage, fordi den ene app skal
+have en lille ændring — skriv ændringen i den app.
 
 **`SECTIONS` er kontrakten mod SharePoint.** Hver linje svarer til en
 kolonne i `EquipmentItems` / `MaterialItems`, og `check_datasources.py`

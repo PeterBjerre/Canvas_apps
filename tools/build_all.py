@@ -40,42 +40,19 @@ APPS = [
     ("Material App",         ["generate_app_onstart.py", "assemble_screen.py"]),
 ]
 
-DOMAIN_APPS = ["Equipment App", "Material App"]
-
-# Equipment og Materials er den samme app. Efter flytningen til tools/ er
-# kun de to INDGANGE tilbage som kopier - resten ligger i tools/. De er
-# smaa, men de skal stadig vaere ordret ens, ellers bygger de to apps
-# forskelligt.
-DOMAIN_SHARED = ["generate_app_onstart.py", "assemble_screen.py"]
+# EQUIPMENTS OG MATERIALS MAA AFVIGE
+#
+# Her stod DOMAIN_APPS og DOMAIN_SHARED, og check_domain_shared() naegtede
+# at bygge, hvis de to apps' indgange ikke var ORDRET ens. Det var rigtigt,
+# saa laenge de to kun havde forskellige felter.
+#
+# Det gaelder ikke laengere: de skal kunne to forskellige ting. Vagten er
+# derfor vaek - ikke glemt. Byggeklodserne er stadig faelles og ligger eet
+# sted (tools/domain_parts.py); det er KOMPOSITIONEN, der er appens egen.
 
 
 def build_dirs():
     return [(app, os.path.join(ROOT, app, "build")) for app, _ in APPS]
-
-
-def _compare(dirs, names, bad):
-    base_app, base_dir = dirs[0]
-    for name in names:
-        base = os.path.join(base_dir, name)
-        if not os.path.exists(base):
-            bad.append(f"{name}: mangler i '{base_app}'")
-            continue
-        for app, d in dirs[1:]:
-            other = os.path.join(d, name)
-            if not os.path.exists(other):
-                bad.append(f"{name}: mangler i '{app}'")
-            elif not filecmp.cmp(base, other, shallow=False):
-                newer = base_app if os.path.getmtime(base) > os.path.getmtime(other) else app
-                bad.append(f"{name}: '{base_app}' og '{app}' er ikke ens "
-                           f"(nyest rettet i '{newer}' - kopier derfra)")
-
-
-def check_domain_shared():
-    """De to domaeneindgange skal vaere ordret ens."""
-    bad = []
-    _compare([(a, os.path.join(ROOT, a, "build")) for a in DOMAIN_APPS],
-             DOMAIN_SHARED, bad)
-    return bad
 
 
 def check_no_raw_colors():
@@ -251,14 +228,6 @@ def main(argv=None):
     # De to tjek nedenfor koerer ALTID, ogsaa maalrettet. De tager
     # millisekunder, og de handler netop om det, en maalrettet bygning
     # ellers ville springe over: at apperne ikke glider fra hinanden.
-    bad = check_domain_shared()
-    if bad:
-        print("Equipments og Materials er gledet fra hinanden:\n")
-        for b in bad:
-            print("  " + b)
-        print("\nRet i EEN af de to mapper og kopier filen til den anden.")
-        return 1
-
     bad = check_no_raw_colors()
     if bad:
         print("Der staar farver i builderne:\n")
