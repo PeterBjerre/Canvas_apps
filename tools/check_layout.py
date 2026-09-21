@@ -30,6 +30,9 @@ Tjekket foretager fire kontroller:
      App checker melder det foerst ved deploy
   19. Ingen AccessibleLabel er kontrollens eget navn - en skaermlaeser
      ville laese "inpManufacturer" op i stedet for "Fabrikat"
+  20. ADVARSEL: flere uafhaengige hentninger i kaede boer samles i
+     Concurrent() - uden den venter appen paa summen i stedet for paa
+     det laengste kald
   9. Ingen LODRET container har et barn med FillPortions <> 0
      (knapraekken var 336 px bred i et kort med 324 px indhold, ombroed til
      to linjer og fik sin sidste knap klippet af).
@@ -794,6 +797,98 @@ def main():
         if v == name:
             problems.append(f"[19] {name}.AccessibleLabel er kontrollens navn "
                             f"- en skaermlaeser laeser det op. Giv label=")
+
+    # --- 20. Flere UAFHAENGIGE hentninger i kaede -> Concurrent -----------
+    # Uden Concurrent venter appen paa SUMMEN af kaldene; med den kun paa
+    # det laengste.
+    #
+    # REGLEN SKAL SELV SE AFHAENGIGHEDERNE
+    # Foerste udgave taalte kun til to hentninger og advarede. Den gav fire
+    # fund, og alle fire var forkerte: dokumentruden laeser den gamle
+    # samling, kalder et flow, parser svaret og skriver tilbage - hvert
+    # skridt afhaenger af det foer. Concurrent ville have givet en
+    # kapploebsfejl, der kun optraadte nogle gange.
+    #
+    # Nu springes en kaede over, hvis et senere led laeser et tidligere -
+    # enten en samling, der lige er fyldt, eller en variabel, der er sat
+    # undervejs. Tilbage staar kun de kaeder, hvor der FAKTISK er noget at
+    # goere parallelt.
+    #
+    # Stadig en ADVARSEL og ikke en fejl: om to hentninger er uafhaengige,
+    # er til syvende og sidst et menneskes vurdering.
+    cc = re.compile(r"\b(?:Clear)?Collect\(\s*(col[A-Z]\w*)\s*,")
+    setv = re.compile(r"\bSet\(\s*(var[A-Za-z0-9_]*)\s*,")
+
+    def arg2(text, at):
+        """KILDEN i ClearCollect(col, <KILDEN>) - altsaa ANDET argument.
+
+        Foerste udgave returnerede hele argumentlisten, samlingsnavnet
+        med. Enhver kilde saa dermed ud til at begynde med "col...", hvert
+        hit blev filtreret vaek som "laeser bare en anden samling", og
+        reglen kunne ALDRIG fyre. Den stod groen, fordi den var tom."""
+        i = text.index("(", at)
+        depth, j, q, comma = 0, i, None, -1
+        while j < len(text):
+            c = text[j]
+            if q:
+                if c == q:
+                    q = None
+            elif c in "\"'":
+                q = c
+            elif c == "(":
+                depth += 1
+            elif c == ")":
+                depth -= 1
+                if depth == 0:
+                    return text[comma + 1:j] if comma > 0 else ""
+            elif c == "," and depth == 1 and comma < 0:
+                comma = j
+            j += 1
+        return ""
+
+    targets = [((b.get("Properties") or {}), n) for _p, n, b in all_nodes]
+    targets.append((screen.get("Properties") or {}, "<skaermen>"))
+    for props, owner in targets:
+        for key, val in props.items():
+            if (not isinstance(val, str) or not key.startswith("On")
+                    or "Concurrent(" in val):
+                continue
+            hits = []
+            for m in cc.finditer(val):
+                src = arg2(val, m.start())
+                hits.append((m.group(1), src, m.start()))
+            # KUN kilder, der kan naa nettet.
+            #
+            # En col* er en samling, der allerede ligger i hukommelsen.
+            # En literal record eller tabel - { ... } eller [ ... ] - er
+            # et skema eller en akkumulering inde i et ForAll. Ingen af
+            # delene koster en rundtur, og Concurrent ville derfor ikke
+            # goere dem hurtigere; den ville kun goere dem svaerere at
+            # laese. Begge gav falske fund, foer de blev filtreret fra:
+            # gem/indsend i VH-plan samler raekker i hukommelsen med
+            # Collect(col, { ... }) og blev meldt to gange.
+            hits = [h for h in hits
+                    if not re.match(r"\s*(col[A-Z]|[{\[])", h[1])]
+            if len(hits) < 2:
+                continue
+            # afhaenger et senere led af et tidligere?
+            dependent = False
+            for i, (name, _src, _pos) in enumerate(hits):
+                for later_name, later_src, _lp in hits[i + 1:]:
+                    if re.search(r"\b%s\b" % re.escape(name), later_src):
+                        dependent = True
+            for vm in setv.finditer(val):
+                v, vpos = vm.group(1), vm.start()
+                for _n, src, pos in hits:
+                    if pos > vpos and re.search(r"\b%s\b" % re.escape(v), src):
+                        dependent = True
+            if dependent:
+                continue
+            names = ", ".join(n for n, _s, _p in hits)
+            warnings.append(
+                f"[20] {owner}.{key}: {len(hits)} uafhaengige hentninger i "
+                f"kaede ({names}). Saml dem i Concurrent() - appen venter "
+                f"ellers paa summen. Se build_helpers.concurrent()")
 
     print(f"Kontroller i alt: {len(all_nodes)}")
     if warnings:

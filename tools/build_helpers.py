@@ -20,6 +20,39 @@ from gen_screen import (
     SHELL_W, EDITOR_W, RAIL_W, SPLIT_GAP, OUT_DIR,
 )
 
+def concurrent(*formulas, indent=0):
+    """Concurrent() - naar der hentes FLERE UAFHAENGIGE ting paa een gang.
+
+    Uden den venter appen paa SUMMEN af kaldene; med den venter den kun
+    paa det laengste. Fem SharePoint-lister i kaede er fem rundture efter
+    hinanden.
+
+    NAAR DEN IKKE SKAL BRUGES
+    -------------------------
+    Concurrent hjaelper KUN formler med et connector- eller
+    Dataverse-kald. Set() af en lokal variabel eller ClearCollect af en
+    literal tabel bliver ikke hurtigere - de tager mikrosekunder, og at
+    pakke dem ind goer kun formlen svaerere at laese.
+
+    OG DEN ER FARLIG VED AFHAENGIGHEDER
+    -----------------------------------
+    Raekkefoelgen er IKKE givet. To formler inde i den samme Concurrent
+    maa ikke afhaenge af hinanden - Power Apps afviser det, naar den kan
+    se det, og naar den ikke kan, faar man en kapploebsfejl, der kun
+    optraeder nogle gange.
+
+    Det er til gengaeld sikkert at afhaenge af noget FOER den (det er
+    faerdigt), og at afhaenge af den bagefter (den venter paa alle).
+    """
+    if len(formulas) < 2:
+        raise ValueError(
+            "Concurrent kraever mindst to formler. Med een er der "
+            "ingenting at goere parallelt - skriv den bare.")
+    pad = " " * (indent + 4)
+    body = (",\n").join(pad + f.strip() for f in formulas)
+    return "Concurrent(\n%s\n%s)" % (body, " " * indent)
+
+
 # Alle feltforklaringer ser paa den samme variabel.
 HINTS_ON = "IfError(varVhpShowHints, false)"
 

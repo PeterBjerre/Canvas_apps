@@ -400,6 +400,37 @@ checker siger noget. Læses variablen af gem-knappen, kan der aldrig gemmes.
 > Elleve falske fund ville lære nogen at springe advarsler over — og så
 > går regel 15's rigtige fund samme vej.
 
+## Flere hentninger på én gang: `Concurrent()`
+
+Uden den venter appen på **summen** af kaldene; med den kun på det
+længste. Fem SharePoint-lister i kæde er fem rundture efter hinanden.
+
+```python
+from build_helpers import concurrent
+concurrent(hent_a, hent_b, hent_c, indent=16)
+```
+
+**Men den hjælper kun formler med et connector- eller Dataverse-kald.**
+`Set()` af en lokal variabel, eller `ClearCollect` af en literal tabel,
+bliver ikke hurtigere — de tager mikrosekunder, og at pakke dem ind gør kun
+formlen sværere at læse.
+
+**Og den er farlig ved afhængigheder.** Rækkefølgen er ikke givet. To
+formler inde i den samme `Concurrent` må ikke afhænge af hinanden. Det er
+til gengæld sikkert at afhænge af noget **før** den, og at afhænge af den
+**bagefter**.
+
+> **Apperne henter ikke i `App.OnStart`** — det er den ældre og vigtigere
+> regel, og den står nedenfor. VH-plan bruger navngivne formler, Equipment
+> og Material henter i skærmens `OnVisible`. Den ene undtagelse er
+> dyblinket (`?reqid=`), og netop dér henter den fem lister — de er nu
+> samlet i én `Concurrent`.
+
+`check_layout` regel 20 advarer, når to eller flere **uafhængige**
+hentninger står i kæde. Den springer kæder over, hvor et senere led læser
+et tidligere, og kilder der er en `col*` eller en literal — dem er der
+ingenting at vinde på.
+
 ## Regel 15 er en advarsel, ikke en fejl
 
 `check_layout.py` melder `Collect`, `Patch`, `Remove` og deres slægtninge
