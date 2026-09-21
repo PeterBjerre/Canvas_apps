@@ -1,32 +1,43 @@
 # -*- coding: utf-8 -*-
 """
-Skaermen til en domaeneapp - Equipment eller Materials.
+BYGGEKLODSER til en indmeldings-app. Delt af Equipments og Materials.
 
-Filen er ORDRET ens i de to build-mapper. Alt det, der skiller de to apps,
-staar i domain_config.py; her staar kun formen, og den er den samme.
+DE TO APPS ER IKKE LAENGERE DEN SAMME APP
+-----------------------------------------
+De var det. Filen her hed build_domain.py, de to build-mapper indeholdt
+ordret de samme filer, og tools/build_all.py NAEGTEDE at bygge, hvis de
+gled fra hinanden. Kun domain_config.py maatte vaere forskellig.
 
-FORMEN
-------
-    Bar        hvem, hvilket nummer, hvor mange raekker, tilbage til hubben
-    Form       raekkens felter, bygget af SECTIONS
-    Documents  dokumentruden for den valgte raekke
-    Rows       de gemte raekker, med soegning og filtre
-    Submit     send de gyldige raekker, og skriv een raekke i indekset
+Det holdt, saa laenge de to kun havde forskellige FELTER. Det gaelder ikke
+laengere: de skal kunne to forskellige ting.
 
-RAEKKEN ER I SHAREPOINT, IKKE I HUKOMMELSEN
--------------------------------------------
-Den haandbyggede app samlede alt i colEquipmentRows og havde ikke eet
-Patch mod en datakilde. Lukkede brugeren appen, var raekkerne vaek.
+Derfor er den her fil ikke "domaeneappen" mere - den er de DELE, en
+indmeldings-app er bygget af, og hver app komponerer selv:
 
-Her skriver "Gem raekke" direkte i listen, og samlingen er kun et spejl,
-der hentes forfra bagefter. RowId ER raekkens ID i SharePoint - ikke en
-taeller, appen selv skruer op. To brugere, der gemmer samtidig, kan
-dermed ikke faa det samme nummer.
+    tools/domain_parts.py           delene - bar, formular, dokumenter,
+                                    raekketabel, indsend, og Power Fx'en
+                                    bag gem/hent/slet
+    <App>/build/domain_config.py    felterne og listen
+    <App>/build/assemble_screen.py  KOMPOSITIONEN - appens egen
+    <App>/build/generate_app_onstart.py  samlingsskemaet - appens eget
 
-Og noeglen - EQ-000912 - er lavet af det samme ID. Den er mappenavnet i
-dokumentbiblioteket, og derfor kan der foerst laegges dokumenter op, NAAR
-raekken er gemt. Det er ogsaa grunden til, at Gem skriver med det samme i
-stedet for foerst ved Indsend.
+De to sidste MAA nu vaere forskellige. Der er ingen vagt, der kraever at
+de er ens, og det er med vilje.
+
+HVORDAN EN APP AFVIGER
+----------------------
+1. Komponer anderledes: lad appens assemble_screen.py kalde andre dele,
+   i en anden raekkefoelge, eller udelade en.
+2. Erstat en del: skriv funktionen i appens EGEN build-mappe og kald den
+   i stedet. Delene herunder kalder ikke hinanden paa kryds - de
+   returnerer kontroller, som assembleren saetter sammen.
+3. Er en aendring rigtig for BEGGE apps, hoerer den her. Er den kun rigtig
+   for den ene, hoerer den i appens egen mappe. Den skelnen er hele
+   grunden til, at filen ligger i tools/ og ikke er kopieret.
+
+Delene laeser appens domain_config via "import domain_config as cfg".
+Det virker, fordi appens build-mappe staar FOERST paa sys.path - hver app
+faar sin egen.
 """
 import os
 import sys

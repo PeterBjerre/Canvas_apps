@@ -2,7 +2,7 @@
 """
 Skriver ../App.pa.yaml: navngivne formler + OnStart.
 
-Ordret ens i de to domaene-build-mapper.
+APPENS EGEN - de to domaeneapps maa nu afvige.
 
 OnStart HENTER INGEN DATA
 -------------------------
@@ -27,7 +27,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), "tools")
 import design_tokens as tok
 import layout_tokens as lay
 import domain_config as cfg
-from build_domain import FIELDS
+from domain_parts import FIELDS
 
 OUT_DIR = os.path.join(HERE, "..")
 

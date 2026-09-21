@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
-"""Samler skaermen. Ordret ens i de to domaene-build-mapper.
+"""Samler Equipment-skaermen.
+
+APPENS EGEN. Den var foer ordret ens med den anden domaeneapps,
+og build_all naegtede at bygge, hvis de gled fra hinanden. Den
+vagt er vaek: de to apps skal kunne to forskellige ting.
+Byggeklodserne er stadig faelles - se tools/domain_parts.py.
 
 DATAHENTNINGEN LIGGER I OnVisible, IKKE I App.OnStart
 ----------------------------------------------------
@@ -25,7 +30,7 @@ sys.path.insert(0, HERE)
 from gen_screen import render_screen, C_APP_BG, OUT_DIR, SHELL_W
 from build_helpers import group
 import domain_config as cfg
-from build_domain import (build_bar, build_form, build_attachments,
+from domain_parts import (build_bar, build_form, build_attachments,
                           build_rows, build_submit, refresh_rows_fx,
                           clear_form_fx, HALF_W)
 

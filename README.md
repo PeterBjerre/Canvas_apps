@@ -9,11 +9,12 @@ Canvas apps og indmeldingsflow til SAP masterdata. **Fire apps:**
 | **Equipments** | [`Equipment App/`](Equipment%20App) | Indmelding af udstyr |
 | **Materials** | [`Material App/`](Material%20App) | Indmelding af reservedele |
 
-> **Equipments og Materials er DEN SAMME app.** Samme skærm, samme gem,
-> samme dokumentrude. Kun `build/domain_config.py` skiller dem — felterne
-> og listenavnet. De øvrige builderfiler er ordret ens i de to mapper, og
-> `tools/build_all.py` nægter at bygge, hvis de glider fra hinanden. Det er
-> den enkeltoplysning, der sparer mest tid, når man læser repoet første gang.
+> **Equipments og Materials deler byggeklodser, men er to apps.** De var
+> engang den samme app med to konfigurationsfiler; nu skal de kunne to
+> forskellige ting. Delene — bar, formular, dokumentrude, rækketabel,
+> indsend — ligger ét sted i [`tools/domain_parts.py`](tools/domain_parts.py),
+> mens **kompositionen** er hver apps egen. Skal kun den ene ændres, skrives
+> ændringen i dens egen `build/`-mappe, ikke i de fælles dele.
 
 Alle `.pa.yaml`-skærme er **genereret** af Python-builderne i den enkelte
 apps `build/`-mappe. Byg alle fire og efterregn layoutet med:
