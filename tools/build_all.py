@@ -140,80 +140,11 @@ def check_no_raw_colors():
     return bad
 
 
-def check_app_ids():
-    """Det samme app-id skal staa de samme steder.
-
-    En domaeneapp har sit id TRE steder: tools/canvas_apps.json (hvor der
-    deployes til), hub_config.py (hvad flisen aabner) og appens egen
-    PLAY_URL (hvad der skrives i MD_RequestIndex.AppUrl, saa "Open" lander
-    paa den rigtige indmelding).
-
-    Glider de fra hinanden, fejler ingenting - builderne deployer bare eet
-    sted, flisen aabner et andet, og dyblinket et tredje. Det ses foerst,
-    naar en bruger klikker "Open" og lander i en tom app.
-    """
-    import json, re
-    bad = []
-    cfg_path = os.path.join(ROOT, "tools", "canvas_apps.json")
-    hub_path = os.path.join(ROOT, "Masterdata Hub", "build", "hub_config.py")
-    if not (os.path.exists(cfg_path) and os.path.exists(hub_path)):
-        return bad
-
-    with open(cfg_path, encoding="utf-8") as f:
-        apps = json.load(f).get("apps", {})
-    sys.path.insert(0, os.path.dirname(hub_path))
-    hub = {}
-    try:
-        import hub_config
-        hub = {d["key"]: d.get("app_id") for d in hub_config.DOMAINS}
-    except Exception as e:                      # hub_config er ikke vores
-        bad.append(f"kan ikke laese hub_config.py: {e}")
-        return bad
-
-    # Hubbens eget id staar i canvas_apps.json OG i de to domaeneapps'
-    # HUB_URL - knappen "Tilbage til hubben". Glider de fra hinanden,
-    # aabner knappen en anden app end den, flisen kom fra.
-    hub_id = (apps.get("hub") or {}).get("app_id")
-
-    # (noeglen i canvas_apps.json, noeglen i hub_config.DOMAINS, app-mappe)
-    # VH-plan har ogsaa en knap til hubben - dens HUB_URL staar i
-    # sp_config.py og skal foelge det samme id.
-    vp = os.path.join(ROOT, "Maintenance Plan App", "build", "sp_config.py")
-    if hub_id and os.path.exists(vp):
-        with open(vp, encoding="utf-8") as f:
-            m = re.search(r'HUB_URL\s*=\s*\(?\s*"([^"]*)"[^)]*\)?', f.read(), re.S)
-        if m:
-            with open(vp, encoding="utf-8") as f:
-                joined = "".join(re.findall(r'"([^"]*)"',
-                                            re.search(r"HUB_URL\s*=\s*\((.*?)\)",
-                                                      f.read(), re.S).group(1)))
-            if not joined.endswith("/" + hub_id):
-                bad.append("vhplan: HUB_URL i sp_config.py peger ikke paa "
-                           f"hubbens app_id {hub_id}")
-
-    for key, domain, folder in (("equipment", "Equipment", "Equipment App"),
-                                ("material", "Material", "Material App")):
-        dc_path = os.path.join(ROOT, folder, "build", "domain_config.py")
-        if hub_id and os.path.exists(dc_path):
-            with open(dc_path, encoding="utf-8") as f:
-                m = re.search(r'HUB_URL\s*=\s*\(?\s*"([^"]*)"', f.read())
-            if m and not m.group(1).endswith("/" + hub_id):
-                bad.append(f"{key}: HUB_URL i {folder} peger ikke paa "
-                           f"hubbens app_id {hub_id}")
-        want = (apps.get(key) or {}).get("app_id")
-        if not want:
-            continue
-        if hub.get(domain) != want:
-            bad.append(f"{key}: canvas_apps.json har {want}, men "
-                       f"hub_config.py har {hub.get(domain)}")
-        dc = os.path.join(ROOT, folder, "build", "domain_config.py")
-        if os.path.exists(dc):
-            with open(dc, encoding="utf-8") as f:
-                m = re.search(r'PLAY_URL\s*=\s*"([^"]*)"', f.read())
-            url = m.group(1) if m else ""
-            if url and not url.endswith("/" + want):
-                bad.append(f"{key}: PLAY_URL i {folder} peger ikke paa {want}")
-    return bad
+# check_app_ids() stod her: 60 linjer, der laeste hub_config.py med import
+# og tre andre filer med REGEX for at tjekke, at det samme app-id stod de
+# samme steder. Den er slettet, fordi id'erne nu kun staar EET sted -
+# tools/canvas_apps.json, laest af tools/env_config.py. Den fejlklasse,
+# vagten vogtede over, kan ikke opstaa laengere.
 
 
 def drop_pycache():
@@ -266,7 +197,21 @@ def main(argv=None):
     ap = argparse.ArgumentParser(
         description="Bygger canvas apps og efterregner layoutet.")
     ap.add_argument("--app", help="byg kun denne app (mappenavn eller noegle)")
+    ap.add_argument("--env", help="byg mod dette miljoe (se 'environments' i "
+                                  "tools/canvas_apps.json)")
     args = ap.parse_args(argv)
+
+    # Miljoeet gives videre til byggescripterne gennem omgivelserne.
+    # env_config laeser den samme variabel, saa alle fire apps bygges mod
+    # det SAMME miljoe - ogsaa naar de koeres som hver sit subprocess.
+    sys.path.insert(0, os.path.join(ROOT, "tools"))
+    import env_config
+    if args.env:
+        env_config.resolve(args.env)      # fejler hoejlydt paa et ukendt navn
+        os.environ[env_config.ENV_VAR] = args.env
+    active = env_config.resolve(args.env)
+    print("Miljoe: %s (%s)" % (active["name"], active["environment_id"]))
+
     apps = pick_apps(args.app)
 
     drop_pycache()
@@ -321,15 +266,6 @@ def main(argv=None):
             print("  " + b)
         print("\nFarver hoerer i tools/design_tokens.py. En farve skrevet")
         print("her ville ikke skifte med temaet.")
-        return 1
-
-    bad = check_app_ids()
-    if bad:
-        print("App-id'erne er gledet fra hinanden:\n")
-        for b in bad:
-            print("  " + b)
-        print("\nDe skal vaere det samme tre steder: tools/canvas_apps.json,")
-        print("hub_config.py og appens egen PLAY_URL.")
         return 1
 
     rc = 0

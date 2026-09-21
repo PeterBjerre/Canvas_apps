@@ -29,6 +29,13 @@ Til gengaeld kan en navngiven formel ikke skrives til. De samlinger, appen
 REDIGERER - items, operationer, soegeresultater - er derfor stadig
 rigtige samlinger og staar i OnStart med tom skemadefinition.
 """
+import os
+import sys
+
+sys.path.insert(0, os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    "tools"))
+import env_config as env
 
 # --- listenavne, som de hedder naar de er tilfoejet appen som datakilde ---
 L_PLANTS      = "PlantList"
@@ -54,9 +61,8 @@ L_ATTACHMENTS = "MD_TasklistAttachment"
 #
 # Samme id som apps.hub.app_id i tools/canvas_apps.json. build_all.py
 # tjekker, at de to ikke glider fra hinanden.
-HUB_URL = ("https://apps.powerapps.com/play/e/"
-           "e0f8f822-d16a-e878-ba4e-fb42bc617e47"
-           "/a/f387047d-86af-4d6a-8370-afcf35939436")
+# Kommer fra tools/canvas_apps.json via env_config - se der for hvorfor.
+HUB_URL = env.hub_url()
 
 # --- kolonnenavne der IKKE er selvindlysende -------------------------------
 # MainWorkCenters er oprettet fra Excel, saa de interne navne er field_1 og

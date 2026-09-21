@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
     "tools"))
 from design_tokens import ref as _t
+import env_config as env
 
 # Navnet paa listen som den hedder, naar den er tilfoejet appen som datakilde.
 LIST = "MD_RequestIndex"
@@ -40,32 +41,28 @@ COL_NO = "RequestNo"
 #
 # eller med:  pac canvas list
 # ---------------------------------------------------------------------------
-ENV_ID = "e0f8f822-d16a-e878-ba4e-fb42bc617e47"
+# Miljoe og app-id'er kommer fra tools/canvas_apps.json via env_config.
+# De stod foer her OG tre andre steder, holdt sammen af 60 linjers regex i
+# build_all.py. Se tools/env_config.py.
+ENV_ID = env.ENV_ID
 
-# Flisernes stribefarve er en DESIGNTOKEN, ikke et tal. Otte af de ni
-# statusfarver herunder var i forvejen vaerdier, der havde et navn i
-# gen_screen.py - de var bare skrevet af som tal, saa de ikke fulgte med,
-# naar nogen aendrede navnet. Se tools/design_tokens.py.
+# "app" er noeglen i canvas_apps.json. Er der intet id dér, staar flisen
+# som "Kommer snart" og kan ikke aabnes - appen findes ikke endnu.
 DOMAINS = [
     {"key": "FunctionalLocation", "short": "FL",  "name": "Functional location",
-     "color": _t("domain-fl"),  "app_id": None},
-    # "Equipments" i solutionen - IKKE den aeldre app udenfor
-    # (dd9544e2-a0aa-4713-a076-7637080a40fc), som flisen pegede paa,
-    # indtil den nye havde et id. De to skal blive ved med at foelges ad
-    # med tools/canvas_apps.json: deployer builderne eet sted og aabner
-    # flisen et andet, ser appen bare forkert ud for brugeren.
+     "color": _t("domain-fl"),  "app": None},
     {"key": "Equipment",          "short": "EQ",  "name": "Equipment",
-     "color": _t("domain-eq"),
-     "app_id": "24bf3bbc-601f-480d-a8fe-7cd3180906d1"},
+     "color": _t("domain-eq"),  "app": "equipment"},
     {"key": "MeasuringPoint",     "short": "MP",  "name": "Measuring point",
-     "color": _t("domain-mp"),  "app_id": None},
+     "color": _t("domain-mp"),  "app": None},
     {"key": "Material",           "short": "MAT", "name": "Material",
-     "color": _t("domain-mat"),
-     "app_id": "d7762919-c716-4bd0-9abd-24bab436221f"},
+     "color": _t("domain-mat"), "app": "material"},
     {"key": "MaintenancePlan",    "short": "VHP", "name": "Maintenance plan",
-     "color": _t("domain-vhp"),
-     "app_id": "11fa8d90-868a-45a4-ba23-28f2cf0671a2"},
+     "color": _t("domain-vhp"), "app": "vhplan"},
 ]
+
+for _d in DOMAINS:
+    _d["app_id"] = env.app_id(_d["app"]) if _d["app"] else None
 
 PLAY = "https://apps.powerapps.com/play/e/{env}/a/{app}"
 
@@ -81,7 +78,7 @@ PLAY = "https://apps.powerapps.com/play/e/{env}/a/{app}"
 APP_TARGET = "LaunchTarget.Replace"
 
 for _d in DOMAINS:
-    _d["url"] = PLAY.format(env=ENV_ID, app=_d["app_id"]) if _d["app_id"] else ""
+    _d["url"] = env.play_url(_d["app"]) if _d["app"] else ""
 
 
 # ---------------------------------------------------------------------------
