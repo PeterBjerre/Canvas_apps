@@ -26,6 +26,8 @@ Tjekket foretager fire kontroller:
      kontrollen ville forsvinde uden en fejlmeddelelse
   8c. Ingen formel sammenligner App.Width med et tal. Braekpunkter staar i
      tools/layout_tokens.py og laeses som LayoutRank/LayoutContext
+  18. Enhver Gallery har TabIndex. Uden den er den ikke et tab stop, og
+     App checker melder det foerst ved deploy
   9. Ingen LODRET container har et barn med FillPortions <> 0
      (knapraekken var 336 px bred i et kort med 324 px indhold, ombroed til
      to linjer og fik sin sidste knap klippet af).
@@ -637,6 +639,27 @@ def main():
     #
     # Elleve falske fund ville laere nogen at springe advarsler over, og
     # saa gaar regel 15's rigtige fund samme vej.
+
+    # --- 18. Enhver Gallery skal have TabIndex ----------------------------
+    # En Gallery er en interaktiv kontrol for tastaturet - ogsaa naar
+    # Selectable er false. Uden TabIndex er den ikke et tab stop, og
+    # indholdet kan ikke naas uden mus.
+    #
+    # Den her regel findes, fordi praecis EEN af repoets femten gallerier
+    # manglede den. De fjorten andre havde TabIndex: 0, saa det var en
+    # forglemmelse og ikke et valg - men den blev foerst fundet af App
+    # checker ved et deploy, altsaa efter en hel runde gennem Studio.
+    #
+    # Reglen daekker KUN Gallery. Knapper og inputs har ikke TabIndex i
+    # dette repo, og App checker meldte dem ikke: de faar deres tab stop
+    # af sig selv. En bredere regel ville give snesevis af falske fund,
+    # og saa ville ingen laese dem (se regel 17, der blev fjernet igen).
+    for _p, name, body in all_nodes:
+        if body.get("Control") != "Gallery":
+            continue
+        if "TabIndex" not in (body.get("Properties") or {}):
+            problems.append(f"[18] {name}: Gallery uden TabIndex - App checker "
+                            f"melder 'Missing tab stop'. Saet TabIndex til 0")
 
     print(f"Kontroller i alt: {len(all_nodes)}")
     if warnings:
