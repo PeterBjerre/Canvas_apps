@@ -271,6 +271,26 @@ def main(argv=None):
         if r.returncode:
             return r.returncode
 
+        # Og solution-eksporten: baerer den en hemmelighed?
+        #
+        # Den stod her ikke foer, og det kostede: en client secret laa
+        # committet i tre filer, fordi scrub_solution.py kun blev koert i
+        # haanden - og den gang gik den alligevel forbi, fordi den kun saa
+        # paa FELTNAVNET. Begge dele er rettet; det her er den anden
+        # spaerring. En eksport er sjaelden, og tjekket tager under et
+        # sekund paa 118 filer.
+        sol = os.path.join(ROOT, "solution")
+        if os.path.isdir(sol):
+            r = subprocess.run([sys.executable,
+                                os.path.join(ROOT, "tools", "scrub_solution.py"),
+                                sol, "--report-only"])
+            if r.returncode:
+                print("\nSolution-eksporten baerer noget hemmeligt. Koer:")
+                print("    python3 tools/scrub_solution.py solution")
+                print("og ROTER hemmeligheden - en committet noegle kan ikke "
+                      "kaldes tilbage.")
+                return r.returncode
+
     # De to tjek nedenfor koerer ALTID, ogsaa maalrettet. De tager
     # millisekunder, og de handler netop om det, en maalrettet bygning
     # ellers ville springe over: at apperne ikke glider fra hinanden.

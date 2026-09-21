@@ -50,7 +50,7 @@ af builderne fandt undervejs.
 ```
 solution/BIOSAP/src/environmentvariabledefinitions/
     orsted_BioSapWOCClientSecret/environmentvariabledefinition.xml:
-        <defaultvalue>9yk8Q~…</defaultvalue>
+        <defaultvalue>***REDACTED***</defaultvalue>
 solution/BIOSAP/src/Workflows/BioSap-Integration-FunctionalLocations-….json:13
 solution/BIOSAP/src/Workflows/BioSap-Integration-Order-Objects-….json:34
 ```

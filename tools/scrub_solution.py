@@ -30,6 +30,7 @@ goere og slutter med exitkode 1, hvis der var noget. Brug den, hvis du vil
 se listen foer du beslutter dig.
 """
 import argparse
+import json
 import os
 import re
 import shutil
@@ -73,6 +74,44 @@ XML_PAIR = re.compile(r"<([A-Za-z0-9_\-.:]{1,80})>([^<>]{1,4096})</\1>")
 
 REDACTED = "***REDACTED***"
 
+# ---------------------------------------------------------------------------
+# STIEN TAELLER MED
+#
+# Den her regel findes, fordi scriptet gik lige forbi en rigtig client
+# secret. Den stod som:
+#
+#   environmentvariabledefinitions/orsted_BioSapWOCClientSecret/
+#       environmentvariabledefinition.xml:
+#           <defaultvalue>9yk8Q~...</defaultvalue>
+#
+# Feltet hedder "defaultvalue" - et ord, der ikke staar i SECRET_WORDS og
+# heller ikke boer goere det: de fleste defaultvalue'er er harmloese.
+# Det, der afsloerer den, er MAPPENS navn (...ClientSecret), og det saa
+# scriptet slet ikke paa. Det gaar det nu.
+#
+# Dertil: en miljoevariabels VAERDI hoerer overhovedet ikke til i en
+# eksport. Microsofts egen anbefaling er, at definitionen foelger
+# solutionen, mens vaerdien saettes i maalmiljoeet. Derfor er ethvert
+# vaerdifelt i en definitionsfil mistaenkt - ogsaa naar mappenavnet er
+# uskyldigt.
+# ---------------------------------------------------------------------------
+EV_DIR = "environmentvariabledefinitions"
+EV_VALUE_FIELDS = {"defaultvalue", "value"}
+
+
+def path_is_secret(path):
+    """Roeber STIEN, at filen baerer en hemmelighed?"""
+    parts = [p.lower() for p in os.path.normpath(path).split(os.sep)]
+    if EV_DIR not in parts:
+        return False
+    i = parts.index(EV_DIR)
+    return any(is_secret_key(p) for p in parts[i + 1:])
+
+
+def path_is_env_var_def(path):
+    parts = [p.lower() for p in os.path.normpath(path).split(os.sep)]
+    return EV_DIR in parts
+
 
 def is_secret_key(name):
     low = name.lower()
@@ -100,13 +139,67 @@ def looks_like_credential(value):
     return True
 
 
-def scrub_text(text):
-    """Returnerer (ny tekst, [hvad der blev roert])."""
+def json_secret_values(raw):
+    """Vaerdier, der er hemmelige PGA. DERES PLADS I TRAEET.
+
+    Den her findes, fordi de to SAP-flows baerer den samme client secret
+    som miljoevariablen - men et andet sted:
+
+        properties.definition.parameters
+            ."BioSap-WOC-Client-Secret (orsted_BioSapWOCClientSecret)"
+                .defaultValue          <- her
+
+    Feltet hedder "defaultValue". Det er FORAELDERENS navn, der roeber
+    det, og et fladt regex over teksten ser ikke en foraelder.
+
+    Returnerer selve vaerdierne, saa de kan erstattes i den RAA tekst.
+    At skrive JSON'en ud igen ville omformatere hele filen, og saa kunne
+    ingen se i en diff, hvad der faktisk blev roert."""
+    try:
+        doc = json.loads(raw)
+    except Exception:
+        return set()
+    out = set()
+
+    def walk(node, parent_key=""):
+        if isinstance(node, dict):
+            for k, v in node.items():
+                if isinstance(v, str):
+                    if ((is_secret_key(k)
+                         or (k.lower() in EV_VALUE_FIELDS and is_secret_key(parent_key)))
+                            and looks_like_credential(v)
+                            # ... men ikke vores egen erstatning. Uden den
+                            # melder scriptet sit eget resultat som et fund,
+                            # og et tjek, der aldrig bliver groent, bliver
+                            # slaaet fra.
+                            and v != REDACTED):
+                        out.add(v)
+                else:
+                    walk(v, k)
+        elif isinstance(node, list):
+            for v in node:
+                walk(v, parent_key)
+
+    walk(doc)
+    return out
+
+
+def scrub_text(text, path=""):
+    """Returnerer (ny tekst, [hvad der blev roert]).
+
+    path er med, fordi FELTNAVNET ikke altid er nok - se path_is_secret()."""
     hits = []
+    by_path = path_is_secret(path)
+    ev_def = path_is_env_var_def(path)
 
     def _pair(m, joiner):
         name, value = m.group(1), m.group(2)
-        if not is_secret_key(name) or not looks_like_credential(value):
+        suspect = (is_secret_key(name)
+                   # mappen hedder noget hemmeligt -> ethvert vaerdifelt
+                   or (by_path and name.lower() in EV_VALUE_FIELDS)
+                   # en miljoevariabels vaerdi hoerer ikke til i eksporten
+                   or (ev_def and name.lower() in EV_VALUE_FIELDS))
+        if not suspect or not looks_like_credential(value):
             return m.group(0)
         if value == REDACTED:
             return m.group(0)
@@ -118,6 +211,14 @@ def scrub_text(text):
     for rx, label in INLINE_PATTERNS:
         text, n = rx.subn(REDACTED, text)
         hits.extend([label] * n)
+
+    # Til sidst: det, JSON-traeet roeber. Erstattes paa selve vaerdien, saa
+    # filens formatering staar uroert og diffen kun viser det, der blev
+    # skjult.
+    for val in json_secret_values(text):
+        if val in text:
+            text = text.replace(val, REDACTED)
+            hits.append("indlejret hemmelighed under et hemmeligt navn")
     return text, hits
 
 
@@ -174,7 +275,7 @@ def main(argv=None):
             raw = open(path, encoding="utf-8-sig").read()
         except (UnicodeDecodeError, OSError):
             continue
-        new, hits = scrub_text(raw)
+        new, hits = scrub_text(raw, path)
         if hits:
             edited.append((os.path.relpath(path, root), sorted(set(hits)), len(hits)))
             if not args.report_only:
