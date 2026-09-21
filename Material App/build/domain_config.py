@@ -46,10 +46,14 @@ PLAY_URL = ("https://apps.powerapps.com/play/e/"
             "e0f8f822-d16a-e878-ba4e-fb42bc617e47"
             "/a/d7762919-c716-4bd0-9abd-24bab436221f")
 
-# Landingssiden. De to domaeneapps aabnes af hubben med
-# Launch(..., LaunchTarget.New) - altsaa i en NY fane, som en anden app.
-# Back() kan derfor ikke foere tilbage: den navigerer mellem SKAERME i
-# samme app, og der er kun een. Knappen skal aabne hubben.
+# Landingssiden. De to domaeneapps aabnes af hubben som en SELVSTAENDIG
+# app - ikke som en skaerm i den samme. Back() kan derfor ikke foere
+# tilbage: den navigerer mellem SKAERME, og der er kun een. Knappen skal
+# aabne hubben med Launch.
+#
+# LaunchTarget.Replace, saa det sker i den fane, brugeren staar i. Baade
+# hubbens fliser og dens "Open" bruger det samme - ellers faar man en
+# fane pr. klik.
 #
 # Samme id som apps.hub.app_id i tools/canvas_apps.json; build_all.py
 # tjekker at de to ikke glider fra hinanden.

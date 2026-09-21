@@ -446,6 +446,28 @@ Det er også mere ensartet: alle felter i Item Editor ser nu ens ud.
 Mønsteret er værd at huske ud over denne app: **når data er der, men ikke
 vises, så mistænk kontrollens eget filter før dine egne formler.**
 
+## Navigation mellem apps: `LaunchTarget.Replace`
+
+De fem domæneapps er selvstændige apps, ikke skærme i hubben. Navigation
+mellem dem er derfor `Launch`, ikke `Navigate` — og den skal ske i den
+fane, brugeren står i:
+
+```
+Launch(url, { }, LaunchTarget.Replace)
+```
+
+Med `New` får man **en fane pr. klik**. Åbn tre indmeldinger, og der er
+fire faner med Power Apps i, som alle ser ens ud i proceslinjen.
+
+Målet står som `APP_TARGET` i `hub_config.py`, så det kun er ét sted.
+
+**Undtagelsen er dokumenter.** `btnDomAttOpen` åbner en fil fra
+biblioteket i en **ny** fane. `Replace` ville smide appen væk — og en
+halvudfyldt formular med den. Et dokument er ikke en app.
+
+`mailto:`-linket i VH-plan sætter intet mål; en mailto åbner mailklienten
+og rører ikke fanen.
+
 ## `Text(GUID())`, aldrig `GUID()`
 
 En global variabels type låses ved **første** tildeling. Er den erklæret
