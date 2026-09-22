@@ -16,6 +16,7 @@ filter, og flisernes tal taelles paa det samme, allerede afgraensede saet.
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_PRIMARY, C_WHITE,
+                        C_ON_DOMAIN,
                         C_INFO_FG, C_INFO_BG, C_NEUTRAL_BG, C_DIVIDER, C_TRANSPARENT,
                         C_APP_BG, FONT, SHELL_W)
 from build_helpers import text_ctrl, group, button, card, theme_button
@@ -251,7 +252,7 @@ def build_list():
                       ',\n    "?"\n)',
                       size=10, weight="Semibold", height=20, width=COLS[0][1], wrap="false",
                       align="Center",
-                      extra={"Color": C_WHITE,
+                      extra={"Color": C_ON_DOMAIN,
                              "Fill": "Switch(\n    ThisItem.Domain.Value,\n    " +
                                      ",\n    ".join(f'"{d["key"]}", {d["color"]}' for d in DOMAINS) +
                                      f',\n    {C_MUTED}\n)',

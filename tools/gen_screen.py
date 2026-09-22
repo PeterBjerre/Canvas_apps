@@ -99,6 +99,10 @@ C_PRIMARY = _t("color-brand-primary")
 C_PRIMARY2 = _t("color-brand-primary-hover")
 C_PRIMARY_SOFT = _t("color-brand-primary-soft")
 C_WHITE = _t("text-on-primary")
+# Tekst paa en DOMAENEFARVE. I lys tilstand er den den samme hvide som
+# C_WHITE; i moerk er domaenefarverne lyse, og hvid tekst paa dem gav
+# 1,67-2,72:1. Derfor et eget navn - se CONTRAST i design_tokens.py.
+C_ON_DOMAIN = _t("text-on-domain")
 C_INPUT_BG = _t("input-bg")
 C_DISABLED_BG = _t("input-bg-disabled")
 C_DIVIDER = _t("border-subtle")

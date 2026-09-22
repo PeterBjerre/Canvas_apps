@@ -116,11 +116,10 @@ til sin lyse værdi og sammenlignet med skærmen, som den så ud før:
 
 1.084 farveegenskaber, ingen ændret, ingen kontrol fjernet.
 
-**Én kendt afvigelse, som ikke blev rettet:** `state-ok-fg` på
-`state-ok-bg` giver 4,44:1 og rammer dermed lige under WCAG AA's 4,5 for
-brødtekst. Det er en fejl, appen har i dag, og den står uændret, netop for
-at lys tilstand ser ud præcis som før. Rettelsen er én værdi —
-`RGBA(19, 120, 87, 1)` giver 4,86 og kan ikke ses med det blotte øje.
+**Én kendt afvigelse stod uændret dengang** — `state-ok-fg` på
+`state-ok-bg` gav 4,44:1, lige under WCAG AA's 4,5 for brødtekst — netop
+for at lys tilstand så ud præcis som før. Den er rettet nu; se
+"Kontrasten er en regel, ikke en note" nedenfor.
 
 ---
 
@@ -134,7 +133,7 @@ Ikke "det lyse tema med omvendt lysstyrke". Kontrastforhold:
 | Brødtekst på kort | 15,40 | 14,42 | 4,5 |
 | Dæmpet tekst på kort | 5,62 | 6,96 | 4,5 |
 | Knaptekst på brandfarve | 5,91 | **5,17** | 4,5 |
-| Status grøn | **4,44** | 7,66 | 4,5 |
+| Status grøn | 4,86 | 7,66 | 4,5 |
 | Status gul | 5,39 | 8,58 | 4,5 |
 | Status rød | 5,35 | 5,58 | 4,5 |
 | Status blå | 6,87 | 5,94 | 4,5 |
@@ -156,6 +155,98 @@ Ikke "det lyse tema med omvendt lysstyrke". Kontrastforhold:
    afgrænser et **inputfelt**, og skal derfor selv kunne ses: slate-700
    giver 1,95 mod feltets baggrund, slate-500 giver 4,24. `border-subtle`
    — de rene skillelinjer — må godt være svagere.
+
+---
+
+## Kontrasten er en regel, ikke en note
+
+Den grønne statusfarve lå på 4,44:1 — 0,06 under kravet. Ingen havde
+skrevet den forkert. Den var valgt **for sig selv**, før chippen fandtes,
+og ingenting regnede efter. Tabellen ovenfor var rigtig den dag den blev
+skrevet, og den ville ikke opdage noget som helst dagen efter.
+
+Kravene står derfor nu som en **tabel i koden**, ikke som prosa i et
+dokument:
+
+```python
+CONTRAST = (
+    [("text-primary", bg, 4.5) for bg in _TEXT_BG] +
+    [("text-on-domain", bg, 4.5) for bg in (... "domain-mat" ...)] +
+    [("state-%s-fg" % s, "state-%s-bg" % s, 4.5) for s in (...)] +
+    [(fg, bg, 3.0) for fg in ("state-ok-fg", "state-error-fg") ...]
+)
+```
+
+Parrene er aflæst i de **byggede skærme** — det er dem, apperne faktisk
+sætter ved siden af hinanden — og `_check_contrast()` regner dem efter i
+**begge temaer**, hver gang en builder importerer modulet. Tærsklerne er
+WCAG 2.1: 4,5 for brødtekst, 3,0 for kanter og andre ikke-tekstlige
+elementer (1.4.11).
+
+### Den fandt to ting til
+
+**1. Domænechippen var ulæselig i mørk tilstand.**
+
+`txtMdRowDomain` satte `C.'text-on-primary'` — hvid — oven på
+domænefarven. I lys tilstand er domænefarverne mørke, og hvid er rigtig. I
+**mørk** tilstand er de lyse (teal-400, amber-400, emerald-400):
+
+| Chip | Hvid tekst, mørk tilstand |
+|---|---|
+| Material (amber-400) | **1,67** |
+| Equipment (teal-400) | **1,86** |
+| Measuring point (emerald-400) | **1,92** |
+| Functional location (blue-400) | **2,54** |
+| Maintenance plan (violet-400) | **2,72** |
+
+Det er ikke "lidt under kravet" — det er hvid på gul. Den fejl havde ingen
+set, fordi ingen havde kigget på hubbens liste i mørk tilstand.
+
+Rettelsen er en ny token, `text-on-domain`, der er **hvid i lys tilstand
+og slate-950 i mørk**. Lys tilstand er dermed uændret ned til bitten; mørk
+tilstand går fra 1,67 til 8,9–13,4.
+
+To navne, fordi det er to forskellige spørgsmål: `text-on-primary` er
+tekst på **brandfarven**, som er mørk i begge temaer. `text-on-domain` er
+tekst på en **accentfarve**, som vender.
+
+**2. `border-default` er 1,19–1,35:1 i lys tilstand.** Den er *ikke*
+rettet — se nedenfor.
+
+### Undtagelser står i koden, ikke i tavshed
+
+```python
+CONTRAST_OPEN = [("border-default", bg, 3.0, "lys") for bg in (...)]
+```
+
+Feltkanten er `RGBA(215, 222, 232)` — lysegrå på næsten hvid. Et hvidt
+inputfelt på et næsten hvidt kort (1,02:1) har ingen anden afgrænsning end
+den kant, så 1.4.11 gælder den.
+
+Den er ikke rettet her, fordi det ikke er **én værdi** som den grønne:
+`border-default` står på **160 kontroller** — 53 knapper, 29 inputfelter,
+25 containere, 20 dropdowns, 20 tekster. For at nå 3,0 skal den ned
+omkring `RGBA(130, 138, 152)`, altså et **midtergråt**. Hver kant i alle
+fire apps bliver synligt tungere. Det er en designbeslutning, ikke en
+talrettelse.
+
+Mørk tilstand klarer kravet: slate-500 på slate-950 giver 4,24.
+
+Det vigtige er den **anden halvdel** af vagten: `_check_contrast()`
+efterprøver at parrene i `CONTRAST_OPEN` **stadig dumper**. Retter nogen
+farven og glemmer at flytte parret op i `CONTRAST`, stopper byggeriet og
+beder om det. En undtagelse, der ikke længere er en undtagelse, er bare et
+sted hvor reglen ikke gælder.
+
+### Efterprøvet
+
+| Plantet fejl | Fyrer |
+|---|---|
+| `state-ok-fg` sat tilbage til 4,44 | ja — begge par |
+| `text-on-domain` gjort hvid i mørk tilstand | ja — alle seks chips |
+| `border-default` rettet, undtagelsen efterladt | ja — "flyt det op i CONTRAST" |
+| `CONTRAST` nævner en token, der ikke findes | ja |
+| Uændret | nej |
 
 ---
 
@@ -259,10 +350,17 @@ melder om sin egen dokumentation, bliver slået fra.
 
 ## Det, der stadig mangler
 
-- **Feltfarvningen er ikke lavet om endnu.** `docs/25-standardisering-plan.md`
-  §2 står stadig: fire forskellige regler for hvornår en feltkant bliver
-  rød eller grøn, og en datovælger der altid er grå. Tokenerne er
-  forudsætningen for den rettelse, ikke rettelsen selv.
-- **`AccessibleLabel` er stadig kontrolnavnet** på 75 felter (§6). Den nye
-  temaknap gør det rigtigt; de andre gør ikke.
-- **Miljø- og app-id'erne står stadig fire steder** (§3).
+De tre punkter, der stod her — feltfarvningen (§2), `AccessibleLabel` på
+75 felter (§6) og miljø-id'erne fire steder (§3) — er alle lavet. Se
+`docs/28-feltfarvning.md` og `tools/env_config.py`.
+
+Tilbage på farvesiden:
+
+- **`border-default` klarer ikke 3,0:1 i lys tilstand** (1,19–1,35). Den
+  står som en erklæret undtagelse i `CONTRAST_OPEN`, fordi rettelsen er en
+  designbeslutning om 160 kontroller, ikke en talrettelse. Se
+  "Undtagelser står i koden, ikke i tavshed" ovenfor.
+- **Mørk tilstand er efterregnet, ikke set.** Kontrasten er bevist for
+  hvert par i `CONTRAST`; om apperne *ser rigtige ud* i mørk tilstand, er
+  ikke det samme spørgsmål — og domænechippen viste, at der kan sidde
+  fejl, som kun et menneske, der kigger, finder.
