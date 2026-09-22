@@ -578,3 +578,86 @@ på `*.pa.yaml` skal være tom. Ingen deploy nødvendig.
    konfigurationer?** Alt nedenfor bygger på, at svaret er ja. Skal de
    udvikle sig hver for sig, er `shared/`-flytningen i §4 den forkerte
    retning, og så skal den diskuteres først.
+
+---
+
+## §9 — Gemningen: fra ~130 netværkskald til 6
+
+`btnVhpSaveDraft` og `btnVhpSubmit` var de sidste to, regel 15 pegede på,
+og de eneste af de otte, der kostede noget. Fire `ForAll`-løkker med
+`Patch` indeni, mod fire SharePoint-lister.
+
+### Hvad det kostede
+
+| Sektion | Før | Efter |
+|---|---|---|
+| 3. items | `2 × items` — opret + skriv nøglen tilbage | **2** |
+| 4. operationer | `2 × operationer` | **2** |
+| 5. materialer | `1 × materialer` | **1** |
+| 6. dokumenter | `1 × dokumenter` | **1** |
+
+En plan med 10 items à 5 operationer, 20 materialer og 5 dokumenter:
+**145 sekventielle rundture → 6.**
+
+### Hvorfor det kan lade sig gøre
+
+`Patch` tager en **tabel** af basisrækker og en tabel af ændringer og
+gør det i ét kald. Det afgørende står i dokumentationen:
+
+> the return value is also a table with each record corresponding
+> **one-for-one** with the base and change records
+
+Den én-til-én-garanti er hele nøglen. SharePoint tildeler `ID` først ved
+oprettelsen, og forretningsnøglen (`MI0007`) regnes af det `ID`. Uden at
+kunne parre svarrækken med kilderækken kunne `colVhpSavedItems` ikke
+bygges — og så ville operationerne ikke vide, hvilket item de hører til.
+
+```
+With(
+    { srcItems: Filter(colVhpItems, ...) },
+    With(
+        { itemRecs: Patch(
+              MaintenanceItems,
+              ForAll(srcItems, Defaults(MaintenanceItems)),   // N basisrækker
+              ForAll(srcItems As IT, { ... })) },             // N ændringer
+        ClearCollect(
+            colVhpSavedItems,
+            ForAll(Sequence(CountRows(itemRecs)) As N, {
+                LocalId: Index(srcItems, N.Value).ItemId,     // række n af kilden
+                SpId:    Index(itemRecs, N.Value).ID,         // ... og af svaret
+                ItemKey: "MI" & Text(Index(itemRecs, N.Value).ID - itemOff, "0000")
+            })
+        );
+        Patch(MaintenanceItems, itemRecs,                     // nøglen tilbage
+              ForAll(colVhpSavedItems As S, { ItemID: S.ItemKey }))
+    )
+);
+```
+
+`With` binder tabellen **én gang**, så `Index()` læser den samme
+rækkefølge hver gang. Det er den samme egenskab, koden allerede hvilede
+på i `With({ planRec: Patch(...) }, ...)` — havde `With` genberegnet sin
+værdi, ville der være oprettet en ny planrække for hver reference.
+
+### Det, der forsvandt undervejs
+
+- `If(IsBlank(m.SpId), false, ...)` inde i løkken er blevet til et
+  **filter før kaldet**. En operation på et item, der ikke blev gemt,
+  skal stadig frasorteres — men før kaldet, ikke undervejs i det.
+- `With({ m: LookUp(...) })` pr. række kunne ikke blive stående, da
+  løkken blev væk. Opslagene står nu direkte i felterne. To opslag i
+  stedet for ét, men i hukommelsen.
+
+### Det her er ikke prøvet af
+
+Der findes ingen Power Fx-fortolker i byggeriet. Hvad der **er**
+efterprøvet: parentes- og tuborgbalance på alle 1.334 udtryk i de fire
+skærme, at regel 15 ikke længere finder et netværkskald i en løkke, og at
+hvert konstruktionsvalg står i dokumentationen.
+
+Hvad der **ikke** er efterprøvet: at SharePoint svarer som ventet.
+**Gem en testplan med flere items, operationer, materialer og dokumenter,
+og hold rækkerne op mod listerne, før det rører rigtige data.** Det, der
+skal tjekkes, er nøglerne: at `MaintenanceItemNo` på hver operation
+peger på det rigtige item, og at `TaskItemID` på hvert materiale peger på
+den rigtige operation.
