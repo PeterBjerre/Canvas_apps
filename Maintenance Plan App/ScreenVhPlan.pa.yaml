@@ -4798,22 +4798,23 @@ Screens:
                                                               TasklistKey: src.TasklistKey, TasklistName: src.TasklistName, Status: "draft"
                                                           }
                                                       );
-                                                      ForAll(
-                                                          Filter(colVhpOperations, ItemId = varVhpActiveItemId),
-                                                          Collect(
-                                                              colVhpOperations,
+                                                      Collect(
+                                                          colVhpOperations,
+                                                          ForAll(
+                                                              Filter(colVhpOperations, ItemId = varVhpActiveItemId) As SRC,
                                                               {
-                                                                  ItemId: varVhpNextItemId, OperationNo: OperationNo,
-                                                                  OperationShortText: OperationShortText, WorkHours: WorkHours,
-                                                                  DurationHours: DurationHours, MainWorkCenter: MainWorkCenter, Vendor: Vendor,
-                                                                  LongText: LongText, PackagesKey: PackagesKey, Selected: false
+                                                                  ItemId: varVhpNextItemId, OperationNo: SRC.OperationNo,
+                                                                  OperationShortText: SRC.OperationShortText, WorkHours: SRC.WorkHours,
+                                                                  DurationHours: SRC.DurationHours, MainWorkCenter: SRC.MainWorkCenter,
+                                                                  Vendor: SRC.Vendor,
+                                                                  LongText: SRC.LongText, PackagesKey: SRC.PackagesKey, Selected: false
                                                               }
                                                           )
                                                       );
-                                                      ForAll(
-                                                          Filter(colVhpItemObjects, ItemId = varVhpActiveItemId) As OBJ,
-                                                          Collect(
-                                                              colVhpItemObjects,
+                                                      Collect(
+                                                          colVhpItemObjects,
+                                                          ForAll(
+                                                              Filter(colVhpItemObjects, ItemId = varVhpActiveItemId) As OBJ,
                                                               { ItemId: varVhpNextItemId, Code: OBJ.Code, Description: OBJ.Description }
                                                           )
                                                       );
@@ -14902,13 +14903,13 @@ Screens:
                                 Set(varVhpRuntimeInfo, "Select one or more lines first."),
                                 With(
                                     { tl: LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey) },
-                                    ForAll(
-                                        Filter(
-                                            tl.Operations As TLOP,
-                                            CountRows(Filter(colVhpPickerSelected As SEL, SEL.OperationNo = TLOP.OperationNo)) > 0
-                                        ) As TLOP,
-                                        Collect(
-                                            colVhpOperations,
+                                    Collect(
+                                        colVhpOperations,
+                                        ForAll(
+                                            Filter(
+                                                tl.Operations As TLOP,
+                                                CountRows(Filter(colVhpPickerSelected As SEL, SEL.OperationNo = TLOP.OperationNo)) > 0
+                                            ) As TLOP,
                                             {
                                                 ItemId: varVhpActiveItemId, OperationNo: TLOP.OperationNo,
                                                 OperationShortText: TLOP.OperationShortText, WorkHours: TLOP.WorkHours,

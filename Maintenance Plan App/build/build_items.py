@@ -143,22 +143,31 @@ def build_items_rail():
             "                TasklistKey: src.TasklistKey, TasklistName: src.TasklistName, Status: \"draft\"\n"
             "            }\n"
             "        );\n"
-            "        ForAll(\n"
-            "            Filter(colVhpOperations, ItemId = varVhpActiveItemId),\n"
-            "            Collect(\n"
-            "                colVhpOperations,\n"
+            # Collect UDEN OM ForAll. ForAll returnerer en tabel, og Collect
+            # tager den i eet kald; foer stod Collect INDE i loekken, altsaa
+            # een mutation pr. operation (App checker: ForAllWithMutation).
+            #
+            # Og den var ikke kun langsom: kilden OG maalet er den SAMME
+            # samling. Med Collect inde i loekken skriver den i det, den
+            # laeser fra. Naar ForAll faerdiggoeres foerst, er tabellen
+            # laest af den gamle samling, foer der skrives en eneste raekke.
+            "        Collect(\n"
+            "            colVhpOperations,\n"
+            "            ForAll(\n"
+            "                Filter(colVhpOperations, ItemId = varVhpActiveItemId) As SRC,\n"
             "                {\n"
-            "                    ItemId: varVhpNextItemId, OperationNo: OperationNo,\n"
-            "                    OperationShortText: OperationShortText, WorkHours: WorkHours,\n"
-            "                    DurationHours: DurationHours, MainWorkCenter: MainWorkCenter, Vendor: Vendor,\n"
-            "                    LongText: LongText, PackagesKey: PackagesKey, Selected: false\n"
+            "                    ItemId: varVhpNextItemId, OperationNo: SRC.OperationNo,\n"
+            "                    OperationShortText: SRC.OperationShortText, WorkHours: SRC.WorkHours,\n"
+            "                    DurationHours: SRC.DurationHours, MainWorkCenter: SRC.MainWorkCenter,\n"
+            "                    Vendor: SRC.Vendor,\n"
+            "                    LongText: SRC.LongText, PackagesKey: SRC.PackagesKey, Selected: false\n"
             "                }\n"
             "            )\n"
             "        );\n"
-            "        ForAll(\n"
-            "            Filter(colVhpItemObjects, ItemId = varVhpActiveItemId) As OBJ,\n"
-            "            Collect(\n"
-            "                colVhpItemObjects,\n"
+            "        Collect(\n"
+            "            colVhpItemObjects,\n"
+            "            ForAll(\n"
+            "                Filter(colVhpItemObjects, ItemId = varVhpActiveItemId) As OBJ,\n"
             "                { ItemId: varVhpNextItemId, Code: OBJ.Code, Description: OBJ.Description }\n"
             "            )\n"
             "        );\n"

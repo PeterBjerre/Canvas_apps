@@ -696,6 +696,39 @@ def main():
                 "UpdateIf", "Clear")
     MUT_RE = re.compile(r"\b(" + "|".join(MUTATORS) + r")\s*\(")
 
+    def mut_target(expr, at):
+        """FOERSTE argument til en mutator - altsaa det, der skrives I.
+
+        Reglen sagde foer "eet kald pr. raekke" om alle otte fund i
+        VH-plan. Det var kun sandt for de fire, der skriver i en
+        SharePoint-liste. De fire andre skriver i en samling i
+        hukommelsen, hvor der ikke er noget kald overhovedet - og en
+        advarsel, der overdriver fire ud af otte gange, bliver laest som
+        stoej i alle otte."""
+        i = expr.index("(", at)
+        depth, j, q = 0, i, None
+        while j < len(expr):
+            c = expr[j]
+            if q:
+                if c == q:
+                    q = None
+            elif c in "\"'":
+                q = c
+            elif c == "(":
+                depth += 1
+            elif c == ")":
+                depth -= 1
+                if depth == 0:
+                    return expr[i + 1:j].strip()
+            elif c == "," and depth == 1:
+                return expr[i + 1:j].strip()
+            j += 1
+        return ""
+
+    # Navnekonventionen i hele repoet: en arbejdssamling hedder col + stort
+    # bogstav. Alt andet, en mutator kan skrive i, er en datakilde.
+    COL_RE = re.compile(r"^col[A-Z]\w*$")
+
     def forall_bodies(expr):
         """Indholdet af hvert ForAll( ... ), parenteserne talt efter."""
         for m in re.finditer(r"\bForAll\s*\(", expr):
@@ -715,11 +748,22 @@ def main():
             if not isinstance(val, str) or "ForAll" not in val:
                 continue
             for inner in forall_bodies(val):
-                hits = sorted(set(MUT_RE.findall(inner)))
-                if hits:
+                remote, local = {}, {}
+                for m in MUT_RE.finditer(inner):
+                    tgt = mut_target(inner, m.start())
+                    (local if COL_RE.match(tgt) else remote)[m.group(1)] = tgt
+                if remote:
                     warnings.append(
-                        f"[15] {name}.{key}: {', '.join(hits)} inde i ForAll "
-                        f"- eet kald pr. raekke. Saml skrivningen udenfor")
+                        f"[15] {name}.{key}: {', '.join(sorted(remote))} inde i "
+                        f"ForAll mod {', '.join(sorted(set(remote.values())))} "
+                        f"- et NETVAERKSKALD pr. raekke. Saml skrivningen udenfor")
+                elif local:
+                    warnings.append(
+                        f"[15] {name}.{key}: {', '.join(sorted(local))} inde i "
+                        f"ForAll mod {', '.join(sorted(set(local.values())))} "
+                        f"- samling i hukommelsen, saa intet kald, men App "
+                        f"checker melder ForAllWithMutation")
+                if remote or local:
                     break
 
     # --- 16. Dropdown-Default der ikke er en RECORD ------------------------
