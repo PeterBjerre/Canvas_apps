@@ -67,6 +67,21 @@ def build_tasklist_picker_modal():
         ),
         "Height": "36",
         "Label": "\"Select all visible\"",
+        # DE HER TO ER IKKE LAVET OM - MED VILJE
+        #
+        # Begge er ForAll med en mutation indeni, og regel 15 naevner dem.
+        # Men maalet er colVhpPickerSelected, en samling i HUKOMMELSEN: der
+        # er intet netvaerkskald at spare, kun regelgenberegninger paa en
+        # liste, der har een raekke pr. markeret operation.
+        #
+        # Den oplagte omskrivning af OnUncheck ville vaere
+        #     RemoveIf(colVhpPickerSelected As SEL, ... SEL.OperationNo ...)
+        # Uden "As" er OperationNo tvetydig mellem de to raekkescopes, og
+        # om RemoveIf overhovedet tager "As" paa sit foerste argument, staar
+        # der ikke noget om i dokumentationen - syntaksen er skrevet
+        # RemoveIf(DataSource, Condition). Det er ikke noget at gaette paa i
+        # en formel, der ikke kan proeves af foer den er i Studio, for at
+        # spare noget, der ikke koster noget.
         "OnCheck": f"ForAll({VISIBLE_OPS} As VOP, If(CountRows(Filter(colVhpPickerSelected, OperationNo = VOP.OperationNo)) = 0, Collect(colVhpPickerSelected, {{ OperationNo: VOP.OperationNo }})))",
         "OnUncheck": f"ForAll({VISIBLE_OPS} As VOP, RemoveIf(colVhpPickerSelected, OperationNo = VOP.OperationNo))",
         "Width": "200",
@@ -144,13 +159,15 @@ def build_tasklist_picker_modal():
             "    Set(varVhpRuntimeInfo, \"Select one or more lines first.\"),\n"
             "    With(\n"
             "        { tl: LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey) },\n"
-            "        ForAll(\n"
-            "            Filter(\n"
-            "                tl.Operations As TLOP,\n"
-            "                CountRows(Filter(colVhpPickerSelected As SEL, SEL.OperationNo = TLOP.OperationNo)) > 0\n"
-            "            ) As TLOP,\n"
-            "            Collect(\n"
-            "                colVhpOperations,\n"
+            # Collect UDEN OM ForAll - eet kald i stedet for eet pr. linje.
+            "        Collect(\n"
+            "            colVhpOperations,\n"
+            "            ForAll(\n"
+            "                Filter(\n"
+            "                    tl.Operations As TLOP,\n"
+            "                    CountRows(Filter(colVhpPickerSelected As SEL, "
+            "SEL.OperationNo = TLOP.OperationNo)) > 0\n"
+            "                ) As TLOP,\n"
             "                {\n"
             "                    ItemId: varVhpActiveItemId, OperationNo: TLOP.OperationNo,\n"
             "                    OperationShortText: TLOP.OperationShortText, WorkHours: TLOP.WorkHours,\n"
