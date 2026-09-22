@@ -55,11 +55,15 @@ TRANSPARENT = "RGBA(0, 0, 0, 0)"
 # aendring flytter farverne et andet sted hen, den laver dem ikke om. Er
 # appen lysegraa i dag, er den ogsaa lysegraa bagefter.
 #
-# EN KENDT AFVIGELSE: 'state-ok-fg' paa 'state-ok-bg' giver 4,44:1 og
-# rammer dermed lige under WCAG AA's 4,5 for broedtekst. Det er en fejl,
-# appen har i dag, og den staar her uaendret, saa lys tilstand ser ud
-# praecis som foer. Rettelsen er een vaerdi - RGBA(19, 120, 87, 1) giver
-# 4,86 og kan ikke ses med det blotte oeje.
+# EN UNDTAGELSE, OG KUN EEN: 'state-ok-fg'. Den laa paa RGBA(21, 127, 92)
+# og gav 4,44:1 mod sin egen chipbaggrund og 4,39 mod bg-app - lige under
+# WCAG AA's 4,5 for broedtekst. Den staar nu paa RGBA(19, 120, 87), som
+# giver mindst 4,81 overalt og dermed lander samme sted som de fire andre
+# statusfarver (4,78-5,39) i stedet for at vaere den ene, der falder
+# udenfor. Forskellen er 8,8 i sRGB - den kan ikke ses ved siden af
+# hinanden, kun maales. CONTRAST nedenfor holder den paa plads.
+#
+# Alt andet er ORDRET de vaerdier, apperne havde i forvejen.
 # ---------------------------------------------------------------------------
 LIGHT = {
     # --- brand ---
@@ -77,6 +81,11 @@ LIGHT = {
     'text-primary':    "RGBA(26, 34, 49, 1)",
     'text-muted':      "RGBA(89, 102, 122, 1)",
     'text-on-primary': "RGBA(255, 255, 255, 1)",
+    # Tekst paa en DOMAENEFARVE. Den er hvid i lys tilstand - altsaa den
+    # samme som text-on-primary - men de to kan ikke vaere eet navn: i
+    # moerk tilstand er domaenefarverne LYSE (teal-400, amber-400), og hvid
+    # tekst paa amber-400 giver 1,67:1. Se DARK.
+    'text-on-domain':  "RGBA(255, 255, 255, 1)",
 
     # --- kanter ---
     'border-default': "RGBA(215, 222, 232, 1)",
@@ -87,7 +96,7 @@ LIGHT = {
     'input-bg-disabled': "RGBA(240, 243, 248, 1)",
 
     # --- tilstande. Bruges BAADE af feltkanter og af statuschips ---
-    'state-ok-fg':      "RGBA(21, 127, 92, 1)",
+    'state-ok-fg':      "RGBA(19, 120, 87, 1)",
     'state-ok-bg':      "RGBA(232, 245, 238, 1)",
     'state-warn-fg':    "RGBA(138, 90, 0, 1)",
     'state-warn-bg':    "RGBA(253, 243, 226, 1)",
@@ -150,6 +159,10 @@ DARK = {
     'text-primary':    "RGBA(229, 231, 235, 1)",
     'text-muted':      "RGBA(148, 163, 184, 1)",
     'text-on-primary': "RGBA(255, 255, 255, 1)",
+    # Domaenefarverne er LYSE her (teal-400, amber-400, emerald-400), saa
+    # teksten paa dem skal vaere moerk. Hvid gav 1,67-2,72:1 - chippen var
+    # ulaeselig i moerk tilstand. Slate-950 giver 8,9-13,4.
+    'text-on-domain':  "RGBA(2, 6, 23, 1)",
 
     # --- kanter ---
     'border-default': "RGBA(100, 116, 139, 1)",
@@ -224,6 +237,171 @@ def _check():
 
 
 _check()
+
+# ---------------------------------------------------------------------------
+# KONTRASTKRAVENE
+#
+# HVORFOR DE STAAR SOM EN TABEL OG IKKE I ET DOKUMENT
+# ---------------------------------------------------
+# state-ok-fg laa paa 4,44:1 mod sin egen chipbaggrund - 0,06 under WCAG
+# AA. Ingen havde skrevet den forkert; den var valgt for sig selv, foer
+# chippen fandtes, og ingenting regnede efter. Den slags glider hver gang
+# nogen retter en farve "lige en anelse".
+#
+# Parrene herunder er dem, apperne FAKTISK saetter ved siden af hinanden -
+# aflaest i de byggede skaerme, ikke gaettet:
+#
+#     C.'text-on-primary'  paa  C.'domain-mp'      (domaenechippen i hubben)
+#     C.'state-ok-fg'      paa  C.'state-ok-bg'    (statuschippen)
+#     C.'state-ok-fg'      paa  kortets baggrund   (Fill = gennemsigtig)
+#     C.'border-default'   paa  C.'input-bg'       (feltkanten)
+#
+# TAERSKLERNE
+#   4.5  WCAG 2.1 AA for broedtekst
+#   3.0  WCAG 2.1 AA for kanter og andre ikke-tekstlige elementer (1.4.11)
+#
+# Alfa ignoreres. De eneste tokens med alfa under 1 er bg-modal (0,98) og
+# overlay; 0,98 flytter tredje decimal, og overlay staar ikke i et par.
+# ---------------------------------------------------------------------------
+TEXT_MIN = 4.5
+UI_MIN = 3.0
+
+# De baggrunde, almindelig tekst kan lande paa.
+_TEXT_BG = ("bg-app", "bg-surface", "bg-card", "bg-muted", "bg-modal",
+            "input-bg", "input-bg-disabled")
+
+CONTRAST = (
+    # -- tekst ------------------------------------------------------------
+    [("text-primary", bg, TEXT_MIN) for bg in _TEXT_BG] +
+    [("text-muted", bg, TEXT_MIN) for bg in _TEXT_BG] +
+    # Hvid tekst paa en farvet chip eller knap.
+    [("text-on-primary", bg, TEXT_MIN) for bg in
+     ("color-brand-primary", "color-brand-primary-hover")] +
+    # Domaenechippen i hubben: hvid i lys tilstand, moerk i moerk.
+    [("text-on-domain", bg, TEXT_MIN) for bg in
+     ("text-muted", "domain-fl", "domain-eq", "domain-mp", "domain-mat",
+      "domain-vhp")] +
+    # Statuschippen: forgrund paa SIN EGEN baggrund.
+    [("state-%s-fg" % s, "state-%s-bg" % s, TEXT_MIN) for s in
+     ("ok", "warn", "error", "info", "neutral")] +
+    # De samme forgrunde bruges ogsaa som ren tekst uden chip (Fill er
+    # gennemsigtig), og saa er det kortet eller skaermen bagved.
+    [("state-%s-fg" % s, bg, TEXT_MIN) for s in
+     ("ok", "warn", "error", "info", "neutral")
+     for bg in ("bg-card", "bg-app")] +
+    # -- kanter og streger (1.4.11) ---------------------------------------
+    # border-default staar IKKE her - se CONTRAST_OPEN nedenfor.
+    # Feltkanten, naar et krav er opfyldt eller mangler.
+    [(fg, bg, UI_MIN) for fg in ("state-ok-fg", "state-error-fg")
+     for bg in ("input-bg", "input-bg-disabled", "bg-card")] +
+    # Domaenestriben langs hubbens fliser.
+    [(fg, "bg-card", UI_MIN) for fg in
+     ("domain-fl", "domain-eq", "domain-mp", "domain-mat", "domain-vhp")]
+)
+
+
+# ---------------------------------------------------------------------------
+# KENDT, IKKE OPFYLDT
+#
+# Parrene herunder DUMPER kontrastkravet i dag. De staar her i stedet for
+# at vaere udeladt, fordi en udeladt regel er en regel, ingen kan se.
+#
+# _check_contrast() efterproever at de STADIG dumper. Bliver et af dem
+# rettet, fejler byggeriet og beder om at faa parret flyttet op i
+# CONTRAST - saa kan undtagelsen ikke blive staaende, efter den er
+# overfloedig.
+#
+# border-default paa lys baggrund: 1,19-1,35:1 mod kravets 3,0
+# ---------------------------------------------------------------------
+# Feltkanten er RGBA(215, 222, 232) - lysegraa paa naesten hvid. Et hvidt
+# inputfelt paa et naesten hvidt kort (1,02:1) har ingen anden afgraensning
+# end den kant, saa WCAG 2.1 1.4.11 gaelder den.
+#
+# Den er IKKE rettet her, fordi det ikke er een vaerdi som state-ok-fg:
+# border-default staar paa 160 kontroller - 53 knapper, 29 inputfelter, 25
+# containere, 20 dropdowns, 20 tekster. For at naa 3,0 mod hvid skal den
+# ned omkring RGBA(130, 138, 152), altsaa et MIDTERGRAAT. Hver kant i alle
+# fire apper bliver synligt tungere. Det er en designbeslutning, ikke en
+# talrettelse, og den hoerer til hos den, der ejer udtrykket.
+#
+# Moerk tilstand klarer kravet: slate-500 paa slate-950 giver 4,24.
+# ---------------------------------------------------------------------------
+CONTRAST_OPEN = [("border-default", bg, UI_MIN, "lys") for bg in
+                 ("input-bg", "input-bg-disabled", "bg-card", "bg-app",
+                  "bg-surface")]
+
+
+def _srgb(rgba):
+    """De tre kanaler som 0-255. Alfa laeses ikke - se kommentaren ovenfor."""
+    body = rgba[rgba.index("(") + 1:rgba.rindex(")")]
+    return [int(round(float(n))) for n in body.split(",")[:3]]
+
+
+def _rel_lum(rgba):
+    """Relativ luminans, WCAG 2.1 definitionen."""
+    out = []
+    for v in _srgb(rgba):
+        v /= 255.0
+        out.append(v / 12.92 if v <= 0.03928 else ((v + 0.055) / 1.055) ** 2.4)
+    return 0.2126 * out[0] + 0.7152 * out[1] + 0.0722 * out[2]
+
+
+def contrast(a, b):
+    """Kontrastforholdet mellem to RGBA-strenge. 1.0 = ens, 21.0 = sort/hvid."""
+    la, lb = _rel_lum(a), _rel_lum(b)
+    hi, lo = max(la, lb), min(la, lb)
+    return (hi + 0.05) / (lo + 0.05)
+
+
+_THEMES = {"lys": LIGHT, "moerk": DARK}
+
+
+def _lookup(where, theme, name):
+    values = _THEMES[theme]
+    if name not in values:
+        raise SystemExit("%s naevner en token, der ikke findes: %r"
+                         % (where, name))
+    return values[name]
+
+
+def _check_contrast():
+    """Hvert par i CONTRAST skal klare sin taerskel i BEGGE temaer.
+
+    Og hvert par i CONTRAST_OPEN skal STADIG dumpe. Den anden halvdel er
+    lige saa vigtig som den foerste: uden den ville en undtagelse blive
+    staaende for evigt, ogsaa efter nogen havde rettet farven."""
+    bad = []
+    for theme in _THEMES:
+        for fg, bg, need in CONTRAST:
+            got = contrast(_lookup("CONTRAST", theme, fg),
+                           _lookup("CONTRAST", theme, bg))
+            if got + 0.005 < need:
+                bad.append("  %-6s %-18s paa %-18s %.2f  (kraever %.1f)"
+                           % (theme, fg, bg, got, need))
+    if bad:
+        raise SystemExit(
+            "Designtokens: kontrastkravet er ikke opfyldt.\n"
+            + "\n".join(bad) +
+            "\n\nRet farven i LIGHT/DARK, eller ret parret i CONTRAST, hvis\n"
+            "apperne ikke laengere saetter de to ved siden af hinanden.")
+
+    fixed = []
+    for fg, bg, need, theme in CONTRAST_OPEN:
+        got = contrast(_lookup("CONTRAST_OPEN", theme, fg),
+                       _lookup("CONTRAST_OPEN", theme, bg))
+        if got + 0.005 >= need:
+            fixed.append("  %-6s %-18s paa %-18s %.2f  (kraever %.1f)"
+                         % (theme, fg, bg, got, need))
+    if fixed:
+        raise SystemExit(
+            "Designtokens: et par i CONTRAST_OPEN klarer nu kravet.\n"
+            + "\n".join(fixed) +
+            "\n\nFlyt det op i CONTRAST, saa det bliver ved at vaere et krav.\n"
+            "En undtagelse, der ikke laengere er en undtagelse, skal ikke\n"
+            "blive staaende - saa er den bare et sted, reglen ikke gaelder.")
+
+
+_check_contrast()
 
 
 # ---------------------------------------------------------------------------
