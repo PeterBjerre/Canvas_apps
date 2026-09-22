@@ -1,224 +1,89 @@
 # -*- coding: utf-8 -*-
 """
-Flow-kontrakten for dokumenter. Navne og former staar KUN her.
+VH-plans dokumentrude. KUN det, der er anderledes end de andre appers.
 
-MAALT, IKKE GAETTET
--------------------
-De tre flows er laest i solution-eksporten
-(solution/BIOSAP/src/Workflows/), og kaldene er kopieret fra den app, der
-allerede bruger dem - "BioSap Maintenance Plans", skaermen
-TaskListAndItemsForm. Hver konstruktion her er altsaa bevist i netop dette
-miljoe, mod netop disse flows.
+Flowkontrakten - de tre flownavne, biblioteket, stikonstruktionen og de
+fire knapformler - staar i tools/attflows.py og staar der KUN eet sted.
+Den her fil stod foer som en naesten-kopi af den: de samme fjorten navne,
+de samme tre flowkald, men ikke ordret ens, saa ingen vagt kunne se det.
+Rettes et flow i Azure, skulle begge filer med - og den glemte app ville
+foerst fejle, naar en bruger trykkede paa knappen.
 
-    BioSap-TaskListAttachment        text + file{name, contentBytes}
-                                     -> CreateFile i
-                                        /TaskListDocuments/<text>/<name>
-                                     -> flowrunsuccess
-
-    BioSap-GetSubmittedAttachments   text = MAPPESTI
-                                     -> files: en STRENG med et JSON-array
-                                        af { Name, Link, Identifier }
-
-    BioSap-DeleteSubmittedAttachments  text = Identifier -> DeleteFile
-
-TO FAELDER
-----------
-1. `text` betyder ikke det samme i de to foerste. Upload laegger selv
-   "/TaskListDocuments/" foran; Get bruger vaerdien, som den er. Derfor
-   FOLDER og FOLDER_PATH hver for sig nedenfor.
-
-2. Get svarer med en STRENG, ikke en tabel. Den skal gennem ParseJSON -
-   samme moenster som FL-soegningen.
-
-MAPPEN ER ITEMETS
------------------
-Eet dokument hoerer til eet item, saa mappen hedder itemets noegle
-(MI0007). Noeglen findes foerst, naar planen er gemt - derfor kan der ikke
-laegges dokumenter op paa en plan, der kun staar i appen. Knappen siger det
-selv i stedet for at fejle.
-
-Filnavnet er noeglen paa raekken. SharePoint tillader ikke to filer med
-samme navn i samme mappe, saa navnet er unikt, stabilt og kendt af begge
-sider - i modsaetning til et lobenummer, appen selv skulle finde paa og
-holde styr paa hen over en opdatering.
+Tilbage her er de seks navne, ruden hedder i denne app, og den ene
+metode, der faktisk goer noget andet: refresh_fx().
 """
-
-FLOW_UPLOAD = "'BioSap-TaskListAttachment'"
-FLOW_LIST = "'BioSap-GetSubmittedAttachments'"
-FLOW_DELETE = "'BioSap-DeleteSubmittedAttachments'"
-
-LIBRARY = "TaskListDocuments"
-
-PICKER = "attVhpAttPicker"
-
-# Itemets noegle - tom, indtil planen er gemt.
-FOLDER = 'LookUp(colVhpSavedItems, LocalId = varVhpActiveItemId).ItemKey'
-FOLDER_PATH = f'"{LIBRARY}/" & {FOLDER}'
-
-NOT_SAVED = ('Save the plan before attaching documents - the folder is '
-             'named after the item.')
+import attflows
 
 
-def refresh_fx(indent=0):
-    """Hent mappens indhold og laeg det i colVhpAttachments.
+class VhPlanPane(attflows.Pane):
+    """Ruden haenger paa det aktive item, ikke paa en raekke i en liste."""
 
-    Operationskoblingen (OperationsKey) findes kun i appen, ikke i
-    biblioteket. Den reddes derfor over i colVhpAttKeep FOER raekkerne
-    skiftes ud, og saettes tilbage paa de filer, der stadig er der."""
-    pad = " " * indent
-    return "\n".join(pad + l for l in (
-        "ClearCollect(",
-        "    colVhpAttKeep,",
-        "    ForAll(",
-        "        Filter(colVhpAttachments, ItemId = varVhpActiveItemId) As A,",
-        "        { FileName: A.FileName, OperationsKey: A.OperationsKey }",
-        "    )",
-        ");",
-        "Set(",
-        "    varVhpAttJson,",
-        f"    {FLOW_LIST}.Run({FOLDER_PATH}).files",
-        ");",
-        "ClearCollect(",
-        "    colVhpAttFiles,",
-        "    ForAll(",
-        "        ParseJSON(Coalesce(varVhpAttJson, \"[]\")),",
-        "        {",
-        "            Name: Text(ThisRecord.Name),",
-        "            Link: Text(ThisRecord.Link),",
-        "            Identifier: Text(ThisRecord.Identifier)",
-        "        }",
-        "    )",
-        ");",
-        "RemoveIf(colVhpAttachments, ItemId = varVhpActiveItemId);",
-        "Collect(",
-        "    colVhpAttachments,",
-        "    ForAll(",
-        "        colVhpAttFiles As F,",
-        "        {",
-        "            ItemId: varVhpActiveItemId,",
-        "            FileName: F.Name,",
-        "            FileUrl: F.Link,",
-        "            Identifier: F.Identifier,",
-        "            FileSize: 0,",
-        "            OperationsKey: Coalesce(",
-        "                LookUp(colVhpAttKeep, FileName = F.Name).OperationsKey,",
-        "                \";\"",
-        "            ),",
-        "            Status: \"Uploaded\",",
-        "            Selected: false",
-        "        }",
-        "    )",
-        ");",
-        "Clear(colVhpAttKeep)",
-    ))
+    picker = "attVhpAttPicker"
+    folder = 'LookUp(colVhpSavedItems, LocalId = varVhpActiveItemId).ItemKey'
+    key_pred = "ItemId = varVhpActiveItemId"
+    collection = "colVhpAttachments"
+    up_collection = "colVhpAttUp"
+    not_saved = ("Save the plan before attaching documents - the folder is "
+                 "named after the item.")
+    empty_pre = "No documents in "
+    empty_post = " yet."
 
+    def refresh_fx(self, indent=0):
+        """Hent mappens indhold og laeg det i colVhpAttachments.
 
-def upload_fx():
-    """Send hver valgt fil gennem flowet, og hent listen forfra bagefter.
-
-    ForAll over kontrollens Attachments - Name og Value er kolonnerne, og
-    Value ER indholdet. Det er kaldet fra den gamle app, ordret.
-
-    Svaret bliver LAEST. Her stod foer et fast "Document(s) uploaded." lige
-    efter ForAll, uanset hvad flowet svarede - en kvittering, appen selv
-    fandt paa. Flowet returnerer flowrunsuccess, og en fil, der ikke kom
-    igennem, staar nu med navn i beskeden i stedet for at forsvinde.
-    """
-    return (
-        "If(\n"
-        f"    IsBlank({FOLDER}),\n"
-        f"    Notify(\"{NOT_SAVED}\", NotificationType.Warning),\n"
-        "\n"
-        f"    If(\n"
-        f"        CountRows({PICKER}.Attachments) = 0,\n"
-        "        Notify(\"Choose one or more files first.\", NotificationType.Warning),\n"
-        "\n"
-        "        Clear(colVhpAttUp);\n"
-        "        ForAll(\n"
-        f"            {PICKER}.Attachments As F,\n"
-        "            Collect(\n"
-        "                colVhpAttUp,\n"
-        "                {\n"
-        "                    Name: F.Name,\n"
-        "                    Ok: IfError(\n"
-        "                        Lower(\n"
-        "                            Text(\n"
-        f"                                {FLOW_UPLOAD}.Run(\n"
-        f"                                    {FOLDER},\n"
-        "                                    { file: { contentBytes: F.Value, name: F.Name } }\n"
-        "                                ).flowrunsuccess\n"
-        "                            )\n"
-        "                        ) = \"true\",\n"
-        "                        false\n"
-        "                    )\n"
-        "                }\n"
-        "            )\n"
-        "        );\n"
-        f"        Reset({PICKER});\n"
-        "\n"
-        + refresh_fx(8) + ";\n"
-        "\n"
-        "        If(\n"
-        "            CountRows(Filter(colVhpAttUp, Ok = false)) > 0,\n"
-        "            Notify(\n"
-        "                \"SharePoint refused: \" &\n"
-        "                Concat(Filter(colVhpAttUp, Ok = false), Name, \", \"),\n"
-        "                NotificationType.Error\n"
-        "            ),\n"
-        "            Notify(\"Document(s) uploaded.\", NotificationType.Success)\n"
-        "        )\n"
-        "    )\n"
-        ")"
-    )
+        HVORFOR DEN IKKE ER DEN SAMME SOM DOMAENEAPPERNES:
+        Operationskoblingen (OperationsKey) findes kun i appen, ikke i
+        biblioteket. Den reddes derfor over i colVhpAttKeep FOER raekkerne
+        skiftes ud, og saettes tilbage paa de filer, der stadig er der.
+        Domaeneapperne har ingen kobling at redde - de skriver til
+        gengaeld filantallet tilbage i listen. To forretningsforskelle,
+        der skal blive ved at vaere synlige hver for sig."""
+        pad = " " * indent
+        return "\n".join(pad + l for l in (
+            "ClearCollect(",
+            "    colVhpAttKeep,",
+            "    ForAll(",
+            f"        {self.scope} As A,",
+            "        { FileName: A.FileName, OperationsKey: A.OperationsKey }",
+            "    )",
+            ");",
+            "Set(",
+            "    varVhpAttJson,",
+            f"    {attflows.FLOW_LIST}.Run({self.folder_path}).files",
+            ");",
+            "ClearCollect(",
+            "    colVhpAttFiles,",
+            "    ForAll(",
+            "        ParseJSON(Coalesce(varVhpAttJson, \"[]\")),",
+            "        {",
+            "            Name: Text(ThisRecord.Name),",
+            "            Link: Text(ThisRecord.Link),",
+            "            Identifier: Text(ThisRecord.Identifier)",
+            "        }",
+            "    )",
+            ");",
+            f"RemoveIf({self.collection}, {self.key_pred});",
+            "Collect(",
+            f"    {self.collection},",
+            "    ForAll(",
+            "        colVhpAttFiles As F,",
+            "        {",
+            "            ItemId: varVhpActiveItemId,",
+            "            FileName: F.Name,",
+            "            FileUrl: F.Link,",
+            "            Identifier: F.Identifier,",
+            "            FileSize: 0,",
+            "            OperationsKey: Coalesce(",
+            "                LookUp(colVhpAttKeep, FileName = F.Name).OperationsKey,",
+            "                \";\"",
+            "            ),",
+            "            Status: \"Uploaded\",",
+            "            Selected: false",
+            "        }",
+            "    )",
+            ");",
+            "Clear(colVhpAttKeep)",
+        ))
 
 
-def refresh_button_fx():
-    return (
-        "If(\n"
-        f"    IsBlank({FOLDER}),\n"
-        f"    Notify(\"{NOT_SAVED}\", NotificationType.Warning),\n"
-        "\n"
-        + refresh_fx(4) + "\n"
-        ")"
-    )
-
-
-def delete_fx():
-    """Slet de markerede - i biblioteket, ikke kun i appen.
-
-    Identifier kommer fra Get-flowet. Er den tom, findes filen ikke i
-    biblioteket endnu, og saa er der kun appens egen raekke at fjerne."""
-    return (
-        "If(\n"
-        "    CountRows(Filter(colVhpAttachments, ItemId = varVhpActiveItemId, "
-        "Selected = true)) = 0,\n"
-        "    Notify(\"Select one or more documents first.\", NotificationType.Warning),\n"
-        "\n"
-        "    ForAll(\n"
-        "        Filter(colVhpAttachments, ItemId = varVhpActiveItemId, "
-        "Selected = true) As D,\n"
-        "        If(\n"
-        "            !IsBlank(D.Identifier),\n"
-        f"            {FLOW_DELETE}.Run(D.Identifier)\n"
-        "        )\n"
-        "    );\n"
-        "    RemoveIf(colVhpAttachments, ItemId = varVhpActiveItemId, Selected = true);\n"
-        "    Notify(\"Document(s) removed.\", NotificationType.Success)\n"
-        ")"
-    )
-
-
-def empty_text_fx():
-    """Teksten, naar der ingen raekker er.
-
-    "No documents on this item yet." kunne ikke skelnes fra "flowet fandt
-    ikke mappen" - og flowet svarer det samme i begge tilfaelde: files:
-    "[]". Stien staar derfor i beskeden, saa den kan holdes op mod, hvad
-    der rent faktisk ligger i biblioteket."""
-    return (
-        "If(\n"
-        f"    IsBlank({FOLDER}),\n"
-        f"    \"{NOT_SAVED}\",\n"
-        f"    \"No documents in \" & {FOLDER_PATH} & \" yet.\"\n"
-        ")"
-    )
+PANE = VhPlanPane()

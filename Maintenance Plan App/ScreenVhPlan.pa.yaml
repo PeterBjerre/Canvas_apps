@@ -12244,11 +12244,10 @@ Screens:
                                                       CountRows(attVhpAttPicker.Attachments) = 0,
                                                       Notify("Choose one or more files first.", NotificationType.Warning),
                                               
-                                                      Clear(colVhpAttUp);
-                                                      ForAll(
-                                                          attVhpAttPicker.Attachments As F,
-                                                          Collect(
-                                                              colVhpAttUp,
+                                                      ClearCollect(
+                                                          colVhpAttUp,
+                                                          ForAll(
+                                                              attVhpAttPicker.Attachments As F,
                                                               {
                                                                   Name: F.Name,
                                                                   Ok: IfError(
