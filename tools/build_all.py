@@ -24,8 +24,14 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # tools/ i EEN udgave, og indgangene saetter tools/ paa sys.path.
 #
 # Derfor er check_shared() og _compare() vaek: der ER ikke kopier, der kan
-# glide fra hinanden. Det eneste, der stadig skal holdes i trit, er de to
-# domaeneindgange - se DOMAIN_SHARED.
+# glide fra hinanden. De to domaeneindgange staar stadig hver for sig -
+# se "EQUIPMENTS OG MATERIALS MAA AFVIGE" nedenfor for hvorfor.
+#
+# attflows.py var laenge den sidste undtagelse: VH-plan havde sin EGEN
+# udgave, som ikke var ordret ens med tools/attflows.py, saa ingen vagt
+# kunne se de to som kopier. Flowkontrakten staar nu eet sted, og VH-plans
+# fil er skrumpet til de seks navne og den ene metode, appen faktisk goer
+# anderledes.
 #
 # Begrundelsen for kopierne var, at Power Apps' VS Code-vaerktoejskaede
 # fjernede et delt modul udenfor app-mappen igen. Den gaelder ikke den vej,

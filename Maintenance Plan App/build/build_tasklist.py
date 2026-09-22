@@ -16,7 +16,11 @@ from layout_tokens import fits, TWO_COL_MIN
 # HTML kender ikke RGBA(). ref_hex giver den SAMME token som hex.
 MUT_HEX = ref_hex("text-muted")
 PRI_HEX = ref_hex("text-primary")
-import build_attflows as att
+import build_attflows
+
+# Flowkontrakten staar i tools/attflows.py; kun rudens egne navne
+# og dens refresh_fx() staar i build_attflows.py.
+att = build_attflows.PANE
 
 DM_ITEM = "If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)"
 OPS_CW = f"({SHELL_W} - 36)"
@@ -438,7 +442,7 @@ def _attachments_pane():
     # som en Variant ved siden af. Det er den form, den gamle app har, og
     # kontroltypens version skal matche paa tvaers af appen; en Variant-linje
     # ved siden af er en anden konstruktion, og den er ikke bevist her.
-    picker = Ctrl(att.PICKER, "Attachments@2.3.0", props={
+    picker = Ctrl(att.picker, "Attachments@2.3.0", props={
         "AccessibleLabel": '"Choose documents"',
         "BorderColor": C_CARD_BORDER,
         "BorderThickness": "1",

@@ -57,7 +57,11 @@ from build_helpers import (text_ctrl, group, button, button_row, text_input, the
                            number_input, dropdown, card, field_cell, row_n,
                            label_row, pin_widths, badge)
 import domain_config as cfg
-import attflows as att
+import attflows
+
+# Flowkontrakten staar i tools/attflows.py; ruden her er dens
+# domaeneudgave - samme tre flows, egne samlingsnavne.
+att = attflows.DomainPane()
 import build_flsearch as fl
 
 # Raekkens felter i een flad liste - raekkefoelgen er sektionernes.
@@ -537,7 +541,7 @@ def save_row_fx(status="valid"):
         "            {\n"
         "                RowId: varDomSpRow.ID,\n"
         f"                ItemKey: {key},\n"
-        f"                AttachmentFolder: \"{att.LIBRARY}/\" & {key}\n"
+        f"                AttachmentFolder: \"{attflows.LIBRARY}/\" & {key}\n"
         "            }\n"
         "        )\n"
         "    );\n"
@@ -592,7 +596,7 @@ def delete_row_fx():
 # hedder raekkens ItemKey, og den findes foerst efter Gem.
 # ---------------------------------------------------------------------------
 def build_attachments():
-    picker = Ctrl(att.PICKER, "Attachments@2.3.0", props={
+    picker = Ctrl(att.picker, "Attachments@2.3.0", props={
         "AccessibleLabel": '"Vaelg dokumenter"',
         "BorderColor": C_CARD_BORDER,
         "BorderThickness": "1",
@@ -644,14 +648,14 @@ def build_attachments():
     # Filnavnet er raekkens noegle - der er INGEN LineId paa dokumenterne.
     # VH-plan-appen sorterede paa en LineId, der ikke fandtes; Items gik i
     # fejl, galleriet stod tomt, og filerne laa i biblioteket hele tiden.
-    gal_h = f"Max(CountRows({att.ACTIVE}), 1) * 34"
+    gal_h = f"Max(CountRows({att.scope}), 1) * 34"
     gal = Ctrl("galDomAttachments", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Dokumenter paa den valgte raekke"',
         "BorderStyle": "BorderStyle.None",
         "Fill": C_TRANSPARENT,
         "FillPortions": "0",
         "Height": gal_h,
-        "Items": f"Sort({att.ACTIVE}, FileName)",
+        "Items": f"Sort({att.scope}, FileName)",
         "LayoutMinWidth": "0",
         "LoadingSpinner": "LoadingSpinner.None",
         "Selectable": "true",
@@ -665,7 +669,7 @@ def build_attachments():
 
     empty = text_ctrl("txtDomAttEmpty", att.empty_text_fx(), size=13,
                       color=C_MUTED, height=36, wrap="true",
-                      visible=f"IfError(CountRows({att.ACTIVE}) = 0, false)")
+                      visible=f"IfError(CountRows({att.scope}) = 0, false)")
 
     return card("conDomAttCard",
                 [text_ctrl("txtDomAttH", '"Dokumenter"', size=16,
