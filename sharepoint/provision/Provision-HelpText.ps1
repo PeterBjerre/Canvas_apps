@@ -167,5 +167,5 @@ if ($Seed) {
 
 Write-Host ""
 Write-Host "Faerdig. Naeste skridt:" -ForegroundColor Cyan
-Write-Host "  1. Koer tools/inspect/Export-ListSchema.ps1, saa skemaet kender listen"
+Write-Host "  1. Koer sharepoint/inspect/Export-ListSchema.ps1, saa skemaet kender listen"
 Write-Host "  2. python3 tools/build_all.py"
