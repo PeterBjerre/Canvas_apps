@@ -49,6 +49,23 @@ import os, re, sys, yaml
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), "tools"))
 import layout_tokens as lay
+from layout_tokens import button_min_w
+
+# Et tal, hvis egenskaben ER et tal - ellers None. En Width som
+# "Parent.Width - 24" bestemmes af containeren og kan ikke maales her.
+_NUM_RE = re.compile(r"^=?\s*(\d+(?:\.\d+)?)\s*$")
+
+# Tekstliteraler i en Power Fx-formel. En knaps Text kan vaere
+# If(darkModeEnabled, "Light", "Dark") - begge ord skal kunne staa der.
+STR_LIT = re.compile(r'"([^"]*)"')
+
+
+def _num(v):
+    if v is None:
+        return None
+    m = _NUM_RE.match(str(v))
+    return float(m.group(1)) if m else None
+
 
 # Skaermen findes af sig selv, saa denne fil er ordret ens i alle apps i
 # repoet (se .github/skills/canvas-build/SKILL.md). Er der mere end een
@@ -468,11 +485,23 @@ def main():
         if not ok:
             continue
         need = max(0.0, need - gap)
-        if need > own + 0.01:
+        # AT GAA LIGE OP ER IKKE AT PASSE
+        #
+        # Foerste udgave af reglen skrev "need > own". Topbjaelken summede
+        # til PRAECIS own - venstre + gap + hoejre = SHELL_W - og slap
+        # derfor igennem. Den ombroed alligevel: conDomRoot scroller, saa
+        # scrollbaren ligger inden i bredden, og App.Width er ikke et
+        # heltal i en browser. Bjaelken blev klippet til usynlighed i baade
+        # Equipment og Material, og reglen sagde god for den.
+        #
+        # SCROLL_RESERVE er den plads, raekken ikke har. Se
+        # tools/layout_tokens.py.
+        if need > own - lay.SCROLL_RESERVE + 0.01:
             problems.append(
-                f"[4] {name}: ombryder OGSAA paa {w} px - boern {need:.0f} px, "
-                f"raekken {own:.0f} px. Wrap er til smalle skaerme, ikke til "
-                f"en raekke der aldrig passer")
+                f"[4] {name}: ombryder OGSAA paa {w} px - boern {need:.0f} px "
+                f"mod {own:.0f} px minus {lay.SCROLL_RESERVE} px scrollbar "
+                f"og afrunding. Wrap er til smalle skaerme, ikke til en "
+                f"raekke der aldrig passer")
 
     # --- 4b. En wrap-raekke maa ikke have en KONSTANT hoejde -------------
     #
@@ -921,6 +950,94 @@ def main():
                     f"[21] {name}.{key}: ButtonAppearance.Secondary henter sit "
                     f"fyld fra Fluent-temaet, ikke fra en token - brug "
                     f"ButtonAppearance.Outline")
+
+    # --- 23. En knap skal vaere bred nok til sin tekst ---------------------
+    #
+    # Raekkeoversigtens fire knapper var 48, 64, 50 og 58 px. En
+    # ModernButton polstrer 12 px i hver side, saa der var 24, 40, 26 og 34
+    # px tilbage til "Edit", "Details", "Copy" og "Delete". Knapperne blev
+    # tegnet - der stod bare ingenting paa dem.
+    #
+    # Ingen af de foregaaende reglar kunne se det: hoejden var rigtig,
+    # bredden var et lovligt tal, og raekken gik op. Det manglende var, at
+    # ingen vidste, hvor bredt et ord er. build_helpers.text_w() ved det.
+    #
+    # Reglen springer over, hvad den ikke kan maale: en Width, der er en
+    # formel (saa bestemmer containeren), og en Text uden et eneste
+    # tekstliteral (saa kommer ordet fra data).
+    for p_, name, body in all_nodes:
+        if body.get("Control") not in ("ModernButton", "Button"):
+            continue
+        props = body.get("Properties") or {}
+        w = _num(props.get("Width"))
+        if w is None:
+            continue
+        text = props.get("Text") or ""
+        labels = STR_LIT.findall(text)
+        if not labels:
+            continue
+        size = _num(props.get("Size")) or 14
+        weight = "Semibold"
+        fw = props.get("FontWeight") or ""
+        if "FontWeight." in fw:
+            weight = fw.split("FontWeight.")[1].strip().rstrip(")").strip()
+        worst = max(labels, key=lambda t: button_min_w(t, size, weight))
+        need = button_min_w(worst, size, weight)
+        if w < need:
+            problems.append(
+                f"[23] {name}: bredden er {w:.0f}, men \"{worst}\" fylder "
+                f"{need} px inkl. knappens polstring - teksten bliver "
+                f"klippet")
+
+    # --- 24. Raekken under overskriften skal have de samme kolonner --------
+    #
+    # Statusbrikken i raekkeoversigten stod med LIST_COLS[-2] i stedet for
+    # [-3]. De to kolonner ligger ved siden af hinanden, saa den forkerte
+    # indeksering gav stadig et tal - bare FILES' 40 px i stedet for
+    # STATUS' 75. Resultatet var "v..." og "s..." i stedet for "valid" og
+    # "submitted", og alt til hoejre for status laa 35 px forskudt i
+    # forhold til sin overskrift.
+    #
+    # Regel 5 goer praecis det her for VH-plans HtmlViewer-overskrifter.
+    # Den her er den samme kontrol for de overskrifter, der er RIGTIGE
+    # kontroller: et kort, der indeholder baade en "*Head"-container og et
+    # Gallery, skal have de samme kolonnebredder i begge.
+    for p_, name, body in all_nodes:
+        kids = body.get("Children") or []
+        # "*ListHead" og ikke bare "*Head": et modalhoved med en titel og
+        # en Luk-knap ender ogsaa paa Head, og det ER ikke kolonner. Navnet
+        # er konventionen - en overskriftsraekke over et Gallery hedder
+        # ListHead i alle fire apps.
+        head = next((k for k in kids
+                     if list(k)[0].endswith("ListHead")
+                     and (k[list(k)[0]].get("Control") == "GroupContainer")), None)
+        gal = next((k for k in kids
+                    if k[list(k)[0]].get("Control") == "Gallery"), None)
+        if head is None or gal is None:
+            continue
+        hname = list(head)[0]
+        gname = list(gal)[0]
+        tmpl = (gal[gname].get("Children") or [])
+        if len(tmpl) != 1:
+            continue
+        rname = list(tmpl[0])[0]
+        hcols = [((list(c)[0]), (c[list(c)[0]].get("Properties") or {}).get("Width"))
+                 for c in (head[hname].get("Children") or [])]
+        rcols = [((list(c)[0]), (c[list(c)[0]].get("Properties") or {}).get("Width"))
+                 for c in (tmpl[0][rname].get("Children") or [])]
+        if len(hcols) != len(rcols):
+            problems.append(
+                f"[24] {hname} har {len(hcols)} kolonner, men {rname} har "
+                f"{len(rcols)} - overskriften og raekken kan ikke flugte")
+            continue
+        for i, ((hn, hw), (rn, rw)) in enumerate(zip(hcols, rcols)):
+            hv, rv = _num(hw), _num(rw)
+            if hv is None and rv is None:
+                continue          # begge er den fleksible kolonne
+            if hv != rv:
+                problems.append(
+                    f"[24] kolonne {i}: {hn} er {hw} og {rn} er {rw} - "
+                    f"raekken staar forskudt i forhold til sin overskrift")
 
     # --- 22. Concurrent med en indbyrdes afhaengighed ----------------------
     #

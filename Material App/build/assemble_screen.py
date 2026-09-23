@@ -31,8 +31,8 @@ from gen_screen import render_screen, C_APP_BG, OUT_DIR, SHELL_W
 from build_helpers import group
 import domain_config as cfg
 from domain_parts import (build_bar, build_form, build_attachments,
-                          build_rows, build_details, build_submit, refresh_rows_fx,
-                          clear_form_fx, HALF_W)
+                          build_rows, build_details, build_submit,
+                          build_backdrop, refresh_rows_fx, clear_form_fx)
 
 
 def on_visible():
@@ -44,26 +44,18 @@ def on_visible():
 
 
 def build_screen():
-    # LISTEN OG DOKUMENTERNE SIDE OM SIDE
+    # LISTEN FAAR HELE BREDDEN
     #
-    # Ruden hoerer til den raekke, der er valgt i listen. Staar de under
-    # hinanden, skal oejet hele vejen ned og op igen for at se, hvad
-    # valget gjorde. Ved siden af hinanden ses begge dele paa een gang.
+    # Her stod listen i den ene halvdel og dokumentruden i den anden, med
+    # detaljekortet under listen. Listen har syv kolonner og over 800 px i
+    # faste bredder - i en halv skaerm var der ikke plads, og de sidste
+    # kolonner laa oven i hinanden.
     #
-    # Under braekpunktet stables de alligevel: to kolonner paa et smalt
-    # vindue er een kolonne for meget, og listen har syv.
-    # Detaljeruden staar UNDER listen og i den samme kolonne: den
-    # hoerer til en raekke i listen, ikke til formularen.
-    left = group("conDomLeft", [build_rows(), build_details()],
-                 direction="Vertical", gap=16,
-                 width=HALF_W)
-    right = group("conDomRight", [build_attachments()], direction="Vertical",
-                  gap=16, width=HALF_W)
-    split = group("conDomSplit", [left, right], direction="Horizontal",
-                  gap=20, wrap="true", wrap_rows=1)
-
+    # Dokumenterne og detaljerne er nu popups (se domain_parts), saa
+    # skaermen er een spalte: bjaelke, formular, liste, indsend. Det er
+    # ogsaa den raekkefoelge, arbejdet sker i.
     shell = group("conDomShell",
-                  [build_bar(), build_form(), split, build_submit()],
+                  [build_bar(), build_form(), build_rows(), build_submit()],
                   direction="Vertical", gap=16,
                   # 32, ikke 24: SHELL_W er "App.Width - 64", og
                   # 24+24 er 48. De 16 px forskel gjorde SHELL_W
@@ -73,9 +65,12 @@ def build_screen():
     root = group("conDomRoot", [shell], direction="Vertical",
                  height="Parent.Height", width="Parent.Width",
                  overflow_y="Scroll", fill=C_APP_BG)
+    # Sloeret FOER popupperne: kontrollerne tegnes i den raekkefoelge, de
+    # staar, saa det, der skal ligge bagved, skal staa foerst.
     return render_screen(cfg.SCREEN,
                          {"Fill": C_APP_BG, "OnVisible": on_visible()},
-                         [root])
+                         [root, build_backdrop(), build_details(),
+                          build_attachments()])
 
 
 def main():

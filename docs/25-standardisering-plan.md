@@ -661,3 +661,132 @@ og hold rækkerne op mod listerne, før det rører rigtige data.** Det, der
 skal tjekkes, er nøglerne: at `MaintenanceItemNo` på hver operation
 peger på det rigtige item, og at `TaskItemID` på hvert materiale peger på
 den rigtige operation.
+
+---
+
+## 10. Den usynlige topbjælke, rodet i listen, og to popups
+
+Meldingen var tre ting: *"Den øverste bjælke med overskrifter og
+Darkmode-knap er helt væk i både Material og Equipment"*, *"der er også
+rod i det med listen over indmeldinger"*, og et ønske om at få **details
+og documents som popups, med en knap mere pr. række**.
+
+De to første viste sig at være fire fejl, og tre af dem havde den samme
+rod.
+
+### At gå lige op er ikke at passe
+
+Topbjælken var ikke forkert placeret. Den var **usynlig**.
+
+Venstresiden stod som `SHELL_W - (højreside + mellemrum)`. De tre tal gik
+præcis op:
+
+```
+venstre + gap + højre = (SHELL_W - 562) + 20 + 542 = SHELL_W
+```
+
+På papiret passer det. I virkeligheden gør det ikke, for tre ting spiser
+bredde, som formlen ikke kan se:
+
+* **Scrollbaren.** `conDomRoot` har `LayoutOverflowY = Scroll`. Baren
+  ligger *inden i* bredden, og `Parent.Width` kender den ikke. 15-17 px.
+* **`App.Width` er ikke et heltal** i en browser. Hvert `Parent.Width`
+  ned gennem træet afrunder, og afrundingerne går ikke samme vej.
+* Kanter og `TemplatePadding`.
+
+Bjælken havde altså nogle pixels mindre, end den regnede med. Den
+ombrød derfor ved **enhver** skærmbredde — og fordi højden var regnet for
+én række (`If(SHELL_W < 826, 124, 52)`), blev indholdet klippet væk over
+og under. `LayoutAlignItems.Center` centrerer 124 px indhold i 52 px, så
+første række begynder 36 px *over* kanten.
+
+Tallet hedder nu `SCROLL_RESERVE` og står i `tools/layout_tokens.py`. Det
+er ikke målt på én browser — det er en scrollbar plus luft til
+afrundingen.
+
+**Da reglen blev strammet, fandt den det samme tre steder mere:**
+
+| | var | er |
+|---|---|---|
+| `conMdBar` (hubben) | 1856 af 1856 px | 1856 − 24 |
+| `conMdTiles` (hubben) | 1856 af 1856 px | 1856 − 24 |
+| `conMdFilters` (hubben) | 1848 af 1856 px | 1848 − 24 |
+| `conVhpItemMainRow` (VH-plan) | `SLACK = 2` | `SCROLL_RESERVE` |
+
+VH-plan havde allerede opdaget fejlklassen og skrevet `SLACK = 2` med en
+kommentar, der beskriver præcis dette. To pixels er ikke nok til en
+scrollbar. Tallet hedder nu det samme alle fire steder.
+
+### Knapper uden tekst
+
+Rækkens fire knapper var 48, 64, 50 og 58 px brede. En ModernButton på
+Size 14 Semibold polstrer omkring 12 px i hver side, så der var 24, 40,
+26 og 34 px tilbage til ordene **Edit**, **Details**, **Copy** og
+**Delete**. Knapperne blev tegnet. Der stod bare ingenting på dem.
+
+Ingen vagt kunne se det: højden var rigtig, bredden var et lovligt tal,
+og rækken gik op. Det manglende var, at **ingen vidste, hvor bredt et ord
+er**. `layout_tokens.text_w()` ved det nu — tegnenes faktiske fremrykning
+i Segoe UI, som andel af skriftstørrelsen, ikke et gennemsnit. Et
+gennemsnit siger, at `Illinois` og `WWWWWWWW` er lige brede.
+
+### Statusbrikken lånte den forkerte kolonne
+
+```python
+cells.append(badge("txtDomRowStatus", "ThisItem.Status",
+                   width=LIST_COLS[-2][1]))     # FILES, ikke STATUS
+```
+
+`STATUS` er 75 px, `FILES` er 40. De to kolonner står ved siden af
+hinanden, så den forkerte indeksering gav stadig et tal — bare det
+forkerte. Resultatet var `v...` og `s...` i stedet for `valid` og
+`submitted`, og **alt til højre for status lå 35 px forskudt i forhold
+til sin overskrift**.
+
+### Tre nye vagte
+
+| nr. | hvad den måler | fandt |
+|---|---|---|
+| 4 (strammet) | en wrap-række skal have `SCROLL_RESERVE` til overs, ikke bare gå op | `conDomBar` ×2, `conMdBar`, `conMdTiles`, `conMdFilters` |
+| 23 | en knaps bredde skal rumme dens tekst | fire knapper i hver domæneapp |
+| 24 | rækkens kolonnebredder skal flugte med overskriftens | statusbrikken |
+
+Regel 24 er regel 5 for de overskrifter, der er **rigtige kontroller**.
+Regel 5 gør det samme for VH-plans HtmlViewer-overskrifter.
+
+Alle tre er prøvet ved at plante præcis den fejl, de skal fange, se dem
+melde, og se dem tie igen.
+
+### Details og documents er popups nu
+
+Tre ting talte for:
+
+1. Listen har syv kolonner og over 800 px i faste bredder. I en halv
+   skærm var der ikke plads, og de sidste kolonner lå oven i hinanden.
+2. Dokumentruden hørte til den række, der lå i **formularen**. Ville man
+   se filerne på en anden række, skulle man først læse den ind — og
+   dermed smide det, man var i gang med at skrive.
+3. Detaljekortet under listen skubbede alt nedenfor 700 px ned, hver
+   gang nogen trykkede Details.
+
+Konstruktionen er VH-plan-appens: samme `bg-modal`, samme kant, samme
+`X`/`Y`, samme baggrundsslør. En tredje slags overlay i den samme familie
+af apps er en slags for meget.
+
+**Dokumenterne har fået deres egen række-variabel.** `varDomDocsId` er
+den række, popuppen er åbnet for; `varDomActiveRowId` er stadig den, der
+ligger i formularen. De to var den samme variabel, indtil dokumenterne
+flyttede ud.
+
+Rækken har derfor **fem** knapper: Edit, Details, Docs, Copy, Delete.
+`Docs` henter mappen, hvis rækken har filer, der ikke allerede er hentet
+— så et klik i listen koster nu ingen flow-kald overhovedet.
+
+Skærmen er én spalte igen: bjælke, formular, liste, indsend. Det er også
+den rækkefølge, arbejdet sker i.
+
+### Det her er ikke prøvet af
+
+Layoutet er regnet efter, ikke tegnet. **Åbn begge apps i Studio og se
+efter tre ting:** at topbjælken er der, at statuskolonnen står under sin
+overskrift, og at de to popups lukker igen.

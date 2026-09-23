@@ -49,9 +49,10 @@ from gen_screen import (Ctrl, SHELL_W, FONT,
                         C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
                         C_PRIMARY, C_WHITE, C_TRANSPARENT, C_DIVIDER,
                         C_NEUTRAL_BG, C_INFO_FG, C_INFO_BG,
-                        C_VALID_FG, C_VALID_BG)
+                        C_VALID_FG, C_VALID_BG,
+                        C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY)
 from design_tokens import theme_query
-from layout_tokens import below, if_below, fits
+from layout_tokens import below, if_below, fits, SCROLL_RESERVE
 from build_helpers import (text_ctrl, group, button, button_row, text_input, theme_button,
                            date_picker,
                            number_input, dropdown, card, field_cell, row_n,
@@ -85,13 +86,33 @@ ACTIVE = "LookUp(colDomRows, RowId = varDomActiveRowId)"
 # Kortets padding er 18 i hver side; det er de 36.
 FORM_W = f"({SHELL_W} - 36)"
 
-# Listen og dokumenterne staar side om side over braekpunktet og under
-# hinanden derunder. 20 er mellemrummet mellem dem.
-# 1600, ikke 1400. Listen har syv kolonner og knap 540 pixels i faste
-# bredder; under det bliver beskrivelseskolonnen smallere end sit eget
-# gulv, og raekken flyder ud over ruden i stedet for at dele sig.
-HALF_W = if_below("Wide", SHELL_W, f"({SHELL_W} - 20) / 2")
-PANE_W = f"({HALF_W} - 36)"
+# DOKUMENTERNE OG DETALJERNE ER POPUPS
+# ------------------------------------
+# De stod som kort paa skaermen: listen i den ene halvdel, dokumentruden i
+# den anden, og detaljerne under listen. Tre ting talte imod:
+#
+#   1. Listen har syv kolonner. I en halv skaerm var der ikke plads til
+#      dem, og de sidste tre laa oven i hinanden.
+#   2. Dokumentruden hoerte til den raekke, der laa i FORMULAREN. Ville man
+#      se filerne paa en anden raekke, skulle man foerst laese den ind - og
+#      dermed smide det, man var i gang med at skrive.
+#   3. Detaljekortet under listen skubbede alt nedenfor 700 px ned, hver
+#      gang nogen trykkede Details.
+#
+# Nu er begge dele overlejringer med deres egen raekke. Listen faar hele
+# bredden tilbage, og formularen bliver staaende, hvor den var.
+#
+# Konstruktionen er VH-plan-appens - se Maintenance Plan App/build/
+# build_modal.py. Samme fill, samme kant, samme X/Y, samme baggrundssloer.
+# En tredje slags overlay i den samme familie af apps er en slags for
+# meget.
+DETAILS_W = 820
+DOCS_W = 760
+# 36 = kortets padding, 18 i hver side.
+DETAILS_INNER_W = DETAILS_W - 36
+DOCS_INNER_W = DOCS_W - 36
+MODAL_X = "(App.Width - Self.Width) / 2"
+MODAL_Y = "Max(20, (App.Height - Self.Height) / 3)"
 
 # Indsendte raekker kan ikke redigeres - saa ejer SAP-processen dem.
 DM_ROW = ('If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)')
@@ -141,8 +162,15 @@ BAR_RIGHT_W = (sum(w for _, w in BAR_RIGHT)
 # Braekpunktet: er der plads til BAADE hoejresiden og en laeselig titel?
 # Det er en CONTAINER-graense og ikke en enhedsklasse - en bjaelke med een
 # knap mere skal ombryde tidligere, uanset hvad slags enhed det er.
-BAR_MIN_W = BAR_RIGHT_W + BAR_OUTER_GAP + BAR_MIN_TITLE
+BAR_MIN_W = BAR_RIGHT_W + BAR_OUTER_GAP + BAR_MIN_TITLE + SCROLL_RESERVE
+# TO "er der valgt en raekke" - fordi der nu ER to.
+#
+# DM_SEL er formularens: Slet raekke kan kun trykkes, naar der ligger en
+# gemt raekke i den. DM_DOCS er dokumentpopuppens, og den haenger paa den
+# raekke, popuppen blev aabnet FOR. De to var den samme variabel, indtil
+# dokumenterne flyttede ud i en popup med sin egen raekke.
 DM_SEL = ('If(IsBlank(varDomActiveRowId), DisplayMode.Disabled, DisplayMode.Edit)')
+DM_DOCS = ('If(IsBlank(varDomDocsId), DisplayMode.Disabled, DisplayMode.Edit)')
 
 
 # ---------------------------------------------------------------------------
@@ -175,9 +203,24 @@ def build_bar():
     #
     # Nu kommer alle tre af BAR_RIGHT. Tilfoejes en knap, flytter
     # braekpunktet sig med.
+    # SCROLL_RESERVE ER IKKE PYNT
+    #
+    # Her stod venstresiden som SHELL_W - (hoejreside + mellemrum). De tre
+    # tal gik PRAECIS op: venstre + gap + hoejre = SHELL_W.
+    #
+    # Og det var fejlen. conDomRoot scroller lodret, saa scrollbaren
+    # ligger inden i bredden - Parent.Width kender den ikke. Bjaelken
+    # havde altsaa 15-17 px mindre, end den regnede med, ombroed derfor
+    # ved ENHVER skaermbredde, og da hoejden var regnet for een raekke,
+    # blev begge rader klippet vaek over og under den.
+    #
+    # Bjaelken var ikke forkert placeret. Den var usynlig - og det var
+    # netop det, der blev meldt: "den oeverste bjaelke er helt vaek" i
+    # baade Equipment og Material.
     left = group("conDomBarLeft", [title, sub], direction="Vertical", gap=2,
-                 width=fits(SHELL_W, BAR_MIN_W, SHELL_W,
-                            f"{SHELL_W} - {BAR_RIGHT_W + BAR_OUTER_GAP}"))
+                 width=fits(SHELL_W, BAR_MIN_W,
+                            f"{SHELL_W} - {SCROLL_RESERVE}",
+                            f"{SHELL_W} - {BAR_RIGHT_W + BAR_OUTER_GAP + SCROLL_RESERVE}"))
 
     count = badge("txtDomCount", '"Rows: " & CountRows(colDomRows)', width=110)
     no = text_ctrl("txtDomReqNo",
@@ -517,6 +560,7 @@ def delete_this_row_fx():
         f"Remove({cfg.L_ROWS}, LookUp({cfg.L_ROWS}, ID = ThisItem.RowId));\n"
         "RemoveIf(colDomAttachments, RowId = ThisItem.RowId);\n"
         "If(varDomDetailsId = ThisItem.RowId, Set(varDomDetailsId, Blank()));\n"
+        "If(varDomDocsId = ThisItem.RowId, Set(varDomDocsId, Blank()));\n"
         "\n"
         "// Var det den aabne raekke, skal formularen ogsaa ryddes - ellers\n"
         "// staar der felter fra noget, der ikke findes.\n"
@@ -531,9 +575,13 @@ def delete_this_row_fx():
 
 
 def load_row_fx():
-    """Vaelg en gemt raekke. Dokumenterne hentes kun, hvis raekken HAR
-    nogen og de ikke allerede er hentet - ellers ville hvert klik i
-    listen koste et flow-kald."""
+    """Vaelg en gemt raekke og laeg den i formularen.
+
+    DOKUMENTERNE HENTES IKKE HER LAENGERE. De laa i en rude ved siden af
+    formularen, saa de skulle vaere der, i samme oejeblik raekken blev
+    valgt. Nu ligger de i en popup, der aabnes med sin egen knap - og saa
+    er det knappen, der henter dem (se open_docs_fx). Et klik i listen
+    koster dermed ingen flow-kald overhovedet."""
     lines = ['Set(varDomActiveRowId, ThisItem.RowId);',
              'Set(varDomRowStatus, ThisItem.Status);',
              f'Set({REQUIRED}, false);',
@@ -541,12 +589,8 @@ def load_row_fx():
              'Set(varDomFPlant, ThisItem.Plant);']
     for col, _lab, _kind, _ch in FIELDS:
         lines.append(f"Set({_var(col)}, ThisItem.{col});")
-    lines.append(
-        "If(\n"
-        "    ThisItem.FileCount > 0 &&\n"
-        "    CountRows(Filter(colDomAttachments, RowId = ThisItem.RowId)) = 0,\n"
-        + att.refresh_fx(4) + "\n"
-        ")")
+    # Sidste saetning uden semikolon - samme form som clear_form_fx.
+    lines[-1] = lines[-1].rstrip(";")
     return "\n".join(lines)
 
 
@@ -650,6 +694,8 @@ def delete_row_fx():
         "\n"
         f"    Remove({cfg.L_ROWS}, LookUp({cfg.L_ROWS}, ID = varDomActiveRowId));\n"
         "    RemoveIf(colDomAttachments, RowId = varDomActiveRowId);\n"
+        "    If(varDomDetailsId = varDomActiveRowId, Set(varDomDetailsId, Blank()));\n"
+        "    If(varDomDocsId = varDomActiveRowId, Set(varDomDocsId, Blank()));\n"
         "\n"
         + refresh_rows_fx(4) + ";\n"
         "\n"
@@ -676,7 +722,7 @@ def build_attachments():
         "AccessibleLabel": '"Select documents"',
         "BorderColor": C_CARD_BORDER,
         "BorderThickness": "1",
-        "DisplayMode": DM_SEL,
+        "DisplayMode": DM_DOCS,
         "Height": "110",
         "MaxAttachments": "10",
         # 10 MB, ikke 50. App checker advarer ved store filer, og den har
@@ -692,12 +738,12 @@ def build_attachments():
     }, h=110)
 
     up = button("btnDomAttUpload", '"Upload to SharePoint"', att.upload_fx(),
-                primary=True, display_mode=DM_SEL)
+                primary=True, display_mode=DM_DOCS)
     refresh = button("btnDomAttRefresh", '"Refresh documents"',
-                     att.refresh_button_fx(), display_mode=DM_SEL)
+                     att.refresh_button_fx(), display_mode=DM_DOCS)
     rem = button("btnDomAttRemove", '"Remove document"', att.delete_fx(),
-                 danger=True, display_mode=DM_SEL)
-    actions = button_row("conDomAttActions", [up, refresh, rem], PANE_W)
+                 danger=True, display_mode=DM_DOCS)
+    actions = button_row("conDomAttActions", [up, refresh, rem], DOCS_INNER_W)
 
     chk = Ctrl("chkDomAttSel", "ModernCheckbox", props={
         "AccessibleLabel": '"Select document"',
@@ -708,8 +754,12 @@ def build_attachments():
         "OnUncheck": "Patch(colDomAttachments, ThisItem, { Selected: false })",
         "Width": "30",
     }, h=24)
+    # Bredden er RESTEN af raekken, regnet ud - ikke et rundt tal. 30 er
+    # afkrydsningen, 80 er Open, 20 er de to mellemrum, og SCROLL_RESERVE
+    # er galleriets egen scrollbar.
     name = text_ctrl("txtDomAttName", "ThisItem.FileName", size=13, height=28,
-                     width=340, wrap="false")
+                     width=DOCS_INNER_W - 30 - 80 - 20 - SCROLL_RESERVE,
+                     wrap="false")
     # NY fane her, og kun her. Navigation mellem apps bruger Replace, saa
     # der ikke bliver en fane pr. klik - men et dokument er ikke en app.
     # Replace ville smide appen vaek, og en halvudfyldt formular med den.
@@ -724,7 +774,16 @@ def build_attachments():
     # Filnavnet er raekkens noegle - der er INGEN LineId paa dokumenterne.
     # VH-plan-appen sorterede paa en LineId, der ikke fandtes; Items gik i
     # fejl, galleriet stod tomt, og filerne laa i biblioteket hele tiden.
-    gal_h = f"Max(CountRows({att.scope}), 1) * 34"
+    # LOFT PAA HOEJDEN
+    #
+    # Hoejden fulgte antallet af filer uden graense. Ruden var et kort paa
+    # skaermen dengang, saa den kunne bare vokse; som popup kan den vokse
+    # ud over skaermkanten, og saa er Luk-knappen i hovedet det eneste,
+    # der er tilbage - hvis den da stadig er paa skaermen.
+    #
+    # Ti raekker a 34 px er 340. Derover scroller galleriet; det har
+    # ShowScrollbar i forvejen.
+    gal_h = f"Min(Max(CountRows({att.scope}), 1) * 34, 340)"
     gal = Ctrl("galDomAttachments", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Documents on the selected row"',
         "BorderStyle": "BorderStyle.None",
@@ -747,10 +806,65 @@ def build_attachments():
                       color=C_MUTED, height=36, wrap="true",
                       visible=f"IfError(CountRows({att.scope}) = 0, false)")
 
-    return card("conDomAttCard",
-                [text_ctrl("txtDomAttH", '"Documents"', size=16,
-                           weight="Semibold", height=22, wrap="false"),
-                 picker, actions, gal, empty])
+    title = text_ctrl(
+        "txtDomAttH",
+        ('"Documents - " & '
+         'Coalesce(LookUp(colDomRows, RowId = varDomDocsId).ItemKey, "")'),
+        size=17, weight="Semibold", height=24, wrap="false")
+    close = button("btnDomAttClose", '"Close"', "Set(varDomDocsId, Blank())",
+                   width=84, height=32)
+    # SpaceBetween og ingen bredde paa titlen - praecis VH-plan-modalens
+    # hoved (build_modal.py, conVhpPickerHeadRow). Den konstruktion er
+    # bevist i dette miljoe; en udregnet titelbredde ville vaere den
+    # tredje maade at goere det samme paa.
+    head = group("conDomAttHead", [title, close], direction="Horizontal",
+                 gap=12, height=32, justify="SpaceBetween",
+                 align_items="Center")
+
+    modal = group("conDomAttModal", [head, picker, actions, gal, empty],
+                  direction="Vertical", gap=14,
+                  fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=16,
+                  pad=(18, 18, 18, 18), width=DOCS_W, drop_shadow="ExtraBold",
+                  visible="!IsBlank(varDomDocsId)")
+    modal.props["X"] = MODAL_X
+    modal.props["Y"] = MODAL_Y
+    return modal
+
+
+def open_docs_fx():
+    """Raekkens Docs-knap: peg popuppen paa DENNE raekke, og hent mappen,
+    hvis raekken har filer, vi ikke allerede har hentet.
+
+    Rekkefoelgen er ikke tilfaeldig. att.refresh_fx() laeser varDomDocsId,
+    saa den skal saettes foerst - ellers henter flowet den forrige raekkes
+    mappe."""
+    return (
+        "Set(varDomDocsId, ThisItem.RowId);\n"
+        "If(\n"
+        "    ThisItem.FileCount > 0 &&\n"
+        "    CountRows(Filter(colDomAttachments, RowId = ThisItem.RowId)) = 0,\n"
+        + att.refresh_fx(4) + "\n"
+        ")"
+    )
+
+
+def build_backdrop():
+    """Sloeret bag popuppen. EEN kontrol til begge - to ville lagre oven
+    paa hinanden og goere baggrunden dobbelt saa moerk, naar begge var
+    aabne."""
+    return Ctrl("conDomBackdrop", "GroupContainer", variant="AutoLayout",
+                props={
+                    "BorderStyle": "BorderStyle.None",
+                    "DropShadow": "DropShadow.None",
+                    "Fill": C_OVERLAY,
+                    "Height": "App.Height",
+                    "LayoutDirection": "LayoutDirection.Vertical",
+                    "Visible": ("!IsBlank(varDomDetailsId) || "
+                                "!IsBlank(varDomDocsId)"),
+                    "Width": "App.Width",
+                    "X": "0",
+                    "Y": "0",
+                }, children=[])
 
 
 # ---------------------------------------------------------------------------
@@ -761,8 +875,18 @@ GAP = 10
 # Raekkens fire knapper. Bredden paa handlingskolonnen REGNES af dem, saa
 # en femte knap ikke kan goere tabellen bredere end kolonnen uden at
 # nogen opdager det. build_rows() efterproever tabellen mod raekken.
-ROW_BTN = {"btnDomRowOpen": 48, "btnDomRowDetails": 64,
-           "btnDomRowCopy": 50, "btnDomRowDelete": 58}
+# BREDDEN SKAL RUMME TEKSTEN
+#
+# Her stod 48, 64, 50 og 58. En ModernButton paa Size 14 Semibold bruger
+# omkring 12 px padding i hver side, og saa er der 24, 40, 26 og 34 px
+# tilbage til ordene "Edit", "Details", "Copy" og "Delete". Knapperne var
+# der; der stod bare ingenting paa dem. Det var halvdelen af "rodet i
+# listen".
+#
+# Tallene er nu maalt med build_helpers.text_w(), og check_layout regel 23
+# maaler efter paa hver eneste knap i alle fire apps.
+ROW_BTN = {"btnDomRowOpen": 60, "btnDomRowDetails": 80, "btnDomRowDocs": 64,
+           "btnDomRowCopy": 62, "btnDomRowDelete": 74}
 ROW_BTN_GAP = 4
 ACTIONS_W = sum(ROW_BTN.values()) + ROW_BTN_GAP * (len(ROW_BTN) - 1)
 
@@ -778,7 +902,10 @@ FIXED = sum(w for _n, w in LIST_COLS) + GAP * (len(LIST_COLS) - 1)
 # de oevrige kolonner blev skubbet helt ud til hoejre kant, og imellem dem
 # laa en tom flade paa halvdelen af vinduet. En tabel skal vaere saa bred
 # som sit indhold, ikke som sin beholder.
-MAIN_W = f"Max(Min(Parent.Width - {FIXED}, 460), 150)"
+# SCROLL_RESERVE: galleriet har en scrollbar, og den ligger inden i
+# TemplateWidth. Uden den gik raekken PRAECIS op med sin container - og
+# gik derfor lige netop ikke op.
+MAIN_W = f"Max(Min(Parent.Width - {FIXED + SCROLL_RESERVE}, 460), 150)"
 
 SEARCH = " || ".join(
     f"Trim(txtDomSearch.Text) in {c}" for c in cfg.SEARCH_FIELDS)
@@ -819,8 +946,12 @@ def _detail_row(i, label, value):
     lbl = text_ctrl(f"txtDomDet{i}L", f'"{label}"', size=12, color=C_MUTED,
                     weight="Semibold", height=DETAIL_ROW_H, width=DETAIL_LBL_W,
                     wrap="false")
+    # 12 er mellemrummet, SCROLL_RESERVE er listens egen scrollbar:
+    # feltlisten scroller, naar raekken har flere felter end skaermen er
+    # hoej, og scrollbaren ligger inden i bredden.
     val = text_ctrl(f"txtDomDet{i}V", value, size=13, height=DETAIL_ROW_H,
-                    width="Parent.Width - %d - 12" % DETAIL_LBL_W, wrap="false")
+                    width="Parent.Width - %d - 12 - %d"
+                          % (DETAIL_LBL_W, SCROLL_RESERVE), wrap="false")
     return group(f"conDomDet{i}", [lbl, val], direction="Horizontal", gap=12,
                  height=DETAIL_ROW_H, align_items="Center")
 
@@ -856,15 +987,19 @@ def build_details():
                  width=96, height=30,
                  display_mode=f"If({pos} >= CountRows({order}), "
                               f"DisplayMode.Disabled, DisplayMode.Edit)")
+    # Aabner raekken i formularen OG lukker ruden. Formularen staar bag
+    # popuppen, saa bliver den staaende aaben, kan man ikke se, at der
+    # skete noget.
     edit = button("btnDomDetEdit", '"Edit this row"',
-                  load_row_fx().replace("ThisItem.", f"{row}."),
-                  primary=True, width=120, height=30)
+                  load_row_fx().replace("ThisItem.", f"{row}.")
+                  + ";\nSet(varDomDetailsId, Blank())",
+                  primary=True, width=134, height=30)
     close = button("btnDomDetClose", '"Close"',
-                   "Set(varDomDetailsId, Blank())", width=80, height=30)
+                   "Set(varDomDetailsId, Blank())", width=84, height=30)
     head_right = group("conDomDetHeadR", pin_widths([prev, nxt, edit, close]),
                        direction="Horizontal", gap=8, height=30,
                        align_items="Center", justify="End",
-                       width=str(96 + 96 + 120 + 80 + 8 * 3))
+                       width=str(96 + 96 + 134 + 84 + 8 * 3))
     head = group("conDomDetHead", [head_left, head_right],
                  direction="Horizontal", gap=16, height=44,
                  align_items="Center")
@@ -881,8 +1016,30 @@ def build_details():
              if kind in ("num", "date") else f'Coalesce({row}.{col}, "-")')
         rows.append(_detail_row(n, label, v))
 
-    return card("conDomDetailsCard", [head] + rows,
-                visible="!IsBlank(varDomDetailsId)")
+    # FELTLISTEN SCROLLER, MODALEN GOER IKKE
+    #
+    # Equipment har nitten felter. Nitten linjer a 20 px plus hovedet er
+    # hoejere end en baerbar skaerm, og en modal, der gaar ud over
+    # skaermkanten, kan ikke lukkes - Luk-knappen sidder i hovedet, som
+    # stadig er synligt, men Gem-knappen i formularen bagved er det ikke.
+    #
+    # Hovedet staar derfor fast, og KUN felterne scroller. Hoejden er den
+    # mindste af "hvad felterne fylder" og "hvad der er plads til".
+    box = group("conDomDetRows", rows, direction="Vertical", gap=6)
+    natural = box.props["Height"]
+    # 200 = modalens Y (mindst 20), hoved, padding og luft i bunden.
+    box.props["Height"] = f"Min({natural}, App.Height - 200)"
+    box.props["LayoutOverflowY"] = "LayoutOverflow.Scroll"
+    box.h = box.props["Height"]
+
+    modal = group("conDomDetailsModal", [head, box], direction="Vertical",
+                  gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT,
+                  radius=16, pad=(18, 18, 18, 18), width=DETAILS_W,
+                  drop_shadow="ExtraBold",
+                  visible="!IsBlank(varDomDetailsId)")
+    modal.props["X"] = MODAL_X
+    modal.props["Y"] = MODAL_Y
+    return modal
 
 
 def build_rows():
@@ -913,8 +1070,18 @@ def build_rows():
         cells.append(text_ctrl(f"txtDomRow{i}", f"ThisItem.{col}", size=13,
                                color=C_MUTED, height=20,
                                width=LIST_COLS[i + 1][1], wrap="false"))
+    # LIST_COLS[-3], ikke [-2]. Statusbrikken laante FILES-kolonnens
+    # bredde - 40 px i stedet for 75 - saa der stod "v..." og "s..." i
+    # stedet for "valid" og "submitted", og ALT til hoejre for den laa 35
+    # px forskudt i forhold til sin overskrift. Den anden halvdel af
+    # "rodet i listen".
+    #
+    # De to kolonner staar ved siden af hinanden, saa den forkerte
+    # indeksering gav stadig et tal, og ingen vagt kunne se, at det var
+    # det forkerte. check_layout regel 24 maaler nu raekken mod
+    # overskriften i stedet.
     cells.append(badge("txtDomRowStatus", "ThisItem.Status",
-                       width=LIST_COLS[-2][1]))
+                       width=LIST_COLS[-3][1]))
     cells.append(text_ctrl("txtDomRowFiles", "Text(ThisItem.FileCount)",
                            size=13, color=C_MUTED, height=20,
                            width=LIST_COLS[-2][1], wrap="false"))
@@ -932,6 +1099,10 @@ def build_rows():
         button("btnDomRowDetails", '"Details"',
                'Set(varDomDetailsId, ThisItem.RowId)',
                width=ROW_BTN["btnDomRowDetails"], height=26),
+        # Dokumenterne paa DENNE raekke - uden at laese den ind i
+        # formularen foerst.
+        button("btnDomRowDocs", '"Docs"', open_docs_fx(),
+               width=ROW_BTN["btnDomRowDocs"], height=26),
         button("btnDomRowCopy", '"Copy"', copy_row_fx(),
                width=ROW_BTN["btnDomRowCopy"], height=26),
         button("btnDomRowDelete", '"Delete"', delete_this_row_fx(),

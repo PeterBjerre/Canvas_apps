@@ -10,7 +10,8 @@ YAML'en refererer andre kontrollers .Height. Se gen_screen.stack_height.
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from design_tokens import DARK_VAR, toggle_action
-from layout_tokens import below, fits, if_below, TWO_COL_MIN
+from layout_tokens import (below, fits, if_below, TWO_COL_MIN,
+                           text_w, button_min_w, BUTTON_PAD)
 from gen_screen import (
     Ctrl, render, render_screen, stack_height, row_height,
     C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED,
@@ -687,3 +688,4 @@ def card(name, children, gap=14, visible=None):
     return group(name, children, direction="Vertical", gap=gap,
                  fill=C_CARD_BG, border_color=C_CARD_BORDER, radius=14,
                  pad=(18, 18, 18, 18), visible=visible)
+

@@ -5,7 +5,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQU
                         C_INFO_FG, C_INFO_BG, C_VALID_FG, C_VALID_BG, C_INVALID_FG, C_INVALID_BG,
                         C_NEUTRAL_FG, C_NEUTRAL_BG, C_INPUT_BG, FONT, SHELL_W, EDITOR_W, RAIL_W,
                         SPLIT_GAP, C_TRANSPARENT)
-from layout_tokens import if_below
+from layout_tokens import if_below, SCROLL_RESERVE
 from build_helpers import (text_ctrl, group, button, button_row, text_input, number_input, dropdown,
                            label_row, field_cell, row_n, col_width, badge, card, combobox, poll_timer,
                            TWO_COL_MIN, HINTS_ON)
@@ -517,13 +517,17 @@ def build_item_editor():
     #            venstre: 2 kolonner                    hoejre: 1
     CW = EDITOR_CW
     GAP = 20
-    # SLACK: uden den summer de to kolonner plus mellemrummet til PRAECIS
-    # CW. Raekken har LayoutWrap = true (den skal stable under braekpunktet),
+    # Uden luft summer de to kolonner plus mellemrummet til PRAECIS CW.
+    # Raekken har LayoutWrap = true (den skal stable under braekpunktet),
     # og ved et eksakt sammenfald er det en afrunding eller en kantlinje,
     # der afgoer, om hoejre kolonne bliver staaende eller falder ned under.
-    # Den faldt ned. To pixels er nok til at gaa fri.
-    SLACK = 2
-    AVAIL = f"({CW} - {SLACK})"
+    # Den faldt ned.
+    #
+    # Her stod 2. Det var et gaet, og det var for lidt: skaermen scroller,
+    # saa scrollbaren ligger inden i bredden, og den alene er 15-17 px.
+    # Tallet hedder nu det samme som de andre steder, det bruges - se
+    # tools/layout_tokens.py.
+    AVAIL = f"({CW} - {SCROLL_RESERVE})"
     RIGHT_W = f"(({AVAIL} - {2 * GAP}) / 3)"
     LEFT_W = f"({AVAIL} - {GAP} - {RIGHT_W})"
     # Under braekpunktet stables alt, og saa fylder begge sider det hele.

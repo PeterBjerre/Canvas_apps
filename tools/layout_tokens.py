@@ -178,6 +178,29 @@ def if_below(name, narrow, wide):
 TWO_COL_MIN = 640
 
 
+# DEN PLADS, EN RAEKKE IKKE HAR
+# ----------------------------
+# En vandret raekke, hvis celler summer til PRAECIS containerens bredde,
+# passer paa papiret og ombryder i virkeligheden. Tre ting spiser bredde,
+# som formlen ikke kan se:
+#
+#   * den lodrette scrollbar paa conDomRoot og paa hvert galleri. Den
+#     ligger INDEN I bredden, og Parent.Width kender den ikke.
+#   * App.Width er ikke et heltal i en browser. Hvert Parent.Width ned
+#     gennem traeet afrunder, og afrundingerne gaar ikke samme vej.
+#   * kanter og TemplatePadding paa en galleriraekke.
+#
+# Topbjaelken i Equipment og Material summede til praecis SHELL_W. Den
+# ombroed derfor ALTID - og da hoejden var regnet for EEN raekke, blev
+# indholdet klippet vaek over og under. Bjaelken var ikke forkert; den var
+# usynlig.
+#
+# 24 er ikke maalt paa een browser - det er en scrollbar (15-17 px) plus
+# luft til afrundingen. En raekke, der skal passe, traekker den fra.
+# check_layout regel 4 kraever den ogsaa: det er ikke nok at gaa lige op.
+SCROLL_RESERVE = 24
+
+
 def fits(container_w, needs, narrow, wide):
     """If(containeren er for smal til 'needs', narrow, wide).
 
@@ -227,3 +250,67 @@ if __name__ == "__main__":
     print("test_widths():", test_widths())
     for w in test_widths():
         print("   %5d -> %-8s rank %d" % (w, tier_for(w), rank_for(w)))
+# ---------------------------------------------------------------------------
+# HVOR BREDT ER ET ORD?
+#
+# Fire knapper i raekkeoversigten var 48, 64, 50 og 58 px brede. En
+# ModernButton paa Size 14 Semibold bruger omkring 12 px polstring i hver
+# side, saa der var 24, 40, 26 og 34 px tilbage til "Edit", "Details",
+# "Copy" og "Delete". Knapperne blev tegnet; der stod bare ingenting paa
+# dem. Det var halvdelen af det, der blev meldt som "rod i listen".
+#
+# Ingen vagt kunne se det, fordi ingen vagt vidste, hvor bredt et ord er.
+# Nu goer de det.
+#
+# TALLENE ER SEGOE UI'S EGNE, IKKE ET GENNEMSNIT
+# ----------------------------------------------
+# Et gennemsnit paa 0,5 em pr. tegn siger, at "Illinois" og "WWWWWWWW" er
+# lige brede. Tabellen herunder er tegnenes faktiske fremrykning i Segoe
+# UI, som andel af skriftstoerrelsen. Den er ikke hentet fra fontfilen -
+# den kan ikke laeses her - men fra fontens kendte proportioner, og den er
+# proevet mod de knapper i repoet, der ALLEREDE staar rigtigt: "Previous"
+# paa 96, "To the hub" paa 140, "Search" paa 90.
+#
+# Den maa gerne vaere en anelse for bred. En knap, der er 6 px bredere end
+# noedvendigt, ser ingen; en der er 6 px for smal, mister sit sidste
+# bogstav.
+_ADV = {
+    " ": .25, "-": .333, ".": .278, ",": .278, ":": .278, ";": .278,
+    "(": .333, ")": .333, "/": .333, "&": .667, "'": .19, '"': .33,
+    "?": .47, "!": .26, "+": .58, "%": .83, "#": .58, "*": .42,
+}
+for _c in "0123456789":
+    _ADV[_c] = .556
+for _c, _w in zip("abcdefghijklmnopqrstuvwxyz",
+                  (.528, .583, .472, .583, .528, .333, .556, .583, .25,
+                   .278, .528, .25, .889, .583, .583, .583, .583, .389,
+                   .444, .361, .583, .5, .75, .5, .5, .444)):
+    _ADV[_c] = _w
+for _c, _w in zip("ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                  (.667, .611, .639, .694, .556, .528, .722, .694, .278,
+                   .5, .611, .528, .889, .694, .778, .583, .778, .611,
+                   .583, .583, .694, .639, .972, .611, .583, .556)):
+    _ADV[_c] = _w
+
+# Semibold er bredere end Regular. Maalt paa Segoe UI er forskellen
+# omkring 3 %.
+_WEIGHT_FACTOR = {"Semibold": 1.03, "Bold": 1.06}
+
+# En ModernButton polstrer sin tekst. 12 px i hver side er Fluent 2's
+# medium-knap, og det er den stoerrelse alle knapper i repoet har.
+BUTTON_PAD = 24
+
+
+def text_w(text, size=14, weight=None):
+    """Bredden af 'text' i pixels, rundet OP.
+
+    Ukendte tegn - et andet alfabet, et tegn tabellen ikke har - taelles
+    som .6 em. Det er bredere end naesten alt i tabellen, saa et ukendt
+    tegn kan ikke faa svaret til at blive for lille."""
+    em = sum(_ADV.get(ch, .6) for ch in text)
+    return int(em * size * _WEIGHT_FACTOR.get(weight, 1.0) + 0.999)
+
+
+def button_min_w(text, size=14, weight="Semibold"):
+    """Den mindste bredde, en knap med teksten 'text' kan have."""
+    return text_w(text, size, weight) + BUTTON_PAD

@@ -23,7 +23,7 @@ from build_helpers import (text_ctrl, group, button, card, theme_button,
                            wrap_row_height)
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, APP_TARGET
 from design_tokens import theme_query
-from layout_tokens import if_below
+from layout_tokens import if_below, SCROLL_RESERVE
 
 # Hubben aabner satellitterne. Temaet skal med i URL'en, fordi
 # SaveData-lageret er isoleret pr. app-id: uden den ville en moerk hub
@@ -107,18 +107,23 @@ def build_bar():
                              _seg("btnMdViewQueue", "Queue", "queue")],
                 direction="Horizontal", gap=0, height=34, align_items="Center", width=336)
 
+    # Bredden staar EET sted. Den stod to gange - foerst her uden
+    # temaknappen, saa en linje laengere nede med den - og den foerste
+    # blev overskrevet. To tal, hvoraf det ene var doedt.
+    #
+    # 300 er venstresiden, 336 er segmentet, 92 er temaknappen, 36 er de
+    # tre mellemrum, og SCROLL_RESERVE er den plads, raekken ikke har:
+    # uden den summede bjaelken til PRAECIS SHELL_W og ombroed derfor ved
+    # enhver skaermbredde - samme fejl som i Equipment og Material.
     who = text_ctrl("txtMdWho",
                     'If(gblView = "mine", gblMe, "Queue - whole department")',
                     size=12, color=C_MUTED, height=34, align="Right", wrap="false",
-                    width=f"Max(160, {SHELL_W} - 300 - 336 - 24)")
+                    width=f"Max(120, {SHELL_W} - 300 - 336 - 92 - 36 - {SCROLL_RESERVE})")
 
     # Temaknappen staar YDERST TIL HOEJRE og med engelsk tekst som resten
     # af hubben. Den er den samme kontrol som i de tre satellitter - se
     # build_helpers.theme_button.
     theme = theme_button("btnMdTheme", light_label='"Dark"', dark_label='"Light"')
-
-    # who-feltet skal give plads til knappen, ellers skubber den linjen om.
-    who.props["Width"] = f"Max(120, {SHELL_W} - 300 - 336 - 92 - 36)"
 
     kids = [left, seg, who, theme]
     return group("conMdBar", kids, direction="Horizontal", gap=12,
@@ -133,7 +138,12 @@ def build_bar():
 # altsaa et viewport-braekpunkt, ikke en udregning paa indholdet. Stod foer
 # som SHELL_W < 940, hvilket er App.Width < 1004: et af fire naesten ens
 # tal. Se tools/layout_tokens.py.
-TILE_W = if_below("Desktop", f"({SHELL_W} - 10) / 2", f"({SHELL_W} - 40) / 5")
+# 10 og 40 er mellemrummene mellem fliserne; SCROLL_RESERVE er
+# scrollbaren og afrundingen. Uden den gik fem fliser plus fire mellemrum
+# PRAECIS op med SHELL_W, og raekken ombroed i stedet for at passe.
+TILE_W = if_below("Desktop",
+                  f"({SHELL_W} - 10 - {SCROLL_RESERVE}) / 2",
+                  f"({SHELL_W} - 40 - {SCROLL_RESERVE}) / 5")
 
 
 def build_tiles():
@@ -209,7 +219,7 @@ def build_filters():
         "LayoutMinWidth": "0", "Placeholder": '"Search number, text or plant"',
         "RadiusBottomLeft": "8", "RadiusBottomRight": "8", "RadiusTopLeft": "8", "RadiusTopRight": "8",
         "Size": "13", "Type": "TextInputType.Search",
-        "Width": f"Max(180, {SHELL_W} - 3 * 104 - 200 - 5 * 8)",
+        "Width": f"Max(180, {SHELL_W} - 3 * 104 - 200 - 5 * 8 - {SCROLL_RESERVE})",
     }, h=32)
     count = text_ctrl("txtMdCount",
                       f'Text(CountRows({SCOPE})) & " requests in this view"',

@@ -90,6 +90,7 @@ Set(varDomRequestGuid, "");
 Set(varDomActiveRowId, Blank());
 // Hvilken raekke detaljeruden viser. Blank = ruden er skjult.
 Set(varDomDetailsId, Blank());
+Set(varDomDocsId, Blank());
 Set(varDomRowStatus, "valid");
 Set(varDomAttJson, "");
 Set(varDomFlMsg, "");

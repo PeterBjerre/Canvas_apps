@@ -95,7 +95,7 @@ class Pane(object):
 
     picker = None          # navnet paa Attachments-kontrollen
     folder = None          # udtryk: mappenavnet = raekkens noegle
-    key_pred = None        # udtryk: "RowId = varDomActiveRowId"
+    key_pred = None        # udtryk: "RowId = varDomDocsId"
     collection = None      # samlingen med rudens filer
     up_collection = None   # arbejdssamling til uploadsvarene
     not_saved = None       # beskeden, naar raekken ikke er gemt endnu
@@ -235,11 +235,17 @@ class Pane(object):
 
 
 class DomainPane(Pane):
-    """Equipment og Material. Ruden haenger paa den aktive raekke."""
+    """Equipment og Material. Ruden haenger paa den raekke, POPUPPEN er
+    aabnet for - ikke paa den, der ligger i formularen.
+
+    Det var varDomActiveRowId indtil dokumentruden blev en popup. De to er
+    ikke det samme: man skal kunne se dokumenterne paa en raekke uden
+    foerst at laese den ind i formularen og dermed smide det, man var i
+    gang med at skrive. Blank betyder "popuppen er lukket"."""
 
     picker = "attDomPicker"
-    folder = 'LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey'
-    key_pred = "RowId = varDomActiveRowId"
+    folder = 'LookUp(colDomRows, RowId = varDomDocsId).ItemKey'
+    key_pred = "RowId = varDomDocsId"
     collection = "colDomAttachments"
     up_collection = "colDomAttUp"
     not_saved = "Save the row first - the folder is named after the row key."
@@ -269,7 +275,7 @@ class DomainPane(Pane):
             "    ForAll(",
             "        ParseJSON(Coalesce(varDomAttJson, \"[]\")) As J,",
             "        {",
-            "            RowId: varDomActiveRowId,",
+            "            RowId: varDomDocsId,",
             "            FileName: Text(J.Name),",
             "            FileUrl: Text(J.Link),",
             "            Identifier: Text(J.Identifier),",
@@ -284,12 +290,12 @@ class DomainPane(Pane):
             f"    {{ n: CountRows({self.scope}) }},",
             "    Patch(",
             f"        {cfg.L_ROWS},",
-            f"        LookUp({cfg.L_ROWS}, ID = varDomActiveRowId),",
+            f"        LookUp({cfg.L_ROWS}, ID = varDomDocsId),",
             "        { FileCount: n }",
             "    );",
             "    UpdateIf(",
             "        colDomRows,",
-            "        RowId = varDomActiveRowId,",
+            "        RowId = varDomDocsId,",
             "        { FileCount: n }",
             "    )",
             ")",
