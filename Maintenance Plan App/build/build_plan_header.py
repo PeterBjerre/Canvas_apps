@@ -214,13 +214,13 @@ def build_plan_header():
     optionsState = text_ctrl(
         "txtVhpPlanOptionsState",
         (
-            "\"Data: \" & Text(CountRows(colVhpTasklists)) & \" standardarbejdsplaner, \" &\n"
-            "Text(CountRows(colVhpStrategies)) & \" strategier\" &\n"
+            "\"Data: \" & Text(CountRows(colVhpTasklists)) & \" task lists, \" &\n"
+            "Text(CountRows(colVhpStrategies)) & \" strategies\" &\n"
             "With(\n"
             "    { mangler: CountRows(Filter(colVhpStrategies, !PackagesLoaded)) },\n"
-            "    If(mangler > 0, \" (\" & Text(mangler) & \" uden pakker)\", \"\")\n"
+            "    If(mangler > 0, \" (\" & Text(mangler) & \" without packages)\", \"\")\n"
             ") & \", \" &\n"
-            "Text(CountRows(colVhpMainWorkCenters)) & \" arbejdscentre.\""
+            "Text(CountRows(colVhpMainWorkCenters)) & \" work centres.\""
         ),
         size=12, color=C_MUTED, height=18, wrap="true")
     footerInfo = group("conVhpPlanFooterInfo", [planMeta, optionsState], direction="Vertical", gap=2, height=40,

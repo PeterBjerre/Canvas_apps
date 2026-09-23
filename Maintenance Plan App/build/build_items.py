@@ -295,9 +295,9 @@ def build_item_editor():
     txtFlQuery = text_input(
         "txtVhpFlQuery", "\"\"",
         placeholder=("\"At least %d characters, e.g. SSV13 HFC\"" % MIN_SEARCH_LEN),
-        display_mode=DM_ITEM, width=f"Parent.Width - {FL_BTN_W} - 8", label="\"Soeg funktionsplads\"")
+        display_mode=DM_ITEM, width=f"Parent.Width - {FL_BTN_W} - 8", label="\"Search functional location\"")
     btnFlSearch = button(
-        "btnVhpFlSearch", "\"Soeg\"",
+        "btnVhpFlSearch", "\"Search\"",
         # raw_var foelger VH-plans egen navnekonvention. Den stod foer som
         # en konstant i appens EGEN kopi af build_flsearch.py - og det var
         # netop den ene linje, de tre kopier havde glidt fra hinanden paa.
@@ -312,18 +312,18 @@ def build_item_editor():
     drpFl = dropdown(
         "drpVhpItemFL", "Sort(colVhpFlSearch, Code)", FL_DEFAULT,
         item_display="ThisItem.Display",
-        required_formula=REQ_ITEM, display_mode=DM_ITEM, value_field="Code", label="\"Vaelg funktionsplads\"")
+        required_formula=REQ_ITEM, display_mode=DM_ITEM, value_field="Code", label="\"Select functional location\"")
 
     flDescription = text_ctrl(
         "txtVhpItemFlDescription",
         (
             "If(\n"
-            "    IsBlank(drpVhpItemFL.Selected.Code), \"Ingen Functional Location valgt endnu.\",\n"
-            "    \"Valgt: \" & drpVhpItemFL.Selected.Code & \" - \" &\n"
+            "    IsBlank(drpVhpItemFL.Selected.Code), \"No functional location selected yet.\",\n"
+            "    \"Selected: \" & drpVhpItemFL.Selected.Code & \" - \" &\n"
             "    drpVhpItemFL.Selected.Description &\n"
             "    If(\n"
             "        drpVhpItemFL.Selected.Maintainable, \"\",\n"
-            "        \"   |   ADVARSEL: markeret som ikke vedligeholdbar i SAP.\"\n"
+            "        \"   |   WARNING: marked as not maintainable in SAP.\"\n"
             "    )\n"
             ")"
         ),
@@ -423,7 +423,7 @@ def build_item_editor():
     galObj = Ctrl(
         "galVhpItemObjects", "Gallery", variant="Vertical",
         props={
-            "AccessibleLabel": "\"Underliggende objekter\"",
+            "AccessibleLabel": "\"Sub-objects\"",
             "BorderColor": C_CARD_BORDER,
             "BorderStyle": "BorderStyle.Solid",
             "BorderThickness": "1",
@@ -466,14 +466,14 @@ def build_item_editor():
             "With(\n"
             f"    {{ n: CountRows({OBJ_CHOSEN}) }},\n"
             "    If(\n"
-            "        n = 0, \"Ingen underliggende objekter valgt.\",\n"
-            "        Text(n) & \" valgt: \" &\n"
+            "        n = 0, \"No sub-objects selected.\",\n"
+            "        Text(n) & \" selected: \" &\n"
             f"            Concat(Sort({OBJ_CHOSEN}, Code), Code, \", \") &\n"
             "            With(\n"
             f"                {{ fremmede: CountRows(Filter({OBJ_CHOSEN}, !StartsWith(Code, {SEL_FL}))) }},\n"
             "                If(\n"
             "                    fremmede > 0,\n"
-            "                    \"   |   ADVARSEL: \" & Text(fremmede) &\n"
+            "                    \"   |   WARNING: \" & Text(fremmede) &\n"
             "                        \" of them are not under the selected functional location.\",\n"
             "                    \"\"\n"
             "                )\n"

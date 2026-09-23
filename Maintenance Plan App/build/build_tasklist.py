@@ -309,7 +309,7 @@ def _materials_pane():
     txtDesc = text_ctrl("txtVhpMatDesc",
                         'If(IsBlank(ThisItem.Description), "-", ThisItem.Description)',
                         size=12, color=C_MUTED, height=30, width=w["DESCRIPTION"], wrap="false")
-    numQty = number_input("numVhpMatQty", "ThisItem.Quantity", width=w["QTY"], height=30, label="\"Antal\"")
+    numQty = number_input("numVhpMatQty", "ThisItem.Quantity", width=w["QTY"], height=30, label="\"Number\"")
     numQty.props["OnChange"] = "Patch(colVhpMaterials, ThisItem, { Quantity: Self.Value })"
     txtUnit = text_ctrl("txtVhpMatUnit",
                         'If(IsBlank(ThisItem.Unit), "-", ThisItem.Unit)',
@@ -717,7 +717,7 @@ def build_tasklist_section():
         f"        Cost: {cost_expr('Self.Value')}\n"
         "    }\n"
         ")")
-    numOpPersons = number_input("numVhpOpPersons", "ThisItem.Persons", width=w["NO."], height=32, label="\"Antal personer\"")
+    numOpPersons = number_input("numVhpOpPersons", "ThisItem.Persons", width=w["NO."], height=32, label="\"Number of people\"")
     numOpPersons.props["OnChange"] = (
         "Patch(\n"
         "    colVhpOperations, ThisItem,\n"
@@ -735,7 +735,7 @@ def build_tasklist_section():
     # forvejen har bestemt. Det laeses nu - og ser graat ud som resten af
     # det, man ikke kan redigere.
     txtOpMwc = text_input("txtVhpOpMwc", "ThisItem.MainWorkCenter", width=w["MAIN WORK CENTER"],
-                          height=32, display_mode="DisplayMode.View", label="\"Vaerk\"")
+                          height=32, display_mode="DisplayMode.View", label="\"Plant\"")
     # Kontrolnoeglen: kun to valg at SKIFTE imellem, men listen skal
     # ogsaa kunne VISE den vaerdi, linjen allerede har - fx PM02 eller PM03
     # fra standardplanen. Ellers stod cellen tom paa alle de linjer, man
@@ -764,9 +764,9 @@ def build_tasklist_section():
 
     txtOpVendor = text_input("txtVhpOpVendor", "ThisItem.Vendor", width=w["VENDOR"], height=32,
                              display_mode=DM_PURCHASE,
-                             onchange="Patch(colVhpOperations, ThisItem, { Vendor: Self.Text })", label="\"Leverandoer\"")
+                             onchange="Patch(colVhpOperations, ThisItem, { Vendor: Self.Text })", label="\"Supplier\"")
     numOpCost = number_input("numVhpOpCost", "ThisItem.Cost", width=w["COST"], height=32,
-                             display_mode=DM_PURCHASE, label="\"Pris\"")
+                             display_mode=DM_PURCHASE, label="\"Price\"")
     numOpCost.props["OnChange"] = "Patch(colVhpOperations, ThisItem, { Cost: Self.Value })"
     txtOpMatGrp = text_input("txtVhpOpMatGrp", "ThisItem.MaterialGroup", width=w["MAT.GRP"],
                              height=32, display_mode=DM_PURCHASE,
@@ -802,7 +802,7 @@ def build_tasklist_section():
             "    varVhpPlan.PlanType <> \"Strategy\", \"-\",\n"
             "    With(\n"
             "        { sel: Filter(colVhpStrategyPackages As P, P.StrategyKey = varVhpPlan.Strategy && \";\" & Text(P.PackageNo) & \";\" in Coalesce(ThisItem.PackagesKey, \";\")) },\n"
-            "        If(CountRows(sel) = 0, \"(ingen)\", Concat(Sort(sel, PackageNo), ShortCode, \", \"))\n"
+            "        If(CountRows(sel) = 0, \"(none)\", Concat(Sort(sel, PackageNo), ShortCode, \", \"))\n"
             "    )\n"
             ")"
         ),
@@ -901,8 +901,8 @@ def build_dispatch_section():
             "        Text(CountRows(colVhpOperations)) & \" operation line(s) in total.\" &\n"
             "        If(\n"
             "            varVhpPlan.PlanType = \"Strategy\",\n"
-            "            \" Strategi \" & varVhpPlan.Strategy & \" med \" &\n"
-            "            Text(CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy))) & \" pakker.\",\n"
+            "            \" Strategy \" & varVhpPlan.Strategy & \" with \" &\n"
+            "            Text(CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy))) & \" packages.\",\n"
             "            \"\"\n"
             "        )\n"
             "    ),\n"
@@ -937,8 +937,8 @@ def build_email_fab():
             "        \"Plan type: \" & If(varVhpPlan.PlanType = \"Strategy\", \"Strategiplan (IP42)\", \"Single cycle (IP41)\") & Char(10) &\n"
             "        If(\n"
             "            varVhpPlan.PlanType = \"Strategy\",\n"
-            "            \"Strategi: \" & varVhpPlan.Strategy & Char(10) &\n"
-            "            \"Pakker: \" & Concat(Sort(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy), PackageNo), ShortCode & \" (\" & Text(CycleLength) & \" \" & CycleUnit & \")\", \", \") & Char(10),\n"
+            "            \"Strategy: \" & varVhpPlan.Strategy & Char(10) &\n"
+            "            \"Packages: \" & Concat(Sort(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy), PackageNo), ShortCode & \" (\" & Text(CycleLength) & \" \" & CycleUnit & \")\", \", \") & Char(10),\n"
             "            \"Cycle: \" & Text(varVhpPlan.Cycle) & \" \" & varVhpPlan.Unit & Char(10)\n"
             "        ) &\n"
             "        \"Items: \" & Text(CountRows(colVhpItems)) & \" (\" & Text(CountRows(Filter(colVhpItems, Status = \"valid\"))) & \" valid, \" & Text(CountRows(Filter(colVhpItems, Status = \"invalid\"))) & \" invalid)\" & Char(10) &\n"
@@ -957,7 +957,7 @@ def build_email_fab():
             "                With(\n"
             "                    { k: Coalesce(PackagesKey, \";\") },\n"
             "                    If(\n"
-            "                        Len(k) <= 1, \"(ingen pakke)\",\n"
+            "                        Len(k) <= 1, \"(no package)\",\n"
             "                        Concat(Sort(Filter(colVhpStrategyPackages As P, P.StrategyKey = varVhpPlan.Strategy && \";\" & Text(P.PackageNo) & \";\" in k), PackageNo), ShortCode, \", \")\n"
             "                    )\n"
             "                ),\n"
@@ -965,7 +965,7 @@ def build_email_fab():
             "            ) & Char(10) & Char(10),\n"
             "            \"\"\n"
             "        ) &\n"
-            "        \"Sendt fra VH-plan appen den \" & Text(Now(), \"dd-mm-yyyy hh:mm\")\n"
+            "        \"Sent from the VH-plan app on \" & Text(Now(), \"dd-mm-yyyy hh:mm\")\n"
             "    )\n"
             ");\n"
             "Set(varVhpRuntimeInfo, \"Email draft prepared: \" & Text(CountRows(colVhpItems)) & \" item(s).\")"

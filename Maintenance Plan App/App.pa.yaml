@@ -127,7 +127,7 @@ App:
 
       colVhpCtrlOptions = Sort(Distinct(MD_StandardTaskOperations, ControlKey), Value);
 
-      colVhpStrategies = Sort(ForAll(MD_Strategy As R, { Key: R.StrategyKey, Name: R.StrategyName, SchedIndicator: R.SchedulingIndicator.Value, Hierarchical: R.Hierarchical.Value, PackagesLoaded: R.PackagesLoaded, Display: R.StrategyKey & " - " & R.StrategyName & If(R.PackagesLoaded, "", "   (pakker mangler)") }), Key);
+      colVhpStrategies = Sort(ForAll(MD_Strategy As R, { Key: R.StrategyKey, Name: R.StrategyName, SchedIndicator: R.SchedulingIndicator.Value, Hierarchical: R.Hierarchical.Value, PackagesLoaded: R.PackagesLoaded, Display: R.StrategyKey & " - " & R.StrategyName & If(R.PackagesLoaded, "", "   (packages missing)") }), Key);
 
       colVhpStrategyPackages = ForAll(MD_StrategyPackage As R, { StrategyKey: R.StrategyKey, PackageNo: R.PackageNo, ShortCode: R.ShortCode, CycleLength: R.CycleLength, CycleUnit: R.CycleUnit.Value, Hierarchy: R.Hierarchy, PackageText: R.PackageText });
 

@@ -167,13 +167,13 @@ def build_bar():
                  width=fits(SHELL_W, BAR_MIN_W, SHELL_W,
                             f"{SHELL_W} - {BAR_RIGHT_W + BAR_GAP}"))
 
-    count = badge("txtDomCount", '"Raekker: " & CountRows(colDomRows)', width=110)
+    count = badge("txtDomCount", '"Rows: " & CountRows(colDomRows)', width=110)
     no = text_ctrl("txtDomReqNo",
-                   'If(IsBlank(varDomRequestNo), "Ikke indsendt", varDomRequestNo)',
+                   'If(IsBlank(varDomRequestNo), "Not submitted", varDomRequestNo)',
                    size=15, weight="Semibold", height=24, width=150, wrap="false")
     # Temaet med TILBAGE til hubben. Uden det skiftede hubben farve,
     # fordi brugeren gik retur - lageret er isoleret pr. app-id.
-    back = button("btnDomBack", '"Til hubben"',
+    back = button("btnDomBack", '"To the hub"',
                   f'Launch("{cfg.HUB_URL}" & {theme_query("?")}, {{ }}, '
                   f'LaunchTarget.Replace)',
                   width=140)
@@ -275,9 +275,9 @@ def build_fl_block():
     indeholder. Den foerste udgave i VH-plan brugte en combobox med
     indbygget soegning - den fik 819 raekker og viste nul."""
     q = text_input("txtDomFlQuery", '""',
-                   placeholder=f'"Mindst {fl.MIN_SEARCH_LEN} tegn - fx SSV10 KAB10"',
-                   width="Parent.Width", display_mode=DM_ROW, label="\"Soeg funktionsplads\"")
-    btn = button("btnDomFlSearch", '"Soeg"',
+                   placeholder=f'"At least {fl.MIN_SEARCH_LEN} characters - e.g. SSV10 KAB10"',
+                   width="Parent.Width", display_mode=DM_ROW, label="\"Search functional location\"")
+    btn = button("btnDomFlSearch", '"Search"',
                  fl.search_action("txtDomFlQuery", "colDomFl",
                                   "varDomFlLast", "varDomFlMsg"),
                  width=90, display_mode=DM_ROW)
@@ -287,12 +287,12 @@ def build_fl_block():
     drop = dropdown("drpDomFl", "colDomFl",
                     f"LookUp(colDomFl, Code = {_var(cfg.FL_FIELD)})",
                     item_display="ThisItem.Display", value_field="Code",
-                    display_mode=DM_ROW, label="\"Vaelg funktionsplads\"")
+                    display_mode=DM_ROW, label="\"Select functional location\"")
     drop.props["OnChange"] = f"Set({_var(cfg.FL_FIELD)}, Self.Selected.Code)"
 
     chosen = text_ctrl(
         "txtDomFlChosen",
-        f'If(IsBlank({_var(cfg.FL_FIELD)}), "Ingen valgt", "Valgt: " & {_var(cfg.FL_FIELD)})',
+        f'If(IsBlank({_var(cfg.FL_FIELD)}), "None selected", "Selected: " & {_var(cfg.FL_FIELD)})',
         size=12, color=C_MUTED, height=18, wrap="false")
     msg = text_ctrl("txtDomFlMsg", "varDomFlMsg", size=12, color=C_MUTED,
                     height=18, wrap="false")
@@ -305,13 +305,13 @@ def build_fl_block():
 
 def build_form():
     head = group("conDomFormHead", [
-        text_ctrl("txtDomFormH", '"Raekke"', size=16, weight="Semibold",
+        text_ctrl("txtDomFormH", '"Row"', size=16, weight="Semibold",
                   height=22, wrap="false"),
         text_ctrl("txtDomFormState",
                   ('If(\n'
                    '    IsBlank(varDomActiveRowId),\n'
-                   '    "Ny raekke - ikke gemt endnu",\n'
-                   '    "Redigerer " & Coalesce(' + ACTIVE + '.ItemKey, "raekke " & varDomActiveRowId) &\n'
+                   '    "New row - not saved yet",\n'
+                   '    "Editing " & Coalesce(' + ACTIVE + '.ItemKey, "row " & varDomActiveRowId) &\n'
                    '        " (" & varDomRowStatus & ")"\n'
                    ')'),
                   size=13, color=C_MUTED, height=20, wrap="false"),
@@ -375,14 +375,14 @@ def build_form():
     #
     # En kladde kraever kun beskrivelsen - listens Title er obligatorisk i
     # SharePoint, saa helt tom kan en raekke ikke vaere. Alt andet maa
-    # mangle. "Gem" kraever ogsaa vaerket, og det er DEN status, Indsend
+    # mangle. "Save" kraever ogsaa vaerket, og det er DEN status, Indsend
     # tager med.
-    draft = button("btnDomSaveDraft", '"Gem kladde"', save_row_fx("draft"),
+    draft = button("btnDomSaveDraft", '"Save draft"', save_row_fx("draft"),
                    width=150, display_mode=DM_ROW)
-    save = button("btnDomSave", '"Gem"', save_row_fx("valid"), primary=True,
+    save = button("btnDomSave", '"Save"', save_row_fx("valid"), primary=True,
                   width=130, display_mode=DM_ROW)
-    new = button("btnDomNew", '"Ny raekke"', clear_form_fx(), width=130)
-    delete = button("btnDomDelete", '"Slet raekke"', delete_row_fx(),
+    new = button("btnDomNew", '"New row"', clear_form_fx(), width=130)
+    delete = button("btnDomDelete", '"Delete row"', delete_row_fx(),
                     danger=True, width=150, display_mode=DM_SEL)
     kids.append(button_row("conDomFormActions",
                            [draft, save, new, delete], FORM_W))
@@ -450,7 +450,7 @@ def clear_form_fx():
         lines.append(f"Set({_var(col)}, {_blank(kind)});")
     lines.append('Set(varDomFlMsg, "");')
     lines.append('Reset(txtDomFlQuery);')
-    lines.append('Set(varDomInfo, "Ny raekke - udfyld og gem.")')
+    lines.append('Set(varDomInfo, "New row - fill in and save.")')
     return "\n".join(lines)
 
 
@@ -499,13 +499,13 @@ def save_row_fx(status="valid"):
 
     if status == "draft":
         guard = 'IsBlank(Trim(Coalesce(varDomFText, "")))'
-        msg = "%s skal udfyldes - ogsaa paa en kladde." % cfg.TEXT_LABEL
-        done = "Kladde gemt som "
+        msg = "%s is required - also on a draft." % cfg.TEXT_LABEL
+        done = "Draft saved as "
     else:
         guard = ('IsBlank(Trim(Coalesce(varDomFText, ""))) || '
                  "IsBlank(varDomFPlant)")
-        msg = "%s og %s skal udfyldes." % (cfg.TEXT_LABEL, cfg.PLANT_LABEL)
-        done = "Gemt som "
+        msg = "%s and %s are required." % (cfg.TEXT_LABEL, cfg.PLANT_LABEL)
+        done = "Saved as "
 
     return (
         # "Jeg har tjekket" - herfra maa kanterne vaere roede.
@@ -570,7 +570,7 @@ def delete_row_fx():
     return (
         "If(\n"
         "    IsBlank(varDomActiveRowId),\n"
-        '    Set(varDomInfo, "Vaelg en raekke i listen foerst."),\n'
+        '    Set(varDomInfo, "Select a row in the list first."),\n'
         "\n"
         f"    Remove({cfg.L_ROWS}, LookUp({cfg.L_ROWS}, ID = varDomActiveRowId));\n"
         "    RemoveIf(colDomAttachments, RowId = varDomActiveRowId);\n"
@@ -578,8 +578,8 @@ def delete_row_fx():
         + refresh_rows_fx(4) + ";\n"
         "\n"
         + clear_form_fx().replace("\n", "\n    ").replace(
-            'Set(varDomInfo, "Ny raekke - udfyld og gem.")',
-            'Set(varDomInfo, "Raekken er slettet. Dokumenterne ligger stadig i biblioteket.")')
+            'Set(varDomInfo, "New row - fill in and save.")',
+            'Set(varDomInfo, "Row deleted. The documents remain in the library.")')
         + "\n"
         ")"
     )
@@ -597,7 +597,7 @@ def delete_row_fx():
 # ---------------------------------------------------------------------------
 def build_attachments():
     picker = Ctrl(att.picker, "Attachments@2.3.0", props={
-        "AccessibleLabel": '"Vaelg dokumenter"',
+        "AccessibleLabel": '"Select documents"',
         "BorderColor": C_CARD_BORDER,
         "BorderThickness": "1",
         "DisplayMode": DM_SEL,
@@ -609,22 +609,22 @@ def build_attachments():
         # En datablad eller en manual er langt under; 50 MB var et tal, der
         # stod der, fordi det var stort nok - ikke fordi nogen havde valgt det.
         "MaxAttachmentSize": "10",
-        "NoAttachmentsText": '"Traek dokumenter hertil, eller gennemse"',
+        "NoAttachmentsText": '"Drag documents here, or browse"',
         "PaddingBottom": "5", "PaddingLeft": "5",
         "PaddingRight": "5", "PaddingTop": "5",
         "Width": "Parent.Width",
     }, h=110)
 
-    up = button("btnDomAttUpload", '"Laeg op i SharePoint"', att.upload_fx(),
+    up = button("btnDomAttUpload", '"Upload to SharePoint"', att.upload_fx(),
                 primary=True, display_mode=DM_SEL)
-    refresh = button("btnDomAttRefresh", '"Hent dokumenter"',
+    refresh = button("btnDomAttRefresh", '"Refresh documents"',
                      att.refresh_button_fx(), display_mode=DM_SEL)
-    rem = button("btnDomAttRemove", '"Fjern dokument"', att.delete_fx(),
+    rem = button("btnDomAttRemove", '"Remove document"', att.delete_fx(),
                  danger=True, display_mode=DM_SEL)
     actions = button_row("conDomAttActions", [up, refresh, rem], PANE_W)
 
     chk = Ctrl("chkDomAttSel", "ModernCheckbox", props={
-        "AccessibleLabel": '"Vaelg dokument"',
+        "AccessibleLabel": '"Select document"',
         "Default": "ThisItem.Selected",
         "Height": "24",
         "Label": '""',
@@ -650,7 +650,7 @@ def build_attachments():
     # fejl, galleriet stod tomt, og filerne laa i biblioteket hele tiden.
     gal_h = f"Max(CountRows({att.scope}), 1) * 34"
     gal = Ctrl("galDomAttachments", "Gallery", variant="Vertical", props={
-        "AccessibleLabel": '"Dokumenter paa den valgte raekke"',
+        "AccessibleLabel": '"Documents on the selected row"',
         "BorderStyle": "BorderStyle.None",
         "Fill": C_TRANSPARENT,
         "FillPortions": "0",
@@ -672,7 +672,7 @@ def build_attachments():
                       visible=f"IfError(CountRows({att.scope}) = 0, false)")
 
     return card("conDomAttCard",
-                [text_ctrl("txtDomAttH", '"Dokumenter"', size=16,
+                [text_ctrl("txtDomAttH", '"Documents"', size=16,
                            weight="Semibold", height=22, wrap="false"),
                  picker, actions, gal, empty])
 
@@ -696,7 +696,7 @@ SCOPE = (
     "Filter(\n"
     "    colDomRows,\n"
     f"    (IsBlank(Trim(txtDomSearch.Text)) || {SEARCH}),\n"
-    "    (drpDomStatusFilter.Selected.Value = \"alle\" ||\n"
+    "    (drpDomStatusFilter.Selected.Value = \"all\" ||\n"
     "     Status = drpDomStatusFilter.Selected.Value)\n"
     ")"
 )
@@ -710,12 +710,16 @@ def _head_cell(i, label, width):
 
 def build_rows():
     search = text_input("txtDomSearch", '""',
-                        placeholder='"Soeg i beskrivelse, funktionsplads, nummer"',
-                        width="360", label="\"Soeg i raekkerne\"")
+                        placeholder='"Search description, functional location, number"',
+                        width="360", label="\"Search the rows\"")
     # Samme regel som paa vaerkfeltet: Default er en RECORD fra Items.
-    filt = '["alle", "draft", "valid", "submitted"]'
+    # "all" er et LOKALT sentinel-ord: det betyder "filtrer ikke" og
+    # staar ingen steder i SharePoint. De tre andre ER lagrede vaerdier i
+    # colDomRows.Status og maa derfor ikke oversaettes - check_datasources
+    # efterproever dem mod udtraekket.
+    filt = '["all", "draft", "valid", "submitted"]'
     status = dropdown("drpDomStatusFilter", filt,
-                      f'LookUp({filt}, Value = "alle")', width="160", label="\"Filtrer paa status\"")
+                      f'LookUp({filt}, Value = "all")', width="160", label="\"Filter by status\"")
     toolbar = group("conDomToolbar", pin_widths([search, status]),
                     direction="Horizontal", gap=12, align_items="Center")
 
@@ -726,7 +730,7 @@ def build_rows():
                  align_items="Center")
 
     cells = [text_ctrl("txtDomRowText",
-                       f'If(IsBlank(Trim(ThisItem.{cfg.C_TEXT})), "(uden tekst)", ThisItem.{cfg.C_TEXT})',
+                       f'If(IsBlank(Trim(ThisItem.{cfg.C_TEXT})), "(no text)", ThisItem.{cfg.C_TEXT})',
                        size=14, height=20, width=MAIN_W, wrap="false")]
     for i, col in enumerate(cfg.LIST_FIELDS):
         cells.append(text_ctrl(f"txtDomRow{i}", f"ThisItem.{col}", size=13,
@@ -752,7 +756,7 @@ def build_rows():
 
     gal_h = f"Max(Min(CountRows({SCOPE}), {GAL_ROWS}), 1) * {ROW_H + 2}"
     gal = Ctrl("galDomRows", "Gallery", variant="Vertical", props={
-        "AccessibleLabel": '"Gemte raekker"',
+        "AccessibleLabel": '"Saved rows"',
         "BorderStyle": "BorderStyle.None",
         "Fill": C_TRANSPARENT,
         "FillPortions": "0",
@@ -771,12 +775,12 @@ def build_rows():
     }, children=[row], h=gal_h)
 
     empty = text_ctrl("txtDomNoRows",
-                      '"Ingen gemte raekker endnu."',
+                      '"No saved rows yet."',
                       size=13, color=C_MUTED, height=22, wrap="false",
                       visible="IfError(CountRows(colDomRows) = 0, false)")
 
     return card("conDomRowsCard",
-                [text_ctrl("txtDomRowsH", '"Gemte raekker"', size=16,
+                [text_ctrl("txtDomRowsH", '"Saved rows"', size=16,
                            weight="Semibold", height=22, wrap="false"),
                  toolbar, head, gal, empty])
 
@@ -801,7 +805,7 @@ def send_fx(submit):
     EEN INDEKSRAEKKE, IKKE EEN PR. TRYK
     -----------------------------------
     Raekken slaas op paa RequestGuid og oprettes kun, hvis den ikke findes.
-    Ellers ville "Send som kladde" og derefter "Indsend" give TO raekker
+    Ellers ville "Send som kladde" og derefter "Submit" give TO raekker
     paa landingssiden for den samme indmelding - og den foerste ville
     blive staaende som kladde for evigt. Det er samme konstruktion som
     VH-plan-appens gem.
@@ -814,9 +818,9 @@ def send_fx(submit):
     rows = VALID if submit else SENDABLE
     status = "Indsendt" if submit else "Kladde"
     step = 2 if submit else 1
-    label = "Indsendt" if submit else "Gemt som kladde"
-    empty = ("Der er ingen faerdige raekker at indsende."
-             if submit else "Der er ingen raekker at gemme.")
+    label = "Submitted" if submit else "Saved as draft"
+    empty = ("There are no completed rows to submit."
+             if submit else "There are no rows to save.")
 
     # Kun en indsendelse laaser raekkerne. En kladde skal stadig kunne
     # rettes - ellers er det ikke en kladde.
@@ -859,7 +863,7 @@ def send_fx(submit):
         "                    RequesterEmail: varDomMe,\n"
         "                    RequesterName: User().FullName,\n"
         f'                    ShortText: "{cfg.TITLE}: " & CountRows({rows}) '
-        '& " raekke(r)",\n'
+        '& " row(s)",\n'
         f"                    Plant: First({rows}).Plant,\n"
         f"                    ItemCount: CountRows({rows}),\n"
         "                    RequestGuid: varDomRequestGuid,\n"
@@ -894,11 +898,11 @@ def send_fx(submit):
         + refresh_rows_fx(8) + ";\n"
         "\n"
         f'        Set(varDomInfo, "{label}: " & varDomRequestNo);\n'
-        f'        Notify("{label} som " & varDomRequestNo & " - se den paa '
-        'landingssiden.", NotificationType.Success),\n'
+        f'        Notify("{label} as " & varDomRequestNo & " - see it on the '
+        'landing page.", NotificationType.Success),\n'
         "\n"
-        '        Set(varDomInfo, "Det fejlede: " & FirstError.Message);\n'
-        '        Notify("Det fejlede: " & FirstError.Message, '
+        '        Set(varDomInfo, "It failed: " & FirstError.Message);\n'
+        '        Notify("It failed: " & FirstError.Message, '
         "NotificationType.Error)\n"
         "    )\n"
         ")"
@@ -907,28 +911,28 @@ def send_fx(submit):
 
 def build_submit():
     draft = button(
-        "btnDomSendDraft", '"Gem som kladde"', send_fx(False), width=180,
+        "btnDomSendDraft", '"Save as draft"', send_fx(False), width=180,
         display_mode=f'If(CountRows({SENDABLE}) = 0, DisplayMode.Disabled, DisplayMode.Edit)')
     submit = button(
-        "btnDomSubmit", '"Indsend"', send_fx(True), primary=True, width=150,
+        "btnDomSubmit", '"Submit"', send_fx(True), primary=True, width=150,
         display_mode=f'If(CountRows({VALID}) = 0, DisplayMode.Disabled, DisplayMode.Edit)')
     # "Hent forfra" stod BEGGE steder - her og paa dokumentruden - og
     # betoed to forskellige ting. Nu siger navnet hvad der hentes.
-    reload_ = button("btnDomReload", '"Hent raekker forfra"',
-                     refresh_rows_fx() + ';\nSet(varDomInfo, "Hentet forfra.")',
+    reload_ = button("btnDomReload", '"Reload rows"',
+                     refresh_rows_fx() + ';\nSet(varDomInfo, "Reloaded.")',
                      width=150)
     note = text_ctrl(
         "txtDomSubmitNote",
-        ('"Send som kladde laegger indmeldingen paa landingssiden med status '
-         'Kladde - den kan stadig rettes. Indsend laaser raekkerne og saetter '
-         'status til Indsendt. Begge skriver i den SAMME raekke i indekset."'),
+        ('"Save as draft puts the request on the landing page with status Draft '
+         '- it can still be edited. Submit locks the rows and sets the status '
+         'to Submitted. Both write to the SAME row in the index."'),
         size=12, color=C_MUTED, height=18, wrap="false")
     state = text_ctrl(
         "txtDomSubmitState",
         ('If(\n'
          '    IsBlank(varDomRequestNo),\n'
-         '    "Indmeldingen er ikke sendt til hubben endnu.",\n'
-         '    "Indmelding " & varDomRequestNo & " ligger paa landingssiden."\n'
+         '    "The request has not been sent to the hub yet.",\n'
+         '    "Request " & varDomRequestNo & " is on the landing page."\n'
          ')'),
         size=13, height=20, wrap="false")
     return card("conDomSubmitCard",

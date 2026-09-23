@@ -161,7 +161,7 @@ def save_action(submit=False):
     plan_status = PLAN_STATUS_SUBMITTED if submit else PLAN_STATUS_DRAFT
     idx_status = "Indsendt" if submit else "Kladde"
     idx_step = 2 if submit else 1
-    verb = "indsendt" if submit else "gemt"
+    verb = "submitted" if submit else "saved"
 
     # Planhovedets felter. PlannedDate samles af de tre First Call-felter.
     plan_fields = (
@@ -189,8 +189,19 @@ def save_action(submit=False):
     item_fields = (
         "{\n"
         "                        Title: IT.ShortText,\n"
-        "                        Status: { Value: Switch(varVhpPlan.Status,\n"
-        "                            \"Ny\", \"New\", \"AEndre\", \"Change\", \"Slettes\", \"Deleted\", \"New\") },\n"
+        # DEN HER SWITCH RAMTE ALDRIG
+        #
+        # Noeglerne var danske - "Ny", "AEndre", "Slettes" - men
+        # varVhpPlan.Status kommer fra drpVhpStatus, hvis Items er
+        # Choices(MaintenanceItems.Status). SharePoints egne valg
+        # ER "New", "Change", "Deleted" (se schema.md). Ingen af de
+        # tre danske noegler kunne derfor matche, og HVERT item blev
+        # skrevet som "New" - ogsaa naar brugeren havde valgt Change
+        # eller Deleted. Fundet under oversaettelsen til engelsk.
+        #
+        # Vaerdien er allerede den rigtige; der skal ikke oversaettes
+        # noget. Coalesce daekker den tomme plan.
+        "                        Status: { Value: Coalesce(varVhpPlan.Status, \"New\") },\n"
         "                        MaintenancePlanNo: { Id: planId, Value: planKey },\n"
         "                        ItemDescription: Coalesce(IT.LongText, IT.ShortText),\n"
         "                        FunctionalLocation: IT.FunctionalLocation,\n"
@@ -525,8 +536,8 @@ def save_action(submit=False):
         "                        Set(\n"
         "                            varVhpRuntimeInfo,\n"
         f"                            planKey & \" {verb}: \" & Text(CountRows(colVhpItems)) &\n"
-        "                                \" item(s) og \" & Text(CountRows(colVhpOperations)) &\n"
-        "                                \" operation(er).\"\n"
+        "                                \" item(s) and \" & Text(CountRows(colVhpOperations)) &\n"
+        "                                \" operation(s).\"\n"
         "                        );\n"
         f"                        Notify(planKey & \" {verb}.\", NotificationType.Success)\n"
         "                    )\n"
@@ -543,7 +554,7 @@ def save_action(submit=False):
 
 
 def build_save_section():
-    header = section_header("conVhpSaveHead", "Gem i SharePoint",
+    header = section_header("conVhpSaveHead", "Save to SharePoint",
                             "The plan, its items and operations are written to the lists, "
                             "and the request appears on the landing page.", "Step 6")
 
@@ -569,9 +580,9 @@ def build_save_section():
           "    DisplayMode.Edit\n"
           ")")
 
-    btnDraft = button("btnVhpSaveDraft", "\"Gem kladde\"", save_action(submit=False),
+    btnDraft = button("btnVhpSaveDraft", "\"Save draft\"", save_action(submit=False),
                       display_mode=DM)
-    btnSubmit = button("btnVhpSubmit", "\"Indsend\"", save_action(submit=True),
+    btnSubmit = button("btnVhpSubmit", "\"Submit\"", save_action(submit=True),
                        primary=True, display_mode=DM)
     # Kortet har 18 px polstring i hver side.
     CARD_W = f"({SHELL_W} - 36)"

@@ -173,7 +173,7 @@ def named_formulas():
              ("Hierarchical", "R.Hierarchical.Value"),
              ("PackagesLoaded", "R.PackagesLoaded"),
              ("Display", f"R.{C_STRATEGY_KEY} & \" - \" & R.StrategyName & "
-                         "If(R.PackagesLoaded, \"\", \"   (pakker mangler)\")")])
+                         "If(R.PackagesLoaded, \"\", \"   (packages missing)\")")])
         + ", Key)")
 
     add("colVhpStrategyPackages",

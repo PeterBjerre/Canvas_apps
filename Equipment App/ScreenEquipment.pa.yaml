@@ -57,7 +57,7 @@ Screens:
           Set(varDomFLongText, "");
           Set(varDomFlMsg, "");
           Reset(txtDomFlQuery);
-          Set(varDomInfo, "Ny raekke - udfyld og gem.")
+          Set(varDomInfo, "New row - fill in and save.")
     Children:
       - conDomRoot:
           Control: GroupContainer
@@ -100,7 +100,7 @@ Screens:
                       =60 + (0 + (Max((52), (36))) * 2 + 20) + 16 + (288 + (44) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + (62) + (62) + 60, Max((62), (62), (62), (62)))) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + (62) + (62) + 60, Max((62), (62), (62), (62)))) + 14 + (152) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + (62) + (62) + 60, Max((62), (62), (62), (62)))) + 14 + (If((((App.Width - 64) - 36)) < 640, (62), (62))) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + 20, Max((62), (62)))) + 14 + (166)) + 16 + (0 + (Max((0 + (140 + 14 + (Max(Min(CountRows(Filter(
                           colDomRows,
                           (IsBlank(Trim(txtDomSearch.Text)) || Trim(txtDomSearch.Text) in Description || Trim(txtDomSearch.Text) in FunctionalLocation || Trim(txtDomSearch.Text) in SerialNumber || Trim(txtDomSearch.Text) in EquipmentNumber),
-                          (drpDomStatusFilter.Selected.Value = "alle" ||
+                          (drpDomStatusFilter.Selected.Value = "all" ||
                            Status = drpDomStatusFilter.Selected.Value)
                       )), 8), 1) * 46) + If(IfError(CountRows(colDomRows) = 0, false), 14 + (22), 0))), (0 + (232 + 14 + (Max(CountRows(Filter(colDomAttachments, RowId = varDomActiveRowId)), 1) * 34) + If(IfError(CountRows(Filter(colDomAttachments, RowId = varDomActiveRowId)) = 0, false), 14 + (36), 0))))) * 1 + 0) + 16 + (138)
                   LayoutAlignItems: |-
@@ -207,7 +207,7 @@ Screens:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Opret, aendr og slet udstyr - og send indberetningen videre."
+                                        ="Create, change and delete equipment - and pass the request on."
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -231,7 +231,7 @@ Screens:
                                     Size: |-
                                         =13
                                     Text: |-
-                                        ="Opret, aendr og slet udstyr - og send indberetningen videre."
+                                        ="Create, change and delete equipment - and pass the request on."
                                     Wrap: |-
                                         =false
                         - conDomBarRight:
@@ -263,7 +263,7 @@ Screens:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Raekker: " & CountRows(colDomRows)
+                                        ="Rows: " & CountRows(colDomRows)
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
@@ -303,7 +303,7 @@ Screens:
                                     Size: |-
                                         =11
                                     Text: |-
-                                        ="Raekker: " & CountRows(colDomRows)
+                                        ="Rows: " & CountRows(colDomRows)
                                     Width: |-
                                         =110
                                     Wrap: |-
@@ -312,7 +312,7 @@ Screens:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
-                                        =If(IsBlank(varDomRequestNo), "Ikke indsendt", varDomRequestNo)
+                                        =If(IsBlank(varDomRequestNo), "Not submitted", varDomRequestNo)
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -340,7 +340,7 @@ Screens:
                                     Size: |-
                                         =15
                                     Text: |-
-                                        =If(IsBlank(varDomRequestNo), "Ikke indsendt", varDomRequestNo)
+                                        =If(IsBlank(varDomRequestNo), "Not submitted", varDomRequestNo)
                                     Width: |-
                                         =150
                                     Wrap: |-
@@ -349,7 +349,7 @@ Screens:
                                   Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        =If(darkModeEnabled, "Skift til lyst tema", "Skift til moerkt tema")
+                                        =If(darkModeEnabled, "Switch to light theme", "Switch to dark theme")
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
@@ -387,7 +387,7 @@ Screens:
                                     Size: |-
                                         =14
                                     Text: |-
-                                        =If(darkModeEnabled, "Lys", "Moerk")
+                                        =If(darkModeEnabled, "Light", "Dark")
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
@@ -396,7 +396,7 @@ Screens:
                                   Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Til hubben"
+                                        ="To the hub"
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
@@ -432,7 +432,7 @@ Screens:
                                     Size: |-
                                         =14
                                     Text: |-
-                                        ="Til hubben"
+                                        ="To the hub"
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
@@ -507,7 +507,7 @@ Screens:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Raekke"
+                                        ="Row"
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -533,7 +533,7 @@ Screens:
                                     Size: |-
                                         =16
                                     Text: |-
-                                        ="Raekke"
+                                        ="Row"
                                     Wrap: |-
                                         =false
                               - txtDomFormState:
@@ -542,8 +542,8 @@ Screens:
                                     AccessibleLabel: |-
                                         =If(
                                             IsBlank(varDomActiveRowId),
-                                            "Ny raekke - ikke gemt endnu",
-                                            "Redigerer " & Coalesce(LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey, "raekke " & varDomActiveRowId) &
+                                            "New row - not saved yet",
+                                            "Editing " & Coalesce(LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey, "row " & varDomActiveRowId) &
                                                 " (" & varDomRowStatus & ")"
                                         )
                                     BorderStyle: |-
@@ -571,8 +571,8 @@ Screens:
                                     Text: |-
                                         =If(
                                             IsBlank(varDomActiveRowId),
-                                            "Ny raekke - ikke gemt endnu",
-                                            "Redigerer " & Coalesce(LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey, "raekke " & varDomActiveRowId) &
+                                            "New row - not saved yet",
+                                            "Editing " & Coalesce(LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey, "row " & varDomActiveRowId) &
                                                 " (" & varDomRowStatus & ")"
                                         )
                                     Wrap: |-
@@ -581,7 +581,7 @@ Screens:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  ="Hvad skal der ske"
+                                  ="What should happen"
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -607,7 +607,7 @@ Screens:
                               Size: |-
                                   =13
                               Text: |-
-                                  ="Hvad skal der ske"
+                                  ="What should happen"
                               Wrap: |-
                                   =false
                         - conDomRow0_1:
@@ -687,7 +687,7 @@ Screens:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Beskrivelse"
+                                                    ="Description"
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -713,7 +713,7 @@ Screens:
                                                 Size: |-
                                                     =13
                                                 Text: |-
-                                                    ="Beskrivelse"
+                                                    ="Description"
                                                 Wrap: |-
                                                     =false
                                           - conDomTextStar:
@@ -755,7 +755,7 @@ Screens:
                                         Control: ModernTextInput
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Beskrivelse, paakraevet"
+                                              ="Description, required"
                                           BorderColor: |-
                                               =If(
                                                   varDomValidated && IsBlank(Trim(Self.Text)),
@@ -785,7 +785,7 @@ Screens:
                                           OnChange: |-
                                               =Set(varDomFText, Self.Text)
                                           Placeholder: |-
-                                              ="Kort tekst, hoejst 40 tegn"
+                                              ="Short text, max 40 characters"
                                           RadiusBottomLeft: |-
                                               =10
                                           RadiusBottomRight: |-
@@ -920,7 +920,7 @@ Screens:
                                         Control: ModernDropdown
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Plant, paakraevet"
+                                              ="Plant, required"
                                           Appearance: |-
                                               =Appearance.Outline
                                           BorderColor: |-
@@ -1785,7 +1785,7 @@ Screens:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  ="Hvor sidder det"
+                                  ="Where it sits"
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -1811,7 +1811,7 @@ Screens:
                               Size: |-
                                   =13
                               Text: |-
-                                  ="Hvor sidder det"
+                                  ="Where it sits"
                               Wrap: |-
                                   =false
                         - conDomFlBlock:
@@ -1920,7 +1920,7 @@ Screens:
                                         Control: ModernTextInput
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Soeg funktionsplads"
+                                              ="Search functional location"
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -1942,7 +1942,7 @@ Screens:
                                           LayoutMinWidth: |-
                                               =0
                                           Placeholder: |-
-                                              ="Mindst 7 tegn - fx SSV10 KAB10"
+                                              ="At least 7 characters - e.g. SSV10 KAB10"
                                           RadiusBottomLeft: |-
                                               =10
                                           RadiusBottomRight: |-
@@ -1961,7 +1961,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Soeg"
+                                              ="Search"
                                           Align: |-
                                               =Align.Center
                                           AlignInContainer: |-
@@ -2010,7 +2010,7 @@ Screens:
                                                           Code: Text(R.Value.functionKey),
                                                           Description: Text(R.Value.description),
                                                           Display: Text(R.Value.functionKey) & " - " & Text(R.Value.description) &
-                                                              If(Boolean(R.Value.maintainable), "", "   (ikke vedligeholdbar)"),
+                                                              If(Boolean(R.Value.maintainable), "", "   (not maintainable)"),
                                                           Maintainable: Boolean(R.Value.maintainable),
                                                           Level: Text(R.Value.level)
                                                       }
@@ -2024,19 +2024,19 @@ Screens:
                                                                   { n: CountRows(colDomFl) },
                                                                   If(
                                                                       n = 0,
-                                                                      "Ingen Functional Locations fundet for " & q & ".",
+                                                                      "No Functional Locations found for " & q & ".",
                                                                       Text(n) & " Functional Locations fundet for " & q & ". " &
                                                                           If(
                                                                               n > 50,
-                                                                              "Listen er lang - soeg paa flere tegn for at indsnaevre.",
-                                                                              "Vaelg en i listen nedenfor."
+                                                                              "The list is long - type more characters to narrow it.",
+                                                                              "Select one from the list below."
                                                                           )
                                                                   )
                                                               )
                                                           ),
                                                           Clear(colDomFl);
                                                           Set(varDomFlLast, "");
-                                                          Set(varDomFlMsg, "Soegningen fejlede: " & FirstError.Message)
+                                                          Set(varDomFlMsg, "Search failed: " & FirstError.Message)
                                                       )
                                                   )
                                               )
@@ -2051,7 +2051,7 @@ Screens:
                                           Size: |-
                                               =14
                                           Text: |-
-                                              ="Soeg"
+                                              ="Search"
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
@@ -2060,7 +2060,7 @@ Screens:
                                   Control: ModernDropdown
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Vaelg funktionsplads"
+                                        ="Select functional location"
                                     Appearance: |-
                                         =Appearance.Outline
                                     BorderColor: |-
@@ -2107,7 +2107,7 @@ Screens:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
-                                        =If(IsBlank(varDomFFunctionalLocation), "Ingen valgt", "Valgt: " & varDomFFunctionalLocation)
+                                        =If(IsBlank(varDomFFunctionalLocation), "None selected", "Selected: " & varDomFFunctionalLocation)
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -2131,7 +2131,7 @@ Screens:
                                     Size: |-
                                         =12
                                     Text: |-
-                                        =If(IsBlank(varDomFFunctionalLocation), "Ingen valgt", "Valgt: " & varDomFFunctionalLocation)
+                                        =If(IsBlank(varDomFFunctionalLocation), "None selected", "Selected: " & varDomFFunctionalLocation)
                                     Wrap: |-
                                         =false
                               - txtDomFlMsg:
@@ -2849,7 +2849,7 @@ Screens:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  ="Garanti"
+                                  ="Warranty"
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -2875,7 +2875,7 @@ Screens:
                               Size: |-
                                   =13
                               Text: |-
-                                  ="Garanti"
+                                  ="Warranty"
                               Wrap: |-
                                   =false
                         - conDomRow3_end:
@@ -2955,7 +2955,7 @@ Screens:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Garanti start"
+                                                    ="Warranty from"
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -2981,14 +2981,14 @@ Screens:
                                                 Size: |-
                                                     =13
                                                 Text: |-
-                                                    ="Garanti start"
+                                                    ="Warranty from"
                                                 Wrap: |-
                                                     =false
                                     - inpWarrantyStart:
                                         Control: ModernDatePicker
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Garanti start"
+                                              ="Warranty from"
                                           Appearance: |-
                                               =Appearance.Outline
                                           BorderColor: |-
@@ -3079,7 +3079,7 @@ Screens:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Garanti slut"
+                                                    ="Warranty to"
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -3105,14 +3105,14 @@ Screens:
                                                 Size: |-
                                                     =13
                                                 Text: |-
-                                                    ="Garanti slut"
+                                                    ="Warranty to"
                                                 Wrap: |-
                                                     =false
                                     - inpWarrantyEnd:
                                         Control: ModernDatePicker
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Garanti slut"
+                                              ="Warranty to"
                                           Appearance: |-
                                               =Appearance.Outline
                                           BorderColor: |-
@@ -3337,7 +3337,7 @@ Screens:
                                   Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Gem kladde"
+                                        ="Save draft"
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
@@ -3366,7 +3366,7 @@ Screens:
                                         =Set(varDomValidated, true);
                                         If(
                                             IsBlank(Trim(Coalesce(varDomFText, ""))),
-                                            Notify("Beskrivelse skal udfyldes - ogsaa paa en kladde.", NotificationType.Warning),
+                                            Notify("Description is required - also on a draft.", NotificationType.Warning),
                                         
                                             IfError(
                                             Set(
@@ -3452,8 +3452,8 @@ Screens:
                                                 )
                                             );
                                         
-                                            Set(varDomInfo, "Kladde gemt som " & LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey);
-                                            Notify("Kladde gemt som " & LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey, NotificationType.Success),
+                                            Set(varDomInfo, "Draft saved as " & LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey);
+                                            Notify("Draft saved as " & LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey, NotificationType.Success),
                                         
                                             Set(varDomInfo, "Gemning fejlede: " & FirstError.Message);
                                             Notify("Gemning fejlede: " & FirstError.Message, NotificationType.Error)
@@ -3470,7 +3470,7 @@ Screens:
                                     Size: |-
                                         =14
                                     Text: |-
-                                        ="Gem kladde"
+                                        ="Save draft"
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
@@ -3479,7 +3479,7 @@ Screens:
                                   Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Gem"
+                                        ="Save"
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
@@ -3504,7 +3504,7 @@ Screens:
                                         =Set(varDomValidated, true);
                                         If(
                                             IsBlank(Trim(Coalesce(varDomFText, ""))) || IsBlank(varDomFPlant),
-                                            Notify("Beskrivelse og Plant skal udfyldes.", NotificationType.Warning),
+                                            Notify("Description and Plant are required.", NotificationType.Warning),
                                         
                                             IfError(
                                             Set(
@@ -3590,8 +3590,8 @@ Screens:
                                                 )
                                             );
                                         
-                                            Set(varDomInfo, "Gemt som " & LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey);
-                                            Notify("Gemt som " & LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey, NotificationType.Success),
+                                            Set(varDomInfo, "Saved as " & LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey);
+                                            Notify("Saved as " & LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey, NotificationType.Success),
                                         
                                             Set(varDomInfo, "Gemning fejlede: " & FirstError.Message);
                                             Notify("Gemning fejlede: " & FirstError.Message, NotificationType.Error)
@@ -3608,7 +3608,7 @@ Screens:
                                     Size: |-
                                         =14
                                     Text: |-
-                                        ="Gem"
+                                        ="Save"
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
@@ -3617,7 +3617,7 @@ Screens:
                                   Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Ny raekke"
+                                        ="New row"
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
@@ -3663,7 +3663,7 @@ Screens:
                                         Set(varDomFLongText, "");
                                         Set(varDomFlMsg, "");
                                         Reset(txtDomFlQuery);
-                                        Set(varDomInfo, "Ny raekke - udfyld og gem.")
+                                        Set(varDomInfo, "New row - fill in and save.")
                                     RadiusBottomLeft: |-
                                         =10
                                     RadiusBottomRight: |-
@@ -3675,7 +3675,7 @@ Screens:
                                     Size: |-
                                         =14
                                     Text: |-
-                                        ="Ny raekke"
+                                        ="New row"
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
@@ -3684,7 +3684,7 @@ Screens:
                                   Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Slet raekke"
+                                        ="Delete row"
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
@@ -3712,7 +3712,7 @@ Screens:
                                     OnSelect: |-
                                         =If(
                                             IsBlank(varDomActiveRowId),
-                                            Set(varDomInfo, "Vaelg en raekke i listen foerst."),
+                                            Set(varDomInfo, "Select a row in the list first."),
                                         
                                             Remove(EquipmentItems, LookUp(EquipmentItems, ID = varDomActiveRowId));
                                             RemoveIf(colDomAttachments, RowId = varDomActiveRowId);
@@ -3770,7 +3770,7 @@ Screens:
                                             Set(varDomFLongText, "");
                                             Set(varDomFlMsg, "");
                                             Reset(txtDomFlQuery);
-                                            Set(varDomInfo, "Raekken er slettet. Dokumenterne ligger stadig i biblioteket.")
+                                            Set(varDomInfo, "Row deleted. The documents remain in the library.")
                                         )
                                     RadiusBottomLeft: |-
                                         =10
@@ -3783,7 +3783,7 @@ Screens:
                                     Size: |-
                                         =14
                                     Text: |-
-                                        ="Slet raekke"
+                                        ="Delete row"
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
@@ -3833,7 +3833,7 @@ Screens:
                             =0 + (Max((0 + (140 + 14 + (Max(Min(CountRows(Filter(
                                 colDomRows,
                                 (IsBlank(Trim(txtDomSearch.Text)) || Trim(txtDomSearch.Text) in Description || Trim(txtDomSearch.Text) in FunctionalLocation || Trim(txtDomSearch.Text) in SerialNumber || Trim(txtDomSearch.Text) in EquipmentNumber),
-                                (drpDomStatusFilter.Selected.Value = "alle" ||
+                                (drpDomStatusFilter.Selected.Value = "all" ||
                                  Status = drpDomStatusFilter.Selected.Value)
                             )), 8), 1) * 46) + If(IfError(CountRows(colDomRows) = 0, false), 14 + (22), 0))), (0 + (232 + 14 + (Max(CountRows(Filter(colDomAttachments, RowId = varDomActiveRowId)), 1) * 34) + If(IfError(CountRows(Filter(colDomAttachments, RowId = varDomActiveRowId)) = 0, false), 14 + (36), 0))))) * 1 + 0
                         LayoutAlignItems: |-
@@ -3863,7 +3863,7 @@ Screens:
                                   =0 + (140 + 14 + (Max(Min(CountRows(Filter(
                                       colDomRows,
                                       (IsBlank(Trim(txtDomSearch.Text)) || Trim(txtDomSearch.Text) in Description || Trim(txtDomSearch.Text) in FunctionalLocation || Trim(txtDomSearch.Text) in SerialNumber || Trim(txtDomSearch.Text) in EquipmentNumber),
-                                      (drpDomStatusFilter.Selected.Value = "alle" ||
+                                      (drpDomStatusFilter.Selected.Value = "all" ||
                                        Status = drpDomStatusFilter.Selected.Value)
                                   )), 8), 1) * 46) + If(IfError(CountRows(colDomRows) = 0, false), 14 + (22), 0))
                               LayoutAlignItems: |-
@@ -3895,7 +3895,7 @@ Screens:
                                         =140 + 14 + (Max(Min(CountRows(Filter(
                                             colDomRows,
                                             (IsBlank(Trim(txtDomSearch.Text)) || Trim(txtDomSearch.Text) in Description || Trim(txtDomSearch.Text) in FunctionalLocation || Trim(txtDomSearch.Text) in SerialNumber || Trim(txtDomSearch.Text) in EquipmentNumber),
-                                            (drpDomStatusFilter.Selected.Value = "alle" ||
+                                            (drpDomStatusFilter.Selected.Value = "all" ||
                                              Status = drpDomStatusFilter.Selected.Value)
                                         )), 8), 1) * 46) + If(IfError(CountRows(colDomRows) = 0, false), 14 + (22), 0)
                                     LayoutAlignItems: |-
@@ -3929,7 +3929,7 @@ Screens:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Gemte raekker"
+                                              ="Saved rows"
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -3955,7 +3955,7 @@ Screens:
                                           Size: |-
                                               =16
                                           Text: |-
-                                              ="Gemte raekker"
+                                              ="Saved rows"
                                           Wrap: |-
                                               =false
                                     - conDomToolbar:
@@ -3985,7 +3985,7 @@ Screens:
                                               Control: ModernTextInput
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Soeg i raekkerne"
+                                                    ="Search the rows"
                                                 BorderColor: |-
                                                     =C.'border-default'
                                                 BorderStyle: |-
@@ -4005,7 +4005,7 @@ Screens:
                                                 LayoutMinWidth: |-
                                                     =360
                                                 Placeholder: |-
-                                                    ="Soeg i beskrivelse, funktionsplads, nummer"
+                                                    ="Search description, functional location, number"
                                                 RadiusBottomLeft: |-
                                                     =10
                                                 RadiusBottomRight: |-
@@ -4024,7 +4024,7 @@ Screens:
                                               Control: ModernDropdown
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Filtrer paa status"
+                                                    ="Filter by status"
                                                 Appearance: |-
                                                     =Appearance.Outline
                                                 BorderColor: |-
@@ -4036,7 +4036,7 @@ Screens:
                                                 Color: |-
                                                     =C.'text-primary'
                                                 Default: |-
-                                                    =LookUp(["alle", "draft", "valid", "submitted"], Value = "alle")
+                                                    =LookUp(["all", "draft", "valid", "submitted"], Value = "all")
                                                 Fill: |-
                                                     =C.'input-bg'
                                                 Font: |-
@@ -4046,7 +4046,7 @@ Screens:
                                                 ItemDisplayText: |-
                                                     =ThisItem.Value
                                                 Items: |-
-                                                    =["alle", "draft", "valid", "submitted"]
+                                                    =["all", "draft", "valid", "submitted"]
                                                 LayoutMinWidth: |-
                                                     =160
                                                 RadiusBottomLeft: |-
@@ -4090,7 +4090,7 @@ Screens:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="BESKRIVELSE"
+                                                    ="DESCRIPTION"
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -4116,7 +4116,7 @@ Screens:
                                                 Size: |-
                                                     =11
                                                 Text: |-
-                                                    ="BESKRIVELSE"
+                                                    ="DESCRIPTION"
                                                 Width: |-
                                                     =Max(Min(Parent.Width - 540, 460), 150)
                                                 Wrap: |-
@@ -4348,7 +4348,7 @@ Screens:
                                         Variant: Vertical
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Gemte raekker"
+                                              ="Saved rows"
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           Fill: |-
@@ -4359,14 +4359,14 @@ Screens:
                                               =Max(Min(CountRows(Filter(
                                                   colDomRows,
                                                   (IsBlank(Trim(txtDomSearch.Text)) || Trim(txtDomSearch.Text) in Description || Trim(txtDomSearch.Text) in FunctionalLocation || Trim(txtDomSearch.Text) in SerialNumber || Trim(txtDomSearch.Text) in EquipmentNumber),
-                                                  (drpDomStatusFilter.Selected.Value = "alle" ||
+                                                  (drpDomStatusFilter.Selected.Value = "all" ||
                                                    Status = drpDomStatusFilter.Selected.Value)
                                               )), 8), 1) * 46
                                           Items: |-
                                               =Sort(Filter(
                                                   colDomRows,
                                                   (IsBlank(Trim(txtDomSearch.Text)) || Trim(txtDomSearch.Text) in Description || Trim(txtDomSearch.Text) in FunctionalLocation || Trim(txtDomSearch.Text) in SerialNumber || Trim(txtDomSearch.Text) in EquipmentNumber),
-                                                  (drpDomStatusFilter.Selected.Value = "alle" ||
+                                                  (drpDomStatusFilter.Selected.Value = "all" ||
                                                    Status = drpDomStatusFilter.Selected.Value)
                                               ), RowId, SortOrder.Descending)
                                           LayoutMinWidth: |-
@@ -4473,7 +4473,7 @@ Screens:
                                                     Control: ModernText
                                                     Properties:
                                                       AccessibleLabel: |-
-                                                          =If(IsBlank(Trim(ThisItem.Description)), "(uden tekst)", ThisItem.Description)
+                                                          =If(IsBlank(Trim(ThisItem.Description)), "(no text)", ThisItem.Description)
                                                       BorderStyle: |-
                                                           =BorderStyle.None
                                                       BorderThickness: |-
@@ -4497,7 +4497,7 @@ Screens:
                                                       Size: |-
                                                           =14
                                                       Text: |-
-                                                          =If(IsBlank(Trim(ThisItem.Description)), "(uden tekst)", ThisItem.Description)
+                                                          =If(IsBlank(Trim(ThisItem.Description)), "(no text)", ThisItem.Description)
                                                       Width: |-
                                                           =Max(Min(Parent.Width - 540, 460), 150)
                                                       Wrap: |-
@@ -4794,7 +4794,7 @@ Screens:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Ingen gemte raekker endnu."
+                                              ="No saved rows yet."
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -4818,7 +4818,7 @@ Screens:
                                           Size: |-
                                               =13
                                           Text: |-
-                                              ="Ingen gemte raekker endnu."
+                                              ="No saved rows yet."
                                           Visible: |-
                                               =IfError(CountRows(colDomRows) = 0, false)
                                           Wrap: |-
@@ -4893,7 +4893,7 @@ Screens:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Dokumenter"
+                                              ="Documents"
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -4919,14 +4919,14 @@ Screens:
                                           Size: |-
                                               =16
                                           Text: |-
-                                              ="Dokumenter"
+                                              ="Documents"
                                           Wrap: |-
                                               =false
                                     - attDomPicker:
                                         Control: Attachments@2.3.0
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Vaelg dokumenter"
+                                              ="Select documents"
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderThickness: |-
@@ -4940,7 +4940,7 @@ Screens:
                                           MaxAttachments: |-
                                               =10
                                           NoAttachmentsText: |-
-                                              ="Traek dokumenter hertil, eller gennemse"
+                                              ="Drag documents here, or browse"
                                           PaddingBottom: |-
                                               =5
                                           PaddingLeft: |-
@@ -4978,7 +4978,7 @@ Screens:
                                               Control: ModernButton
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Laeg op i SharePoint"
+                                                    ="Upload to SharePoint"
                                                 Align: |-
                                                     =Align.Center
                                                 AlignInContainer: |-
@@ -5002,7 +5002,7 @@ Screens:
                                                 OnSelect: |-
                                                     =If(
                                                         IsBlank(LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey),
-                                                        Notify("Gem raekken foerst - mappen hedder raekkens noegle.", NotificationType.Warning),
+                                                        Notify("Save the row first - the folder is named after the row key.", NotificationType.Warning),
                                                     
                                                         If(
                                                             CountRows(attDomPicker.Attachments) = 0,
@@ -5084,7 +5084,7 @@ Screens:
                                                 Size: |-
                                                     =14
                                                 Text: |-
-                                                    ="Laeg op i SharePoint"
+                                                    ="Upload to SharePoint"
                                                 VerticalAlign: |-
                                                     =VerticalAlign.Middle
                                                 Width: |-
@@ -5093,7 +5093,7 @@ Screens:
                                               Control: ModernButton
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Hent dokumenter"
+                                                    ="Refresh documents"
                                                 Align: |-
                                                     =Align.Center
                                                 AlignInContainer: |-
@@ -5121,7 +5121,7 @@ Screens:
                                                 OnSelect: |-
                                                     =If(
                                                         IsBlank(LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey),
-                                                        Notify("Gem raekken foerst - mappen hedder raekkens noegle.", NotificationType.Warning),
+                                                        Notify("Save the row first - the folder is named after the row key.", NotificationType.Warning),
                                                     
                                                         Set(
                                                             varDomAttJson,
@@ -5166,7 +5166,7 @@ Screens:
                                                 Size: |-
                                                     =14
                                                 Text: |-
-                                                    ="Hent dokumenter"
+                                                    ="Refresh documents"
                                                 VerticalAlign: |-
                                                     =VerticalAlign.Middle
                                                 Width: |-
@@ -5175,7 +5175,7 @@ Screens:
                                               Control: ModernButton
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Fjern dokument"
+                                                    ="Remove document"
                                                 Align: |-
                                                     =Align.Center
                                                 AlignInContainer: |-
@@ -5226,7 +5226,7 @@ Screens:
                                                 Size: |-
                                                     =14
                                                 Text: |-
-                                                    ="Fjern dokument"
+                                                    ="Remove document"
                                                 VerticalAlign: |-
                                                     =VerticalAlign.Middle
                                                 Width: |-
@@ -5236,7 +5236,7 @@ Screens:
                                         Variant: Vertical
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Dokumenter paa den valgte raekke"
+                                              ="Documents on the selected row"
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           Fill: |-
@@ -5293,7 +5293,7 @@ Screens:
                                                     Control: ModernCheckbox
                                                     Properties:
                                                       AccessibleLabel: |-
-                                                          ="Vaelg dokument"
+                                                          ="Select document"
                                                       Default: |-
                                                           =ThisItem.Selected
                                                       Height: |-
@@ -5394,8 +5394,8 @@ Screens:
                                           AccessibleLabel: |-
                                               =If(
                                                   IsBlank(LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey),
-                                                  "Gem raekken foerst - mappen hedder raekkens noegle.",
-                                                  "Ingen dokumenter i " & "TaskListDocuments/" & LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey & " endnu."
+                                                  "Save the row first - the folder is named after the row key.",
+                                                  "No documents in " & "TaskListDocuments/" & LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey & " yet."
                                               )
                                           BorderStyle: |-
                                               =BorderStyle.None
@@ -5422,8 +5422,8 @@ Screens:
                                           Text: |-
                                               =If(
                                                   IsBlank(LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey),
-                                                  "Gem raekken foerst - mappen hedder raekkens noegle.",
-                                                  "Ingen dokumenter i " & "TaskListDocuments/" & LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey & " endnu."
+                                                  "Save the row first - the folder is named after the row key.",
+                                                  "No documents in " & "TaskListDocuments/" & LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey & " yet."
                                               )
                                           Visible: |-
                                               =IfError(CountRows(Filter(colDomAttachments, RowId = varDomActiveRowId)) = 0, false)
@@ -5478,8 +5478,8 @@ Screens:
                               AccessibleLabel: |-
                                   =If(
                                       IsBlank(varDomRequestNo),
-                                      "Indmeldingen er ikke sendt til hubben endnu.",
-                                      "Indmelding " & varDomRequestNo & " ligger paa landingssiden."
+                                      "The request has not been sent to the hub yet.",
+                                      "Request " & varDomRequestNo & " is on the landing page."
                                   )
                               BorderStyle: |-
                                   =BorderStyle.None
@@ -5506,8 +5506,8 @@ Screens:
                               Text: |-
                                   =If(
                                       IsBlank(varDomRequestNo),
-                                      "Indmeldingen er ikke sendt til hubben endnu.",
-                                      "Indmelding " & varDomRequestNo & " ligger paa landingssiden."
+                                      "The request has not been sent to the hub yet.",
+                                      "Request " & varDomRequestNo & " is on the landing page."
                                   )
                               Wrap: |-
                                   =false
@@ -5538,7 +5538,7 @@ Screens:
                                   Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Gem som kladde"
+                                        ="Save as draft"
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
@@ -5566,7 +5566,7 @@ Screens:
                                     OnSelect: |-
                                         =If(
                                             CountRows(Filter(colDomRows, Status <> "submitted")) = 0,
-                                            Notify("Der er ingen raekker at gemme.", NotificationType.Warning),
+                                            Notify("There are no rows to save.", NotificationType.Warning),
                                         
                                             IfError(
                                                 If(
@@ -5589,7 +5589,7 @@ Screens:
                                                             IsOpen: true,
                                                             RequesterEmail: varDomMe,
                                                             RequesterName: User().FullName,
-                                                            ShortText: "Equipment: " & CountRows(Filter(colDomRows, Status <> "submitted")) & " raekke(r)",
+                                                            ShortText: "Equipment: " & CountRows(Filter(colDomRows, Status <> "submitted")) & " row(s)",
                                                             Plant: First(Filter(colDomRows, Status <> "submitted")).Plant,
                                                             ItemCount: CountRows(Filter(colDomRows, Status <> "submitted")),
                                                             RequestGuid: varDomRequestGuid,
@@ -5653,11 +5653,11 @@ Screens:
                                                     )
                                                 );
                                         
-                                                Set(varDomInfo, "Gemt som kladde: " & varDomRequestNo);
-                                                Notify("Gemt som kladde som " & varDomRequestNo & " - se den paa landingssiden.", NotificationType.Success),
+                                                Set(varDomInfo, "Saved as draft: " & varDomRequestNo);
+                                                Notify("Saved as draft as " & varDomRequestNo & " - see it on the landing page.", NotificationType.Success),
                                         
-                                                Set(varDomInfo, "Det fejlede: " & FirstError.Message);
-                                                Notify("Det fejlede: " & FirstError.Message, NotificationType.Error)
+                                                Set(varDomInfo, "It failed: " & FirstError.Message);
+                                                Notify("It failed: " & FirstError.Message, NotificationType.Error)
                                             )
                                         )
                                     RadiusBottomLeft: |-
@@ -5671,7 +5671,7 @@ Screens:
                                     Size: |-
                                         =14
                                     Text: |-
-                                        ="Gem som kladde"
+                                        ="Save as draft"
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
@@ -5680,7 +5680,7 @@ Screens:
                                   Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Indsend"
+                                        ="Submit"
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
@@ -5704,7 +5704,7 @@ Screens:
                                     OnSelect: |-
                                         =If(
                                             CountRows(Filter(colDomRows, Status = "valid")) = 0,
-                                            Notify("Der er ingen faerdige raekker at indsende.", NotificationType.Warning),
+                                            Notify("There are no completed rows to submit.", NotificationType.Warning),
                                         
                                             IfError(
                                                 If(
@@ -5727,7 +5727,7 @@ Screens:
                                                             IsOpen: true,
                                                             RequesterEmail: varDomMe,
                                                             RequesterName: User().FullName,
-                                                            ShortText: "Equipment: " & CountRows(Filter(colDomRows, Status = "valid")) & " raekke(r)",
+                                                            ShortText: "Equipment: " & CountRows(Filter(colDomRows, Status = "valid")) & " row(s)",
                                                             Plant: First(Filter(colDomRows, Status = "valid")).Plant,
                                                             ItemCount: CountRows(Filter(colDomRows, Status = "valid")),
                                                             RequestGuid: varDomRequestGuid,
@@ -5793,11 +5793,11 @@ Screens:
                                                     )
                                                 );
                                         
-                                                Set(varDomInfo, "Indsendt: " & varDomRequestNo);
-                                                Notify("Indsendt som " & varDomRequestNo & " - se den paa landingssiden.", NotificationType.Success),
+                                                Set(varDomInfo, "Submitted: " & varDomRequestNo);
+                                                Notify("Submitted as " & varDomRequestNo & " - see it on the landing page.", NotificationType.Success),
                                         
-                                                Set(varDomInfo, "Det fejlede: " & FirstError.Message);
-                                                Notify("Det fejlede: " & FirstError.Message, NotificationType.Error)
+                                                Set(varDomInfo, "It failed: " & FirstError.Message);
+                                                Notify("It failed: " & FirstError.Message, NotificationType.Error)
                                             )
                                         )
                                     RadiusBottomLeft: |-
@@ -5811,7 +5811,7 @@ Screens:
                                     Size: |-
                                         =14
                                     Text: |-
-                                        ="Indsend"
+                                        ="Submit"
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
@@ -5820,7 +5820,7 @@ Screens:
                                   Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Hent raekker forfra"
+                                        ="Reload rows"
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
@@ -5874,7 +5874,7 @@ Screens:
                                                 }
                                             )
                                         );
-                                        Set(varDomInfo, "Hentet forfra.")
+                                        Set(varDomInfo, "Reloaded.")
                                     RadiusBottomLeft: |-
                                         =10
                                     RadiusBottomRight: |-
@@ -5886,7 +5886,7 @@ Screens:
                                     Size: |-
                                         =14
                                     Text: |-
-                                        ="Hent raekker forfra"
+                                        ="Reload rows"
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
@@ -5895,7 +5895,7 @@ Screens:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  ="Send som kladde laegger indmeldingen paa landingssiden med status Kladde - den kan stadig rettes. Indsend laaser raekkerne og saetter status til Indsendt. Begge skriver i den SAMME raekke i indekset."
+                                  ="Save as draft puts the request on the landing page with status Draft - it can still be edited. Submit locks the rows and sets the status to Submitted. Both write to the SAME row in the index."
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -5919,6 +5919,6 @@ Screens:
                               Size: |-
                                   =12
                               Text: |-
-                                  ="Send som kladde laegger indmeldingen paa landingssiden med status Kladde - den kan stadig rettes. Indsend laaser raekkerne og saetter status til Indsendt. Begge skriver i den SAMME raekke i indekset."
+                                  ="Save as draft puts the request on the landing page with status Draft - it can still be edited. Submit locks the rows and sets the status to Submitted. Both write to the SAME row in the index."
                               Wrap: |-
                                   =false

@@ -328,7 +328,7 @@ Screens:
                                               Control: ModernButton
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    =If(darkModeEnabled, "Skift til lyst tema", "Skift til moerkt tema")
+                                                    =If(darkModeEnabled, "Switch to light theme", "Switch to dark theme")
                                                 Align: |-
                                                     =Align.Center
                                                 AlignInContainer: |-
@@ -364,7 +364,7 @@ Screens:
                                                 Size: |-
                                                     =14
                                                 Text: |-
-                                                    =If(darkModeEnabled, "Lys", "Moerk")
+                                                    =If(darkModeEnabled, "Light", "Dark")
                                                 VerticalAlign: |-
                                                     =VerticalAlign.Middle
                                                 Width: |-
@@ -373,7 +373,7 @@ Screens:
                                               Control: ModernButton
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Til hubben"
+                                                    ="To the hub"
                                                 Align: |-
                                                     =Align.Center
                                                 AlignInContainer: |-
@@ -407,7 +407,7 @@ Screens:
                                                 Size: |-
                                                     =14
                                                 Text: |-
-                                                    ="Til hubben"
+                                                    ="To the hub"
                                                 VerticalAlign: |-
                                                     =VerticalAlign.Middle
                                                 Width: |-
@@ -475,7 +475,7 @@ Screens:
                                                                                 P.StrategyKey = varVhpPlan.Strategy &&
                                                                                 CountRows(Filter(colVhpOperations, ";" & Text(P.PackageNo) & ";" in Coalesce(PackagesKey, ";"))) = 0
                                                                             ),
-                                                                            "S5: Pakke " & ShortCode & " (" & Text(CycleLength) & " " & CycleUnit &
+                                                                            "S5: Package " & ShortCode & " (" & Text(CycleLength) & " " & CycleUnit &
                                                                             ") has no operations - the plan would call an empty order.",
                                                                             Char(10)
                                                                         ), "")
@@ -811,7 +811,7 @@ Screens:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
-                                        =If(varVhpPlan.PlanType = "Strategy", "4. Pakker", "4. Operations")
+                                        =If(varVhpPlan.PlanType = "Strategy", "4. Packages", "4. Operations")
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
@@ -849,7 +849,7 @@ Screens:
                                     Size: |-
                                         =12
                                     Text: |-
-                                        =If(varVhpPlan.PlanType = "Strategy", "4. Pakker", "4. Operations")
+                                        =If(varVhpPlan.PlanType = "Strategy", "4. Packages", "4. Operations")
                                     Width: |-
                                         =118
                                     Wrap: |-
@@ -1914,7 +1914,7 @@ Screens:
                                               Control: ModernDropdown
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Plan Type, paakraevet"
+                                                    ="Plan Type, required"
                                                 Appearance: |-
                                                     =Appearance.Outline
                                                 BorderColor: |-
@@ -2275,7 +2275,7 @@ Screens:
                                               Control: ModernDropdown
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Plant, paakraevet"
+                                                    ="Plant, required"
                                                 Appearance: |-
                                                     =Appearance.Outline
                                                 BorderColor: |-
@@ -2473,7 +2473,7 @@ Screens:
                                               Control: ModernDropdown
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Status, paakraevet"
+                                                    ="Status, required"
                                                 Appearance: |-
                                                     =Appearance.Outline
                                                 BorderColor: |-
@@ -2696,7 +2696,7 @@ Screens:
                                               Control: ModernTextInput
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Plan Text, paakraevet"
+                                                    ="Plan Text, required"
                                                 BorderColor: |-
                                                     =If(
                                                         varVhpPlanValidated && IsBlank(Trim(Self.Text)),
@@ -2747,7 +2747,7 @@ Screens:
                                                         !IsBlank(varVhpPlan.Plant) && !IsBlank(varVhpPlan.PlanText) &&
                                                             !StartsWith(Upper(varVhpPlan.PlanText), Upper(varVhpPlan.Plant)),
                                                         "Should start with the plant code " & varVhpPlan.Plant & " - so the plan can be found without searching by plant.",
-                                                        "Start with the plant code. The text must cover every task the plan calls. Maks. 40 tegn."
+                                                        "Start with the plant code. The text must cover every task the plan calls. Max 40 characters."
                                                     )
                                                 BorderStyle: |-
                                                     =BorderStyle.None
@@ -2776,7 +2776,7 @@ Screens:
                                                         !IsBlank(varVhpPlan.Plant) && !IsBlank(varVhpPlan.PlanText) &&
                                                             !StartsWith(Upper(varVhpPlan.PlanText), Upper(varVhpPlan.Plant)),
                                                         "Should start with the plant code " & varVhpPlan.Plant & " - so the plan can be found without searching by plant.",
-                                                        "Start with the plant code. The text must cover every task the plan calls. Maks. 40 tegn."
+                                                        "Start with the plant code. The text must cover every task the plan calls. Max 40 characters."
                                                     )
                                                 Visible: |-
                                                     =IfError(varVhpShowHints, false)
@@ -3075,7 +3075,7 @@ Screens:
                                               Control: ModernNumberInput
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Cycle, paakraevet"
+                                                    ="Cycle, required"
                                                 Appearance: |-
                                                     =Appearance.Outline
                                                 BorderColor: |-
@@ -3273,7 +3273,7 @@ Screens:
                                               Control: ModernDropdown
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Unit, paakraevet"
+                                                    ="Unit, required"
                                                 Appearance: |-
                                                     =Appearance.Outline
                                                 BorderColor: |-
@@ -4275,13 +4275,13 @@ Screens:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Data: " & Text(CountRows(colVhpTasklists)) & " standardarbejdsplaner, " &
-                                              Text(CountRows(colVhpStrategies)) & " strategier" &
+                                              ="Data: " & Text(CountRows(colVhpTasklists)) & " task lists, " &
+                                              Text(CountRows(colVhpStrategies)) & " strategies" &
                                               With(
                                                   { mangler: CountRows(Filter(colVhpStrategies, !PackagesLoaded)) },
-                                                  If(mangler > 0, " (" & Text(mangler) & " uden pakker)", "")
+                                                  If(mangler > 0, " (" & Text(mangler) & " without packages)", "")
                                               ) & ", " &
-                                              Text(CountRows(colVhpMainWorkCenters)) & " arbejdscentre."
+                                              Text(CountRows(colVhpMainWorkCenters)) & " work centres."
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -4305,13 +4305,13 @@ Screens:
                                           Size: |-
                                               =12
                                           Text: |-
-                                              ="Data: " & Text(CountRows(colVhpTasklists)) & " standardarbejdsplaner, " &
-                                              Text(CountRows(colVhpStrategies)) & " strategier" &
+                                              ="Data: " & Text(CountRows(colVhpTasklists)) & " task lists, " &
+                                              Text(CountRows(colVhpStrategies)) & " strategies" &
                                               With(
                                                   { mangler: CountRows(Filter(colVhpStrategies, !PackagesLoaded)) },
-                                                  If(mangler > 0, " (" & Text(mangler) & " uden pakker)", "")
+                                                  If(mangler > 0, " (" & Text(mangler) & " without packages)", "")
                                               ) & ", " &
-                                              Text(CountRows(colVhpMainWorkCenters)) & " arbejdscentre."
+                                              Text(CountRows(colVhpMainWorkCenters)) & " work centres."
                                           Wrap: |-
                                               =true
                               - btnVhpPlanSave:
@@ -6114,7 +6114,7 @@ Screens:
                                                                 Control: ModernTextInput
                                                                 Properties:
                                                                   AccessibleLabel: |-
-                                                                      ="Item Short Text, paakraevet"
+                                                                      ="Item Short Text, required"
                                                                   BorderColor: |-
                                                                       =If(
                                                                           varVhpItemValidated && IsBlank(Trim(Self.Text)),
@@ -6310,7 +6310,7 @@ Screens:
                                                                 Control: ModernDropdown
                                                                 Properties:
                                                                   AccessibleLabel: |-
-                                                                      ="Main Work Center, paakraevet"
+                                                                      ="Main Work Center, required"
                                                                   Appearance: |-
                                                                       =Appearance.Outline
                                                                   BorderColor: |-
@@ -6540,7 +6540,7 @@ Screens:
                                                                 Control: ModernDropdown
                                                                 Properties:
                                                                   AccessibleLabel: |-
-                                                                      ="Maintenance Activity Type, paakraevet"
+                                                                      ="Maintenance Activity Type, required"
                                                                   Appearance: |-
                                                                       =Appearance.Outline
                                                                   BorderColor: |-
@@ -7499,7 +7499,7 @@ Screens:
                                                                 Control: ModernTextInput
                                                                 Properties:
                                                                   AccessibleLabel: |-
-                                                                      ="Soeg funktionsplads"
+                                                                      ="Search functional location"
                                                                   BorderColor: |-
                                                                       =C.'border-default'
                                                                   BorderStyle: |-
@@ -7540,7 +7540,7 @@ Screens:
                                                                 Control: ModernButton
                                                                 Properties:
                                                                   AccessibleLabel: |-
-                                                                      ="Soeg"
+                                                                      ="Search"
                                                                   Align: |-
                                                                       =Align.Center
                                                                   AlignInContainer: |-
@@ -7583,7 +7583,7 @@ Screens:
                                                                                   Code: Text(R.Value.functionKey),
                                                                                   Description: Text(R.Value.description),
                                                                                   Display: Text(R.Value.functionKey) & " - " & Text(R.Value.description) &
-                                                                                      If(Boolean(R.Value.maintainable), "", "   (ikke vedligeholdbar)"),
+                                                                                      If(Boolean(R.Value.maintainable), "", "   (not maintainable)"),
                                                                                   Maintainable: Boolean(R.Value.maintainable),
                                                                                   Level: Text(R.Value.level)
                                                                               }
@@ -7597,19 +7597,19 @@ Screens:
                                                                                           { n: CountRows(colVhpFlSearch) },
                                                                                           If(
                                                                                               n = 0,
-                                                                                              "Ingen Functional Locations fundet for " & q & ".",
+                                                                                              "No Functional Locations found for " & q & ".",
                                                                                               Text(n) & " Functional Locations fundet for " & q & ". " &
                                                                                                   If(
                                                                                                       n > 50,
-                                                                                                      "Listen er lang - soeg paa flere tegn for at indsnaevre.",
-                                                                                                      "Vaelg en i listen nedenfor."
+                                                                                                      "The list is long - type more characters to narrow it.",
+                                                                                                      "Select one from the list below."
                                                                                                   )
                                                                                           )
                                                                                       )
                                                                                   ),
                                                                                   Clear(colVhpFlSearch);
                                                                                   Set(varVhpFlLastSearch, "");
-                                                                                  Set(varVhpFlMeta, "Soegningen fejlede: " & FirstError.Message)
+                                                                                  Set(varVhpFlMeta, "Search failed: " & FirstError.Message)
                                                                               )
                                                                           )
                                                                       )
@@ -7624,7 +7624,7 @@ Screens:
                                                                   Size: |-
                                                                       =14
                                                                   Text: |-
-                                                                      ="Soeg"
+                                                                      ="Search"
                                                                   VerticalAlign: |-
                                                                       =VerticalAlign.Middle
                                                                   Width: |-
@@ -7633,7 +7633,7 @@ Screens:
                                                           Control: ModernDropdown
                                                           Properties:
                                                             AccessibleLabel: |-
-                                                                ="Vaelg funktionsplads"
+                                                                ="Select functional location"
                                                             Appearance: |-
                                                                 =Appearance.Outline
                                                             BorderColor: |-
@@ -7683,12 +7683,12 @@ Screens:
                                                           Properties:
                                                             AccessibleLabel: |-
                                                                 =If(
-                                                                    IsBlank(drpVhpItemFL.Selected.Code), "Ingen Functional Location valgt endnu.",
-                                                                    "Valgt: " & drpVhpItemFL.Selected.Code & " - " &
+                                                                    IsBlank(drpVhpItemFL.Selected.Code), "No functional location selected yet.",
+                                                                    "Selected: " & drpVhpItemFL.Selected.Code & " - " &
                                                                     drpVhpItemFL.Selected.Description &
                                                                     If(
                                                                         drpVhpItemFL.Selected.Maintainable, "",
-                                                                        "   |   ADVARSEL: markeret som ikke vedligeholdbar i SAP."
+                                                                        "   |   WARNING: marked as not maintainable in SAP."
                                                                     )
                                                                 )
                                                             BorderStyle: |-
@@ -7715,12 +7715,12 @@ Screens:
                                                                 =12
                                                             Text: |-
                                                                 =If(
-                                                                    IsBlank(drpVhpItemFL.Selected.Code), "Ingen Functional Location valgt endnu.",
-                                                                    "Valgt: " & drpVhpItemFL.Selected.Code & " - " &
+                                                                    IsBlank(drpVhpItemFL.Selected.Code), "No functional location selected yet.",
+                                                                    "Selected: " & drpVhpItemFL.Selected.Code & " - " &
                                                                     drpVhpItemFL.Selected.Description &
                                                                     If(
                                                                         drpVhpItemFL.Selected.Maintainable, "",
-                                                                        "   |   ADVARSEL: markeret som ikke vedligeholdbar i SAP."
+                                                                        "   |   WARNING: marked as not maintainable in SAP."
                                                                     )
                                                                 )
                                                             Wrap: |-
@@ -7878,7 +7878,7 @@ Screens:
                                                           Variant: Vertical
                                                           Properties:
                                                             AccessibleLabel: |-
-                                                                ="Underliggende objekter"
+                                                                ="Sub-objects"
                                                             BorderColor: |-
                                                                 =C.'border-default'
                                                             BorderStyle: |-
@@ -8048,14 +8048,14 @@ Screens:
                                                                 =With(
                                                                     { n: CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) },
                                                                     If(
-                                                                        n = 0, "Ingen underliggende objekter valgt.",
-                                                                        Text(n) & " valgt: " &
+                                                                        n = 0, "No sub-objects selected.",
+                                                                        Text(n) & " selected: " &
                                                                             Concat(Sort(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), Code), Code, ", ") &
                                                                             With(
                                                                                 { fremmede: CountRows(Filter(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), !StartsWith(Code, Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)))) },
                                                                                 If(
                                                                                     fremmede > 0,
-                                                                                    "   |   ADVARSEL: " & Text(fremmede) &
+                                                                                    "   |   WARNING: " & Text(fremmede) &
                                                                                         " of them are not under the selected functional location.",
                                                                                     ""
                                                                                 )
@@ -8092,14 +8092,14 @@ Screens:
                                                                 =With(
                                                                     { n: CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) },
                                                                     If(
-                                                                        n = 0, "Ingen underliggende objekter valgt.",
-                                                                        Text(n) & " valgt: " &
+                                                                        n = 0, "No sub-objects selected.",
+                                                                        Text(n) & " selected: " &
                                                                             Concat(Sort(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), Code), Code, ", ") &
                                                                             With(
                                                                                 { fremmede: CountRows(Filter(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), !StartsWith(Code, Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)))) },
                                                                                 If(
                                                                                     fremmede > 0,
-                                                                                    "   |   ADVARSEL: " & Text(fremmede) &
+                                                                                    "   |   WARNING: " & Text(fremmede) &
                                                                                         " of them are not under the selected functional location.",
                                                                                     ""
                                                                                 )
@@ -9248,7 +9248,7 @@ Screens:
                                               Control: ModernDropdown
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Tasklist For Active Item, paakraevet"
+                                                    ="Tasklist For Active Item, required"
                                                 Appearance: |-
                                                     =Appearance.Outline
                                                 BorderColor: |-
@@ -9890,7 +9890,7 @@ Screens:
                                                     Control: ModernNumberInput
                                                     Properties:
                                                       AccessibleLabel: |-
-                                                          ="Antal personer"
+                                                          ="Number of people"
                                                       Appearance: |-
                                                           =Appearance.Outline
                                                       BorderColor: |-
@@ -9982,7 +9982,7 @@ Screens:
                                                     Control: ModernTextInput
                                                     Properties:
                                                       AccessibleLabel: |-
-                                                          ="Vaerk"
+                                                          ="Plant"
                                                       BorderColor: |-
                                                           =C.'border-default'
                                                       BorderStyle: |-
@@ -10090,7 +10090,7 @@ Screens:
                                                     Control: ModernTextInput
                                                     Properties:
                                                       AccessibleLabel: |-
-                                                          ="Leverandoer"
+                                                          ="Supplier"
                                                       BorderColor: |-
                                                           =C.'border-default'
                                                       BorderStyle: |-
@@ -10133,7 +10133,7 @@ Screens:
                                                     Control: ModernNumberInput
                                                     Properties:
                                                       AccessibleLabel: |-
-                                                          ="Pris"
+                                                          ="Price"
                                                       Appearance: |-
                                                           =Appearance.Outline
                                                       BorderColor: |-
@@ -10278,7 +10278,7 @@ Screens:
                                                               varVhpPlan.PlanType <> "Strategy", "-",
                                                               With(
                                                                   { sel: Filter(colVhpStrategyPackages As P, P.StrategyKey = varVhpPlan.Strategy && ";" & Text(P.PackageNo) & ";" in Coalesce(ThisItem.PackagesKey, ";")) },
-                                                                  If(CountRows(sel) = 0, "(ingen)", Concat(Sort(sel, PackageNo), ShortCode, ", "))
+                                                                  If(CountRows(sel) = 0, "(none)", Concat(Sort(sel, PackageNo), ShortCode, ", "))
                                                               )
                                                           )
                                                       BorderStyle: |-
@@ -10310,7 +10310,7 @@ Screens:
                                                               varVhpPlan.PlanType <> "Strategy", "-",
                                                               With(
                                                                   { sel: Filter(colVhpStrategyPackages As P, P.StrategyKey = varVhpPlan.Strategy && ";" & Text(P.PackageNo) & ";" in Coalesce(ThisItem.PackagesKey, ";")) },
-                                                                  If(CountRows(sel) = 0, "(ingen)", Concat(Sort(sel, PackageNo), ShortCode, ", "))
+                                                                  If(CountRows(sel) = 0, "(none)", Concat(Sort(sel, PackageNo), ShortCode, ", "))
                                                               )
                                                           )
                                                       Width: |-
@@ -10708,7 +10708,7 @@ Screens:
                                     AccessibleLabel: |-
                                         =If(
                                             IsBlank(varVhpPlan.Strategy), "Choose a strategy in the plan header first.",
-                                            "Strategi " & varVhpPlan.Strategy & " - " &
+                                            "Strategy " & varVhpPlan.Strategy & " - " &
                                             Coalesce(LookUp(colVhpStrategies, Key = varVhpPlan.Strategy).Name, "") & ": " &
                                             Concat(Sort(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy), PackageNo), ShortCode & " (" & Text(CycleLength) & " " & CycleUnit & ")", ", ") & "."
                                         )
@@ -10737,7 +10737,7 @@ Screens:
                                     Text: |-
                                         =If(
                                             IsBlank(varVhpPlan.Strategy), "Choose a strategy in the plan header first.",
-                                            "Strategi " & varVhpPlan.Strategy & " - " &
+                                            "Strategy " & varVhpPlan.Strategy & " - " &
                                             Coalesce(LookUp(colVhpStrategies, Key = varVhpPlan.Strategy).Name, "") & ": " &
                                             Concat(Sort(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy), PackageNo), ShortCode & " (" & Text(CycleLength) & " " & CycleUnit & ")", ", ") & "."
                                         )
@@ -10772,7 +10772,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Hierarki-udfyld"
+                                              ="Fill by hierarchy"
                                           Align: |-
                                               =Align.Center
                                           AlignInContainer: |-
@@ -10823,7 +10823,7 @@ Screens:
                                                           )
                                                       )
                                                   );
-                                                  Set(varVhpRuntimeInfo, "Pakker fyldt op efter hierarki.")
+                                                  Set(varVhpRuntimeInfo, "Packages filled in by hierarchy.")
                                               )
                                           RadiusBottomLeft: |-
                                               =10
@@ -10836,7 +10836,7 @@ Screens:
                                           Size: |-
                                               =14
                                           Text: |-
-                                              ="Hierarki-udfyld"
+                                              ="Fill by hierarchy"
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
@@ -10845,7 +10845,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Alle pakker"
+                                              ="All packages"
                                           Align: |-
                                               =Align.Center
                                           AlignInContainer: |-
@@ -10891,7 +10891,7 @@ Screens:
                                           Size: |-
                                               =14
                                           Text: |-
-                                              ="Alle pakker"
+                                              ="All packages"
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
@@ -10900,7 +10900,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Ryd pakker"
+                                              ="Clear packages"
                                           Align: |-
                                               =Align.Center
                                           AlignInContainer: |-
@@ -10930,7 +10930,7 @@ Screens:
                                                   IsBlank(varVhpActiveItemId),
                                                   Set(varVhpRuntimeInfo, "Select an item first."),
                                                   UpdateIf(colVhpOperations, ItemId = varVhpActiveItemId, { PackagesKey: ";" });
-                                                  Set(varVhpRuntimeInfo, "Pakkemarkeringer ryddet.")
+                                                  Set(varVhpRuntimeInfo, "Package selections cleared.")
                                               )
                                           RadiusBottomLeft: |-
                                               =10
@@ -10943,7 +10943,7 @@ Screens:
                                           Size: |-
                                               =14
                                           Text: |-
-                                              ="Ryd pakker"
+                                              ="Clear packages"
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
@@ -11302,7 +11302,7 @@ Screens:
                                                     Control: ModernText
                                                     Properties:
                                                       AccessibleLabel: |-
-                                                          =If(IsBlank(ThisItem.OperationShortText), "(uden tekst)", ThisItem.OperationShortText)
+                                                          =If(IsBlank(ThisItem.OperationShortText), "(no text)", ThisItem.OperationShortText)
                                                       BorderStyle: |-
                                                           =BorderStyle.None
                                                       BorderThickness: |-
@@ -11326,7 +11326,7 @@ Screens:
                                                       Size: |-
                                                           =13
                                                       Text: |-
-                                                          =If(IsBlank(ThisItem.OperationShortText), "(uden tekst)", ThisItem.OperationShortText)
+                                                          =If(IsBlank(ThisItem.OperationShortText), "(no text)", ThisItem.OperationShortText)
                                                       Width: |-
                                                           =204
                                                       Wrap: |-
@@ -11401,7 +11401,7 @@ Screens:
                                                                 Control: ModernCheckbox
                                                                 Properties:
                                                                   AccessibleLabel: |-
-                                                                      ="Pakke " & ThisItem.ShortCode & " on operation " & ThisItem.OpNo
+                                                                      ="Package " & ThisItem.ShortCode & " on operation " & ThisItem.OpNo
                                                                   AlignInContainer: |-
                                                                       =AlignInContainer.Center
                                                                   Default: |-
@@ -11444,7 +11444,7 @@ Screens:
                                             "Choose a strategy in the plan header.",
                                         
                                             CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 0 = false,
-                                            "Strategi " & varVhpPlan.Strategy & " har ingen pakker i MD_StrategyPackage endnu, " &
+                                            "Strategy " & varVhpPlan.Strategy & " has no packages in MD_StrategyPackage yet, " &
                                                 "so there is nothing to allocate. The packages come from SAP (IP11). " &
                                                 "The plan can still be saved and submitted without a package allocation.",
                                         
@@ -11479,7 +11479,7 @@ Screens:
                                             "Choose a strategy in the plan header.",
                                         
                                             CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 0 = false,
-                                            "Strategi " & varVhpPlan.Strategy & " har ingen pakker i MD_StrategyPackage endnu, " &
+                                            "Strategy " & varVhpPlan.Strategy & " has no packages in MD_StrategyPackage yet, " &
                                                 "so there is nothing to allocate. The packages come from SAP (IP11). " &
                                                 "The plan can still be saved and submitted without a package allocation.",
                                         
@@ -11508,7 +11508,7 @@ Screens:
                                                     ""
                                                 ) &
                                                 If(CountRows(emptyPkg) > 0,
-                                                    "S5: pakke " & Concat(emptyPkg, ShortCode, ", ") & " indeholder ingen operationer.",
+                                                    "S5: package " & Concat(emptyPkg, ShortCode, ", ") & " contains no operations.",
                                                     ""
                                                 )
                                             )
@@ -11555,7 +11555,7 @@ Screens:
                                                     ""
                                                 ) &
                                                 If(CountRows(emptyPkg) > 0,
-                                                    "S5: pakke " & Concat(emptyPkg, ShortCode, ", ") & " indeholder ingen operationer.",
+                                                    "S5: package " & Concat(emptyPkg, ShortCode, ", ") & " contains no operations.",
                                                     ""
                                                 )
                                             )
@@ -11984,7 +11984,7 @@ Screens:
                                                     Control: ModernNumberInput
                                                     Properties:
                                                       AccessibleLabel: |-
-                                                          ="Antal"
+                                                          ="Number"
                                                       Appearance: |-
                                                           =Appearance.Outline
                                                       BorderColor: |-
@@ -13010,8 +13010,8 @@ Screens:
                                           Text(CountRows(colVhpOperations)) & " operation line(s) in total." &
                                           If(
                                               varVhpPlan.PlanType = "Strategy",
-                                              " Strategi " & varVhpPlan.Strategy & " med " &
-                                              Text(CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy))) & " pakker.",
+                                              " Strategy " & varVhpPlan.Strategy & " with " &
+                                              Text(CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy))) & " packages.",
                                               ""
                                           )
                                       ),
@@ -13049,8 +13049,8 @@ Screens:
                                           Text(CountRows(colVhpOperations)) & " operation line(s) in total." &
                                           If(
                                               varVhpPlan.PlanType = "Strategy",
-                                              " Strategi " & varVhpPlan.Strategy & " med " &
-                                              Text(CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy))) & " pakker.",
+                                              " Strategy " & varVhpPlan.Strategy & " with " &
+                                              Text(CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy))) & " packages.",
                                               ""
                                           )
                                       ),
@@ -13215,7 +13215,7 @@ Screens:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Gem i SharePoint"
+                                              ="Save to SharePoint"
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -13241,7 +13241,7 @@ Screens:
                                           Size: |-
                                               =19
                                           Text: |-
-                                              ="Gem i SharePoint"
+                                              ="Save to SharePoint"
                                           Wrap: |-
                                               =false
                                     - conVhpSaveHeadDesc:
@@ -13392,7 +13392,7 @@ Screens:
                                   Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Gem kladde"
+                                        ="Save draft"
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
@@ -13535,8 +13535,7 @@ Screens:
                                                                                     ForAll(srcItems, Defaults(MaintenanceItems)),
                                                                                     ForAll(srcItems As IT, {
                                                                                         Title: IT.ShortText,
-                                                                                        Status: { Value: Switch(varVhpPlan.Status,
-                                                                                            "Ny", "New", "AEndre", "Change", "Slettes", "Deleted", "New") },
+                                                                                        Status: { Value: Coalesce(varVhpPlan.Status, "New") },
                                                                                         MaintenancePlanNo: { Id: planId, Value: planKey },
                                                                                         ItemDescription: Coalesce(IT.LongText, IT.ShortText),
                                                                                         FunctionalLocation: IT.FunctionalLocation,
@@ -13750,11 +13749,11 @@ Screens:
                                                                 Set(varVhpSaving, false);
                                                                 Set(
                                                                     varVhpRuntimeInfo,
-                                                                    planKey & " gemt: " & Text(CountRows(colVhpItems)) &
-                                                                        " item(s) og " & Text(CountRows(colVhpOperations)) &
-                                                                        " operation(er)."
+                                                                    planKey & " saved: " & Text(CountRows(colVhpItems)) &
+                                                                        " item(s) and " & Text(CountRows(colVhpOperations)) &
+                                                                        " operation(s)."
                                                                 );
-                                                                Notify(planKey & " gemt.", NotificationType.Success)
+                                                                Notify(planKey & " saved.", NotificationType.Success)
                                                             )
                                                         )
                                                     )
@@ -13776,7 +13775,7 @@ Screens:
                                     Size: |-
                                         =14
                                     Text: |-
-                                        ="Gem kladde"
+                                        ="Save draft"
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
@@ -13785,7 +13784,7 @@ Screens:
                                   Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Indsend"
+                                        ="Submit"
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
@@ -13924,8 +13923,7 @@ Screens:
                                                                                     ForAll(srcItems, Defaults(MaintenanceItems)),
                                                                                     ForAll(srcItems As IT, {
                                                                                         Title: IT.ShortText,
-                                                                                        Status: { Value: Switch(varVhpPlan.Status,
-                                                                                            "Ny", "New", "AEndre", "Change", "Slettes", "Deleted", "New") },
+                                                                                        Status: { Value: Coalesce(varVhpPlan.Status, "New") },
                                                                                         MaintenancePlanNo: { Id: planId, Value: planKey },
                                                                                         ItemDescription: Coalesce(IT.LongText, IT.ShortText),
                                                                                         FunctionalLocation: IT.FunctionalLocation,
@@ -14139,11 +14137,11 @@ Screens:
                                                                 Set(varVhpSaving, false);
                                                                 Set(
                                                                     varVhpRuntimeInfo,
-                                                                    planKey & " indsendt: " & Text(CountRows(colVhpItems)) &
-                                                                        " item(s) og " & Text(CountRows(colVhpOperations)) &
-                                                                        " operation(er)."
+                                                                    planKey & " submitted: " & Text(CountRows(colVhpItems)) &
+                                                                        " item(s) and " & Text(CountRows(colVhpOperations)) &
+                                                                        " operation(s)."
                                                                 );
-                                                                Notify(planKey & " indsendt.", NotificationType.Success)
+                                                                Notify(planKey & " submitted.", NotificationType.Success)
                                                             )
                                                         )
                                                     )
@@ -14165,7 +14163,7 @@ Screens:
                                     Size: |-
                                         =14
                                     Text: |-
-                                        ="Indsend"
+                                        ="Submit"
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
@@ -14404,7 +14402,7 @@ Screens:
                       Control: ModernTextInput
                       Properties:
                         AccessibleLabel: |-
-                            ="Soeg i operationer"
+                            ="Search operations"
                         BorderColor: |-
                             =C.'border-default'
                         BorderStyle: |-
@@ -15321,8 +15319,8 @@ Screens:
                         "Plan type: " & If(varVhpPlan.PlanType = "Strategy", "Strategiplan (IP42)", "Single cycle (IP41)") & Char(10) &
                         If(
                             varVhpPlan.PlanType = "Strategy",
-                            "Strategi: " & varVhpPlan.Strategy & Char(10) &
-                            "Pakker: " & Concat(Sort(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy), PackageNo), ShortCode & " (" & Text(CycleLength) & " " & CycleUnit & ")", ", ") & Char(10),
+                            "Strategy: " & varVhpPlan.Strategy & Char(10) &
+                            "Packages: " & Concat(Sort(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy), PackageNo), ShortCode & " (" & Text(CycleLength) & " " & CycleUnit & ")", ", ") & Char(10),
                             "Cycle: " & Text(varVhpPlan.Cycle) & " " & varVhpPlan.Unit & Char(10)
                         ) &
                         "Items: " & Text(CountRows(colVhpItems)) & " (" & Text(CountRows(Filter(colVhpItems, Status = "valid"))) & " valid, " & Text(CountRows(Filter(colVhpItems, Status = "invalid"))) & " invalid)" & Char(10) &
@@ -15341,7 +15339,7 @@ Screens:
                                 With(
                                     { k: Coalesce(PackagesKey, ";") },
                                     If(
-                                        Len(k) <= 1, "(ingen pakke)",
+                                        Len(k) <= 1, "(no package)",
                                         Concat(Sort(Filter(colVhpStrategyPackages As P, P.StrategyKey = varVhpPlan.Strategy && ";" & Text(P.PackageNo) & ";" in k), PackageNo), ShortCode, ", ")
                                     )
                                 ),
@@ -15349,7 +15347,7 @@ Screens:
                             ) & Char(10) & Char(10),
                             ""
                         ) &
-                        "Sendt fra VH-plan appen den " & Text(Now(), "dd-mm-yyyy hh:mm")
+                        "Sent from the VH-plan app on " & Text(Now(), "dd-mm-yyyy hh:mm")
                     )
                 );
                 Set(varVhpRuntimeInfo, "Email draft prepared: " & Text(CountRows(colVhpItems)) & " item(s).")

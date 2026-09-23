@@ -102,7 +102,7 @@ def build_hero():
             "                            P.StrategyKey = varVhpPlan.Strategy &&\n"
             "                            CountRows(Filter(colVhpOperations, \";\" & Text(P.PackageNo) & \";\" in Coalesce(PackagesKey, \";\"))) = 0\n"
             "                        ),\n"
-            "                        \"S5: Pakke \" & ShortCode & \" (\" & Text(CycleLength) & \" \" & CycleUnit &\n"
+            "                        \"S5: Package \" & ShortCode & \" (\" & Text(CycleLength) & \" \" & CycleUnit &\n"
             "                        \") has no operations - the plan would call an empty order.\",\n"
             "                        Char(10)\n"
             "                    ), \"\")\n"
@@ -241,7 +241,7 @@ def build_hero():
     # Temaet foelger med tilbage. Uden det ville hubben skifte farve, fordi
     # brugeren gik retur - SaveData-lageret er isoleret pr. app-id.
     btnHub = button(
-        "btnVhpBackToHub", "\"Til hubben\"",
+        "btnVhpBackToHub", "\"To the hub\"",
         f'Launch("{cfg.HUB_URL}" & {theme_query("?")}, {{ }}, LaunchTarget.Replace)',
         primary=False, width=BW["btnVhpBackToHub"], height=36)
 
@@ -273,7 +273,7 @@ def build_hero():
         ("txtVhpStep2", "\"2. Item\"", "varVhpPlanCommitted"),
         ("txtVhpStep3", "\"3. Tasklist\"", "varVhpPlanCommitted && CountRows(colVhpItems) > 0"),
         ("txtVhpStep4",
-         "If(varVhpPlan.PlanType = \"Strategy\", \"4. Pakker\", \"4. Operations\")",
+         "If(varVhpPlan.PlanType = \"Strategy\", \"4. Packages\", \"4. Operations\")",
          "varVhpPlanCommitted && !IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId, TasklistKey))"),
         ("txtVhpStep5", "\"5. Dispatch\"",
          "varVhpPlanCommitted && CountRows(colVhpOperations) > 0"),
