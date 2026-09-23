@@ -52,6 +52,14 @@ L_TASKS       = "TaskListMain"
 L_INDEX       = "MD_RequestIndex"
 L_MATERIALS   = "MD_TasklistMaterial"
 L_ATTACHMENTS = "MD_TasklistAttachment"
+# Hjaelpeteksterne. De stod i build_help.py og kunne kun rettes af den,
+# der kunne bygge appen. Nu er de en liste. Se
+# sharepoint/provision/Provision-HelpText.ps1.
+L_HELP        = "MD_HelpText"
+C_HELP_KEY    = "HelpKey"     # Title, omdoebt
+# Samme vaerdi som Domain i MD_RequestIndex, saa de fem apps kan dele
+# listen uden at laese hinandens tekster.
+HELP_APP      = "MaintenancePlan"
 
 # --- landingssiden --------------------------------------------------------
 # VH-plan-appen aabnes af hubbens VHP-flise som en SELVSTAENDIG app, ikke
@@ -121,6 +129,26 @@ def named_formulas():
         F.append((name, expr, why))
 
     # --- simple opslagslister: appen forventer { Value } ---
+    # HJAELPETEKSTERNE
+    #
+    # En navngiven formel: den laeses DOVENT og kun EEN gang. Ingen
+    # hjaelpetekst koster noget, foer den foerste bliver vist, og derefter
+    # er den cachet resten af sessionen. Listen har under hundrede raekker,
+    # saa det er eet delegeret kald.
+    #
+    # Body er en Note-kolonne (ren tekst). Heading er tom paa hints.
+    add("colVhpHelp",
+        _forall(f'Filter({L_HELP}, AppArea.Value = "{HELP_APP}")',
+                [("Key", f"R.{C_HELP_KEY}"),
+                 ("Kind", "R.Kind.Value"),
+                 ("Heading", "Coalesce(R.Heading, \"\")"),
+                 ("Body", "Coalesce(R.Body, \"\")"),
+                 # Ord, ikke Sort: "Sort(tabel, Sort)" er en kolonne med samme navn
+                 # som funktionen. Power Fx loeser det, men ingen skal
+                 # laese det to gange for at vaere sikker.
+                 ("Ord", "Coalesce(R.SortOrder, 0)")]),
+        "Hjaelpetekster. En manglende raekke = ingen tekst, ikke en fejl.")
+
     add("colVhpPlantCodes",
         f"Sort({_forall(L_PLANTS, [('Value', 'R.Title')])}, Value)")
 

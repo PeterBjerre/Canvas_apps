@@ -303,6 +303,14 @@ def main(argv=None):
     r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "check_language.py")])
     if r.returncode:
         rc = r.returncode
+
+    # EEN kilde pr. hjaelpetekst. De dynamiske hints er Power Fx og bliver i
+    # koden; resten er raekker i MD_HelpText. Staar en noegle begge steder,
+    # vinder koden - og den, der retter raekken i SharePoint, ser ingen
+    # forskel i appen.
+    r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "check_helptext.py")])
+    if r.returncode:
+        rc = r.returncode
     return rc
 
 

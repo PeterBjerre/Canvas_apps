@@ -71,26 +71,60 @@ def section_header(name, title, desc, step_label, help_section=None):
     return group(f"{name}", [left], direction="Horizontal", gap=12, height=48, align_items="Center")
 
 
-def help_panel(name, section):
-    """Foldet ud af ?-knappen. Hoejden regnes af teksten, som alt andet.
+# Hoejden paa EET afsnit i hjaelpepanelet.
+#
+# FOER kunne den regnes: teksten stod i koden, og hoejden var
+# 18 * (1 + len(body) // 95) - et gaet paa antallet af linjer ud fra
+# antallet af tegn. Nu staar teksten i SharePoint, og laengden kendes
+# ikke, naar appen bygges.
+#
+# Derfor et gallery med en FAST skabelonhoejde: overskrift 18 + fire
+# linjer broedtekst a 16 + 6 px luft. Fire linjer daekker det laengste af
+# de 21 afsnit, seedet blev lavet af (objektlisten, 312 tegn ~ 3,3
+# linjer ved 95 tegn). Et laengere afsnit bliver klippet - det er prisen
+# for at teksten kan rettes uden en build, og den staar her, saa den er
+# til at se.
+HELP_LINE_H = 18 + 4 * 16 + 6
 
-    Afsnittene staar i build_help.PANELS, saa teksten kan rettes uden at
-    nogen skal ind i layoutkoden."""
+
+def help_panel(name, section):
+    """Foldet ud af ?-knappen. Afsnittene kommer fra MD_HelpText.
+
+    Teksten kan dermed rettes af dem, der kender fagligheden, uden at
+    nogen skal bygge appen. Se build_help.py."""
     v = help_var(section)
-    kids = []
-    # bh._q() dobler anfoerselstegn. Uden den braekkede kilde-linjen
-    # udtrykket: teksten naevner "Den gode VH-plan" MED anfoerselstegn, og
-    # de lukkede strengen midt i saetningen. Power Fx laeste resten som
-    # navne og gav 18 fejl pr. egenskab.
-    for i, (head, body) in enumerate(bh.PANELS[section]):
-        kids.append(text_ctrl(f"{name}H{i}", bh._q(head), size=13, weight="Semibold",
-                              height=18, wrap="false"))
-        kids.append(text_ctrl(f"{name}B{i}", bh._q(body), size=12, color=C_MUTED,
-                              height=(18 * (1 + len(body) // 95)), wrap="true"))
-    kids.append(text_ctrl(f"{name}Src", bh._q(bh.SOURCE_NOTE), size=11, color=C_MUTED,
-                          height=18, wrap="true"))
-    return group(name, kids, direction="Vertical", gap=4, pad=(12, 14, 12, 14),
-                 fill=C_INFO_BG, radius=10, visible=f"IfError({v}, false)")
+    head = text_ctrl(f"{name}H", "ThisItem.Heading", size=13, weight="Semibold",
+                     height=18, wrap="false",
+                     visible='!IsBlank(ThisItem.Heading)')
+    body = text_ctrl(f"{name}B", "ThisItem.Body", size=12, color=C_MUTED,
+                     height=HELP_LINE_H - 18 - 6, wrap="true")
+    tmpl = group(f"{name}Row", [head, body], direction="Vertical", gap=2,
+                 width="Parent.TemplateWidth",
+                 height="Parent.TemplateHeight - 2")
+    gal = Ctrl(f"{name}Gal", "Gallery", variant="Vertical", props={
+        "DelayItemLoading": "false",
+        "Items": bh.panel(section),
+        "LoadingSpinner": "LoadingSpinner.None",
+        "ShowScrollbar": "false",
+        # Gallery uden TabIndex melder App checker som "Missing tab stop".
+        "TabIndex": "0",
+        "TemplatePadding": "0",
+        "TemplateSize": str(HELP_LINE_H),
+        "Width": "Parent.Width",
+        # Tom liste skal stadig fylde EEN raekke, ellers bliver panelet
+        # et farvet baand uden indhold, som ingen kan forklare.
+        "Height": f"Max(CountRows({bh.panel(section)}), 1) * {HELP_LINE_H}",
+    }, children=[tmpl],
+        h=f"Max(CountRows({bh.panel(section)}), 1) * {HELP_LINE_H}")
+    empty = text_ctrl(
+        f"{name}Empty",
+        bh._q("No help text for this section yet - it is maintained in "
+              "the SharePoint list MD_HelpText."),
+        size=12, color=C_MUTED, height=32, wrap="true",
+        visible=f"CountRows({bh.panel(section)}) = 0")
+    return group(name, [gal, empty], direction="Vertical", gap=4,
+                 pad=(12, 14, 12, 14), fill=C_INFO_BG, radius=10,
+                 visible=f"IfError({v}, false)")
 
 
 def build_plan_header():
