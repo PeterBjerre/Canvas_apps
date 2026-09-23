@@ -106,6 +106,9 @@ App:
           1
       );
 
+      // Hjaelpetekster. En manglende raekke = ingen tekst, ikke en fejl.
+      colVhpHelp = ForAll(Filter(MD_HelpText, AppArea.Value = "MaintenancePlan") As R, { Key: R.HelpKey, Kind: R.Kind.Value, Heading: Coalesce(R.Heading, ""), Body: Coalesce(R.Body, ""), Ord: Coalesce(R.SortOrder, 0) });
+
       colVhpPlantCodes = Sort(ForAll(PlantList As R, { Value: R.Title }), Value);
 
       colVhpSortFieldOptions = Sort(ForAll(SortFieldList As R, { Value: R.Title }), Value);
