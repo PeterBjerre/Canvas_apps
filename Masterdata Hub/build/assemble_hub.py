@@ -19,7 +19,9 @@ from build_hub import build_bar, build_tiles, build_filters, build_list
 def build_screen():
     shell = group("conMdShell",
                   [build_bar(), build_tiles(), build_filters(), build_list()],
-                  direction="Vertical", gap=16, pad=(20, 24, 40, 24))
+                  direction="Vertical", gap=16,
+                  # 32, ikke 24: SHELL_W er "App.Width - 64".
+                  pad=(20, 32, 40, 32))
     root = group("conMdRoot", [shell], direction="Vertical", height="Parent.Height",
                  width="Parent.Width", overflow_y="Scroll", fill=C_APP_BG)
     return render_screen("ScreenMdHub", {"Fill": C_APP_BG}, [root])

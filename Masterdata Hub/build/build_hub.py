@@ -19,7 +19,8 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_PRIM
                         C_ON_DOMAIN,
                         C_INFO_FG, C_INFO_BG, C_NEUTRAL_BG, C_DIVIDER, C_TRANSPARENT,
                         C_APP_BG, FONT, SHELL_W)
-from build_helpers import text_ctrl, group, button, card, theme_button
+from build_helpers import (text_ctrl, group, button, card, theme_button,
+                           wrap_row_height)
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, APP_TARGET
 from design_tokens import theme_query
 from layout_tokens import if_below
@@ -119,8 +120,10 @@ def build_bar():
     # who-feltet skal give plads til knappen, ellers skubber den linjen om.
     who.props["Width"] = f"Max(120, {SHELL_W} - 300 - 336 - 92 - 36)"
 
-    return group("conMdBar", [left, seg, who, theme], direction="Horizontal", gap=12,
-                 height=34, align_items="Center", wrap="true")
+    kids = [left, seg, who, theme]
+    return group("conMdBar", kids, direction="Horizontal", gap=12,
+                 align_items="Center", wrap="true",
+                 height=wrap_row_height(kids, 12, SHELL_W))
 
 
 # ---------------------------------------------------------------------------
@@ -211,11 +214,12 @@ def build_filters():
     count = text_ctrl("txtMdCount",
                       f'Text(CountRows({SCOPE})) & " requests in this view"',
                       size=12, color=C_MUTED, height=32, align="Right", width=200, wrap="false")
-    return group("conMdFilters",
-                 [search, _chip("btnMdStOpen", "Open", "open"),
-                  _chip("btnMdStDone", "Closed", "done"),
-                  _chip("btnMdStAll", "All", "all"), count],
-                 direction="Horizontal", gap=8, height=32, align_items="Center", wrap="true")
+    kids = [search, _chip("btnMdStOpen", "Open", "open"),
+            _chip("btnMdStDone", "Closed", "done"),
+            _chip("btnMdStAll", "All", "all"), count]
+    return group("conMdFilters", kids, direction="Horizontal", gap=8,
+                 align_items="Center", wrap="true",
+                 height=wrap_row_height(kids, 8, SHELL_W))
 
 
 # ---------------------------------------------------------------------------
