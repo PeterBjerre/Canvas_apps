@@ -100,7 +100,7 @@ Screens:
                           (IsBlank(Trim(txtDomSearch.Text)) || Trim(txtDomSearch.Text) in MaterialDescription || Trim(txtDomSearch.Text) in FunctionalLocation || Trim(txtDomSearch.Text) in ManufacturerPartNo || Trim(txtDomSearch.Text) in Supplier),
                           (drpDomStatusFilter.Selected.Value = "all" ||
                            Status = drpDomStatusFilter.Selected.Value)
-                      )), 8), 1) * 46) + If(IfError(CountRows(colDomRows) = 0, false), 14 + (22), 0))), (0 + (232 + 14 + (Max(CountRows(Filter(colDomAttachments, RowId = varDomActiveRowId)), 1) * 34) + If(IfError(CountRows(Filter(colDomAttachments, RowId = varDomActiveRowId)) = 0, false), 14 + (36), 0))))) * 1 + 0) + 16 + (138)
+                      )), 8), 1) * 46) + If(IfError(CountRows(colDomRows) = 0, false), 14 + (22), 0)) + If(!IsBlank(varDomDetailsId), 16 + (692), 0)), (0 + (232 + 14 + (Max(CountRows(Filter(colDomAttachments, RowId = varDomActiveRowId)), 1) * 34) + If(IfError(CountRows(Filter(colDomAttachments, RowId = varDomActiveRowId)) = 0, false), 14 + (36), 0))))) * 1 + 0) + 16 + (138)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -685,7 +685,7 @@ Screens:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Materialebeskrivelse"
+                                                    ="Material description"
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -711,7 +711,7 @@ Screens:
                                                 Size: |-
                                                     =13
                                                 Text: |-
-                                                    ="Materialebeskrivelse"
+                                                    ="Material description"
                                                 Wrap: |-
                                                     =false
                                           - conDomTextStar:
@@ -753,7 +753,7 @@ Screens:
                                         Control: ModernTextInput
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Materialebeskrivelse, required"
+                                              ="Material description, required"
                                           BorderColor: |-
                                               =If(
                                                   varDomValidated && IsBlank(Trim(Self.Text)),
@@ -1426,7 +1426,7 @@ Screens:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Fabrikant"
+                                                    ="Manufacturer"
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -1452,14 +1452,14 @@ Screens:
                                                 Size: |-
                                                     =13
                                                 Text: |-
-                                                    ="Fabrikant"
+                                                    ="Manufacturer"
                                                 Wrap: |-
                                                     =false
                                     - inpManufacturer:
                                         Control: ModernTextInput
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Fabrikant"
+                                              ="Manufacturer"
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -1678,7 +1678,7 @@ Screens:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Fabrikantens varenr."
+                                                    ="Manufacturer part no."
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -1704,14 +1704,14 @@ Screens:
                                                 Size: |-
                                                     =13
                                                 Text: |-
-                                                    ="Fabrikantens varenr."
+                                                    ="Manufacturer part no."
                                                 Wrap: |-
                                                     =false
                                     - inpManufacturerPartNo:
                                         Control: ModernTextInput
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Fabrikantens varenr."
+                                              ="Manufacturer part no."
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -3275,7 +3275,7 @@ Screens:
                                         =Set(varDomValidated, true);
                                         If(
                                             IsBlank(Trim(Coalesce(varDomFText, ""))),
-                                            Notify("Materialebeskrivelse is required - also on a draft.", NotificationType.Warning),
+                                            Notify("Material description is required - also on a draft.", NotificationType.Warning),
                                         
                                             IfError(
                                             Set(
@@ -3411,7 +3411,7 @@ Screens:
                                         =Set(varDomValidated, true);
                                         If(
                                             IsBlank(Trim(Coalesce(varDomFText, ""))) || IsBlank(varDomFPlant),
-                                            Notify("Materialebeskrivelse and Plant are required.", NotificationType.Warning),
+                                            Notify("Material description and Plant are required.", NotificationType.Warning),
                                         
                                             IfError(
                                             Set(
@@ -3737,7 +3737,7 @@ Screens:
                                 (IsBlank(Trim(txtDomSearch.Text)) || Trim(txtDomSearch.Text) in MaterialDescription || Trim(txtDomSearch.Text) in FunctionalLocation || Trim(txtDomSearch.Text) in ManufacturerPartNo || Trim(txtDomSearch.Text) in Supplier),
                                 (drpDomStatusFilter.Selected.Value = "all" ||
                                  Status = drpDomStatusFilter.Selected.Value)
-                            )), 8), 1) * 46) + If(IfError(CountRows(colDomRows) = 0, false), 14 + (22), 0))), (0 + (232 + 14 + (Max(CountRows(Filter(colDomAttachments, RowId = varDomActiveRowId)), 1) * 34) + If(IfError(CountRows(Filter(colDomAttachments, RowId = varDomActiveRowId)) = 0, false), 14 + (36), 0))))) * 1 + 0
+                            )), 8), 1) * 46) + If(IfError(CountRows(colDomRows) = 0, false), 14 + (22), 0)) + If(!IsBlank(varDomDetailsId), 16 + (692), 0)), (0 + (232 + 14 + (Max(CountRows(Filter(colDomAttachments, RowId = varDomActiveRowId)), 1) * 34) + If(IfError(CountRows(Filter(colDomAttachments, RowId = varDomActiveRowId)) = 0, false), 14 + (36), 0))))) * 1 + 0
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -3767,7 +3767,7 @@ Screens:
                                       (IsBlank(Trim(txtDomSearch.Text)) || Trim(txtDomSearch.Text) in MaterialDescription || Trim(txtDomSearch.Text) in FunctionalLocation || Trim(txtDomSearch.Text) in ManufacturerPartNo || Trim(txtDomSearch.Text) in Supplier),
                                       (drpDomStatusFilter.Selected.Value = "all" ||
                                        Status = drpDomStatusFilter.Selected.Value)
-                                  )), 8), 1) * 46) + If(IfError(CountRows(colDomRows) = 0, false), 14 + (22), 0))
+                                  )), 8), 1) * 46) + If(IfError(CountRows(colDomRows) = 0, false), 14 + (22), 0)) + If(!IsBlank(varDomDetailsId), 16 + (692), 0)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -3992,7 +3992,7 @@ Screens:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="MATERIALE"
+                                                    ="MATERIAL"
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -4018,16 +4018,16 @@ Screens:
                                                 Size: |-
                                                     =11
                                                 Text: |-
-                                                    ="MATERIALE"
+                                                    ="MATERIAL"
                                                 Width: |-
-                                                    =Max(Min(Parent.Width - 540, 460), 150)
+                                                    =Max(Min(Parent.Width - 712, 460), 150)
                                                 Wrap: |-
                                                     =false
                                           - txtDomHead1:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="FABRIKANTENS NR."
+                                                    ="MFR. PART NO."
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -4055,7 +4055,7 @@ Screens:
                                                 Size: |-
                                                     =11
                                                 Text: |-
-                                                    ="FABRIKANTENS NR."
+                                                    ="MFR. PART NO."
                                                 Width: |-
                                                     =130
                                                 Wrap: |-
@@ -4175,7 +4175,7 @@ Screens:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="FILER"
+                                                    ="FILES"
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -4203,7 +4203,7 @@ Screens:
                                                 Size: |-
                                                     =11
                                                 Text: |-
-                                                    ="FILER"
+                                                    ="FILES"
                                                 Width: |-
                                                     =40
                                                 Wrap: |-
@@ -4228,7 +4228,7 @@ Screens:
                                                 Height: |-
                                                     =18
                                                 LayoutMinWidth: |-
-                                                    =60
+                                                    =232
                                                 PaddingBottom: |-
                                                     =0
                                                 PaddingLeft: |-
@@ -4242,7 +4242,7 @@ Screens:
                                                 Text: |-
                                                     =""
                                                 Width: |-
-                                                    =60
+                                                    =232
                                                 Wrap: |-
                                                     =false
                                     - galDomRows:
@@ -4400,7 +4400,7 @@ Screens:
                                                       Text: |-
                                                           =If(IsBlank(Trim(ThisItem.MaterialDescription)), "(no text)", ThisItem.MaterialDescription)
                                                       Width: |-
-                                                          =Max(Min(Parent.Width - 540, 460), 150)
+                                                          =Max(Min(Parent.Width - 712, 460), 150)
                                                       Wrap: |-
                                                           =false
                                                 - txtDomRow0:
@@ -4592,11 +4592,572 @@ Screens:
                                                           =40
                                                       Wrap: |-
                                                           =false
-                                                - btnDomRowOpen:
+                                                - conDomRowActions:
+                                                    Control: GroupContainer
+                                                    Variant: AutoLayout
+                                                    Properties:
+                                                      BorderStyle: |-
+                                                          =BorderStyle.None
+                                                      DropShadow: |-
+                                                          =DropShadow.None
+                                                      FillPortions: |-
+                                                          =0
+                                                      Height: |-
+                                                          =26
+                                                      LayoutAlignItems: |-
+                                                          =LayoutAlignItems.Center
+                                                      LayoutDirection: |-
+                                                          =LayoutDirection.Horizontal
+                                                      LayoutGap: |-
+                                                          =4
+                                                      LayoutMinWidth: |-
+                                                          =232
+                                                      Width: |-
+                                                          =232
+                                                    Children:
+                                                      - btnDomRowOpen:
+                                                          Control: ModernButton
+                                                          Properties:
+                                                            AccessibleLabel: |-
+                                                                ="Edit"
+                                                            Align: |-
+                                                                =Align.Center
+                                                            AlignInContainer: |-
+                                                                =AlignInContainer.Center
+                                                            Appearance: |-
+                                                                =ButtonAppearance.Outline
+                                                            BorderColor: |-
+                                                                =C.'border-default'
+                                                            BorderThickness: |-
+                                                                =1
+                                                            Color: |-
+                                                                =C.'text-primary'
+                                                            Font: |-
+                                                                =Font.'Segoe UI'
+                                                            FontWeight: |-
+                                                                =FontWeight.Semibold
+                                                            Height: |-
+                                                                =26
+                                                            Layout: |-
+                                                                =ButtonLayout.TextOnly
+                                                            OnSelect: |-
+                                                                =Set(varDomActiveRowId, ThisItem.RowId);
+                                                                Set(varDomRowStatus, ThisItem.Status);
+                                                                Set(varDomValidated, false);
+                                                                Set(varDomFText, ThisItem.MaterialDescription);
+                                                                Set(varDomFPlant, ThisItem.Plant);
+                                                                Set(varDomFFunctionalLocation, ThisItem.FunctionalLocation);
+                                                                Set(varDomFManufacturer, ThisItem.Manufacturer);
+                                                                Set(varDomFModelNumber, ThisItem.ModelNumber);
+                                                                Set(varDomFManufacturerPartNo, ThisItem.ManufacturerPartNo);
+                                                                Set(varDomFSupplier, ThisItem.Supplier);
+                                                                Set(varDomFSupplierPartNo, ThisItem.SupplierPartNo);
+                                                                Set(varDomFDeliveringTime, ThisItem.DeliveringTime);
+                                                                Set(varDomFPrice, ThisItem.Price);
+                                                                Set(varDomFPriceUnit, ThisItem.PriceUnit);
+                                                                Set(varDomFStockUnit, ThisItem.StockUnit);
+                                                                Set(varDomFRecommendedStock, ThisItem.RecommendedStock);
+                                                                Set(varDomFStrategicPart, ThisItem.StrategicPart);
+                                                                Set(varDomFWearPart, ThisItem.WearPart);
+                                                                Set(varDomFLongText, ThisItem.LongText);
+                                                                If(
+                                                                    ThisItem.FileCount > 0 &&
+                                                                    CountRows(Filter(colDomAttachments, RowId = ThisItem.RowId)) = 0,
+                                                                    Set(
+                                                                        varDomAttJson,
+                                                                        'BioSap-GetSubmittedAttachments'.Run("TaskListDocuments/" & LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey).files
+                                                                    );
+                                                                    RemoveIf(colDomAttachments, RowId = varDomActiveRowId);
+                                                                    Collect(
+                                                                        colDomAttachments,
+                                                                        ForAll(
+                                                                            ParseJSON(Coalesce(varDomAttJson, "[]")) As J,
+                                                                            {
+                                                                                RowId: varDomActiveRowId,
+                                                                                FileName: Text(J.Name),
+                                                                                FileUrl: Text(J.Link),
+                                                                                Identifier: Text(J.Identifier),
+                                                                                Selected: false
+                                                                            }
+                                                                        )
+                                                                    );
+                                                                    With(
+                                                                        { n: CountRows(Filter(colDomAttachments, RowId = varDomActiveRowId)) },
+                                                                        Patch(
+                                                                            MaterialItems,
+                                                                            LookUp(MaterialItems, ID = varDomActiveRowId),
+                                                                            { FileCount: n }
+                                                                        );
+                                                                        UpdateIf(
+                                                                            colDomRows,
+                                                                            RowId = varDomActiveRowId,
+                                                                            { FileCount: n }
+                                                                        )
+                                                                    )
+                                                                )
+                                                            RadiusBottomLeft: |-
+                                                                =10
+                                                            RadiusBottomRight: |-
+                                                                =10
+                                                            RadiusTopLeft: |-
+                                                                =10
+                                                            RadiusTopRight: |-
+                                                                =10
+                                                            Size: |-
+                                                                =14
+                                                            Text: |-
+                                                                ="Edit"
+                                                            VerticalAlign: |-
+                                                                =VerticalAlign.Middle
+                                                            Width: |-
+                                                                =48
+                                                      - btnDomRowDetails:
+                                                          Control: ModernButton
+                                                          Properties:
+                                                            AccessibleLabel: |-
+                                                                ="Details"
+                                                            Align: |-
+                                                                =Align.Center
+                                                            AlignInContainer: |-
+                                                                =AlignInContainer.Center
+                                                            Appearance: |-
+                                                                =ButtonAppearance.Outline
+                                                            BorderColor: |-
+                                                                =C.'border-default'
+                                                            BorderThickness: |-
+                                                                =1
+                                                            Color: |-
+                                                                =C.'text-primary'
+                                                            Font: |-
+                                                                =Font.'Segoe UI'
+                                                            FontWeight: |-
+                                                                =FontWeight.Semibold
+                                                            Height: |-
+                                                                =26
+                                                            Layout: |-
+                                                                =ButtonLayout.TextOnly
+                                                            OnSelect: |-
+                                                                =Set(varDomDetailsId, ThisItem.RowId)
+                                                            RadiusBottomLeft: |-
+                                                                =10
+                                                            RadiusBottomRight: |-
+                                                                =10
+                                                            RadiusTopLeft: |-
+                                                                =10
+                                                            RadiusTopRight: |-
+                                                                =10
+                                                            Size: |-
+                                                                =14
+                                                            Text: |-
+                                                                ="Details"
+                                                            VerticalAlign: |-
+                                                                =VerticalAlign.Middle
+                                                            Width: |-
+                                                                =64
+                                                      - btnDomRowCopy:
+                                                          Control: ModernButton
+                                                          Properties:
+                                                            AccessibleLabel: |-
+                                                                ="Copy"
+                                                            Align: |-
+                                                                =Align.Center
+                                                            AlignInContainer: |-
+                                                                =AlignInContainer.Center
+                                                            Appearance: |-
+                                                                =ButtonAppearance.Outline
+                                                            BorderColor: |-
+                                                                =C.'border-default'
+                                                            BorderThickness: |-
+                                                                =1
+                                                            Color: |-
+                                                                =C.'text-primary'
+                                                            Font: |-
+                                                                =Font.'Segoe UI'
+                                                            FontWeight: |-
+                                                                =FontWeight.Semibold
+                                                            Height: |-
+                                                                =26
+                                                            Layout: |-
+                                                                =ButtonLayout.TextOnly
+                                                            OnSelect: |-
+                                                                =Set(varDomActiveRowId, Blank());
+                                                                Set(varDomRowStatus, "draft");
+                                                                Set(varDomValidated, false);
+                                                                Set(varDomFText, ThisItem.MaterialDescription);
+                                                                Set(varDomFPlant, ThisItem.Plant);
+                                                                Set(varDomFFunctionalLocation, ThisItem.FunctionalLocation);
+                                                                Set(varDomFManufacturer, ThisItem.Manufacturer);
+                                                                Set(varDomFModelNumber, ThisItem.ModelNumber);
+                                                                Set(varDomFManufacturerPartNo, ThisItem.ManufacturerPartNo);
+                                                                Set(varDomFSupplier, ThisItem.Supplier);
+                                                                Set(varDomFSupplierPartNo, ThisItem.SupplierPartNo);
+                                                                Set(varDomFDeliveringTime, ThisItem.DeliveringTime);
+                                                                Set(varDomFPrice, ThisItem.Price);
+                                                                Set(varDomFPriceUnit, ThisItem.PriceUnit);
+                                                                Set(varDomFStockUnit, ThisItem.StockUnit);
+                                                                Set(varDomFRecommendedStock, ThisItem.RecommendedStock);
+                                                                Set(varDomFStrategicPart, ThisItem.StrategicPart);
+                                                                Set(varDomFWearPart, ThisItem.WearPart);
+                                                                Set(varDomFLongText, ThisItem.LongText);
+                                                                Set(varDomInfo, "Copied to a new row - not saved yet. Documents were not copied.")
+                                                            RadiusBottomLeft: |-
+                                                                =10
+                                                            RadiusBottomRight: |-
+                                                                =10
+                                                            RadiusTopLeft: |-
+                                                                =10
+                                                            RadiusTopRight: |-
+                                                                =10
+                                                            Size: |-
+                                                                =14
+                                                            Text: |-
+                                                                ="Copy"
+                                                            VerticalAlign: |-
+                                                                =VerticalAlign.Middle
+                                                            Width: |-
+                                                                =50
+                                                      - btnDomRowDelete:
+                                                          Control: ModernButton
+                                                          Properties:
+                                                            AccessibleLabel: |-
+                                                                ="Delete"
+                                                            Align: |-
+                                                                =Align.Center
+                                                            AlignInContainer: |-
+                                                                =AlignInContainer.Center
+                                                            Appearance: |-
+                                                                =ButtonAppearance.Outline
+                                                            BorderColor: |-
+                                                                =C.'border-error'
+                                                            BorderThickness: |-
+                                                                =1
+                                                            Color: |-
+                                                                =C.'state-error-fg'
+                                                            Font: |-
+                                                                =Font.'Segoe UI'
+                                                            FontWeight: |-
+                                                                =FontWeight.Semibold
+                                                            Height: |-
+                                                                =26
+                                                            Layout: |-
+                                                                =ButtonLayout.TextOnly
+                                                            OnSelect: |-
+                                                                =Remove(MaterialItems, LookUp(MaterialItems, ID = ThisItem.RowId));
+                                                                RemoveIf(colDomAttachments, RowId = ThisItem.RowId);
+                                                                If(varDomDetailsId = ThisItem.RowId, Set(varDomDetailsId, Blank()));
+                                                                
+                                                                // Var det den aabne raekke, skal formularen ogsaa ryddes - ellers
+                                                                // staar der felter fra noget, der ikke findes.
+                                                                If(
+                                                                    varDomActiveRowId = ThisItem.RowId,
+                                                                    Set(varDomActiveRowId, Blank());
+                                                                    Set(varDomRowStatus, "valid");
+                                                                    Set(varDomValidated, false);
+                                                                    Set(varDomFText, "");
+                                                                    Set(varDomFPlant, "");
+                                                                    Set(varDomFFunctionalLocation, "");
+                                                                    Set(varDomFManufacturer, "");
+                                                                    Set(varDomFModelNumber, "");
+                                                                    Set(varDomFManufacturerPartNo, "");
+                                                                    Set(varDomFSupplier, "");
+                                                                    Set(varDomFSupplierPartNo, "");
+                                                                    Set(varDomFDeliveringTime, Blank());
+                                                                    Set(varDomFPrice, Blank());
+                                                                    Set(varDomFPriceUnit, "");
+                                                                    Set(varDomFStockUnit, "");
+                                                                    Set(varDomFRecommendedStock, Blank());
+                                                                    Set(varDomFStrategicPart, "");
+                                                                    Set(varDomFWearPart, "");
+                                                                    Set(varDomFLongText, "");
+                                                                    Set(varDomFlMsg, "");
+                                                                    Reset(txtDomFlQuery);
+                                                                    Set(varDomInfo, "New row - fill in and save.")
+                                                                );
+                                                                
+                                                                ClearCollect(
+                                                                    colDomRows,
+                                                                    ForAll(
+                                                                        Filter(MaterialItems, RequesterEmail = varDomMe) As R,
+                                                                        {
+                                                                            RowId: R.ID,
+                                                                            ItemKey: Coalesce(R.ItemKey, ""),
+                                                                            RequestNo: Coalesce(R.RequestNo, ""),
+                                                                            Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                                            FileCount: Coalesce(R.FileCount, 0),
+                                                                            MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                                                            Plant: Coalesce(R.Plant, ""),
+                                                                            FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                                            Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                                            ModelNumber: Coalesce(R.ModelNumber, ""),
+                                                                            ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                                                            Supplier: Coalesce(R.Supplier, ""),
+                                                                            SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                                                            DeliveringTime: R.DeliveringTime,
+                                                                            Price: R.Price,
+                                                                            PriceUnit: Coalesce(R.PriceUnit, ""),
+                                                                            StockUnit: Coalesce(R.StockUnit, ""),
+                                                                            RecommendedStock: R.RecommendedStock,
+                                                                            StrategicPart: Coalesce(R.StrategicPart, ""),
+                                                                            WearPart: Coalesce(R.WearPart, ""),
+                                                                            LongText: Coalesce(R.LongText, "")
+                                                                        }
+                                                                    )
+                                                                );
+                                                                Set(varDomInfo, "Row deleted. The documents remain in the library.")
+                                                            RadiusBottomLeft: |-
+                                                                =10
+                                                            RadiusBottomRight: |-
+                                                                =10
+                                                            RadiusTopLeft: |-
+                                                                =10
+                                                            RadiusTopRight: |-
+                                                                =10
+                                                            Size: |-
+                                                                =14
+                                                            Text: |-
+                                                                ="Delete"
+                                                            VerticalAlign: |-
+                                                                =VerticalAlign.Middle
+                                                            Width: |-
+                                                                =58
+                                    - txtDomNoRows:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="No saved rows yet."
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-muted'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =22
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =13
+                                          Text: |-
+                                              ="No saved rows yet."
+                                          Visible: |-
+                                              =IfError(CountRows(colDomRows) = 0, false)
+                                          Wrap: |-
+                                              =false
+                              - conDomDetailsCard:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    Fill: |-
+                                        =C.'bg-card'
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =692
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =14
+                                    LayoutMinWidth: |-
+                                        =0
+                                    PaddingBottom: |-
+                                        =18
+                                    PaddingLeft: |-
+                                        =18
+                                    PaddingRight: |-
+                                        =18
+                                    PaddingTop: |-
+                                        =18
+                                    RadiusBottomLeft: |-
+                                        =14
+                                    RadiusBottomRight: |-
+                                        =14
+                                    RadiusTopLeft: |-
+                                        =14
+                                    RadiusTopRight: |-
+                                        =14
+                                    Visible: |-
+                                        =!IsBlank(varDomDetailsId)
+                                    Width: |-
+                                        =Parent.Width
+                                  Children:
+                                    - conDomDetHead:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =44
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Center
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =16
+                                          LayoutMinWidth: |-
+                                              =0
+                                          Width: |-
+                                              =Parent.Width
+                                        Children:
+                                          - conDomDetHeadL:
+                                              Control: GroupContainer
+                                              Variant: AutoLayout
+                                              Properties:
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                DropShadow: |-
+                                                    =DropShadow.None
+                                                FillPortions: |-
+                                                    =1
+                                                Height: |-
+                                                    =44
+                                                LayoutAlignItems: |-
+                                                    =LayoutAlignItems.Stretch
+                                                LayoutDirection: |-
+                                                    =LayoutDirection.Vertical
+                                                LayoutGap: |-
+                                                    =2
+                                                LayoutMinWidth: |-
+                                                    =0
+                                                Width: |-
+                                                    =Parent.Width
+                                              Children:
+                                                - txtDomDetKey:
+                                                    Control: ModernText
+                                                    Properties:
+                                                      AccessibleLabel: |-
+                                                          =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).ItemKey, "Row " & Text(varDomDetailsId))
+                                                      BorderStyle: |-
+                                                          =BorderStyle.None
+                                                      BorderThickness: |-
+                                                          =0
+                                                      Color: |-
+                                                          =C.'text-primary'
+                                                      Fill: |-
+                                                          =RGBA(0, 0, 0, 0)
+                                                      Font: |-
+                                                          =Font.'Segoe UI'
+                                                      FontWeight: |-
+                                                          =FontWeight.Semibold
+                                                      Height: |-
+                                                          =22
+                                                      PaddingBottom: |-
+                                                          =0
+                                                      PaddingLeft: |-
+                                                          =0
+                                                      PaddingRight: |-
+                                                          =0
+                                                      PaddingTop: |-
+                                                          =0
+                                                      Size: |-
+                                                          =16
+                                                      Text: |-
+                                                          =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).ItemKey, "Row " & Text(varDomDetailsId))
+                                                      Wrap: |-
+                                                          =false
+                                                - txtDomDetPos:
+                                                    Control: ModernText
+                                                    Properties:
+                                                      AccessibleLabel: |-
+                                                          ="" & Text(CountRows(Filter(Sort(Filter(
+                                                              colDomRows,
+                                                              (IsBlank(Trim(txtDomSearch.Text)) || Trim(txtDomSearch.Text) in MaterialDescription || Trim(txtDomSearch.Text) in FunctionalLocation || Trim(txtDomSearch.Text) in ManufacturerPartNo || Trim(txtDomSearch.Text) in Supplier),
+                                                              (drpDomStatusFilter.Selected.Value = "all" ||
+                                                               Status = drpDomStatusFilter.Selected.Value)
+                                                          ), RowId, SortOrder.Descending), RowId > varDomDetailsId)) + 1) & " of " & Text(CountRows(Sort(Filter(
+                                                              colDomRows,
+                                                              (IsBlank(Trim(txtDomSearch.Text)) || Trim(txtDomSearch.Text) in MaterialDescription || Trim(txtDomSearch.Text) in FunctionalLocation || Trim(txtDomSearch.Text) in ManufacturerPartNo || Trim(txtDomSearch.Text) in Supplier),
+                                                              (drpDomStatusFilter.Selected.Value = "all" ||
+                                                               Status = drpDomStatusFilter.Selected.Value)
+                                                          ), RowId, SortOrder.Descending)))
+                                                      BorderStyle: |-
+                                                          =BorderStyle.None
+                                                      BorderThickness: |-
+                                                          =0
+                                                      Color: |-
+                                                          =C.'text-muted'
+                                                      Fill: |-
+                                                          =RGBA(0, 0, 0, 0)
+                                                      Font: |-
+                                                          =Font.'Segoe UI'
+                                                      Height: |-
+                                                          =18
+                                                      PaddingBottom: |-
+                                                          =0
+                                                      PaddingLeft: |-
+                                                          =0
+                                                      PaddingRight: |-
+                                                          =0
+                                                      PaddingTop: |-
+                                                          =0
+                                                      Size: |-
+                                                          =12
+                                                      Text: |-
+                                                          ="" & Text(CountRows(Filter(Sort(Filter(
+                                                              colDomRows,
+                                                              (IsBlank(Trim(txtDomSearch.Text)) || Trim(txtDomSearch.Text) in MaterialDescription || Trim(txtDomSearch.Text) in FunctionalLocation || Trim(txtDomSearch.Text) in ManufacturerPartNo || Trim(txtDomSearch.Text) in Supplier),
+                                                              (drpDomStatusFilter.Selected.Value = "all" ||
+                                                               Status = drpDomStatusFilter.Selected.Value)
+                                                          ), RowId, SortOrder.Descending), RowId > varDomDetailsId)) + 1) & " of " & Text(CountRows(Sort(Filter(
+                                                              colDomRows,
+                                                              (IsBlank(Trim(txtDomSearch.Text)) || Trim(txtDomSearch.Text) in MaterialDescription || Trim(txtDomSearch.Text) in FunctionalLocation || Trim(txtDomSearch.Text) in ManufacturerPartNo || Trim(txtDomSearch.Text) in Supplier),
+                                                              (drpDomStatusFilter.Selected.Value = "all" ||
+                                                               Status = drpDomStatusFilter.Selected.Value)
+                                                          ), RowId, SortOrder.Descending)))
+                                                      Wrap: |-
+                                                          =false
+                                          - conDomDetHeadR:
+                                              Control: GroupContainer
+                                              Variant: AutoLayout
+                                              Properties:
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                DropShadow: |-
+                                                    =DropShadow.None
+                                                FillPortions: |-
+                                                    =0
+                                                Height: |-
+                                                    =30
+                                                LayoutAlignItems: |-
+                                                    =LayoutAlignItems.Center
+                                                LayoutDirection: |-
+                                                    =LayoutDirection.Horizontal
+                                                LayoutGap: |-
+                                                    =8
+                                                LayoutJustifyContent: |-
+                                                    =LayoutJustifyContent.End
+                                                LayoutMinWidth: |-
+                                                    =0
+                                                Width: |-
+                                                    =416
+                                              Children:
+                                                - btnDomDetPrev:
                                                     Control: ModernButton
                                                     Properties:
                                                       AccessibleLabel: |-
-                                                          ="Aabn"
+                                                          ="Previous"
                                                       Align: |-
                                                           =Align.Center
                                                       AlignInContainer: |-
@@ -4609,39 +5170,169 @@ Screens:
                                                           =1
                                                       Color: |-
                                                           =C.'text-primary'
+                                                      DisplayMode: |-
+                                                          =If(CountRows(Filter(Sort(Filter(
+                                                              colDomRows,
+                                                              (IsBlank(Trim(txtDomSearch.Text)) || Trim(txtDomSearch.Text) in MaterialDescription || Trim(txtDomSearch.Text) in FunctionalLocation || Trim(txtDomSearch.Text) in ManufacturerPartNo || Trim(txtDomSearch.Text) in Supplier),
+                                                              (drpDomStatusFilter.Selected.Value = "all" ||
+                                                               Status = drpDomStatusFilter.Selected.Value)
+                                                          ), RowId, SortOrder.Descending), RowId > varDomDetailsId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)
                                                       Font: |-
                                                           =Font.'Segoe UI'
                                                       FontWeight: |-
                                                           =FontWeight.Semibold
                                                       Height: |-
-                                                          =28
+                                                          =30
                                                       Layout: |-
                                                           =ButtonLayout.TextOnly
                                                       LayoutMinWidth: |-
-                                                          =60
+                                                          =96
                                                       OnSelect: |-
-                                                          =Set(varDomActiveRowId, ThisItem.RowId);
-                                                          Set(varDomRowStatus, ThisItem.Status);
+                                                          =Set(varDomDetailsId, Index(Sort(Filter(
+                                                              colDomRows,
+                                                              (IsBlank(Trim(txtDomSearch.Text)) || Trim(txtDomSearch.Text) in MaterialDescription || Trim(txtDomSearch.Text) in FunctionalLocation || Trim(txtDomSearch.Text) in ManufacturerPartNo || Trim(txtDomSearch.Text) in Supplier),
+                                                              (drpDomStatusFilter.Selected.Value = "all" ||
+                                                               Status = drpDomStatusFilter.Selected.Value)
+                                                          ), RowId, SortOrder.Descending), Max(1, CountRows(Filter(Sort(Filter(
+                                                              colDomRows,
+                                                              (IsBlank(Trim(txtDomSearch.Text)) || Trim(txtDomSearch.Text) in MaterialDescription || Trim(txtDomSearch.Text) in FunctionalLocation || Trim(txtDomSearch.Text) in ManufacturerPartNo || Trim(txtDomSearch.Text) in Supplier),
+                                                              (drpDomStatusFilter.Selected.Value = "all" ||
+                                                               Status = drpDomStatusFilter.Selected.Value)
+                                                          ), RowId, SortOrder.Descending), RowId > varDomDetailsId)) + 1 - 1)).RowId)
+                                                      RadiusBottomLeft: |-
+                                                          =10
+                                                      RadiusBottomRight: |-
+                                                          =10
+                                                      RadiusTopLeft: |-
+                                                          =10
+                                                      RadiusTopRight: |-
+                                                          =10
+                                                      Size: |-
+                                                          =14
+                                                      Text: |-
+                                                          ="Previous"
+                                                      VerticalAlign: |-
+                                                          =VerticalAlign.Middle
+                                                      Width: |-
+                                                          =96
+                                                - btnDomDetNext:
+                                                    Control: ModernButton
+                                                    Properties:
+                                                      AccessibleLabel: |-
+                                                          ="Next"
+                                                      Align: |-
+                                                          =Align.Center
+                                                      AlignInContainer: |-
+                                                          =AlignInContainer.Center
+                                                      Appearance: |-
+                                                          =ButtonAppearance.Outline
+                                                      BorderColor: |-
+                                                          =C.'border-default'
+                                                      BorderThickness: |-
+                                                          =1
+                                                      Color: |-
+                                                          =C.'text-primary'
+                                                      DisplayMode: |-
+                                                          =If(CountRows(Filter(Sort(Filter(
+                                                              colDomRows,
+                                                              (IsBlank(Trim(txtDomSearch.Text)) || Trim(txtDomSearch.Text) in MaterialDescription || Trim(txtDomSearch.Text) in FunctionalLocation || Trim(txtDomSearch.Text) in ManufacturerPartNo || Trim(txtDomSearch.Text) in Supplier),
+                                                              (drpDomStatusFilter.Selected.Value = "all" ||
+                                                               Status = drpDomStatusFilter.Selected.Value)
+                                                          ), RowId, SortOrder.Descending), RowId > varDomDetailsId)) + 1 >= CountRows(Sort(Filter(
+                                                              colDomRows,
+                                                              (IsBlank(Trim(txtDomSearch.Text)) || Trim(txtDomSearch.Text) in MaterialDescription || Trim(txtDomSearch.Text) in FunctionalLocation || Trim(txtDomSearch.Text) in ManufacturerPartNo || Trim(txtDomSearch.Text) in Supplier),
+                                                              (drpDomStatusFilter.Selected.Value = "all" ||
+                                                               Status = drpDomStatusFilter.Selected.Value)
+                                                          ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)
+                                                      Font: |-
+                                                          =Font.'Segoe UI'
+                                                      FontWeight: |-
+                                                          =FontWeight.Semibold
+                                                      Height: |-
+                                                          =30
+                                                      Layout: |-
+                                                          =ButtonLayout.TextOnly
+                                                      LayoutMinWidth: |-
+                                                          =96
+                                                      OnSelect: |-
+                                                          =Set(varDomDetailsId, Index(Sort(Filter(
+                                                              colDomRows,
+                                                              (IsBlank(Trim(txtDomSearch.Text)) || Trim(txtDomSearch.Text) in MaterialDescription || Trim(txtDomSearch.Text) in FunctionalLocation || Trim(txtDomSearch.Text) in ManufacturerPartNo || Trim(txtDomSearch.Text) in Supplier),
+                                                              (drpDomStatusFilter.Selected.Value = "all" ||
+                                                               Status = drpDomStatusFilter.Selected.Value)
+                                                          ), RowId, SortOrder.Descending), Min(CountRows(Sort(Filter(
+                                                              colDomRows,
+                                                              (IsBlank(Trim(txtDomSearch.Text)) || Trim(txtDomSearch.Text) in MaterialDescription || Trim(txtDomSearch.Text) in FunctionalLocation || Trim(txtDomSearch.Text) in ManufacturerPartNo || Trim(txtDomSearch.Text) in Supplier),
+                                                              (drpDomStatusFilter.Selected.Value = "all" ||
+                                                               Status = drpDomStatusFilter.Selected.Value)
+                                                          ), RowId, SortOrder.Descending)), CountRows(Filter(Sort(Filter(
+                                                              colDomRows,
+                                                              (IsBlank(Trim(txtDomSearch.Text)) || Trim(txtDomSearch.Text) in MaterialDescription || Trim(txtDomSearch.Text) in FunctionalLocation || Trim(txtDomSearch.Text) in ManufacturerPartNo || Trim(txtDomSearch.Text) in Supplier),
+                                                              (drpDomStatusFilter.Selected.Value = "all" ||
+                                                               Status = drpDomStatusFilter.Selected.Value)
+                                                          ), RowId, SortOrder.Descending), RowId > varDomDetailsId)) + 1 + 1)).RowId)
+                                                      RadiusBottomLeft: |-
+                                                          =10
+                                                      RadiusBottomRight: |-
+                                                          =10
+                                                      RadiusTopLeft: |-
+                                                          =10
+                                                      RadiusTopRight: |-
+                                                          =10
+                                                      Size: |-
+                                                          =14
+                                                      Text: |-
+                                                          ="Next"
+                                                      VerticalAlign: |-
+                                                          =VerticalAlign.Middle
+                                                      Width: |-
+                                                          =96
+                                                - btnDomDetEdit:
+                                                    Control: ModernButton
+                                                    Properties:
+                                                      AccessibleLabel: |-
+                                                          ="Edit this row"
+                                                      Align: |-
+                                                          =Align.Center
+                                                      AlignInContainer: |-
+                                                          =AlignInContainer.Center
+                                                      BasePaletteColor: |-
+                                                          =C.'color-brand-primary'
+                                                      Color: |-
+                                                          =C.'text-on-primary'
+                                                      Font: |-
+                                                          =Font.'Segoe UI'
+                                                      FontWeight: |-
+                                                          =FontWeight.Semibold
+                                                      Height: |-
+                                                          =30
+                                                      Layout: |-
+                                                          =ButtonLayout.TextOnly
+                                                      LayoutMinWidth: |-
+                                                          =120
+                                                      OnSelect: |-
+                                                          =Set(varDomActiveRowId, LookUp(colDomRows, RowId = varDomDetailsId).RowId);
+                                                          Set(varDomRowStatus, LookUp(colDomRows, RowId = varDomDetailsId).Status);
                                                           Set(varDomValidated, false);
-                                                          Set(varDomFText, ThisItem.MaterialDescription);
-                                                          Set(varDomFPlant, ThisItem.Plant);
-                                                          Set(varDomFFunctionalLocation, ThisItem.FunctionalLocation);
-                                                          Set(varDomFManufacturer, ThisItem.Manufacturer);
-                                                          Set(varDomFModelNumber, ThisItem.ModelNumber);
-                                                          Set(varDomFManufacturerPartNo, ThisItem.ManufacturerPartNo);
-                                                          Set(varDomFSupplier, ThisItem.Supplier);
-                                                          Set(varDomFSupplierPartNo, ThisItem.SupplierPartNo);
-                                                          Set(varDomFDeliveringTime, ThisItem.DeliveringTime);
-                                                          Set(varDomFPrice, ThisItem.Price);
-                                                          Set(varDomFPriceUnit, ThisItem.PriceUnit);
-                                                          Set(varDomFStockUnit, ThisItem.StockUnit);
-                                                          Set(varDomFRecommendedStock, ThisItem.RecommendedStock);
-                                                          Set(varDomFStrategicPart, ThisItem.StrategicPart);
-                                                          Set(varDomFWearPart, ThisItem.WearPart);
-                                                          Set(varDomFLongText, ThisItem.LongText);
+                                                          Set(varDomFText, LookUp(colDomRows, RowId = varDomDetailsId).MaterialDescription);
+                                                          Set(varDomFPlant, LookUp(colDomRows, RowId = varDomDetailsId).Plant);
+                                                          Set(varDomFFunctionalLocation, LookUp(colDomRows, RowId = varDomDetailsId).FunctionalLocation);
+                                                          Set(varDomFManufacturer, LookUp(colDomRows, RowId = varDomDetailsId).Manufacturer);
+                                                          Set(varDomFModelNumber, LookUp(colDomRows, RowId = varDomDetailsId).ModelNumber);
+                                                          Set(varDomFManufacturerPartNo, LookUp(colDomRows, RowId = varDomDetailsId).ManufacturerPartNo);
+                                                          Set(varDomFSupplier, LookUp(colDomRows, RowId = varDomDetailsId).Supplier);
+                                                          Set(varDomFSupplierPartNo, LookUp(colDomRows, RowId = varDomDetailsId).SupplierPartNo);
+                                                          Set(varDomFDeliveringTime, LookUp(colDomRows, RowId = varDomDetailsId).DeliveringTime);
+                                                          Set(varDomFPrice, LookUp(colDomRows, RowId = varDomDetailsId).Price);
+                                                          Set(varDomFPriceUnit, LookUp(colDomRows, RowId = varDomDetailsId).PriceUnit);
+                                                          Set(varDomFStockUnit, LookUp(colDomRows, RowId = varDomDetailsId).StockUnit);
+                                                          Set(varDomFRecommendedStock, LookUp(colDomRows, RowId = varDomDetailsId).RecommendedStock);
+                                                          Set(varDomFStrategicPart, LookUp(colDomRows, RowId = varDomDetailsId).StrategicPart);
+                                                          Set(varDomFWearPart, LookUp(colDomRows, RowId = varDomDetailsId).WearPart);
+                                                          Set(varDomFLongText, LookUp(colDomRows, RowId = varDomDetailsId).LongText);
                                                           If(
-                                                              ThisItem.FileCount > 0 &&
-                                                              CountRows(Filter(colDomAttachments, RowId = ThisItem.RowId)) = 0,
+                                                              LookUp(colDomRows, RowId = varDomDetailsId).FileCount > 0 &&
+                                                              CountRows(Filter(colDomAttachments, RowId = LookUp(colDomRows, RowId = varDomDetailsId).RowId)) = 0,
                                                               Set(
                                                                   varDomAttJson,
                                                                   'BioSap-GetSubmittedAttachments'.Run("TaskListDocuments/" & LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey).files
@@ -4685,44 +5376,1694 @@ Screens:
                                                       Size: |-
                                                           =14
                                                       Text: |-
-                                                          ="Aabn"
+                                                          ="Edit this row"
                                                       VerticalAlign: |-
                                                           =VerticalAlign.Middle
                                                       Width: |-
-                                                          =60
-                                    - txtDomNoRows:
-                                        Control: ModernText
+                                                          =120
+                                                - btnDomDetClose:
+                                                    Control: ModernButton
+                                                    Properties:
+                                                      AccessibleLabel: |-
+                                                          ="Close"
+                                                      Align: |-
+                                                          =Align.Center
+                                                      AlignInContainer: |-
+                                                          =AlignInContainer.Center
+                                                      Appearance: |-
+                                                          =ButtonAppearance.Outline
+                                                      BorderColor: |-
+                                                          =C.'border-default'
+                                                      BorderThickness: |-
+                                                          =1
+                                                      Color: |-
+                                                          =C.'text-primary'
+                                                      Font: |-
+                                                          =Font.'Segoe UI'
+                                                      FontWeight: |-
+                                                          =FontWeight.Semibold
+                                                      Height: |-
+                                                          =30
+                                                      Layout: |-
+                                                          =ButtonLayout.TextOnly
+                                                      LayoutMinWidth: |-
+                                                          =80
+                                                      OnSelect: |-
+                                                          =Set(varDomDetailsId, Blank())
+                                                      RadiusBottomLeft: |-
+                                                          =10
+                                                      RadiusBottomRight: |-
+                                                          =10
+                                                      RadiusTopLeft: |-
+                                                          =10
+                                                      RadiusTopRight: |-
+                                                          =10
+                                                      Size: |-
+                                                          =14
+                                                      Text: |-
+                                                          ="Close"
+                                                      VerticalAlign: |-
+                                                          =VerticalAlign.Middle
+                                                      Width: |-
+                                                          =80
+                                    - conDomDet0:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
                                         Properties:
-                                          AccessibleLabel: |-
-                                              ="No saved rows yet."
                                           BorderStyle: |-
                                               =BorderStyle.None
-                                          BorderThickness: |-
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
                                               =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
                                           Height: |-
-                                              =22
-                                          PaddingBottom: |-
+                                              =20
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Center
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =12
+                                          LayoutMinWidth: |-
                                               =0
-                                          PaddingLeft: |-
+                                          Width: |-
+                                              =Parent.Width
+                                        Children:
+                                          - txtDomDet0L:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Material description"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-muted'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =12
+                                                Text: |-
+                                                    ="Material description"
+                                                Width: |-
+                                                    =190
+                                                Wrap: |-
+                                                    =false
+                                          - txtDomDet0V:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).MaterialDescription, "-")
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =13
+                                                Text: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).MaterialDescription, "-")
+                                                Width: |-
+                                                    =Parent.Width - 190 - 12
+                                                Wrap: |-
+                                                    =false
+                                    - conDomDet1:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
                                               =0
-                                          PaddingRight: |-
+                                          Height: |-
+                                              =20
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Center
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =12
+                                          LayoutMinWidth: |-
                                               =0
-                                          PaddingTop: |-
+                                          Width: |-
+                                              =Parent.Width
+                                        Children:
+                                          - txtDomDet1L:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Plant"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-muted'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =12
+                                                Text: |-
+                                                    ="Plant"
+                                                Width: |-
+                                                    =190
+                                                Wrap: |-
+                                                    =false
+                                          - txtDomDet1V:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).Plant, "-")
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =13
+                                                Text: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).Plant, "-")
+                                                Width: |-
+                                                    =Parent.Width - 190 - 12
+                                                Wrap: |-
+                                                    =false
+                                    - conDomDet2:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
                                               =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              ="No saved rows yet."
-                                          Visible: |-
-                                              =IfError(CountRows(colDomRows) = 0, false)
-                                          Wrap: |-
-                                              =false
+                                          Height: |-
+                                              =20
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Center
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =12
+                                          LayoutMinWidth: |-
+                                              =0
+                                          Width: |-
+                                              =Parent.Width
+                                        Children:
+                                          - txtDomDet2L:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Status"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-muted'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =12
+                                                Text: |-
+                                                    ="Status"
+                                                Width: |-
+                                                    =190
+                                                Wrap: |-
+                                                    =false
+                                          - txtDomDet2V:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).Status, "-")
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =13
+                                                Text: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).Status, "-")
+                                                Width: |-
+                                                    =Parent.Width - 190 - 12
+                                                Wrap: |-
+                                                    =false
+                                    - conDomDet3:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =20
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Center
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =12
+                                          LayoutMinWidth: |-
+                                              =0
+                                          Width: |-
+                                              =Parent.Width
+                                        Children:
+                                          - txtDomDet3L:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Documents"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-muted'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =12
+                                                Text: |-
+                                                    ="Documents"
+                                                Width: |-
+                                                    =190
+                                                Wrap: |-
+                                                    =false
+                                          - txtDomDet3V:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    =Text(Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).FileCount, 0))
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =13
+                                                Text: |-
+                                                    =Text(Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).FileCount, 0))
+                                                Width: |-
+                                                    =Parent.Width - 190 - 12
+                                                Wrap: |-
+                                                    =false
+                                    - conDomDet4:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =20
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Center
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =12
+                                          LayoutMinWidth: |-
+                                              =0
+                                          Width: |-
+                                              =Parent.Width
+                                        Children:
+                                          - txtDomDet4L:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Func. location"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-muted'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =12
+                                                Text: |-
+                                                    ="Func. location"
+                                                Width: |-
+                                                    =190
+                                                Wrap: |-
+                                                    =false
+                                          - txtDomDet4V:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).FunctionalLocation, "-")
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =13
+                                                Text: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).FunctionalLocation, "-")
+                                                Width: |-
+                                                    =Parent.Width - 190 - 12
+                                                Wrap: |-
+                                                    =false
+                                    - conDomDet5:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =20
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Center
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =12
+                                          LayoutMinWidth: |-
+                                              =0
+                                          Width: |-
+                                              =Parent.Width
+                                        Children:
+                                          - txtDomDet5L:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Manufacturer"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-muted'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =12
+                                                Text: |-
+                                                    ="Manufacturer"
+                                                Width: |-
+                                                    =190
+                                                Wrap: |-
+                                                    =false
+                                          - txtDomDet5V:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).Manufacturer, "-")
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =13
+                                                Text: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).Manufacturer, "-")
+                                                Width: |-
+                                                    =Parent.Width - 190 - 12
+                                                Wrap: |-
+                                                    =false
+                                    - conDomDet6:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =20
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Center
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =12
+                                          LayoutMinWidth: |-
+                                              =0
+                                          Width: |-
+                                              =Parent.Width
+                                        Children:
+                                          - txtDomDet6L:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Modelnummer"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-muted'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =12
+                                                Text: |-
+                                                    ="Modelnummer"
+                                                Width: |-
+                                                    =190
+                                                Wrap: |-
+                                                    =false
+                                          - txtDomDet6V:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).ModelNumber, "-")
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =13
+                                                Text: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).ModelNumber, "-")
+                                                Width: |-
+                                                    =Parent.Width - 190 - 12
+                                                Wrap: |-
+                                                    =false
+                                    - conDomDet7:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =20
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Center
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =12
+                                          LayoutMinWidth: |-
+                                              =0
+                                          Width: |-
+                                              =Parent.Width
+                                        Children:
+                                          - txtDomDet7L:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Manufacturer part no."
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-muted'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =12
+                                                Text: |-
+                                                    ="Manufacturer part no."
+                                                Width: |-
+                                                    =190
+                                                Wrap: |-
+                                                    =false
+                                          - txtDomDet7V:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).ManufacturerPartNo, "-")
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =13
+                                                Text: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).ManufacturerPartNo, "-")
+                                                Width: |-
+                                                    =Parent.Width - 190 - 12
+                                                Wrap: |-
+                                                    =false
+                                    - conDomDet8:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =20
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Center
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =12
+                                          LayoutMinWidth: |-
+                                              =0
+                                          Width: |-
+                                              =Parent.Width
+                                        Children:
+                                          - txtDomDet8L:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Supplier"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-muted'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =12
+                                                Text: |-
+                                                    ="Supplier"
+                                                Width: |-
+                                                    =190
+                                                Wrap: |-
+                                                    =false
+                                          - txtDomDet8V:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).Supplier, "-")
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =13
+                                                Text: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).Supplier, "-")
+                                                Width: |-
+                                                    =Parent.Width - 190 - 12
+                                                Wrap: |-
+                                                    =false
+                                    - conDomDet9:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =20
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Center
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =12
+                                          LayoutMinWidth: |-
+                                              =0
+                                          Width: |-
+                                              =Parent.Width
+                                        Children:
+                                          - txtDomDet9L:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Leverandoerens varenr."
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-muted'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =12
+                                                Text: |-
+                                                    ="Leverandoerens varenr."
+                                                Width: |-
+                                                    =190
+                                                Wrap: |-
+                                                    =false
+                                          - txtDomDet9V:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).SupplierPartNo, "-")
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =13
+                                                Text: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).SupplierPartNo, "-")
+                                                Width: |-
+                                                    =Parent.Width - 190 - 12
+                                                Wrap: |-
+                                                    =false
+                                    - conDomDet10:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =20
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Center
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =12
+                                          LayoutMinWidth: |-
+                                              =0
+                                          Width: |-
+                                              =Parent.Width
+                                        Children:
+                                          - txtDomDet10L:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Leveringstid (dage)"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-muted'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =12
+                                                Text: |-
+                                                    ="Leveringstid (dage)"
+                                                Width: |-
+                                                    =190
+                                                Wrap: |-
+                                                    =false
+                                          - txtDomDet10V:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    =If(IsBlank(LookUp(colDomRows, RowId = varDomDetailsId).DeliveringTime), "-", Text(LookUp(colDomRows, RowId = varDomDetailsId).DeliveringTime))
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =13
+                                                Text: |-
+                                                    =If(IsBlank(LookUp(colDomRows, RowId = varDomDetailsId).DeliveringTime), "-", Text(LookUp(colDomRows, RowId = varDomDetailsId).DeliveringTime))
+                                                Width: |-
+                                                    =Parent.Width - 190 - 12
+                                                Wrap: |-
+                                                    =false
+                                    - conDomDet11:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =20
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Center
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =12
+                                          LayoutMinWidth: |-
+                                              =0
+                                          Width: |-
+                                              =Parent.Width
+                                        Children:
+                                          - txtDomDet11L:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Price"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-muted'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =12
+                                                Text: |-
+                                                    ="Price"
+                                                Width: |-
+                                                    =190
+                                                Wrap: |-
+                                                    =false
+                                          - txtDomDet11V:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    =If(IsBlank(LookUp(colDomRows, RowId = varDomDetailsId).Price), "-", Text(LookUp(colDomRows, RowId = varDomDetailsId).Price))
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =13
+                                                Text: |-
+                                                    =If(IsBlank(LookUp(colDomRows, RowId = varDomDetailsId).Price), "-", Text(LookUp(colDomRows, RowId = varDomDetailsId).Price))
+                                                Width: |-
+                                                    =Parent.Width - 190 - 12
+                                                Wrap: |-
+                                                    =false
+                                    - conDomDet12:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =20
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Center
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =12
+                                          LayoutMinWidth: |-
+                                              =0
+                                          Width: |-
+                                              =Parent.Width
+                                        Children:
+                                          - txtDomDet12L:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Prisenhed"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-muted'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =12
+                                                Text: |-
+                                                    ="Prisenhed"
+                                                Width: |-
+                                                    =190
+                                                Wrap: |-
+                                                    =false
+                                          - txtDomDet12V:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).PriceUnit, "-")
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =13
+                                                Text: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).PriceUnit, "-")
+                                                Width: |-
+                                                    =Parent.Width - 190 - 12
+                                                Wrap: |-
+                                                    =false
+                                    - conDomDet13:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =20
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Center
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =12
+                                          LayoutMinWidth: |-
+                                              =0
+                                          Width: |-
+                                              =Parent.Width
+                                        Children:
+                                          - txtDomDet13L:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Lagerenhed"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-muted'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =12
+                                                Text: |-
+                                                    ="Lagerenhed"
+                                                Width: |-
+                                                    =190
+                                                Wrap: |-
+                                                    =false
+                                          - txtDomDet13V:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).StockUnit, "-")
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =13
+                                                Text: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).StockUnit, "-")
+                                                Width: |-
+                                                    =Parent.Width - 190 - 12
+                                                Wrap: |-
+                                                    =false
+                                    - conDomDet14:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =20
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Center
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =12
+                                          LayoutMinWidth: |-
+                                              =0
+                                          Width: |-
+                                              =Parent.Width
+                                        Children:
+                                          - txtDomDet14L:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Recommended stock"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-muted'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =12
+                                                Text: |-
+                                                    ="Recommended stock"
+                                                Width: |-
+                                                    =190
+                                                Wrap: |-
+                                                    =false
+                                          - txtDomDet14V:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    =If(IsBlank(LookUp(colDomRows, RowId = varDomDetailsId).RecommendedStock), "-", Text(LookUp(colDomRows, RowId = varDomDetailsId).RecommendedStock))
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =13
+                                                Text: |-
+                                                    =If(IsBlank(LookUp(colDomRows, RowId = varDomDetailsId).RecommendedStock), "-", Text(LookUp(colDomRows, RowId = varDomDetailsId).RecommendedStock))
+                                                Width: |-
+                                                    =Parent.Width - 190 - 12
+                                                Wrap: |-
+                                                    =false
+                                    - conDomDet15:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =20
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Center
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =12
+                                          LayoutMinWidth: |-
+                                              =0
+                                          Width: |-
+                                              =Parent.Width
+                                        Children:
+                                          - txtDomDet15L:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Strategic part"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-muted'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =12
+                                                Text: |-
+                                                    ="Strategic part"
+                                                Width: |-
+                                                    =190
+                                                Wrap: |-
+                                                    =false
+                                          - txtDomDet15V:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).StrategicPart, "-")
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =13
+                                                Text: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).StrategicPart, "-")
+                                                Width: |-
+                                                    =Parent.Width - 190 - 12
+                                                Wrap: |-
+                                                    =false
+                                    - conDomDet16:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =20
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Center
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =12
+                                          LayoutMinWidth: |-
+                                              =0
+                                          Width: |-
+                                              =Parent.Width
+                                        Children:
+                                          - txtDomDet16L:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Sliddel"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-muted'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =12
+                                                Text: |-
+                                                    ="Sliddel"
+                                                Width: |-
+                                                    =190
+                                                Wrap: |-
+                                                    =false
+                                          - txtDomDet16V:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).WearPart, "-")
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =13
+                                                Text: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).WearPart, "-")
+                                                Width: |-
+                                                    =Parent.Width - 190 - 12
+                                                Wrap: |-
+                                                    =false
+                                    - conDomDet17:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =20
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Center
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =12
+                                          LayoutMinWidth: |-
+                                              =0
+                                          Width: |-
+                                              =Parent.Width
+                                        Children:
+                                          - txtDomDet17L:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Langtekst"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-muted'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =12
+                                                Text: |-
+                                                    ="Langtekst"
+                                                Width: |-
+                                                    =190
+                                                Wrap: |-
+                                                    =false
+                                          - txtDomDet17V:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).LongText, "-")
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =13
+                                                Text: |-
+                                                    =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).LongText, "-")
+                                                Width: |-
+                                                    =Parent.Width - 190 - 12
+                                                Wrap: |-
+                                                    =false
                         - conDomRight:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -5247,7 +7588,7 @@ Screens:
                                                     Control: ModernButton
                                                     Properties:
                                                       AccessibleLabel: |-
-                                                          ="Aabn"
+                                                          ="Open"
                                                       Align: |-
                                                           =Align.Center
                                                       AlignInContainer: |-
@@ -5283,7 +7624,7 @@ Screens:
                                                       Size: |-
                                                           =14
                                                       Text: |-
-                                                          ="Aabn"
+                                                          ="Open"
                                                       VerticalAlign: |-
                                                           =VerticalAlign.Middle
                                                       Width: |-

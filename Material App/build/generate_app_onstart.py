@@ -88,6 +88,8 @@ STATE = '''Set(varDomMe, Lower(User().Email));
 Set(varDomRequestNo, "");
 Set(varDomRequestGuid, "");
 Set(varDomActiveRowId, Blank());
+// Hvilken raekke detaljeruden viser. Blank = ruden er skjult.
+Set(varDomDetailsId, Blank());
 Set(varDomRowStatus, "valid");
 Set(varDomAttJson, "");
 Set(varDomFlMsg, "");

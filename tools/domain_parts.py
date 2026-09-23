@@ -479,6 +479,57 @@ def clear_form_fx():
     return "\n".join(lines)
 
 
+def copy_row_fx():
+    """Kopier raekken til en NY, ugemt raekke i formularen.
+
+    Den haandskrevne app kopierede til en lokal samling, fordi raekkerne
+    dér kun laa i appen. Her ER en raekke en SharePoint-raekke, saa en
+    kopi, der blev skrevet med det samme, ville lave en halvfaerdig raekke
+    i listen, hver gang nogen kom til at trykke.
+
+    Kopien lander derfor i FORMULAREN med blankt raekke-id: brugeren ser
+    den, kan rette i den, og den findes foerst, naar der trykkes Gem.
+
+    Funktionspladsen kopieres MED - modsat VH-plans "Copy item", hvor den
+    ryddes. Dér er pointen som regel det samme udstyr et andet sted; her
+    er det samme sted med et andet materiale."""
+    lines = ['Set(varDomActiveRowId, Blank());',
+             'Set(varDomRowStatus, "draft");',
+             f'Set({REQUIRED}, false);',
+             f'Set(varDomFText, ThisItem.{cfg.C_TEXT});',
+             'Set(varDomFPlant, ThisItem.Plant);']
+    for col, _lab, _kind, _ch in FIELDS:
+        lines.append(f"Set({_var(col)}, ThisItem.{col});")
+    # Dokumenterne foelger IKKE med. De ligger i en mappe, der hedder den
+    # gamle raekkes noegle, og kopien har ingen noegle endnu.
+    lines.append('Set(varDomInfo, "Copied to a new row - not saved yet. '
+                 'Documents were not copied.")')
+    return "\n".join(lines)
+
+
+def delete_this_row_fx():
+    """Slet DEN raekke, knappen sidder paa - ikke den, der er aaben.
+
+    btnDomDelete i formularen sletter varDomActiveRowId. Her er raekken
+    ThisItem, og de to er ikke noedvendigvis den samme: man skal kunne
+    slette en raekke i listen uden foerst at aabne den."""
+    return (
+        f"Remove({cfg.L_ROWS}, LookUp({cfg.L_ROWS}, ID = ThisItem.RowId));\n"
+        "RemoveIf(colDomAttachments, RowId = ThisItem.RowId);\n"
+        "If(varDomDetailsId = ThisItem.RowId, Set(varDomDetailsId, Blank()));\n"
+        "\n"
+        "// Var det den aabne raekke, skal formularen ogsaa ryddes - ellers\n"
+        "// staar der felter fra noget, der ikke findes.\n"
+        "If(\n"
+        "    varDomActiveRowId = ThisItem.RowId,\n"
+        "    " + clear_form_fx().replace("\n", "\n    ") + "\n"
+        ");\n"
+        "\n"
+        + refresh_rows_fx() + ";\n"
+        'Set(varDomInfo, "Row deleted. The documents remain in the library.")'
+    )
+
+
 def load_row_fx():
     """Vaelg en gemt raekke. Dokumenterne hentes kun, hvis raekken HAR
     nogen og de ikke allerede er hentet - ellers ville hvert klik i
@@ -662,7 +713,7 @@ def build_attachments():
     # NY fane her, og kun her. Navigation mellem apps bruger Replace, saa
     # der ikke bliver en fane pr. klik - men et dokument er ikke en app.
     # Replace ville smide appen vaek, og en halvudfyldt formular med den.
-    link = button("btnDomAttOpen", '"Aabn"',
+    link = button("btnDomAttOpen", '"Open"',
                   "Launch(ThisItem.FileUrl, { }, LaunchTarget.New)",
                   width=80, height=28)
     row = group("conDomAttRow", pin_widths([chk, name, link]),
@@ -706,7 +757,21 @@ def build_attachments():
 # De gemte raekker
 # ---------------------------------------------------------------------------
 GAP = 10
-FIXED = sum(w for _n, w in cfg.LIST_COLS) + GAP * (len(cfg.LIST_COLS) - 1)
+
+# Raekkens fire knapper. Bredden paa handlingskolonnen REGNES af dem, saa
+# en femte knap ikke kan goere tabellen bredere end kolonnen uden at
+# nogen opdager det. build_rows() efterproever tabellen mod raekken.
+ROW_BTN = {"btnDomRowOpen": 48, "btnDomRowDetails": 64,
+           "btnDomRowCopy": 50, "btnDomRowDelete": 58}
+ROW_BTN_GAP = 4
+ACTIONS_W = sum(ROW_BTN.values()) + ROW_BTN_GAP * (len(ROW_BTN) - 1)
+
+# Sidste kolonne i LIST_COLS er handlingerne. Bredden staar som 0 i de to
+# domain_config.py og regnes HER - ellers skulle det samme tal vedligeholdes
+# to steder, og det ene ville blive glemt.
+LIST_COLS = [(n, ACTIONS_W if i == len(cfg.LIST_COLS) - 1 else w)
+             for i, (n, w) in enumerate(cfg.LIST_COLS)]
+FIXED = sum(w for _n, w in LIST_COLS) + GAP * (len(LIST_COLS) - 1)
 # Beskrivelseskolonnen tager RESTEN af bredden - men hoejst 460.
 #
 # Uden loftet aad den alt: paa en bred skaerm blev den over tusind pixels,
@@ -733,6 +798,93 @@ def _head_cell(i, label, width):
                      weight="Semibold", height=18, width=w, wrap="false")
 
 
+# ---------------------------------------------------------------------------
+# Detaljeruden
+#
+# Den haandskrevne app havde en modal med alle raekkens felter og
+# frem/tilbage mellem raekkerne. Den kom ikke med i builderen (issue #15,
+# #16).
+#
+# Her er den et KORT under listen og ikke en modal. Grunden er praktisk:
+# modalen i den gamle app var en HtmlViewer med hele raekken skrevet ind i
+# en stylestreng, og den kunne hverken efterregnes af layout-tjekket eller
+# laeses af en skaermlaeser. Et kort med rigtige tekstkontroller kan begge
+# dele.
+# ---------------------------------------------------------------------------
+DETAIL_LBL_W = 190
+DETAIL_ROW_H = 20
+
+
+def _detail_row(i, label, value):
+    lbl = text_ctrl(f"txtDomDet{i}L", f'"{label}"', size=12, color=C_MUTED,
+                    weight="Semibold", height=DETAIL_ROW_H, width=DETAIL_LBL_W,
+                    wrap="false")
+    val = text_ctrl(f"txtDomDet{i}V", value, size=13, height=DETAIL_ROW_H,
+                    width="Parent.Width - %d - 12" % DETAIL_LBL_W, wrap="false")
+    return group(f"conDomDet{i}", [lbl, val], direction="Horizontal", gap=12,
+                 height=DETAIL_ROW_H, align_items="Center")
+
+
+def build_details():
+    """Alle raekkens felter, med frem og tilbage mellem raekkerne."""
+    # Raekken, ruden viser. Den slaas op HVER gang - saa er den altid den,
+    # der staar i samlingen, ogsaa efter en Gem.
+    row = f"LookUp(colDomRows, RowId = varDomDetailsId)"
+    # Positionen i den SORTEREDE og FILTREREDE liste, saa frem/tilbage
+    # foelger det, brugeren faktisk ser. Power Fx har ingen IndexOf, men
+    # i en faldende sortering er positionen antallet af raekker foran.
+    order = f"Sort({SCOPE}, RowId, SortOrder.Descending)"
+    pos = f"CountRows(Filter({order}, RowId > varDomDetailsId)) + 1"
+
+    key = text_ctrl("txtDomDetKey",
+                    f'Coalesce({row}.ItemKey, "Row " & Text(varDomDetailsId))',
+                    size=16, weight="Semibold", height=22, wrap="false")
+    where = text_ctrl("txtDomDetPos",
+                      f'"{{}} of " & Text(CountRows({order}))'.replace(
+                          "{}", '" & Text(%s) & "' % pos),
+                      size=12, color=C_MUTED, height=18, wrap="false")
+    head_left = group("conDomDetHeadL", [key, where], direction="Vertical",
+                      gap=2, height=44, fill_portions=1)
+
+    prev = button("btnDomDetPrev", '"Previous"',
+                  f'Set(varDomDetailsId, Index({order}, Max(1, {pos} - 1)).RowId)',
+                  width=96, height=30,
+                  display_mode=f"If({pos} <= 1, DisplayMode.Disabled, DisplayMode.Edit)")
+    nxt = button("btnDomDetNext", '"Next"',
+                 f'Set(varDomDetailsId, '
+                 f'Index({order}, Min(CountRows({order}), {pos} + 1)).RowId)',
+                 width=96, height=30,
+                 display_mode=f"If({pos} >= CountRows({order}), "
+                              f"DisplayMode.Disabled, DisplayMode.Edit)")
+    edit = button("btnDomDetEdit", '"Edit this row"',
+                  load_row_fx().replace("ThisItem.", f"{row}."),
+                  primary=True, width=120, height=30)
+    close = button("btnDomDetClose", '"Close"',
+                   "Set(varDomDetailsId, Blank())", width=80, height=30)
+    head_right = group("conDomDetHeadR", pin_widths([prev, nxt, edit, close]),
+                       direction="Horizontal", gap=8, height=30,
+                       align_items="Center", justify="End",
+                       width=str(96 + 96 + 120 + 80 + 8 * 3))
+    head = group("conDomDetHead", [head_left, head_right],
+                 direction="Horizontal", gap=16, height=44,
+                 align_items="Center")
+
+    # Alle felter - ogsaa de tomme. En tom linje er et svar: feltet ER
+    # ikke udfyldt. Skjules den, kan man ikke se forskel paa "tomt" og
+    # "findes ikke".
+    rows = [_detail_row(0, cfg.TEXT_LABEL, f'Coalesce({row}.{cfg.C_TEXT}, "-")'),
+            _detail_row(1, "Plant", f'Coalesce({row}.Plant, "-")'),
+            _detail_row(2, "Status", f'Coalesce({row}.Status, "-")'),
+            _detail_row(3, "Documents", f'Text(Coalesce({row}.FileCount, 0))')]
+    for n, (col, label, kind, _ch) in enumerate(FIELDS, start=len(rows)):
+        v = (f'If(IsBlank({row}.{col}), "-", Text({row}.{col}))'
+             if kind in ("num", "date") else f'Coalesce({row}.{col}, "-")')
+        rows.append(_detail_row(n, label, v))
+
+    return card("conDomDetailsCard", [head] + rows,
+                visible="!IsBlank(varDomDetailsId)")
+
+
 def build_rows():
     search = text_input("txtDomSearch", '""',
                         placeholder='"Search description, functional location, number"',
@@ -750,7 +902,7 @@ def build_rows():
 
     head = group("conDomListHead",
                  pin_widths([_head_cell(i, n, w)
-                             for i, (n, w) in enumerate(cfg.LIST_COLS)]),
+                             for i, (n, w) in enumerate(LIST_COLS)]),
                  direction="Horizontal", gap=GAP, height=18,
                  align_items="Center")
 
@@ -760,17 +912,39 @@ def build_rows():
     for i, col in enumerate(cfg.LIST_FIELDS):
         cells.append(text_ctrl(f"txtDomRow{i}", f"ThisItem.{col}", size=13,
                                color=C_MUTED, height=20,
-                               width=cfg.LIST_COLS[i + 1][1], wrap="false"))
+                               width=LIST_COLS[i + 1][1], wrap="false"))
     cells.append(badge("txtDomRowStatus", "ThisItem.Status",
-                       width=cfg.LIST_COLS[-2][1]))
+                       width=LIST_COLS[-2][1]))
     cells.append(text_ctrl("txtDomRowFiles", "Text(ThisItem.FileCount)",
                            size=13, color=C_MUTED, height=20,
-                           width=cfg.LIST_COLS[-2][1], wrap="false"))
-    # En knap, ikke kun et klik paa raekken. Galleriets OnSelect virker
-    # ogsaa, men den er usynlig - der er intet, der siger at raekken KAN
-    # aabnes, og saa er det de faerreste der proever.
-    cells.append(button("btnDomRowOpen", '"Aabn"', load_row_fx(),
-                        width=cfg.LIST_COLS[-1][1], height=28))
+                           width=LIST_COLS[-2][1], wrap="false"))
+    # FIRE KNAPPER, IKKE EEN
+    #
+    # Den haandskrevne app havde btnMatRowEdit, btnMatRowCopy,
+    # btnMatRowDelete og btnMatRowDetails paa hver raekke. Ved
+    # konverteringen til builderen kom kun Edit med - se issue #15 og #16.
+    #
+    # Knapper og ikke kun et klik paa raekken: galleriets OnSelect virker
+    # ogsaa, men den er usynlig, og saa er det de faerreste der proever.
+    acts = [
+        button("btnDomRowOpen", '"Edit"', load_row_fx(),
+               width=ROW_BTN["btnDomRowOpen"], height=26),
+        button("btnDomRowDetails", '"Details"',
+               'Set(varDomDetailsId, ThisItem.RowId)',
+               width=ROW_BTN["btnDomRowDetails"], height=26),
+        button("btnDomRowCopy", '"Copy"', copy_row_fx(),
+               width=ROW_BTN["btnDomRowCopy"], height=26),
+        button("btnDomRowDelete", '"Delete"', delete_this_row_fx(),
+               danger=True, width=ROW_BTN["btnDomRowDelete"], height=26),
+    ]
+    got = [(c.name, int(c.props["Width"])) for c in acts]
+    want = list(ROW_BTN.items())
+    if got != want:
+        raise SystemExit("ROW_BTN passer ikke paa raekkens knapper:\n"
+                         "  ROW_BTN: %s\n  raekken: %s" % (want, got))
+    cells.append(group("conDomRowActions", acts, direction="Horizontal",
+                       gap=ROW_BTN_GAP, height=26, align_items="Center",
+                       width=str(ACTIONS_W)))
 
     # align_items="Start" og ikke Stretch: raekken skal vaere saa bred som
     # sine celler, ikke som skabelonen - ellers straekkes den sidste celle
