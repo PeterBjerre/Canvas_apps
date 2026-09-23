@@ -115,12 +115,24 @@ REQUIRED = "varDomValidated"
 # ---------------------------------------------------------------------------
 # Topbjaelkens regnestykke. Se build_bar() for hvorfor det er regnet ud.
 # ---------------------------------------------------------------------------
-BAR_GAP = 10
+BAR_GAP = 10                         # MELLEM knapperne i hoejresiden
+# MELLEM de to grupper. Den stod som et raat 20 i group("conDomBar", ...),
+# mens venstresiden reserverede BAR_RIGHT_W + BAR_GAP - altsaa 10.
+#
+#     venstre + gap + hoejre = (SHELL_W - 552) + 20 + 542 = SHELL_W + 10
+#
+# Bjaelken var 10 px for bred VED ENHVER SKAERMBREDDE, og da den har
+# wrap="true", ombroed den altid. Den oeverste sektion i BEGGE
+# domaeneapper stod derfor i to rader med en tom foerste rad.
+#
+# To tal, der skulle vaere det samme, og intet der sagde det. Nu er det
+# eet navn, brugt begge steder.
+BAR_OUTER_GAP = 20
 BAR_SLACK = 20                       # luft i HOEJRESIDEN, taelles kun EEN gang:
                                      # den er en del af BAR_RIGHT_W, og venstresiden
-                                     # traekker derfor kun BAR_RIGHT_W + BAR_GAP fra.
-                                     # Blev den talt med begge steder, fik titlen 220
-                                     # px ved braekpunktet, hvor der staar 240.
+                                     # traekker derfor kun BAR_RIGHT_W + BAR_OUTER_GAP
+                                     # fra. Blev den talt med begge steder, fik titlen
+                                     # 220 px ved braekpunktet, hvor der staar 240.
 BAR_MIN_TITLE = 240                  # under det er titlen ikke laeselig
 BAR_RIGHT = [("txtDomCount", 110), ("txtDomReqNo", 150),
              ("btnDomTheme", 92), ("btnDomBack", 140)]
@@ -129,7 +141,7 @@ BAR_RIGHT_W = (sum(w for _, w in BAR_RIGHT)
 # Braekpunktet: er der plads til BAADE hoejresiden og en laeselig titel?
 # Det er en CONTAINER-graense og ikke en enhedsklasse - en bjaelke med een
 # knap mere skal ombryde tidligere, uanset hvad slags enhed det er.
-BAR_MIN_W = BAR_RIGHT_W + BAR_GAP + BAR_MIN_TITLE
+BAR_MIN_W = BAR_RIGHT_W + BAR_OUTER_GAP + BAR_MIN_TITLE
 DM_SEL = ('If(IsBlank(varDomActiveRowId), DisplayMode.Disabled, DisplayMode.Edit)')
 
 
@@ -165,7 +177,7 @@ def build_bar():
     # braekpunktet sig med.
     left = group("conDomBarLeft", [title, sub], direction="Vertical", gap=2,
                  width=fits(SHELL_W, BAR_MIN_W, SHELL_W,
-                            f"{SHELL_W} - {BAR_RIGHT_W + BAR_GAP}"))
+                            f"{SHELL_W} - {BAR_RIGHT_W + BAR_OUTER_GAP}"))
 
     count = badge("txtDomCount", '"Rows: " & CountRows(colDomRows)', width=110)
     no = text_ctrl("txtDomReqNo",
@@ -186,8 +198,21 @@ def build_bar():
     right = group("conDomBarRight", row,
                   direction="Horizontal", gap=BAR_GAP, align_items="Center",
                   justify="End", width=str(BAR_RIGHT_W))
-    return group("conDomBar", [left, right], direction="Horizontal", gap=20,
-                 align_items="Center", wrap="true", wrap_rows=2)
+    # HOEJDEN SKAL FOELGE OMBRYDNINGEN, IKKE ANTAGE DEN
+    #
+    # Her stod wrap_rows=2, og row_height() ganger uden betingelse: hoejden
+    # blev Max(52, 36) * 2 + 20 = 124 ved ENHVER skaermbredde. Paa alt
+    # bredere end braekpunktet staar bjaelken paa EEN raekke a 52 px, og de
+    # resterende 72 px blev et tomt baelte oeverst i baade Equipment og
+    # Material. Det var det, der saa forkert ud.
+    #
+    # Nu er hoejden den SAMME betingelse, som afgoer ombrydningen - regnet
+    # af de to gruppers egne hoejder, saa den ikke kan komme ud af trit.
+    one = max(int(left.h), int(right.h))
+    two = one * 2 + BAR_OUTER_GAP
+    return group("conDomBar", [left, right], direction="Horizontal",
+                 gap=BAR_OUTER_GAP, align_items="Center", wrap="true",
+                 height=fits(SHELL_W, BAR_MIN_W, str(two), str(one)))
 
 
 # ---------------------------------------------------------------------------

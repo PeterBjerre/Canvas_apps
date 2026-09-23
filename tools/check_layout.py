@@ -342,7 +342,62 @@ def main():
                 continue
             break
 
-    # --- 4. Faste bredder i en vandret raekke ------------------------------
+    # Stien -> kontrollen. Regel 4 bruger den til at slaa Parent.Width op.
+    by_path = {pp: bb for pp, _nn, bb in all_nodes}
+
+    def avail_width(path, w, ni, no, npk, depth=0):
+        """Den bredde en kontrol FAKTISK har, med Parent.Width slaaet op.
+
+        evaluate() giver None paa Parent.*, fordi den ikke kan vide hvad
+        foraelderen er. Her VED vi det - stien siger det. Uden det kunne
+        regel 4 ikke regne paa en eneste raekke i en autolayout-container:
+        de bruger alle Parent.Width, og det var netop derfor bjaelken i de
+        to domaeneapper kunne vaere 10 px for bred i maanedsvis."""
+        if depth > 20:
+            return None
+        body = by_path.get(path)
+        if body is None:
+            return None
+        props = body.get("Properties") or {}
+        e = (props.get("Width") or "").strip()
+        if e.startswith("="):
+            e = e[1:].strip()
+        if e != "Parent.Width":
+            return evaluate(props.get("Width"), w, ni, no, npk)
+        parent = path.rsplit("/", 1)[0]
+        if not parent:                      # barn af skaermen selv
+            return float(w)
+        pw = avail_width(parent, w, ni, no, npk, depth + 1)
+        if pw is None:
+            return None
+        pp_ = by_path[parent].get("Properties") or {}
+        pad = 0.0
+        for k in ("PaddingLeft", "PaddingRight"):
+            v = evaluate(pp_.get(k), w, ni, no, npk)
+            pad += float(v or 0)
+        return pw - pad
+
+    # --- 4. En vandret raekke skal kunne rumme sine boern ------------------
+    #
+    # TO TILFAELDE, OG DE ER IKKE DET SAMME
+    #
+    # UDEN wrap kan Power Apps' autolayout KRYMPE boernene (LayoutMinWidth
+    # 0), saa en raekke, hvis boern tilsammen er bredere end den, er ikke
+    # noedvendigvis en fejl. Her efterproeves derfor kun de raekker, hvor
+    # BAADE raekken og hvert barn har en bredde skrevet som et RENT TAL -
+    # dér er der ingen krympning at regne med. Det er den oprindelige
+    # regel, uaendret.
+    #
+    # MED wrap ombryder raekken i stedet. Det er meningen paa en smal
+    # skaerm - men ombryder den ved ALLE de bredder, tjekket proever, er
+    # der ikke tale om et braekpunkt: raekken passer aldrig, og wrap'en
+    # skjuler fejlen ved bare at stable de to grupper.
+    #
+    # Det var praecis, hvad der skete: domaeneappernes topbjaelke brugte
+    # gap 20 mellem sine to grupper, mens venstresiden kun reserverede
+    # BAR_GAP (10) til den. 10 px for bred ved enhver skaermbredde, altid
+    # ombrudt - og den oeverste sektion i BAADE Equipment og Material stod
+    # i to rader med en tom foerste rad. Ingenting klagede.
     for p, name, body in all_nodes:
         props = body.get("Properties") or {}
         kids = body.get("Children") or []
@@ -351,21 +406,100 @@ def main():
         if "Horizontal" not in (props.get("LayoutDirection") or ""):
             continue
         gap = float(re.sub(r"[^0-9.]", "", props.get("LayoutGap", "=8")) or 8)
-        widths = []
+
+        if "true" not in (props.get("LayoutWrap") or "").lower():
+            # -- rene tal, ingen krympning -----------------------------
+            widths = []
+            for k in kids:
+                (kn, kb), = k.items()
+                ws = (kb.get("Properties") or {}).get("Width", "")
+                m = re.fullmatch(r"=\s*(\d+(?:\.\d+)?)", ws.strip()) if ws else None
+                if not m:
+                    widths = None
+                    break
+                widths.append(float(m.group(1)))
+            own_w = props.get("Width", "")
+            m = re.fullmatch(r"=\s*(\d+(?:\.\d+)?)", own_w.strip()) if own_w else None
+            if widths and m:
+                need = sum(widths) + gap * (len(widths) - 1)
+                if need > float(m.group(1)) + 0.01:
+                    problems.append(
+                        f"[4] {name}: boern {need:.0f} px bredere end raekken "
+                        f"{float(m.group(1)):.0f} px")
+            continue
+
+        # -- wrap: passer raekken ved den BREDESTE skaerm? ---------------
+        #
+        # Kun den bredeste. En wrap-raekke SKAL ombryde paa smalle
+        # skaerme - det er meningen - saa et fund dér siger ingenting.
+        # Men ombryder den selv paa 1920, er wrap'en ikke et braekpunkt:
+        # raekken passer aldrig, og de to grupper staar altid i to rader.
+        #
+        # At proeve alle bredder og kraeve overloeb i dem alle lyder
+        # strengere, men er det ikke: mange bredder kan ikke efterregnes,
+        # og saa blev "alle" til "alle de smalle". Den formulering gav
+        # tre falske fund i VH-plan.
+        ni, no, npk = max(ITEM_COUNTS), max(OP_COUNTS), max(PKG_COUNTS)
+        w = max(WIDTHS)
+        own = avail_width(p, w, ni, no, npk)
+        if own is None:
+            continue
+        need, ok = 0.0, True
         for k in kids:
             (kn, kb), = k.items()
-            ws = (kb.get("Properties") or {}).get("Width", "")
-            m = re.fullmatch(r"=\s*(\d+(?:\.\d+)?)", ws.strip()) if ws else None
-            if not m:
-                widths = None
+            kp = kb.get("Properties") or {}
+            vis = evaluate(kp.get("Visible"), w, ni, no, npk)
+            if vis is not None and not vis:
+                continue
+            kwe = kp.get("Width") or ""
+            # Parent.Width eller FillPortions: barnet tager det, der er,
+            # og kan ikke goere raekken for bred.
+            if "Parent." in kwe or "Self." in kwe:
+                ok = False
                 break
-            widths.append(float(m.group(1)))
-        own_w = props.get("Width", "")
-        m = re.fullmatch(r"=\s*(\d+(?:\.\d+)?)", own_w.strip()) if own_w else None
-        if widths and m:
-            need = sum(widths) + gap * (len(widths) - 1)
-            if need > float(m.group(1)) + 0.01:
-                problems.append(f"[4] {name}: boern {need:.0f} px bredere end raekken {float(m.group(1)):.0f} px")
+            if evaluate(kp.get("FillPortions"), w, ni, no, npk):
+                ok = False
+                break
+            kw = evaluate(kp.get("Width"), w, ni, no, npk)
+            if kw is None:
+                ok = False
+                break
+            need += kw + gap
+        if not ok:
+            continue
+        need = max(0.0, need - gap)
+        if need > own + 0.01:
+            problems.append(
+                f"[4] {name}: ombryder OGSAA paa {w} px - boern {need:.0f} px, "
+                f"raekken {own:.0f} px. Wrap er til smalle skaerme, ikke til "
+                f"en raekke der aldrig passer")
+
+    # --- 4b. En wrap-raekke maa ikke have en KONSTANT hoejde -------------
+    #
+    # group(..., wrap_rows=2) ganger uden betingelse: hoejden blev
+    # Max(52, 36) * 2 + 20 = 124 ved enhver skaermbredde. Men bjaelken
+    # ombryder kun UNDER braekpunktet; over det staar den paa een raekke a
+    # 52 px, og de resterende 72 px blev et tomt baelte oeverst i baade
+    # Equipment og Material.
+    #
+    # Ombrydningen er betinget, saa hoejden skal vaere det ogsaa. En
+    # KONSTANT hoejde paa en wrap-raekke er enten for hoej over
+    # braekpunktet eller for lav under det - den kan ikke vaere rigtig
+    # begge steder.
+    for p, name, body in all_nodes:
+        props = body.get("Properties") or {}
+        if "true" not in (props.get("LayoutWrap") or "").lower():
+            continue
+        if len(body.get("Children") or []) < 2:
+            continue
+        h = (props.get("Height") or "").strip()
+        if h.startswith("="):
+            h = h[1:].strip()
+        if re.fullmatch(r"\d+(?:\.\d+)?", h):
+            problems.append(
+                f"[4b] {name}: LayoutWrap med fast hoejde {h}. Ombrydningen er "
+                f"betinget, saa hoejden skal vaere det ogsaa - brug samme "
+                f"fits()-graense som bredden")
 
     # --- 5. HTML-overskriften skal flugte med kontrollerne i raekken -------
     by_name = {n: b for _, n, b in all_nodes}
@@ -787,6 +921,84 @@ def main():
                     f"[21] {name}.{key}: ButtonAppearance.Secondary henter sit "
                     f"fyld fra Fluent-temaet, ikke fra en token - brug "
                     f"ButtonAppearance.Outline")
+
+    # --- 22. Concurrent med en indbyrdes afhaengighed ----------------------
+    #
+    # Regel 20 foreslaar Concurrent, hvor der er noget at hente. Den her er
+    # dens modstykke: den ser paa et Concurrent, der ALLEREDE staar der.
+    #
+    # Power Apps afviser at compile, og det stod ikke i noget byggeoutput -
+    # det kom foerst ud af deploy:
+    #
+    #   [App, OnStart] There is a dependency on 'colVhpSavedItems' between
+    #   two different formulas in the Concurrent function. One formula is
+    #   changing it while another may be reading or also trying to change it.
+    #
+    # Og den har ret: dyblinket fyldte colVhpSavedItems i eet argument og
+    # slog op i den fra to andre. Concurrent lover ingen raekkefoelge, saa
+    # de to kunne laese en tom samling.
+    #
+    # Reglen deler Concurrent'ens argumenter paa komma i dybde 1 og
+    # sammenligner: skriver eet argument i colX, maa ingen ANDEN naevne
+    # colX. Det er en FEJL og ikke en advarsel - compile afviser den.
+    def split_args(text, at):
+        """Argumenterne i et kald, delt paa komma i dybde 1."""
+        i = text.index("(", at)
+        depth, j, q, start, out = 0, i, None, i + 1, []
+        while j < len(text):
+            c = text[j]
+            if q:
+                if c == q:
+                    q = None
+            elif c in "\"'":
+                q = c
+            elif c == "(":
+                depth += 1
+            elif c == ")":
+                depth -= 1
+                if depth == 0:
+                    out.append(text[start:j])
+                    return out
+            elif c == "," and depth == 1:
+                out.append(text[start:j])
+                start = j + 1
+            j += 1
+        return out
+
+    WRITES = re.compile(r"\b(?:Clear)?Collect\(\s*(col[A-Z]\w*)\s*,|"
+                        r"\bClear\(\s*(col[A-Z]\w*)\s*\)")
+    # App.OnStart ligger i App.pa.yaml, ikke i skaermen - og det var
+    # NETOP dér fejlen sad. Filen laeses som raa tekst af regel 8; den
+    # bruges her som een stor "egenskab".
+    conc_targets = [((b.get("Properties") or {}), n) for _p, n, b in all_nodes]
+    conc_targets.append((screen.get("Properties") or {}, "<skaermen>"))
+    if app:
+        conc_targets.append(({"OnStart (App.pa.yaml)": app}, "App"))
+    for props, owner in conc_targets:
+        for key, val in props.items():
+            if not isinstance(val, str) or "Concurrent(" not in val:
+                continue
+            for m in re.finditer(r"\bConcurrent\s*\(", val):
+                args = split_args(val, m.start())
+                if len(args) < 2:
+                    continue
+                written = []
+                for a in args:
+                    ws = set()
+                    for wm in WRITES.finditer(a):
+                        ws.add(wm.group(1) or wm.group(2))
+                    written.append(ws)
+                for i, ws in enumerate(written):
+                    for col in ws:
+                        for j, other in enumerate(args):
+                            if i == j:
+                                continue
+                            if re.search(r"\b%s\b" % re.escape(col), other):
+                                problems.append(
+                                    f"[22] {owner}.{key}: Concurrent skriver "
+                                    f"'{col}' i eet argument og laeser den i et "
+                                    f"andet. Power Apps afviser at compile - "
+                                    f"del det i to Concurrent efter hinanden")
 
     # --- 16. Dropdown-Default der ikke er en RECORD ------------------------
     # ModernDropdown.Default vil have en RECORD fra kontrollens egen

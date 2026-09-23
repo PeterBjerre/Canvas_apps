@@ -42,7 +42,7 @@ def build_screen():
 
     # Bundpolstringen giver plads til den svaevende "Send as email"-knap,
     # saa det sidste kort ikke ligger under den.
-    shell = group("conVhpShell", sections, direction="Vertical", gap=20, pad=(20, 24, 100, 24))
+    shell = group("conVhpShell", sections, direction="Vertical", gap=20, pad=(20, 32, 100, 32))
 
     root = group("conVhpRoot", [shell], direction="Vertical", height="Parent.Height",
                  width="Parent.Width", overflow_y="Scroll", fill=C_APP_BG)

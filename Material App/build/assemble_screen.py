@@ -61,7 +61,12 @@ def build_screen():
 
     shell = group("conDomShell",
                   [build_bar(), build_form(), split, build_submit()],
-                  direction="Vertical", gap=16, pad=(20, 24, 40, 24))
+                  direction="Vertical", gap=16,
+                  # 32, ikke 24: SHELL_W er "App.Width - 64", og
+                  # 24+24 er 48. De 16 px forskel gjorde SHELL_W
+                  # usand, saa layout-tjekket ikke kunne se, at
+                  # topbjaelken var 10 px for bred.
+                  pad=(20, 32, 40, 32))
     root = group("conDomRoot", [shell], direction="Vertical",
                  height="Parent.Height", width="Parent.Width",
                  overflow_y="Scroll", fill=C_APP_BG)

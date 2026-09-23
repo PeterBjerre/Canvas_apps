@@ -244,6 +244,31 @@ def theme_button(name="btnThemeToggle", light_label='"Dark"',
                   accessible=acc)
 
 
+def wrap_row_height(children, gap, container_w):
+    """Hoejden paa en vandret raekke, der OMBRYDER - som et udtryk.
+
+    group(..., wrap="true") giver en KONSTANT hoejde, og den kan ikke
+    vaere rigtig baade over og under braekpunktet:
+
+        for hoej over    -> et tomt baelte (topbjaelken i Equipment og
+                            Material: 124 px reserveret, 52 px brugt)
+        for lav under    -> anden rad klippes vaek (conMdBar, conMdFilters
+                            og conVhpOpsTabBar, alle 34 px til to rader)
+
+    Graensen regnes af boernenes EGNE bredder - ikke skrevet af - saa den
+    ikke kan komme ud af trit, naar nogen tilfoejer en knap.
+    Returnerer et fits()-udtryk, klar til height=.
+    """
+    ws = [str(c.props["Width"]) for c in children]
+    needs = " + ".join("(%s)" % w for w in ws)
+    if gap and len(ws) > 1:
+        needs += " + %d" % (gap * (len(ws) - 1))
+    hs = [int(c.h) for c in children if c.h is not None]
+    one = max(hs) if hs else 0
+    two = one * 2 + gap
+    return fits(container_w, needs, str(two), str(one))
+
+
 def button_row(name, buttons, container_w, gap=8, height=36, align_items="Center"):
     """Knapraekke der ALDRIG ombryder.
 
