@@ -41,6 +41,28 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Danske ord, der afsloerer en dansk streng. Ikke en ordbog - en stikproeve
 # stor nok til at fange en saetning, og lille nok til ikke at ramme
 # engelsk. "og", "til", "med" udelades: de findes ogsaa i produktnavne.
+# HELE ORD, DER ER DANSKE
+#
+# Foerste udgave var en liste over almindelige danske ORD i saetninger.
+# Den fangede saetninger fint og missede fire enkeltord, fordi de er korte
+# eller staar med stort:
+#
+#     "Aabn"  "MATERIALE"  "FABRIKANTENS NR."  "FILER"
+#
+# De blev fundet i haanden, ikke af tjekket. To ting rettet: listen her,
+# og reglen nedenfor - en streng paa EET ord taeller nu ogsaa, hvor
+# saetningsreglen kraever to.
+SINGLE = {
+    "aabn", "luk", "gem", "ryd", "fjern", "slet", "soeg", "hent", "vis",
+    "skjul", "vaelg", "tilfoej", "opret", "indsend", "annuller", "kopier",
+    "rediger", "filer", "mappe", "raekke", "raekker", "felt",
+    "felter", "materiale", "materialer", "udstyr", "vaerk", "vaerker",
+    "lager", "beskrivelse", "leverandoer",
+    "fabrikant", "fabrikantens", "noegle", "noeglen", "detaljer",
+    "kladde", "moerk", "lys", "tema", "hjaelp", "tilbage", "naeste",
+    "forrige", "gemte", "valgte", "ingen", "alle",
+}
+
 DANISH = re.compile(
     r"(?:\b(?:aa|ae|oe|ikke|skal|foerst|vaelg|vaelge|gem|gemt|ryd|fjern|fjernet|tilfoej|"
     r"raekke|raekken|raekker|felt|felter|indsend|indsendt|kladde|opret|oprettet|slet|"
@@ -92,7 +114,10 @@ def check():
             v = m.group(1).strip()
             if len(v) < 3 or v in ALLOW or SKIP.match(v):
                 continue
-            if not DANISH.search(v):
+            words = re.findall(r"[A-Za-zÆØÅæøå]+", v)
+            single = (len(words) <= 3
+                      and any(w.lower() in SINGLE for w in words))
+            if not DANISH.search(v) and not single:
                 continue
             # En VAERDI, ikke en visning: { Value: "..." } eller en
             # Switch-noegle. Begge skrives i en liste og er ikke sprog.

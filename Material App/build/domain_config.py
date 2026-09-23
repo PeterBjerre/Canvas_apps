@@ -46,7 +46,7 @@ L_INDEX = "MD_RequestIndex"
 L_PLANTS = "PlantList"
 
 C_TEXT = "MaterialDescription"
-TEXT_LABEL = "Materialebeskrivelse"
+TEXT_LABEL = "Material description"
 TEXT_PLACEHOLDER = '"Short text, max 40 characters"'
 
 # Play-URL'erne kommer fra tools/canvas_apps.json via env_config. De stod
@@ -82,9 +82,9 @@ SECTIONS = [
         ("FunctionalLocation", "Func. location", "text", None),
     ]),
     ("Stamdata", [
-        ("Manufacturer", "Fabrikant", "text", None),
+        ("Manufacturer", "Manufacturer", "text", None),
         ("ModelNumber", "Modelnummer", "text", None),
-        ("ManufacturerPartNo", "Fabrikantens varenr.", "text", None),
+        ("ManufacturerPartNo", "Manufacturer part no.", "text", None),
     ]),
     ("Supplier", [
         ("Supplier", "Supplier", "text", None),
@@ -108,8 +108,8 @@ SECTIONS = [
 
 PLANT_LABEL = "Plant"
 
-LIST_COLS = [("MATERIALE", 0), ("FABRIKANTENS NR.", 130), ("SUPPLIER", 120),
-             ("PLANT", 55), ("STATUS", 75), ("FILER", 40), ("", 60)]
+LIST_COLS = [("MATERIAL", 0), ("MFR. PART NO.", 130), ("SUPPLIER", 120),
+             ("PLANT", 55), ("STATUS", 75), ("FILES", 40), ("", 60)]
 LIST_FIELDS = ["ManufacturerPartNo", "Supplier", "Plant"]
 
 SEARCH_FIELDS = ["MaterialDescription", "FunctionalLocation",

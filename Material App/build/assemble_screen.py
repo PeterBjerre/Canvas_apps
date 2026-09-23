@@ -31,7 +31,7 @@ from gen_screen import render_screen, C_APP_BG, OUT_DIR, SHELL_W
 from build_helpers import group
 import domain_config as cfg
 from domain_parts import (build_bar, build_form, build_attachments,
-                          build_rows, build_submit, refresh_rows_fx,
+                          build_rows, build_details, build_submit, refresh_rows_fx,
                           clear_form_fx, HALF_W)
 
 
@@ -52,7 +52,10 @@ def build_screen():
     #
     # Under braekpunktet stables de alligevel: to kolonner paa et smalt
     # vindue er een kolonne for meget, og listen har syv.
-    left = group("conDomLeft", [build_rows()], direction="Vertical", gap=16,
+    # Detaljeruden staar UNDER listen og i den samme kolonne: den
+    # hoerer til en raekke i listen, ikke til formularen.
+    left = group("conDomLeft", [build_rows(), build_details()],
+                 direction="Vertical", gap=16,
                  width=HALF_W)
     right = group("conDomRight", [build_attachments()], direction="Vertical",
                   gap=16, width=HALF_W)

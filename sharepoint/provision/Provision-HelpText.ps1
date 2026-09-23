@@ -82,8 +82,10 @@ if (Get-PnPList -Identity $LIST_NAME -ErrorAction SilentlyContinue) {
     New-PnPList -Title $LIST_NAME -Template GenericList -OnQuickLaunch:$true | Out-Null
     Write-Host "  + Liste '$LIST_NAME' oprettet" -ForegroundColor Green
 }
-Set-PnPList -Identity $LIST_NAME -Description ``
-    'Hjaelpetekster til masterdata-apperne. Kind=Hint er linjen under et felt, Kind=Panel er et afsnit i hjaelpepanelet. En slettet raekke betyder INGEN tekst i appen.'
+$DESC = 'Hjaelpetekster til masterdata-apperne. Kind=Hint er linjen under et felt, ' +
+        'Kind=Panel er et afsnit i hjaelpepanelet. En slettet raekke betyder INGEN ' +
+        'tekst i appen.'
+Set-PnPList -Identity $LIST_NAME -Description $DESC
 
 function New-HelpField {
     param([string]$Name, [string]$Type, [string[]]$Choices,
@@ -107,8 +109,11 @@ Set-PnPField -List $LIST_NAME -Identity 'Title' -Values @{ Title = $COL_KEY; Ind
 
 # Samme vaerdier som Domain i MD_RequestIndex, saa de fem apps kan dele
 # listen uden at laese hinandens tekster.
-New-HelpField 'AppArea' Choice -Choices 'FunctionalLocation','Equipment',``
-    'MeasuringPoint','Material','MaintenancePlan' -Indexed -Required
+# Samme vaerdier som Domain i MD_RequestIndex. Kommaet fortsaetter selv
+# linjen - en backtick er baade overfloedig og let at braekke.
+$APP_AREAS = 'FunctionalLocation','Equipment','MeasuringPoint','Material',
+             'MaintenancePlan'
+New-HelpField 'AppArea' Choice -Choices $APP_AREAS -Indexed -Required
 New-HelpField 'Kind'      Choice -Choices 'Hint','Panel' -Required
 New-HelpField 'Heading'   Text
 # Note, ikke Text: et panelafsnit er 2-4 saetninger og sprang 255 tegn.
@@ -155,13 +160,12 @@ if ($Seed) {
             $added++
         }
     }
-    Write-Host ("    {0} tilfoejet, {1} roert ikke, {2} overskrevet" -f $added, $kept, $updated) ``
-        -ForegroundColor Green
+    $msg = "    {0} tilfoejet, {1} roert ikke, {2} overskrevet" -f $added, $kept, $updated
+    Write-Host $msg -ForegroundColor Green
     if ($kept -and -not $Force) {
-        Write-Host "    Raekker, der fandtes i forvejen, er IKKE rettet - de er SharePoints nu." ``
-            -ForegroundColor DarkGray
-        Write-Host "    Skal de tilbage til det, koden havde: koer igen med -Force." ``
-            -ForegroundColor DarkGray
+        Write-Host "    Raekker, der fandtes i forvejen, er IKKE rettet." -ForegroundColor DarkGray
+        Write-Host "    De er SharePoints nu. Skal de tilbage til det, koden" -ForegroundColor DarkGray
+        Write-Host "    havde: koer igen med -Force." -ForegroundColor DarkGray
     }
 }
 

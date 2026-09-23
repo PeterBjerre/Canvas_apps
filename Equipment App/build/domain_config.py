@@ -127,8 +127,8 @@ PLANT_LABEL = "Plant"
 
 # Kolonner i raekkeoversigten. Foerste er altid raekkens tekst, sidste er
 # altid antallet af dokumenter; bredden 0 betyder "tag resten".
-LIST_COLS = [("DESCRIPTION", 0), ("EQUIPMENTNR.", 110), ("FUNC. LOCATION", 140),
-             ("PLANT", 55), ("STATUS", 75), ("FILER", 40), ("", 60)]
+LIST_COLS = [("DESCRIPTION", 0), ("EQUIPMENT NO.", 110), ("FUNC. LOCATION", 140),
+             ("PLANT", 55), ("STATUS", 75), ("FILES", 40), ("", 60)]
 LIST_FIELDS = ["EquipmentNumber", "FunctionalLocation", "Plant"]
 
 # Felter soegefeltet kigger i. Skal vaere tekstfelter i samlingen.
