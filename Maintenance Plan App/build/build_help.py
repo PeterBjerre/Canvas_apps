@@ -56,7 +56,7 @@ HINTS = {
                  "        !StartsWith(Upper(varVhpPlan.PlanText), Upper(varVhpPlan.Plant)),\n"
                  "    " + _q("Should start with the plant code ") + " & varVhpPlan.Plant & "
                  + _q(" - so the plan can be found without searching by plant.") + ",\n"
-                 "    " + _q("Start with the plant code. The text must cover every task the plan calls. Maks. 40 tegn.") + "\n"
+                 "    " + _q("Start with the plant code. The text must cover every task the plan calls. Max 40 characters.") + "\n"
                  ")"),
 
     "SortField": ("With(\n"

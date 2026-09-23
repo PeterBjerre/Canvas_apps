@@ -33,7 +33,7 @@ import env_config as env
 APP_KEY = "material"
 SCREEN = "ScreenMaterial"
 TITLE = "Materials"
-SUBTITLE = "Meld reservedele ind - leverandoer, pris og lager."
+SUBTITLE = "Report spare parts - supplier, price and stock."
 
 # Praefikset i noeglerne: MAT-000441.
 PREFIX = "MAT"
@@ -47,7 +47,7 @@ L_PLANTS = "PlantList"
 
 C_TEXT = "MaterialDescription"
 TEXT_LABEL = "Materialebeskrivelse"
-TEXT_PLACEHOLDER = '"Kort tekst, hoejst 40 tegn"'
+TEXT_PLACEHOLDER = '"Short text, max 40 characters"'
 
 # Play-URL'erne kommer fra tools/canvas_apps.json via env_config. De stod
 # foer skrevet af her, og build_all.py havde 60 linjers regex til at
@@ -78,7 +78,7 @@ FL_FIELD = "FunctionalLocation"
 # colYesNo blev aldrig defineret. Derfor er de TEKST her og i SharePoint,
 # indtil listerne findes.
 SECTIONS = [
-    ("Hvor", [
+    ("Where", [
         ("FunctionalLocation", "Func. location", "text", None),
     ]),
     ("Stamdata", [
@@ -86,19 +86,19 @@ SECTIONS = [
         ("ModelNumber", "Modelnummer", "text", None),
         ("ManufacturerPartNo", "Fabrikantens varenr.", "text", None),
     ]),
-    ("Leverandoer", [
-        ("Supplier", "Leverandoer", "text", None),
+    ("Supplier", [
+        ("Supplier", "Supplier", "text", None),
         ("SupplierPartNo", "Leverandoerens varenr.", "text", None),
         ("DeliveringTime", "Leveringstid (dage)", "num", None),
     ]),
-    ("Pris og lager", [
-        ("Price", "Pris", "num", None),
+    ("Price and stock", [
+        ("Price", "Price", "num", None),
         ("PriceUnit", "Prisenhed", "text", None),
         ("StockUnit", "Lagerenhed", "text", None),
-        ("RecommendedStock", "Anbefalet lager", "num", None),
+        ("RecommendedStock", "Recommended stock", "num", None),
     ]),
     ("Klassificering", [
-        ("StrategicPart", "Strategisk del", "text", None),
+        ("StrategicPart", "Strategic part", "text", None),
         ("WearPart", "Sliddel", "text", None),
     ]),
     ("Bemaerkninger", [
@@ -108,7 +108,7 @@ SECTIONS = [
 
 PLANT_LABEL = "Plant"
 
-LIST_COLS = [("MATERIALE", 0), ("FABRIKANTENS NR.", 130), ("LEVERANDOER", 120),
+LIST_COLS = [("MATERIALE", 0), ("FABRIKANTENS NR.", 130), ("SUPPLIER", 120),
              ("PLANT", 55), ("STATUS", 75), ("FILER", 40), ("", 60)]
 LIST_FIELDS = ["ManufacturerPartNo", "Supplier", "Plant"]
 

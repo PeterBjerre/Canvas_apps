@@ -31,7 +31,7 @@ import env_config as env
 APP_KEY = "equipment"
 SCREEN = "ScreenEquipment"
 TITLE = "Equipment"
-SUBTITLE = "Opret, aendr og slet udstyr - og send indberetningen videre."
+SUBTITLE = "Create, change and delete equipment - and pass the request on."
 
 # Praefikset i noeglerne: EQ-000912.
 PREFIX = "EQ"
@@ -49,8 +49,8 @@ L_PLANTS = "PlantList"
 # Provisioneringen omdoeber Title. Power Fx binder paa VISNINGSNAVN, saa et
 # Patch med { Title: ... } rammer ved siden af.
 C_TEXT = "Description"
-TEXT_LABEL = "Beskrivelse"
-TEXT_PLACEHOLDER = '"Kort tekst, hoejst 40 tegn"'
+TEXT_LABEL = "Description"
+TEXT_PLACEHOLDER = '"Short text, max 40 characters"'
 
 # Play-URL'erne kommer fra tools/canvas_apps.json via env_config. De stod
 # foer skrevet af her, og build_all.py havde 60 linjers regex til at
@@ -95,7 +95,7 @@ FL_FIELD = "FunctionalLocation"
 # TEKSTkolonner i SharePoint, indtil listerne findes. Saa er det een linje
 # her og een i provisioneringen.
 SECTIONS = [
-    ("Hvad skal der ske", [
+    ("What should happen", [
         ("RequestType", "Type", "text", None),
         ("EquipmentNumber", "Equipmentnummer", "text", None),
     ]),
@@ -105,7 +105,7 @@ SECTIONS = [
         ("TypeDesignation", "Type betegnelse", "text", None),
         ("SerialNumber", "Serienummer", "text", None),
     ]),
-    ("Hvor sidder det", [
+    ("Where it sits", [
         ("FunctionalLocation", "Func. location", "text", None),
         ("FunctionalLocation1", "Func. loc. 1", "text", None),
         ("FunctionalLocation2", "Functional location 2", "text", None),
@@ -113,9 +113,9 @@ SECTIONS = [
         ("RoomCoordinates", "Rum koordinater", "text", None),
         ("Placement", "Placeringstekst", "text", None),
     ]),
-    ("Garanti", [
-        ("WarrantyStart", "Garanti start", "date", None),
-        ("WarrantyEnd", "Garanti slut", "date", None),
+    ("Warranty", [
+        ("WarrantyStart", "Warranty from", "date", None),
+        ("WarrantyEnd", "Warranty to", "date", None),
     ]),
     ("Bemaerkninger", [
         ("LongText", "Langtekst", "long", None),
@@ -127,7 +127,7 @@ PLANT_LABEL = "Plant"
 
 # Kolonner i raekkeoversigten. Foerste er altid raekkens tekst, sidste er
 # altid antallet af dokumenter; bredden 0 betyder "tag resten".
-LIST_COLS = [("BESKRIVELSE", 0), ("EQUIPMENTNR.", 110), ("FUNC. LOCATION", 140),
+LIST_COLS = [("DESCRIPTION", 0), ("EQUIPMENTNR.", 110), ("FUNC. LOCATION", 140),
              ("PLANT", 55), ("STATUS", 75), ("FILER", 40), ("", 60)]
 LIST_FIELDS = ["EquipmentNumber", "FunctionalLocation", "Plant"]
 

@@ -215,8 +215,8 @@ def button(name, text, onselect, primary=False, danger=False, width=140, height=
     return Ctrl(name, "ModernButton", props=props, h=height, vis=visible)
 
 
-def theme_button(name="btnThemeToggle", light_label='"Moerk"',
-                 dark_label='"Lys"', width=92, height=34):
+def theme_button(name="btnThemeToggle", light_label='"Dark"',
+                 dark_label='"Light"', width=92, height=34):
     """Knappen der skifter mellem lyst og moerkt tema.
 
     SAMME KONSTRUKTION I ALLE FIRE APPS. Det er hele pointen: en knap, der
@@ -225,7 +225,7 @@ def theme_button(name="btnThemeToggle", light_label='"Moerk"',
 
     TEKSTEN SIGER HVAD DER SKER, IKKE HVAD DER ER
     ---------------------------------------------
-    Staar appen lyst, staar der "Moerk" paa knappen. Det er den samme
+    Staar appen lyst, staar der "Dark" paa knappen. Det er den samme
     konvention som i Windows og i browsere - en knap er en handling, ikke
     en tilstandsvisning. AccessibleLabel siger det udfoerligt, fordi et
     enkelt ord uden knappens udseende ikke er nok for en skaermlaeser.
@@ -239,7 +239,7 @@ def theme_button(name="btnThemeToggle", light_label='"Moerk"',
     Handlingen staar i tools/design_tokens.py - baade Set() og SaveData,
     saa valget ogsaa er der i morgen."""
     lbl = f"If({DARK_VAR}, {dark_label}, {light_label})"
-    acc = (f'If({DARK_VAR}, "Skift til lyst tema", "Skift til moerkt tema")')
+    acc = (f'If({DARK_VAR}, "Switch to light theme", "Switch to dark theme")')
     return button(name, lbl, toggle_action(), width=width, height=height,
                   accessible=acc)
 
@@ -443,7 +443,7 @@ def dropdown(name, items, default, item_display="ThisItem.Value", required_formu
 
 
 def combobox(name, items, display_field="Display", multi=False, default_items=None,
-             placeholder="\"Soeg\"", required_formula="false", width="Parent.Width",
+             placeholder="\"Search\"", required_formula="false", width="Parent.Width",
              height=40, display_mode=None, onchange=None, label=None):
     """Soegefelt og valgliste i EEN kontrol.
 
@@ -609,7 +609,7 @@ def field_cell(name, label_text, input_ctrl, required=False, hint_text=None, wid
     # synlig og dermed ingenting for den, der lytter.
     default_label = '"%s"' % input_ctrl.name
     if str(input_ctrl.props.get("AccessibleLabel", "")).strip() == default_label:
-        acc = label_text + (", paakraevet" if required else "")
+        acc = label_text + (", required" if required else "")
         input_ctrl.props["AccessibleLabel"] = '"%s"' % acc.replace('"', '""')
 
     w = width or col_width(container_w, cols, gap)

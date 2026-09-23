@@ -242,9 +242,9 @@ class DomainPane(Pane):
     key_pred = "RowId = varDomActiveRowId"
     collection = "colDomAttachments"
     up_collection = "colDomAttUp"
-    not_saved = "Gem raekken foerst - mappen hedder raekkens noegle."
-    empty_pre = "Ingen dokumenter i "
-    empty_post = " endnu."
+    not_saved = "Save the row first - the folder is named after the row key."
+    empty_pre = "No documents in "
+    empty_post = " yet."
 
     def refresh_fx(self, indent=0):
         """Hent mappens indhold og laeg det i colDomAttachments.

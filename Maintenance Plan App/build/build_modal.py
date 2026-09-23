@@ -58,7 +58,7 @@ def build_tasklist_picker_modal():
                     justify="SpaceBetween", align_items="Center")
 
     txtSearch = text_input("txtVhpPickerSearch", "\"\"", placeholder="\"Search operation no, text, work center\"",
-                            width="Parent.Width - 220", height=36, label="\"Soeg i operationer\"")
+                            width="Parent.Width - 220", height=36, label="\"Search operations\"")
     chkSelectAll = Ctrl("chkVhpPickerSelectAll", "ModernCheckbox", props={
         "AccessibleLabel": "\"Select all visible\"",
         "Default": (

@@ -292,6 +292,17 @@ def main(argv=None):
     r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "check_datasources.py")])
     if r.returncode:
         rc = r.returncode
+
+    # SPROGTJEKKET LIGGER SIDST, OG PAA ALLE SKAERME
+    #
+    # Samme grund som datakilde-tjekket: en dansk streng, der glider ind i
+    # en faelles builder, rammer alle fire apps. Og den vigtigste halvdel
+    # af tjekket er den omvendte - at de seks SharePoint-valgvaerdier
+    # (Kladde, Indsendt ...) IKKE bliver oversat. Se tools/check_language.py.
+    print()
+    r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "check_language.py")])
+    if r.returncode:
+        rc = r.returncode
     return rc
 
 
