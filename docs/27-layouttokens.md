@@ -1,5 +1,11 @@
 # 27 – Layouttokens: ét sted hvor layoutet skifter
 
+> **Opdateret af [`30-responsivt-layout.md`](30-responsivt-layout.md):** `SHELL_W`
+> står nu i `tools/layout_tokens.py` sammen med rammen, den er regnet af, og
+> `wrap_row_height()` er erstattet af `build_helpers.flow_row()`.
+> `HERO_BTNS`/`BAR_RIGHT` og deres vagter er væk — `top_bar()` regner
+> bredderne af knapperne selv.
+
 Samme greb som `docs/26-designtokens.md`, bare målt i pixels. Farven stod
 ét sted; nu gør breakpointet det også.
 

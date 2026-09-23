@@ -3,57 +3,34 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED,
                         C_PRIMARY, C_WHITE, C_NEUTRAL_BG, C_INFO_FG, SHELL_W)
-from build_helpers import text_ctrl, group, button, card, theme_button
+from build_helpers import text_ctrl, group, button, card, theme_button, flow_row, top_bar
 from design_tokens import theme_query
 from layout_tokens import below, if_below, fits
 import sp_config as cfg
 
 HERO_CW = f"({SHELL_W} - 32)"
 
-# Bredden af handlingsraekken i heroen, REGNET UD af de knapper, den
-# indeholder - ikke skrevet af.
+# Knapbredderne. De fire knapper staar i rammens TOPBJAELKE
+# (build_top_bar), ikke i heroen - saa de kan ikke scrolle vaek, og de er
+# den samme bjaelke som i de tre andre apps.
 #
-# Det er ikke pedanteri. Da temaknappen kom til, blev raekken 102 px
-# bredere, mens venstresiden stadig reserverede den gamle plads. De to tal
-# stod i hver sin ende af filen, og intet knyttede dem sammen. Nu goer det:
-# tilfoejes en knap, foelger begge sider med.
-HERO_BTNS = [("btnVhpTheme", 92), ("btnVhpBackToHub", 120),
-             ("btnVhpValidate", 110), ("btnVhpExport", 130)]
-HERO_BTN_GAP = 10
-ACTIONS_W = (sum(w for _, w in HERO_BTNS)
-             + HERO_BTN_GAP * (len(HERO_BTNS) - 1))
-BW = dict(HERO_BTNS)   # knapperne bygges af DEN HER, ikke af egne tal
+# Her stod foer HERO_BTNS, ACTIONS_W og en vagt, der holdt heroens
+# venstreside i trit med knaprækken. build_helpers.top_bar() regner nu
+# begge dele af knapperne selv, saa der er ingen tabel at holde i trit.
+BW = {"btnVhpTheme": 92, "btnVhpBackToHub": 120,
+      "btnVhpValidate": 110, "btnVhpExport": 130}
 
-# Navnene skal vaere de kontroller, raekken faktisk indeholder. Er de det
-# ikke, regner ACTIONS_W paa noget andet end det, der staar paa skaermen -
-# og saa er hele koblingen ingenting vaerd. build_hero() efterproever det
-# nedenfor, naar raekken er samlet.
-
-# Procesindikatorens fem chips. Ombryder naar de ikke kan staa paa een
-# linje - en CONTAINER-graense, ikke en enhedsklasse: fem chips fylder det
-# samme, uanset om skaermen er en telefon eller en 4K-skaerm.
+# Procesindikatorens fem chips. Enten paa een linje, eller to og to -
+# build_helpers.flow_row. En CONTAINER-graense, ikke en enhedsklasse: fem
+# chips fylder det samme, uanset om skaermen er en telefon eller en 4K.
 CHIP_W, CHIP_GAP, N_CHIPS = 118, 8, 5
-CHIPS_W = CHIP_W * N_CHIPS + CHIP_GAP * (N_CHIPS - 1)
+
+# Beskrivelsen under titlen. ~800 px tekst i 14 pt: to linjer paa en bred
+# skaerm, tre paa en smal. Hoejden foelger med - ellers klippes den.
+SUBTITLE_W = 820
 
 
-def build_hero():
-    eyebrow = text_ctrl("txtVhpEyebrow", "\"VH-PLAN\"", size=12, color=C_MUTED, weight="Semibold", height=20)
-    title = text_ctrl("txtVhpTitle", "\"VH-plan\"", size=28, color=C_TITLE, weight="Semibold", height=42,
-                      layout_min_width=220)
-    subtitle = text_ctrl(
-        "txtVhpSubtitle",
-        "\"Create the plan header, lock the plan, add items, link a task list per item, then report via an email draft.\"",
-        size=14, color=C_MUTED, height=40, wrap="true")
-
-    heroLeft = group("conVhpHeroLeft", [eyebrow, title, subtitle], direction="Vertical", gap=6,
-                     align_items="Stretch", fill_portions=1,
-                     # 352 = 250 + de 102 px, temaknappen og dens gap lagde
-                     # til conVhpHeroActionsRow. Tallet skal foelge den
-                     # raekkes bredde, ellers regner de to sider med den
-                     # samme plads.
-                     width=if_below("Desktop", "Parent.Width",
-                                    f"Parent.Width - {ACTIONS_W} - 16"))
-
+def _actions():
     # ------------------------------------------------------------------
     # Validering. Reglerne er de samme som i oplaegget (docs/01) - S1, S3,
     # S4 og S5 gaelder kun strategiplaner.
@@ -248,25 +225,22 @@ def build_hero():
     # Samme knap som i de tre andre apps - se build_helpers.theme_button.
     btnTheme = theme_button("btnVhpTheme", width=BW["btnVhpTheme"], height=36)
 
-    row = [btnTheme, btnHub, btnValidate, btnExport]
-    # ACTIONS_W er regnet af HERO_BTNS. Passer listen ikke paa raekken,
-    # regner den paa noget andet end det, der tegnes.
-    got = [(c.name, int(c.props["Width"])) for c in row]
-    if got != HERO_BTNS:
-        raise SystemExit("HERO_BTNS passer ikke paa handlingsraekken:\n"
-                         "  HERO_BTNS: %s\n  raekken:   %s" % (HERO_BTNS, got))
+    return [btnTheme, btnHub, btnValidate, btnExport]
 
-    actionsRow = group("conVhpHeroActionsRow", row,
-                       direction="Horizontal", gap=HERO_BTN_GAP,
-                       height=36, justify="End", width=ACTIONS_W, align_items="Center")
-    heroActions = group("conVhpHeroActions", [actionsRow], direction="Vertical", gap=8, width=ACTIONS_W,
-                        align_items="End")
 
-    heroGrid = group("conVhpHeroGrid", [heroLeft, heroActions], direction="Horizontal", gap=16,
-                     height=if_below("Desktop",
-                                     f"({heroLeft.h}) + 16 + ({heroActions.h})",
-                                     f"Max(({heroLeft.h}), ({heroActions.h}))"),
-                     wrap="true")
+def build_top_bar():
+    """VH-planens topbjaelke - den samme som i de tre andre apps
+    (build_helpers.top_bar). Den staar i rammens header, saa Validate og
+    Export JSON altid kan naas, ogsaa langt nede i en lang plan."""
+    return top_bar("Vhp", '"VH-plan"', '"Maintenance plans for SAP PM"',
+                   _actions(), SHELL_W)
+
+
+def build_hero():
+    subtitle = text_ctrl(
+        "txtVhpSubtitle",
+        "\"Create the plan header, lock the plan, add items, link a task list per item, then report via an email draft.\"",
+        size=14, color=C_MUTED, height=fits(HERO_CW, SUBTITLE_W, "60", "40"), wrap="true")
 
     step_defs = [
         ("txtVhpStep1", "\"1. Plan\"", "true"),
@@ -292,10 +266,11 @@ def build_hero():
                 "RadiusBottomLeft": "14", "RadiusBottomRight": "14",
                 "RadiusTopLeft": "14", "RadiusTopRight": "14",
             }))
-    # Fem chips a 118 px + 4 gaps a 8 = 622 px. Under det ombryder raekken
-    # til to linjer, og hoejden skal foelge med.
-    processStrip = group("conVhpProcessStrip", steps, direction="Horizontal", gap=8, wrap="true",
-                         height=fits(HERO_CW, CHIPS_W, "26 + 8 + 26", "26"))
+    # Fem chips a 118 px + 4 gaps a 8 = 622 px. Under det staar de to og
+    # to - tre linjer. Her stod "to linjer" som hoejde under graensen, men
+    # paa en smal skaerm blev det tre, og den sidste chip var klippet.
+    processStrip = flow_row("conVhpProcessStrip", steps, HERO_CW, gap=CHIP_GAP,
+                            narrow_cols=2)
 
     runtimeInfo = text_ctrl("txtVhpRuntimeInfo", "varVhpRuntimeInfo", size=13, color=C_MUTED, height=36,
                             wrap="true")
@@ -326,5 +301,5 @@ def build_hero():
     legend = group("conVhpLegend", [legendStar, legendText, btnHints], direction="Horizontal",
                    gap=3, height=28, align_items="Center", width=285)
 
-    return group("conVhpHero", [heroGrid, processStrip, runtimeInfo, legend], direction="Vertical", gap=12,
+    return group("conVhpHero", [subtitle, processStrip, runtimeInfo, legend], direction="Vertical", gap=12,
                  fill=C_CARD_BG, border_color=C_CARD_BORDER, radius=14, pad=(16, 16, 16, 16))

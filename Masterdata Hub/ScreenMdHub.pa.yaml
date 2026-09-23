@@ -23,15 +23,13 @@ Screens:
             LayoutDirection: |-
                 =LayoutDirection.Vertical
             LayoutGap: |-
-                =8
+                =0
             LayoutMinWidth: |-
                 =0
-            LayoutOverflowY: |-
-                =LayoutOverflow.Scroll
             Width: |-
                 =Parent.Width
           Children:
-            - conMdShell:
+            - conMdHeader:
                 Control: GroupContainer
                 Variant: AutoLayout
                 Properties:
@@ -39,42 +37,28 @@ Screens:
                       =BorderStyle.None
                   DropShadow: |-
                       =DropShadow.None
+                  Fill: |-
+                      =C.'bg-app'
                   FillPortions: |-
                       =0
                   Height: |-
-                      =60 + (If(((App.Width - 64)) < (300) + (336) + (Max(120, (App.Width - 64) - 300 - 336 - 92 - 36)) + (92) + 36, 80, 34)) + 16 + (If(LayoutRank < 3, 3 * (148) + 20, 148)) + 16 + (If(((App.Width - 64)) < (Max(180, (App.Width - 64) - 3 * 104 - 200 - 5 * 8)) + (104) + (104) + (104) + (200) + 32, 72, 32)) + 16 + (496 + If(IfError(IsEmpty(SortByColumns(
-                          Filter(
-                              If(
-                          gblView = "mine",
-                          Filter('MD_RequestIndex', RequesterEmail = gblMe),
-                          Filter('MD_RequestIndex', IsOpen = true)
-                      ),
-                              gblDomain = "" || Domain.Value = gblDomain,
-                              gblStatusMode = "all" || (gblStatusMode = "open" && IsOpen) ||
-                                  (gblStatusMode = "done" && !IsOpen),
-                              IsBlank(Trim(txtMdSearch.Text)) ||
-                                  StartsWith(RequestNo, Trim(txtMdSearch.Text)) ||
-                                  StartsWith(ShortText, Trim(txtMdSearch.Text)) ||
-                                  StartsWith(Plant, Trim(txtMdSearch.Text))
-                          ),
-                          "LastActionOn", SortOrder.Descending
-                      )), false), 8 + (24), 0))
+                      =25 + (If(((App.Width - 64)) >= (440) + (240) + 20, Max((52), (If((If(((App.Width - 64)) >= (440) + (240) + 20, 440, (App.Width - 64))) >= (336) + (92) + 10, 34, (34)))), (52) + 20 + (If((If(((App.Width - 64)) >= (440) + (240) + 20, 440, (App.Width - 64))) >= (336) + (92) + 10, 34, (34)))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
                       =LayoutDirection.Vertical
                   LayoutGap: |-
-                      =16
+                      =10
                   LayoutMinWidth: |-
                       =0
                   PaddingBottom: |-
-                      =40
+                      =0
                   PaddingLeft: |-
-                      =32
+                      =24
                   PaddingRight: |-
-                      =32
+                      =34
                   PaddingTop: |-
-                      =20
+                      =14
                   Width: |-
                       =Parent.Width
                 Children:
@@ -89,13 +73,13 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =If(((App.Width - 64)) < (300) + (336) + (Max(120, (App.Width - 64) - 300 - 336 - 92 - 36)) + (92) + 36, 80, 34)
+                            =If(((App.Width - 64)) >= (440) + (240) + 20, Max((52), (If((If(((App.Width - 64)) >= (440) + (240) + 20, 440, (App.Width - 64))) >= (336) + (92) + 10, 34, (34)))), (52) + 20 + (If((If(((App.Width - 64)) >= (440) + (240) + 20, 440, (App.Width - 64))) >= (336) + (92) + 10, 34, (34))))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Center
                         LayoutDirection: |-
                             =LayoutDirection.Horizontal
                         LayoutGap: |-
-                            =12
+                            =20
                         LayoutMinWidth: |-
                             =0
                         LayoutWrap: |-
@@ -103,7 +87,7 @@ Screens:
                         Width: |-
                             =Parent.Width
                       Children:
-                        - conMdBrand:
+                        - conMdBarLeft:
                             Control: GroupContainer
                             Variant: AutoLayout
                             Properties:
@@ -114,19 +98,19 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =34
+                                  =52
                               LayoutAlignItems: |-
-                                  =LayoutAlignItems.Center
+                                  =LayoutAlignItems.Stretch
                               LayoutDirection: |-
-                                  =LayoutDirection.Horizontal
+                                  =LayoutDirection.Vertical
                               LayoutGap: |-
-                                  =10
+                                  =2
                               LayoutMinWidth: |-
                                   =0
                               Width: |-
-                                  =300
+                                  =If(((App.Width - 64)) >= (440) + (240) + 20, Parent.Width - ((440)) - 21, (Parent.Width - 0) / 1 - 1)
                             Children:
-                              - txtMdBrand:
+                              - txtMdTitle:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
@@ -157,15 +141,13 @@ Screens:
                                         =22
                                     Text: |-
                                         ="Masterdata"
-                                    Width: |-
-                                        =150
                                     Wrap: |-
                                         =false
                               - txtMdSub:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="SAP requests"
+                                        ="SAP requests - " & If(gblView = "mine", gblMe, "queue, whole department")
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -177,7 +159,7 @@ Screens:
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
-                                        =30
+                                        =20
                                     PaddingBottom: |-
                                         =0
                                     PaddingLeft: |-
@@ -189,12 +171,10 @@ Screens:
                                     Size: |-
                                         =13
                                     Text: |-
-                                        ="SAP requests"
-                                    Width: |-
-                                        =140
+                                        ="SAP requests - " & If(gblView = "mine", gblMe, "queue, whole department")
                                     Wrap: |-
                                         =false
-                        - conMdSeg:
+                        - conMdBarRight:
                             Control: GroupContainer
                             Variant: AutoLayout
                             Properties:
@@ -205,37 +185,150 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =34
+                                  =If((If(((App.Width - 64)) >= (440) + (240) + 20, 440, (App.Width - 64))) >= (336) + (92) + 10, 34, (34))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Center
                               LayoutDirection: |-
                                   =LayoutDirection.Horizontal
                               LayoutGap: |-
-                                  =0
+                                  =10
                               LayoutMinWidth: |-
                                   =0
+                              LayoutWrap: |-
+                                  =true
                               Width: |-
-                                  =336
+                                  =If(((App.Width - 64)) >= (440) + (240) + 20, 440, (Parent.Width - 0) / 1 - 1)
                             Children:
-                              - btnMdViewMine:
+                              - conMdSeg:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =34
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Center
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Horizontal
+                                    LayoutGap: |-
+                                        =0
+                                    LayoutMinWidth: |-
+                                        =0
+                                    Width: |-
+                                        =If((If(((App.Width - 64)) >= (440) + (240) + 20, 440, (App.Width - 64))) >= (336) + (92) + 10, 336, (Parent.Width - 10) / 2 - 1)
+                                  Children:
+                                    - btnMdViewMine:
+                                        Control: ModernButton
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="My requests"
+                                          Align: |-
+                                              =Align.Center
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          Appearance: |-
+                                              =If(gblView = "mine", ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
+                                          BorderColor: |-
+                                              =C.'border-default'
+                                          BorderThickness: |-
+                                              =1
+                                          Color: |-
+                                              =If(gblView = "mine", C.'text-on-primary', C.'text-primary')
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =34
+                                          Layout: |-
+                                              =ButtonLayout.TextOnly
+                                          OnSelect: |-
+                                              =Set(gblView, "mine"); Set(gblDomain, "")
+                                          RadiusBottomLeft: |-
+                                              =10
+                                          RadiusBottomRight: |-
+                                              =10
+                                          RadiusTopLeft: |-
+                                              =10
+                                          RadiusTopRight: |-
+                                              =10
+                                          Size: |-
+                                              =14
+                                          Text: |-
+                                              ="My requests"
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Width: |-
+                                              =168
+                                    - btnMdViewQueue:
+                                        Control: ModernButton
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Queue"
+                                          Align: |-
+                                              =Align.Center
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          Appearance: |-
+                                              =If(gblView = "queue", ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
+                                          BorderColor: |-
+                                              =C.'border-default'
+                                          BorderThickness: |-
+                                              =1
+                                          Color: |-
+                                              =If(gblView = "queue", C.'text-on-primary', C.'text-primary')
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =34
+                                          Layout: |-
+                                              =ButtonLayout.TextOnly
+                                          OnSelect: |-
+                                              =Set(gblView, "queue"); Set(gblDomain, "")
+                                          RadiusBottomLeft: |-
+                                              =10
+                                          RadiusBottomRight: |-
+                                              =10
+                                          RadiusTopLeft: |-
+                                              =10
+                                          RadiusTopRight: |-
+                                              =10
+                                          Size: |-
+                                              =14
+                                          Text: |-
+                                              ="Queue"
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Width: |-
+                                              =168
+                              - btnMdTheme:
                                   Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="My requests"
+                                        =If(darkModeEnabled, "Switch to light theme", "Switch to dark theme")
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
                                         =AlignInContainer.Center
                                     Appearance: |-
-                                        =If(gblView = "mine", ButtonAppearance.Primary, ButtonAppearance.Outline)
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
+                                        =ButtonAppearance.Outline
                                     BorderColor: |-
                                         =C.'border-default'
                                     BorderThickness: |-
                                         =1
                                     Color: |-
-                                        =If(gblView = "mine", C.'text-on-primary', C.'text-primary')
+                                        =C.'text-primary'
                                     Font: |-
                                         =Font.'Segoe UI'
                                     FontWeight: |-
@@ -244,8 +337,12 @@ Screens:
                                         =34
                                     Layout: |-
                                         =ButtonLayout.TextOnly
+                                    LayoutMinWidth: |-
+                                        =0
                                     OnSelect: |-
-                                        =Set(gblView, "mine"); Set(gblDomain, "")
+                                        =Set(darkModeEnabled, !darkModeEnabled);
+                                        ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
+                                        IfError(SaveData(colAppPrefs, "prefs"), Blank())
                                     RadiusBottomLeft: |-
                                         =10
                                     RadiusBottomRight: |-
@@ -257,136 +354,70 @@ Screens:
                                     Size: |-
                                         =14
                                     Text: |-
-                                        ="My requests"
+                                        =If(darkModeEnabled, "Light", "Dark")
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
-                                        =168
-                              - btnMdViewQueue:
-                                  Control: ModernButton
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Queue"
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    Appearance: |-
-                                        =If(gblView = "queue", ButtonAppearance.Primary, ButtonAppearance.Outline)
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    BorderColor: |-
-                                        =C.'border-default'
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =If(gblView = "queue", C.'text-on-primary', C.'text-primary')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =34
-                                    Layout: |-
-                                        =ButtonLayout.TextOnly
-                                    OnSelect: |-
-                                        =Set(gblView, "queue"); Set(gblDomain, "")
-                                    RadiusBottomLeft: |-
-                                        =10
-                                    RadiusBottomRight: |-
-                                        =10
-                                    RadiusTopLeft: |-
-                                        =10
-                                    RadiusTopRight: |-
-                                        =10
-                                    Size: |-
-                                        =14
-                                    Text: |-
-                                        ="Queue"
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
-                                    Width: |-
-                                        =168
-                        - txtMdWho:
-                            Control: ModernText
-                            Properties:
-                              AccessibleLabel: |-
-                                  =If(gblView = "mine", gblMe, "Queue - whole department")
-                              Align: |-
-                                  =Align.Right
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Color: |-
-                                  =C.'text-muted'
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              Height: |-
-                                  =34
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
-                              Size: |-
-                                  =12
-                              Text: |-
-                                  =If(gblView = "mine", gblMe, "Queue - whole department")
-                              Width: |-
-                                  =Max(120, (App.Width - 64) - 300 - 336 - 92 - 36)
-                              Wrap: |-
-                                  =false
-                        - btnMdTheme:
-                            Control: ModernButton
-                            Properties:
-                              AccessibleLabel: |-
-                                  =If(darkModeEnabled, "Switch to light theme", "Switch to dark theme")
-                              Align: |-
-                                  =Align.Center
-                              AlignInContainer: |-
-                                  =AlignInContainer.Center
-                              Appearance: |-
-                                  =ButtonAppearance.Outline
-                              BorderColor: |-
-                                  =C.'border-default'
-                              BorderThickness: |-
-                                  =1
-                              Color: |-
-                                  =C.'text-primary'
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              FontWeight: |-
-                                  =FontWeight.Semibold
-                              Height: |-
-                                  =34
-                              Layout: |-
-                                  =ButtonLayout.TextOnly
-                              OnSelect: |-
-                                  =Set(darkModeEnabled, !darkModeEnabled);
-                                  ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
-                                  IfError(SaveData(colAppPrefs, "prefs"), Blank())
-                              RadiusBottomLeft: |-
-                                  =10
-                              RadiusBottomRight: |-
-                                  =10
-                              RadiusTopLeft: |-
-                                  =10
-                              RadiusTopRight: |-
-                                  =10
-                              Size: |-
-                                  =14
-                              Text: |-
-                                  =If(darkModeEnabled, "Light", "Dark")
-                              VerticalAlign: |-
-                                  =VerticalAlign.Middle
-                              Width: |-
-                                  =92
+                                        =If((If(((App.Width - 64)) >= (440) + (240) + 20, 440, (App.Width - 64))) >= (336) + (92) + 10, 92, (Parent.Width - 10) / 2 - 1)
+                  - conMdHeaderRule:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        Fill: |-
+                            =C.'border-subtle'
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =1
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Stretch
+                        LayoutDirection: |-
+                            =LayoutDirection.Horizontal
+                        LayoutGap: |-
+                            =8
+                        LayoutMinWidth: |-
+                            =0
+                        Width: |-
+                            =Parent.Width
+            - conMdBody:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  Fill: |-
+                      =C.'bg-app'
+                  FillPortions: |-
+                      =1
+                  Height: |-
+                      =Parent.Height - (25 + (If(((App.Width - 64)) >= (440) + (240) + 20, Max((52), (If((If(((App.Width - 64)) >= (440) + (240) + 20, 440, (App.Width - 64))) >= (336) + (92) + 10, 34, (34)))), (52) + 20 + (If((If(((App.Width - 64)) >= (440) + (240) + 20, 440, (App.Width - 64))) >= (336) + (92) + 10, 34, (34))))))
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Stretch
+                  LayoutDirection: |-
+                      =LayoutDirection.Vertical
+                  LayoutGap: |-
+                      =16
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Scroll
+                  PaddingBottom: |-
+                      =40
+                  PaddingLeft: |-
+                      =24
+                  PaddingRight: |-
+                      =16
+                  PaddingTop: |-
+                      =16
+                  Width: |-
+                      =Parent.Width
+                Children:
                   - conMdTiles:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -398,7 +429,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =If(LayoutRank < 3, 3 * (148) + 20, 148)
+                            =If(LayoutRank < 2, 5, If(LayoutRank < 3, 3, 1)) * (148) + (If(LayoutRank < 2, 5, If(LayoutRank < 3, 3, 1)) - 1) * 10
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -453,7 +484,7 @@ Screens:
                               RadiusTopRight: |-
                                   =10
                               Width: |-
-                                  =If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)
+                                  =If(LayoutRank < 2, (App.Width - 64), If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5))
                             Children:
                               - conMdStripeFL:
                                   Control: GroupContainer
@@ -649,7 +680,7 @@ Screens:
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =((If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)) - 24 - 6) / 2
+                                              =((If(LayoutRank < 2, (App.Width - 64), If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5))) - 24 - 6) / 2
                                     - btnMdTileNewFL:
                                         Control: ModernButton
                                         Properties:
@@ -694,7 +725,7 @@ Screens:
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =((If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)) - 24 - 6) / 2
+                                              =((If(LayoutRank < 2, (App.Width - 64), If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5))) - 24 - 6) / 2
                         - conMdTileEQ:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -736,7 +767,7 @@ Screens:
                               RadiusTopRight: |-
                                   =10
                               Width: |-
-                                  =If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)
+                                  =If(LayoutRank < 2, (App.Width - 64), If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5))
                             Children:
                               - conMdStripeEQ:
                                   Control: GroupContainer
@@ -932,7 +963,7 @@ Screens:
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =((If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)) - 24 - 6) / 2
+                                              =((If(LayoutRank < 2, (App.Width - 64), If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5))) - 24 - 6) / 2
                                     - btnMdTileNewEQ:
                                         Control: ModernButton
                                         Properties:
@@ -973,7 +1004,7 @@ Screens:
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =((If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)) - 24 - 6) / 2
+                                              =((If(LayoutRank < 2, (App.Width - 64), If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5))) - 24 - 6) / 2
                         - conMdTileMP:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -1015,7 +1046,7 @@ Screens:
                               RadiusTopRight: |-
                                   =10
                               Width: |-
-                                  =If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)
+                                  =If(LayoutRank < 2, (App.Width - 64), If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5))
                             Children:
                               - conMdStripeMP:
                                   Control: GroupContainer
@@ -1211,7 +1242,7 @@ Screens:
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =((If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)) - 24 - 6) / 2
+                                              =((If(LayoutRank < 2, (App.Width - 64), If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5))) - 24 - 6) / 2
                                     - btnMdTileNewMP:
                                         Control: ModernButton
                                         Properties:
@@ -1256,7 +1287,7 @@ Screens:
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =((If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)) - 24 - 6) / 2
+                                              =((If(LayoutRank < 2, (App.Width - 64), If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5))) - 24 - 6) / 2
                         - conMdTileMAT:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -1298,7 +1329,7 @@ Screens:
                               RadiusTopRight: |-
                                   =10
                               Width: |-
-                                  =If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)
+                                  =If(LayoutRank < 2, (App.Width - 64), If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5))
                             Children:
                               - conMdStripeMAT:
                                   Control: GroupContainer
@@ -1494,7 +1525,7 @@ Screens:
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =((If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)) - 24 - 6) / 2
+                                              =((If(LayoutRank < 2, (App.Width - 64), If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5))) - 24 - 6) / 2
                                     - btnMdTileNewMAT:
                                         Control: ModernButton
                                         Properties:
@@ -1535,7 +1566,7 @@ Screens:
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =((If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)) - 24 - 6) / 2
+                                              =((If(LayoutRank < 2, (App.Width - 64), If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5))) - 24 - 6) / 2
                         - conMdTileVHP:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -1577,7 +1608,7 @@ Screens:
                               RadiusTopRight: |-
                                   =10
                               Width: |-
-                                  =If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)
+                                  =If(LayoutRank < 2, (App.Width - 64), If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5))
                             Children:
                               - conMdStripeVHP:
                                   Control: GroupContainer
@@ -1773,7 +1804,7 @@ Screens:
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =((If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)) - 24 - 6) / 2
+                                              =((If(LayoutRank < 2, (App.Width - 64), If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5))) - 24 - 6) / 2
                                     - btnMdTileNewVHP:
                                         Control: ModernButton
                                         Properties:
@@ -1814,7 +1845,7 @@ Screens:
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =((If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5)) - 24 - 6) / 2
+                                              =((If(LayoutRank < 2, (App.Width - 64), If(LayoutRank < 3, ((App.Width - 64) - 10) / 2, ((App.Width - 64) - 40) / 5))) - 24 - 6) / 2
                   - conMdFilters:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -1826,7 +1857,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =If(((App.Width - 64)) < (Max(180, (App.Width - 64) - 3 * 104 - 200 - 5 * 8)) + (104) + (104) + (104) + (200) + 32, 72, 32)
+                            =If(((App.Width - 64)) >= (104) + (104) + (104) + (200) + (180) + 32, 32, (32) + 8 + (32) + 8 + (32) + 8 + (32) + 8 + (32))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Center
                         LayoutDirection: |-
@@ -1878,7 +1909,7 @@ Screens:
                               Type: |-
                                   =TextInputType.Search
                               Width: |-
-                                  =Max(180, (App.Width - 64) - 3 * 104 - 200 - 5 * 8)
+                                  =If(((App.Width - 64)) >= (104) + (104) + (104) + (200) + (180) + 32, Parent.Width - ((104) + (104) + (104) + (200)) - 33, (Parent.Width - 0) / 1 - 1)
                         - btnMdStOpen:
                             Control: ModernButton
                             Properties:
@@ -1906,6 +1937,8 @@ Screens:
                                   =32
                               Layout: |-
                                   =ButtonLayout.TextOnly
+                              LayoutMinWidth: |-
+                                  =0
                               OnSelect: |-
                                   =Set(gblStatusMode, "open")
                               RadiusBottomLeft: |-
@@ -1923,7 +1956,7 @@ Screens:
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
-                                  =104
+                                  =If(((App.Width - 64)) >= (104) + (104) + (104) + (200) + (180) + 32, 104, (Parent.Width - 0) / 1 - 1)
                         - btnMdStDone:
                             Control: ModernButton
                             Properties:
@@ -1951,6 +1984,8 @@ Screens:
                                   =32
                               Layout: |-
                                   =ButtonLayout.TextOnly
+                              LayoutMinWidth: |-
+                                  =0
                               OnSelect: |-
                                   =Set(gblStatusMode, "done")
                               RadiusBottomLeft: |-
@@ -1968,7 +2003,7 @@ Screens:
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
-                                  =104
+                                  =If(((App.Width - 64)) >= (104) + (104) + (104) + (200) + (180) + 32, 104, (Parent.Width - 0) / 1 - 1)
                         - btnMdStAll:
                             Control: ModernButton
                             Properties:
@@ -1996,6 +2031,8 @@ Screens:
                                   =32
                               Layout: |-
                                   =ButtonLayout.TextOnly
+                              LayoutMinWidth: |-
+                                  =0
                               OnSelect: |-
                                   =Set(gblStatusMode, "all")
                               RadiusBottomLeft: |-
@@ -2013,7 +2050,7 @@ Screens:
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
-                                  =104
+                                  =If(((App.Width - 64)) >= (104) + (104) + (104) + (200) + (180) + 32, 104, (Parent.Width - 0) / 1 - 1)
                         - txtMdCount:
                             Control: ModernText
                             Properties:
@@ -2037,6 +2074,8 @@ Screens:
                                   =Font.'Segoe UI'
                               Height: |-
                                   =32
+                              LayoutMinWidth: |-
+                                  =0
                               PaddingBottom: |-
                                   =0
                               PaddingLeft: |-
@@ -2054,7 +2093,7 @@ Screens:
                                       Filter('MD_RequestIndex', IsOpen = true)
                                   ))) & " requests in this view"
                               Width: |-
-                                  =200
+                                  =If(((App.Width - 64)) >= (104) + (104) + (104) + (200) + (180) + 32, 200, (Parent.Width - 0) / 1 - 1)
                               Wrap: |-
                                   =false
                   - conMdListCard:
@@ -2072,23 +2111,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =496 + If(IfError(IsEmpty(SortByColumns(
-                                Filter(
-                                    If(
-                                gblView = "mine",
-                                Filter('MD_RequestIndex', RequesterEmail = gblMe),
-                                Filter('MD_RequestIndex', IsOpen = true)
-                            ),
-                                    gblDomain = "" || Domain.Value = gblDomain,
-                                    gblStatusMode = "all" || (gblStatusMode = "open" && IsOpen) ||
-                                        (gblStatusMode = "done" && !IsOpen),
-                                    IsBlank(Trim(txtMdSearch.Text)) ||
-                                        StartsWith(RequestNo, Trim(txtMdSearch.Text)) ||
-                                        StartsWith(ShortText, Trim(txtMdSearch.Text)) ||
-                                        StartsWith(Plant, Trim(txtMdSearch.Text))
-                                ),
-                                "LastActionOn", SortOrder.Descending
-                            )), false), 8 + (24), 0)
+                            =496 + If(IsEmpty(galMdRequests.AllItems), 8 + (24), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -3047,22 +3070,6 @@ Screens:
                               Text: |-
                                   ="No requests match the filters."
                               Visible: |-
-                                  =IfError(IsEmpty(SortByColumns(
-                                      Filter(
-                                          If(
-                                      gblView = "mine",
-                                      Filter('MD_RequestIndex', RequesterEmail = gblMe),
-                                      Filter('MD_RequestIndex', IsOpen = true)
-                                  ),
-                                          gblDomain = "" || Domain.Value = gblDomain,
-                                          gblStatusMode = "all" || (gblStatusMode = "open" && IsOpen) ||
-                                              (gblStatusMode = "done" && !IsOpen),
-                                          IsBlank(Trim(txtMdSearch.Text)) ||
-                                              StartsWith(RequestNo, Trim(txtMdSearch.Text)) ||
-                                              StartsWith(ShortText, Trim(txtMdSearch.Text)) ||
-                                              StartsWith(Plant, Trim(txtMdSearch.Text))
-                                      ),
-                                      "LastActionOn", SortOrder.Descending
-                                  )), false)
+                                  =IsEmpty(galMdRequests.AllItems)
                               Wrap: |-
                                   =true
