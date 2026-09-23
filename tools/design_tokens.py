@@ -96,6 +96,13 @@ LIGHT = {
     'input-bg-disabled': "RGBA(240, 243, 248, 1)",
 
     # --- tilstande. Bruges BAADE af feltkanter og af statuschips ---
+    # KANTEN ER IKKE TEKSTEN. state-*-fg er valgt for at kunne LAESES
+    # (4,5:1). En 1 px kant skal kun kunne SES (3,0:1), og en forgrund,
+    # der er valgt til tekst, bliver en neonstreg, naar den bruges som
+    # kant paa en moerk baggrund. I lys tilstand er de to ens; se DARK.
+    'border-ok':        "RGBA(19, 120, 87, 1)",
+    'border-error':     "RGBA(179, 50, 60, 1)",
+
     'state-ok-fg':      "RGBA(19, 120, 87, 1)",
     'state-ok-bg':      "RGBA(232, 245, 238, 1)",
     'state-warn-fg':    "RGBA(138, 90, 0, 1)",
@@ -173,6 +180,14 @@ DARK = {
     'input-bg-disabled': "RGBA(30, 41, 59, 1)",
 
     # --- tilstande ---
+    # Emerald-600 og red-500 i stedet for -400 og -400. Kanten paa et
+    # udfyldt kraevet felt gav 10,49:1 mod feltbaggrunden - dobbelt saa
+    # meget som i lys tilstand (5,45), og det SES: hvert udfyldt felt fik
+    # en lysende groen streg om sig. Nu 5,35 og 5,36, altsaa det samme
+    # indtryk i begge temaer. BALANCED nedenfor holder det paa plads.
+    'border-ok':        "RGBA(5, 150, 105, 1)",
+    'border-error':     "RGBA(239, 68, 68, 1)",
+
     'state-ok-fg':      "RGBA(52, 211, 153, 1)",
     'state-ok-bg':      "RGBA(6, 46, 37, 1)",
     'state-warn-fg':    "RGBA(251, 191, 36, 1)",
@@ -292,7 +307,7 @@ CONTRAST = (
     # -- kanter og streger (1.4.11) ---------------------------------------
     # border-default staar IKKE her - se CONTRAST_OPEN nedenfor.
     # Feltkanten, naar et krav er opfyldt eller mangler.
-    [(fg, bg, UI_MIN) for fg in ("state-ok-fg", "state-error-fg")
+    [(fg, bg, UI_MIN) for fg in ("border-ok", "border-error")
      for bg in ("input-bg", "input-bg-disabled", "bg-card")] +
     # Domaenestriben langs hubbens fliser.
     [(fg, "bg-card", UI_MIN) for fg in
@@ -402,6 +417,61 @@ def _check_contrast():
 
 
 _check_contrast()
+
+
+# ---------------------------------------------------------------------------
+# BALANCE MELLEM DE TO TEMAER
+#
+# CONTRAST sikrer, at intet er for SVAGT. Den fangede ikke det, der
+# faktisk var galt i moerk tilstand: at noget var for KRAFTIGT.
+#
+#     kanten paa et udfyldt kraevet felt, mod feltbaggrunden
+#         lys    state-ok-fg  paa input-bg    5,45
+#         moerk  state-ok-fg  paa input-bg   10,49
+#
+# Begge klarede kravet paa 3,0 med god margin, saa vagten var tavs. Men en
+# kant, der er dobbelt saa kraftig i det ene tema, SES som noget andet -
+# hvert udfyldt felt fik en lysende groen streg om sig, som lys tilstand
+# ikke har. Det var ikke en fejl i en vaerdi; det var en fejl i FORHOLDET
+# mellem to vaerdier, og det kan kun ses ved at regne dem mod hinanden.
+#
+# Aarsagen er den samme som ved text-on-domain: EET navn lavede TO ting.
+# state-ok-fg er valgt for at kunne LAESES som tekst (4,5:1). En kant skal
+# kun kunne SES (3,0:1). De to krav peger hver sin vej, naar baggrunden
+# vender - derfor border-ok og border-error.
+# ---------------------------------------------------------------------------
+MAX_SKEW = 1.6
+
+# (forgrund, baggrund) hvis kontrast skal vaere nogenlunde ens i de to
+# temaer. Kun kanter: en tekstfarve maa gerne have mere luft i moerk
+# tilstand, for dér er baggrunden ikke bare den omvendte.
+BALANCED = [(fg, "input-bg") for fg in ("border-ok", "border-error")]
+
+
+def _check_balance():
+    """Ingen kant maa vaere mere end MAX_SKEW gange saa kraftig i det ene
+    tema som i det andet."""
+    bad = []
+    for fg, bg in BALANCED:
+        lys = contrast(_lookup("BALANCED", "lys", fg),
+                       _lookup("BALANCED", "lys", bg))
+        mrk = contrast(_lookup("BALANCED", "moerk", fg),
+                       _lookup("BALANCED", "moerk", bg))
+        hi, lo = max(lys, mrk), min(lys, mrk)
+        if lo > 0 and hi / lo > MAX_SKEW + 0.005:
+            bad.append("  %-14s paa %-10s lys %.2f  moerk %.2f  "
+                       "(faktor %.2f, hoejst %.1f)"
+                       % (fg, bg, lys, mrk, hi / lo, MAX_SKEW))
+    if bad:
+        raise SystemExit(
+            "Designtokens: en kant er meget kraftigere i det ene tema.\n"
+            + "\n".join(bad) +
+            "\n\nDen klarer maaske kontrastkravet i begge temaer, men den SES\n"
+            "som to forskellige ting. Daemp den kraftigste, eller tag parret\n"
+            "ud af BALANCED, hvis forskellen er med vilje.")
+
+
+_check_balance()
 
 
 # ---------------------------------------------------------------------------

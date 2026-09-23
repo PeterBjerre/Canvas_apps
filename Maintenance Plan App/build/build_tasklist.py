@@ -190,7 +190,7 @@ def _tab_bar():
         on = _tab_on(key)
         b = button(f"btnVhpTab{key.capitalize()}", f'"{label}"',
                    f'Set(varVhpOpsTab, "{key}")', width=168, height=34)
-        b.props["Appearance"] = f"If({on}, ButtonAppearance.Primary, ButtonAppearance.Secondary)"
+        b.props["Appearance"] = f"If({on}, ButtonAppearance.Primary, ButtonAppearance.Outline)"
         b.props["BasePaletteColor"] = C_PRIMARY
         b.props["Color"] = f"If({on}, {C_WHITE}, {C_TITLE})"
         b.props["BorderColor"] = C_CARD_BORDER

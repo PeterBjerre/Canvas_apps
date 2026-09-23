@@ -766,6 +766,28 @@ def main():
                 if remote or local:
                     break
 
+    # --- 21. ButtonAppearance.Secondary ------------------------------------
+    #
+    # Den moderne Button har INGEN Fill-egenskab. Appearance afgoer
+    # fyldet, og Secondary er dokumenteret som "subtle FILLED style" -
+    # fyldet kommer fra Fluent-temaet, ikke fra en token.
+    #
+    # I lys tilstand lignede det en almindelig graa knap, saa ingen
+    # opdagede det. I MOERK tilstand blev hver sekundaer knap en LYS
+    # pille med vores egen naesten-hvide C_TITLE ovenpaa. Proceslinjen,
+    # "Til hubben", "Send as email" - alle sammen.
+    #
+    # Outline er "outlined button with NO background fill": kun kant og
+    # tekst, og dem saetter vi selv. Subtle og Transparent har heller
+    # intet fyld og er derfor ogsaa i orden.
+    for p_, name, body in all_nodes:
+        for key, val in (body.get("Properties") or {}).items():
+            if isinstance(val, str) and "ButtonAppearance.Secondary" in val:
+                problems.append(
+                    f"[21] {name}.{key}: ButtonAppearance.Secondary henter sit "
+                    f"fyld fra Fluent-temaet, ikke fra en token - brug "
+                    f"ButtonAppearance.Outline")
+
     # --- 16. Dropdown-Default der ikke er en RECORD ------------------------
     # ModernDropdown.Default vil have en RECORD fra kontrollens egen
     # Items-tabel - ikke vaerdien inde i den. Staar der en variabel eller
@@ -890,6 +912,26 @@ def main():
             j += 1
         return ""
 
+    def call_end(text, at):
+        """Positionen lige efter det kalds afsluttende parentes."""
+        i = text.index("(", at)
+        depth, j, q = 0, i, None
+        while j < len(text):
+            c = text[j]
+            if q:
+                if c == q:
+                    q = None
+            elif c in "\"'":
+                q = c
+            elif c == "(":
+                depth += 1
+            elif c == ")":
+                depth -= 1
+                if depth == 0:
+                    return j + 1
+            j += 1
+        return len(text)
+
     targets = [((b.get("Properties") or {}), n) for _p, n, b in all_nodes]
     targets.append((screen.get("Properties") or {}, "<skaermen>"))
     for props, owner in targets:
@@ -916,10 +958,30 @@ def main():
             if len(hits) < 2:
                 continue
             # afhaenger et senere led af et tidligere?
+            #
+            # VINDUET ER HELE TEKSTEN IMELLEM, IKKE KUN KILDEARGUMENTET.
+            # Foerste udgave saa kun i den senere Collects ANDET argument.
+            # Da gemningen blev lagt om til batch, flyttede afhaengigheden
+            # OP i et With, der omslutter kaldet:
+            #
+            #     With(
+            #         { srcOps: Filter(..., LookUp(colVhpSavedItems, ...)) },
+            #         ...  ClearCollect(colVhpSavedOps, ForAll(Sequence(...)))
+            #     )
+            #
+            # colVhpSavedItems staar ikke i kildeargumentet, saa reglen
+            # meldte to KLART afhaengige hentninger som uafhaengige og bad
+            # om et Concurrent, der ville have givet en kapploebsfejl.
+            # Nu laeses alt fra det tidligere leds eget navn og frem til
+            # enden af det senere kald.
             dependent = False
-            for i, (name, _src, _pos) in enumerate(hits):
-                for later_name, later_src, _lp in hits[i + 1:]:
-                    if re.search(r"\b%s\b" % re.escape(name), later_src):
+            for i, (name, _src, pos) in enumerate(hits):
+                # start lige EFTER samlingens eget navn, saa Collect'ens
+                # egen maalangivelse ikke taeller som en laesning
+                here = val.index(name, pos) + len(name)
+                for later_name, later_src, lp in hits[i + 1:]:
+                    end = call_end(val, lp)
+                    if re.search(r"\b%s\b" % re.escape(name), val[here:end]):
                         dependent = True
             for vm in setv.finditer(val):
                 v, vpos = vm.group(1), vm.start()

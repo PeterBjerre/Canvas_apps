@@ -316,7 +316,7 @@ def build_hero():
         "Set(varVhpShowHints, !IfError(varVhpShowHints, false))",
         width=150, height=28)
     btnHints.props["Appearance"] = ("If(IfError(varVhpShowHints, false), "
-                                    "ButtonAppearance.Primary, ButtonAppearance.Secondary)")
+                                    "ButtonAppearance.Primary, ButtonAppearance.Outline)")
     btnHints.props["BasePaletteColor"] = C_INFO_FG
     btnHints.props["Color"] = f"If(IfError(varVhpShowHints, false), {C_WHITE}, {C_INFO_FG})"
     btnHints.props["BorderColor"] = C_CARD_BORDER

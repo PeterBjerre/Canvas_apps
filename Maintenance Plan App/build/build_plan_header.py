@@ -51,7 +51,7 @@ def section_header(name, title, desc, step_label, help_section=None):
         v = help_var(help_section)
         btn = button(f"{name}Help", f"If({v}, \"Hide help\", \"? Help\")",
                      f"Set({v}, !{v})", width=110, height=30)
-        btn.props["Appearance"] = f"If({v}, ButtonAppearance.Primary, ButtonAppearance.Secondary)"
+        btn.props["Appearance"] = f"If({v}, ButtonAppearance.Primary, ButtonAppearance.Outline)"
         btn.props["BasePaletteColor"] = C_INFO_FG
         btn.props["Color"] = f"If({v}, {C_WHITE}, {C_INFO_FG})"
         btn.props["BorderColor"] = C_CARD_BORDER

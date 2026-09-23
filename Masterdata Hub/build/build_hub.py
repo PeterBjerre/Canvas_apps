@@ -86,7 +86,7 @@ def _switch(field_index, fallback, quote=False):
 def _seg(name, label, value):
     b = button(name, f'"{label}"',
                f'Set(gblView, "{value}"); Set(gblDomain, "")', width=168, height=34)
-    b.props["Appearance"] = f'If(gblView = "{value}", ButtonAppearance.Primary, ButtonAppearance.Secondary)'
+    b.props["Appearance"] = f'If(gblView = "{value}", ButtonAppearance.Primary, ButtonAppearance.Outline)'
     b.props["BasePaletteColor"] = C_PRIMARY
     b.props["Color"] = f'If(gblView = "{value}", {C_WHITE}, {C_TITLE})'
     b.props["BorderColor"] = C_CARD_BORDER
@@ -190,7 +190,7 @@ def build_tiles():
 # ---------------------------------------------------------------------------
 def _chip(name, label, value):
     b = button(name, f'"{label}"', f'Set(gblStatusMode, "{value}")', width=104, height=32)
-    b.props["Appearance"] = f'If(gblStatusMode = "{value}", ButtonAppearance.Primary, ButtonAppearance.Secondary)'
+    b.props["Appearance"] = f'If(gblStatusMode = "{value}", ButtonAppearance.Primary, ButtonAppearance.Outline)'
     b.props["BasePaletteColor"] = C_INFO_FG
     b.props["Color"] = f'If(gblStatusMode = "{value}", {C_WHITE}, {C_MUTED})'
     b.props["BorderColor"] = C_CARD_BORDER
