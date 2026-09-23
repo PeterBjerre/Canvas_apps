@@ -13,10 +13,30 @@ ordret ens, FOER der bygges. Er de ikke, staar der hvilken fil det er, og
 hvilken app der har den nyeste udgave.
 """
 import argparse
-import os, shutil, subprocess, sys, filecmp
+import os, re, shutil, subprocess, sys, filecmp
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SHARED = ["gen_screen.py", "build_helpers.py", "check_layout.py"]
+# EN UDGAVE, IKKE FIRE KOPIER
+#
+# gen_screen.py, build_helpers.py, check_layout.py, build_domain.py,
+# attflows.py og build_flsearch.py laa foer som ordrette kopier i hver
+# app's build-mappe - 5.863 af 14.825 linjer Python, 39%. De ligger nu i
+# tools/ i EEN udgave, og indgangene saetter tools/ paa sys.path.
+#
+# Derfor er check_shared() og _compare() vaek: der ER ikke kopier, der kan
+# glide fra hinanden. De to domaeneindgange staar stadig hver for sig -
+# se "EQUIPMENTS OG MATERIALS MAA AFVIGE" nedenfor for hvorfor.
+#
+# attflows.py var laenge den sidste undtagelse: VH-plan havde sin EGEN
+# udgave, som ikke var ordret ens med tools/attflows.py, saa ingen vagt
+# kunne se de to som kopier. Flowkontrakten staar nu eet sted, og VH-plans
+# fil er skrumpet til de seks navne og den ene metode, appen faktisk goer
+# anderledes.
+#
+# Begrundelsen for kopierne var, at Power Apps' VS Code-vaerktoejskaede
+# fjernede et delt modul udenfor app-mappen igen. Den gaelder ikke den vej,
+# der bruges i dag: canvas_mcp.stage() kopierer KUN *.pa.yaml over til
+# serveren, saa hverken build/ eller tools/ naar nogensinde derud.
 
 # (app-mappe, [scripts der skal koeres, i raekkefoelge])
 APPS = [
@@ -26,120 +46,88 @@ APPS = [
     ("Material App",         ["generate_app_onstart.py", "assemble_screen.py"]),
 ]
 
-# Equipment og Materials er DEN SAMME app. Kun domain_config.py skiller
-# dem - felterne og listenavnet. Resten skal derfor ogsaa vaere ordret
-# ens, og bliver det kun, hvis nogen tjekker det.
-DOMAIN_APPS = ["Equipment App", "Material App"]
-DOMAIN_SHARED = ["build_domain.py", "attflows.py",
-                 "generate_app_onstart.py", "assemble_screen.py"]
+# EQUIPMENTS OG MATERIALS MAA AFVIGE
+#
+# Her stod DOMAIN_APPS og DOMAIN_SHARED, og check_domain_shared() naegtede
+# at bygge, hvis de to apps' indgange ikke var ORDRET ens. Det var rigtigt,
+# saa laenge de to kun havde forskellige felter.
+#
+# Det gaelder ikke laengere: de skal kunne to forskellige ting. Vagten er
+# derfor vaek - ikke glemt. Byggeklodserne er stadig faelles og ligger eet
+# sted (tools/domain_parts.py); det er KOMPOSITIONEN, der er appens egen.
 
 
 def build_dirs():
     return [(app, os.path.join(ROOT, app, "build")) for app, _ in APPS]
 
 
-def _compare(dirs, names, bad):
-    base_app, base_dir = dirs[0]
-    for name in names:
-        base = os.path.join(base_dir, name)
-        if not os.path.exists(base):
-            bad.append(f"{name}: mangler i '{base_app}'")
-            continue
-        for app, d in dirs[1:]:
-            other = os.path.join(d, name)
-            if not os.path.exists(other):
-                bad.append(f"{name}: mangler i '{app}'")
-            elif not filecmp.cmp(base, other, shallow=False):
-                newer = base_app if os.path.getmtime(base) > os.path.getmtime(other) else app
-                bad.append(f"{name}: '{base_app}' og '{app}' er ikke ens "
-                           f"(nyest rettet i '{newer}' - kopier derfra)")
+def check_no_raw_colors():
+    """Ingen builder maa skrive en farve. Farver er DESIGNTOKENS.
 
+    Fanger to ting:
 
-def check_shared():
-    """De faelles filer skal vaere ordret ens - de tre i ALLE build-mapper,
-    og de fire domaenefiler i de to domaeneapper."""
-    bad = []
-    _compare(build_dirs(), SHARED, bad)
-    if DOMAIN_APPS:
-        _compare([(a, os.path.join(ROOT, a, "build")) for a in DOMAIN_APPS],
-                 DOMAIN_SHARED, bad)
-    return bad
+      RGBA(...)   en farve skrevet direkte i en kontrol. Den ville ikke
+                  skifte med temaet - kontrollen ville blive staaende lys
+                  i moerk tilstand.
+      #rrggbb     det samme inde i en HTML-streng. Den fejl er vaerre,
+                  fordi den ikke ligner en farve for den, der laeser
+                  koden: den staar midt i "font-family:Segoe UI".
 
+    Begge har vaeret der. Se tools/design_tokens.py for hvor farven hoerer
+    hjemme, og brug ref() eller ref_hex().
 
-def check_app_ids():
-    """Det samme app-id skal staa de samme steder.
+    HVORFOR ast OG IKKE ET REGEX OVER LINJERNE
+    ------------------------------------------
+    Foerste udgave laeste linjer og forsoegte at klippe kommentarer af ved
+    et '#'. Den gav to falske fund med det samme - begge var en kommentar,
+    der FORKLAREDE, at farven ikke maa staa der. En vagt, der melder om
+    sin egen dokumentation, bliver slaaet fra.
 
-    En domaeneapp har sit id TRE steder: tools/canvas_apps.json (hvor der
-    deployes til), hub_config.py (hvad flisen aabner) og appens egen
-    PLAY_URL (hvad der skrives i MD_RequestIndex.AppUrl, saa "Open" lander
-    paa den rigtige indmelding).
-
-    Glider de fra hinanden, fejler ingenting - builderne deployer bare eet
-    sted, flisen aabner et andet, og dyblinket et tredje. Det ses foerst,
-    naar en bruger klikker "Open" og lander i en tom app.
+    Her laeses kun STRENGKONSTANTER, og docstrings springes over. En
+    kommentar findes slet ikke i et syntakstrae, saa den kan ikke tages
+    fejl af kode. f-strenge er med: deres faste dele er ogsaa konstanter.
     """
-    import json, re
+    import ast, glob
+    rgba = re.compile(r"RGBA\s*\(")
+    hexc = re.compile(r"#[0-9a-fA-F]{6}\b")
     bad = []
-    cfg_path = os.path.join(ROOT, "tools", "canvas_apps.json")
-    hub_path = os.path.join(ROOT, "Masterdata Hub", "build", "hub_config.py")
-    if not (os.path.exists(cfg_path) and os.path.exists(hub_path)):
-        return bad
-
-    with open(cfg_path, encoding="utf-8") as f:
-        apps = json.load(f).get("apps", {})
-    sys.path.insert(0, os.path.dirname(hub_path))
-    hub = {}
-    try:
-        import hub_config
-        hub = {d["key"]: d.get("app_id") for d in hub_config.DOMAINS}
-    except Exception as e:                      # hub_config er ikke vores
-        bad.append(f"kan ikke laese hub_config.py: {e}")
-        return bad
-
-    # Hubbens eget id staar i canvas_apps.json OG i de to domaeneapps'
-    # HUB_URL - knappen "Tilbage til hubben". Glider de fra hinanden,
-    # aabner knappen en anden app end den, flisen kom fra.
-    hub_id = (apps.get("hub") or {}).get("app_id")
-
-    # (noeglen i canvas_apps.json, noeglen i hub_config.DOMAINS, app-mappe)
-    # VH-plan har ogsaa en knap til hubben - dens HUB_URL staar i
-    # sp_config.py og skal foelge det samme id.
-    vp = os.path.join(ROOT, "Maintenance Plan App", "build", "sp_config.py")
-    if hub_id and os.path.exists(vp):
-        with open(vp, encoding="utf-8") as f:
-            m = re.search(r'HUB_URL\s*=\s*\(?\s*"([^"]*)"[^)]*\)?', f.read(), re.S)
-        if m:
-            with open(vp, encoding="utf-8") as f:
-                joined = "".join(re.findall(r'"([^"]*)"',
-                                            re.search(r"HUB_URL\s*=\s*\((.*?)\)",
-                                                      f.read(), re.S).group(1)))
-            if not joined.endswith("/" + hub_id):
-                bad.append("vhplan: HUB_URL i sp_config.py peger ikke paa "
-                           f"hubbens app_id {hub_id}")
-
-    for key, domain, folder in (("equipment", "Equipment", "Equipment App"),
-                                ("material", "Material", "Material App")):
-        dc_path = os.path.join(ROOT, folder, "build", "domain_config.py")
-        if hub_id and os.path.exists(dc_path):
-            with open(dc_path, encoding="utf-8") as f:
-                m = re.search(r'HUB_URL\s*=\s*\(?\s*"([^"]*)"', f.read())
-            if m and not m.group(1).endswith("/" + hub_id):
-                bad.append(f"{key}: HUB_URL i {folder} peger ikke paa "
-                           f"hubbens app_id {hub_id}")
-        want = (apps.get(key) or {}).get("app_id")
-        if not want:
-            continue
-        if hub.get(domain) != want:
-            bad.append(f"{key}: canvas_apps.json har {want}, men "
-                       f"hub_config.py har {hub.get(domain)}")
-        dc = os.path.join(ROOT, folder, "build", "domain_config.py")
-        if os.path.exists(dc):
-            with open(dc, encoding="utf-8") as f:
-                m = re.search(r'PLAY_URL\s*=\s*"([^"]*)"', f.read())
-            url = m.group(1) if m else ""
-            if url and not url.endswith("/" + want):
-                bad.append(f"{key}: PLAY_URL i {folder} peger ikke paa {want}")
+    for app, _ in APPS:
+        for path in sorted(glob.glob(os.path.join(ROOT, app, "build", "*.py"))):
+            rel = os.path.relpath(path, ROOT)
+            src = open(path, encoding="utf-8").read()
+            try:
+                tree = ast.parse(src)
+            except SyntaxError as e:
+                bad.append(f"{rel}: kan ikke parses ({e})")
+                continue
+            docs = set()
+            for node in ast.walk(tree):
+                if isinstance(node, (ast.Module, ast.FunctionDef,
+                                     ast.AsyncFunctionDef, ast.ClassDef)):
+                    b = node.body
+                    if (b and isinstance(b[0], ast.Expr)
+                            and isinstance(b[0].value, ast.Constant)
+                            and isinstance(b[0].value.value, str)):
+                        docs.add(id(b[0].value))
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.Constant):
+                    continue
+                if not isinstance(node.value, str) or id(node) in docs:
+                    continue
+                if rgba.search(node.value):
+                    bad.append(f"{rel}:{node.lineno}: RGBA(...) i en builder "
+                               f"- brug design_tokens.ref()")
+                elif hexc.search(node.value):
+                    bad.append(f"{rel}:{node.lineno}: hex-farve i en builder "
+                               f"- brug design_tokens.ref_hex()")
     return bad
+
+
+# check_app_ids() stod her: 60 linjer, der laeste hub_config.py med import
+# og tre andre filer med REGEX for at tjekke, at det samme app-id stod de
+# samme steder. Den er slettet, fordi id'erne nu kun staar EET sted -
+# tools/canvas_apps.json, laest af tools/env_config.py. Den fejlklasse,
+# vagten vogtede over, kan ikke opstaa laengere.
 
 
 def drop_pycache():
@@ -192,7 +180,21 @@ def main(argv=None):
     ap = argparse.ArgumentParser(
         description="Bygger canvas apps og efterregner layoutet.")
     ap.add_argument("--app", help="byg kun denne app (mappenavn eller noegle)")
+    ap.add_argument("--env", help="byg mod dette miljoe (se 'environments' i "
+                                  "tools/canvas_apps.json)")
     args = ap.parse_args(argv)
+
+    # Miljoeet gives videre til byggescripterne gennem omgivelserne.
+    # env_config laeser den samme variabel, saa alle fire apps bygges mod
+    # det SAMME miljoe - ogsaa naar de koeres som hver sit subprocess.
+    sys.path.insert(0, os.path.join(ROOT, "tools"))
+    import env_config
+    if args.env:
+        env_config.resolve(args.env)      # fejler hoejlydt paa et ukendt navn
+        os.environ[env_config.ENV_VAR] = args.env
+    active = env_config.resolve(args.env)
+    print("Miljoe: %s (%s)" % (active["name"], active["environment_id"]))
+
     apps = pick_apps(args.app)
 
     drop_pycache()
@@ -209,34 +211,75 @@ def main(argv=None):
         if r.returncode:
             return r.returncode
 
+        # Og solution-eksporten: baerer den en hemmelighed?
+        #
+        # Den stod her ikke foer, og det kostede: en client secret laa
+        # committet i tre filer, fordi scrub_solution.py kun blev koert i
+        # haanden - og den gang gik den alligevel forbi, fordi den kun saa
+        # paa FELTNAVNET. Begge dele er rettet; det her er den anden
+        # spaerring. En eksport er sjaelden, og tjekket tager under et
+        # sekund paa 118 filer.
+        sol = os.path.join(ROOT, "solution")
+        if os.path.isdir(sol):
+            r = subprocess.run([sys.executable,
+                                os.path.join(ROOT, "tools", "scrub_solution.py"),
+                                sol, "--report-only"])
+            if r.returncode:
+                print("\nSolution-eksporten baerer noget hemmeligt. Koer:")
+                print("    python3 tools/scrub_solution.py solution")
+                print("og ROTER hemmeligheden - en committet noegle kan ikke "
+                      "kaldes tilbage.")
+                return r.returncode
+
     # De to tjek nedenfor koerer ALTID, ogsaa maalrettet. De tager
     # millisekunder, og de handler netop om det, en maalrettet bygning
     # ellers ville springe over: at apperne ikke glider fra hinanden.
-    bad = check_shared()
+    bad = check_no_raw_colors()
     if bad:
-        print("De faelles filer er gledet fra hinanden:\n")
+        print("Der staar farver i builderne:\n")
         for b in bad:
             print("  " + b)
-        print("\nRet i EEN app-mappe og kopier filen til de oevrige.")
-        return 1
-
-    bad = check_app_ids()
-    if bad:
-        print("App-id'erne er gledet fra hinanden:\n")
-        for b in bad:
-            print("  " + b)
-        print("\nDe skal vaere det samme tre steder: tools/canvas_apps.json,")
-        print("hub_config.py og appens egen PLAY_URL.")
+        print("\nFarver hoerer i tools/design_tokens.py. En farve skrevet")
+        print("her ville ikke skifte med temaet.")
         return 1
 
     rc = 0
     for app, scripts in apps:
         d = os.path.join(ROOT, app, "build")
         print(f"\n=== {app} ===")
+        # STOPPER VED FOERSTE FEJL I DENNE APP.
+        #
+        # Foer koerte den videre: fejlede assemble_screen.py, laa den
+        # FORRIGE skaerm stadig paa disken, og check_layout.py svarede
+        # "Layout-tjek OK" paa den. Beskeden var sand om filen og loegn om
+        # byggeriet - og den stod nedenfor fejlen, saa den var det sidste,
+        # man saa.
         for s in scripts + ["check_layout.py"]:
             r = subprocess.run([sys.executable, s], cwd=d)
             if r.returncode:
                 rc = r.returncode
+                print(f"  -> {s} fejlede. Springer resten af '{app}' over, "
+                      f"saa tjekkene ikke svarer paa en gammel skaerm.")
+                break
+
+    # Landede der en skaerm det forkerte sted?
+    #
+    # Den her fandtes ikke, og det kostede: da gen_screen.py flyttede fra
+    # hver app's build-mappe til tools/, blev dens OUT_DIR ("HERE/..") til
+    # REPO-RODEN. Alle fire skaerme blev skrevet dér, app-mapperne beholdt
+    # deres gamle udgaver, og layout-tjekket sagde "OK" - fordi det laeste
+    # de gamle filer. Groent byggeri, ingen aendring, ingen fejl.
+    #
+    # gen_screen regner nu OUT_DIR ud af indgangen og siger selv fra. Det
+    # her er den anden spaerring, og den er to linjer.
+    stray = sorted(f for f in os.listdir(ROOT) if f.endswith(".pa.yaml"))
+    if stray:
+        print("\nDer ligger skaerme i repo-roden:\n")
+        for f in stray:
+            print("  " + f)
+        print("\nDe hoerer i app-mapperne. Slet dem, og find ud af hvilken")
+        print("builder der skrev dem det forkerte sted.")
+        return 1
 
     # Til sidst, fordi det laeser de .pa.yaml, byggeriet lige har skrevet:
     # findes hver SharePoint-kolonne, formlerne bruger, i virkeligheden?
@@ -247,6 +290,25 @@ def main(argv=None):
     # ved dens naeste deploy.
     print()
     r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "check_datasources.py")])
+    if r.returncode:
+        rc = r.returncode
+
+    # SPROGTJEKKET LIGGER SIDST, OG PAA ALLE SKAERME
+    #
+    # Samme grund som datakilde-tjekket: en dansk streng, der glider ind i
+    # en faelles builder, rammer alle fire apps. Og den vigtigste halvdel
+    # af tjekket er den omvendte - at de seks SharePoint-valgvaerdier
+    # (Kladde, Indsendt ...) IKKE bliver oversat. Se tools/check_language.py.
+    print()
+    r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "check_language.py")])
+    if r.returncode:
+        rc = r.returncode
+
+    # EEN kilde pr. hjaelpetekst. De dynamiske hints er Power Fx og bliver i
+    # koden; resten er raekker i MD_HelpText. Staar en noegle begge steder,
+    # vinder koden - og den, der retter raekken i SharePoint, ser ingen
+    # forskel i appen.
+    r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "check_helptext.py")])
     if r.returncode:
         rc = r.returncode
     return rc

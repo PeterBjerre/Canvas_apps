@@ -13,10 +13,15 @@ SKRIVER til, og de Set() der styrer skaermen. Ingen datahentning.
 Se sp_config.py for hvorfor, og for hvilke lister og kolonner der bruges.
 """
 import os
+import sys
 import sp_config as cfg
 import build_load
 
-OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+HERE = os.path.dirname(os.path.abspath(__file__))
+OUT_DIR = os.path.join(HERE, "..")
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), "tools"))
+import design_tokens as tok
+import layout_tokens as lay
 
 
 def _fx_value(v):
@@ -148,15 +153,20 @@ def build_onstart():
     if problems:
         raise SystemExit("build_load passer ikke til OnStart:\n  "
                          + "\n  ".join(problems))
-    blocks = [working_collection_block(), static_block(), VARS_BLOCK.strip(),
-              build_load.load_block()]
+    prefs_name, prefs_schema = tok.prefs_schema()
+    prefs = "ClearCollect(%s, { %s });\nClear(%s);" % (
+        prefs_name,
+        ", ".join("%s: %s" % kv for kv in prefs_schema.items()),
+        prefs_name)
+    blocks = [working_collection_block(), prefs, tok.onstart_block(),
+              static_block(), VARS_BLOCK.strip(), build_load.load_block()]
     s = "\n\n".join(b for b in blocks if b).rstrip()
     return s[:-1] if s.endswith(";") else s
 
 
 def build_formulas():
     """App.Formulas. Hver formel afsluttes med semikolon - ogsaa den sidste."""
-    out = []
+    out = [tok.formula(), "", lay.formula(), ""]
     for name, expr, why in cfg.named_formulas():
         if why:
             out.append(f"// {why}")

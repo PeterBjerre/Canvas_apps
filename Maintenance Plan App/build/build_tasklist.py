@@ -4,13 +4,23 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED, C_PRIMARY, C_WHITE,
                         C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, C_VALID_FG, C_INVALID_FG,
                         C_DIVIDER, C_TRANSPARENT, C_INPUT_BG, FONT, SHELL_W)
-from build_helpers import (text_ctrl, group, button, button_row, text_input, number_input, dropdown,
+from build_helpers import (wrap_row_height, text_ctrl, group, button, button_row, text_input, number_input, dropdown,
                            label_row, field_cell, two_col_row, badge, card, pin_widths)
 from build_plan_header import section_header, help_panel
 import build_help as bh
 from build_strategy import build_strategy_body, IS_STRATEGY
 import sp_config as cfg
-import build_attflows as att
+from design_tokens import ref_hex
+from layout_tokens import fits, TWO_COL_MIN
+
+# HTML kender ikke RGBA(). ref_hex giver den SAMME token som hex.
+MUT_HEX = ref_hex("text-muted")
+PRI_HEX = ref_hex("text-primary")
+import build_attflows
+
+# Flowkontrakten staar i tools/attflows.py; kun rudens egne navne
+# og dens refresh_fx() staar i build_attflows.py.
+att = build_attflows.PANE
 
 DM_ITEM = "If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)"
 OPS_CW = f"({SHELL_W} - 36)"
@@ -97,7 +107,11 @@ def _ops_header_html():
         "\"<style>html,body{margin:0;padding:0;overflow:hidden}</style>"
         f"<div style='display:grid;grid-template-columns:{cols};"
         f"column-gap:{OPS_GAP}px;align-items:center;height:21px;line-height:21px;overflow:hidden;"
-        "color:#59667A;font-family:Segoe UI;font-size:11px;font-weight:600;white-space:nowrap;'>"
+        # Farven kommer fra den SAMME token som resten af appen. Foer stod
+        # der "#59667A" - det rigtige tal, men uden nogen forbindelse til
+        # 'text-muted'. I moerk tilstand blev overskriften staaende
+        # moerkegraa paa moerk baggrund.
+        "color:\" & " + MUT_HEX + " & \";font-family:Segoe UI;font-size:11px;font-weight:600;white-space:nowrap;'>"
         f"{spans}</div>\""
     )
 
@@ -129,12 +143,13 @@ def _ops_totals_html():
         "span{overflow:hidden;text-overflow:ellipsis}</style>"
         f"<div style='display:grid;grid-template-columns:{cols};"
         f"column-gap:{OPS_GAP}px;align-items:center;height:23px;line-height:23px;overflow:hidden;"
-        "color:#1B2A41;font-family:Segoe UI;font-size:12px;font-weight:700;white-space:nowrap;'>\""
+        "color:\" & " + PRI_HEX + " & \";font-family:Segoe UI;font-size:12px;font-weight:700;white-space:nowrap;'>\""
     )
     parts = [head]
     for title, _ in OPS_COLS:
         if title == "OPERATION SHORT TEXT":
-            parts.append("\"<span style='color:#59667A;font-weight:600'>Total for this item</span>\"")
+            parts.append("\"<span style='color:\" & " + MUT_HEX +
+                         " & \";font-weight:600'>Total for this item</span>\"")
         elif title in _TOTALS:
             parts.append("\"<span>\" & " + _TOTALS[title] + " & \"</span>\"")
         else:
@@ -175,7 +190,7 @@ def _tab_bar():
         on = _tab_on(key)
         b = button(f"btnVhpTab{key.capitalize()}", f'"{label}"',
                    f'Set(varVhpOpsTab, "{key}")', width=168, height=34)
-        b.props["Appearance"] = f"If({on}, ButtonAppearance.Primary, ButtonAppearance.Secondary)"
+        b.props["Appearance"] = f"If({on}, ButtonAppearance.Primary, ButtonAppearance.Outline)"
         b.props["BasePaletteColor"] = C_PRIMARY
         b.props["Color"] = f"If({on}, {C_WHITE}, {C_TITLE})"
         b.props["BorderColor"] = C_CARD_BORDER
@@ -184,8 +199,9 @@ def _tab_bar():
         if cond:
             b.vis = f"IfError({cond}, false)"
         kids.append(b)
-    return group("conVhpOpsTabBar", kids, direction="Horizontal", gap=6, height=34,
-                 align_items="Center", width="Parent.Width", wrap="true")
+    return group("conVhpOpsTabBar", kids, direction="Horizontal", gap=6,
+                 align_items="Center", width="Parent.Width", wrap="true",
+                 height=wrap_row_height(kids, 6, OPS_CW))
 
 
 # Bliver planen lavet om fra strategi- til tidsplan, mens man staar paa
@@ -221,7 +237,7 @@ def _mat_header_html():
     return ("\"<style>html,body{margin:0;padding:0;overflow:hidden}</style>"
             f"<div style='display:grid;grid-template-columns:{cols};"
             f"column-gap:{MAT_GAP}px;align-items:center;height:21px;line-height:21px;"
-            "overflow:hidden;color:#59667A;font-family:Segoe UI;font-size:11px;"
+            "overflow:hidden;color:\" & " + MUT_HEX + " & \";font-family:Segoe UI;font-size:11px;"
             f"font-weight:600;white-space:nowrap;'>{spans}</div>\"")
 
 
@@ -289,12 +305,12 @@ def _materials_pane():
         "Width": str(w["SEL"]),
     }, h=24)
     txtNo = text_input("txtVhpMatNo", "ThisItem.MaterialNo", width=w["MATERIAL"], height=30,
-                       onchange="Patch(colVhpMaterials, ThisItem, { MaterialNo: Self.Text })")
+                       onchange="Patch(colVhpMaterials, ThisItem, { MaterialNo: Self.Text })", label="\"Materialenummer\"")
     # Kommer fra materialeopslaget, ikke fra brugeren.
     txtDesc = text_ctrl("txtVhpMatDesc",
                         'If(IsBlank(ThisItem.Description), "-", ThisItem.Description)',
                         size=12, color=C_MUTED, height=30, width=w["DESCRIPTION"], wrap="false")
-    numQty = number_input("numVhpMatQty", "ThisItem.Quantity", width=w["QTY"], height=30)
+    numQty = number_input("numVhpMatQty", "ThisItem.Quantity", width=w["QTY"], height=30, label="\"Number\"")
     numQty.props["OnChange"] = "Patch(colVhpMaterials, ThisItem, { Quantity: Self.Value })"
     txtUnit = text_ctrl("txtVhpMatUnit",
                         'If(IsBlank(ThisItem.Unit), "-", ThisItem.Unit)',
@@ -304,7 +320,7 @@ def _materials_pane():
         "Sort(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Value(OperationNo))",
         "LookUp(Filter(colVhpOperations, ItemId = varVhpActiveItemId), OperationNo = ThisItem.OperationNo)",
         item_display="ThisItem.OperationNo", value_field="OperationNo",
-        width=w["OPERATION"], height=30)
+        width=w["OPERATION"], height=30, label="\"Operation\"")
     drpOp.props["OnChange"] = ("Patch(colVhpMaterials, ThisItem, "
                                "{ OperationNo: Self.Selected.OperationNo })")
 
@@ -427,7 +443,7 @@ def _attachments_pane():
     # som en Variant ved siden af. Det er den form, den gamle app har, og
     # kontroltypens version skal matche paa tvaers af appen; en Variant-linje
     # ved siden af er en anden konstruktion, og den er ikke bevist her.
-    picker = Ctrl(att.PICKER, "Attachments@2.3.0", props={
+    picker = Ctrl(att.picker, "Attachments@2.3.0", props={
         "AccessibleLabel": '"Choose documents"',
         "BorderColor": C_CARD_BORDER,
         "BorderThickness": "1",
@@ -488,6 +504,16 @@ def _attachments_pane():
         "LoadingSpinner": "LoadingSpinner.None",
         "Selectable": "false",
         "ShowScrollbar": "true",
+        # TabIndex 0 - som de fjorten andre gallerier i repoet.
+        #
+        # Den manglede HER og kun her, og App checker fangede det ved
+        # deploy: "galVhpAttOps.TabIndex: Missing tab stop". En Gallery er
+        # en interaktiv kontrol for tastaturet, ogsaa naar Selectable er
+        # false - uden et tab stop kan man ikke naa dens indhold uden mus.
+        #
+        # check_layout regel 18 haandhaever det nu, saa det ikke skal
+        # opdages af en deploy-runde igen.
+        "TabIndex": "0",
         "TemplatePadding": "0",
         "TemplateSize": str(ATT_CELL_W),
         "Width": "Parent.Width - 540",
@@ -564,7 +590,7 @@ def build_tasklist_section():
         "    Set(varVhpRuntimeInfo, \"Tasklist \" & Self.Selected.Key & \" selected for this item.\")\n"
         ")")
     tasklistCell = field_cell("conVhpCellTasklist", "Tasklist For Active Item", drpTasklist, required=True,
-                              width=f"If({OPS_CW} < 640, {OPS_CW}, 360)", container_w=OPS_CW,
+                              width=fits(OPS_CW, TWO_COL_MIN, OPS_CW, "360"), container_w=OPS_CW,
                               fill_portions_formula="0")
 
     btnAddLines = button(
@@ -677,12 +703,12 @@ def build_tasklist_section():
     txtOpNo = text_ctrl("txtVhpOpNo", "ThisItem.OperationNo", size=13, height=32, width=w["OP NO."], wrap="false")
     txtOpShort = text_input("txtVhpOpShortText", "ThisItem.OperationShortText", width=w["OPERATION SHORT TEXT"],
                             height=32,
-                            onchange="Patch(colVhpOperations, ThisItem, { OperationShortText: Self.Text })")
+                            onchange="Patch(colVhpOperations, ThisItem, { OperationShortText: Self.Text })", label="\"Operationstekst\"")
     # Work og No. skriver BEGGE varigheden, fordi den er regnet af dem
     # begge. Gjorde kun den ene det, ville et skift i den anden efterlade en
     # varighed, der ikke passer til linjen - og det er varigheden, der
     # gemmes i TaskListMain.Duration og sendes videre til SAP.
-    numOpWork = number_input("numVhpOpWork", "ThisItem.WorkHours", width=w["WORK (H)"], height=32)
+    numOpWork = number_input("numVhpOpWork", "ThisItem.WorkHours", width=w["WORK (H)"], height=32, label="\"Arbejdstimer\"")
     numOpWork.props["OnChange"] = (
         "Patch(\n"
         "    colVhpOperations, ThisItem,\n"
@@ -692,7 +718,7 @@ def build_tasklist_section():
         f"        Cost: {cost_expr('Self.Value')}\n"
         "    }\n"
         ")")
-    numOpPersons = number_input("numVhpOpPersons", "ThisItem.Persons", width=w["NO."], height=32)
+    numOpPersons = number_input("numVhpOpPersons", "ThisItem.Persons", width=w["NO."], height=32, label="\"Number of people\"")
     numOpPersons.props["OnChange"] = (
         "Patch(\n"
         "    colVhpOperations, ThisItem,\n"
@@ -703,14 +729,14 @@ def build_tasklist_section():
         ")")
     # Varigheden vises, men tastes ikke - den ER Work / No.
     numOpDur = number_input("numVhpOpDur", "ThisItem.DurationHours", width=w["DUR. (H)"], height=32,
-                            display_mode="DisplayMode.View")
+                            display_mode="DisplayMode.View", label="\"Varighed\"")
     # Arbejdscenteret kommer fra standardarbejdsplanen og bestemmer baade
     # kontrolnoeglen og indkoebsfelterne. Kan man rette det i hoejre hus,
     # skifter de andre felters regler under haanden paa en linje, SAP i
     # forvejen har bestemt. Det laeses nu - og ser graat ud som resten af
     # det, man ikke kan redigere.
     txtOpMwc = text_input("txtVhpOpMwc", "ThisItem.MainWorkCenter", width=w["MAIN WORK CENTER"],
-                          height=32, display_mode="DisplayMode.View")
+                          height=32, display_mode="DisplayMode.View", label="\"Plant\"")
     # Kontrolnoeglen: kun to valg at SKIFTE imellem, men listen skal
     # ogsaa kunne VISE den vaerdi, linjen allerede har - fx PM02 eller PM03
     # fra standardplanen. Ellers stod cellen tom paa alle de linjer, man
@@ -733,19 +759,19 @@ def build_tasklist_section():
     drpOpCtrl = dropdown(
         "drpVhpOpCtrl", ctrl_items,
         'LookUp(' + ctrl_items + ', Value = ThisItem.ControlKey)',
-        width=w["CTRL"], height=32, display_mode=DM_CTRL)
+        width=w["CTRL"], height=32, display_mode=DM_CTRL, label="\"Styringsnoegle\"")
     drpOpCtrl.props["OnChange"] = ("Patch(colVhpOperations, ThisItem, "
                                    "{ ControlKey: Self.Selected.Value })")
 
     txtOpVendor = text_input("txtVhpOpVendor", "ThisItem.Vendor", width=w["VENDOR"], height=32,
                              display_mode=DM_PURCHASE,
-                             onchange="Patch(colVhpOperations, ThisItem, { Vendor: Self.Text })")
+                             onchange="Patch(colVhpOperations, ThisItem, { Vendor: Self.Text })", label="\"Supplier\"")
     numOpCost = number_input("numVhpOpCost", "ThisItem.Cost", width=w["COST"], height=32,
-                             display_mode=DM_PURCHASE)
+                             display_mode=DM_PURCHASE, label="\"Price\"")
     numOpCost.props["OnChange"] = "Patch(colVhpOperations, ThisItem, { Cost: Self.Value })"
     txtOpMatGrp = text_input("txtVhpOpMatGrp", "ThisItem.MaterialGroup", width=w["MAT.GRP"],
                              height=32, display_mode=DM_PURCHASE,
-                             onchange="Patch(colVhpOperations, ThisItem, { MaterialGroup: Self.Text })")
+                             onchange="Patch(colVhpOperations, ThisItem, { MaterialGroup: Self.Text })", label="\"Materialegruppe\"")
     # Cellen viser begyndelsen af teksten; skrivningen sker i popup'en, hvor
     # der er plads til en instruktion. Reset FOER popup'en aabnes, saa feltet
     # viser den linje, man klikkede paa, og ikke den forrige.
@@ -777,7 +803,7 @@ def build_tasklist_section():
             "    varVhpPlan.PlanType <> \"Strategy\", \"-\",\n"
             "    With(\n"
             "        { sel: Filter(colVhpStrategyPackages As P, P.StrategyKey = varVhpPlan.Strategy && \";\" & Text(P.PackageNo) & \";\" in Coalesce(ThisItem.PackagesKey, \";\")) },\n"
-            "        If(CountRows(sel) = 0, \"(ingen)\", Concat(Sort(sel, PackageNo), ShortCode, \", \"))\n"
+            "        If(CountRows(sel) = 0, \"(none)\", Concat(Sort(sel, PackageNo), ShortCode, \", \"))\n"
             "    )\n"
             ")"
         ),
@@ -876,8 +902,8 @@ def build_dispatch_section():
             "        Text(CountRows(colVhpOperations)) & \" operation line(s) in total.\" &\n"
             "        If(\n"
             "            varVhpPlan.PlanType = \"Strategy\",\n"
-            "            \" Strategi \" & varVhpPlan.Strategy & \" med \" &\n"
-            "            Text(CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy))) & \" pakker.\",\n"
+            "            \" Strategy \" & varVhpPlan.Strategy & \" with \" &\n"
+            "            Text(CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy))) & \" packages.\",\n"
             "            \"\"\n"
             "        )\n"
             "    ),\n"
@@ -912,8 +938,8 @@ def build_email_fab():
             "        \"Plan type: \" & If(varVhpPlan.PlanType = \"Strategy\", \"Strategiplan (IP42)\", \"Single cycle (IP41)\") & Char(10) &\n"
             "        If(\n"
             "            varVhpPlan.PlanType = \"Strategy\",\n"
-            "            \"Strategi: \" & varVhpPlan.Strategy & Char(10) &\n"
-            "            \"Pakker: \" & Concat(Sort(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy), PackageNo), ShortCode & \" (\" & Text(CycleLength) & \" \" & CycleUnit & \")\", \", \") & Char(10),\n"
+            "            \"Strategy: \" & varVhpPlan.Strategy & Char(10) &\n"
+            "            \"Packages: \" & Concat(Sort(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy), PackageNo), ShortCode & \" (\" & Text(CycleLength) & \" \" & CycleUnit & \")\", \", \") & Char(10),\n"
             "            \"Cycle: \" & Text(varVhpPlan.Cycle) & \" \" & varVhpPlan.Unit & Char(10)\n"
             "        ) &\n"
             "        \"Items: \" & Text(CountRows(colVhpItems)) & \" (\" & Text(CountRows(Filter(colVhpItems, Status = \"valid\"))) & \" valid, \" & Text(CountRows(Filter(colVhpItems, Status = \"invalid\"))) & \" invalid)\" & Char(10) &\n"
@@ -932,7 +958,7 @@ def build_email_fab():
             "                With(\n"
             "                    { k: Coalesce(PackagesKey, \";\") },\n"
             "                    If(\n"
-            "                        Len(k) <= 1, \"(ingen pakke)\",\n"
+            "                        Len(k) <= 1, \"(no package)\",\n"
             "                        Concat(Sort(Filter(colVhpStrategyPackages As P, P.StrategyKey = varVhpPlan.Strategy && \";\" & Text(P.PackageNo) & \";\" in k), PackageNo), ShortCode, \", \")\n"
             "                    )\n"
             "                ),\n"
@@ -940,7 +966,7 @@ def build_email_fab():
             "            ) & Char(10) & Char(10),\n"
             "            \"\"\n"
             "        ) &\n"
-            "        \"Sendt fra VH-plan appen den \" & Text(Now(), \"dd-mm-yyyy hh:mm\")\n"
+            "        \"Sent from the VH-plan app on \" & Text(Now(), \"dd-mm-yyyy hh:mm\")\n"
             "    )\n"
             ");\n"
             "Set(varVhpRuntimeInfo, \"Email draft prepared: \" & Text(CountRows(colVhpItems)) & \" item(s).\")"

@@ -39,6 +39,7 @@ Ingen af delene bruges til andet end visning og til at hente nye
 operationslinjer. Operationerne selv kommer med.
 """
 import sp_config as cfg
+from build_helpers import concurrent
 
 # Et helt tomt item, saa Item Editoren staar klar (#8). Bruges baade naar
 # appen aabnes uden dyblink, og naar et dyblink ikke kan findes.
@@ -204,23 +205,55 @@ def load_block():
         "                Set(varVhpRequestGuid, idx.RequestGuid);\n"
         "                Set(varVhpPlanCommitted, true);\n"
         "\n"
-        "                // --- items ---------------------------------------\n"
-        f"                {_collect('colVhpItems', items_src, 'IT', ITEM_FIELDS, 16)};\n"
+        "                // --- de fem hentninger, PAA EEN GANG -------------\n"
+        "                //\n"
+        "                // Fem lister i kaede er fem rundture efter hinanden;\n"
+        "                // appen venter paa SUMMEN. I Concurrent venter den kun\n"
+        "                // paa den laengste.\n"
+        "                //\n"
+        "                // De fem er uafhaengige af hinanden. De afhaenger alle\n"
+        "                // af 'pl' - men den er sat UDENFOR og er faerdig, foer\n"
+        "                // Concurrent starter. Og varVhpActiveItemId nedenfor\n"
+        "                // laeser colVhpItems: ogsaa sikkert, for Concurrent\n"
+        "                // venter paa dem alle, foer den gaar videre.\n"
+        # TO BOELGER, IKKE EEN
+        #
+        # Alle fem stod i det SAMME Concurrent. Power Apps afviste at
+        # compile:
+        #
+        #   [App, OnStart] There is a dependency on 'colVhpSavedItems'
+        #   between two different formulas in the Concurrent function.
+        #   One formula is changing it while another may be reading it.
+        #
+        # Og den har ret: MAT_FIELDS og ATT_FIELDS slaar begge op i
+        # colVhpSavedItems for at oversaette ItemKey til appens lokale
+        # ItemId - og colVhpSavedItems fyldes af en AF de andre formler i
+        # den samme Concurrent. Concurrent lover netop INGEN raekkefoelge,
+        # saa de to sidste kunne laese en tom samling.
+        #
+        # Boelge 1 er de tre, der kun laeser SharePoint. Boelge 2 er de to,
+        # der har brug for oversaettelsen. Fem sekventielle kald er dermed
+        # stadig blevet til to ventetider, ikke fem.
+        "                " + concurrent(
+            _collect('colVhpItems', items_src, 'IT', ITEM_FIELDS, 20),
+            # Den samme oversaettelse, gemningen selv bygger.
+            # Materialer og dokumenter peger paa ItemKey.
+            "ClearCollect(\n"
+            "                        colVhpSavedItems,\n"
+            "                        ForAll(\n"
+            f"                            {items_src} As IT,\n"
+            "                            { LocalId: IT.ID, SpId: IT.ID, ItemKey: IT.ItemID }\n"
+            "                        )\n"
+            "                    )",
+            _collect('colVhpOperations', ops_src, 'OP', OP_FIELDS, 20),
+            indent=16) + ";\n"
         "\n"
-        "                // Den samme oversaettelse, gemningen selv bygger.\n"
-        "                // Materialer og dokumenter peger paa ItemKey.\n"
-        "                ClearCollect(\n"
-        "                    colVhpSavedItems,\n"
-        "                    ForAll(\n"
-        f"                        {items_src} As IT,\n"
-        "                        { LocalId: IT.ID, SpId: IT.ID, ItemKey: IT.ItemID }\n"
-        "                    )\n"
-        "                );\n"
-        "\n"
-        "                // --- operationer, materialer, dokumenter ---------\n"
-        f"                {_collect('colVhpOperations', ops_src, 'OP', OP_FIELDS, 16)};\n"
-        f"                {_collect('colVhpMaterials', mat_src, 'MT', MAT_FIELDS, 16)};\n"
-        f"                {_collect('colVhpAttachments', att_src, 'AT', ATT_FIELDS, 16)};\n"
+        "                // Disse to LAESER colVhpSavedItems, som boelge 1\n"
+        "                // skriver. De kan derfor ikke koere sammen med den.\n"
+        "                " + concurrent(
+            _collect('colVhpMaterials', mat_src, 'MT', MAT_FIELDS, 20),
+            _collect('colVhpAttachments', att_src, 'AT', ATT_FIELDS, 20),
+            indent=16) + ";\n"
         "\n"
         "                // --- hvad der er valgt naar skaermen tegnes -------\n"
         "                Set(varVhpActiveItemId, First(colVhpItems).ItemId);\n"

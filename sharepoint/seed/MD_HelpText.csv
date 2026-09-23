@@ -1,0 +1,37 @@
+﻿HelpKey,AppArea,Kind,Heading,Body,SortOrder
+PlanType,MaintenancePlan,Hint,,A strategy plan takes its cycle from the strategy packages.,0
+Plant,MaintenancePlan,Hint,,The plant determines which work centres and task lists are available.,0
+Status,MaintenancePlan,Hint,,"New, Change or Delete - what this request should do to the plan in SAP.",0
+Cycle,MaintenancePlan,Hint,,How often the plan calls an order.,0
+Unit,MaintenancePlan,Hint,,"DAY, WK, MON or YR - or H for a counter-based plan.",0
+SchedInd,MaintenancePlan,Hint,,Time - key date calls on the same date every year. Use it when the plan calls in early January.,0
+StatutorySortField,MaintenancePlan,Hint,,Only fill this in if the inspection has its own statutory sort field.,0
+ItemShortText,MaintenancePlan,Hint,,"Becomes the heading of the maintenance order. Describe the task, not the plan. Max 40 characters.",0
+FunctionalLocation,MaintenancePlan,Hint,,"Be as specific as possible, ideally down to component level. This is where the cost is posted.",0
+ObjectList,MaintenancePlan,Hint,,Must start at the same two-letter level as the reference object.,0
+MainWorkCenter,MaintenancePlan,Hint,,"If external suppliers are used, choose *SUP.",0
+Revision,MaintenancePlan,Hint,,REV means the task is done during the outage. First call is then fixed to 01/01.,0
+OrstedResponsible,MaintenancePlan,Hint,,The person responsible. Defaults to you.,0
+Initials,MaintenancePlan,Hint,,"Initials of the person responsible, e.g. NIJUJ.",0
+ItemLongText,MaintenancePlan,Hint,,Describe the scope and what it takes to do the job safely. It is the first thing the technician sees in the order.,0
+plan,MaintenancePlan,Panel,The plan text,"Always starts with the plant code (AVV, SKV, SSV ...), so the plan can be found when you cannot search by plant or functional location.",1
+plan,MaintenancePlan,Panel,Call horizon,The number of WORKING DAYS the generated order stays on the job list before basic finish is reached. Set from the cycle. Outage work uses 65 FCD.,2
+plan,MaintenancePlan,Panel,Scheduling period,"How far ahead the calls are visible. Minimum 2 years, because the cost simulation in the BI report depends on it.",3
+plan,MaintenancePlan,Panel,Sort field,"Used ONLY for statutory inspections (activity type 110/115). If Ladders is selected, EVERY item in the plan must be a statutory ladder inspection.",4
+plan,MaintenancePlan,Panel,Outage work,Tasks carried out during the annual outage are marked REV and called on 1/1.,5
+item,MaintenancePlan,Panel,The long text,"The FIRST thing the maintenance crew sees in the generated order. Describe the scope. If cleaning, a hole watch, a crane, scaffolding or barriers are needed, say so briefly.",1
+item,MaintenancePlan,Panel,The reference object,"Where the cost is posted. Give the functional location down to component level. If there are objects on the object list it can be less specific - but at least the two-letter level, e.g. SKV40 EB.",2
+item,MaintenancePlan,Panel,The object list,"Cost center and business area must be the same for every functional location on the list. This does not apply to safety valves and pipe runs. For statutory inspection of pressure equipment: ONE functional location per item, object list empty.",3
+item,MaintenancePlan,Panel,Activity types,"101 preventive - 102 predetermined - 110 statutory inspection - 115 regulatory condition - 120 running, max 1 year - 130 cleaning - 160 lubrication. If 110 or 115 is used, the applicable legislation MUST be referenced.",4
+item,MaintenancePlan,Panel,Priority,"Follows the activity matrix: red for 110/115 or safety critical equipment (SCEq), blue for 120, otherwise yellow.",5
+ops,MaintenancePlan,Panel,Split the job where there is a pause,Scaffolding up and scaffolding down are two operations. Removing and refitting insulation are two. Otherwise the WOS app cannot show the sequence correctly.,1
+ops,MaintenancePlan,Panel,Chronological order,"Operations must run 0010, 0020, 0030 in the order the work is carried out, so the graphical view in WOS reflects the job.",2
+ops,MaintenancePlan,Panel,Every operation needs a time and manning estimate,"Work is the total number of man-hours. No. is the number of people, 1 is the default. SAP calculates Duration itself.",3
+ops,MaintenancePlan,Panel,Control keys,"ZB01 internal *SUP, not counted in scheduling - PM01 internal work centres - PM02 external *LEV, a requisition is raised - PM03 framework agreement supplier on the service catalogue. The main responsible work centre must sit on operation 0010.",4
+pkg,MaintenancePlan,Panel,The packages belong to the task list,"In SAP the strategy owns the packages, the task list owns the operation to package allocation, and the maintenance plan points at both.",1
+pkg,MaintenancePlan,Panel,Hierarchy,A hierarchical strategy such as 1-3-6-12 means the monthly job is also done at the quarterly and annual inspection. A rotating strategy such as year 1-2-3 does not - there each package must be ticked on its own.,2
+pkg,MaintenancePlan,Panel,Every operation needs at least one package,An operation without a package is never carried out. A package without operations calls an empty order.,3
+plan,MaintenancePlan,Panel,,"Source: ""Den gode VH-plan"" (May 2025) and ""Planlaegning af en VH ordre"" (2026). Ask SAPvedligehold@orsted.dk.",99
+item,MaintenancePlan,Panel,,"Source: ""Den gode VH-plan"" (May 2025) and ""Planlaegning af en VH ordre"" (2026). Ask SAPvedligehold@orsted.dk.",99
+ops,MaintenancePlan,Panel,,"Source: ""Den gode VH-plan"" (May 2025) and ""Planlaegning af en VH ordre"" (2026). Ask SAPvedligehold@orsted.dk.",99
+pkg,MaintenancePlan,Panel,,"Source: ""Den gode VH-plan"" (May 2025) and ""Planlaegning af en VH ordre"" (2026). Ask SAPvedligehold@orsted.dk.",99

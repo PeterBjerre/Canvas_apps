@@ -19,12 +19,19 @@ Listen er provisioneret af sharepoint/provision/Provision-EqMatLists.ps1,
 og DEN er skrevet af den formular, appen havde i Studio. Kaeden er altsaa
 formular -> liste -> builder, og ingen af de tre led er gaettet.
 """
+import os
+import sys
+
+sys.path.insert(0, os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    "tools"))
+import env_config as env
 
 # --- appen ------------------------------------------------------------
 APP_KEY = "equipment"
 SCREEN = "ScreenEquipment"
 TITLE = "Equipment"
-SUBTITLE = "Opret, aendr og slet udstyr - og send indberetningen videre."
+SUBTITLE = "Create, change and delete equipment - and pass the request on."
 
 # Praefikset i noeglerne: EQ-000912.
 PREFIX = "EQ"
@@ -42,25 +49,24 @@ L_PLANTS = "PlantList"
 # Provisioneringen omdoeber Title. Power Fx binder paa VISNINGSNAVN, saa et
 # Patch med { Title: ... } rammer ved siden af.
 C_TEXT = "Description"
-TEXT_LABEL = "Beskrivelse"
-TEXT_PLACEHOLDER = '"Kort tekst, hoejst 40 tegn"'
+TEXT_LABEL = "Description"
+TEXT_PLACEHOLDER = '"Short text, max 40 characters"'
 
-PLAY_URL = ("https://apps.powerapps.com/play/e/"
-            "e0f8f822-d16a-e878-ba4e-fb42bc617e47"
-            "/a/24bf3bbc-601f-480d-a8fe-7cd3180906d1")
+# Play-URL'erne kommer fra tools/canvas_apps.json via env_config. De stod
+# foer skrevet af her, og build_all.py havde 60 linjers regex til at
+# tjekke, at de tre kopier ikke gled fra hinanden. Se tools/env_config.py.
+#
+# PLAY_URL skrives i MD_RequestIndex.AppUrl, saa hubbens "Open" lander paa
+# den rigtige indmelding.
+PLAY_URL = env.play_url("equipment")
 
 # Landingssiden. De to domaeneapps aabnes af hubben som en SELVSTAENDIG
 # app - ikke som en skaerm i den samme. Back() kan derfor ikke foere
 # tilbage: den navigerer mellem SKAERME, og der er kun een. Knappen skal
 # aabne hubben med Launch.
 #
-# LaunchTarget.Replace, saa det sker i den fane, brugeren staar i. Baade
-# hubbens fliser og dens "Open" bruger det samme - ellers faar man en
-# fane pr. klik.
-#
-# Samme id som apps.hub.app_id i tools/canvas_apps.json; build_all.py
-# tjekker at de to ikke glider fra hinanden.
-HUB_URL = ("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/f387047d-86af-4d6a-8370-afcf35939436")
+# LaunchTarget.Replace, saa det sker i den fane, brugeren staar i.
+HUB_URL = env.hub_url()
 
 # Feltet der skal have FL-SOEGNING i stedet for et tekstfelt.
 # Konstruktionen er VH-plan-appens - soegefelt, soegeknap og dropdown -
@@ -89,7 +95,7 @@ FL_FIELD = "FunctionalLocation"
 # TEKSTkolonner i SharePoint, indtil listerne findes. Saa er det een linje
 # her og een i provisioneringen.
 SECTIONS = [
-    ("Hvad skal der ske", [
+    ("What should happen", [
         ("RequestType", "Type", "text", None),
         ("EquipmentNumber", "Equipmentnummer", "text", None),
     ]),
@@ -99,7 +105,7 @@ SECTIONS = [
         ("TypeDesignation", "Type betegnelse", "text", None),
         ("SerialNumber", "Serienummer", "text", None),
     ]),
-    ("Hvor sidder det", [
+    ("Where it sits", [
         ("FunctionalLocation", "Func. location", "text", None),
         ("FunctionalLocation1", "Func. loc. 1", "text", None),
         ("FunctionalLocation2", "Functional location 2", "text", None),
@@ -107,9 +113,9 @@ SECTIONS = [
         ("RoomCoordinates", "Rum koordinater", "text", None),
         ("Placement", "Placeringstekst", "text", None),
     ]),
-    ("Garanti", [
-        ("WarrantyStart", "Garanti start", "date", None),
-        ("WarrantyEnd", "Garanti slut", "date", None),
+    ("Warranty", [
+        ("WarrantyStart", "Warranty from", "date", None),
+        ("WarrantyEnd", "Warranty to", "date", None),
     ]),
     ("Bemaerkninger", [
         ("LongText", "Langtekst", "long", None),
@@ -121,8 +127,8 @@ PLANT_LABEL = "Plant"
 
 # Kolonner i raekkeoversigten. Foerste er altid raekkens tekst, sidste er
 # altid antallet af dokumenter; bredden 0 betyder "tag resten".
-LIST_COLS = [("BESKRIVELSE", 0), ("EQUIPMENTNR.", 110), ("FUNC. LOCATION", 140),
-             ("PLANT", 55), ("STATUS", 75), ("FILER", 40), ("", 60)]
+LIST_COLS = [("DESCRIPTION", 0), ("EQUIPMENT NO.", 110), ("FUNC. LOCATION", 140),
+             ("PLANT", 55), ("STATUS", 75), ("FILES", 40), ("", 60)]
 LIST_FIELDS = ["EquipmentNumber", "FunctionalLocation", "Plant"]
 
 # Felter soegefeltet kigger i. Skal vaere tekstfelter i samlingen.

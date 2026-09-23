@@ -95,6 +95,16 @@ SAVEABLE_ITEMS = ('Filter(\n'
 SAVEABLE_COUNT = ('CountRows(Filter(colVhpItems, '
                   '!IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)))')
 
+# Opslaget fra en operation til det item, der lige er skrevet. Stod foer
+# som et per-raekke With({ m: LookUp(...) }) inde i den ForAll, der ogsaa
+# skrev. Da skrivningen blev samlet i EET Patch-kald, kunne det With ikke
+# blive staaende - saa opslaget staar nu direkte i feltet. Det er to
+# opslag i stedet for eet, men de er i hukommelsen; det, der blev sparet,
+# var et netvaerkskald pr. operation.
+M_LOOKUP = "LookUp(colVhpSavedItems, LocalId = OP.ItemId)"
+M_KEY = M_LOOKUP + ".ItemKey"
+M_SPID = M_LOOKUP + ".SpId"
+
 # Appens Status (Ny/AEndre/Slettes) er AENDRINGSTYPEN pr. item, ikke
 # arbejdsgangens status. De to maa ikke blandes sammen.
 PLAN_STATUS_DRAFT = "Draft"
@@ -123,12 +133,35 @@ def _key(prefix, id_expr, off_var):
     return f"\"{prefix}\" & Text({id_expr} - {off_var}, \"0000\")"
 
 
+def _reindent(block, spaces):
+    """Flyt en flerlinjet literal ind, saa den staar under det kald, den
+    interpoleres ind i.
+
+    Konstanterne her (item_fields, op_fields, SAVEABLE_ITEMS) er skrevet
+    med den indrykning, de havde DENGANG de blev skrevet. Da gemningen
+    blev lagt om til batch, rykkede kaldene to niveauer ind, og
+    konstanterne fulgte ikke med - den byggede formel fik en record, der
+    stod laengere til venstre end det ForAll, den var argument til.
+
+    Foerste linje bliver staaende (den staar allerede efter noget andet
+    paa samme linje); resten flyttes, saa den mindst indrykkede linje
+    lander paa 'spaces'."""
+    lines = block.split("\n")
+    body = [l for l in lines[1:] if l.strip()]
+    if not body:
+        return block
+    cur = min(len(l) - len(l.lstrip()) for l in body)
+    pad = " " * spaces
+    return lines[0] + "\n" + "\n".join(
+        (pad + l[cur:]) if l.strip() else l for l in lines[1:])
+
+
 def save_action(submit=False):
     """Hele gemningen som eet Power Fx-udtryk."""
     plan_status = PLAN_STATUS_SUBMITTED if submit else PLAN_STATUS_DRAFT
     idx_status = "Indsendt" if submit else "Kladde"
     idx_step = 2 if submit else 1
-    verb = "indsendt" if submit else "gemt"
+    verb = "submitted" if submit else "saved"
 
     # Planhovedets felter. PlannedDate samles af de tre First Call-felter.
     plan_fields = (
@@ -156,8 +189,19 @@ def save_action(submit=False):
     item_fields = (
         "{\n"
         "                        Title: IT.ShortText,\n"
-        "                        Status: { Value: Switch(varVhpPlan.Status,\n"
-        "                            \"Ny\", \"New\", \"AEndre\", \"Change\", \"Slettes\", \"Deleted\", \"New\") },\n"
+        # DEN HER SWITCH RAMTE ALDRIG
+        #
+        # Noeglerne var danske - "Ny", "AEndre", "Slettes" - men
+        # varVhpPlan.Status kommer fra drpVhpStatus, hvis Items er
+        # Choices(MaintenanceItems.Status). SharePoints egne valg
+        # ER "New", "Change", "Deleted" (se schema.md). Ingen af de
+        # tre danske noegler kunne derfor matche, og HVERT item blev
+        # skrevet som "New" - ogsaa naar brugeren havde valgt Change
+        # eller Deleted. Fundet under oversaettelsen til engelsk.
+        #
+        # Vaerdien er allerede den rigtige; der skal ikke oversaettes
+        # noget. Coalesce daekker den tomme plan.
+        "                        Status: { Value: Coalesce(varVhpPlan.Status, \"New\") },\n"
         "                        MaintenancePlanNo: { Id: planId, Value: planKey },\n"
         "                        ItemDescription: Coalesce(IT.LongText, IT.ShortText),\n"
         "                        FunctionalLocation: IT.FunctionalLocation,\n"
@@ -192,7 +236,7 @@ def save_action(submit=False):
 
     op_fields = (
         "{\n"
-        "                            Title: m.ItemKey & \" - \" & OP.OperationShortText,\n"
+        f"                            Title: {M_KEY} & \" - \" & OP.OperationShortText,\n"
         "                            OperationShortText: OP.OperationShortText,\n"
         "                            OperationNo: Value(OP.OperationNo),\n"
         "                            PackagesKey: OP.PackagesKey,\n"
@@ -208,7 +252,7 @@ def save_action(submit=False):
         "                            MaterialGroup: OP.MaterialGroup,\n"
         "                            LongText: OP.LongText,\n"
         "                            PlantInitial: varVhpPlan.Plant,\n"
-        "                            MaintenanceItemNo: { Id: m.SpId, Value: m.ItemKey },\n"
+        f"                            MaintenanceItemNo: {{ Id: {M_SPID}, Value: {M_KEY} }},\n"
         "                            MaintenancePlanID: { Id: planId, Value: planKey }\n"
         "                        }"
     )
@@ -305,55 +349,93 @@ def save_action(submit=False):
         f"                            Filter({cfg.L_ITEMS}, MaintenancePlanNo.Id = planId));\n"
         "\n"
         "                        // --- 3. items ------------------------------\n"
-        "                        Clear(colVhpSavedItems);\n"
-        "                        ForAll(\n"
-        f"                            {SAVEABLE_ITEMS} As IT,\n"
-        "                            With(\n"
-        "                                {\n"
-        "                                    itemRec: Patch(\n"
-        f"                                        {cfg.L_ITEMS}, Defaults({cfg.L_ITEMS}),\n"
-        f"                                        {item_fields}\n"
-        "                                    )\n"
-        "                                },\n"
-        f"                                With(\n"
-        f"                                    {{ itemKey: {_key('MI', 'itemRec.ID', 'itemOff')} }},\n"
-        f"                                    Patch({cfg.L_ITEMS}, itemRec, {{ ItemID: itemKey }});\n"
-        "                                    Collect(\n"
+        # BATCH, IKKE EEN AD GANGEN
+        #
+        # Her stod ForAll med to Patch indeni: een der oprettede raekken,
+        # og een der skrev noeglen tilbage. Det er TO netvaerkskald pr.
+        # item, sekventielt. Patch tager en TABEL af basisraekker og en
+        # tabel af aendringer og goer det i EET kald, og svaret er en
+        # tabel, der staar EEN-TIL-EEN med dem (Patch-dokumentationen,
+        # "Modify or create a set of records in a data source").
+        #
+        # Den een-til-een-garanti er det, der goer koblingen mulig:
+        # itemRecs[n] er raekken, srcItems[n] blev til. Uden den kunne
+        # colVhpSavedItems ikke bygges, og operationerne ville ikke vide,
+        # hvilket item de hoerer til.
+        "                        With(\n"
+        f"                            {{ srcItems: {_reindent(SAVEABLE_ITEMS, 28)} }},\n"
+        "                            If(\n"
+        "                                CountRows(srcItems) = 0,\n"
+        "                                Clear(colVhpSavedItems),\n"
+        "\n"
+        "                                With(\n"
+        "                                    {\n"
+        "                                        itemRecs: Patch(\n"
+        f"                                            {cfg.L_ITEMS},\n"
+        f"                                            ForAll(srcItems, Defaults({cfg.L_ITEMS})),\n"
+        f"                                            ForAll(srcItems As IT, {_reindent(item_fields, 44)})\n"
+        "                                        )\n"
+        "                                    },\n"
+        "                                    ClearCollect(\n"
         "                                        colVhpSavedItems,\n"
-        "                                        { LocalId: IT.ItemId, SpId: itemRec.ID, ItemKey: itemKey }\n"
+        "                                        ForAll(\n"
+        "                                            Sequence(CountRows(itemRecs)) As N,\n"
+        "                                            {\n"
+        "                                                LocalId: Index(srcItems, N.Value).ItemId,\n"
+        "                                                SpId: Index(itemRecs, N.Value).ID,\n"
+        f"                                                ItemKey: {_key('MI', 'Index(itemRecs, N.Value).ID', 'itemOff')}\n"
+        "                                            }\n"
+        "                                        )\n"
+        "                                    );\n"
+        "                                    Patch(\n"
+        f"                                        {cfg.L_ITEMS},\n"
+        "                                        itemRecs,\n"
+        "                                        ForAll(colVhpSavedItems As S, { ItemID: S.ItemKey })\n"
         "                                    )\n"
         "                                )\n"
         "                            )\n"
         "                        );\n"
         "\n"
         "                        // --- 4. operationer ------------------------\n"
-        "                        Clear(colVhpSavedOps);\n"
-        "                        ForAll(\n"
-        "                            colVhpOperations As OP,\n"
-        "                            With(\n"
-        "                                { m: LookUp(colVhpSavedItems, LocalId = OP.ItemId) },\n"
-        "                                If(\n"
-        "                                    IsBlank(m.SpId), false,\n"
-        "                                    With(\n"
-        "                                        {\n"
-        "                                            opRec: Patch(\n"
-        f"                                                {cfg.L_TASKS}, Defaults({cfg.L_TASKS}),\n"
-        f"                                                {op_fields}\n"
-        "                                            )\n"
-        "                                        },\n"
-        f"                                        With(\n"
-        f"                                            {{ taskKey: {_key('TI', 'opRec.ID', 'taskOff')} }},\n"
-        f"                                            Patch({cfg.L_TASKS}, opRec, {{ TaskItemID: taskKey }});\n"
-        "                                            Collect(\n"
-        "                                                colVhpSavedOps,\n"
-        "                                                {\n"
-        "                                                    LocalItemId: OP.ItemId,\n"
-        "                                                    OperationNo: OP.OperationNo,\n"
-        "                                                    SpId: opRec.ID,\n"
-        "                                                    TaskKey: taskKey\n"
-        "                                                }\n"
-        "                                            )\n"
+        # Samme batch som items. Filteret erstatter det If(IsBlank(m.SpId))
+        # der foer stod inde i loekken: en operation paa et item, der ikke
+        # blev gemt, skal ikke skrives - men den skal frasorteres FOER
+        # kaldet, ikke undervejs i det.
+        "                        With(\n"
+        "                            {\n"
+        "                                srcOps: Filter(\n"
+        "                                    colVhpOperations As OP,\n"
+        f"                                    !IsBlank({M_SPID})\n"
+        "                                )\n"
+        "                            },\n"
+        "                            If(\n"
+        "                                CountRows(srcOps) = 0,\n"
+        "                                Clear(colVhpSavedOps),\n"
+        "\n"
+        "                                With(\n"
+        "                                    {\n"
+        "                                        opRecs: Patch(\n"
+        f"                                            {cfg.L_TASKS},\n"
+        f"                                            ForAll(srcOps, Defaults({cfg.L_TASKS})),\n"
+        f"                                            ForAll(srcOps As OP, {_reindent(op_fields, 44)})\n"
         "                                        )\n"
+        "                                    },\n"
+        "                                    ClearCollect(\n"
+        "                                        colVhpSavedOps,\n"
+        "                                        ForAll(\n"
+        "                                            Sequence(CountRows(opRecs)) As N,\n"
+        "                                            {\n"
+        "                                                LocalItemId: Index(srcOps, N.Value).ItemId,\n"
+        "                                                OperationNo: Index(srcOps, N.Value).OperationNo,\n"
+        "                                                SpId: Index(opRecs, N.Value).ID,\n"
+        f"                                                TaskKey: {_key('TI', 'Index(opRecs, N.Value).ID', 'taskOff')}\n"
+        "                                            }\n"
+        "                                        )\n"
+        "                                    );\n"
+        "                                    Patch(\n"
+        f"                                        {cfg.L_TASKS},\n"
+        "                                        opRecs,\n"
+        "                                        ForAll(colVhpSavedOps As S, { TaskItemID: S.TaskKey })\n"
         "                                    )\n"
         "                                )\n"
         "                            )\n"
@@ -363,25 +445,29 @@ def save_action(submit=False):
         "                        // Peger paa operationens TaskItemID, ikke paa\n"
         "                        // itemet. Et materiale hoerer til EEN\n"
         "                        // operation - det er den relation SAP har.\n"
-        "                        ForAll(\n"
-        "                            colVhpMaterials As MT,\n"
-        "                            With(\n"
-        "                                {\n"
-        "                                    it: LookUp(colVhpSavedItems, LocalId = MT.ItemId),\n"
-        "                                    op: LookUp(\n"
-        "                                        colVhpSavedOps,\n"
-        "                                        LocalItemId = MT.ItemId && OperationNo = MT.OperationNo\n"
-        "                                    )\n"
-        "                                },\n"
-        "                                If(\n"
-        "                                    IsBlank(MT.MaterialNo), false,\n"
-        f"                                    Patch(\n"
-        f"                                        {cfg.L_MATERIALS}, Defaults({cfg.L_MATERIALS}),\n"
+        # Samme batch. De to opslag stod foer i et per-raekke With; de er
+        # flyttet ned i felterne, fordi der ikke laengere er en loekke at
+        # haenge dem paa. Begge er i hukommelsen.
+        "                        With(\n"
+        "                            { srcMats: Filter(colVhpMaterials As MT, !IsBlank(MT.MaterialNo)) },\n"
+        "                            If(\n"
+        "                                CountRows(srcMats) > 0,\n"
+        "                                Patch(\n"
+        f"                                    {cfg.L_MATERIALS},\n"
+        f"                                    ForAll(srcMats, Defaults({cfg.L_MATERIALS})),\n"
+        "                                    ForAll(\n"
+        "                                        srcMats As MT,\n"
         "                                        {\n"
         f"                                            {cfg.C_MATERIAL_NO}: MT.MaterialNo,\n"
         "                                            PlanKey: planKey,\n"
-        "                                            ItemKey: it.ItemKey,\n"
-        "                                            TaskItemID: op.TaskKey,\n"
+        "                                            ItemKey: LookUp(\n"
+        "                                                colVhpSavedItems, LocalId = MT.ItemId\n"
+        "                                            ).ItemKey,\n"
+        "                                            TaskItemID: LookUp(\n"
+        "                                                colVhpSavedOps,\n"
+        "                                                LocalItemId = MT.ItemId && "
+        "OperationNo = MT.OperationNo\n"
+        "                                            ).TaskKey,\n"
         "                                            OperationNo: MT.OperationNo,\n"
         "                                            Quantity: MT.Quantity,\n"
         "                                            MaterialText: MT.Description,\n"
@@ -406,18 +492,21 @@ def save_action(submit=False):
         "                        // staaende som Pending, indtil appen selv\n"
         "                        // retter den - den kender flowets svar.\n"
         "                        // Se docs/18-materialer-og-attachments.md.\n"
-        "                        ForAll(\n"
-        "                            colVhpAttachments As AT,\n"
-        "                            With(\n"
-        "                                { it: LookUp(colVhpSavedItems, LocalId = AT.ItemId) },\n"
-        "                                If(\n"
-        "                                    IsBlank(AT.FileName), false,\n"
-        f"                                    Patch(\n"
-        f"                                        {cfg.L_ATTACHMENTS}, Defaults({cfg.L_ATTACHMENTS}),\n"
+        "                        With(\n"
+        "                            { srcAtt: Filter(colVhpAttachments As AT, !IsBlank(AT.FileName)) },\n"
+        "                            If(\n"
+        "                                CountRows(srcAtt) > 0,\n"
+        "                                Patch(\n"
+        f"                                    {cfg.L_ATTACHMENTS},\n"
+        f"                                    ForAll(srcAtt, Defaults({cfg.L_ATTACHMENTS})),\n"
+        "                                    ForAll(\n"
+        "                                        srcAtt As AT,\n"
         "                                        {\n"
         f"                                            {cfg.C_FILE_NAME}: AT.FileName,\n"
         "                                            PlanKey: planKey,\n"
-        "                                            ItemKey: it.ItemKey,\n"
+        "                                            ItemKey: LookUp(\n"
+        "                                                colVhpSavedItems, LocalId = AT.ItemId\n"
+        "                                            ).ItemKey,\n"
         "                                            OperationsKey: Coalesce(AT.OperationsKey, \";\"),\n"
         "                                            FileSize: AT.FileSize,\n"
         "                                            FileUrl: AT.FileUrl,\n"
@@ -447,8 +536,8 @@ def save_action(submit=False):
         "                        Set(\n"
         "                            varVhpRuntimeInfo,\n"
         f"                            planKey & \" {verb}: \" & Text(CountRows(colVhpItems)) &\n"
-        "                                \" item(s) og \" & Text(CountRows(colVhpOperations)) &\n"
-        "                                \" operation(er).\"\n"
+        "                                \" item(s) and \" & Text(CountRows(colVhpOperations)) &\n"
+        "                                \" operation(s).\"\n"
         "                        );\n"
         f"                        Notify(planKey & \" {verb}.\", NotificationType.Success)\n"
         "                    )\n"
@@ -465,7 +554,7 @@ def save_action(submit=False):
 
 
 def build_save_section():
-    header = section_header("conVhpSaveHead", "Gem i SharePoint",
+    header = section_header("conVhpSaveHead", "Save to SharePoint",
                             "The plan, its items and operations are written to the lists, "
                             "and the request appears on the landing page.", "Step 6")
 
@@ -491,9 +580,9 @@ def build_save_section():
           "    DisplayMode.Edit\n"
           ")")
 
-    btnDraft = button("btnVhpSaveDraft", "\"Gem kladde\"", save_action(submit=False),
+    btnDraft = button("btnVhpSaveDraft", "\"Save draft\"", save_action(submit=False),
                       display_mode=DM)
-    btnSubmit = button("btnVhpSubmit", "\"Indsend\"", save_action(submit=True),
+    btnSubmit = button("btnVhpSubmit", "\"Submit\"", save_action(submit=True),
                        primary=True, display_mode=DM)
     # Kortet har 18 px polstring i hver side.
     CARD_W = f"({SHELL_W} - 36)"

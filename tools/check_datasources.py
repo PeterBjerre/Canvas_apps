@@ -217,7 +217,31 @@ def check_shape(lst, col, val, meta):
 
 
 def check(path, schema, problems, stats, used=None):
+    def scoped_names(fx):
+        """Navne, der er LOKALE i formlen - ikke lister.
+
+        With({ ops: ... }) og "Filter(...) As SEL" laver navne, der ligner
+        et listenavn i Filter(ops, ...). Uden den her blev de meldt som
+        stavefejl i et listenavn, saa snart en liste, der kun LAESES,
+        begyndte at taelle med."""
+        out = set(re.findall(r"\bAs\s+([A-Za-z_]\w*)", fx))
+        for m in re.finditer(r"\bWith\s*\(\s*\{", fx):
+            i, depth = m.end() - 1, 0
+            j = i
+            while j < len(fx):
+                if fx[j] == "{":
+                    depth += 1
+                elif fx[j] == "}":
+                    depth -= 1
+                    if depth == 0:
+                        break
+                j += 1
+            body = fx[i + 1:j]
+            out.update(re.findall(r"(?:^|,)\s*([A-Za-z_]\w*)\s*:", body))
+        return out
+
     for fx in formulas(path):
+        scoped = scoped_names(fx)
         # --- Patch(Liste, base, {felter} ...) ----------------------------
         for args, _ in calls(fx, "Patch"):
             if len(args) < 3:
@@ -263,6 +287,16 @@ def check(path, schema, problems, stats, used=None):
                 if len(args) < 2:
                     continue
                 lst = args[0].strip()
+                # EN LISTE, DER KUN LAESES, TAELLER OGSAA SOM BRUGT
+                #
+                # used blev foer kun fyldt af Patch. En liste, appen
+                # aldrig skriver i, kunne derfor hedde hvad som helst -
+                # den blev sprunget over i stilhed sammen med alle sine
+                # kolonner. MD_HelpText var praecis saadan en: laest af
+                # en navngiven formel, skrevet af ingen.
+                if (used is not None and re.fullmatch(r"[A-Za-z_]\w*", lst)
+                        and lst not in scoped):
+                    used.add(lst)
                 if lst not in schema:
                     continue
                 col = first_ident(args[1])
@@ -281,11 +315,18 @@ def check(path, schema, problems, stats, used=None):
         for args, _ in calls(fx, "ForAll"):
             if len(args) < 2:
                 continue
-            m = re.match(r"\s*([A-Za-z_]\w*)\s+As\s+([A-Za-z_]\w*)\s*$", args[0])
+            m = re.match(r"\s*(.+?)\s+As\s+([A-Za-z_]\w*)\s*$", args[0], re.S)
             if not m:
                 continue
-            lst, alias = m.group(1), m.group(2)
-            if lst not in schema:
+            src, alias = m.group(1).strip(), m.group(2)
+            # KILDEN BEHOEVER IKKE VAERE ET NAVN
+            #
+            # Her stod ([A-Za-z_]\w*), altsaa kun "ForAll(Liste As R".
+            # Den navngivne formel for hjaelpeteksterne er
+            # "ForAll(Filter(MD_HelpText, ...) As R, { Key: R.HelpKey ... })",
+            # og dens fem kolonner blev derfor aldrig efterproevet.
+            lst = src if re.fullmatch(r"[A-Za-z_]\w*", src) else first_ident(src)
+            if not lst or lst not in schema:
                 continue
             body = ",".join(args[1:])
             for m2 in re.finditer(rf"\b{alias}\.('[^']+'|[A-Za-z_]\w*)", body):
@@ -358,6 +399,14 @@ def provisioned_lists():
         txt = open(os.path.join(d, fn), encoding="utf-8-sig").read()
         for m in re.finditer(r"(?:New-MdList|New-PnPList)\s+(?:-Title\s+)?'([^']+)'", txt):
             out.add(m.group(1).strip())
+        # New-PnPList -Title $LIST_NAME: navnet staar i en variabel
+        # oeverst i scriptet. Uden den her linje var listen usynlig
+        # for tjekket, og alle dens kolonner med den.
+        for m in re.finditer(r"(?:New-MdList|New-PnPList)\s+(?:-Title\s+)?\$(\w+)", txt):
+            v = re.search(r"^\s*\$%s\s*=\s*'([^']+)'" % m.group(1),
+                          txt, re.M)
+            if v:
+                out.add(v.group(1).strip())
     return out
 
 

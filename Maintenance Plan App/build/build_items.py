@@ -4,7 +4,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED, C_PRIMARY, C_WHITE,
                         C_INFO_FG, C_INFO_BG, C_VALID_FG, C_VALID_BG, C_INVALID_FG, C_INVALID_BG,
                         C_NEUTRAL_FG, C_NEUTRAL_BG, C_INPUT_BG, FONT, SHELL_W, EDITOR_W, RAIL_W,
-                        SPLIT_GAP)
+                        SPLIT_GAP, C_TRANSPARENT)
+from layout_tokens import if_below
 from build_helpers import (text_ctrl, group, button, button_row, text_input, number_input, dropdown,
                            label_row, field_cell, row_n, col_width, badge, card, combobox, poll_timer,
                            TWO_COL_MIN, HINTS_ON)
@@ -142,22 +143,31 @@ def build_items_rail():
             "                TasklistKey: src.TasklistKey, TasklistName: src.TasklistName, Status: \"draft\"\n"
             "            }\n"
             "        );\n"
-            "        ForAll(\n"
-            "            Filter(colVhpOperations, ItemId = varVhpActiveItemId),\n"
-            "            Collect(\n"
-            "                colVhpOperations,\n"
+            # Collect UDEN OM ForAll. ForAll returnerer en tabel, og Collect
+            # tager den i eet kald; foer stod Collect INDE i loekken, altsaa
+            # een mutation pr. operation (App checker: ForAllWithMutation).
+            #
+            # Og den var ikke kun langsom: kilden OG maalet er den SAMME
+            # samling. Med Collect inde i loekken skriver den i det, den
+            # laeser fra. Naar ForAll faerdiggoeres foerst, er tabellen
+            # laest af den gamle samling, foer der skrives en eneste raekke.
+            "        Collect(\n"
+            "            colVhpOperations,\n"
+            "            ForAll(\n"
+            "                Filter(colVhpOperations, ItemId = varVhpActiveItemId) As SRC,\n"
             "                {\n"
-            "                    ItemId: varVhpNextItemId, OperationNo: OperationNo,\n"
-            "                    OperationShortText: OperationShortText, WorkHours: WorkHours,\n"
-            "                    DurationHours: DurationHours, MainWorkCenter: MainWorkCenter, Vendor: Vendor,\n"
-            "                    LongText: LongText, PackagesKey: PackagesKey, Selected: false\n"
+            "                    ItemId: varVhpNextItemId, OperationNo: SRC.OperationNo,\n"
+            "                    OperationShortText: SRC.OperationShortText, WorkHours: SRC.WorkHours,\n"
+            "                    DurationHours: SRC.DurationHours, MainWorkCenter: SRC.MainWorkCenter,\n"
+            "                    Vendor: SRC.Vendor,\n"
+            "                    LongText: SRC.LongText, PackagesKey: SRC.PackagesKey, Selected: false\n"
             "                }\n"
             "            )\n"
             "        );\n"
-            "        ForAll(\n"
-            "            Filter(colVhpItemObjects, ItemId = varVhpActiveItemId) As OBJ,\n"
-            "            Collect(\n"
-            "                colVhpItemObjects,\n"
+            "        Collect(\n"
+            "            colVhpItemObjects,\n"
+            "            ForAll(\n"
+            "                Filter(colVhpItemObjects, ItemId = varVhpActiveItemId) As OBJ,\n"
             "                { ItemId: varVhpNextItemId, Code: OBJ.Code, Description: OBJ.Description }\n"
             "            )\n"
             "        );\n"
@@ -238,7 +248,7 @@ def build_items_rail():
         props={
             "AccessibleLabel": "\"VH-plan items\"",
             "BorderStyle": "BorderStyle.None",
-            "Fill": "RGBA(0, 0, 0, 0)",
+            "Fill": C_TRANSPARENT,
             "FillPortions": "0",
             "Height": ITEMS_GAL_H,
             "Items": "Sort(colVhpItems, ItemId)",
@@ -285,11 +295,15 @@ def build_item_editor():
     txtFlQuery = text_input(
         "txtVhpFlQuery", "\"\"",
         placeholder=("\"At least %d characters, e.g. SSV13 HFC\"" % MIN_SEARCH_LEN),
-        display_mode=DM_ITEM, width=f"Parent.Width - {FL_BTN_W} - 8")
+        display_mode=DM_ITEM, width=f"Parent.Width - {FL_BTN_W} - 8", label="\"Search functional location\"")
     btnFlSearch = button(
-        "btnVhpFlSearch", "\"Soeg\"",
+        "btnVhpFlSearch", "\"Search\"",
+        # raw_var foelger VH-plans egen navnekonvention. Den stod foer som
+        # en konstant i appens EGEN kopi af build_flsearch.py - og det var
+        # netop den ene linje, de tre kopier havde glidt fra hinanden paa.
         search_action("txtVhpFlQuery", "colVhpFlSearch",
-                      "varVhpFlLastSearch", "varVhpFlMeta"),
+                      "varVhpFlLastSearch", "varVhpFlMeta",
+                      raw_var="varVhpFlRaw"),
         primary=True, width=FL_BTN_W, height=36, display_mode=DM_ITEM)
     flSearchRow = group("conVhpItemFlSearchRow", [txtFlQuery, btnFlSearch],
                         direction="Horizontal", gap=8, height=36,
@@ -298,18 +312,18 @@ def build_item_editor():
     drpFl = dropdown(
         "drpVhpItemFL", "Sort(colVhpFlSearch, Code)", FL_DEFAULT,
         item_display="ThisItem.Display",
-        required_formula=REQ_ITEM, display_mode=DM_ITEM, value_field="Code")
+        required_formula=REQ_ITEM, display_mode=DM_ITEM, value_field="Code", label="\"Select functional location\"")
 
     flDescription = text_ctrl(
         "txtVhpItemFlDescription",
         (
             "If(\n"
-            "    IsBlank(drpVhpItemFL.Selected.Code), \"Ingen Functional Location valgt endnu.\",\n"
-            "    \"Valgt: \" & drpVhpItemFL.Selected.Code & \" - \" &\n"
+            "    IsBlank(drpVhpItemFL.Selected.Code), \"No functional location selected yet.\",\n"
+            "    \"Selected: \" & drpVhpItemFL.Selected.Code & \" - \" &\n"
             "    drpVhpItemFL.Selected.Description &\n"
             "    If(\n"
             "        drpVhpItemFL.Selected.Maintainable, \"\",\n"
-            "        \"   |   ADVARSEL: markeret som ikke vedligeholdbar i SAP.\"\n"
+            "        \"   |   WARNING: marked as not maintainable in SAP.\"\n"
             "    )\n"
             ")"
         ),
@@ -409,7 +423,7 @@ def build_item_editor():
     galObj = Ctrl(
         "galVhpItemObjects", "Gallery", variant="Vertical",
         props={
-            "AccessibleLabel": "\"Underliggende objekter\"",
+            "AccessibleLabel": "\"Sub-objects\"",
             "BorderColor": C_CARD_BORDER,
             "BorderStyle": "BorderStyle.Solid",
             "BorderThickness": "1",
@@ -452,14 +466,14 @@ def build_item_editor():
             "With(\n"
             f"    {{ n: CountRows({OBJ_CHOSEN}) }},\n"
             "    If(\n"
-            "        n = 0, \"Ingen underliggende objekter valgt.\",\n"
-            "        Text(n) & \" valgt: \" &\n"
+            "        n = 0, \"No sub-objects selected.\",\n"
+            "        Text(n) & \" selected: \" &\n"
             f"            Concat(Sort({OBJ_CHOSEN}, Code), Code, \", \") &\n"
             "            With(\n"
             f"                {{ fremmede: CountRows(Filter({OBJ_CHOSEN}, !StartsWith(Code, {SEL_FL}))) }},\n"
             "                If(\n"
             "                    fremmede > 0,\n"
-            "                    \"   |   ADVARSEL: \" & Text(fremmede) &\n"
+            "                    \"   |   WARNING: \" & Text(fremmede) &\n"
             "                        \" of them are not under the selected functional location.\",\n"
             "                    \"\"\n"
             "                )\n"
@@ -663,9 +677,16 @@ def build_items_section():
     editor = build_item_editor()
     # Hoejden er de to korts BEREGNEDE hoejder - ikke .Height paa kontrollerne.
     # Det var netop den reference, der gav cirkelreferencen og kaskade-vaeksten.
-    h = (f"If(App.Width < 1000, ({rail.h}) + {SPLIT_GAP} + ({editor.h}), "
-         f"Max(({rail.h}), ({editor.h})))")
-    rail.props["Width"] = f"If(App.Width < 1000, Parent.Width, {RAIL_W})"
+    # De TRE udtryk herunder skal bruge det SAMME braekpunkt: hoejden,
+    # skinnens bredde og EDITOR_W. Er de uenige, tror skinnen at den staar
+    # under editoren, mens editoren tror den staar ved siden af - og
+    # hoejden passer til ingen af delene. Derfor kommer de alle tre fra
+    # tools/layout_tokens.py nu, hvor de foer havde 1000 skrevet i sig hver
+    # for sig.
+    h = if_below("Desktop",
+                 f"({rail.h}) + {SPLIT_GAP} + ({editor.h})",
+                 f"Max(({rail.h}), ({editor.h}))")
+    rail.props["Width"] = if_below("Desktop", "Parent.Width", str(RAIL_W))
     editor.props["Width"] = EDITOR_W
     return group("conVhpItemsSplit", [rail, editor], direction="Horizontal", gap=SPLIT_GAP,
                  height=h, wrap="true")

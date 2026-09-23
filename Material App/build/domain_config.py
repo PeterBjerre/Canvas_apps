@@ -21,12 +21,19 @@ appen samler ind, er reservedelsoplysninger - leverandoer, pris,
 leveringstid, anbefalet lager - knyttet til en funktionsplads. Saadan var
 formularen i Studio, og saadan er listen.
 """
+import os
+import sys
+
+sys.path.insert(0, os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    "tools"))
+import env_config as env
 
 # --- appen ------------------------------------------------------------
 APP_KEY = "material"
 SCREEN = "ScreenMaterial"
 TITLE = "Materials"
-SUBTITLE = "Meld reservedele ind - leverandoer, pris og lager."
+SUBTITLE = "Report spare parts - supplier, price and stock."
 
 # Praefikset i noeglerne: MAT-000441.
 PREFIX = "MAT"
@@ -39,25 +46,24 @@ L_INDEX = "MD_RequestIndex"
 L_PLANTS = "PlantList"
 
 C_TEXT = "MaterialDescription"
-TEXT_LABEL = "Materialebeskrivelse"
-TEXT_PLACEHOLDER = '"Kort tekst, hoejst 40 tegn"'
+TEXT_LABEL = "Material description"
+TEXT_PLACEHOLDER = '"Short text, max 40 characters"'
 
-PLAY_URL = ("https://apps.powerapps.com/play/e/"
-            "e0f8f822-d16a-e878-ba4e-fb42bc617e47"
-            "/a/d7762919-c716-4bd0-9abd-24bab436221f")
+# Play-URL'erne kommer fra tools/canvas_apps.json via env_config. De stod
+# foer skrevet af her, og build_all.py havde 60 linjers regex til at
+# tjekke, at de tre kopier ikke gled fra hinanden. Se tools/env_config.py.
+#
+# PLAY_URL skrives i MD_RequestIndex.AppUrl, saa hubbens "Open" lander paa
+# den rigtige indmelding.
+PLAY_URL = env.play_url("material")
 
 # Landingssiden. De to domaeneapps aabnes af hubben som en SELVSTAENDIG
 # app - ikke som en skaerm i den samme. Back() kan derfor ikke foere
 # tilbage: den navigerer mellem SKAERME, og der er kun een. Knappen skal
 # aabne hubben med Launch.
 #
-# LaunchTarget.Replace, saa det sker i den fane, brugeren staar i. Baade
-# hubbens fliser og dens "Open" bruger det samme - ellers faar man en
-# fane pr. klik.
-#
-# Samme id som apps.hub.app_id i tools/canvas_apps.json; build_all.py
-# tjekker at de to ikke glider fra hinanden.
-HUB_URL = ("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/f387047d-86af-4d6a-8370-afcf35939436")
+# LaunchTarget.Replace, saa det sker i den fane, brugeren staar i.
+HUB_URL = env.hub_url()
 
 # Feltet der skal have FL-SOEGNING i stedet for et tekstfelt.
 # Konstruktionen er VH-plan-appens - soegefelt, soegeknap og dropdown -
@@ -72,27 +78,27 @@ FL_FIELD = "FunctionalLocation"
 # colYesNo blev aldrig defineret. Derfor er de TEKST her og i SharePoint,
 # indtil listerne findes.
 SECTIONS = [
-    ("Hvor", [
+    ("Where", [
         ("FunctionalLocation", "Func. location", "text", None),
     ]),
     ("Stamdata", [
-        ("Manufacturer", "Fabrikant", "text", None),
+        ("Manufacturer", "Manufacturer", "text", None),
         ("ModelNumber", "Modelnummer", "text", None),
-        ("ManufacturerPartNo", "Fabrikantens varenr.", "text", None),
+        ("ManufacturerPartNo", "Manufacturer part no.", "text", None),
     ]),
-    ("Leverandoer", [
-        ("Supplier", "Leverandoer", "text", None),
+    ("Supplier", [
+        ("Supplier", "Supplier", "text", None),
         ("SupplierPartNo", "Leverandoerens varenr.", "text", None),
         ("DeliveringTime", "Leveringstid (dage)", "num", None),
     ]),
-    ("Pris og lager", [
-        ("Price", "Pris", "num", None),
+    ("Price and stock", [
+        ("Price", "Price", "num", None),
         ("PriceUnit", "Prisenhed", "text", None),
         ("StockUnit", "Lagerenhed", "text", None),
-        ("RecommendedStock", "Anbefalet lager", "num", None),
+        ("RecommendedStock", "Recommended stock", "num", None),
     ]),
     ("Klassificering", [
-        ("StrategicPart", "Strategisk del", "text", None),
+        ("StrategicPart", "Strategic part", "text", None),
         ("WearPart", "Sliddel", "text", None),
     ]),
     ("Bemaerkninger", [
@@ -102,8 +108,8 @@ SECTIONS = [
 
 PLANT_LABEL = "Plant"
 
-LIST_COLS = [("MATERIALE", 0), ("FABRIKANTENS NR.", 130), ("LEVERANDOER", 120),
-             ("PLANT", 55), ("STATUS", 75), ("FILER", 40), ("", 60)]
+LIST_COLS = [("MATERIAL", 0), ("MFR. PART NO.", 130), ("SUPPLIER", 120),
+             ("PLANT", 55), ("STATUS", 75), ("FILES", 40), ("", 60)]
 LIST_FIELDS = ["ManufacturerPartNo", "Supplier", "Plant"]
 
 SEARCH_FIELDS = ["MaterialDescription", "FunctionalLocation",
