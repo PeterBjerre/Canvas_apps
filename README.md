@@ -1,18 +1,36 @@
 # SAP masterdata – canvas apps og indmeldinger
 
-Canvas apps og indmeldingsflow til SAP masterdata. To apps i dag:
+Canvas apps og indmeldingsflow til SAP masterdata. **Fire apps:**
 
 | App | Mappe | Rolle |
 |---|---|---|
-| **Masterdata Hub** | [`Masterdata Hub/`](Masterdata%20Hub) | Landingssiden. Alle indmeldinger på tværs af de fem domæner, med status. 83 kontroller, én datakilde |
+| **Masterdata Hub** | [`Masterdata Hub/`](Masterdata%20Hub) | Landingssiden. Alle indmeldinger på tværs af de fem domæner, med status. Én datakilde |
 | **VH-plan** | [`Maintenance Plan App/`](Maintenance%20Plan%20App) | Indmelding af vedligeholdsplaner, inkl. strategiplaner med pakker |
+| **Equipments** | [`Equipment App/`](Equipment%20App) | Indmelding af udstyr |
+| **Materials** | [`Material App/`](Material%20App) | Indmelding af reservedele |
 
-Begge `.pa.yaml`-skærme er **genereret** af Python-builderne i den enkelte apps
-`build/`-mappe. Byg begge apps og efterregn layoutet med:
+> **Equipments og Materials deler byggeklodser, men er to apps.** De var
+> engang den samme app med to konfigurationsfiler; nu skal de kunne to
+> forskellige ting. Delene — bar, formular, dokumentrude, rækketabel,
+> indsend — ligger ét sted i [`tools/domain_parts.py`](tools/domain_parts.py),
+> mens **kompositionen** er hver apps egen. Skal kun den ene ændres, skrives
+> ændringen i dens egen `build/`-mappe, ikke i de fælles dele.
+
+Alle `.pa.yaml`-skærme er **genereret** af Python-builderne i den enkelte
+apps `build/`-mappe. Byg alle fire og efterregn layoutet med:
 
 ```bash
-python3 tools/build_all.py
+python3 tools/build_all.py       # alle fire
+python3 tools/build_all.py --app equipment
 ```
+
+**Farver og breakpoints står ét sted for alle fire apps** og må ikke skrives
+i en builder — byggeriet stopper, hvis nogen gør:
+
+| Fil | Ejer |
+|---|---|
+| [`tools/design_tokens.py`](tools/design_tokens.py) | Alle farver, begge temaer. Mørk tilstand er den anden gren af samme `If`. Se [`docs/26-designtokens.md`](docs/26-designtokens.md) |
+| [`tools/layout_tokens.py`](tools/layout_tokens.py) | Alle breakpoints. `LayoutContext` / `LayoutRank`. Se [`docs/27-layouttokens.md`](docs/27-layouttokens.md) |
 
 Arbejdsgangen står i [`.github/skills/canvas-build/SKILL.md`](.github/skills/canvas-build/SKILL.md).
 

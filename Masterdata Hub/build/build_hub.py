@@ -16,10 +16,21 @@ filter, og flisernes tal taelles paa det samme, allerede afgraensede saet.
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_PRIMARY, C_WHITE,
+                        C_ON_DOMAIN,
                         C_INFO_FG, C_INFO_BG, C_NEUTRAL_BG, C_DIVIDER, C_TRANSPARENT,
                         C_APP_BG, FONT, SHELL_W)
-from build_helpers import text_ctrl, group, button, card
+from build_helpers import (text_ctrl, group, button, card, theme_button,
+                           wrap_row_height)
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, APP_TARGET
+from design_tokens import theme_query
+from layout_tokens import if_below
+
+# Hubben aabner satellitterne. Temaet skal med i URL'en, fordi
+# SaveData-lageret er isoleret pr. app-id: uden den ville en moerk hub
+# aabne en lys Equipment-app, og brugeren ville se appen skifte farve som
+# foelge af sit eget klik. Satellitten laeser Param("theme") i OnStart.
+THEME_Q = theme_query("?")      # flisen sender ingen andre parametre
+THEME_Q_AMP = theme_query("&")  # "Open" sender allerede ?reqid=
 
 # ---------------------------------------------------------------------------
 # Afgraensningen. Begge grene er delegerbare hver for sig:
@@ -76,7 +87,7 @@ def _switch(field_index, fallback, quote=False):
 def _seg(name, label, value):
     b = button(name, f'"{label}"',
                f'Set(gblView, "{value}"); Set(gblDomain, "")', width=168, height=34)
-    b.props["Appearance"] = f'If(gblView = "{value}", ButtonAppearance.Primary, ButtonAppearance.Secondary)'
+    b.props["Appearance"] = f'If(gblView = "{value}", ButtonAppearance.Primary, ButtonAppearance.Outline)'
     b.props["BasePaletteColor"] = C_PRIMARY
     b.props["Color"] = f'If(gblView = "{value}", {C_WHITE}, {C_TITLE})'
     b.props["BorderColor"] = C_CARD_BORDER
@@ -101,15 +112,28 @@ def build_bar():
                     size=12, color=C_MUTED, height=34, align="Right", wrap="false",
                     width=f"Max(160, {SHELL_W} - 300 - 336 - 24)")
 
-    return group("conMdBar", [left, seg, who], direction="Horizontal", gap=12, height=34,
-                 align_items="Center", wrap="true")
+    # Temaknappen staar YDERST TIL HOEJRE og med engelsk tekst som resten
+    # af hubben. Den er den samme kontrol som i de tre satellitter - se
+    # build_helpers.theme_button.
+    theme = theme_button("btnMdTheme", light_label='"Dark"', dark_label='"Light"')
+
+    # who-feltet skal give plads til knappen, ellers skubber den linjen om.
+    who.props["Width"] = f"Max(120, {SHELL_W} - 300 - 336 - 92 - 36)"
+
+    kids = [left, seg, who, theme]
+    return group("conMdBar", kids, direction="Horizontal", gap=12,
+                 align_items="Center", wrap="true",
+                 height=wrap_row_height(kids, 12, SHELL_W))
 
 
 # ---------------------------------------------------------------------------
 # Domaenefliser
 # ---------------------------------------------------------------------------
-TILE_MIN = 940
-TILE_W = f"If({SHELL_W} < {TILE_MIN}, ({SHELL_W} - 10) / 2, ({SHELL_W} - 40) / 5)"
+# Fem fliser eller to. Det er en beslutning om, hvor stor skaermen er -
+# altsaa et viewport-braekpunkt, ikke en udregning paa indholdet. Stod foer
+# som SHELL_W < 940, hvilket er App.Width < 1004: et af fire naesten ens
+# tal. Se tools/layout_tokens.py.
+TILE_W = if_below("Desktop", f"({SHELL_W} - 10) / 2", f"({SHELL_W} - 40) / 5")
 
 
 def build_tiles():
@@ -137,7 +161,10 @@ def build_tiles():
                          f'Set(gblDomain, If(gblDomain = "{d["key"]}", "", "{d["key"]}"))',
                          width=bw, height=28)
         if d["url"]:
-            new_action = (f'Launch("{d["url"]}", {{ }}, {APP_TARGET})')
+            # Temaet sendes MED i URL'en. SaveData er isoleret pr. app-id,
+            # saa uden det ville satellitten aabne i sit eget gamle tema -
+            # og brugeren ville se appen skifte farve, fordi han klikkede.
+            new_action = (f'Launch("{d["url"]}" & {THEME_Q}, {{ }}, {APP_TARGET})')
         else:
             new_action = ('Notify("This app has not been built yet.", NotificationType.Warning)')
         bNew = button(f"btnMdTileNew{n}",
@@ -155,7 +182,10 @@ def build_tiles():
 
     tile_h = tiles[0].h
     return group("conMdTiles", tiles, direction="Horizontal", gap=10, wrap="true",
-                 height=f"If({SHELL_W} < {TILE_MIN}, 3 * ({tile_h}) + 20, {tile_h})")
+                 # SAMME braekpunkt som TILE_W. Var de uenige, ville beholderen
+                  # have hoejde til een raekke fliser, mens fliserne selv stod i
+                  # tre - og de to nederste raekker blev klippet af.
+                  height=if_below("Desktop", f"3 * ({tile_h}) + 20", tile_h))
 
 
 # ---------------------------------------------------------------------------
@@ -163,7 +193,7 @@ def build_tiles():
 # ---------------------------------------------------------------------------
 def _chip(name, label, value):
     b = button(name, f'"{label}"', f'Set(gblStatusMode, "{value}")', width=104, height=32)
-    b.props["Appearance"] = f'If(gblStatusMode = "{value}", ButtonAppearance.Primary, ButtonAppearance.Secondary)'
+    b.props["Appearance"] = f'If(gblStatusMode = "{value}", ButtonAppearance.Primary, ButtonAppearance.Outline)'
     b.props["BasePaletteColor"] = C_INFO_FG
     b.props["Color"] = f'If(gblStatusMode = "{value}", {C_WHITE}, {C_MUTED})'
     b.props["BorderColor"] = C_CARD_BORDER
@@ -184,11 +214,12 @@ def build_filters():
     count = text_ctrl("txtMdCount",
                       f'Text(CountRows({SCOPE})) & " requests in this view"',
                       size=12, color=C_MUTED, height=32, align="Right", width=200, wrap="false")
-    return group("conMdFilters",
-                 [search, _chip("btnMdStOpen", "Open", "open"),
-                  _chip("btnMdStDone", "Closed", "done"),
-                  _chip("btnMdStAll", "All", "all"), count],
-                 direction="Horizontal", gap=8, height=32, align_items="Center", wrap="true")
+    kids = [search, _chip("btnMdStOpen", "Open", "open"),
+            _chip("btnMdStDone", "Closed", "done"),
+            _chip("btnMdStAll", "All", "all"), count]
+    return group("conMdFilters", kids, direction="Horizontal", gap=8,
+                 align_items="Center", wrap="true",
+                 height=wrap_row_height(kids, 8, SHELL_W))
 
 
 # ---------------------------------------------------------------------------
@@ -225,7 +256,7 @@ def build_list():
                       ',\n    "?"\n)',
                       size=10, weight="Semibold", height=20, width=COLS[0][1], wrap="false",
                       align="Center",
-                      extra={"Color": C_WHITE,
+                      extra={"Color": C_ON_DOMAIN,
                              "Fill": "Switch(\n    ThisItem.Domain.Value,\n    " +
                                      ",\n    ".join(f'"{d["key"]}", {d["color"]}' for d in DOMAINS) +
                                      f',\n    {C_MUTED}\n)',
@@ -270,7 +301,7 @@ def build_list():
                        '    Notify("This request has no app URL.", NotificationType.Error),\n'
                        "    Launch(\n"
                        '        ThisItem.AppUrl & If(Find("?", ThisItem.AppUrl) > 0, "&", "?") &\n'
-                       '            "reqid=" & ThisItem.RequestGuid,\n'
+                       f'            "reqid=" & ThisItem.RequestGuid & {THEME_Q_AMP},\n'
                        "        { },\n"
                        f"        {APP_TARGET}\n"
                        "    )\n"

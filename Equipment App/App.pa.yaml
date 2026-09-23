@@ -1,7 +1,112 @@
 App:
   Properties:
     Formulas: |
-      =// Vaerkerne. Eneste opslagsliste appen laeser, og den laeses foerst,
+      =// DESIGNTOKENS. Genereret af tools/design_tokens.py - ret ikke her.
+      //
+      // Hver farve i appen staar som C.'et-navn'. Moerk tilstand er ikke
+      // en funktion; den er den anden gren af den her If.
+      C = If(
+          // LYS TILSTAND
+          !darkModeEnabled,
+          {
+              'color-brand-primary': RGBA(0, 103, 174, 1),
+              'color-brand-primary-hover': RGBA(0, 122, 204, 1),
+              'color-brand-primary-soft': RGBA(198, 224, 249, 1),
+              'bg-app': RGBA(237, 241, 247, 1),
+              'bg-surface': RGBA(255, 255, 255, 1),
+              'bg-card': RGBA(250, 251, 253, 1),
+              'bg-muted': RGBA(240, 243, 248, 1),
+              'text-primary': RGBA(26, 34, 49, 1),
+              'text-muted': RGBA(89, 102, 122, 1),
+              'text-on-primary': RGBA(255, 255, 255, 1),
+              'text-on-domain': RGBA(255, 255, 255, 1),
+              'border-default': RGBA(215, 222, 232, 1),
+              'border-subtle': RGBA(228, 233, 241, 1),
+              'input-bg': RGBA(255, 255, 255, 1),
+              'input-bg-disabled': RGBA(240, 243, 248, 1),
+              'border-ok': RGBA(19, 120, 87, 1),
+              'border-error': RGBA(179, 50, 60, 1),
+              'state-ok-fg': RGBA(19, 120, 87, 1),
+              'state-ok-bg': RGBA(232, 245, 238, 1),
+              'state-warn-fg': RGBA(138, 90, 0, 1),
+              'state-warn-bg': RGBA(253, 243, 226, 1),
+              'state-error-fg': RGBA(179, 50, 60, 1),
+              'state-error-bg': RGBA(253, 236, 236, 1),
+              'state-info-fg': RGBA(0, 83, 140, 1),
+              'state-info-bg': RGBA(222, 240, 252, 1),
+              'state-neutral-fg': RGBA(89, 102, 122, 1),
+              'state-neutral-bg': RGBA(228, 233, 241, 1),
+              'bg-modal': RGBA(255, 255, 255, 0.98),
+              'overlay': RGBA(15, 23, 42, 0.35),
+              'domain-fl': RGBA(0, 103, 174, 1),
+              'domain-eq': RGBA(14, 124, 134, 1),
+              'domain-mp': RGBA(21, 127, 92, 1),
+              'domain-mat': RGBA(154, 99, 0, 1),
+              'domain-vhp': RGBA(109, 74, 166, 1),
+              'hex-text-primary': "#1A2231",
+              'hex-text-muted': "#59667A"
+          },
+          // MOERK TILSTAND
+          {
+              'color-brand-primary': RGBA(37, 99, 235, 1),
+              'color-brand-primary-hover': RGBA(29, 78, 216, 1),
+              'color-brand-primary-soft': RGBA(30, 58, 138, 1),
+              'bg-app': RGBA(12, 15, 23, 1),
+              'bg-surface': RGBA(15, 23, 42, 1),
+              'bg-card': RGBA(15, 23, 42, 1),
+              'bg-muted': RGBA(30, 41, 59, 1),
+              'text-primary': RGBA(229, 231, 235, 1),
+              'text-muted': RGBA(148, 163, 184, 1),
+              'text-on-primary': RGBA(255, 255, 255, 1),
+              'text-on-domain': RGBA(2, 6, 23, 1),
+              'border-default': RGBA(100, 116, 139, 1),
+              'border-subtle': RGBA(51, 65, 85, 1),
+              'input-bg': RGBA(2, 6, 23, 1),
+              'input-bg-disabled': RGBA(30, 41, 59, 1),
+              'border-ok': RGBA(5, 150, 105, 1),
+              'border-error': RGBA(239, 68, 68, 1),
+              'state-ok-fg': RGBA(52, 211, 153, 1),
+              'state-ok-bg': RGBA(6, 46, 37, 1),
+              'state-warn-fg': RGBA(251, 191, 36, 1),
+              'state-warn-bg': RGBA(59, 38, 6, 1),
+              'state-error-fg': RGBA(248, 113, 113, 1),
+              'state-error-bg': RGBA(69, 19, 24, 1),
+              'state-info-fg': RGBA(96, 165, 250, 1),
+              'state-info-bg': RGBA(23, 37, 70, 1),
+              'state-neutral-fg': RGBA(148, 163, 184, 1),
+              'state-neutral-bg': RGBA(30, 41, 59, 1),
+              'bg-modal': RGBA(15, 23, 42, 0.98),
+              'overlay': RGBA(2, 6, 23, 0.72),
+              'domain-fl': RGBA(96, 165, 250, 1),
+              'domain-eq': RGBA(45, 212, 191, 1),
+              'domain-mp': RGBA(52, 211, 153, 1),
+              'domain-mat': RGBA(251, 191, 36, 1),
+              'domain-vhp': RGBA(167, 139, 250, 1),
+              'hex-text-primary': "#E5E7EB",
+              'hex-text-muted': "#94A3B8"
+          }
+      );
+
+      // LAYOUTTOKENS. Genereret af tools/layout_tokens.py - ret ikke her.
+      //
+      // LayoutContext er den, man kan LAESE. LayoutRank er den, man kan
+      // SAMMENLIGNE med: "desktop eller bredere" er LayoutRank >= 3.
+      // Braekpunkterne staar eet sted for alle fire apps.
+      LayoutContext = If(
+          App.Width >= 1600, "Wide",
+          App.Width >= 1024, "Desktop",
+          App.Width >= 720, "Tablet",
+          "Mobile"
+      );
+
+      LayoutRank = If(
+          App.Width >= 1600, 4,
+          App.Width >= 1024, 3,
+          App.Width >= 720, 2,
+          1
+      );
+
+      // Vaerkerne. Eneste opslagsliste appen laeser, og den laeses foerst,
       // naar dropdownen aabnes.
       colDomPlants = Sort(ForAll(PlantList As R, { Value: R.Title }), Value);
     OnStart: |
@@ -17,15 +122,41 @@ App:
       ClearCollect(colDomFl, { Code: "", Description: "", Display: "", Maintainable: false, Level: "" });
       Clear(colDomFl);
 
+      ClearCollect(colAppPrefs, { Dark: false });
+      Clear(colAppPrefs);
+
+      // TEMAVALGET. Skal staa foerst: alt hvad skaermen tegner, laeser C,
+      // og C laeser darkModeEnabled.
+      //
+      // IfError fordi SaveData/LoadData ikke findes i Studio. Uden den
+      // stopper hele OnStart, hver gang nogen trykker Preview.
+      IfError(LoadData(colAppPrefs, "prefs", true), Blank());
+      Set(
+          darkModeEnabled,
+          Coalesce(
+              If(Lower(Param("theme")) = "dark", true,
+                 Lower(Param("theme")) = "light", false),
+              First(colAppPrefs).Dark,
+              false
+          )
+      );
+
       Set(varDomMe, Lower(User().Email));
       Set(varDomRequestNo, "");
       Set(varDomRequestGuid, "");
       Set(varDomActiveRowId, Blank());
+      // Hvilken raekke detaljeruden viser. Blank = ruden er skjult.
+      Set(varDomDetailsId, Blank());
       Set(varDomRowStatus, "valid");
       Set(varDomAttJson, "");
       Set(varDomFlMsg, "");
       Set(varDomFlLast, "");
-      Set(varDomInfo, "")
+      Set(varDomInfo, "");
+
+      // Er formularen blevet tjekket? Styrer om en kraevet feltkant maa vaere
+      // roed. false ved opstart: en tom formular, ingen har roert, skal ikke
+      // staa og lyse roedt. Saettes af Gem/Indsend - se domain_parts.REQUIRED.
+      Set(varDomValidated, false)
     StartScreen: |-
         =ScreenEquipment
     Theme: |-

@@ -9,20 +9,58 @@ YAML'en refererer andre kontrollers .Height. Se gen_screen.stack_height.
 """
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from design_tokens import DARK_VAR, toggle_action
+from layout_tokens import below, fits, if_below, TWO_COL_MIN
 from gen_screen import (
     Ctrl, render, render_screen, stack_height, row_height,
     C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED,
     C_PRIMARY, C_PRIMARY2, C_WHITE, C_TRANSPARENT, C_INPUT_BG, C_DISABLED_BG,
     C_DIVIDER, C_VALID_FG, C_VALID_BG, C_INVALID_FG, C_INVALID_BG,
+    C_BORDER_OK, C_BORDER_ERROR,
     C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, FONT,
     SHELL_W, EDITOR_W, RAIL_W, SPLIT_GAP, OUT_DIR,
 )
 
+def concurrent(*formulas, indent=0):
+    """Concurrent() - naar der hentes FLERE UAFHAENGIGE ting paa een gang.
+
+    Uden den venter appen paa SUMMEN af kaldene; med den venter den kun
+    paa det laengste. Fem SharePoint-lister i kaede er fem rundture efter
+    hinanden.
+
+    NAAR DEN IKKE SKAL BRUGES
+    -------------------------
+    Concurrent hjaelper KUN formler med et connector- eller
+    Dataverse-kald. Set() af en lokal variabel eller ClearCollect af en
+    literal tabel bliver ikke hurtigere - de tager mikrosekunder, og at
+    pakke dem ind goer kun formlen svaerere at laese.
+
+    OG DEN ER FARLIG VED AFHAENGIGHEDER
+    -----------------------------------
+    Raekkefoelgen er IKKE givet. To formler inde i den samme Concurrent
+    maa ikke afhaenge af hinanden - Power Apps afviser det, naar den kan
+    se det, og naar den ikke kan, faar man en kapploebsfejl, der kun
+    optraeder nogle gange.
+
+    Det er til gengaeld sikkert at afhaenge af noget FOER den (det er
+    faerdigt), og at afhaenge af den bagefter (den venter paa alle).
+    """
+    if len(formulas) < 2:
+        raise ValueError(
+            "Concurrent kraever mindst to formler. Med een er der "
+            "ingenting at goere parallelt - skriv den bare.")
+    pad = " " * (indent + 4)
+    body = (",\n").join(pad + f.strip() for f in formulas)
+    return "Concurrent(\n%s\n%s)" % (body, " " * indent)
+
+
 # Alle feltforklaringer ser paa den samme variabel.
 HINTS_ON = "IfError(varVhpShowHints, false)"
 
-# Braekpunkt hvor et to-kolonne-felt stables lodret.
-TWO_COL_MIN = 640
+# Braekpunktet, hvor et to-kolonne-felt stables lodret, staar i
+# tools/layout_tokens.py. Det er en CONTAINER-graense og ikke en
+# enhedsklasse: et smalt kort stabler sine felter, ogsaa paa en bred
+# skaerm.
 
 
 def text_ctrl(name, text, size=14, color=C_TITLE, weight=None, wrap="false",
@@ -144,16 +182,27 @@ def button(name, text, onselect, primary=False, danger=False, width=140, height=
         "VerticalAlign": "VerticalAlign.Middle",
         "Width": str(width),
     }
+    # OUTLINE, IKKE SECONDARY
+    #
+    # ButtonAppearance.Secondary er dokumenteret som "subtle FILLED style",
+    # og den moderne Button har INGEN Fill-egenskab - fyldet kommer fra
+    # Fluent-temaet, som appen ikke saetter. I moerk tilstand blev hver
+    # sekundaer knap derfor en LYS pille paa moerk baggrund, med vores egen
+    # naesten-hvide C_TITLE ovenpaa. Uleselig, og ingen token kunne rette
+    # det, fordi farven ikke kom fra en token.
+    #
+    # Outline er dokumenteret som "outlined button with NO background
+    # fill". Saa er der kun kant og tekst tilbage - og dem saetter vi selv.
     if danger:
-        props["Appearance"] = "ButtonAppearance.Secondary"
-        props["BorderColor"] = C_INVALID_FG
+        props["Appearance"] = "ButtonAppearance.Outline"
+        props["BorderColor"] = C_BORDER_ERROR
         props["BorderThickness"] = "1"
         props["Color"] = C_INVALID_FG
     elif primary:
         props["BasePaletteColor"] = base_color or C_PRIMARY
         props["Color"] = C_WHITE
     else:
-        props["Appearance"] = "ButtonAppearance.Secondary"
+        props["Appearance"] = "ButtonAppearance.Outline"
         props["BorderColor"] = C_CARD_BORDER
         props["BorderThickness"] = "1"
         props["Color"] = C_TITLE
@@ -164,6 +213,60 @@ def button(name, text, onselect, primary=False, danger=False, width=140, height=
     if visible is not None:
         props["Visible"] = visible
     return Ctrl(name, "ModernButton", props=props, h=height, vis=visible)
+
+
+def theme_button(name="btnThemeToggle", light_label='"Dark"',
+                 dark_label='"Light"', width=92, height=34):
+    """Knappen der skifter mellem lyst og moerkt tema.
+
+    SAMME KONSTRUKTION I ALLE FIRE APPS. Det er hele pointen: en knap, der
+    ser forskellig ud fra app til app, er praecis den slags drift, der har
+    gjort de fire apps forskellige indtil nu.
+
+    TEKSTEN SIGER HVAD DER SKER, IKKE HVAD DER ER
+    ---------------------------------------------
+    Staar appen lyst, staar der "Dark" paa knappen. Det er den samme
+    konvention som i Windows og i browsere - en knap er en handling, ikke
+    en tilstandsvisning. AccessibleLabel siger det udfoerligt, fordi et
+    enkelt ord uden knappens udseende ikke er nok for en skaermlaeser.
+
+    HVORFOR SEKUNDAER
+    -----------------
+    Den skal kunne findes og ellers vaere i fred. En primaerfarvet knap
+    ville traekke oejet til sig hver gang skaermen tegnes, og temaskift er
+    noget man goer een gang.
+
+    Handlingen staar i tools/design_tokens.py - baade Set() og SaveData,
+    saa valget ogsaa er der i morgen."""
+    lbl = f"If({DARK_VAR}, {dark_label}, {light_label})"
+    acc = (f'If({DARK_VAR}, "Switch to light theme", "Switch to dark theme")')
+    return button(name, lbl, toggle_action(), width=width, height=height,
+                  accessible=acc)
+
+
+def wrap_row_height(children, gap, container_w):
+    """Hoejden paa en vandret raekke, der OMBRYDER - som et udtryk.
+
+    group(..., wrap="true") giver en KONSTANT hoejde, og den kan ikke
+    vaere rigtig baade over og under braekpunktet:
+
+        for hoej over    -> et tomt baelte (topbjaelken i Equipment og
+                            Material: 124 px reserveret, 52 px brugt)
+        for lav under    -> anden rad klippes vaek (conMdBar, conMdFilters
+                            og conVhpOpsTabBar, alle 34 px til to rader)
+
+    Graensen regnes af boernenes EGNE bredder - ikke skrevet af - saa den
+    ikke kan komme ud af trit, naar nogen tilfoejer en knap.
+    Returnerer et fits()-udtryk, klar til height=.
+    """
+    ws = [str(c.props["Width"]) for c in children]
+    needs = " + ".join("(%s)" % w for w in ws)
+    if gap and len(ws) > 1:
+        needs += " + %d" % (gap * (len(ws) - 1))
+    hs = [int(c.h) for c in children if c.h is not None]
+    one = max(hs) if hs else 0
+    two = one * 2 + gap
+    return fits(container_w, needs, str(two), str(one))
 
 
 def button_row(name, buttons, container_w, gap=8, height=36, align_items="Center"):
@@ -183,19 +286,68 @@ def button_row(name, buttons, container_w, gap=8, height=36, align_items="Center
                  align_items=align_items)
 
 
+def border_rule(empty_test, required_formula="false"):
+    """DEN ENE REGEL om, hvad en feltkant siger.
+
+    Foer var der FIRE, og de sad i samme formular ved siden af hinanden:
+
+      text_input uden required   ingen BorderColor overhovedet - altsaa
+                                 platformens standard, som ingen havde valgt
+      text_input med required    roed / graa / GROEN
+      number_input, dropdown     roed / graa / GROEN, OGSAA naar feltet
+                                 ikke var kraevet
+      ModernDatePicker           fast graa. Aldrig roed, aldrig groen -
+                                 og bygget i haanden uden for den her fil
+
+    I Equipments formular stod fire felter side om side, hvor et tekstfelt
+    aldrig skiftede farve, et talfelt blev groent naar man skrev i det, og
+    en datovaelger var graa uanset hvad.
+
+    HVORFOR KUN DE KRAEVEDE FELTER FAAR FARVE
+    -----------------------------------------
+    Argumentet stod allerede i text_input og var rigtigt: en groen kant om
+    hvert eneste udfyldt felt goer farven meningsloes. Groen skal betyde
+    "det her krav er opfyldt", ikke "du har tastet noget".
+
+    Derfor ensrettes der PAA text_inputs regel - ikke paa de to andres.
+    Et felt, der ikke er kraevet, faar en almindelig kant, og den saettes
+    EKSPLICIT: gjorde den ikke det, arvede feltet platformens standard,
+    som ingen i projektet har valgt.
+
+        ikke kraevet        ->  border-default
+        kraevet + tom       ->  state-error-fg
+        kraevet + udfyldt   ->  state-ok-fg
+    """
+    if required_formula == "false":
+        return C_CARD_BORDER
+    return (f"If(\n"
+            f"    {required_formula} && {empty_test},\n"
+            f"    {C_BORDER_ERROR},\n"
+            f"    If({empty_test}, {C_CARD_BORDER}, {C_BORDER_OK})\n"
+            f")")
+
+
+def input_fill(display_mode):
+    """Graat = kan ikke redigeres.
+
+    Det ENE spoergsmaal, der afgoer et inputfelts baggrund. Datovaelgeren
+    havde ingen - den saa redigerbar ud i visningstilstand."""
+    if not display_mode:
+        return C_INPUT_BG
+    return f"If({display_mode} = DisplayMode.Edit, {C_INPUT_BG}, {C_DISABLED_BG})"
+
+
 def text_input(name, default, placeholder="\"\"", max_length=None, required_formula="false",
                width="Parent.Width", height=36, display_mode=None, ttype=None,
-               onchange=None):
+               onchange=None, label=None):
     props = {
-        "AccessibleLabel": f"\"{name}\"",
+        "AccessibleLabel": label if label else f"\"{name}\"",
+        "BorderColor": border_rule("IsBlank(Trim(Self.Text))", required_formula),
         "BorderStyle": "BorderStyle.Solid",
         "BorderThickness": "1",
         "Color": C_TITLE,
         "Default": default,
-        # Graat = kan ikke redigeres. Det gjaldt foer kun DisplayMode.Disabled,
-        # saa et View-felt saa redigerbart ud - hvidt felt med kant, der ikke
-        # reagerer. Nu afgoer det ENE spoergsmaal farven: kan man skrive i den?
-        "Fill": C_INPUT_BG if not display_mode else f"If({display_mode} = DisplayMode.Edit, {C_INPUT_BG}, {C_DISABLED_BG})",
+        "Fill": input_fill(display_mode),
         "Font": FONT,
         "Height": str(height),
         "LayoutMinWidth": "0",
@@ -206,18 +358,7 @@ def text_input(name, default, placeholder="\"\"", max_length=None, required_form
         "ValidationState": f"If({required_formula} && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)",
         "Width": width,
     }
-    # ROEDT naar der MANGLER, GROENT naar der STAAR noget.
-    #
-    # Kun paa de kraevede felter: en groen kant om hvert eneste udfyldt felt
-    # goer farven meningsloes. Det er stadig det ene spoergsmaal, der
-    # afgoer den - mangler der noget her, foer der kan gemmes?
-    if required_formula != "false":
-        props["BorderColor"] = (
-            f"If(\n"
-            f"    {required_formula} && IsBlank(Trim(Self.Text)),\n"
-            f"    {C_REQUIRED},\n"
-            f"    If(IsBlank(Trim(Self.Text)), {C_CARD_BORDER}, {C_VALID_FG})\n"
-            f")")
+
     if max_length is not None:
         props["MaxLength"] = str(max_length)
     if display_mode is not None:
@@ -230,22 +371,16 @@ def text_input(name, default, placeholder="\"\"", max_length=None, required_form
 
 
 def number_input(name, default, min_v=None, max_v=None, required_formula="false",
-                 width="Parent.Width", height=36, display_mode=None):
+                 width="Parent.Width", height=36, display_mode=None, label=None):
     props = {
-        "AccessibleLabel": f"\"{name}\"",
+        "AccessibleLabel": label if label else f"\"{name}\"",
         "Appearance": "Appearance.Outline",
-        "BorderColor": (
-            f"If(\n"
-            f"    {required_formula} && IsBlank(Self.Value),\n"
-            f"    {C_REQUIRED},\n"
-            f"    If(IsBlank(Self.Value), {C_CARD_BORDER}, {C_VALID_FG})\n"
-            f")"),
+        "BorderColor": border_rule("IsBlank(Self.Value)", required_formula),
         "BorderStyle": "BorderStyle.Solid",
         "BorderThickness": "1",
         "Color": C_TITLE,
         "Default": default,
-        # Samme regel som text_input: graat naar der ikke kan skrives.
-        "Fill": C_INPUT_BG if not display_mode else f"If({display_mode} = DisplayMode.Edit, {C_INPUT_BG}, {C_DISABLED_BG})",
+        "Fill": input_fill(display_mode),
         "Font": FONT,
         "Height": str(height),
         "LayoutMinWidth": "0",
@@ -265,22 +400,57 @@ def number_input(name, default, min_v=None, max_v=None, required_formula="false"
     return Ctrl(name, "ModernNumberInput", props=props, h=height)
 
 
-def dropdown(name, items, default, item_display="ThisItem.Value", required_formula="false",
-             width="Parent.Width", height=36, display_mode=None, value_field="Value"):
+def date_picker(name, default_date, required_formula="false",
+                width="Parent.Width", height=36, display_mode=None,
+                onchange=None, label=None, placeholder='"dd/mm/yyyy"'):
+    """Datovaelger - med SAMME kant- og baggrundsregel som de andre felter.
+
+    Den var bygget i haanden inde i domain_parts.py og havde en FAST graa
+    kant og INGEN Fill. Den blev derfor aldrig roed, naar den manglede,
+    aldrig groen naar den var udfyldt, og den saa redigerbar ud i
+    visningstilstand - hvidt felt med kant, der ikke reagerer.
+
+    DefaultDate SAETTER datoen. SelectedDate LAESER den og kan ikke
+    skrives - "Unknown property 'SelectedDate' for control type
+    'ModernDatePicker'". Det er derfor OnChange laeser Self.SelectedDate,
+    mens DefaultDate faar variablen."""
     props = {
-        "AccessibleLabel": f"\"{name}\"",
+        "AccessibleLabel": label if label else f'"{name}"',
         "Appearance": "Appearance.Outline",
-        "BorderColor": (
-            f"If(\n"
-            f"    {required_formula} && IsBlank(Self.Selected.{value_field}),\n"
-            f"    {C_REQUIRED},\n"
-            f"    If(IsBlank(Self.Selected.{value_field}), {C_CARD_BORDER}, {C_VALID_FG})\n"
-            f")"),
+        "BorderColor": border_rule("IsBlank(Self.SelectedDate)", required_formula),
+        "BorderStyle": "BorderStyle.Solid",
+        "BorderThickness": "1",
+        "DefaultDate": default_date,
+        "Fill": input_fill(display_mode),
+        "Font": FONT,
+        "Format": "DatePickerFormat.Short",
+        "Height": str(height),
+        "LayoutMinWidth": "0",
+        "Placeholder": placeholder,
+        "RadiusBottomLeft": "10", "RadiusBottomRight": "10",
+        "RadiusTopLeft": "10", "RadiusTopRight": "10",
+        "Size": "14",
+        "Width": width,
+    }
+    if display_mode is not None:
+        props["DisplayMode"] = display_mode
+    if onchange is not None:
+        props["OnChange"] = onchange
+    return Ctrl(name, "ModernDatePicker", props=props, h=height)
+
+
+def dropdown(name, items, default, item_display="ThisItem.Value", required_formula="false",
+             width="Parent.Width", height=36, display_mode=None, value_field="Value", label=None):
+    props = {
+        "AccessibleLabel": label if label else f"\"{name}\"",
+        "Appearance": "Appearance.Outline",
+        "BorderColor": border_rule(f"IsBlank(Self.Selected.{value_field})",
+                                   required_formula),
         "BorderStyle": "BorderStyle.Solid",
         "BorderThickness": "1",
         "Color": C_TITLE,
         "Default": default,
-        "Fill": C_INPUT_BG if not display_mode else f"If({display_mode} = DisplayMode.Edit, {C_INPUT_BG}, {C_DISABLED_BG})",
+        "Fill": input_fill(display_mode),
         "Font": FONT,
         "Height": str(height),
         "ItemDisplayText": item_display,
@@ -298,8 +468,8 @@ def dropdown(name, items, default, item_display="ThisItem.Value", required_formu
 
 
 def combobox(name, items, display_field="Display", multi=False, default_items=None,
-             placeholder="\"Soeg\"", required_formula="false", width="Parent.Width",
-             height=40, display_mode=None, onchange=None):
+             placeholder="\"Search\"", required_formula="false", width="Parent.Width",
+             height=40, display_mode=None, onchange=None, label=None):
     """Soegefelt og valgliste i EEN kontrol.
 
     BRUGES IKKE LAENGERE. Staar her, fordi ideen er god - men i praksis
@@ -327,8 +497,8 @@ def combobox(name, items, display_field="Display", multi=False, default_items=No
     sel_test = ("CountRows(Self.SelectedItems) = 0" if multi
                 else f"IsBlank(Self.Selected.{display_field})")
     props = {
-        "AccessibleLabel": f"\"{name}\"",
-        "BorderColor": f"If({required_formula} && {sel_test}, {C_REQUIRED}, {C_CARD_BORDER})",
+        "AccessibleLabel": label if label else f"\"{name}\"",
+        "BorderColor": border_rule(sel_test, required_formula),
         "BorderStyle": "BorderStyle.Solid",
         "BorderThickness": "1",
         "ChevronBackground": C_PRIMARY,
@@ -421,12 +591,17 @@ def col_width(container_w, cols, gap=20):
     """Bredden af eet ud af `cols` felter side om side i en container med
     bredden container_w. Under braekpunktet TWO_COL_MIN staar alle felter
     fuld bredde (raekken stables lodret af row_n / two_col_row)."""
-    return f"If({container_w} < {TWO_COL_MIN}, {container_w}, ({container_w} - {gap * (cols - 1)}) / {cols})"
+    return fits(container_w, TWO_COL_MIN, container_w,
+                f"({container_w} - {gap * (cols - 1)}) / {cols}")
 
 
 def field_cell(name, label_text, input_ctrl, required=False, hint_text=None, width=None,
-               container_w=SHELL_W, fill_portions_formula="If(App.Width < 1024, 0, 1)", cols=2, gap=20):
-    """Et felt med label over. Hoejden regnes af indholdet - den er ikke laengere
+               container_w=SHELL_W, fill_portions_formula=None, cols=2, gap=20):
+    """Et felt med label over.
+
+    fill_portions_formula=None betyder braekpunktet: feltet vokser kun,
+    naar der er desktop-plads. Stod foer som "If(App.Width < 1024, 0, 1)"
+    - et af fire naesten ens tal. Se tools/layout_tokens.py. Hoejden regnes af indholdet - den er ikke laengere
     et magisk tal, saa et hoejere input (fx multiline) giver automatisk en
     hoejere felt.
 
@@ -444,9 +619,29 @@ def field_cell(name, label_text, input_ctrl, required=False, hint_text=None, wid
         kids.append(text_ctrl(f"{name}Hint", hint_text, size=12, color=C_MUTED,
                               height=32, wrap="true",
                               visible=HINTS_ON))
+    # SKAERMLAESEREN SKAL HOERE ETIKETTEN, IKKE KONTROLNAVNET
+    #
+    # De fire inputbyggere saetter AccessibleLabel til kontrollens eget
+    # navn, naar kalderen ikke giver andet. Det betoed, at en skaermlaeser
+    # sagde "inp Manufacturer" i stedet for "Fabrikat" - 75 felter i tre
+    # apps. Hubben gjorde det rigtigt, fordi den ikke har raa inputs.
+    #
+    # field_cell KENDER etiketten. Den retter derfor det, der stadig staar
+    # som standarden - og kun det: har kalderen sat en rigtig etiket, er
+    # den bevaret. Standarden kendes paa, at den er kontrollens eget navn.
+    #
+    # "Paakraevet" haenges paa, fordi stjernen ved siden af etiketten er
+    # synlig og dermed ingenting for den, der lytter.
+    default_label = '"%s"' % input_ctrl.name
+    if str(input_ctrl.props.get("AccessibleLabel", "")).strip() == default_label:
+        acc = label_text + (", required" if required else "")
+        input_ctrl.props["AccessibleLabel"] = '"%s"' % acc.replace('"', '""')
+
     w = width or col_width(container_w, cols, gap)
+    fp = (if_below("Desktop", "0", "1")
+          if fill_portions_formula is None else fill_portions_formula)
     return group(name, kids, direction="Vertical", gap=6, width=w,
-                 align_items="Stretch", fill_portions=fill_portions_formula,
+                 align_items="Stretch", fill_portions=fp,
                  align_in_container="Start")
 
 
@@ -465,7 +660,7 @@ def row_n(name, cells, container_w=SHELL_W, gap=20):
         terms = ", ".join(f"({h})" for h in heights)
         tall = f"Max({terms})"
         stacked = " + ".join(f"({h})" for h in heights) + f" + {gap * (len(cells) - 1)}"
-    h = f"If({container_w} < {TWO_COL_MIN}, {stacked}, {tall})"
+    h = fits(container_w, TWO_COL_MIN, stacked, tall)
     return group(name, cells, direction="Horizontal", gap=gap, height=h, wrap="true")
 
 

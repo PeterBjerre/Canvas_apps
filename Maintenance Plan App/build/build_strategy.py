@@ -105,7 +105,7 @@ def build_strategy_body():
         (
             "If(\n"
             "    IsBlank(varVhpPlan.Strategy), \"Choose a strategy in the plan header first.\",\n"
-            "    \"Strategi \" & varVhpPlan.Strategy & \" - \" &\n"
+            "    \"Strategy \" & varVhpPlan.Strategy & \" - \" &\n"
             "    Coalesce(LookUp(colVhpStrategies, Key = varVhpPlan.Strategy).Name, \"\") & \": \" &\n"
             f"    Concat({PKGS_SORTED}, ShortCode & \" (\" & Text(CycleLength) & \" \" & CycleUnit & \")\", \", \") & \".\"\n"
             ")"
@@ -134,7 +134,7 @@ def build_strategy_body():
     allPkgKey = f"\";\" & Concat({PKGS_SORTED}, Text(PackageNo) & \";\")"
 
     btnAll = button(
-        "btnVhpPkgAll", "\"Alle pakker\"",
+        "btnVhpPkgAll", "\"All packages\"",
         (
             "If(\n"
             "    IsBlank(varVhpActiveItemId),\n"
@@ -152,7 +152,7 @@ def build_strategy_body():
     # halvaars- og aarsgennemgangen. Brugeren markerer derfor kun den laveste
     # pakke, og denne knap fylder resten ud efter hierarki.
     btnHier = button(
-        "btnVhpPkgHierarchy", "\"Hierarki-udfyld\"",
+        "btnVhpPkgHierarchy", "\"Fill by hierarchy\"",
         (
             "If(\n"
             "    IsBlank(varVhpActiveItemId),\n"
@@ -179,7 +179,7 @@ def build_strategy_body():
             "            )\n"
             "        )\n"
             "    );\n"
-            "    Set(varVhpRuntimeInfo, \"Pakker fyldt op efter hierarki.\")\n"
+            "    Set(varVhpRuntimeInfo, \"Packages filled in by hierarchy.\")\n"
             ")"
         ), primary=True,
         display_mode=(f"If(\n"
@@ -189,13 +189,13 @@ def build_strategy_body():
                       f")"))
 
     btnClear = button(
-        "btnVhpPkgClear", "\"Ryd pakker\"",
+        "btnVhpPkgClear", "\"Clear packages\"",
         (
             "If(\n"
             "    IsBlank(varVhpActiveItemId),\n"
             "    Set(varVhpRuntimeInfo, \"Select an item first.\"),\n"
             "    UpdateIf(colVhpOperations, ItemId = varVhpActiveItemId, { PackagesKey: \";\" });\n"
-            "    Set(varVhpRuntimeInfo, \"Pakkemarkeringer ryddet.\")\n"
+            "    Set(varVhpRuntimeInfo, \"Package selections cleared.\")\n"
             ")"
         ), danger=True,
         display_mode="If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)")
@@ -227,7 +227,7 @@ def build_strategy_body():
     rowOpNo = text_ctrl("txtVhpPkgRowOpNo", "ThisItem.OperationNo", size=12, color=C_MUTED, height=ROW_H,
                         width=56, wrap="false")
     rowText = text_ctrl("txtVhpPkgRowText",
-                        "If(IsBlank(ThisItem.OperationShortText), \"(uden tekst)\", ThisItem.OperationShortText)",
+                        "If(IsBlank(ThisItem.OperationShortText), \"(no text)\", ThisItem.OperationShortText)",
                         size=13, height=ROW_H, width=LBL_W - 56, wrap="false")
     cur_key = ("Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId "
                "&& OperationNo = ThisItem.OpNo).PackagesKey, \";\")")
@@ -235,7 +235,7 @@ def build_strategy_body():
     chkCell = Ctrl(
         "chkVhpPkgCell", "ModernCheckbox",
         props={
-            "AccessibleLabel": ("\"Pakke \" & ThisItem.ShortCode & \" on operation \" & ThisItem.OpNo"),
+            "AccessibleLabel": ("\"Package \" & ThisItem.ShortCode & \" on operation \" & ThisItem.OpNo"),
             "AlignInContainer": "AlignInContainer.Center",
             "Default": f"\";\" & Text(ThisItem.PackageNo) & \";\" in {cur_key}",
             "Height": "24",
@@ -324,7 +324,7 @@ def build_strategy_body():
             "    \"Choose a strategy in the plan header.\",\n"
             "\n"
             f"    {HAS_PKGS} = false,\n"
-            "    \"Strategi \" & varVhpPlan.Strategy & \" har ingen pakker i MD_StrategyPackage endnu, \" &\n"
+            "    \"Strategy \" & varVhpPlan.Strategy & \" has no packages in MD_StrategyPackage yet, \" &\n"
             "        \"so there is nothing to allocate. The packages come from SAP (IP11). \" &\n"
             "        \"The plan can still be saved and submitted without a package allocation.\",\n"
             "\n"
@@ -353,7 +353,7 @@ def build_strategy_body():
             "            \"\"\n"
             "        ) &\n"
             "        If(CountRows(emptyPkg) > 0,\n"
-            "            \"S5: pakke \" & Concat(emptyPkg, ShortCode, \", \") & \" indeholder ingen operationer.\",\n"
+            "            \"S5: package \" & Concat(emptyPkg, ShortCode, \", \") & \" contains no operations.\",\n"
             "            \"\"\n"
             "        )\n"
             "    )\n"

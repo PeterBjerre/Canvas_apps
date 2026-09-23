@@ -1,21 +1,105 @@
 ---
 name: canvas-build
-description: Arbejdsgang for canvas apperne i dette repo — "Maintenance Plan App" (VH-plan) og "Masterdata Hub" (landingssiden). Brug den ved ENHVER ændring af en skærm, App.OnStart, layout, Power Fx-formler, kontroller eller datakilder. Ret builderne i Python, generér .pa.yaml, kør layout-tjekket, og synkronisér først derefter til Power Apps Studio.
+description: Arbejdsgang for de FIRE canvas apps i dette repo — "Maintenance Plan App" (VH-plan), "Masterdata Hub" (landingssiden), "Equipment App" (Equipments) og "Material App" (Materials). Brug den ved ENHVER ændring af en skærm, App.OnStart, layout, farver, breakpoints, Power Fx-formler, kontroller eller datakilder. Ret builderne i Python, generér .pa.yaml, kør layout-tjekket, og synkronisér først derefter til Power Apps Studio.
 ---
 
 # Canvas apps: byg og deploy
 
 ## Den ene regel
 
-`.pa.yaml`-filerne er **genereret**. `ScreenVhPlan.pa.yaml` er godt 9.700
-linjer, `ScreenMdHub.pa.yaml` godt 3.000. `App.pa.yaml` er også genereret i
-begge apps. Retter du direkte i dem, er ændringen væk, næste gang nogen
+`.pa.yaml`-filerne er **genereret**. `ScreenVhPlan.pa.yaml` er godt 15.000
+linjer, `ScreenEquipment.pa.yaml` og `ScreenMaterial.pa.yaml` knap 6.000 hver,
+`ScreenMdHub.pa.yaml` godt 3.000. `App.pa.yaml` er også genereret i alle fire. Retter du direkte i dem, er ændringen væk, næste gang nogen
 kører builderen — og du efterlader en fil, der ikke længere matcher sin kilde.
 
 **Ret i `build/*.py`. Altid.**
 
 Det gælder også, når ændringen er lille, og når du har travlt. Der findes
 ingen undtagelse.
+
+## Den anden regel: farver er tokens, ikke tal
+
+**Ingen builder må indeholde en farve.** Hverken `RGBA(...)` eller
+`#rrggbb`. `tools/build_all.py` nægter at bygge, hvis nogen skriver en, og
+den læser syntakstræet, så en kommentar må gerne nævne en farve.
+
+Alle 31 farver står i `tools/design_tokens.py` — ét sted for alle fire
+apps, i to udgaver. Builderne skriver en **tokenreference**:
+
+```python
+from gen_screen import C_CARD_BG, C_TITLE      # peger paa tokens
+...
+"Fill": C_CARD_BG                               # -> =C.'bg-card'
+```
+
+`C` er en navngiven formel i `App.Formulas`:
+
+```
+C = If(!darkModeEnabled, { ...lyse vaerdier... }, { ...moerke... });
+```
+
+Derfor er **mørk tilstand ikke en funktion**. Skifter `darkModeEnabled`,
+genberegner Power Fx formlen, og hver kontrol, der læser
+`C.'et-eller-andet'`, skifter med. Ingen kontrol ved, at mørk tilstand
+findes.
+
+Skal en farve ændres, rettes den **i begge temaer** i
+`tools/design_tokens.py`, og alle fire apps skifter sammen.
+
+Skal en farve bruges inde i en **HTML-streng** (`HtmlViewer`), så brug
+`design_tokens.ref_hex()` — hex-værdierne afledes af de samme tokens og
+kan derfor ikke glide fra dem.
+
+Temaknappen er `build_helpers.theme_button()` og er **den samme kontrol i
+alle fire apps**. Byg ikke en ny.
+
+Det hele står i `docs/26-designtokens.md`, inkl. hvorfor farverne ikke kan
+ligge i miljøvariabler, og hvordan valget huskes.
+
+## Den tredje regel: breakpoints er tokens, ikke tal
+
+**Ingen skærm må sammenligne `App.Width` med et tal.** `check_layout.py`
+regel 8c stopper byggeriet. Aritmetik er fint — `SHELL_W` *er*
+`(App.Width - 64)` — det er kun **sammenligningen**, der er en beslutning.
+
+Alle breakpoints står i `tools/layout_tokens.py` og bliver til to
+navngivne formler i `App.Formulas`:
+
+```
+LayoutContext = "Mobile" | "Tablet" | "Desktop" | "Wide"   (læses)
+LayoutRank    =    1     |    2     |     3     |   4      (sammenlignes)
+```
+
+Tiers: Mobile 0, Tablet 720, Desktop **1024**, Wide 1600.
+
+```python
+from layout_tokens import below, if_below, at_least, fits, TWO_COL_MIN
+
+TILE_W = if_below("Desktop", f"({SHELL_W} - 10) / 2", f"({SHELL_W} - 40) / 5")
+```
+
+### To slags grænser — vælg den rigtige
+
+| Spørgsmålet | Værktøj |
+|---|---|
+| "Hvor stor er **skærmen**?" — fem fliser eller to, hero ved siden af eller ovenpå | `below("Desktop")` / `if_below()` / `at_least()` |
+| "Er der plads i **denne kasse**?" — et 600 px kort stabler sine felter også på en 4K-skærm | `fits(container_w, needs, narrow, wide)` |
+
+`fits()`' `needs` skal **regnes ud af indholdet**, ikke skrives af.
+Topbjælken havde `900` skrevet i sig, mens højresiden fyldte 440 — da
+temaknappen gjorde højresiden 542 bred, fulgte de 900 ikke med, og bjælken
+ville have ombrudt på enhver skærmbredde.
+
+### Tal, der skal være ens, skal komme fra det samme sted
+
+Fire steder i repoet skulle to-tre tal passe sammen, og intet sagde det:
+splittets højde vs. skinnens bredde vs. `EDITOR_W`; flisernes bredde vs.
+deres beholders højde; knaprækkens bredde vs. venstresidens reservation
+(to steder). Knapperækkerne regnes nu af `HERO_BTNS` / `BAR_RIGHT`, og
+builderen **efterprøver sig selv** — tilføjer du en knap uden at skrive den
+i tabellen, stopper byggeriet.
+
+Det hele står i `docs/27-layouttokens.md`.
 
 ## Fire apps — hver med sin selvstændige build-mappe
 
@@ -26,23 +110,49 @@ ingen undtagelse.
 | Equipments | `Equipment App/` | `ScreenEquipment.pa.yaml` | `generate_app_onstart.py` + `assemble_screen.py` |
 | Materials | `Material App/` | `ScreenMaterial.pa.yaml` | `generate_app_onstart.py` + `assemble_screen.py` |
 
-Hver build-mappe er **selvbærende**. Der er ingen `shared/`-mappe, og der
-må ikke laves en: Power Apps' egen VS Code-værktøjskæde arbejder pr.
-app-mappe, og et delt modul uden for mappen blev fjernet igen af den.
+**De fælles filer ligger i `tools/` — i én udgave, ikke fire kopier.**
 
-Tre filer er derfor **kopieret ordret** ind i begge build-mapper:
-
-    gen_screen.py      DSL, stylingkonstanter, højde-algebra
-    build_helpers.py   byggeklodser: card, group, button_row, inputs, combobox
-    check_layout.py    layout-tjekket
-
-**Retter du i en af de tre, skal du kopiere filen til den anden app med det
-samme** og køre begge byg. `tools/build_all.py` nægter at bygge, hvis de er
-gledet fra hinanden, og skriver hvilken app der har den nyest rettede udgave.
-
-```bash
-cp "Maintenance Plan App/build/build_helpers.py" "Masterdata Hub/build/"
 ```
+tools/gen_screen.py      DSL, højde-algebra, C_*-navnene der peger på tokens
+tools/build_helpers.py   byggeklodser: card, group, button_row, inputs, theme_button
+tools/check_layout.py    layout-tjekket
+tools/build_domain.py    Equipments og Materials' fælles skærm
+tools/attflows.py        flow-kontrakten for dokumenter
+tools/build_flsearch.py  flow-kontrakten for FL-søgning
+tools/design_tokens.py   alle farver
+tools/layout_tokens.py   alle breakpoints
+```
+
+De lå før som ordrette kopier i hver `build/`-mappe — 5.863 af 14.825
+linjer, 39 %. Begrundelsen var, at Power Apps' VS Code-værktøjskæde
+fjernede et delt modul uden for app-mappen. **Den gælder ikke den vej, der
+bruges i dag:** `canvas_mcp.stage()` kopierer kun `*.pa.yaml` over til
+serveren, så hverken `build/` eller `tools/` når nogensinde derud.
+
+`sys.path` er procesglobal, så det rækker at sætte `tools/` på den i
+**indgangen** (`assemble_screen.py`, `generate_app_onstart.py`,
+`check_layout.py`-shimmen). Alt, der importeres bagefter, finder dem selv.
+
+Hver `build/`-mappe indeholder nu kun det, der er appens eget:
+
+| App | Egne filer |
+|---|---|
+| VH-plan | `sp_config.py` + de ni `build_*.py`, der bygger dens skærm |
+| Masterdata Hub | `hub_config.py`, `build_hub.py` |
+| Equipments / Materials | **kun `domain_config.py`** + de to indgange |
+
+> **To fælder, begge ramt under flytningen — og begge nu spærret:**
+>
+> 1. `gen_screen.OUT_DIR` regnede app-mappen ud af `__file__`. Da filen
+>    flyttede til `tools/`, blev `HERE/..` til **repo-roden**. Alle fire
+>    skærme blev skrevet dér, app-mapperne beholdt deres gamle, og
+>    layout-tjekket sagde *"OK"* — fordi det læste de gamle filer.
+>    `OUT_DIR` kommer nu af **indgangen** (`sys.argv[0]`), og `build_all`
+>    fejler, hvis der ligger en `.pa.yaml` i roden.
+> 2. `build_flsearch.py` lå i tre kopier, der **ikke var ens**: VH-plan
+>    skrev `varVhpFlRaw`, de to andre `varDomFlRaw`. `check_shared()`
+>    kiggede aldrig på den fil. Variabelnavnet er nu en parameter
+>    (`raw_var=`), så der ikke er en linje tilbage, der kan skille to apps.
 
 ## `--app` bygger kun den ene
 
@@ -120,22 +230,42 @@ nævner kontrollen.
 | `assemble_screen.py` | Samler skærmen → `../ScreenVhPlan.pa.yaml` |
 | `generate_app_onstart.py` | `App.Formulas` + `App.OnStart` → `../App.pa.yaml` |
 
-Disse fem er **historiske og bruges ikke**: `build_diag_screen.py`,
-`build_vhplan_screen.py`, `gen_options.py`, `gen_tasklists.py`,
-`rename_collections.py`. Ret ikke i dem, og lad dig ikke forvirre af dem.
+De fem historiske buildere (`build_diag_screen.py`, `build_vhplan_screen.py`,
+`gen_options.py`, `gen_tasklists.py`, `rename_collections.py`) og deres fem
+mellemresultat-`.txt` er **slettet** — 997 linjer, som ingenting importerede.
+Git husker dem; mappen skal ikke.
 
 ## Hvem ejer hvad — Equipments og Materials
 
-De to apps er **den samme app**. Fire filer er ordret ens i de to
-build-mapper, og `tools/build_all.py` tjekker det ved hver bygning:
+**De er IKKE længere den samme app.** De var det: de to build-mapper
+indeholdt ordret de samme filer, og `build_all.py` nægtede at bygge, hvis
+de gled fra hinanden. Det holdt, så længe de to kun havde forskellige
+*felter*. Det gælder ikke længere — de skal kunne to forskellige ting.
 
-| Fil | Ejer |
-|---|---|
-| `domain_config.py` | **Den eneste fil der må være forskellig**: listenavn, præfiks, `SECTIONS` (felterne), `PLAY_URL` |
-| `build_domain.py` | Formen: bar, formular, dokumentrude, rækketabel, indsend — og al adfærd |
-| `attflows.py` | **Flow-kontrakten for dokumenter** — de tre attachment-flows, mappenavnet og de to former af `text` |
-| `generate_app_onstart.py` | Samlingsskema + tilstandsvariabler → `../App.pa.yaml` |
-| `assemble_screen.py` | Samler skærmen, og skriver skærmens `OnVisible` |
+| Fil | Ejer | Må afvige? |
+|---|---|---|
+| `tools/domain_parts.py` | **Byggeklodserne**: bar, formular, dokumentrude, rækketabel, indsend, og Power Fx'en bag gem/hent/slet | Fælles |
+| `tools/attflows.py` | Flow-kontrakten for dokumenter | Fælles |
+| `tools/build_flsearch.py` | Flow-kontrakten for FL-søgning | Fælles |
+| `<App>/build/domain_config.py` | Felterne, listenavnet, præfikset | **Ja** |
+| `<App>/build/assemble_screen.py` | **Kompositionen** — hvilke dele, i hvilken rækkefølge | **Ja** |
+| `<App>/build/generate_app_onstart.py` | Samlingsskemaet og tilstandsvariablerne | **Ja** |
+
+Der er **ingen vagt** der kræver at de to er ens. Det er med vilje.
+
+### Hvordan en af dem afviger
+
+1. **Komponer anderledes.** Lad appens `assemble_screen.py` kalde andre
+   dele, i en anden rækkefølge, eller udelade en.
+2. **Erstat en del.** Skriv funktionen i appens **egen** build-mappe og kald
+   den i stedet. Delene kalder ikke hinanden på kryds — de returnerer
+   kontroller, som assembleren sætter sammen.
+3. **Er ændringen rigtig for BEGGE apps**, hører den i `tools/domain_parts.py`.
+   Er den kun rigtig for den ene, hører den i appens egen mappe.
+
+Den skelnen er hele grunden til, at delene ligger i `tools/` og ikke er
+kopieret ind i hver mappe. Kopier dem ikke tilbage, fordi den ene app skal
+have en lille ændring — skriv ændringen i den app.
 
 **`SECTIONS` er kontrakten mod SharePoint.** Hver linje svarer til en
 kolonne i `EquipmentItems` / `MaterialItems`, og `check_datasources.py`
@@ -185,8 +315,11 @@ indekserede boolske `IsOpen` — ikke på en række OR'ede statusværdier.
 ## Hvad check_layout.py fanger
 
 Canvas-layout kan ikke renderes uden for Studio, så det regnes efter i
-stedet, for skærmbredder fra 420 til 1920 px og for 0–8 items og 0–12
-operationer:
+stedet, for 0–8 items og 0–12 operationer og for de skærmbredder,
+`layout_tokens.test_widths()` giver — **hver breakpoint-grænse og pixlen
+under den** (420, 719, 720, 1023, 1024, 1366, 1599, 1600, 1920). Før stod
+der en håndplukket liste, der sprang henover 1023, og det er præcis dér,
+layoutfejl bor:
 
 1. Ingen `Height`-formel refererer en anden kontrols `.Height`
 2. Lodrette containere er høje nok til børn + gaps + egen polstring
@@ -197,6 +330,12 @@ operationer:
 7. Ingen formel refererer en kontrol, der ikke findes
 8. Enhver `col*`, skærmen bruger, findes i `App.pa.yaml` — som navngiven
    formel eller som `ClearCollect`
+8b. Enhver designtoken, skærmen bruger, findes i temaformlen `C`. Power Fx
+   siger **ikke** fra ved et felt, en record ikke har — den giver blank, og
+   blank er gennemsigtig. En stavefejl ville derfor ikke fejle i compile;
+   kontrollen ville bare forsvinde, måske kun i det ene tema
+8c. Ingen formel sammenligner `App.Width` med et tal — breakpoints hører i
+   `tools/layout_tokens.py`
 9. Ingen **lodret** container har et barn med `FillPortions <> 0`
 
 Punkt 7 fanger den klassiske: du sletter en kontrol og glemmer en
@@ -206,8 +345,35 @@ Punkt 8 fanger den samme fejl for data: flytter du en opslagsliste fra en
 hårdkodet tabel til en navngiven formel, bliver referencerne let hængende.
 
 Et barn med `Visible = false` regnes ikke med i højden — præcis som
-AutoLayout gør det. Kun det *litterale* `false`; en `Visible`-formel kan jo
-være sand, og så skal pladsen være der.
+AutoLayout gør det. Og et barn med en `Visible`-**formel** tælles kun med,
+når formlen er sand *i netop det testtilfælde*: `stack_height` skriver
+forælderens højde som `If(betingelse, gap + h, 0)`, så de to skal være
+enige. Kan betingelsen ikke regnes ud, tælles barnet med — hellere et fund
+for meget end en container, der klipper sit indhold.
+
+## Feltkanten har ÉN regel
+
+Alle fem inputtyper — `text_input`, `number_input`, `dropdown`,
+`date_picker`, `combobox` — kalder `build_helpers.border_rule()` og
+`input_fill()`. Byg ikke en sjette.
+
+```
+ikke krævet        ->  border-default   (eksplicit — ikke platformens standard)
+krævet + tom       ->  state-error-fg
+krævet + udfyldt   ->  state-ok-fg
+```
+
+**Grøn kun på krævede felter.** En grøn kant om hvert eneste udfyldt felt
+gør farven meningsløs; grøn skal betyde "dette krav er opfyldt", ikke "du
+har tastet noget".
+
+**Rød betyder "jeg har tjekket".** VH-plan gater på `varVhpPlanValidated`
+(Validér-knappen), Equipment og Material på `varDomValidated`, som sættes
+når brugeren trykker Gem eller Indsend. Ingen app viser rødt, før brugeren
+har bedt om et tjek — "rød fra første sekund" lærer brugeren at se bort fra
+rødt.
+
+Det hele står i `docs/28-feltfarvning.md`.
 
 ## Dropdown-`Default` er en RECORD, ikke en værdi
 
@@ -233,6 +399,37 @@ checker siger noget. Læses variablen af gem-knappen, kan der aldrig gemmes.
 > `drpVhpPlant.Selected.Value`, hvor variablen kun sætter startværdien.
 > Elleve falske fund ville lære nogen at springe advarsler over — og så
 > går regel 15's rigtige fund samme vej.
+
+## Flere hentninger på én gang: `Concurrent()`
+
+Uden den venter appen på **summen** af kaldene; med den kun på det
+længste. Fem SharePoint-lister i kæde er fem rundture efter hinanden.
+
+```python
+from build_helpers import concurrent
+concurrent(hent_a, hent_b, hent_c, indent=16)
+```
+
+**Men den hjælper kun formler med et connector- eller Dataverse-kald.**
+`Set()` af en lokal variabel, eller `ClearCollect` af en literal tabel,
+bliver ikke hurtigere — de tager mikrosekunder, og at pakke dem ind gør kun
+formlen sværere at læse.
+
+**Og den er farlig ved afhængigheder.** Rækkefølgen er ikke givet. To
+formler inde i den samme `Concurrent` må ikke afhænge af hinanden. Det er
+til gengæld sikkert at afhænge af noget **før** den, og at afhænge af den
+**bagefter**.
+
+> **Apperne henter ikke i `App.OnStart`** — det er den ældre og vigtigere
+> regel, og den står nedenfor. VH-plan bruger navngivne formler, Equipment
+> og Material henter i skærmens `OnVisible`. Den ene undtagelse er
+> dyblinket (`?reqid=`), og netop dér henter den fem lister — de er nu
+> samlet i én `Concurrent`.
+
+`check_layout` regel 20 advarer, når to eller flere **uafhængige**
+hentninger står i kæde. Den springer kæder over, hvor et senere led læser
+et tidligere, og kilder der er en `col*` eller en literal — dem er der
+ingenting at vinde på.
 
 ## Regel 15 er en advarsel, ikke en fejl
 
@@ -284,12 +481,8 @@ canvas-authoring-get_appchecker_errors
 canvas-authoring-get_accessibility_errors
 ```
 
-| App | `app_id` |
-|---|---|
-| VH-plan | `11fa8d90-868a-45a4-ba23-28f2cf0671a2` |
-| Masterdata Hub | `f387047d-86af-4d6a-8370-afcf35939436` |
-| Equipments | `24bf3bbc-601f-480d-a8fe-7cd3180906d1` |
-| Materials | `d7762919-c716-4bd0-9abd-24bab436221f` |
+App-id'erne står i `tools/canvas_apps.json` — kør `python3 tools/env_config.py`
+for at se dem.
 
 App-id'et står **ikke** i solution-eksporten. Det `Id`, en apps
 `Properties.json` bærer, er *dokumentets* id, ikke appens — de to er
@@ -301,19 +494,22 @@ PUBLICEREDE udgave — gemt er ikke nok. To eksporter i træk viste to blanke
 skabeloner, fordi apperne var gemt men ikke publiceret. `Status: Ready` i
 `meta.xml` siger intet om, hvorvidt indholdet er med.
 
-**En domæneapps id står tre steder**, og det er tre forskellige spørgsmål:
-`tools/canvas_apps.json` (hvor der deployes til), `hub_config.py` (hvad
-flisen åbner) og appens `PLAY_URL` (hvad der skrives i
-`MD_RequestIndex.AppUrl`). Glider de fra hinanden, fejler ingenting — det
-ses først, når en bruger trykker "Open" og lander i en tom app. Derfor
-tjekker `tools/build_all.py` det ved hver bygning.
+**Alle id'er står ét sted:** `tools/canvas_apps.json`, læst af
+`tools/env_config.py`. De stod før fire steder — her, i `hub_config.py`, i
+de to `domain_config.py` og i `sp_config.py` — holdt sammen af
+`check_app_ids()` i `build_all.py`: 60 linjer, der læste tre af filerne med
+**regex**. Vagten er slettet sammen med kopierne; den fejlklasse kan ikke
+opstå længere.
 
-**Hubbens eget id** står i `canvas_apps.json` og i de to domæneapps'
-`HUB_URL` — knappen "Tilbage til hubben". Den skal være et `Launch`, ikke
-et `Back`: hubben åbner satellitten med `LaunchTarget.New`, altså som en
-**selvstændig app i en ny fane**, og `Back()` navigerer kun mellem skærme
-i samme app. Med én skærm gjorde knappen ingenting. Også den kobling
-tjekkes ved hver bygning.
+```bash
+python3 tools/env_config.py          # hvilket miljø og hvilke id'er?
+python3 tools/build_all.py --env prod
+```
+
+Et nyt miljø er én blok mere under `environments`. `--env` sætter
+`CANVAS_ENV` for byggescripterne, så alle fire apps bygges mod **det samme**
+miljø — og `canvas_mcp.py` læser den samme fil, så man ikke kan bygge mod
+ét miljø og deploye til et andet.
 
 Equipment-appen er **`Equipments`** (`orsted_equipments_ebf7d`, i
 solutionen). Den ældre `dd9544e2-…` uden for solutionen findes stadig, men
@@ -404,9 +600,12 @@ egenskaber, builderne bevidst sætter.
    bliver strakt, og så passer den udregnede højde ikke længere til det, der
    tegnes. Flytter du en celle fra en gitterrække ned i en kolonne, så **sæt
    `fill_portions=0`**. Check 9 håndhæver det.
-4. **Stylingen skal være uændret.** Farver, radier, skriftstørrelser og
-   polstring matcher Materialer-appen, og de to apps skal blive ved at ligne
-   hinanden.
+4. **Stylingen skal være uændret.** Radier, skriftstørrelser og polstring
+   matcher Materialer-appen, og apperne skal blive ved at ligne hinanden.
+   Farver er nu designtokens: de skal ændres i `tools/design_tokens.py` og
+   **i begge temaer**, aldrig i en builder. En ny token uden en mørk værdi
+   bliver gennemsigtig — og det ses kun af de brugere, der har slået mørk
+   tilstand til.
 5. **Brug konstruktioner, der allerede findes i skærmen.** `ModernDropdown`,
    `Classic/ComboBox` til søg-og-vælg, gallery med `ModernCheckbox`, vandret
    gallery til dynamiske kolonner. Hver ubevist konstruktion i dette projekt
@@ -460,6 +659,12 @@ Med `New` får man **en fane pr. klik**. Åbn tre indmeldinger, og der er
 fire faner med Power Apps i, som alle ser ens ud i proceslinjen.
 
 Målet står som `APP_TARGET` i `hub_config.py`, så det kun er ét sted.
+
+**Temaet skal med i URL'en.** `SaveData`-lageret er isoleret pr. app-id, så
+uden `?theme=dark` ville et klik fra en mørk hub lande i en lys satellit —
+og brugeren ville se appen skifte farve som følge af sit eget klik. Både
+hubbens fliser, dens "Open", og satellitternes "Til hubben" hænger
+`design_tokens.theme_query()` på.
 
 **Undtagelsen er dokumenter.** `btnDomAttOpen` åbner en fil fra
 biblioteket i en **ny** fane. `Replace` ville smide appen væk — og en

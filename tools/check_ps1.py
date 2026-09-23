@@ -21,6 +21,36 @@ Det kostede en runde paa Export-ListSchema.ps1. To regler forhindrer det:
 Regel 2 alene ville vaere nok, men BOM'en goer det ufarligt, hvis nogen
 senere skriver et dansk tegn i en tekststreng. Brug ae/oe/aa i kildekoden
 og gem de rigtige bogstaver til det, scripterne SKRIVER UD.
+
+REGEL 3: INGEN LINJEFORTSAETTELSE MED BACKTICK
+----------------------------------------------
+Provision-HelpText.ps1 blev skrevet med `` i stedet for ` i enden af fem
+linjer. To backticks er et ESCAPET backtick-tegn, ikke en fortsaettelse,
+saa linjen slutter dér:
+
+    New-HelpField 'AppArea' Choice -Choices 'FunctionalLocation',``
+        'MeasuringPoint','Material','MaintenancePlan' -Indexed -Required
+
+    Unexpected token '-Indexed' in expression or statement.
+
+Scriptet kunne ikke koere, og tjekket her sagde god for filen: den havde
+BOM og var ren ASCII.
+
+TO TING FLAGGES, OG KUN TO
+    ``  sidst paa en kodelinje   - altid en parsefejl
+    `   med mellemrum efter      - ogsaa en parsefejl, og mellemrummet
+                                   kan man ikke se
+
+En REN enkelt backtick er gyldig og staar 18 steder i scripter, der
+virker. Den flages ikke. Foerste udgave af reglen gjorde, og fandt 20
+"fejl" - heraf to i KOMMENTARER (`#  Register-PnPEntraIDAppForInteractive
+Login ``) og atten gyldige fortsaettelser. En vagt, der raaber 20 gange
+om ingenting, bliver slaaet fra.
+
+Kommentarlinjer og here-strings springes derfor over.
+
+Der er ingen PowerShell-fortolker i byggeriet, saa en rigtig parsekontrol
+er ikke mulig. Det her er den ene fejlklasse, der faktisk har ramt.
 """
 import os, sys
 
@@ -51,20 +81,52 @@ def main():
                 problems.append(f"{rel}: ikke gyldig UTF-8 ({e})")
                 continue
 
+            in_here = None
             for lineno, line in enumerate(text.splitlines(), 1):
                 bad = sorted({c for c in line if ord(c) > 127})
                 if bad:
                     shown = ", ".join(f"{c!r} (U+{ord(c):04X})" for c in bad)
                     problems.append(f"{rel}:{lineno}: ikke-ASCII tegn: {shown}")
 
+                # Here-strings og kommentarer er ikke kode. Se REGEL 3.
+                if in_here:
+                    if line.strip() == in_here:
+                        in_here = None
+                    continue
+                if line.rstrip().endswith('@"'):
+                    in_here = '"@'
+                    continue
+                if line.rstrip().endswith("@'"):
+                    in_here = "'@"
+                    continue
+                if line.lstrip().startswith("#"):
+                    continue
+
+                stripped = line.rstrip()
+                if stripped.endswith("``"):
+                    problems.append(
+                        f"{rel}:{lineno}: dobbelt backtick sidst paa linjen. "
+                        f"`` er et ESCAPET backtick-tegn, ikke en "
+                        f"fortsaettelse - linjen slutter der, og naeste linje "
+                        f"parses for sig. Skriv den om uden fortsaettelse: en "
+                        f"variabel foerst, eller et komma der selv fortsaetter")
+                elif stripped.endswith("`") and line != stripped:
+                    problems.append(
+                        f"{rel}:{lineno}: backtick med mellemrum efter. "
+                        f"Fortsaettelsen gaelder kun, naar backticken er det "
+                        f"SIDSTE tegn paa linjen - og mellemrummet kan man "
+                        f"ikke se. Fjern det, eller skriv linjen om")
+
     if problems:
         print(f"{len(problems)} problem(er) i {checked} PowerShell-fil(er):\n")
         for p in problems:
             print("  " + p)
         print("\nBrug ae/oe/aa og '-' i stedet for em-dash. Gem filen som "
-              "UTF-8 MED BOM.")
+              "UTF-8 MED BOM.\nOg skriv linjefortsaettelser om - en backtick "
+              "sidst paa linjen er for let at braekke.")
         return 1
-    print(f"PowerShell-tjek OK: {checked} fil(er), alle med BOM og ren ASCII.")
+    print(f"PowerShell-tjek OK: {checked} fil(er), alle med BOM, ren ASCII "
+          f"og uden braekkede linjefortsaettelser.")
     return 0
 
 

@@ -2,7 +2,7 @@
 """
 Skriver ../App.pa.yaml: navngivne formler + OnStart.
 
-Ordret ens i de to domaene-build-mapper.
+APPENS EGEN - de to domaeneapps maa nu afvige.
 
 OnStart HENTER INGEN DATA
 -------------------------
@@ -22,9 +22,12 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), "tools"))
 
+import design_tokens as tok
+import layout_tokens as lay
 import domain_config as cfg
-from build_domain import FIELDS
+from domain_parts import FIELDS
 
 OUT_DIR = os.path.join(HERE, "..")
 
@@ -58,11 +61,15 @@ COLLECTIONS = [
     ("colDomFl",
      {"Code": '""', "Description": '""', "Display": '""',
       "Maintainable": "false", "Level": '""'}),
+    # Brugerens temavalg. Skrives af SaveData og laeses af LoadData - se
+    # tools/design_tokens.py.
+    tok.prefs_schema(),
 ]
 
 
 def formulas_block():
     return (
+        tok.formula() + "\n\n" + lay.formula() + "\n\n"
         "// Vaerkerne. Eneste opslagsliste appen laeser, og den laeses foerst,\n"
         "// naar dropdownen aabnes.\n"
         f"colDomPlants = Sort(ForAll({cfg.L_PLANTS} As R, {{ Value: R.Title }}), Value);"
@@ -81,15 +88,25 @@ STATE = '''Set(varDomMe, Lower(User().Email));
 Set(varDomRequestNo, "");
 Set(varDomRequestGuid, "");
 Set(varDomActiveRowId, Blank());
+// Hvilken raekke detaljeruden viser. Blank = ruden er skjult.
+Set(varDomDetailsId, Blank());
 Set(varDomRowStatus, "valid");
 Set(varDomAttJson, "");
 Set(varDomFlMsg, "");
 Set(varDomFlLast, "");
-Set(varDomInfo, "")'''
+Set(varDomInfo, "");
+
+// Er formularen blevet tjekket? Styrer om en kraevet feltkant maa vaere
+// roed. false ved opstart: en tom formular, ingen har roert, skal ikke
+// staa og lyse roedt. Saettes af Gem/Indsend - se domain_parts.REQUIRED.
+Set(varDomValidated, false)'''
 
 
 def main():
-    onstart = collection_block() + "\n\n" + STATE
+    # Temaet saettes FOER resten: skaermen tegner sig selv ud af C, og C
+    # laeser darkModeEnabled.
+    onstart = (collection_block() + "\n\n" + tok.onstart_block()
+               + "\n\n" + STATE)
 
     lines = ["App:", "  Properties:", "    Formulas: |"]
     first = True

@@ -27,34 +27,108 @@ stack_height()/row_height() taeller selv padding og gaps med, saa de ikke kan
 glemmes et enkelt sted.
 """
 import os
+import sys
 
-OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+def _out_dir():
+    """App-mappen, skaermen skal skrives i.
+
+    DEN MAA IKKE REGNES UD AF __file__. Her stod "HERE/..", og da filen
+    flyttede fra hver app's build-mappe til tools/, blev HERE/.. til
+    REPO-RODEN. Alle fire skaerme blev skrevet dér, app-mapperne beholdt
+    deres gamle udgaver - og layout-tjekket sagde "OK", fordi det laeste de
+    gamle filer. Groent byggeri, ingen aendring, ingen fejlmeddelelse.
+
+    Den rigtige kilde er INDGANGEN: assemble_screen.py ligger altid i
+    app'ens egen build-mappe. sys.argv[0] er den fil, der koeres.
+    """
+    entry = os.path.abspath(sys.argv[0]) if sys.argv and sys.argv[0] else ""
+    build = os.path.dirname(entry) if entry else os.getcwd()
+    app = os.path.abspath(os.path.join(build, ".."))
+    # Et app-mappe HAR en build-mappe. Uden det tjek ville en forkert sti
+    # bare skrive filen et tilfaeldigt sted - praecis som den gjorde.
+    if not os.path.isdir(os.path.join(app, "build")):
+        raise SystemExit(
+            "gen_screen: kan ikke finde app-mappen.\n"
+            "  indgang: %s\n  udledt:  %s\n"
+            "Koer builderen fra app'ens build-mappe:\n"
+            "    cd \"<App>/build\" && python3 assemble_screen.py\n"
+            "eller brug: python3 tools/build_all.py" % (entry or "(ingen)", app))
+    return app
+
+
+OUT_DIR = _out_dir()
+
+# Designtokens ligger EET sted for hele repoet - ikke i en kopi pr.
+# build-mappe som denne fil selv. Farven er det eneste, de fire apps skal
+# vaere enige om ned til vaerdien, og en kopi ville netop kunne glide.
+#
+# tools/ er udenfor app-mappen, og det er med vilje ufarligt her:
+# canvas_mcp.stage() kopierer KUN *.pa.yaml over til serveren, saa hverken
+# build/ eller tools/ naar nogensinde ud i Studio.
+ROOT = os.path.dirname(os.path.dirname(HERE))
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+from design_tokens import ref as _t, TRANSPARENT
+from layout_tokens import below, if_below
 
 # ---------------------------------------------------------------------------
-# Style constants (matched to ScreenMaterialer.pa.yaml / ScreenDetails.pa.yaml)
+# Farver
+#
+# Ingen vaerdi staar her. Hvert navn peger paa en DESIGNTOKEN, og tokenens
+# vaerdi staar i tools/design_tokens.py - eet sted for alle fire apps.
+#
+# Det, en builder skriver i en skaerm, er derfor ikke "RGBA(250, 251, 253, 1)"
+# men "C.'bg-card'". C er en navngiven formel i App.Formulas, der vaelger
+# mellem det lyse og det moerke saet. Derfor skifter hele appen tema uden at
+# en eneste kontrol ved, at moerk tilstand findes.
+#
+# Navnene nedenfor er de GAMLE C_*-navne. De staar i knap 500 kald ude i
+# builderne, og at doebe dem om ville vaere en anden aendring end den her.
 # ---------------------------------------------------------------------------
-C_APP_BG = "RGBA(237, 241, 247, 1)"
-C_CARD_BG = "RGBA(250, 251, 253, 1)"
-C_CARD_BORDER = "RGBA(215, 222, 232, 1)"
-C_TITLE = "RGBA(26, 34, 49, 1)"
-C_MUTED = "RGBA(89, 102, 122, 1)"
-C_REQUIRED = "RGBA(179, 50, 60, 1)"
-C_PRIMARY = "RGBA(0, 103, 174, 1)"
-C_PRIMARY2 = "RGBA(0, 122, 204, 1)"
-C_WHITE = "RGBA(255, 255, 255, 1)"
-C_TRANSPARENT = "RGBA(0, 0, 0, 0)"
-C_INPUT_BG = "RGBA(255, 255, 255, 1)"
-C_DISABLED_BG = "RGBA(240, 243, 248, 1)"
-C_DIVIDER = "RGBA(228, 233, 241, 1)"
+C_APP_BG = _t("bg-app")
+C_CARD_BG = _t("bg-card")
+C_SURFACE = _t("bg-surface")
+C_MUTED_BG = _t("bg-muted")
+C_CARD_BORDER = _t("border-default")
+C_TITLE = _t("text-primary")
+C_MUTED = _t("text-muted")
+C_REQUIRED = _t("state-error-fg")
+C_PRIMARY = _t("color-brand-primary")
+C_PRIMARY2 = _t("color-brand-primary-hover")
+C_PRIMARY_SOFT = _t("color-brand-primary-soft")
+C_WHITE = _t("text-on-primary")
+# Tekst paa en DOMAENEFARVE. I lys tilstand er den den samme hvide som
+# C_WHITE; i moerk er domaenefarverne lyse, og hvid tekst paa dem gav
+# 1,67-2,72:1. Derfor et eget navn - se CONTRAST i design_tokens.py.
+C_ON_DOMAIN = _t("text-on-domain")
+C_INPUT_BG = _t("input-bg")
+C_DISABLED_BG = _t("input-bg-disabled")
+C_DIVIDER = _t("border-subtle")
+C_MODAL_BG = _t("bg-modal")
+C_OVERLAY = _t("overlay")
 
-C_VALID_FG = "RGBA(21, 127, 92, 1)"
-C_VALID_BG = "RGBA(232, 245, 238, 1)"
-C_INVALID_FG = "RGBA(179, 50, 60, 1)"
-C_INVALID_BG = "RGBA(253, 236, 236, 1)"
-C_INFO_FG = "RGBA(0, 83, 140, 1)"
-C_INFO_BG = "RGBA(222, 240, 252, 1)"
-C_NEUTRAL_FG = "RGBA(89, 102, 122, 1)"
-C_NEUTRAL_BG = "RGBA(228, 233, 241, 1)"
+# Gennemsigtig er IKKE en token: den er den samme i begge temaer, og der
+# er ingen beslutning at traeffe om den.
+C_TRANSPARENT = TRANSPARENT
+
+# KANT vs. TEKST. C_VALID_FG/C_INVALID_FG er TEKSTfarver (4,5:1).
+# C_BORDER_OK/C_BORDER_ERROR er de samme to tilstande som en 1 px KANT
+# (3,0:1) - ens i lys tilstand, daempet i moerk. Se BALANCED i
+# tools/design_tokens.py for hvorfor de ikke kan vaere eet navn.
+C_BORDER_OK = _t("border-ok")
+C_BORDER_ERROR = _t("border-error")
+C_VALID_FG = _t("state-ok-fg")
+C_VALID_BG = _t("state-ok-bg")
+C_INVALID_FG = _t("state-error-fg")
+C_INVALID_BG = _t("state-error-bg")
+C_WARN_FG = _t("state-warn-fg")
+C_WARN_BG = _t("state-warn-bg")
+C_INFO_FG = _t("state-info-fg")
+C_INFO_BG = _t("state-info-bg")
+C_NEUTRAL_FG = _t("state-neutral-fg")
+C_NEUTRAL_BG = _t("state-neutral-bg")
 
 FONT = "Font.'Segoe UI'"
 
@@ -69,7 +143,13 @@ SHELL_W = "(App.Width - 64)"
 RAIL_W = 360
 SPLIT_GAP = 20
 # Bredden af Item Editor-kortet, udtrykt uden at referere nogen kontrol.
-EDITOR_W = f"If(App.Width < 1000, {SHELL_W}, {SHELL_W} - {RAIL_W} - {SPLIT_GAP})"
+#
+# Her stod "App.Width < 1000". Det var eet af FIRE braekpunkter mellem 996
+# og 1024, spredt over fire filer - heroen stablede ved 996, det her ved
+# 1000, hubbens fliser ved 1004 og FillPortions ved 1024. Alle fire stod
+# for det samme skift, og ingen af dem var valgt i forhold til de tre
+# andre. Nu er de eet tal. Se tools/layout_tokens.py.
+EDITOR_W = if_below("Desktop", SHELL_W, f"{SHELL_W} - {RAIL_W} - {SPLIT_GAP}")
 
 
 # ---------------------------------------------------------------------------

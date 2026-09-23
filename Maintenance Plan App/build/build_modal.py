@@ -2,8 +2,12 @@
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED, C_PRIMARY, C_WHITE, \
-    C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, FONT
+    C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, C_TRANSPARENT, C_DIVIDER, \
+    C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY, FONT
 from build_helpers import text_ctrl, group, button, text_input
+from design_tokens import ref_hex
+
+MUT_HEX = ref_hex("text-muted")
 
 VISIBLE_OPS = (
     "Filter(\n"
@@ -36,7 +40,7 @@ def _picker_header_html():
         "\"<style>html,body{margin:0;padding:0;overflow:hidden}</style>"
         f"<div style='display:grid;grid-template-columns:{cols};"
         f"column-gap:{PICKER_GAP}px;align-items:center;height:21px;line-height:21px;overflow:hidden;"
-        "color:#59667A;font-family:Segoe UI;font-size:11px;font-weight:600;white-space:nowrap;'>"
+        "color:\" & " + MUT_HEX + " & \";font-family:Segoe UI;font-size:11px;font-weight:600;white-space:nowrap;'>"
         f"{spans}</div>\""
     )
 
@@ -54,7 +58,7 @@ def build_tasklist_picker_modal():
                     justify="SpaceBetween", align_items="Center")
 
     txtSearch = text_input("txtVhpPickerSearch", "\"\"", placeholder="\"Search operation no, text, work center\"",
-                            width="Parent.Width - 220", height=36)
+                            width="Parent.Width - 220", height=36, label="\"Search operations\"")
     chkSelectAll = Ctrl("chkVhpPickerSelectAll", "ModernCheckbox", props={
         "AccessibleLabel": "\"Select all visible\"",
         "Default": (
@@ -63,6 +67,21 @@ def build_tasklist_picker_modal():
         ),
         "Height": "36",
         "Label": "\"Select all visible\"",
+        # DE HER TO ER IKKE LAVET OM - MED VILJE
+        #
+        # Begge er ForAll med en mutation indeni, og regel 15 naevner dem.
+        # Men maalet er colVhpPickerSelected, en samling i HUKOMMELSEN: der
+        # er intet netvaerkskald at spare, kun regelgenberegninger paa en
+        # liste, der har een raekke pr. markeret operation.
+        #
+        # Den oplagte omskrivning af OnUncheck ville vaere
+        #     RemoveIf(colVhpPickerSelected As SEL, ... SEL.OperationNo ...)
+        # Uden "As" er OperationNo tvetydig mellem de to raekkescopes, og
+        # om RemoveIf overhovedet tager "As" paa sit foerste argument, staar
+        # der ikke noget om i dokumentationen - syntaksen er skrevet
+        # RemoveIf(DataSource, Condition). Det er ikke noget at gaette paa i
+        # en formel, der ikke kan proeves af foer den er i Studio, for at
+        # spare noget, der ikke koster noget.
         "OnCheck": f"ForAll({VISIBLE_OPS} As VOP, If(CountRows(Filter(colVhpPickerSelected, OperationNo = VOP.OperationNo)) = 0, Collect(colVhpPickerSelected, {{ OperationNo: VOP.OperationNo }})))",
         "OnUncheck": f"ForAll({VISIBLE_OPS} As VOP, RemoveIf(colVhpPickerSelected, OperationNo = VOP.OperationNo))",
         "Width": "200",
@@ -78,10 +97,10 @@ def build_tasklist_picker_modal():
         ), size=12, color=C_MUTED, height=18, wrap="false")
 
     headHtml = Ctrl("conVhpPickerHeaderHtml", "HtmlViewer", props={
-        "Fill": "RGBA(0, 0, 0, 0)", "Height": "22", "HtmlText": PICKER_HEADER_HTML,
+        "Fill": C_TRANSPARENT, "Height": "22", "HtmlText": PICKER_HEADER_HTML,
         "PaddingBottom": "0", "PaddingLeft": "0", "PaddingRight": "0", "PaddingTop": "0", "Width": "636",
     }, h=22)
-    divider = group("conVhpPickerDivider", [], height=1, fill="RGBA(228, 233, 241, 1)", direction="Horizontal")
+    divider = group("conVhpPickerDivider", [], height=1, fill=C_DIVIDER, direction="Horizontal")
 
     chkRowSel = Ctrl("chkVhpPickerRowSel", "ModernCheckbox", props={
         "AccessibleLabel": "\"Select line\"",
@@ -111,7 +130,7 @@ def build_tasklist_picker_modal():
         props={
             "AccessibleLabel": "\"Tasklist line picker\"",
             "BorderStyle": "BorderStyle.None",
-            "Fill": "RGBA(215, 222, 232, 1)",
+            "Fill": C_CARD_BORDER,
             "FillPortions": "0",
             "Height": "280",
             "Items": VISIBLE_OPS,
@@ -140,13 +159,15 @@ def build_tasklist_picker_modal():
             "    Set(varVhpRuntimeInfo, \"Select one or more lines first.\"),\n"
             "    With(\n"
             "        { tl: LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey) },\n"
-            "        ForAll(\n"
-            "            Filter(\n"
-            "                tl.Operations As TLOP,\n"
-            "                CountRows(Filter(colVhpPickerSelected As SEL, SEL.OperationNo = TLOP.OperationNo)) > 0\n"
-            "            ) As TLOP,\n"
-            "            Collect(\n"
-            "                colVhpOperations,\n"
+            # Collect UDEN OM ForAll - eet kald i stedet for eet pr. linje.
+            "        Collect(\n"
+            "            colVhpOperations,\n"
+            "            ForAll(\n"
+            "                Filter(\n"
+            "                    tl.Operations As TLOP,\n"
+            "                    CountRows(Filter(colVhpPickerSelected As SEL, "
+            "SEL.OperationNo = TLOP.OperationNo)) > 0\n"
+            "                ) As TLOP,\n"
             "                {\n"
             "                    ItemId: varVhpActiveItemId, OperationNo: TLOP.OperationNo,\n"
             "                    OperationShortText: TLOP.OperationShortText, WorkHours: TLOP.WorkHours,\n"
@@ -172,7 +193,7 @@ def build_tasklist_picker_modal():
 
     modal = group(
         "conVhpPickerModal", [headRow, toolbar, infoText, listWrap, footer], direction="Vertical", gap=12,
-        fill="RGBA(255, 255, 255, 0.98)", border_color="RGBA(198, 224, 249, 1)", radius=16,
+        fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=16,
         pad=(18, 18, 18, 18), width=680, drop_shadow="ExtraBold", visible="varVhpTasklistPickerOpen")
     modal.props["X"] = "(App.Width - Self.Width) / 2"
     modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
@@ -214,7 +235,7 @@ def build_longtext_modal():
 
     box = text_input("txtVhpLongTextBox", "varVhpLongTextDraft",
                      placeholder='"Instructions for this operation"',
-                     width="Parent.Width", height=260, ttype="Multiline")
+                     width="Parent.Width", height=260, ttype="Multiline", label="\"Langtekst\"")
 
     # Gemmer paa knappen, ikke paa hvert tastetryk. Et OnChange pr. tegn ville
     # skrive i samlingen, mens man skriver - og Annuller ville ikke kunne
@@ -235,7 +256,7 @@ def build_longtext_modal():
 
     modal = group(
         "conVhpLongTextModal", [headRow, hint, box, footer], direction="Vertical", gap=12,
-        fill="RGBA(255, 255, 255, 0.98)", border_color="RGBA(198, 224, 249, 1)", radius=16,
+        fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=16,
         pad=(18, 18, 18, 18), width=620, drop_shadow="ExtraBold",
         visible="varVhpLongTextOpen")
     modal.props["X"] = "(App.Width - Self.Width) / 2"
@@ -247,7 +268,7 @@ def build_modal_backdrop():
     return Ctrl("conVhpPickerBackdrop", "GroupContainer", variant="AutoLayout", props={
         "BorderStyle": "BorderStyle.None",
         "DropShadow": "DropShadow.None",
-        "Fill": "RGBA(15, 23, 42, 0.35)",
+        "Fill": C_OVERLAY,
         "Height": "App.Height",
         "LayoutDirection": "LayoutDirection.Vertical",
         "Visible": "varVhpTasklistPickerOpen || varVhpLongTextOpen",
