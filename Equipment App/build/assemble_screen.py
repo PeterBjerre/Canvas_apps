@@ -44,27 +44,41 @@ def on_visible():
 
 
 def build_screen():
-    # LISTEN FAAR HELE BREDDEN
+    # BJAELKEN SCROLLER IKKE MED
     #
-    # Her stod listen i den ene halvdel og dokumentruden i den anden, med
-    # detaljekortet under listen. Listen har syv kolonner og over 800 px i
-    # faste bredder - i en halv skaerm var der ikke plads, og de sidste
-    # kolonner laa oven i hinanden.
+    # Den laa oeverst i den scrollende beholder sammen med alt andet. En
+    # formular med nitten felter er hoejere end skaermen, saa i det
+    # oejeblik man ruller ned for at udfylde den, er overskriften, antallet
+    # af raekker, Dark-knappen og vejen tilbage til hubben vaek. Og ruller
+    # man ikke helt til toppen igen, er titlen der stadig ikke - den
+    # ligger 30 px over kanten, mens undertitlen og knapperne kan ses.
     #
-    # Dokumenterne og detaljerne er nu popups (se domain_parts), saa
-    # skaermen er een spalte: bjaelke, formular, liste, indsend. Det er
-    # ogsaa den raekkefoelge, arbejdet sker i.
-    shell = group("conDomShell",
-                  [build_bar(), build_form(), build_rows(), build_submit()],
-                  direction="Vertical", gap=16,
-                  # 32, ikke 24: SHELL_W er "App.Width - 64", og
-                  # 24+24 er 48. De 16 px forskel gjorde SHELL_W
-                  # usand, saa layout-tjekket ikke kunne se, at
-                  # topbjaelken var 10 px for bred.
-                  pad=(20, 32, 40, 32))
-    root = group("conDomRoot", [shell], direction="Vertical",
-                 height="Parent.Height", width="Parent.Width",
-                 overflow_y="Scroll", fill=C_APP_BG)
+    # Det var praecis den melding, der kom: "man kan se knapperne paa
+    # oeverste banner, men ikke overskriften".
+    #
+    # Nu staar bjaelken UDEN FOR scrollbeholderen. Roden er skaermhoej og
+    # deler sig i to: en fast top og en rude, der tager resten og
+    # scroller. Bjaelken kan dermed ikke rulle vaek, uanset hvor langt ned
+    # i formularen man er.
+    header = group("conDomHeader", [build_bar()], direction="Vertical",
+                   gap=0, pad=(20, 32, 16, 32), fill=C_APP_BG)
+
+    # Hoejden er "resten" skrevet ud. FillPortions ville goere det samme,
+    # men regel 9 i layout-tjekket forbyder FillPortions i en lodret
+    # container - og den har ret i alle de andre tilfaelde, hvor hoejden
+    # er regnet ud af boernene. Her er den ikke; roden er skaermhoej.
+    body = group("conDomScroll",
+                 [build_form(), build_rows(), build_submit()],
+                 direction="Vertical", gap=16, pad=(0, 32, 40, 32),
+                 overflow_y="Scroll",
+                 # PARENTESEN ER IKKE PYNT. header.h er en SUM -
+                 # "36 + (52)" - saa "Parent.Height - 36 + (52)" er
+                 # Parent.Height PLUS 16. Ruden blev 104 px for hoej, og
+                 # den fejl kan ingen se paa et tal.
+                 height=f"Parent.Height - ({header.h})")
+
+    root = group("conDomRoot", [header, body], direction="Vertical", gap=0,
+                 height="Parent.Height", width="Parent.Width", fill=C_APP_BG)
     # Sloeret FOER popupperne: kontrollerne tegnes i den raekkefoelge, de
     # staar, saa det, der skal ligge bagved, skal staa foerst.
     return render_screen(cfg.SCREEN,

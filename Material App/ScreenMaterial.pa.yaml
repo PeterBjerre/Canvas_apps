@@ -76,15 +76,13 @@ Screens:
             LayoutDirection: |-
                 =LayoutDirection.Vertical
             LayoutGap: |-
-                =8
+                =0
             LayoutMinWidth: |-
                 =0
-            LayoutOverflowY: |-
-                =LayoutOverflow.Scroll
             Width: |-
                 =Parent.Width
           Children:
-            - conDomShell:
+            - conDomHeader:
                 Control: GroupContainer
                 Variant: AutoLayout
                 Properties:
@@ -92,25 +90,22 @@ Screens:
                       =BorderStyle.None
                   DropShadow: |-
                       =DropShadow.None
+                  Fill: |-
+                      =C.'bg-app'
                   FillPortions: |-
                       =0
                   Height: |-
-                      =60 + (If(((App.Width - 64)) < 826, 124, 52)) + 16 + (322 + (44) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + 20, Max((62), (62)))) + 14 + (152) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + (62) + 40, Max((62), (62), (62)))) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + (62) + 40, Max((62), (62), (62)))) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + (62) + (62) + 60, Max((62), (62), (62), (62)))) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + 20, Max((62), (62)))) + 14 + (166)) + 16 + (140 + 14 + (Max(Min(CountRows(Filter(
-                          colDomRows,
-                          (IsBlank(Trim(txtDomSearch.Text)) || Trim(txtDomSearch.Text) in MaterialDescription || Trim(txtDomSearch.Text) in FunctionalLocation || Trim(txtDomSearch.Text) in ManufacturerPartNo || Trim(txtDomSearch.Text) in Supplier),
-                          (drpDomStatusFilter.Selected.Value = "all" ||
-                           Status = drpDomStatusFilter.Selected.Value)
-                      )), 8), 1) * 46) + If(IfError(CountRows(colDomRows) = 0, false), 14 + (22), 0)) + 16 + (138)
+                      =36 + (52)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
                       =LayoutDirection.Vertical
                   LayoutGap: |-
-                      =16
+                      =0
                   LayoutMinWidth: |-
                       =0
                   PaddingBottom: |-
-                      =40
+                      =16
                   PaddingLeft: |-
                       =32
                   PaddingRight: |-
@@ -131,7 +126,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =If(((App.Width - 64)) < 826, 124, 52)
+                            =52
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Center
                         LayoutDirection: |-
@@ -140,8 +135,6 @@ Screens:
                             =20
                         LayoutMinWidth: |-
                             =0
-                        LayoutWrap: |-
-                            =true
                         Width: |-
                             =Parent.Width
                       Children:
@@ -154,7 +147,7 @@ Screens:
                               DropShadow: |-
                                   =DropShadow.None
                               FillPortions: |-
-                                  =0
+                                  =1
                               Height: |-
                                   =52
                               LayoutAlignItems: |-
@@ -166,7 +159,7 @@ Screens:
                               LayoutMinWidth: |-
                                   =0
                               Width: |-
-                                  =If(((App.Width - 64)) < 826, (App.Width - 64) - 24, (App.Width - 64) - 586)
+                                  =Parent.Width
                             Children:
                               - txtDomTitle:
                                   Control: ModernText
@@ -435,6 +428,39 @@ Screens:
                                         =VerticalAlign.Middle
                                     Width: |-
                                         =140
+            - conDomScroll:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =Parent.Height - (36 + (52))
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Stretch
+                  LayoutDirection: |-
+                      =LayoutDirection.Vertical
+                  LayoutGap: |-
+                      =16
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Scroll
+                  PaddingBottom: |-
+                      =40
+                  PaddingLeft: |-
+                      =32
+                  PaddingRight: |-
+                      =32
+                  PaddingTop: |-
+                      =0
+                  Width: |-
+                      =Parent.Width
+                Children:
                   - conDomFormCard:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -3930,7 +3956,7 @@ Screens:
                               LayoutMinWidth: |-
                                   =0
                               Width: |-
-                                  =Parent.Width
+                                  =Parent.Width - 24
                             Children:
                               - txtDomHead0:
                                   Control: ModernText
@@ -3964,7 +3990,7 @@ Screens:
                                     Text: |-
                                         ="MATERIAL"
                                     Width: |-
-                                        =Max(Min(Parent.Width - 860, 460), 150)
+                                        =Max(Min(Parent.Width - 844, 460), 150)
                                     Wrap: |-
                                         =false
                               - txtDomHead1:
@@ -4172,7 +4198,7 @@ Screens:
                                     Height: |-
                                         =18
                                     LayoutMinWidth: |-
-                                        =356
+                                        =364
                                     PaddingBottom: |-
                                         =0
                                     PaddingLeft: |-
@@ -4186,7 +4212,7 @@ Screens:
                                     Text: |-
                                         =""
                                     Width: |-
-                                        =356
+                                        =364
                                     Wrap: |-
                                         =false
                         - galDomRows:
@@ -4265,7 +4291,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =Parent.TemplateHeight - 2
+                                        =42
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Center
                                     LayoutDirection: |-
@@ -4277,7 +4303,7 @@ Screens:
                                     LayoutMinWidth: |-
                                         =0
                                     Width: |-
-                                        =Parent.TemplateWidth
+                                        =Parent.Width - 24
                                   Children:
                                     - txtDomRowText:
                                         Control: ModernText
@@ -4309,7 +4335,7 @@ Screens:
                                           Text: |-
                                               =If(IsBlank(Trim(ThisItem.MaterialDescription)), "(no text)", ThisItem.MaterialDescription)
                                           Width: |-
-                                              =Max(Min(Parent.Width - 860, 460), 150)
+                                              =Max(Min(Parent.Width - 844, 460), 150)
                                           Wrap: |-
                                               =false
                                     - txtDomRow0:
@@ -4512,7 +4538,7 @@ Screens:
                                           FillPortions: |-
                                               =0
                                           Height: |-
-                                              =26
+                                              =32
                                           LayoutAlignItems: |-
                                               =LayoutAlignItems.Center
                                           LayoutDirection: |-
@@ -4520,9 +4546,9 @@ Screens:
                                           LayoutGap: |-
                                               =4
                                           LayoutMinWidth: |-
-                                              =356
+                                              =364
                                           Width: |-
-                                              =356
+                                              =364
                                         Children:
                                           - btnDomRowOpen:
                                               Control: ModernButton
@@ -4546,9 +4572,11 @@ Screens:
                                                 FontWeight: |-
                                                     =FontWeight.Semibold
                                                 Height: |-
-                                                    =26
+                                                    =32
                                                 Layout: |-
                                                     =ButtonLayout.TextOnly
+                                                LayoutMinWidth: |-
+                                                    =60
                                                 OnSelect: |-
                                                     =Set(varDomActiveRowId, ThisItem.RowId);
                                                     Set(varDomRowStatus, ThisItem.Status);
@@ -4607,9 +4635,11 @@ Screens:
                                                 FontWeight: |-
                                                     =FontWeight.Semibold
                                                 Height: |-
-                                                    =26
+                                                    =32
                                                 Layout: |-
                                                     =ButtonLayout.TextOnly
+                                                LayoutMinWidth: |-
+                                                    =80
                                                 OnSelect: |-
                                                     =Set(varDomDetailsId, ThisItem.RowId)
                                                 RadiusBottomLeft: |-
@@ -4650,9 +4680,11 @@ Screens:
                                                 FontWeight: |-
                                                     =FontWeight.Semibold
                                                 Height: |-
-                                                    =26
+                                                    =32
                                                 Layout: |-
                                                     =ButtonLayout.TextOnly
+                                                LayoutMinWidth: |-
+                                                    =64
                                                 OnSelect: |-
                                                     =Set(varDomDocsId, ThisItem.RowId);
                                                     If(
@@ -4728,9 +4760,11 @@ Screens:
                                                 FontWeight: |-
                                                     =FontWeight.Semibold
                                                 Height: |-
-                                                    =26
+                                                    =32
                                                 Layout: |-
                                                     =ButtonLayout.TextOnly
+                                                LayoutMinWidth: |-
+                                                    =62
                                                 OnSelect: |-
                                                     =Set(varDomActiveRowId, Blank());
                                                     Set(varDomRowStatus, "draft");
@@ -4790,9 +4824,11 @@ Screens:
                                                 FontWeight: |-
                                                     =FontWeight.Semibold
                                                 Height: |-
-                                                    =26
+                                                    =32
                                                 Layout: |-
                                                     =ButtonLayout.TextOnly
+                                                LayoutMinWidth: |-
+                                                    =74
                                                 OnSelect: |-
                                                     =Remove(MaterialItems, LookUp(MaterialItems, ID = ThisItem.RowId));
                                                     RemoveIf(colDomAttachments, RowId = ThisItem.RowId);

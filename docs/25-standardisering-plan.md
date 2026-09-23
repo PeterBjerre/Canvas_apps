@@ -790,3 +790,95 @@ den rækkefølge, arbejdet sker i.
 Layoutet er regnet efter, ikke tegnet. **Åbn begge apps i Studio og se
 efter tre ting:** at topbjælken er der, at statuskolonnen står under sin
 overskrift, og at de to popups lukker igen.
+
+---
+
+## 11. Bjælken kan ikke ombryde mere, og rækken hviler på dokumenterede egenskaber
+
+Efter §10 kom to meldinger tilbage: *"nu kan man se knapperne på øverste
+banner, men ikke overskriften"*, og *"begge lister med gemte equipments
+og materialer har ingen knapper"*.
+
+### Overskriften
+
+Titlen ligger i bjælkens øverste 30 px. Knapperne er centreret og fylder
+8–44. **Den eneste måde at se det ene og ikke det andet på er, at
+bjælkens øverste ~30 px er klippet væk.** To ting kan gøre det, og begge
+er nu fjernet:
+
+**1. Bjælken kunne stadig ombryde.** Venstresiden blev regnet ud som
+`SHELL_W − højreside − mellemrum − reserve`. Tre tal, der skal ramme den
+plads, der *faktisk* er — og reserven var et gæt, fordi hverken
+scrollbarens bredde eller browserens afrunding kan læses fra en formel.
+Rammer gættet forkert, ombryder bjælken, og med en højde regnet for én
+række klippes begge rader.
+
+`FillPortions = 1` behøver ikke gætte. I en vandret AutoLayout-container
+betyder det *"tag det, der er tilbage"* — og det er præcis opgaven.
+Bjælken har ikke længere `LayoutWrap`, så der er ingen anden række at
+falde ned på. På en smal skærm klippes titlen i bredden i stedet, og det
+er en langt mildere fejl.
+
+**2. Bjælken scrollede med.** Den lå øverst i den scrollende beholder
+sammen med formularen. En formular med nitten felter er højere end
+skærmen, så i det øjeblik man ruller ned for at udfylde den, er
+overskriften, rækketallet, Dark-knappen og vejen tilbage til hubben væk.
+Og ruller man ikke *helt* til toppen igen, ligger titlen 30 px over
+kanten, mens undertitlen og knapperne kan ses — nøjagtigt det, der blev
+meldt.
+
+Skærmen er nu delt i to: en **fast top** og en rude, der tager resten og
+scroller.
+
+```
+conDomRoot          Height = Parent.Height
+ ├── conDomHeader    fast - indeholder bjælken
+ └── conDomScroll    Height = Parent.Height - (conDomHeader)   ← scroller
+```
+
+Parentesen om `conDomHeader` er ikke pynt. `header.h` er en **sum** —
+`36 + (52)` — så `Parent.Height - 36 + (52)` er `Parent.Height` **plus**
+16. Ruden blev 104 px for høj, og den fejl kan ingen se på et tal.
+
+`FillPortions` ville gøre det samme, men regel 9 forbyder det i en lodret
+container. Reglen har ret alle de steder, hvor højden er regnet ud af
+børnene; her er den ikke, for roden er skærmhøj. Frem for at udvide
+reglen er højden skrevet ud.
+
+### Knapperne i listen
+
+Det her kunne **ikke** efterprøves her — der findes ingen Power
+Apps-renderer i byggeriet, og fejlen er ikke synlig i den genererede
+YAML: rækken har alle syv kolonner, bredderne flugter med overskriftens,
+og regel 24 siger god for dem.
+
+Det, der er gjort, er at fjerne det, rækken hvilede på, som **ikke er
+dokumenteret**:
+
+| | var | er |
+|---|---|---|
+| `conDomRow.Width` | `Parent.TemplateWidth` | `Parent.Width - SCROLL_RESERVE` |
+| `conDomRow.Height` | `Parent.TemplateHeight - 2` | `42` |
+| `conDomListHead.Width` | `Parent.Width` | `Parent.Width - SCROLL_RESERVE` |
+
+`TemplateWidth` og `TemplateHeight` står **ikke** i Microsofts
+egenskabsliste for et Gallery — hverken under *Key properties* eller
+*Additional properties*. De virker, men de er udokumenterede, og en
+udokumenteret egenskab er ikke et sted at hænge en tabels kolonner op.
+
+Gevinsten er desuden, at overskriften og rækken nu regner ud fra **ét og
+samme grundtal**: overskriftens forælder er kortet, rækkens er galleriet,
+og galleriet er selv kortets bredde. `SCROLL_RESERVE` trækkes fra begge,
+så de ikke kan glide fra hinanden — og derfor ikke længere også fra
+`MAIN_W`, hvor den ville være talt to gange.
+
+Knapperækken har fået 8 px slack (den gik præcis op) og er hævet fra 26
+til **32 px** — den moderne Buttons egen dokumenterede standardhøjde.
+
+### En vagt, der ikke blev til noget
+
+Regel 25 skulle måle knapper mod de 32 px. Den fandt 20 knapper på 28–30
+px i hubben og VH-plan, som **beviseligt virker** i de deployede apps.
+En advarsel, der fyrer på tyve kontroller, der er i orden, lærer folk at
+ignorere den — så den blev fjernet igen. Højden på rækkens knapper er
+stadig rettet; der er bare ikke en regel, der kan bære den.

@@ -149,20 +149,15 @@ BAR_GAP = 10                         # MELLEM knapperne i hoejresiden
 # To tal, der skulle vaere det samme, og intet der sagde det. Nu er det
 # eet navn, brugt begge steder.
 BAR_OUTER_GAP = 20
-BAR_SLACK = 20                       # luft i HOEJRESIDEN, taelles kun EEN gang:
-                                     # den er en del af BAR_RIGHT_W, og venstresiden
-                                     # traekker derfor kun BAR_RIGHT_W + BAR_OUTER_GAP
-                                     # fra. Blev den talt med begge steder, fik titlen
-                                     # 220 px ved braekpunktet, hvor der staar 240.
-BAR_MIN_TITLE = 240                  # under det er titlen ikke laeselig
+BAR_SLACK = 20                       # luft i HOEJRESIDEN, saa knapperne ikke
+                                     # staar helt ude ved kanten
 BAR_RIGHT = [("txtDomCount", 110), ("txtDomReqNo", 150),
              ("btnDomTheme", 92), ("btnDomBack", 140)]
 BAR_RIGHT_W = (sum(w for _, w in BAR_RIGHT)
                + BAR_GAP * (len(BAR_RIGHT) - 1) + BAR_SLACK)
-# Braekpunktet: er der plads til BAADE hoejresiden og en laeselig titel?
-# Det er en CONTAINER-graense og ikke en enhedsklasse - en bjaelke med een
-# knap mere skal ombryde tidligere, uanset hvad slags enhed det er.
-BAR_MIN_W = BAR_RIGHT_W + BAR_OUTER_GAP + BAR_MIN_TITLE + SCROLL_RESERVE
+# Der er ikke laengere et braekpunkt paa bjaelken. Den ombryder ikke, saa
+# der er ikke noget at braekke - venstresiden tager den plads, hoejresiden
+# ikke bruger, og bliver den for smal, klippes titlen i bredden.
 # TO "er der valgt en raekke" - fordi der nu ER to.
 #
 # DM_SEL er formularens: Slet raekke kan kun trykkes, naar der ligger en
@@ -203,24 +198,26 @@ def build_bar():
     #
     # Nu kommer alle tre af BAR_RIGHT. Tilfoejes en knap, flytter
     # braekpunktet sig med.
-    # SCROLL_RESERVE ER IKKE PYNT
+    # VENSTRESIDEN TAGER RESTEN - DEN REGNER DEN IKKE UD
     #
-    # Her stod venstresiden som SHELL_W - (hoejreside + mellemrum). De tre
-    # tal gik PRAECIS op: venstre + gap + hoejre = SHELL_W.
+    # Her stod venstresiden som SHELL_W minus hoejresiden, minus
+    # mellemrummet, minus en reserve til scrollbaren. Tre tal, der skulle
+    # ramme den plads, der FAKTISK var - og et af dem var altid et gaet,
+    # fordi hverken scrollbarens bredde eller browserens afrunding kan
+    # laeses fra en formel.
     #
-    # Og det var fejlen. conDomRoot scroller lodret, saa scrollbaren
-    # ligger inden i bredden - Parent.Width kender den ikke. Bjaelken
-    # havde altsaa 15-17 px mindre, end den regnede med, ombroed derfor
-    # ved ENHVER skaermbredde, og da hoejden var regnet for een raekke,
-    # blev begge rader klippet vaek over og under den.
+    # FillPortions behoever ikke gaette. I en vandret AutoLayout-container
+    # betyder FillPortions = 1 "tag det, der er tilbage", og det er
+    # praecis opgaven: hoejresiden har faste bredder, venstresiden faar
+    # resten, hvad den end er.
     #
-    # Bjaelken var ikke forkert placeret. Den var usynlig - og det var
-    # netop det, der blev meldt: "den oeverste bjaelke er helt vaek" i
-    # baade Equipment og Material.
+    # Og saa kan bjaelken ikke ombryde. Det er hele pointen: da den
+    # ombroed, blev den klippet af sin egen hoejde, og BAADE titlen og
+    # knapperne forsvandt. Uden wrap er der ingen anden raekke at falde
+    # ned paa - titlen klippes i bredden paa en smal skaerm, og det er en
+    # langt mildere fejl end at hele bjaelken bliver vaek.
     left = group("conDomBarLeft", [title, sub], direction="Vertical", gap=2,
-                 width=fits(SHELL_W, BAR_MIN_W,
-                            f"{SHELL_W} - {SCROLL_RESERVE}",
-                            f"{SHELL_W} - {BAR_RIGHT_W + BAR_OUTER_GAP + SCROLL_RESERVE}"))
+                 width="Parent.Width", fill_portions=1)
 
     count = badge("txtDomCount", '"Rows: " & CountRows(colDomRows)', width=110)
     no = text_ctrl("txtDomReqNo",
@@ -241,21 +238,19 @@ def build_bar():
     right = group("conDomBarRight", row,
                   direction="Horizontal", gap=BAR_GAP, align_items="Center",
                   justify="End", width=str(BAR_RIGHT_W))
-    # HOEJDEN SKAL FOELGE OMBRYDNINGEN, IKKE ANTAGE DEN
+    # HOEJDEN ER EN RAEKKE. IKKE "EN ELLER TO, ALT EFTER".
     #
-    # Her stod wrap_rows=2, og row_height() ganger uden betingelse: hoejden
-    # blev Max(52, 36) * 2 + 20 = 124 ved ENHVER skaermbredde. Paa alt
-    # bredere end braekpunktet staar bjaelken paa EEN raekke a 52 px, og de
-    # resterende 72 px blev et tomt baelte oeverst i baade Equipment og
-    # Material. Det var det, der saa forkert ud.
+    # Den har vaeret begge fejl. Foerst wrap_rows=2, som ganger uden
+    # betingelse: 124 px ved enhver bredde, saa der laa et tomt baelte paa
+    # 72 px oeverst i begge apper. Saa en betinget hoejde, der fulgte
+    # braekpunktet - men ombrydningen fulgte den FAKTISKE plads, og de to
+    # kom ud af trit, saa bjaelken blev klippet til usynlighed.
     #
-    # Nu er hoejden den SAMME betingelse, som afgoer ombrydningen - regnet
-    # af de to gruppers egne hoejder, saa den ikke kan komme ud af trit.
-    one = max(int(left.h), int(right.h))
-    two = one * 2 + BAR_OUTER_GAP
+    # Nu kan den ikke ombryde (se venstresiden), og saa er hoejden den
+    # hoejeste af de to grupper. Eet tal, ingen betingelse.
     return group("conDomBar", [left, right], direction="Horizontal",
-                 gap=BAR_OUTER_GAP, align_items="Center", wrap="true",
-                 height=fits(SHELL_W, BAR_MIN_W, str(two), str(one)))
+                 gap=BAR_OUTER_GAP, align_items="Center",
+                 height=str(max(int(left.h), int(right.h))))
 
 
 # ---------------------------------------------------------------------------
@@ -888,7 +883,23 @@ GAP = 10
 ROW_BTN = {"btnDomRowOpen": 60, "btnDomRowDetails": 80, "btnDomRowDocs": 64,
            "btnDomRowCopy": 62, "btnDomRowDelete": 74}
 ROW_BTN_GAP = 4
-ACTIONS_W = sum(ROW_BTN.values()) + ROW_BTN_GAP * (len(ROW_BTN) - 1)
+
+# HOEJDEN VAR 26. DEN MODERNE KNAP ER 32.
+#
+# Fluent 2's knap har tre stoerrelser - small 24, medium 32, large 40 - og
+# appen saetter ingen af dem, saa knapperne er medium. En medium knap i en
+# beholder paa 26 px bliver klippet af beholderen; hvad der er tilbage er
+# en vandret stribe af en kant.
+#
+# 32 er knappens egen hoejde. Raekken er 44 - 2 = 42, saa der er plads.
+ROW_BTN_H = 32
+
+# SLACK: knapperne summer til ACTIONS_W - 8, ikke til ACTIONS_W. En
+# beholder, hvis boern gaar praecis op, er den samme fejl som topbjaelkens
+# - se tools/layout_tokens.py.
+ACTIONS_SLACK = 8
+ACTIONS_W = (sum(ROW_BTN.values()) + ROW_BTN_GAP * (len(ROW_BTN) - 1)
+             + ACTIONS_SLACK)
 
 # Sidste kolonne i LIST_COLS er handlingerne. Bredden staar som 0 i de to
 # domain_config.py og regnes HER - ellers skulle det samme tal vedligeholdes
@@ -902,10 +913,11 @@ FIXED = sum(w for _n, w in LIST_COLS) + GAP * (len(LIST_COLS) - 1)
 # de oevrige kolonner blev skubbet helt ud til hoejre kant, og imellem dem
 # laa en tom flade paa halvdelen af vinduet. En tabel skal vaere saa bred
 # som sit indhold, ikke som sin beholder.
-# SCROLL_RESERVE: galleriet har en scrollbar, og den ligger inden i
-# TemplateWidth. Uden den gik raekken PRAECIS op med sin container - og
-# gik derfor lige netop ikke op.
-MAIN_W = f"Max(Min(Parent.Width - {FIXED + SCROLL_RESERVE}, 460), 150)"
+# Reserven til scrollbaren ligger paa CONTAINEREN - baade
+# conDomListHead og conDomRow er Parent.Width minus SCROLL_RESERVE - saa
+# de to regner ud fra praecis det samme tal, og kolonnerne kan ikke glide
+# fra hinanden. Derfor ikke ogsaa her; saa ville den vaere talt to gange.
+MAIN_W = f"Max(Min(Parent.Width - {FIXED}, 460), 150)"
 
 SEARCH = " || ".join(
     f"Trim(txtDomSearch.Text) in {c}" for c in cfg.SEARCH_FIELDS)
@@ -1057,11 +1069,22 @@ def build_rows():
     toolbar = group("conDomToolbar", pin_widths([search, status]),
                     direction="Horizontal", gap=12, align_items="Center")
 
+    # EET GRUNDTAL TIL BEGGE RAEKKER
+    #
+    # Overskriften regnede sin fleksible kolonne ud af KORTETS bredde, og
+    # galleriraekken sin af Parent.TemplateWidth. To forskellige tal, og
+    # TemplateWidth staar ikke engang i Microsofts egenskabsliste for et
+    # Gallery - den er udokumenteret.
+    #
+    # Nu er begge "Parent.Width minus scrollbaren": overskriftens foraelder
+    # er kortet, raekkens er galleriet, og galleriet er selv kortets
+    # bredde. Samme tal, samme udregning, samme kolonner.
     head = group("conDomListHead",
                  pin_widths([_head_cell(i, n, w)
                              for i, (n, w) in enumerate(LIST_COLS)]),
                  direction="Horizontal", gap=GAP, height=18,
-                 align_items="Center")
+                 align_items="Center",
+                 width=f"Parent.Width - {SCROLL_RESERVE}")
 
     cells = [text_ctrl("txtDomRowText",
                        f'If(IsBlank(Trim(ThisItem.{cfg.C_TEXT})), "(no text)", ThisItem.{cfg.C_TEXT})',
@@ -1095,34 +1118,40 @@ def build_rows():
     # ogsaa, men den er usynlig, og saa er det de faerreste der proever.
     acts = [
         button("btnDomRowOpen", '"Edit"', load_row_fx(),
-               width=ROW_BTN["btnDomRowOpen"], height=26),
+               width=ROW_BTN["btnDomRowOpen"], height=ROW_BTN_H),
         button("btnDomRowDetails", '"Details"',
                'Set(varDomDetailsId, ThisItem.RowId)',
-               width=ROW_BTN["btnDomRowDetails"], height=26),
+               width=ROW_BTN["btnDomRowDetails"], height=ROW_BTN_H),
         # Dokumenterne paa DENNE raekke - uden at laese den ind i
         # formularen foerst.
         button("btnDomRowDocs", '"Docs"', open_docs_fx(),
-               width=ROW_BTN["btnDomRowDocs"], height=26),
+               width=ROW_BTN["btnDomRowDocs"], height=ROW_BTN_H),
         button("btnDomRowCopy", '"Copy"', copy_row_fx(),
-               width=ROW_BTN["btnDomRowCopy"], height=26),
+               width=ROW_BTN["btnDomRowCopy"], height=ROW_BTN_H),
         button("btnDomRowDelete", '"Delete"', delete_this_row_fx(),
-               danger=True, width=ROW_BTN["btnDomRowDelete"], height=26),
+               danger=True, width=ROW_BTN["btnDomRowDelete"],
+               height=ROW_BTN_H),
     ]
     got = [(c.name, int(c.props["Width"])) for c in acts]
     want = list(ROW_BTN.items())
     if got != want:
         raise SystemExit("ROW_BTN passer ikke paa raekkens knapper:\n"
                          "  ROW_BTN: %s\n  raekken: %s" % (want, got))
-    cells.append(group("conDomRowActions", acts, direction="Horizontal",
-                       gap=ROW_BTN_GAP, height=26, align_items="Center",
+    cells.append(group("conDomRowActions", pin_widths(acts),
+                       direction="Horizontal", gap=ROW_BTN_GAP,
+                       height=ROW_BTN_H, align_items="Center",
                        width=str(ACTIONS_W)))
 
     # align_items="Start" og ikke Stretch: raekken skal vaere saa bred som
     # sine celler, ikke som skabelonen - ellers straekkes den sidste celle
     # ud over den tomme flade til hoejre.
+    # Hoejden er ROW_H - 2 skrevet ud, ikke Parent.TemplateHeight. De to
+    # er det samme tal - TemplateSize ER ROW_H - men det ene er et tal,
+    # appen kan regne med, og det andet er en egenskab, Microsoft ikke
+    # dokumenterer paa et Gallery.
     row = group("conDomRow", pin_widths(cells), direction="Horizontal", gap=GAP,
-                height="Parent.TemplateHeight - 2", align_items="Center",
-                justify="Start", width="Parent.TemplateWidth")
+                height=str(ROW_H - 2), align_items="Center",
+                justify="Start", width=f"Parent.Width - {SCROLL_RESERVE}")
 
     gal_h = f"Max(Min(CountRows({SCOPE}), {GAL_ROWS}), 1) * {ROW_H + 2}"
     gal = Ctrl("galDomRows", "Gallery", variant="Vertical", props={
