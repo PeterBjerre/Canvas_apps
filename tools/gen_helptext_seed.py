@@ -27,10 +27,18 @@ De syv DYNAMISKE hints. De er ikke tekst, men Power Fx:
 Den fortaeller HVORFOR feltet lyser lige nu og saetter vaerkskoden ind.
 Den kan ikke vaere en raekke i en liste, og den bliver i koden.
 
-KOER
-----
-    python3 tools/gen_helptext_seed.py
-    sharepoint/provision/Provision-HelpText.ps1 -SiteUrl ... -Seed
+DEN HER ER KOERT EEN GANG, OG DET VAR MENINGEN
+----------------------------------------------
+Scriptet er et FLYTTEVAERKTOEJ. Da teksterne var flyttet, havde
+build_help.py ikke laengere en kopi at laese - og saa producerer
+scriptet en TOM csv.
+
+Det er ikke en teoretisk fare: koerer man den i dag, overskriver den
+sharepoint/seed/MD_HelpText.csv med bare en overskriftslinje, og de 36
+raekker er vaek. _refuse_to_empty() nedenfor stopper det.
+
+Skal seedet laves om, er kilden nu LISTEN - ikke koden. Eksporter den
+fra SharePoint.
 """
 import ast
 import csv
@@ -112,8 +120,43 @@ def rows():
     return out
 
 
+def _refuse_to_empty(data):
+    """Et flyttevaerktoej maa ikke oedelaegge det, det har flyttet.
+
+    Foerste gang scriptet koerte, stod teksterne i build_help.py, og det
+    skrev 36 raekker. Bagefter var de VAEK fra koden - det var hele
+    pointen - saa anden gang ville det skrive nul raekker oven i dem.
+
+    Der er ingen rigtig grund til at koere det igen, saa det siger fra i
+    stedet for at goere skade."""
+    if data:
+        return
+    had = 0
+    if os.path.exists(OUT):
+        with io.open(OUT, encoding="utf-8-sig", newline="") as f:
+            had = max(0, sum(1 for _ in f) - 1)
+    if not had:
+        print("Ingen statiske hjaelpetekster i build_help.py, og intet seed "
+              "i forvejen.\nDer er ingenting at flytte.")
+        return
+    raise SystemExit(
+        "STOPPER: build_help.py har ingen statiske hjaelpetekster tilbage,\n"
+        "men %s har %d raekke(r).\n\n"
+        "Flytningen er gjort. Teksterne bor i SharePoint-listen MD_HelpText,\n"
+        "og koden har ikke laengere en kopi at lave et seed ud af - saa det\n"
+        "her ville skrive en TOM fil oven i dem.\n\n"
+        "Skal listen fyldes, saa koer provisioneringen med det seed, der\n"
+        "allerede ligger:\n"
+        "    sharepoint/provision/Provision-HelpText.ps1 -SiteUrl <url> -Seed\n\n"
+        "Skal seedet laves om, er kilden LISTEN - eksporter den fra SharePoint."
+        % (os.path.relpath(OUT, ROOT), had))
+
+
 def main():
     data = rows()
+    _refuse_to_empty(data)
+    if not data:
+        return
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with io.open(OUT, "w", encoding="utf-8-sig", newline="") as f:
         w = csv.DictWriter(f, fieldnames=COLUMNS)

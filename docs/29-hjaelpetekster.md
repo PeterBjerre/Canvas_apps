@@ -147,20 +147,41 @@ dem over.
 ## Sådan tager du det i brug
 
 ```powershell
-# 1. Opret listen og fyld den med det, koden havde
-python3 tools/gen_helptext_seed.py
+# 1. Opret listen og fyld den. Seedet ligger allerede i repoet.
 sharepoint\provision\Provision-HelpText.ps1 -SiteUrl "https://..." -Seed
 
-# 2. Eksportér skemaet, så tjekket kender kolonnerne
+# 2. Eksportér skemaet, så check_datasources kender kolonnerne
 sharepoint\inspect\Export-ListSchema.ps1 -SiteUrl "https://..."
 
-# 3. Byg
-python3 tools/build_all.py
+# 3. Byg og deploy
+python3 tools\build_all.py
+python  tools\canvas_mcp.py deploy --app vhplan
+```
+
+**`tools/gen_helptext_seed.py` skal du ikke køre.** Den er et
+flytteværktøj, og den er kørt. Da teksterne var flyttet, havde
+`build_help.py` ikke længere en kopi at læse — så den ville skrive en
+**tom** csv oven i de 36 rækker. Den siger fra i stedet:
+
+```
+STOPPER: build_help.py har ingen statiske hjaelpetekster tilbage,
+men sharepoint/seed/MD_HelpText.csv har 36 raekke(r).
+...
+Skal seedet laves om, er kilden LISTEN - eksporter den fra SharePoint.
 ```
 
 `-Seed` **overskriver ikke** rækker, der findes i forvejen — de er
 SharePoints nu. Skal listen sættes tilbage til det, koden havde, er der
 `-Force`.
+
+Indtil trin 2 er kørt, står der i hvert build:
+
+```
+1 liste(r) oprettes af provisioneringen, men findes ikke i udtraekket endnu:
+  MD_HelpText
+```
+
+Det er den rigtige tilstand — kolonnerne er ikke efterprøvet endnu.
 
 ---
 
