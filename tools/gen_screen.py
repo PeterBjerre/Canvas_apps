@@ -113,6 +113,12 @@ C_OVERLAY = _t("overlay")
 # er ingen beslutning at traeffe om den.
 C_TRANSPARENT = TRANSPARENT
 
+# KANT vs. TEKST. C_VALID_FG/C_INVALID_FG er TEKSTfarver (4,5:1).
+# C_BORDER_OK/C_BORDER_ERROR er de samme to tilstande som en 1 px KANT
+# (3,0:1) - ens i lys tilstand, daempet i moerk. Se BALANCED i
+# tools/design_tokens.py for hvorfor de ikke kan vaere eet navn.
+C_BORDER_OK = _t("border-ok")
+C_BORDER_ERROR = _t("border-error")
 C_VALID_FG = _t("state-ok-fg")
 C_VALID_BG = _t("state-ok-bg")
 C_INVALID_FG = _t("state-error-fg")

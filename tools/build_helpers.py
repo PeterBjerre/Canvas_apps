@@ -16,6 +16,7 @@ from gen_screen import (
     C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED,
     C_PRIMARY, C_PRIMARY2, C_WHITE, C_TRANSPARENT, C_INPUT_BG, C_DISABLED_BG,
     C_DIVIDER, C_VALID_FG, C_VALID_BG, C_INVALID_FG, C_INVALID_BG,
+    C_BORDER_OK, C_BORDER_ERROR,
     C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, FONT,
     SHELL_W, EDITOR_W, RAIL_W, SPLIT_GAP, OUT_DIR,
 )
@@ -181,16 +182,27 @@ def button(name, text, onselect, primary=False, danger=False, width=140, height=
         "VerticalAlign": "VerticalAlign.Middle",
         "Width": str(width),
     }
+    # OUTLINE, IKKE SECONDARY
+    #
+    # ButtonAppearance.Secondary er dokumenteret som "subtle FILLED style",
+    # og den moderne Button har INGEN Fill-egenskab - fyldet kommer fra
+    # Fluent-temaet, som appen ikke saetter. I moerk tilstand blev hver
+    # sekundaer knap derfor en LYS pille paa moerk baggrund, med vores egen
+    # naesten-hvide C_TITLE ovenpaa. Uleselig, og ingen token kunne rette
+    # det, fordi farven ikke kom fra en token.
+    #
+    # Outline er dokumenteret som "outlined button with NO background
+    # fill". Saa er der kun kant og tekst tilbage - og dem saetter vi selv.
     if danger:
-        props["Appearance"] = "ButtonAppearance.Secondary"
-        props["BorderColor"] = C_INVALID_FG
+        props["Appearance"] = "ButtonAppearance.Outline"
+        props["BorderColor"] = C_BORDER_ERROR
         props["BorderThickness"] = "1"
         props["Color"] = C_INVALID_FG
     elif primary:
         props["BasePaletteColor"] = base_color or C_PRIMARY
         props["Color"] = C_WHITE
     else:
-        props["Appearance"] = "ButtonAppearance.Secondary"
+        props["Appearance"] = "ButtonAppearance.Outline"
         props["BorderColor"] = C_CARD_BORDER
         props["BorderThickness"] = "1"
         props["Color"] = C_TITLE
@@ -285,8 +297,8 @@ def border_rule(empty_test, required_formula="false"):
         return C_CARD_BORDER
     return (f"If(\n"
             f"    {required_formula} && {empty_test},\n"
-            f"    {C_REQUIRED},\n"
-            f"    If({empty_test}, {C_CARD_BORDER}, {C_VALID_FG})\n"
+            f"    {C_BORDER_ERROR},\n"
+            f"    If({empty_test}, {C_CARD_BORDER}, {C_BORDER_OK})\n"
             f")")
 
 
