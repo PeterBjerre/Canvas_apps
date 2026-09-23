@@ -31,6 +31,7 @@ i en builder — byggeriet stopper, hvis nogen gør:
 |---|---|
 | [`tools/design_tokens.py`](tools/design_tokens.py) | Alle farver, begge temaer. Mørk tilstand er den anden gren af samme `If`. Se [`docs/26-designtokens.md`](docs/26-designtokens.md) |
 | [`tools/layout_tokens.py`](tools/layout_tokens.py) | Alle breakpoints. `LayoutContext` / `LayoutRank`. Se [`docs/27-layouttokens.md`](docs/27-layouttokens.md) |
+| [`tools/build_helpers.py`](tools/build_helpers.py) `app_frame` / `top_bar` / `flow_row` | Rammen, bjælken og rækker der ombryder — ens i alle fire apps. Se [`docs/30-responsivt-layout.md`](docs/30-responsivt-layout.md) |
 
 Arbejdsgangen står i [`.github/skills/canvas-build/SKILL.md`](.github/skills/canvas-build/SKILL.md).
 

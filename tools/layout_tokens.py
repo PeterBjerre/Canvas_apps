@@ -140,6 +140,62 @@ def rank_for(width):
     return _RANK[tier_for(width)]
 
 
+
+# ---------------------------------------------------------------------------
+# RAMMEN - den plads, indholdet FAKTISK har
+#
+# Alle fire skaerme har samme ramme (build_helpers.app_frame):
+#
+#     con<X>Root     lodret, Parent.Width x Parent.Height, scroller IKKE
+#       con<X>Header   fast hoejde - bjaelken. Scroller aldrig vaek, og
+#                      dens hoejde afhaenger kun af App.Width.
+#       con<X>Body     FillPortions = 1, LayoutOverflowY = Scroll. Kortene
+#                      staar direkte i den. INGEN hoejde summeres.
+#
+# SHELL_W er den bredde, alle builderne regner med. Den SKAL vaere en
+# NEDRE graense for det, platformen giver - aldrig et gaet paa det praecise
+# tal. Er den bare een pixel for stor, bliver en raekke, der er regnet til
+# at fylde SHELL_W, for bred, dens sidste barn ombryder til en linje, som
+# hoejden ikke har plads til, og barnet klippes vaek. Det var praecis
+# bjaelkerne og knapperne, der forsvandt.
+#
+# Og det var "hit and miss", fordi scrollbaren er det: paa Windows tager
+# den ~17 px af bredden, paa en Mac ligger den oven paa indholdet og koster
+# ingenting. Den samme skaerm var hel paa een maskine og klippet paa den
+# anden.
+#
+# Derfor regnes scrollbaren ALTID med, og der laegges FIT_SLACK oveni:
+#
+#     body:    PAGE_PAD_L + PAGE_PAD_R + SCROLLBAR_W + FIT_SLACK = SHELL_INSET
+#     header:  PAGE_PAD_L + (PAGE_PAD_R + SCROLLBAR_W) + FIT_SLACK = SHELL_INSET
+#
+# Headeren scroller ikke, men faar scrollbarens bredde som hoejre-padding,
+# saa dens hoejre kant flugter med kortenes, og SHELL_W er sand begge
+# steder. Den faktiske bredde er altsaa ALTID >= SHELL_W + FIT_SLACK.
+# layout-tjekket (regel 4c og 23) efterregner det.
+# ---------------------------------------------------------------------------
+PAGE_PAD_L = 24
+PAGE_PAD_R = 16
+# Bredere end de 17 px, Windows' klassiske scrollbar fylder i Edge og
+# Chrome. Et par pixels for meget koster intet; een for lidt klipper.
+SCROLLBAR_W = 18
+# Luft, saa ingen raekke nogensinde er regnet til at passe PAA pixlen.
+# Afrunding af broekdele og en kant paa 1 px maa ikke kunne vaelte den.
+FIT_SLACK = 6
+SHELL_INSET = PAGE_PAD_L + PAGE_PAD_R + SCROLLBAR_W + FIT_SLACK
+SHELL_W = "(App.Width - %d)" % SHELL_INSET
+
+# Top og bund. Bunden i kroppen er stor nok til, at det sidste kort ikke
+# ligger klos op ad kanten, naar man har scrollet helt ned.
+HEADER_PAD_T = 14
+HEADER_PAD_B = 10
+BODY_PAD_T = 16
+BODY_PAD_B = 40
+
+assert SHELL_INSET == 64, (
+    "SHELL_INSET er %d. Tallet indgaar i alle breakpoint-beregninger i de "
+    "fire apps og i docs/27 - flyt det kun med vilje." % SHELL_INSET)
+
 # ---------------------------------------------------------------------------
 # Udtryk, builderne skriver
 # ---------------------------------------------------------------------------

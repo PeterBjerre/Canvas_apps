@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED, C_PRIMARY, C_WHITE,
                         C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, C_VALID_FG, C_INVALID_FG,
                         C_DIVIDER, C_TRANSPARENT, C_INPUT_BG, FONT, SHELL_W)
-from build_helpers import (wrap_row_height, text_ctrl, group, button, button_row, text_input, number_input, dropdown,
+from build_helpers import (flow_row, text_ctrl, group, button, button_row, text_input, number_input, dropdown,
                            label_row, field_cell, two_col_row, badge, card, pin_widths)
 from build_plan_header import section_header, help_panel
 import build_help as bh
@@ -199,9 +199,10 @@ def _tab_bar():
         if cond:
             b.vis = f"IfError({cond}, false)"
         kids.append(b)
-    return group("conVhpOpsTabBar", kids, direction="Horizontal", gap=6,
-                 align_items="Center", width="Parent.Width", wrap="true",
-                 height=wrap_row_height(kids, 6, OPS_CW))
+    # Enten een linje, eller een fane pr. linje - build_helpers.flow_row.
+    # wrap_row_height() regnede med hoejst to linjer; paa en smal skaerm
+    # blev det fire, og de to nederste faner var klippet vaek.
+    return flow_row("conVhpOpsTabBar", kids, OPS_CW, gap=6)
 
 
 # Bliver planen lavet om fra strategi- til tidsplan, mens man staar paa
