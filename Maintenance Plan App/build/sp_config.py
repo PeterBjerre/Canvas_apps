@@ -122,6 +122,32 @@ def _forall(source, fields, alias="R"):
 # Navngivne formler. Raekkefoelgen er ligegyldig - Power Fx loeser selv
 # afhaengighederne, saa laenge der ikke er cyklusser.
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Vaerdier der IKKE kommer fra en liste.
+#
+# De staar i SAP og aendrer sig ikke, og der er ingen der vedligeholder dem
+# som masterdata. En liste med tre raekker, ingen roerer, er daarligere end
+# en konstant man kan se.
+#
+# DE ER NAVNGIVNE FORMLER, IKKE SAMLINGER. App checker:
+#
+#   [Performance] App.OnStart: Collection is initialized but never updated
+#   Rule: CollectingReadOnlyTable
+#
+# En samling koster sporingsarbejde, saa alt hvad der afhaenger af den,
+# holdes i sync naar den aendrer sig. Disse to aendrer sig aldrig. En
+# navngiven formel giver de samme raekker uden den omkostning - og uden at
+# blive betalt i OnStart af hver bruger hver gang.
+# ---------------------------------------------------------------------------
+STATIC_TABLES = [
+    ("colVhpYesNoOptions", [{"Value": "JA"}, {"Value": "NEJ"}],
+     "SAP-vaerdier for schedulering."),
+    ("colVhpPlanTypeOptions",
+     [{"Key": "SingleCycle", "Value": "Single cycle plan (IP41)"},
+      {"Key": "Strategy", "Value": "Strategiplan (IP42)"}],
+     "Appens eget begreb, ikke et SAP-felt."),
+]
+
 def named_formulas():
     F = []
 
@@ -254,24 +280,16 @@ def named_formulas():
                  ("Operations", ops)],
                 alias="P"))
 
+    # De faste tabeller. Samme form som resten: en navngiven formel, der
+    # laeses dovent og caches. Se STATIC_TABLES nedenfor.
+    for name, rows, why in STATIC_TABLES:
+        recs = ", ".join(
+            "{ " + ", ".join(f'{k}: "{v}"' for k, v in r.items()) + " }"
+            for r in rows)
+        add(name, f"Table({recs})", why)
+
     return F
 
-
-# ---------------------------------------------------------------------------
-# Vaerdier der IKKE kommer fra en liste.
-#
-# De staar i SAP og aendrer sig ikke, og der er ingen der vedligeholder dem
-# som masterdata. En liste med tre raekker, ingen roerer, er daarligere end
-# en konstant man kan se.
-# ---------------------------------------------------------------------------
-STATIC_TABLES = [
-    ("colVhpYesNoOptions", [{"Value": "JA"}, {"Value": "NEJ"}],
-     "SAP-vaerdier for schedulering."),
-    ("colVhpPlanTypeOptions",
-     [{"Key": "SingleCycle", "Value": "Single cycle plan (IP41)"},
-      {"Key": "Strategy", "Value": "Strategiplan (IP42)"}],
-     "Appens eget begreb, ikke et SAP-felt."),
-]
 
 # ---------------------------------------------------------------------------
 # Samlinger appen SKRIVER til. De kan ikke vaere navngivne formler.

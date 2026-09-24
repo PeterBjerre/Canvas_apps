@@ -248,8 +248,7 @@ def build_fl_block():
                    display_mode=DM_ROW, label="\"Search functional location\"")
     grow(q)
     btn = button("btnDomFlSearch", '"Search"',
-                 fl.search_action("txtDomFlQuery", "colDomFl",
-                                  "varDomFlLast", "varDomFlMsg"),
+                 fl.search_action("txtDomFlQuery", "colDomFl", "varDomFlMsg"),
                  width=90, display_mode=DM_ROW)
     row = group("conDomFlSearchRow", pin_widths([q, btn]),
                 direction="Horizontal", gap=8, height=36, align_items="Center")

@@ -71,23 +71,41 @@ def build_tasklist_picker_modal():
         ),
         "Height": "36",
         "Label": "\"Select all visible\"",
-        # DE HER TO ER IKKE LAVET OM - MED VILJE
+        # EEN SKRIVNING HVER VEJ
         #
-        # Begge er ForAll med en mutation indeni, og regel 15 naevner dem.
-        # Men maalet er colVhpPickerSelected, en samling i HUKOMMELSEN: der
-        # er intet netvaerkskald at spare, kun regelgenberegninger paa en
-        # liste, der har een raekke pr. markeret operation.
+        # Her stod to ForAll med en mutation indeni. Begrundelsen var, at
+        # maalet er en samling i hukommelsen, saa der ikke var noget
+        # netvaerkskald at spare. App checker melder dem alligevel
+        # (ForAllWithMutation), og den har ret i det, begrundelsen ikke
+        # naevnte: hver enkelt skrivning faar ALT, der afhaenger af
+        # samlingen, til at genberegne - og her afhaenger baade
+        # afkrydsningen i hver raekke og "vaelg alle"s egen Default af den.
         #
-        # Den oplagte omskrivning af OnUncheck ville vaere
-        #     RemoveIf(colVhpPickerSelected As SEL, ... SEL.OperationNo ...)
-        # Uden "As" er OperationNo tvetydig mellem de to raekkescopes, og
-        # om RemoveIf overhovedet tager "As" paa sit foerste argument, staar
-        # der ikke noget om i dokumentationen - syntaksen er skrevet
-        # RemoveIf(DataSource, Condition). Det er ikke noget at gaette paa i
-        # en formel, der ikke kan proeves af foer den er i Studio, for at
-        # spare noget, der ikke koster noget.
-        "OnCheck": f"ForAll({VISIBLE_OPS} As VOP, If(CountRows(Filter(colVhpPickerSelected, OperationNo = VOP.OperationNo)) = 0, Collect(colVhpPickerSelected, {{ OperationNo: VOP.OperationNo }})))",
-        "OnUncheck": f"ForAll({VISIBLE_OPS} As VOP, RemoveIf(colVhpPickerSelected, OperationNo = VOP.OperationNo))",
+        # Den gamle note var i tvivl om RemoveIf med to raekkescopes. Det
+        # spoergsmaal er der ikke laengere: Remove(DataSource, Table) er en
+        # dokumenteret form, og tabellen er raekker fra samlingen selv, saa
+        # de matcher helt.
+        "OnCheck": (
+            "Collect(\n"
+            "    colVhpPickerSelected,\n"
+            "    ForAll(\n"
+            f"        Filter(\n"
+            f"            {VISIBLE_OPS} As VOP,\n"
+            "            CountRows(Filter(colVhpPickerSelected, OperationNo = VOP.OperationNo)) = 0\n"
+            "        ) As NEW,\n"
+            "        { OperationNo: NEW.OperationNo }\n"
+            "    )\n"
+            ")"
+        ),
+        "OnUncheck": (
+            "Remove(\n"
+            "    colVhpPickerSelected,\n"
+            "    Filter(\n"
+            "        colVhpPickerSelected As SEL,\n"
+            f"        CountRows(Filter({VISIBLE_OPS} As VOP, VOP.OperationNo = SEL.OperationNo)) > 0\n"
+            "    )\n"
+            ")"
+        ),
         "Width": "200",
     })
     toolbar = group("conVhpPickerToolbar", [txtSearch, chkSelectAll], direction="Horizontal", gap=12, height=36,
