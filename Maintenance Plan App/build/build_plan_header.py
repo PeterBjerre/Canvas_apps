@@ -104,6 +104,10 @@ def help_panel(name, section):
                  width="Parent.TemplateWidth",
                  height="Parent.TemplateHeight - 2")
     gal = Ctrl(f"{name}Gal", "Gallery", variant="Vertical", props={
+        # Tilgaengelighedstjekket: en Gallery UDEN AccessibleLabel er fire
+        # fejl i VH-plan - eet pr. hjaelpepanel. En skaermlaeser skal kunne
+        # sige, hvad listen indeholder.
+        "AccessibleLabel": f'"Help for {section}"',
         "DelayItemLoading": "false",
         "Items": bh.panel(section),
         "LoadingSpinner": "LoadingSpinner.None",

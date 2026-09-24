@@ -189,10 +189,19 @@ def _collect(name, source, alias, fields, indent):
 
 def load_block():
     """Hele indlaesningen som eet Power Fx-udtryk til App.OnStart."""
-    items_src = f"Filter({cfg.L_ITEMS}, MaintenancePlanNo.Id = pl.ID)"
-    ops_src = f"Filter({cfg.L_TASKS}, MaintenancePlanID.Id = pl.ID)"
-    mat_src = f"Filter({cfg.L_MATERIALS}, PlanKey = pl.PlanID)"
-    att_src = f"Filter({cfg.L_ATTACHMENTS}, PlanKey = pl.PlanID)"
+    # DE FIRE FILTRE MAALER MOD GLOBALE VARIABLER, IKKE MOD pl.
+    #
+    # SharePoint delegerer kun en sammenligning mod noget, der er ENS for
+    # alle raekker: en global variabel, en kontrolegenskab eller en
+    # konstant. pl.ID og pl.PlanID er felter i et With-scope, og compile
+    # svarede med otte delegeringsadvarsler paa App.OnStart alene.
+    #
+    # De to variabler saettes i toppen af 'load', FOER hentningerne - og de
+    # har praecis de samme vaerdier.
+    items_src = f"Filter({cfg.L_ITEMS}, MaintenancePlanNo.Id = varVhpPlanSpId)"
+    ops_src = f"Filter({cfg.L_TASKS}, MaintenancePlanID.Id = varVhpPlanSpId)"
+    mat_src = f"Filter({cfg.L_MATERIALS}, PlanKey = varVhpPlanKey)"
+    att_src = f"Filter({cfg.L_ATTACHMENTS}, PlanKey = varVhpPlanKey)"
 
     load = (
         "// --- planhovedet ---------------------------------\n"
@@ -278,10 +287,16 @@ def load_block():
         "\n"
         f"    Collect(colVhpItems, {_record(EMPTY_ITEM_FIELDS, 4)}),\n"
         "\n"
+        # Param() og idx.SourceItemId er heller ikke "ens for alle
+        # raekker" i delegeringens forstand. Begge opslag maaler nu mod en
+        # global variabel, der er sat lige foer - og de to variabler
+        # findes i forvejen og faar de samme vaerdier lidt senere.
+        "    Set(varVhpRequestGuid, Param(\"reqid\"));\n"
         "    With(\n"
-        f"        {{ idx: LookUp({cfg.L_INDEX}, RequestGuid = Param(\"reqid\")) }},\n"
+        f"        {{ idx: LookUp({cfg.L_INDEX}, RequestGuid = varVhpRequestGuid) }},\n"
+        "        Set(varVhpPlanSpId, idx.SourceItemId);\n"
         "        With(\n"
-        f"            {{ pl: LookUp({cfg.L_PLANS}, ID = idx.SourceItemId) }},\n"
+        f"            {{ pl: LookUp({cfg.L_PLANS}, ID = varVhpPlanSpId) }},\n"
         "            If(\n"
         "                IsBlank(pl.ID),\n"
         "\n"

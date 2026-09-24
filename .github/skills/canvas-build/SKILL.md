@@ -407,6 +407,8 @@ layoutfejl bor:
 27. En tekst er mindst 1,5 × sin skriftstørrelse høj
 28. Ingen `FillPortions` i en vandret række, der ikke ombryder
 29. Listens overskrift og dens gallerirække har de samme kolonnebredder
+30. Et filter mod en SharePoint-liste sammenligner mod noget konstant —
+   ellers kan det ikke delegeres
 
 Punkt 7 fanger den klassiske: du sletter en kontrol og glemmer en
 `Reset()` på den et andet sted. Det ville ellers først vælte i compile.
@@ -469,6 +471,28 @@ checker siger noget. Læses variablen af gem-knappen, kan der aldrig gemmes.
 > `drpVhpPlant.Selected.Value`, hvor variablen kun sætter startværdien.
 > Elleve falske fund ville lære nogen at springe advarsler over — og så
 > går regel 15's rigtige fund samme vej.
+
+## Delegering: sammenlign mod noget, der er ENS for alle rækker
+
+SharePoint kan kun udføre filtreringen på serveren, når værdien er en
+**global variabel**, en kontrolegenskab eller en konstant
+([Delegable functions](https://learn.microsoft.com/power-apps/maker/canvas-apps/delegation-overview#delegable-functions)).
+Et felt fra et `With`- eller `ForAll`-scope — `pl.ID`, `idx.SourceItemId`,
+`IT.ActivityType` — er ikke konstant i den forstand. Så henter appen 500
+rækker hjem og filtrerer selv: langsomt, og **forkert** så snart listen er
+større end de 500.
+
+VH-plan havde 24 delegeringsadvarsler ved compile. Alle sad i den slags
+sammenligninger. Tre greb fjernede dem:
+
+| Situation | Greb |
+|---|---|
+| `Filter(liste, Kol = pl.ID)` i OnStart | `Set(varX, pl.ID)` først, og filtrér mod `varX` |
+| `LookUp(liste, Title = IT.Felt)` inde i et `ForAll` | Slå op i den **navngivne formel**, der i forvejen har rækkerne. Den er hentet én gang og cachet |
+| `Filter(liste, Kol = P.Value)` pr. værk i en navngiven formel | Hent listen **én gang** til en samling, og del den op i hukommelsen |
+
+**Regel 30** læser både skærmen og `App.pa.yaml` og stopper byggeriet, hvis
+et filter mod en SharePoint-liste sammenligner mod et scope-felt.
 
 ## Flere hentninger på én gang: `Concurrent()`
 

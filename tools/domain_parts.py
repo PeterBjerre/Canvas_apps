@@ -1138,17 +1138,36 @@ def send_fx(submit):
         f"            Patch({cfg.L_INDEX}, varDomIdx, {{ RequestNo: varDomRequestNo }})\n"
         "        );\n"
         "\n"
-        "        Patch(\n"
-        f"            {cfg.L_ROWS},\n"
-        "            ForAll(\n"
-        f"                {rows} As R,\n"
-        f"                LookUp({cfg.L_ROWS}, ID = R.RowId)\n"
-        "            ),\n"
-        "            ForAll(\n"
-        f"                {rows} As R,\n"
-        "                {\n"
-        + "\n".join(row_patch) + "\n"
-        "                }\n"
+        # EET OPSLAG, IKKE EET PR. RAEKKE
+        #
+        # Her stod ForAll(raekker, LookUp(EquipmentItems, ID = R.RowId)) som
+        # Patchens grundraekker. LookUp mod en liste kan ikke delegeres, naar
+        # der sammenlignes med et scope-felt, saa hver eneste raekke hentede
+        # op til 500 raekker hjem og ledte lokalt. Med mere end 500 raekker i
+        # listen ville en raekke laengere nede slet ikke blive fundet - og
+        # saa opretter Patch en NY raekke i stedet for at rette den gamle.
+        #
+        # Nu hentes brugerens egne raekker EEN gang (RequesterEmail =
+        # varDomMe er delegerbart - samme filter som refresh_rows_fx), og
+        # udvaelgelsen sker i hukommelsen. Aendringerne er ens for alle
+        # raekker, saa de kan skrives i eet batchet Patch.
+        "        With(\n"
+        "            {\n"
+        "                src:\n"
+        "                    Filter(\n"
+        f"                        Filter({cfg.L_ROWS}, RequesterEmail = varDomMe) As S,\n"
+        f"                        CountRows(Filter({rows}, RowId = S.ID)) > 0\n"
+        "                    )\n"
+        "            },\n"
+        "            Patch(\n"
+        f"                {cfg.L_ROWS},\n"
+        "                src,\n"
+        "                ForAll(\n"
+        "                    src,\n"
+        "                    {\n"
+        + "\n".join("    " + l for l in row_patch) + "\n"
+        "                    }\n"
+        "                )\n"
         "            )\n"
         "        );\n"
         "\n"

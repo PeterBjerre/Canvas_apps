@@ -1423,6 +1423,8 @@ Screens:
                                   Control: Gallery
                                   Variant: Vertical
                                   Properties:
+                                    AccessibleLabel: |-
+                                        ="Help for plan"
                                     DelayItemLoading: |-
                                         =false
                                     Height: |-
@@ -5629,6 +5631,8 @@ Screens:
                                         Control: Gallery
                                         Variant: Vertical
                                         Properties:
+                                          AccessibleLabel: |-
+                                              ="Help for item"
                                           DelayItemLoading: |-
                                               =false
                                           Height: |-
@@ -8696,6 +8700,8 @@ Screens:
                                   Control: Gallery
                                   Variant: Vertical
                                   Properties:
+                                    AccessibleLabel: |-
+                                        ="Help for ops"
                                     DelayItemLoading: |-
                                         =false
                                     Height: |-
@@ -10524,6 +10530,8 @@ Screens:
                                         Control: Gallery
                                         Variant: Vertical
                                         Properties:
+                                          AccessibleLabel: |-
+                                              ="Help for pkg"
                                           DelayItemLoading: |-
                                               =false
                                           Height: |-
@@ -13574,13 +13582,13 @@ Screens:
                                                                 // skrive linjerne forfra end at finde ud af
                                                                 // hvilke der er tilfoejet, aendret og slettet.
                                                                 Remove(MD_TasklistMaterial,
-                                                                    Filter(MD_TasklistMaterial, PlanKey = planKey));
+                                                                    Filter(MD_TasklistMaterial, PlanKey = varVhpPlanKey));
                                                                 Remove(MD_TasklistAttachment,
-                                                                    Filter(MD_TasklistAttachment, PlanKey = planKey));
+                                                                    Filter(MD_TasklistAttachment, PlanKey = varVhpPlanKey));
                                                                 Remove(TaskListMain,
-                                                                    Filter(TaskListMain, MaintenancePlanID.Id = planId));
+                                                                    Filter(TaskListMain, MaintenancePlanID.Id = varVhpPlanSpId));
                                                                 Remove(MaintenanceItems,
-                                                                    Filter(MaintenanceItems, MaintenancePlanNo.Id = planId));
+                                                                    Filter(MaintenanceItems, MaintenancePlanNo.Id = varVhpPlanSpId));
                                         
                                                                 // --- 3. items ------------------------------
                                                                 With(
@@ -13617,12 +13625,12 @@ Screens:
                                                                                         OrstedResponsibleEmail: Lower(User().Email),
                                                                                         InitialOrstedResponsible: IT.Initials,
                                                                                         MaintenanceActivityType: With(
-                                                                                            { a: LookUp(MaintenanceActivityTypeList, Title = IT.ActivityType) },
-                                                                                            If(IsBlank(a.ID), Blank(), { Id: a.ID, Value: a.Title })
+                                                                                            { a: LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType) },
+                                                                                            If(IsBlank(a.Id), Blank(), { Id: a.Id, Value: a.Value })
                                                                                         ),
                                                                                         MainWorkCenter: With(
-                                                                                            { w: LookUp(MainWorkCenters, Trim(Title) = IT.MainWorkCenter) },
-                                                                                            If(IsBlank(w.ID), Blank(), { Id: w.ID, Value: w.Title })
+                                                                                            { w: LookUp(colVhpMainWorkCenters, Value = IT.MainWorkCenter) },
+                                                                                            If(IsBlank(w.Id), Blank(), { Id: w.Id, Value: w.Value })
                                                                                         )
                                                                                     })
                                                                                 )
@@ -13962,13 +13970,13 @@ Screens:
                                                                 // skrive linjerne forfra end at finde ud af
                                                                 // hvilke der er tilfoejet, aendret og slettet.
                                                                 Remove(MD_TasklistMaterial,
-                                                                    Filter(MD_TasklistMaterial, PlanKey = planKey));
+                                                                    Filter(MD_TasklistMaterial, PlanKey = varVhpPlanKey));
                                                                 Remove(MD_TasklistAttachment,
-                                                                    Filter(MD_TasklistAttachment, PlanKey = planKey));
+                                                                    Filter(MD_TasklistAttachment, PlanKey = varVhpPlanKey));
                                                                 Remove(TaskListMain,
-                                                                    Filter(TaskListMain, MaintenancePlanID.Id = planId));
+                                                                    Filter(TaskListMain, MaintenancePlanID.Id = varVhpPlanSpId));
                                                                 Remove(MaintenanceItems,
-                                                                    Filter(MaintenanceItems, MaintenancePlanNo.Id = planId));
+                                                                    Filter(MaintenanceItems, MaintenancePlanNo.Id = varVhpPlanSpId));
                                         
                                                                 // --- 3. items ------------------------------
                                                                 With(
@@ -14005,12 +14013,12 @@ Screens:
                                                                                         OrstedResponsibleEmail: Lower(User().Email),
                                                                                         InitialOrstedResponsible: IT.Initials,
                                                                                         MaintenanceActivityType: With(
-                                                                                            { a: LookUp(MaintenanceActivityTypeList, Title = IT.ActivityType) },
-                                                                                            If(IsBlank(a.ID), Blank(), { Id: a.ID, Value: a.Title })
+                                                                                            { a: LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType) },
+                                                                                            If(IsBlank(a.Id), Blank(), { Id: a.Id, Value: a.Value })
                                                                                         ),
                                                                                         MainWorkCenter: With(
-                                                                                            { w: LookUp(MainWorkCenters, Trim(Title) = IT.MainWorkCenter) },
-                                                                                            If(IsBlank(w.ID), Blank(), { Id: w.ID, Value: w.Title })
+                                                                                            { w: LookUp(colVhpMainWorkCenters, Value = IT.MainWorkCenter) },
+                                                                                            If(IsBlank(w.Id), Blank(), { Id: w.Id, Value: w.Value })
                                                                                         )
                                                                                     })
                                                                                 )

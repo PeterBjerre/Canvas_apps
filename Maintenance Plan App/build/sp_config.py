@@ -181,8 +181,12 @@ def named_formulas():
     add("colVhpSortFieldOptions",
         f"Sort({_forall(L_SORTFIELDS, [('Value', 'R.Title')])}, Value)")
 
+    # Id baeres med. Gem skal skrive { Id, Value } i opslagskolonnen, og
+    # slog det foer op i SharePoint EEN GANG PR. ITEM inde i et ForAll -
+    # et netvaerkskald pr. raekke, og en delegeringsadvarsel, fordi
+    # sammenligningen var mod et ForAll-felt og ikke mod en variabel.
     add("colVhpActivityTypeOptions",
-        f"Sort({_forall(L_ACTTYPES, [('Value', 'R.Title')])}, Value)")
+        f"Sort({_forall(L_ACTTYPES, [('Id', 'R.ID'), ('Value', 'R.Title')])}, Value)")
 
     # Value er teksten, brugeren vaelger. Days er TALLET, SharePoint vil have:
     # valgkolonnen CallHorizonChoiceOLD har engelske tekster ("55 days (1 YR)"),
@@ -204,7 +208,8 @@ def named_formulas():
     # 53 arbejdscentre for hele afdelingen, ~7 der er relevante for det
     # valgte vaerk. Trim, fordi SAP-eksporten er polstret med mellemrum.
     add("colVhpMainWorkCenters",
-        _forall(L_WORKCENTERS, [("Value", "Trim(R.Title)"),
+        _forall(L_WORKCENTERS, [("Id", "R.ID"),
+                                ("Value", "Trim(R.Title)"),
                                 ("Plant", f"Trim(R.{C_WC_PLANT})")]),
         "Alle arbejdscentre med deres vaerk. Afgraenses i kontrollen.")
 
@@ -243,8 +248,37 @@ def named_formulas():
     # Een arbejdsplan pr. vaerk. Operationerne ligger fladt i listen med et
     # Plant og et OperationNo; her samles de til den indlejrede form,
     # skaermen allerede forventer.
+    # STANDARDOPERATIONERNE HENTES EEN GANG
+    #
+    # Her stod Filter(MD_StandardTaskOperations, Plant.Value = P.Value)
+    # inde i et ForAll over vaerkerne: eet opslag PR. VAERK, og ingen af
+    # dem delegerbare, fordi P.Value er et scope-felt. Hvert opslag hentede
+    # derfor 500 raekker hjem og filtrerede lokalt - og har listen mere end
+    # 500 raekker, er svaret ikke bare langsomt, det er forkert.
+    #
+    # colVhpStdOps henter listen EEN gang (dovent, og kun hvis nogen aabner
+    # en tasklist). Resten er filtrering i hukommelsen, hvor delegering
+    # ikke er et begreb.
+    add("colVhpStdOps",
+        _forall(L_STDOPS, [("Plant", "O.Plant.Value"),
+                           ("OperationNo", "O.OperationNo"),
+                           ("OperationShortText", "O.OperationShortText"),
+                           ("Work", "O.Work"),
+                           ("NumberOfCapacities", "O.NumberOfCapacities"),
+                           ("WorkCenter", "O.WorkCenter"),
+                           ("VendorNo", "O.VendorNo"),
+                           ("ControlKey", "O.ControlKey"),
+                           ("Price", "O.Price"),
+                           ("Currency", "O.Currency"),
+                           ("CostElement", "O.CostElement"),
+                           ("MaterialGroup", "O.MaterialGroup"),
+                           ("SapPlant", "O.SapPlant")],
+                alias="O"),
+        "Standardoperationerne, hentet een gang. colVhpTasklists deler dem "
+        "op pr. vaerk i hukommelsen.")
+
     ops = _forall(
-        f"Sort(Filter({L_STDOPS}, Plant.Value = P.Value), OperationNo)",
+        "Sort(Filter(colVhpStdOps, Plant = P.Value), OperationNo)",
         [("OperationNo", "Text(O.OperationNo, \"0000\")"),
          ("OperationShortText", "O.OperationShortText"),
          ("WorkHours", "O.Work"),
@@ -272,7 +306,7 @@ def named_formulas():
          ("OpPlant", "O.SapPlant")],
         alias="O")
     add("colVhpTasklists",
-        _forall(f"Distinct({L_STDOPS}, Plant.Value)",
+        _forall("Distinct(colVhpStdOps, Plant)",
                 [("Plant", "P.Value"),
                  ("Key", "P.Value & \"-STD\""),
                  ("Name", "\"Standard task list - \" & P.Value"),

@@ -30,6 +30,8 @@ Tjekket foretager fire kontroller:
   27. En tekst er mindst 1,5 x sin skriftstoerrelse hoej
   28. Ingen FillPortions i en vandret raekke, der ikke ombryder
   29. Listens overskrift og dens raekke har de samme kolonnebredder
+  30. Et filter mod en SharePoint-liste sammenligner mod noget konstant -
+     ellers kan det ikke delegeres
   23. Rammen: con<X>Root -> header med fast hoejde + een krop, der
      scroller. Headerens hoejde maa ikke afhaenge af data, og padding +
      scrollbar + luft skal vaere mindst SHELL_INSET. Se
@@ -41,7 +43,8 @@ Tjekket foretager fire kontroller:
      kontrollen ville forsvinde uden en fejlmeddelelse
   8c. Ingen formel sammenligner App.Width med et tal. Braekpunkter staar i
      tools/layout_tokens.py og laeses som LayoutRank/LayoutContext
-  18. Enhver Gallery har TabIndex. Uden den er den ikke et tab stop, og
+  18. Enhver Gallery har TabIndex og AccessibleLabel. Uden dem er den
+     hverken et tab stop eller laesbar for en skaermlaeser, og
      App checker melder det foerst ved deploy
   19. Ingen AccessibleLabel er kontrollens eget navn - en skaermlaeser
      ville laese "inpManufacturer" op i stedet for "Fabrikat"
@@ -755,6 +758,57 @@ def main():
                                     f"raekke paa {own:.0f} px (App.Width={w}) - det "
                                     f"sidste er skjult")
                     break
+
+    # --- 30. Delegerbare filtre: sammenlign mod noget KONSTANT ----------
+    #
+    # SharePoint delegerer kun en sammenligning, hvor vaerdien er ENS for
+    # alle raekker: en global variabel, en kontrolegenskab eller en
+    # konstant (learn.microsoft.com, "Delegable functions"). Et felt fra et
+    # With- eller ForAll-scope - pl.ID, idx.SourceItemId, IT.ActivityType -
+    # er det ikke, og saa henter appen 500 raekker hjem og filtrerer selv.
+    #
+    # VH-plan havde 24 delegeringsadvarsler ved compile. Alle sad i den
+    # slags sammenligninger, og alle forsvandt ved at saette vaerdien i en
+    # global variabel foerst - eller ved at slaa op i den navngivne formel,
+    # der i forvejen havde raekkerne.
+    #
+    # Reglen laeser baade skaermen og App.pa.yaml, for de fleste af dem sad
+    # i App.OnStart.
+    SCOPE_OK = re.compile(r"^(var|gbl|col)[A-Z]|^(App|Self|Parent|ThisItem|ThisRecord)\b"
+                          r"|^(con|txt|btn|drp|num|chk|gal|cmb|tmr|att)[A-Z]")
+    CALL = re.compile(r"\b(Filter|LookUp)\(\s*('?[A-Z][\w ]*'?)\s*,", re.M)
+    seen = set()
+    _app_path = os.path.join(os.path.dirname(SCREEN), "App.pa.yaml")
+    _app_text = (open(_app_path, encoding="utf-8").read()
+                 if os.path.exists(_app_path) else "")
+    for owner, props in ([(n, (b.get("Properties") or {})) for _p, n, b in all_nodes]
+                         + [("App", {"pa.yaml": _app_text})]):
+        for key, val in props.items():
+            if not isinstance(val, str):
+                continue
+            for m in CALL.finditer(val):
+                src = m.group(2).strip("'")
+                if src.startswith("col") or src in ("Table", "Choices", "Distinct"):
+                    continue
+                par = val.index("(", m.start())
+                end = _balanced(val, par)
+                if end < 0:
+                    continue
+                cond = val[m.end():end]
+                # kun det yderste betingelsesniveau - et indlejret opslag er
+                # sin egen sag og faar sit eget fund, hvis det er galt
+                for cm in re.finditer(r"=\s*([A-Za-z_][\w]*)\.([\w']+)", cond):
+                    root = cm.group(1)
+                    if SCOPE_OK.match(root):
+                        continue
+                    hit = (owner, key, src, root, cm.group(2))
+                    if hit in seen:
+                        continue
+                    seen.add(hit)
+                    problems.append(
+                        f"[30] {owner}.{key}: {src} filtreres mod {root}.{cm.group(2)} "
+                        f"- et scope-felt kan ikke delegeres. Saet vaerdien i en "
+                        f"global variabel foerst, eller slaa op i den navngivne formel")
 
     # --- 29. Overskriften og raekken skal have SAMME kolonnebredder ------
     #
@@ -1607,6 +1661,12 @@ def main():
     for _p, name, body in all_nodes:
         if body.get("Control") != "Gallery":
             continue
+        # AccessibleLabel i samme aandedrag: tilgaengelighedstjekket melder
+        # en Gallery uden den som en FEJL (ikke en advarsel), og de fire
+        # hjaelpepaneler i VH-plan manglede den alle fire.
+        if "AccessibleLabel" not in (body.get("Properties") or {}):
+            problems.append(f"[18] {name}: Gallery uden AccessibleLabel - "
+                            f"tilgaengelighedstjekket melder det som en fejl")
         if "TabIndex" not in (body.get("Properties") or {}):
             problems.append(f"[18] {name}: Gallery uden TabIndex - App checker "
                             f"melder 'Missing tab stop'. Saet TabIndex til 0")
