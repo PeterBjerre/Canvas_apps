@@ -95,7 +95,6 @@ Set(varDomDocsId, Blank());
 Set(varDomRowStatus, "valid");
 Set(varDomAttJson, "");
 Set(varDomFlMsg, "");
-Set(varDomFlLast, "");
 Set(varDomInfo, "");
 
 // Er formularen blevet tjekket? Styrer om en kraevet feltkant maa vaere

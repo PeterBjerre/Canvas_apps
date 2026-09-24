@@ -88,8 +88,7 @@ SEED_FL_PICKER = (
     "              Maintainable: true, Level: \"\" }\n"
     "        )\n"
     "    )\n"
-    ");\n"
-    "Set(varVhpFlLastSearch, \"\")"
+    ")"
 )
 
 
@@ -302,8 +301,7 @@ def build_item_editor():
         # raw_var foelger VH-plans egen navnekonvention. Den stod foer som
         # en konstant i appens EGEN kopi af build_flsearch.py - og det var
         # netop den ene linje, de tre kopier havde glidt fra hinanden paa.
-        search_action("txtVhpFlQuery", "colVhpFlSearch",
-                      "varVhpFlLastSearch", "varVhpFlMeta",
+        search_action("txtVhpFlQuery", "colVhpFlSearch", "varVhpFlMeta",
                       raw_var="varVhpFlRaw"),
         primary=True, width=FL_BTN_W, height=36, display_mode=DM_ITEM)
     flSearchRow = group("conVhpItemFlSearchRow", [txtFlQuery, btnFlSearch],

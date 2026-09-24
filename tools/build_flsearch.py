@@ -116,7 +116,7 @@ def collect_results(target_collection, raw_var=DEFAULT_RAW):
     )
 
 
-def search_action(query_ctrl, target_collection, last_search_var, msg_var,
+def search_action(query_ctrl, target_collection, msg_var,
                   label="Functional Locations", raw_var=DEFAULT_RAW):
     """Soegningen, som den ser ud bag en SOEGEKNAP.
 
@@ -157,7 +157,6 @@ def search_action(query_ctrl, target_collection, last_search_var, msg_var,
         f"                Clear({target_collection}),\n"
         f"                {collect_results(target_collection, raw_var)}\n"
         f"            );\n"
-        f"            Set({last_search_var}, q);\n"
         f"            Set(\n"
         f"                {msg_var},\n"
         f"                With(\n"
@@ -175,7 +174,6 @@ def search_action(query_ctrl, target_collection, last_search_var, msg_var,
         f"                )\n"
         f"            ),\n"
         f"            Clear({target_collection});\n"
-        f"            Set({last_search_var}, \"\");\n"
         f"            Set({msg_var}, \"Search failed: \" & FirstError.Message)\n"
         f"        )\n"
         f"    )\n"
