@@ -262,6 +262,9 @@ vedligeholdelsesvindue.
 | `VHP_TaskList` | `RequestId` |
 | `VHP_Operation` | `RequestId`, `TaskListId` |
 | `VHP_StatusLog` | `RequestId` |
+| `FunctionalLocationRequests` | `RequestNo` (Title), `RequestGuid`, `Status`, `RequesterEmail` |
+| `FunctionalLocationItems` | `RowGuid` (Title), `RequestGuid`, `RequestId`, `FunctionalLocation`, `AssignedClass`, `RowStatus`, `SafetyCriticalEquipment`, `RequesterEmail` |
+| `MD_FLKey` | `KeyValue` (Title), `KeyType` |
 
 ## 4. Sletning og oprydning
 
@@ -274,3 +277,79 @@ mekanismer:
 2. **Natligt oprydningsflow:** find rækker i børnelisterne, hvis `RequestId`
    ikke længere findes i `VHP_Request`, og slet dem. Det fanger afbrudte
    sletninger og gør mekanisme 1 ikke-kritisk.
+
+---
+
+## 5. Functional Location (SPOOL)
+
+Listerne bag **Functional Location App**. Reglerne står i
+[`31-functional-location-regler.md`](31-functional-location-regler.md);
+listerne oprettes af
+[`Provision-FunctionalLocationLists.ps1`](../sharepoint/provision/Provision-FunctionalLocationLists.ps1).
+
+**Power Fx binder på visningsnavnet.** `Title` er omdøbt i alle tre lister -
+kolonnen hedder `RequestNo`, `RowGuid` og `KeyValue` i formlerne.
+
+### `FunctionalLocationRequests` – anmodningshoved
+
+| Kolonne | Type | Bemærkning |
+|---|---|---|
+| `Title` → `RequestNo` | Text Ⓘ | `FL-000123`, dannet af listens eget `ID` ved første gem. Indtil da står GUID'en der |
+| `RequestGuid` | Text Ⓘ, påkrævet | Idempotensnøgle, dannet i appen (`Text(GUID())`) før første skrivning. Ændres aldrig |
+| `Status` | Choice Ⓘ | Samme ordforråd som `MD_RequestIndex`: `Kladde`, `Indsendt`, `UnderBehandling`, `AfventerInfo`, `KlarTilSAP`, `OprettetISAP`, `Afvist`, `Annulleret`. Sættes **sidst** i hvert gem |
+| `RequesterEmail` | Text Ⓘ | Små bogstaver. Tekst og ikke Person, så filteret kan delegeres |
+| `RequesterName` | Text | |
+| `RowCount` | Number | Ikke-tomme rækker ved sidste gem |
+| `ReadyCount` | Number | `valid` + `warning` (docs/31 FL66) |
+| `IssueCount` | Number | Rækker med `invalid` |
+| `WarningCount` | Number | Rækker med `warning` |
+| `SubmittedOn` | DateTime | |
+| `IndexItemId` | Number | Rækkens `ID` i `MD_RequestIndex` |
+| `PayloadJson` | Note (plain) | Frosset snapshot ved indsend. Kontrakten er [`schema/functional-location-request.schema.json`](../schema/functional-location-request.schema.json). Ikke i standardvisningen |
+
+### `FunctionalLocationItems` – én række pr. Functional Location
+
+| Kolonne | Type | Bemærkning |
+|---|---|---|
+| `Title` → `RowGuid` | Text Ⓘ | Klientnøgle. Join-nøglen mellem appens samling og listen, og det, der gør gem genoptageligt: en række, der blev oprettet før en fejl, findes igen og oprettes ikke to gange |
+| `RequestGuid` | Text Ⓘ, påkrævet | Hovedets GUID |
+| `RequestId` | Number Ⓘ | Hovedets `ID`. Relationer er tal, ikke Lookup (§ konventioner) |
+| `RowNo` | Number | Rækkens plads i tabellen (#) |
+| `FunctionalLocation` | Text(40) Ⓘ | Normaliseret: versaler, trimmet (FL1) |
+| `Description` | Text(40) | |
+| `KksType` | Text | `KKS`, `KKSKA`, `KKSKV` (FL8) |
+| `AssignedClass` | Text Ⓘ | Klassen ved sidste Verify (FL16-FL23) |
+| `RowStatus` | Choice Ⓘ | `draft`, `valid`, `warning`, `invalid` - controllerens egne værdier (FL25) |
+| `FirstIssue` | Text | Første fejl eller advarsel, som vist i tabellen (FL26) |
+| `IssueCount` | Number | Antal fejl |
+| `TrmAssignment` | Text | Spejl af spool-feltet `TRM assignment` (FL48) |
+| `AbcIndic` | Text | Spejl af `ABC Indic.` |
+| `SafetyCriticalEquipment` | Text Ⓘ | Spejl af `Safety Critical Equipment` - det felt, VH-plans prioritetsregel venter på (docs/16) |
+| `RequesterEmail` | Text Ⓘ | |
+| `SpoolValuesJson` | Note (plain) | Alle spool-felter som `[{"field":"REMARKS","value":"…"}]`. Feltnavnene er normaliserede (versaler), som i controllerens `spoolValues` |
+
+Tomme rækker (FL3) gemmes ikke.
+
+### `MD_FLKey` – nøgler til klassebestemmelsen
+
+| Kolonne | Type | Bemærkning |
+|---|---|---|
+| `Title` → `KeyValue` | Text Ⓘ | Nøglen: funktionsnøgle (pos. 7-9), aggregat (12-13), komponent (18-19), BR18-aggregat |
+| `KeyType` | Text Ⓘ, påkrævet | `Function`, `Aggregate`, `Component`, `BR18` |
+| `Value` | Text | Klassen (Aggregate/Component) eller den tilladte `key17` (BR18) |
+| `Description` | Text | |
+
+Seedet fra `sharepoint/seed/MD_FLKey.csv` (6.733 rækker), som genereres af
+`node tools/fl/harness.js seed` ud af `html/lookups.generated.js`.
+
+**Appen slår kun `Function` op her** - 6.441 nøgler er over
+delegeringsgrænsen, så opslaget er én delegeret `LookUp` pr. forskellig
+nøgle. Aggregat, komponent og BR18 er små og ligger som navngivne formler
+genereret af de samme data (docs/31, PX5).
+
+### Landingssiden
+
+Hvert gem skriver én række i `MD_RequestIndex` med `Domain =
+FunctionalLocation`. Rækken findes på `RequestGuid`, så kladde og indsend
+rammer den samme række. `AppUrl` er appens play-URL med `?reqid=`, så
+hubbens "Open" genåbner netop den anmodning.
