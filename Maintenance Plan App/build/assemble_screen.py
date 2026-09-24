@@ -19,7 +19,7 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import Ctrl, render_screen, C_APP_BG, OUT_DIR
 from build_helpers import app_frame
-from build_hero import build_hero, build_top_bar
+from build_hero import build_top_bar
 from build_plan_header import build_plan_header
 from build_items import build_items_section
 from build_tasklist import build_tasklist_section, build_dispatch_section, build_email_fab
@@ -30,7 +30,6 @@ from build_save import build_save_section
 
 def build_screen():
     sections = [
-        build_hero(),
         build_plan_header(),
         build_items_section(),
         # Pakkematricen er nu en fane i Tasklist-sektionen, ikke et kort

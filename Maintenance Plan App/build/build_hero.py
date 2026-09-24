@@ -3,31 +3,33 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED,
                         C_PRIMARY, C_WHITE, C_NEUTRAL_BG, C_INFO_FG, SHELL_W)
-from build_helpers import text_ctrl, group, button, card, theme_button, flow_row, top_bar
+from build_helpers import text_ctrl, group, button, theme_button, top_bar
 from design_tokens import theme_query
-from layout_tokens import below, if_below, fits
+from layout_tokens import at_least
 import sp_config as cfg
 
-HERO_CW = f"({SHELL_W} - 32)"
-
-# Knapbredderne. De fire knapper staar i rammens TOPBJAELKE
-# (build_top_bar), ikke i heroen - saa de kan ikke scrolle vaek, og de er
-# den samme bjaelke som i de tre andre apps.
+# Topbjaelken er ALT, der er tilbage af hero-kortet.
 #
-# Her stod foer HERO_BTNS, ACTIONS_W og en vagt, der holdt heroens
-# venstreside i trit med knaprækken. build_helpers.top_bar() regner nu
-# begge dele af knapperne selv, saa der er ingen tabel at holde i trit.
-BW = {"btnVhpTheme": 92, "btnVhpBackToHub": 120,
+# Heroen var et kort oeverst i kroppen med beskrivelse, procestrin,
+# statuslinje, "* Required" og "Show field help". Det er forenklet:
+#
+#   procestrin        -> under titlen i topbjaelken (i stedet for undertitlen)
+#   Show field help   -> EEN Help-knap i topbjaelken. Den slaar baade
+#   + de fire ? Help     feltforklaringerne og sektionernes hjaelpepaneler
+#                        til og fra (varVhpShowHints).
+#   * Required        -> Plan Header-kortet, ved siden af Step 1
+#   beskrivelse       -> slettet
+#   statuslinje       -> slettet (txtVhpRuntimeInfo)
+BW = {"btnVhpHelp": 100, "btnVhpTheme": 92, "btnVhpBackToHub": 120,
       "btnVhpValidate": 110, "btnVhpExport": 130}
+BAR_GAP = 10
+NARROW_HIDE = ("btnVhpTheme", "btnVhpExport")
 
-# Procesindikatorens fem chips. Enten paa een linje, eller under hinanden -
-# build_helpers.flow_row. En CONTAINER-graense, ikke en enhedsklasse: fem
-# chips fylder det samme, uanset om skaermen er en telefon eller en 4K.
+# De fem procestrin. Staar paa een linje under titlen, naar der er plads -
+# ellers staar undertitlen der i stedet. Aldrig to linjer: bjaelken har en
+# fast hoejde.
 CHIP_W, CHIP_GAP, N_CHIPS = 118, 8, 5
-
-# Beskrivelsen under titlen. ~800 px tekst i 14 pt: to linjer paa en bred
-# skaerm, tre paa en smal. Hoejden foelger med - ellers klippes den.
-SUBTITLE_W = 820
+CHIPS_W = N_CHIPS * CHIP_W + (N_CHIPS - 1) * CHIP_GAP      # 622
 
 
 def _actions():
@@ -225,24 +227,23 @@ def _actions():
     # Samme knap som i de tre andre apps - se build_helpers.theme_button.
     btnTheme = theme_button("btnVhpTheme", width=BW["btnVhpTheme"], height=36)
 
-    return [btnTheme, btnHub, btnValidate, btnExport]
+    # EEN hjaelpeknap. Foer var der fem: "Show field help" i heroen og en
+    # "? Help" i hver af de fire sektioner. De slaar nu alle det samme til.
+    on = "IfError(varVhpShowHints, false)"
+    btnHelp = button(
+        "btnVhpHelp", f'If({on}, "Hide help", "? Help")',
+        f"Set(varVhpShowHints, !{on})",
+        width=BW["btnVhpHelp"], height=36)
+    btnHelp.props["Appearance"] = f"If({on}, ButtonAppearance.Primary, ButtonAppearance.Outline)"
+    btnHelp.props["BasePaletteColor"] = C_INFO_FG
+    btnHelp.props["Color"] = f"If({on}, {C_WHITE}, {C_INFO_FG})"
+    btnHelp.props["BorderColor"] = C_CARD_BORDER
+    btnHelp.props["BorderThickness"] = "1"
+
+    return [btnHelp, btnTheme, btnHub, btnValidate, btnExport]
 
 
-def build_top_bar():
-    """VH-planens topbjaelke - den samme som i de tre andre apps
-    (build_helpers.top_bar). Den staar i rammens header, saa Validate og
-    Export JSON altid kan naas, ogsaa langt nede i en lang plan."""
-    return top_bar("Vhp", '"VH-plan"', '"Maintenance plans for SAP PM"',
-                   _actions(),
-                   narrow_hide=("btnVhpTheme", "btnVhpExport"))
-
-
-def build_hero():
-    subtitle = text_ctrl(
-        "txtVhpSubtitle",
-        "\"Create the plan header, lock the plan, add items, link a task list per item, then report via an email draft.\"",
-        size=14, color=C_MUTED, height=fits(HERO_CW, SUBTITLE_W, "60", "40"), wrap="true")
-
+def _steps():
     step_defs = [
         ("txtVhpStep1", "\"1. Plan\"", "true"),
         ("txtVhpStep2", "\"2. Item\"", "varVhpPlanCommitted"),
@@ -256,7 +257,7 @@ def build_hero():
     steps = []
     for nm, lbl, active_formula in step_defs:
         steps.append(text_ctrl(
-            nm, lbl, size=12, weight="Semibold", height=26, width=118, wrap="false",
+            nm, lbl, size=12, weight="Semibold", height=26, width=CHIP_W, wrap="false",
             accessible=lbl,
             extra={
                 "Align": "Align.Center",
@@ -267,39 +268,29 @@ def build_hero():
                 "RadiusBottomLeft": "14", "RadiusBottomRight": "14",
                 "RadiusTopLeft": "14", "RadiusTopRight": "14",
             }))
-    # Fem chips a 118 px + 4 gaps a 8 = 622 px. Under det staar de under
-    # hinanden. Her stod "to linjer" som hoejde under graensen, men paa en
-    # smal skaerm blev det tre, og den sidste chip var klippet.
-    processStrip = flow_row("conVhpProcessStrip", steps, HERO_CW, gap=CHIP_GAP)
+    return steps
 
-    runtimeInfo = text_ctrl("txtVhpRuntimeInfo", "varVhpRuntimeInfo", size=13, color=C_MUTED, height=36,
-                            wrap="true")
 
-    legendStar = text_ctrl("txtVhpLegendStar", "\"*\"", size=13, color=C_REQUIRED, weight="Semibold",
-                           height=20, width=10, wrap="false")
-    legendText = text_ctrl("txtVhpLegendText", "\"Required\"", size=13, color=C_MUTED, height=20,
-                           width=110, wrap="false")
-    # EEN knap slaar alle feltforklaringer til og fra. Foer havde hvert felt
-    # sit eget i-ikon - 21 knapper for at vise 21 linjer er en knap for
-    # meget pr. linje, og de fyldte selv i raekken af labels.
-    #
-    # Den staar i hero-kortet ved siden af stjerne-legenden, fordi det er
-    # der man i forvejen kigger for at forstaa, hvordan skaermen laeses.
-    btnHints = button(
-        "btnVhpToggleHints",
-        'If(IfError(varVhpShowHints, false), "Hide field help", "Show field help")',
-        "Set(varVhpShowHints, !IfError(varVhpShowHints, false))",
-        width=150, height=30)
-    btnHints.props["Appearance"] = ("If(IfError(varVhpShowHints, false), "
-                                    "ButtonAppearance.Primary, ButtonAppearance.Outline)")
-    btnHints.props["BasePaletteColor"] = C_INFO_FG
-    btnHints.props["Color"] = f"If(IfError(varVhpShowHints, false), {C_WHITE}, {C_INFO_FG})"
-    btnHints.props["BorderColor"] = C_CARD_BORDER
-    btnHints.props["BorderThickness"] = "1"
-    btnHints.props["Size"] = "12"
+def build_top_bar():
+    """VH-planens topbjaelke - den samme som i de tre andre apps
+    (build_helpers.top_bar), men med procestrinene under titlen."""
+    actions = _actions()
+    # Pladsen til venstre for knapperne - samme regnestykke som
+    # gen_screen._resolve_grow, med de knapper, der er synlige.
+    terms = []
+    for a in actions:
+        t = f"{a.props['Width']} + {BAR_GAP}"
+        terms.append(f"If({at_least('Tablet')}, {t}, 0)" if a.name in NARROW_HIDE else t)
+    room = f"({SHELL_W} - " + " - ".join(f"({t})" for t in terms) + " - 2)"
+    chips_fit = f"{room} >= {CHIPS_W}"
 
-    legend = group("conVhpLegend", [legendStar, legendText, btnHints], direction="Horizontal",
-                   gap=3, height=30, align_items="Center", width=285)
+    strip = group("conVhpProcessStrip", _steps(), direction="Horizontal", gap=CHIP_GAP,
+                  height=26, width=CHIPS_W, align_items="Center", visible=chips_fit)
+    fallback = text_ctrl("txtVhpSub", '"Maintenance plans for SAP PM"', size=13, color=C_MUTED,
+                         height=26, wrap="false", visible=f"!({chips_fit})")
+    sub = group("conVhpBarSub", [strip, fallback], direction="Horizontal", gap=0, height=26)
+    return top_bar("Vhp", '"VH-plan"', None, actions, gap=BAR_GAP,
+                   narrow_hide=NARROW_HIDE, sub=[sub])
 
-    return group("conVhpHero", [subtitle, processStrip, runtimeInfo, legend], direction="Vertical", gap=12,
-                 fill=C_CARD_BG, border_color=C_CARD_BORDER, radius=14, pad=(16, 16, 16, 16))
+
+
