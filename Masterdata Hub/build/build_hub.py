@@ -20,7 +20,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_PRIM
                         C_INFO_FG, C_INFO_BG, C_NEUTRAL_BG, C_DIVIDER, C_TRANSPARENT,
                         C_APP_BG, FONT, SHELL_W)
 from build_helpers import (text_ctrl, group, button, card, theme_button,
-                           wrap_row_height)
+                           flow_row, top_bar)
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, APP_TARGET
 from design_tokens import theme_query
 from layout_tokens import if_below
@@ -96,34 +96,25 @@ def _seg(name, label, value):
 
 
 def build_bar():
-    brand = text_ctrl("txtMdBrand", '"Masterdata"', size=22, weight="Semibold", height=30,
-                      width=150, wrap="false")
-    sub = text_ctrl("txtMdSub", '"SAP requests"', size=13, color=C_MUTED, height=30,
-                    width=140, wrap="false")
-    left = group("conMdBrand", [brand, sub], direction="Horizontal", gap=10, height=34,
-                 align_items="Center", width=300)
+    """Toplinjen - build_helpers.top_bar(), den samme i alle fire apps.
 
+    Her stod fire boern i een wrap-raekke, hvis bredder var regnet til at
+    fylde SHELL_W paa pixlen ("who"-teksten tog resten). Med scrollbaren
+    var der 17 px mindre, raekken ombroed, og hoejden havde kun plads til
+    een linje: temaknappen og visningsvalget forsvandt. Paa en smal skaerm
+    blev det tre linjer, hvor hoejden regnede med to.
+
+    Nu staar hvem-teksten som undertitel, og top_bar() regner resten."""
     seg = group("conMdSeg", [_seg("btnMdViewMine", "My requests", "mine"),
                              _seg("btnMdViewQueue", "Queue", "queue")],
                 direction="Horizontal", gap=0, height=34, align_items="Center", width=336)
-
-    who = text_ctrl("txtMdWho",
-                    'If(gblView = "mine", gblMe, "Queue - whole department")',
-                    size=12, color=C_MUTED, height=34, align="Right", wrap="false",
-                    width=f"Max(160, {SHELL_W} - 300 - 336 - 24)")
-
     # Temaknappen staar YDERST TIL HOEJRE og med engelsk tekst som resten
     # af hubben. Den er den samme kontrol som i de tre satellitter - se
     # build_helpers.theme_button.
     theme = theme_button("btnMdTheme", light_label='"Dark"', dark_label='"Light"')
-
-    # who-feltet skal give plads til knappen, ellers skubber den linjen om.
-    who.props["Width"] = f"Max(120, {SHELL_W} - 300 - 336 - 92 - 36)"
-
-    kids = [left, seg, who, theme]
-    return group("conMdBar", kids, direction="Horizontal", gap=12,
-                 align_items="Center", wrap="true",
-                 height=wrap_row_height(kids, 12, SHELL_W))
+    return top_bar("Md", '"Masterdata"',
+                   '"SAP requests - " & If(gblView = "mine", gblMe, "queue, whole department")',
+                   [seg, theme], SHELL_W)
 
 
 # ---------------------------------------------------------------------------
@@ -133,7 +124,12 @@ def build_bar():
 # altsaa et viewport-braekpunkt, ikke en udregning paa indholdet. Stod foer
 # som SHELL_W < 940, hvilket er App.Width < 1004: et af fire naesten ens
 # tal. Se tools/layout_tokens.py.
-TILE_W = if_below("Desktop", f"({SHELL_W} - 10) / 2", f"({SHELL_W} - 40) / 5")
+#
+# Under "Tablet" (telefon) EEN pr. raekke: to fliser paa 170 px gav to
+# knapper paa 70 px, og "New request" kan ikke staa paa 70 px.
+TILE_W = if_below("Tablet", SHELL_W,
+                  if_below("Desktop", f"({SHELL_W} - 10) / 2", f"({SHELL_W} - 40) / 5"))
+TILE_LINES = if_below("Tablet", "5", if_below("Desktop", "3", "1"))
 
 
 def build_tiles():
@@ -185,7 +181,7 @@ def build_tiles():
                  # SAMME braekpunkt som TILE_W. Var de uenige, ville beholderen
                   # have hoejde til een raekke fliser, mens fliserne selv stod i
                   # tre - og de to nederste raekker blev klippet af.
-                  height=if_below("Desktop", f"3 * ({tile_h}) + 20", tile_h))
+                  height=f"{TILE_LINES} * ({tile_h}) + ({TILE_LINES} - 1) * 10")
 
 
 # ---------------------------------------------------------------------------
@@ -209,7 +205,7 @@ def build_filters():
         "LayoutMinWidth": "0", "Placeholder": '"Search number, text or plant"',
         "RadiusBottomLeft": "8", "RadiusBottomRight": "8", "RadiusTopLeft": "8", "RadiusTopRight": "8",
         "Size": "13", "Type": "TextInputType.Search",
-        "Width": f"Max(180, {SHELL_W} - 3 * 104 - 200 - 5 * 8)",
+        "Width": "0",   # flow_row: resten af linjen, mindst 180
     }, h=32)
     count = text_ctrl("txtMdCount",
                       f'Text(CountRows({SCOPE})) & " requests in this view"',
@@ -217,9 +213,8 @@ def build_filters():
     kids = [search, _chip("btnMdStOpen", "Open", "open"),
             _chip("btnMdStDone", "Closed", "done"),
             _chip("btnMdStAll", "All", "all"), count]
-    return group("conMdFilters", kids, direction="Horizontal", gap=8,
-                 align_items="Center", wrap="true",
-                 height=wrap_row_height(kids, 8, SHELL_W))
+    # Enten een linje, eller et felt pr. linje - se build_helpers.flow_row.
+    return flow_row("conMdFilters", kids, SHELL_W, gap=8, flex=search, flex_min=180)
 
 
 # ---------------------------------------------------------------------------
@@ -325,6 +320,10 @@ def build_list():
 
     empty = text_ctrl("txtMdEmpty", '"No requests match the filters."', size=13,
                       color=C_MUTED, height=24, wrap="true",
-                      visible=f"IfError(IsEmpty({ITEMS}), false)")
+                      # GALLERIETS egne raekker - ikke en ny forespoergsel.
+                      # Her stod hele ITEMS igen: et Filter mod SharePoint
+                      # inde i en synlighed, og dermed inde i kortets
+                      # HOEJDE. En hoejde maa ikke kunne fejle paa netvaerket.
+                      visible="IsEmpty(galMdRequests.AllItems)")
 
     return card("conMdListCard", [head, gal, empty], gap=8)

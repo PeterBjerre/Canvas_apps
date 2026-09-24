@@ -19,6 +19,13 @@ Tjekket foretager fire kontroller:
   3. Hver vandret container skal vaere hoej nok til sit hoejeste barn.
 
   4. Faste bredder i en vandret raekke maa ikke overstige raekkens bredde
+  4c. Hver wrap-raekke SPILLES: boernene pakkes i linjer, som autolayout
+     goer det, i den bredde containeren faktisk faar - med scrollbaren
+     trukket fra. Hoejden skal rumme de linjer, der kommer ud af det
+  23. Rammen: con<X>Root -> header med fast hoejde + een krop, der
+     scroller. Headerens hoejde maa ikke afhaenge af data, og padding +
+     scrollbar + luft skal vaere mindst SHELL_INSET. Se
+     docs/30-responsivt-layout.md
   8. Enhver samling, skaermen bruger, findes i App.pa.yaml - som navngiven
      formel eller som ClearCollect
   8b. Enhver designtoken, skaermen bruger, findes i temaformlen C. En
@@ -188,6 +195,15 @@ def evaluate(expr, w, n_items, n_ops, n_pkgs):
     # De tre specifikke erstatninger her var VH-plans egne, paa ORDRET
     # tekst. _sub_countrows tager dem alle - ogsaa de tre andre apps'.
     e = _sub_countrows(e, max(n_items, n_ops, n_pkgs))
+    # IsEmpty(...) -> sand: ugunstigste tilfaelde, "tom"-beskeden vises.
+    # Hvad der staar inde i den, er data og ikke hoejdealgebra - samme
+    # begrundelse som for CountRows.
+    while "IsEmpty(" in e:
+        j = e.find("IsEmpty(")
+        k = _balanced(e, j + len("IsEmpty"))
+        if k < 0:
+            break
+        e = e[:j] + "True" + e[k + 1:]
     # LayoutContext og LayoutRank er NAVNGIVNE FORMLER i App.pa.yaml, ikke
     # tal i udtrykket. Uden de to linjer kunne tjekket ikke regne paa en
     # eneste hoejde, der afhaenger af et braekpunkt - altsaa netop dem, der
@@ -203,18 +219,35 @@ def evaluate(expr, w, n_items, n_ops, n_pkgs):
     e = re.sub(r"IsBlank\(varVhpPlan\.Strategy\)", "False", e)
     e = re.sub(r"IsBlank\(varVhpActiveItemId\)", "False", e)
     e = re.sub(r"\bvarVhp[A-Za-z0-9_]*\b", "True", e)
+    # ALLE APPS' VARIABLER, IKKE KUN VH-PLANS.
+    #
+    # Her stod kun varVhp*. En hoejde med varDom* eller gbl* kunne derfor
+    # ikke regnes ud, og blev sprunget over med et tavst "kan ikke". Det
+    # skjulte, at conDomSplit i Equipment og Material kun havde hoejde til
+    # EEN linje, mens listen og dokumentruden stod under hinanden paa
+    # enhver skaerm under 1600 px - hele dokumentruden, knapperne med, var
+    # klippet vaek.
+    #
+    # Samme regel som for varVhp*: ugunstigste tilfaelde. "Er den blank?"
+    # svares nej, saa det, der kun vises for en valgt raekke, ER vist.
+    e = re.sub(r"IsBlank\(\s*(?:var|gbl)[A-Z][\w.]*\s*\)", "False", e)
+    e = re.sub(r"\b(?:var|gbl)[A-Z]\w*(?:\.\w+)*", "True", e)
 
     # IsBlank og Coalesce staar i de betingelser, hoejderne haenger paa.
     # De maa erstattes FOER If, ellers bliver "IsBlank(" til "Is_if("...
     e = e.replace("IsBlank(", "_isblank(").replace("Coalesce(", "_coalesce(")
     e = e.replace("IfError(", "_iferror(").replace("If(", "_if(")
     e = e.replace("&&", " and ").replace("||", " or ")
+    e = e.replace("<>", "!=")
+    e = re.sub(r"!(?!=)", " not ", e)
     e = re.sub(r"\btrue\b", "True", e)
     e = re.sub(r"\bfalse\b", "False", e)
     e = re.sub(r"(?<![<>!=])=(?!=)", "==", e)
 
     # Et funktionskald, tjekket ikke kender, kan det ikke regne paa.
-    stripped = e
+    # Tekst i anfoerselstegn er data, ikke navne - "submitted" er ikke en
+    # ukendt variabel.
+    stripped = re.sub(r'"[^"]*"', '""', e)
     for fn in KNOWN:
         stripped = stripped.replace(fn + "(", "")
     if re.search(r"[A-Za-z_][A-Za-z0-9_.]*\s*\(", stripped):
@@ -226,7 +259,7 @@ def evaluate(expr, w, n_items, n_ops, n_pkgs):
     # "ukendt navn" i 41 af de 81 hoejder, den sprang over - og det var
     # ikke data den ikke kunne regne paa, det var dens egen hvidliste.
     if re.search(r"\b(?!True|False|and|or|not|" + _KNOWN_RE + r")"
-                 r"[A-Za-z_][A-Za-z0-9_.]*", e):
+                 r"[A-Za-z_][A-Za-z0-9_.]*", stripped):
         return None
     try:
         return float(eval(e, {"__builtins__": {}},
@@ -376,6 +409,201 @@ def main():
             v = evaluate(pp_.get(k), w, ni, no, npk)
             pad += float(v or 0)
         return pw - pad
+
+    # DEN BREDDE, PLATFORMEN FAKTISK GIVER - med scrollbaren trukket fra.
+    #
+    # avail_width() ovenfor stoler paa, at en kontrols Width er det, den
+    # tegnes med. Det passer ikke i to tilfaelde, og begge ramte:
+    #
+    #   1. En LODRET container med Stretch saetter selv boernenes bredde
+    #      til sin egen indre bredde. Barnets Width-formel ignoreres.
+    #   2. En container med LayoutOverflowY = Scroll bruger bredden til
+    #      scrollbaren, naar indholdet er hoejere end den - og det er det
+    #      altid i de fire apps. Paa Windows er den ~17 px bred. Paa en Mac
+    #      ligger den OVEN PAA indholdet og koster ingenting.
+    #
+    # Nummer 2 er grunden til, at fejlen saa ud som "hit and miss": den
+    # samme skaerm var hel paa een maskine og klippet paa en anden.
+    # Tjekket regner derfor altid med den UGUNSTIGE side - scrollbaren
+    # tager plads.
+    def _num(v, w, ni, no, npk):
+        x = evaluate(v, w, ni, no, npk)
+        return float(x or 0)
+
+    def real_width(path, w, ni, no, npk, depth=0):
+        if depth > 30:
+            return None
+        body = by_path.get(path)
+        if body is None:
+            return None
+        props = body.get("Properties") or {}
+        parent = path.rsplit("/", 1)[0]
+        if not parent:
+            e = (props.get("Width") or "").replace("Parent.Width", str(w))
+            return evaluate(e, w, ni, no, npk)
+        pb = by_path[parent]
+        if pb.get("Control") == "Gallery":
+            return None
+        pp_ = pb.get("Properties") or {}
+        pw = real_width(parent, w, ni, no, npk, depth + 1)
+        if pw is None:
+            return None
+        inner = (pw - _num(pp_.get("PaddingLeft"), w, ni, no, npk)
+                 - _num(pp_.get("PaddingRight"), w, ni, no, npk))
+        if (pp_.get("LayoutOverflowY") or "").strip() == "=LayoutOverflow.Scroll":
+            inner -= lay.SCROLLBAR_W
+        vertical = "Vertical" in (pp_.get("LayoutDirection") or "")
+        stretch = "Stretch" in (pp_.get("LayoutAlignItems") or "")
+        own_align = (props.get("AlignInContainer") or "")
+        if vertical and stretch and not re.search(r"\.(Start|Center|End)\b", own_align):
+            return inner
+        e = (props.get("Width") or "").replace("Parent.Width", "(%s)" % inner)
+        return evaluate(e, w, ni, no, npk)
+
+    # --- 4c. Ombrydningen, som platformen faktisk laver den --------------
+    #
+    # Regel 4 og 4b ser paa formlerne. Den her SPILLER layoutet: for hver
+    # wrap-raekke, ved hver testbredde, pakkes boernene i raekker paa
+    # samme maade som autolayout goer det - fra venstre, ny linje naar
+    # det naeste barn ikke kan vaere der - i den bredde, containeren
+    # FAKTISK faar. Derefter skal Height kunne rumme de linjer, der kom
+    # ud af det.
+    #
+    # Det er praecis den fejl, der fik bjaelker og knapper til at
+    # forsvinde: en raekke regnet til at fylde SHELL_W paa pixlen, i en
+    # container der var 17 px smallere, fordi scrollbaren tog dem. Sidste
+    # barn ombroed til en linje, hoejden ikke havde plads til - og blev
+    # klippet vaek. Ingen formel var forkert; det var bredden, der loej.
+    for p, name, body in all_nodes:
+        props = body.get("Properties") or {}
+        kids = body.get("Children") or []
+        if body.get("Control") != "GroupContainer" or len(kids) < 2:
+            continue
+        if "true" not in (props.get("LayoutWrap") or "").lower():
+            continue
+        gap = float(re.sub(r"[^0-9.]", "", props.get("LayoutGap", "=8")) or 8)
+        found = None
+        for w in WIDTHS:
+            for ni in ITEM_COUNTS:
+                own_h = evaluate(props.get("Height"), w, ni, 4, 4)
+                avail = real_width(p, w, ni, 4, 4)
+                if own_h is None or avail is None:
+                    continue
+                avail -= (_num(props.get("PaddingLeft"), w, ni, 4, 4)
+                          + _num(props.get("PaddingRight"), w, ni, 4, 4))
+                lines, cur_w, cur_h, ok = [], None, 0.0, True
+                for k in kids:
+                    (kn, kb), = k.items()
+                    kp = kb.get("Properties") or {}
+                    vis = kp.get("Visible")
+                    if vis is not None:
+                        shown = evaluate(vis, w, ni, 4, 4)
+                        if shown is not None and not shown:
+                            continue
+                    kw = evaluate((kp.get("Width") or "").replace(
+                        "Parent.Width", "(%s)" % avail), w, ni, 4, 4)
+                    kh = evaluate(kp.get("Height"), w, ni, 4, 4)
+                    if kw is None or kh is None:
+                        ok = False
+                        break
+                    if cur_w is None:
+                        cur_w, cur_h = kw, kh
+                    elif cur_w + gap + kw <= avail + 0.5:
+                        cur_w, cur_h = cur_w + gap + kw, max(cur_h, kh)
+                    else:
+                        lines.append(cur_h)
+                        cur_w, cur_h = kw, kh
+                if not ok or cur_w is None:
+                    continue
+                lines.append(cur_h)
+                need = (sum(lines) + gap * (len(lines) - 1)
+                        + _num(props.get("PaddingTop"), w, ni, 4, 4)
+                        + _num(props.get("PaddingBottom"), w, ni, 4, 4))
+                if own_h + 0.5 < need:
+                    found = (f"[4c] {name}: ombryder til {len(lines)} linje(r) i "
+                             f"{avail:.0f} px (App.Width={w}, scrollbar "
+                             f"medregnet) og skal bruge {need:.0f} px - "
+                             f"hoejden er {own_h:.0f}. Det nederste klippes vaek")
+                    break
+            if found:
+                break
+        if found:
+            problems.append(found)
+
+    # --- 23. Rammen ------------------------------------------------------
+    #
+    # Alle fire skaerme har den samme ramme (build_helpers.app_frame):
+    #
+    #     con<X>Root     Parent.Width x Parent.Height, scroller IKKE
+    #       con<X>Header   fast hoejde, der kun afhaenger af App.Width
+    #       con<X>Body     FillPortions > 0, LayoutOverflowY = Scroll
+    #
+    # Reglen fanger de tre maader, rammen kan gaa i stykker paa:
+    #
+    #   a. Bjaelken havner i det, der scroller - saa kan den scrolles vaek,
+    #      og dens hoejde bliver en del af en sum igen.
+    #   b. Headerens hoejde afhaenger af data. En hoejde med CountRows,
+    #      Filter eller en variabel kan fejle eller blive blank - og en
+    #      blank hoejde er en bjaelke, der er vaek.
+    #   c. SHELL_W bliver usand. Paddingen, scrollbaren og luften SKAL
+    #      tilsammen vaere mindst SHELL_INSET, ellers regner hver raekke
+    #      med plads, den ikke har. Det var den fejl, der fik knapperne
+    #      til at forsvinde.
+    root_items = screen.get("Children") or []
+    if not root_items:
+        problems.append("[23] skaermen har ingen boern")
+    else:
+        (rname, rbody), = root_items[0].items()
+        rprops = rbody.get("Properties") or {}
+        rkids = rbody.get("Children") or []
+
+        def _eq(k, v):
+            return (rprops.get(k) or "").strip() == v
+
+        if not (rname.endswith("Root") and _eq("Height", "=Parent.Height")
+                and _eq("Width", "=Parent.Width")
+                and "Vertical" in (rprops.get("LayoutDirection") or "")):
+            problems.append(f"[23] {rname}: skaermens foerste barn skal vaere "
+                            f"rammen - lodret, Parent.Width x Parent.Height. "
+                            f"Byg den med build_helpers.app_frame()")
+        elif "Scroll" in (rprops.get("LayoutOverflowY") or ""):
+            problems.append(f"[23a] {rname}: rammen selv maa ikke scrolle - saa "
+                            f"scroller bjaelken med. Det er kroppen, der scroller")
+        else:
+            bodies = [k for k in rkids
+                      if "Scroll" in ((list(k.values())[0].get("Properties") or {})
+                                      .get("LayoutOverflowY") or "")]
+            if len(bodies) != 1:
+                problems.append(f"[23a] {rname}: rammen skal have praecis een krop "
+                                f"med LayoutOverflowY = Scroll (fandt {len(bodies)})")
+            for k in rkids:
+                (kn, kb), = k.items()
+                kp = kb.get("Properties") or {}
+                is_body = k in bodies
+                pl = _num(kp.get("PaddingLeft"), 1920, 0, 0, 3)
+                pr = _num(kp.get("PaddingRight"), 1920, 0, 0, 3)
+                if is_body:
+                    if evaluate(kp.get("FillPortions"), 1920, 0, 0, 3) in (None, 0):
+                        problems.append(f"[23a] {kn}: kroppen skal have "
+                                        f"FillPortions > 0 og fylde resten af skaermen")
+                    inset = pl + pr + lay.SCROLLBAR_W
+                else:
+                    h = (kp.get("Height") or "")
+                    if re.search(r"\b(CountRows|Filter|LookUp|IsEmpty|col[A-Z]\w*|"
+                                 r"var[A-Z]\w*|gbl[A-Z]\w*|Parent\.|Self\.)", h):
+                        problems.append(f"[23b] {kn}: headerens hoejde afhaenger af "
+                                        f"andet end skaermbredden -> {h.strip()[:80]}")
+                    elif any(evaluate(h, w, 0, 0, 3) is None for w in WIDTHS):
+                        problems.append(f"[23b] {kn}: headerens hoejde kan ikke "
+                                        f"efterregnes -> {h.strip()[:80]}")
+                    inset = pl + pr
+                if inset + lay.FIT_SLACK > lay.SHELL_INSET:
+                    problems.append(
+                        f"[23c] {kn}: padding {pl:.0f} + {pr:.0f}"
+                        + (f" + scrollbar {lay.SCROLLBAR_W}" if is_body else "")
+                        + f" + luft {lay.FIT_SLACK} = {inset + lay.FIT_SLACK:.0f} > "
+                        f"SHELL_INSET {lay.SHELL_INSET}. SHELL_W ville love "
+                        f"mere plads, end der er")
 
     # --- 4. En vandret raekke skal kunne rumme sine boern ------------------
     #
@@ -584,14 +812,23 @@ def main():
     # Det skete, da FL- og objektlisteblokken blev flyttet fra en vandret
     # gitterraekke (hvor FillPortions fordelte BREDDE og var rigtig) ned i
     # en lodret kolonne. Begge blokke voksede til hele kolonnens hoejde.
+    #
+    # DEN ENE UNDTAGELSE ER RAMMENS KROP (regel 23). Rammen er skaermhoej -
+    # dens hoejde er Parent.Height, ikke regnet af boernene - og kroppen
+    # SKAL fylde resten under headeren. Det er netop den overskydende
+    # hoejde, FillPortions er til.
     for p, name, body in all_nodes:
         props = body.get("Properties") or {}
         if props.get("LayoutDirection", "").strip() != "=LayoutDirection.Vertical":
             continue
+        screen_tall = (props.get("Height") or "").strip() == "=Parent.Height"
         for kid in (body.get("Children") or []):
             kname = list(kid.keys())[0]
             kprops = (list(kid.values())[0].get("Properties") or {})
             fp = kprops.get("FillPortions", "=0").strip()
+            if (screen_tall and (kprops.get("LayoutOverflowY") or "").strip()
+                    == "=LayoutOverflow.Scroll"):
+                continue
             if fp not in ("=0", "0"):
                 problems.append(f"[9] {kname}: FillPortions {fp[:40]} i den LODRETTE "
                                 f"container {name} - barnet straekkes i hoejden")

@@ -71,7 +71,7 @@ OUT_DIR = _out_dir()
 ROOT = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 from design_tokens import ref as _t, TRANSPARENT
-from layout_tokens import below, if_below
+from layout_tokens import below, if_below, SHELL_W
 
 # ---------------------------------------------------------------------------
 # Farver
@@ -132,12 +132,11 @@ C_NEUTRAL_BG = _t("state-neutral-bg")
 
 FONT = "Font.'Segoe UI'"
 
-# Bredden af skaermens indholdsomraade. conVhpShell har 24 px padding i hver
-# side, og conVhpRoot scroller lodret, hvilket koster ca. 16 px til
-# scrollbaren. Alle responsive udregninger gaar gennem denne, saa
-# braekpunkter forholder sig til den plads der faktisk er - ikke til
-# App.Width, som er 64 px bredere end det indholdet har.
-SHELL_W = "(App.Width - 64)"
+# Bredden af skaermens indholdsomraade. Den staar i tools/layout_tokens.py
+# sammen med rammen, den er regnet af - padding, scrollbar og luft. Alle
+# responsive udregninger gaar gennem den, og den er en NEDRE graense for
+# det, platformen giver: se RAMMEN i layout_tokens.py for hvorfor det ikke
+# maa vaere et gaet paa det praecise tal.
 
 # Bredden af items-skinnen naar de to kort staar side om side.
 RAIL_W = 360

@@ -18,8 +18,8 @@ _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.dirname(
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import Ctrl, render_screen, C_APP_BG, OUT_DIR
-from build_helpers import group
-from build_hero import build_hero
+from build_helpers import app_frame
+from build_hero import build_hero, build_top_bar
 from build_plan_header import build_plan_header
 from build_items import build_items_section
 from build_tasklist import build_tasklist_section, build_dispatch_section, build_email_fab
@@ -40,12 +40,12 @@ def build_screen():
         build_save_section(),
     ]
 
+    # RAMMEN: topbjaelken i en header, der ikke scroller, og sektionerne
+    # direkte i en krop, der goer. Se build_helpers.app_frame.
+    #
     # Bundpolstringen giver plads til den svaevende "Send as email"-knap,
     # saa det sidste kort ikke ligger under den.
-    shell = group("conVhpShell", sections, direction="Vertical", gap=20, pad=(20, 32, 100, 32))
-
-    root = group("conVhpRoot", [shell], direction="Vertical", height="Parent.Height",
-                 width="Parent.Width", overflow_y="Scroll", fill=C_APP_BG)
+    root = app_frame("Vhp", build_top_bar(), sections, body_gap=20, body_pad_b=100)
 
     return render_screen("ScreenVhPlan", {"Fill": C_APP_BG},
                          [root, build_modal_backdrop(), build_tasklist_picker_modal(),
