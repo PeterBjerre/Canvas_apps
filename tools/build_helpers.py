@@ -11,7 +11,7 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from design_tokens import DARK_VAR, toggle_action
 import layout_tokens as lay
-from layout_tokens import below, fits, if_below, TWO_COL_MIN
+from layout_tokens import below, at_least, fits, if_below, TWO_COL_MIN
 from gen_screen import (
     Ctrl, render, render_screen, stack_height, row_height,
     C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED,
@@ -284,16 +284,18 @@ def _max_expr(hs):
 
 
 def grow(ctrl, min_w=0):
-    """Barnet tager RESTEN af en vandret raekke - regnet af platformen.
+    """Barnet tager RESTEN af en vandret raekke.
 
-    Her stod "Parent.Width - <de andre>". Men Parent.Width er FORAELDERENS
-    WIDTH-EGENSKAB, ikke pladsen inden i den: padding og scrollbar er ikke
-    trukket fra, og inde i et kort er det som regel hele skaermens bredde.
-    FillPortions lader Power Apps regne resten ud af den plads, der er.
-    Layout-tjekkets regel 24 afviser Parent.Width i et regnestykke."""
-    ctrl.props["FillPortions"] = "1"
-    ctrl.props["LayoutMinWidth"] = str(min_w)
+    Det er en MARKERING, ikke FillPortions. gen_screen.resolve_templates()
+    regner bredden ud, naar skaermen skrives: pladsen inden i raekken minus
+    de andre boern. Se _resolve_grow for hvorfor - kort sagt stod knapperne
+    ved siden af en FillPortions-del en linje for lavt i Studio.
+
+    Her stod foer "Parent.Width - <de andre>", og Parent.Width er
+    FORAELDERENS WIDTH-EGENSKAB, ikke pladsen inden i den."""
+    ctrl._grow = min_w
     ctrl.props["Width"] = str(min_w)
+    ctrl.props["LayoutMinWidth"] = str(min_w)
     return ctrl
 
 
@@ -335,9 +337,7 @@ def flow_row(name, children, container_w, gap=8, flex=None, flex_min=0,
     ok = flow_ok(children, container_w, gap, flex, flex_min)
     for c in children:
         if c is flex:
-            c.props["Width"] = str(flex_min)
-            c.props["FillPortions"] = "If(%s, 1, 0)" % ok
-            c.props["LayoutMinWidth"] = "0"
+            grow(c, 0)
         else:
             # Laast i raekken, saa den fleksible del er den eneste, der kan
             # give efter. Lodret er Stretch - saa maa den gerne vaere smal.
@@ -377,38 +377,34 @@ def flow_ok(children, container_w, gap=8, flex=None, flex_min=0):
     return _fits_expr(container_w, _sum_expr(terms, gap))
 
 
-def top_bar(prefix, title, subtitle, actions, container_w, gap=20,
-            action_gap=10, min_title=240, title_size=22):
+def top_bar(prefix, title, subtitle, actions, container_w=None, gap=10,
+            narrow_hide=()):
     """Bjaelken oeverst - den SAMME konstruktion i alle fire apps.
 
-    Venstre: titel og undertitel. De tager RESTEN af linjen (FillPortions),
-    saa knapperne altid staar helt ude til hoejre.
-    Hoejre:  handlingerne, hver med sin faste bredde.
+    EEN vandret raekke uden formler i retning eller justering: titlen og
+    undertitlen tager resten (build_helpers.grow -> en udregnet bredde), og
+    knapperne staar DIREKTE i raekken - ikke i en indlejret gruppe.
 
-    Der er ingen haandskrevet tabel over knapbredderne, og ingen vagt der
-    skal holde den i trit: graensen regnes af de kontroller, der faktisk
-    staar i raekken. Tilfoejes en knap, flytter graensen sig selv.
+    Foerste udgave havde knapperne i en indlejret gruppe ved siden af en
+    FillPortions-titel, og en retning, der skiftede efter bredden. I Studio
+    stod knapperne en linje for lavt og blev skaaret over af headerens kant.
+    Listens raekker - faste, udregnede bredder, ingen indlejring - stod
+    rigtigt. Det er den konstruktion, bjaelken nu har.
 
-    Smal skaerm: titlen over knapperne. Er der heller ikke plads til
-    knapperne paa een linje, staar de under hinanden.
+    narrow_hide: knapper, der skjules under "Tablet", saa resten kan staa.
     """
-    t = text_ctrl("txt%sTitle" % prefix, title, size=title_size, weight="Semibold",
+    t = text_ctrl("txt%sTitle" % prefix, title, size=22, weight="Semibold",
                   height=30, wrap="false")
     sub = text_ctrl("txt%sSub" % prefix, subtitle, size=13, color=C_MUTED,
                     height=20, wrap="false")
-    left = group("con%sBarLeft" % prefix, [t, sub], direction="Vertical", gap=2)
-    act_w = (sum(int(str(a.props["Width"])) for a in actions)
-             + action_gap * (len(actions) - 1))
-    # Graensen for hele bjaelken skal kendes, FOER hoejresiden bygges:
-    # hoejresidens plads er "sin egen bredde, hvis bjaelken staar paa een
-    # linje, ellers hele bjaelkens".
-    probe = group("con%sBarRight" % prefix, [], width=str(act_w))
-    bar_ok = flow_ok([left, probe], container_w, gap, flex=left, flex_min=min_title)
-    right = flow_row("con%sBarRight" % prefix, actions,
-                     "If(%s, %d, %s)" % (bar_ok, act_w, container_w), gap=action_gap)
-    right.props["Width"] = str(act_w)
-    return flow_row("con%sBar" % prefix, [left, right], container_w, gap=gap,
-                    flex=left, flex_min=min_title)
+    left = grow(group("con%sBarLeft" % prefix, [t, sub], direction="Vertical", gap=2))
+    for a in actions:
+        a.props["AlignInContainer"] = "AlignInContainer.Center"
+        a.props["LayoutMinWidth"] = str(a.props["Width"])
+        if a.name in narrow_hide:
+            a.vis = at_least("Tablet")
+    return group("con%sBar" % prefix, [left] + list(actions), direction="Horizontal",
+                 gap=gap, align_items="Center")
 
 
 def app_frame(prefix, header, body, body_gap=16, body_pad_b=None):

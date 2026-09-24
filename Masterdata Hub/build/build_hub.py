@@ -118,7 +118,7 @@ def build_bar():
     theme = theme_button("btnMdTheme", light_label='"Dark"', dark_label='"Light"')
     return top_bar("Md", '"Masterdata"',
                    '"SAP requests - " & If(gblView = "mine", gblMe, "queue, whole department")',
-                   [seg, theme], SHELL_W)
+                   [seg, theme], narrow_hide=("btnMdTheme",))
 
 
 # ---------------------------------------------------------------------------

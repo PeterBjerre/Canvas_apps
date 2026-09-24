@@ -203,6 +203,22 @@ hvor sidste kolonne lå under galleriets scrollbar (operationer, materialer,
 tasklist-vælgeren, pakkematricen). Gallerierne er nu tabellen + padding +
 scrollbar brede.
 
+### Regel I — Ingen `FillPortions` i en række: resten regnes ud
+
+I topbjælken og i detaljepopuppens hoved stod knapperne ved siden af en
+venstreside med `FillPortions = 1`, og i Studio blev de tegnet en linje for
+lavt, skåret over af kanten. Listens rækker har kun faste, udregnede
+bredder, og dér stod knapperne rigtigt.
+
+`build_helpers.grow(ctrl)` er derfor en **markering**:
+`gen_screen._resolve_grow()` giver kontrollen en udregnet bredde, når
+skærmen skrives: pladsen inden i rækken (en nedre grænse) minus de andre
+børn og mellemrummene, minus 2 px. Bjælkens knapper står direkte i rækken,
+ikke i en indlejret gruppe, og den skifter ikke retning. På en telefon
+skjules de knapper, der kan undværes (`narrow_hide`).
+
+Regel 28 afviser `FillPortions` i en vandret række, der ikke ombryder.
+
 ### Regel H — En tekst er mindst 1,5 × sin skriftstørrelse høj
 
 Den mørke streg i topbjælken var **`txtDomTitle`**: titlen var 22 pt i
@@ -226,6 +242,7 @@ højden til 1,5 × skriftstørrelsen, og højde-algebraen følger med.
 | **25** | En `ModernButton` er mindst 30 px høj |
 | **26** | Ingen `Parent.Template*` i en formel — og en galleriræke skal kunne rumme sine celler ved hver bredde fra Tablet og op |
 | **27** | En `ModernText` er mindst 1,5 × sin skriftstørrelse høj |
+| **28** | Ingen `FillPortions` i en vandret række, der ikke ombryder — brug `grow()` |
 
 Og `real_width()` / `prop_width()` skelner nu mellem de to ting, der hed
 det samme: den plads en kontrol **får**, og den værdi `Parent.Width` i dens

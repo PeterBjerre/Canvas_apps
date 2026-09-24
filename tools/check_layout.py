@@ -28,6 +28,7 @@ Tjekket foretager fire kontroller:
   25. En knap er mindst 30 px hoej
   26. Ingen Parent.Template* - og en gallerirakke skal rumme sine celler
   27. En tekst er mindst 1,5 x sin skriftstoerrelse hoej
+  28. Ingen FillPortions i en vandret raekke, der ikke ombryder
   23. Rammen: con<X>Root -> header med fast hoejde + een krop, der
      scroller. Headerens hoejde maa ikke afhaenge af data, og padding +
      scrollbar + luft skal vaere mindst SHELL_INSET. Se
@@ -767,6 +768,25 @@ def main():
         if size and h is not None and h < size * 1.5 - 0.01:
             problems.append(f"[27] {name}: {size:.0f} pt i {h:.0f} px - mindst "
                             f"{size * 1.5:.0f}, ellers faar teksten sin egen scrollbar")
+
+    # --- 28. Ingen FillPortions i en raekke, der ikke ombryder ----------
+    #
+    # I topbjaelken og detaljepopuppens hoved stod knapperne ved siden af en
+    # FillPortions-venstreside - og i Studio blev de tegnet en linje for
+    # lavt, skaaret over af kanten. Listens raekker har faste, udregnede
+    # bredder, og dér stod knapperne rigtigt. build_helpers.grow() giver nu
+    # en udregnet bredde (gen_screen._resolve_grow).
+    for p, name, body in all_nodes:
+        props = body.get("Properties") or {}
+        if "Horizontal" not in (props.get("LayoutDirection") or "") or \
+                "true" in (props.get("LayoutWrap") or "").lower():
+            continue
+        for k in body.get("Children") or []:
+            (kn, kb), = k.items()
+            fp = ((kb.get("Properties") or {}).get("FillPortions") or "=0").strip()
+            if fp not in ("=0", "0"):
+                problems.append(f"[28] {kn}: FillPortions {fp[1:40]} i raekken {name} "
+                                f"- brug build_helpers.grow() (en udregnet bredde)")
 
     # --- 23. Rammen ------------------------------------------------------
     #

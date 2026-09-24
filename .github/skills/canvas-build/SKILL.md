@@ -134,6 +134,12 @@ alle tre er nu spærret af byggeriet. Hele forklaringen står i
    slipper igennem.
 7. **En tekst er mindst 1,5 × sin skriftstørrelse høj** — ellers får den
    sin egen scrollbar. `text_ctrl()` sørger selv for det.
+8. **Ingen `FillPortions` i en vandret række.** `grow(ctrl)` markerer den
+   del, der tager resten; bredden regnes ud, når skærmen skrives. Ved
+   siden af en FillPortions-del blev knapperne tegnet en linje for lavt.
+9. **Equipment og Material: Details og Documents er popups** med hver sin
+   række (`varDomDetailsId`, `varDomDocsId`). Rækken har fem knapper:
+   Edit, Details, Docs, Copy, Delete.
 
 | Du vil … | Gør |
 |---|---|
@@ -394,6 +400,7 @@ layoutfejl bor:
 26. Ingen `Parent.Template*` i den byggede skærm, og en gallerirække skal
    rumme sine celler fra Tablet og op
 27. En tekst er mindst 1,5 × sin skriftstørrelse høj
+28. Ingen `FillPortions` i en vandret række, der ikke ombryder
 
 Punkt 7 fanger den klassiske: du sletter en kontrol og glemmer en
 `Reset()` på den et andet sted. Det ville ellers først vælte i compile.
