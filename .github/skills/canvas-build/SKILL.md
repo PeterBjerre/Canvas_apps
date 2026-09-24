@@ -406,6 +406,7 @@ layoutfejl bor:
    rumme sine celler fra Tablet og op
 27. En tekst er mindst 1,5 × sin skriftstørrelse høj
 28. Ingen `FillPortions` i en vandret række, der ikke ombryder
+29. Listens overskrift og dens gallerirække har de samme kolonnebredder
 
 Punkt 7 fanger den klassiske: du sletter en kontrol og glemmer en
 `Reset()` på den et andet sted. Det ville ellers først vælte i compile.

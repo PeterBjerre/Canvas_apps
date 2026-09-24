@@ -203,6 +203,21 @@ hvor sidste kolonne lå under galleriets scrollbar (operationer, materialer,
 tasklist-vælgeren, pakkematricen). Gallerierne er nu tabellen + padding +
 scrollbar brede.
 
+### Regel K — Overskriften og rækken måles mod hinanden
+
+Hubbens liste viste den samme lektie fra en ny vinkel: **både overskriften
+og rækken skrev `Parent.Width - 580`**. Samme formel — men overskriftens
+forælder er kortet (~1600 px), og rækkens er gallerirækken, som Studio gav
+en helt anden bredde. Overskrifterne stod spredt ud over hele kortet,
+mens rækkens felter var klemt sammen i venstre side.
+
+Regel 29 måler nu hver overskriftscelle mod den tilsvarende celle i
+rækken. Er de ikke lige brede ved hver skærmbredde, stopper byggeriet.
+Det er regel 5 (HTML-overskrifter) for de overskrifter, der er rigtige
+kontroller. En tabeloverskrift kendes på, at alle dens børn er
+`ModernText` — ellers ville et sektionshoved med knapper blive parret med
+en tilfældig række.
+
 ### Regel J — En gallerirækkes bredde er Studios, ikke vores
 
 Aflæst i egenskabspanelet i Studio stod `conDomRow.Width` først som
@@ -271,6 +286,7 @@ højden til 1,5 × skriftstørrelsen, og højde-algebraen følger med.
 | **26** | Ingen `Parent.Template*` i en formel — og en galleriræke skal kunne rumme sine celler ved hver bredde fra Tablet og op |
 | **27** | En `ModernText` er mindst 1,5 × sin skriftstørrelse høj |
 | **28** | Ingen `FillPortions` i en vandret række, der ikke ombryder — brug `grow()` |
+| **29** | Listens overskrift og dens gallerirække har de samme kolonnebredder |
 
 Og `real_width()` / `prop_width()` skelner nu mellem de to ting, der hed
 det samme: den plads en kontrol **får**, og den værdi `Parent.Width` i dens
