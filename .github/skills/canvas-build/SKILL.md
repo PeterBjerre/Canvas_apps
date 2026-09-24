@@ -407,6 +407,9 @@ layoutfejl bor:
 27. En tekst er mindst 1,5 × sin skriftstørrelse høj
 28. Ingen `FillPortions` i en vandret række, der ikke ombryder
 29. Listens overskrift og dens gallerirække har de samme kolonnebredder
+31. `GroupBy`, `Ungroup`, `DropColumns`, `ShowColumns`, `AddColumns` og
+    `RenameColumns` tager kolonnenavne som NAVNE, ikke strenge - Studio
+    afviser strengformen (issue #32)
 30. Et filter mod en SharePoint-liste sammenligner mod noget konstant —
    ellers kan det ikke delegeres
 

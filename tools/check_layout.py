@@ -1318,6 +1318,47 @@ def main():
             problems.append(f"[10] {name}: {body['Control']} kender ikke "
                             f"egenskaben '{key}' - compile vil fejle")
 
+    # --- 31. Kolonnenavne er navne, ikke strenge -------------------------
+    #
+    # GroupBy, Ungroup, DropColumns, ShowColumns, AddColumns og
+    # RenameColumns vil have kolonnens NAVN: Ungroup(t, Items), ikke
+    # Ungroup(t, "Items"). Strengformen er den gamle, og Studio afviser den
+    # med "Expected identifier name" - og alt, der bygger paa resultatet,
+    # faar foelgefejl. Functional Location-appens foerste compile gav 42
+    # fejl af den grund (issue #32). SortByColumns tager stadig strenge og
+    # er derfor ikke med.
+    COLFN = re.compile(r"\b(GroupBy|Ungroup|DropColumns|ShowColumns|AddColumns|RenameColumns)\(")
+    for p_, name, body in all_nodes:
+        for key, val in (body.get("Properties") or {}).items():
+            if not isinstance(val, str):
+                continue
+            for m in COLFN.finditer(val):
+                par = m.end() - 1
+                end = _balanced(val, par)
+                if end < 0:
+                    continue
+                args, depth, cur, in_str = [], 0, "", False
+                for ch in val[par + 1:end]:
+                    if ch == '"':
+                        in_str = not in_str
+                    if not in_str and ch in "([{":
+                        depth += 1
+                    elif not in_str and ch in ")]}":
+                        depth -= 1
+                    if ch == "," and depth == 0 and not in_str:
+                        args.append(cur.strip())
+                        cur = ""
+                    else:
+                        cur += ch
+                args.append(cur.strip())
+                # AddColumns(t, navn, formel, ...): kun hvert andet er et navn.
+                idx = (range(1, len(args), 2) if m.group(1) == "AddColumns"
+                       else range(1, len(args)))
+                for i in idx:
+                    if re.fullmatch(r'"[^"]*"', args[i]):
+                        problems.append(f"[31] {name}.{key}: {m.group(1)}(..., {args[i]}) - "
+                                        f"kolonnenavnet skal skrives som et navn, ikke en streng")
+
     # --- 11. Efterstillet komma i Power Fx ---------------------------------
     # Power Fx tillader ikke et komma lige foer en lukkeparentes. Det sker,
     # naar nogen sletter den sidste gren af et If() og glemmer kommaet paa

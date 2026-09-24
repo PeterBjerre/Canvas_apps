@@ -8,11 +8,16 @@ stedet for atomart:
   1. Hovedet foerst - raekkerne skal bruge dets ID. Status roeres ikke.
   2. Raekkerne findes i listen paa RowGuid (klientnoeglen). En raekke, der
      blev oprettet foer en fejl, findes derfor igen og oprettes ikke to
-     gange. Nye og eksisterende skrives hver i EEN Patch med to tabeller -
-     ingen Patch inde i en ForAll (check_layout regel 15). De eksisterende
-     peges ud med { ID: ... } - listens primaernoegle - og ikke med et
-     LookUp pr. raekke: det kan ikke delegeres (regel 30), og SharePoint
-     ville saa kun lede i de foerste 500-2000 raekker.
+     gange. Nye skrives med EEN Collect, eksisterende med EEN Patch med to
+     tabeller - ingen Patch inde i en ForAll (check_layout regel 15).
+
+     Base-raekkerne til Patch og Remove skal vaere RIGTIGE raekker fra
+     listen. Foerste udgave brugte { ID: ... } - listens primaernoegle - og
+     compile afviste det: "Invalid argument type (Table). Expecting a
+     Record value instead" (issue #32). Nu hentes anmodningens raekker EEN
+     gang med et delegerbart filter paa den globale varFlRequestGuid (ex),
+     og base-raekkerne slaas op i DEN tabel - ikke med et LookUp mod listen
+     pr. raekke, som ikke kan delegeres (regel 30).
   3. Raekker, der ikke laengere er i appen (slettet eller tomme), fjernes -
      ogsaa dem en tidligere, afbrudt gemning efterlod.
   4. Indeksraekken i MD_RequestIndex, fundet paa RequestGuid.
@@ -109,7 +114,6 @@ def save_fx(status="Kladde", step=1):
     L = cfg.L_ITEMS
     new_rows = f'Filter(colFlRows, Status <> "draft" && !(RowGuid in colFlSp.RowGuid))'
     old_rows = f'Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid)'
-    gone = f'Filter(colFlSp, !(RowGuid in {LIVE}.RowGuid))'
     return f"""Clear(colFlSaveErrors);
 If(IsBlank(varFlRequestGuid), Set(varFlRequestGuid, Text(GUID())));
 
@@ -152,19 +156,24 @@ If(
         ForAll(Filter({L}, RequestGuid = varFlRequestGuid) As I, {{ RowGuid: I.RowGuid, ID: I.ID }})
     );
     IfError(
-        Patch({L}, ForAll({new_rows}, Defaults({L})),
-              ForAll({new_rows} As R, {_row_record()})),
+        Collect({L}, ForAll({new_rows} As R, {_row_record()})),
         Collect(colFlSaveErrors, {{ Where: "New rows", Msg: FirstError.Message }})
     );
     IfError(
-        Patch({L}, ForAll({old_rows} As R, {{ ID: LookUp(colFlSp, RowGuid = R.RowGuid).ID }}),
-              ForAll({old_rows} As R, {_row_record()})),
+        With(
+            {{ ex: Filter({L}, RequestGuid = varFlRequestGuid) }},
+            Patch({L}, ForAll({old_rows} As R, LookUp(ex, RowGuid = R.RowGuid)),
+                  ForAll({old_rows} As R, {_row_record()}))
+        ),
         Collect(colFlSaveErrors, {{ Where: "Rows", Msg: FirstError.Message }})
     );
 
     // 3. Raekker, der ikke laengere er i appen.
     IfError(
-        Remove({L}, ForAll({gone} As D, {{ ID: D.ID }})),
+        With(
+            {{ ex: Filter({L}, RequestGuid = varFlRequestGuid) }},
+            Remove({L}, Filter(ex, !(RowGuid in {LIVE}.RowGuid)))
+        ),
         Collect(colFlSaveErrors, {{ Where: "Deleted rows", Msg: FirstError.Message }})
     );
 
@@ -335,7 +344,7 @@ ClearCollect(
                 )
             }}
         ),
-        "Vals"
+        Vals
     )
 );
 Set(varFlNextRowNo, Max(colFlRows, RowNo) + 1);
