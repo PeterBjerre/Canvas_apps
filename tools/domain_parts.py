@@ -55,7 +55,8 @@ from layout_tokens import below, if_below, fits
 from build_helpers import (text_ctrl, group, button, button_row, text_input, theme_button,
                            date_picker,
                            number_input, dropdown, card, field_cell, row_n,
-                           label_row, pin_widths, badge, top_bar)
+                           label_row, pin_widths, badge, top_bar, grow)
+from layout_tokens import SCROLLBAR_W
 import domain_config as cfg
 import attflows
 
@@ -232,7 +233,8 @@ def build_fl_block():
     indbygget soegning - den fik 819 raekker og viste nul."""
     q = text_input("txtDomFlQuery", '""',
                    placeholder=f'"At least {fl.MIN_SEARCH_LEN} characters - e.g. SSV10 KAB10"',
-                   width="Parent.Width", display_mode=DM_ROW, label="\"Search functional location\"")
+                   display_mode=DM_ROW, label="\"Search functional location\"")
+    grow(q)
     btn = button("btnDomFlSearch", '"Search"',
                  fl.search_action("txtDomFlQuery", "colDomFl",
                                   "varDomFlLast", "varDomFlMsg"),
@@ -646,7 +648,7 @@ def build_attachments():
     # Replace ville smide appen vaek, og en halvudfyldt formular med den.
     link = button("btnDomAttOpen", '"Open"',
                   "Launch(ThisItem.FileUrl, { }, LaunchTarget.New)",
-                  width=80, height=28)
+                  width=80, height=30)
     row = group("conDomAttRow", pin_widths([chk, name, link]),
                 direction="Horizontal", gap=10,
                 height="Parent.TemplateHeight - 2", align_items="Center",
@@ -692,8 +694,13 @@ GAP = 10
 # Raekkens fire knapper. Bredden paa handlingskolonnen REGNES af dem, saa
 # en femte knap ikke kan goere tabellen bredere end kolonnen uden at
 # nogen opdager det. build_rows() efterproever tabellen mod raekken.
-ROW_BTN = {"btnDomRowOpen": 48, "btnDomRowDetails": 64,
-           "btnDomRowCopy": 50, "btnDomRowDelete": 58}
+# Bredder og hoejde som i den haandbyggede Materials-app, hvor knapperne
+# virkede: 30 px hoeje, 13 pt. Her stod 26 px med 14 pt, og knapperne stod
+# som tomme kanter i bunden af raekken - under den moderne knaps
+# mindstehoejde. check_layout regel 25 kraever nu mindst 30.
+ROW_BTN = {"btnDomRowOpen": 60, "btnDomRowDetails": 72,
+           "btnDomRowCopy": 64, "btnDomRowDelete": 72}
+ROW_BTN_H = 30
 ROW_BTN_GAP = 4
 ACTIONS_W = sum(ROW_BTN.values()) + ROW_BTN_GAP * (len(ROW_BTN) - 1)
 
@@ -709,7 +716,21 @@ FIXED = sum(w for _n, w in LIST_COLS) + GAP * (len(LIST_COLS) - 1)
 # de oevrige kolonner blev skubbet helt ud til hoejre kant, og imellem dem
 # laa en tom flade paa halvdelen af vinduet. En tabel skal vaere saa bred
 # som sit indhold, ikke som sin beholder.
-MAIN_W = f"Max(Min(Parent.Width - {FIXED}, 460), 150)"
+#
+# REGNET AF DEN BREDDE, LISTEN HAR - ikke af Parent.Width.
+#
+# Her stod "Parent.Width - FIXED". Parent.Width er raekkens Width-EGENSKAB,
+# og den trak hverken kortets padding, galleriets TemplatePadding eller dets
+# scrollbar fra. Nu regnes den af HALF_W (som er regnet af SHELL_W):
+#   kortets padding 2 x 18, TemplatePadding 2 x 2, scrollbar.
+ROWS_W = f"({HALF_W} - 36 - 4 - {SCROLLBAR_W})"
+# De midterste kolonner (nummer, FL/leverandoer, vaerk) skjules, naar der
+# ikke er plads til dem OG en laeselig beskrivelse. Ellers blev raekken
+# bredere end listen, og knapperne i hoejre side var skubbet ud.
+MID_COLS = LIST_COLS[1:1 + len(cfg.LIST_FIELDS)]
+FIXED_SMALL = FIXED - sum(w + GAP for _n, w in MID_COLS)
+SHOW_MID = f"({ROWS_W}) >= {FIXED} + 150"
+MAIN_W = (f"Max(Min(({ROWS_W}) - If({SHOW_MID}, {FIXED}, {FIXED_SMALL}), 460), 150)")
 
 SEARCH = " || ".join(
     f"Trim(txtDomSearch.Text) in {c}" for c in cfg.SEARCH_FIELDS)
@@ -726,7 +747,8 @@ SCOPE = (
 def _head_cell(i, label, width):
     w = MAIN_W if width == 0 else width
     return text_ctrl(f"txtDomHead{i}", f'"{label}"', size=11, color=C_MUTED,
-                     weight="Semibold", height=18, width=w, wrap="false")
+                     weight="Semibold", height=18, width=w, wrap="false",
+                     visible=SHOW_MID if 1 <= i <= len(cfg.LIST_FIELDS) else None)
 
 
 # ---------------------------------------------------------------------------
@@ -750,8 +772,8 @@ def _detail_row(i, label, value):
     lbl = text_ctrl(f"txtDomDet{i}L", f'"{label}"', size=12, color=C_MUTED,
                     weight="Semibold", height=DETAIL_ROW_H, width=DETAIL_LBL_W,
                     wrap="false")
-    val = text_ctrl(f"txtDomDet{i}V", value, size=13, height=DETAIL_ROW_H,
-                    width="Parent.Width - %d - 12" % DETAIL_LBL_W, wrap="false")
+    val = grow(text_ctrl(f"txtDomDet{i}V", value, size=13, height=DETAIL_ROW_H,
+                         wrap="false"))
     return group(f"conDomDet{i}", [lbl, val], direction="Horizontal", gap=12,
                  height=DETAIL_ROW_H, align_items="Center")
 
@@ -774,8 +796,8 @@ def build_details():
                       f'"{{}} of " & Text(CountRows({order}))'.replace(
                           "{}", '" & Text(%s) & "' % pos),
                       size=12, color=C_MUTED, height=18, wrap="false")
-    head_left = group("conDomDetHeadL", [key, where], direction="Vertical",
-                      gap=2, height=44, fill_portions=1)
+    head_left = grow(group("conDomDetHeadL", [key, where], direction="Vertical",
+                           gap=2, height=44))
 
     prev = button("btnDomDetPrev", '"Previous"',
                   f'Set(varDomDetailsId, Index({order}, Max(1, {pos} - 1)).RowId)',
@@ -843,9 +865,12 @@ def build_rows():
     for i, col in enumerate(cfg.LIST_FIELDS):
         cells.append(text_ctrl(f"txtDomRow{i}", f"ThisItem.{col}", size=13,
                                color=C_MUTED, height=20,
-                               width=LIST_COLS[i + 1][1], wrap="false"))
+                               width=LIST_COLS[i + 1][1], wrap="false",
+                               visible=SHOW_MID))
+    # STATUS-kolonnen, ikke FILES: her stod LIST_COLS[-2] (40 px), saa hver
+    # celle efter status stod 35 px forskudt i forhold til overskriften.
     cells.append(badge("txtDomRowStatus", "ThisItem.Status",
-                       width=LIST_COLS[-2][1]))
+                       width=LIST_COLS[-3][1]))
     cells.append(text_ctrl("txtDomRowFiles", "Text(ThisItem.FileCount)",
                            size=13, color=C_MUTED, height=20,
                            width=LIST_COLS[-2][1], wrap="false"))
@@ -859,14 +884,14 @@ def build_rows():
     # ogsaa, men den er usynlig, og saa er det de faerreste der proever.
     acts = [
         button("btnDomRowOpen", '"Edit"', load_row_fx(),
-               width=ROW_BTN["btnDomRowOpen"], height=26),
+               width=ROW_BTN["btnDomRowOpen"], height=ROW_BTN_H),
         button("btnDomRowDetails", '"Details"',
                'Set(varDomDetailsId, ThisItem.RowId)',
-               width=ROW_BTN["btnDomRowDetails"], height=26),
+               width=ROW_BTN["btnDomRowDetails"], height=ROW_BTN_H),
         button("btnDomRowCopy", '"Copy"', copy_row_fx(),
-               width=ROW_BTN["btnDomRowCopy"], height=26),
+               width=ROW_BTN["btnDomRowCopy"], height=ROW_BTN_H),
         button("btnDomRowDelete", '"Delete"', delete_this_row_fx(),
-               danger=True, width=ROW_BTN["btnDomRowDelete"], height=26),
+               danger=True, width=ROW_BTN["btnDomRowDelete"], height=ROW_BTN_H),
     ]
     got = [(c.name, int(c.props["Width"])) for c in acts]
     want = list(ROW_BTN.items())
@@ -874,8 +899,10 @@ def build_rows():
         raise SystemExit("ROW_BTN passer ikke paa raekkens knapper:\n"
                          "  ROW_BTN: %s\n  raekken: %s" % (want, got))
     cells.append(group("conDomRowActions", acts, direction="Horizontal",
-                       gap=ROW_BTN_GAP, height=26, align_items="Center",
-                       width=str(ACTIONS_W)))
+                       gap=ROW_BTN_GAP, height=ROW_BTN_H, align_items="Center",
+                       width=str(ACTIONS_W), align_in_container="Center"))
+    for b in acts:
+        b.props["Size"] = "13"
 
     # align_items="Start" og ikke Stretch: raekken skal vaere saa bred som
     # sine celler, ikke som skabelonen - ellers straekkes den sidste celle

@@ -8,7 +8,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQU
 from layout_tokens import if_below
 from build_helpers import (text_ctrl, group, button, button_row, text_input, number_input, dropdown,
                            label_row, field_cell, row_n, col_width, badge, card, combobox, poll_timer,
-                           TWO_COL_MIN, HINTS_ON)
+                           TWO_COL_MIN, HINTS_ON, grow)
 from build_plan_header import section_header, help_panel
 import build_help as bh
 from build_helpers import HINTS_ON as bh_hints
@@ -211,8 +211,8 @@ def build_items_rail():
         "txtVhpItemCardTasklist",
         "If(IsBlank(ThisItem.TasklistName), \"No tasklist\", ThisItem.TasklistName) & \" | Ops: \" & Text(CountRows(Filter(colVhpOperations, ItemId = ThisItem.ItemId)))",
         size=12, color=C_MUTED, height=18, wrap="false")
-    cardTextCol = group("conVhpItemCardText", [cardTitle, cardFl, cardTasklist], direction="Vertical", gap=2,
-                        fill_portions=1, width="Parent.Width - 70 - 10")
+    cardTextCol = grow(group("conVhpItemCardText", [cardTitle, cardFl, cardTasklist],
+                             direction="Vertical", gap=2))
     cardStatus = text_ctrl(
         "txtVhpItemCardStatus", "Upper(ThisItem.Status)", size=11, weight="Semibold", height=22, width=66,
         wrap="false",
@@ -295,7 +295,8 @@ def build_item_editor():
     txtFlQuery = text_input(
         "txtVhpFlQuery", "\"\"",
         placeholder=("\"At least %d characters, e.g. SSV13 HFC\"" % MIN_SEARCH_LEN),
-        display_mode=DM_ITEM, width=f"Parent.Width - {FL_BTN_W} - 8", label="\"Search functional location\"")
+        display_mode=DM_ITEM, label="\"Search functional location\"")
+    grow(txtFlQuery)
     btnFlSearch = button(
         "btnVhpFlSearch", "\"Search\"",
         # raw_var foelger VH-plans egen navnekonvention. Den stod foer som
@@ -338,7 +339,7 @@ def build_item_editor():
                     direction="Vertical", gap=6, width="Parent.Width",
                     # FillPortions = 0: i en LODRET container fordeler den
                     # hoejde, og blokken ville vokse ud over sit indhold.
-                    fill_portions=0, align_in_container="Start")
+                    fill_portions=0)
 
     # 53 arbejdscentre for hele afdelingen, men kun en haandfuld hoerer til
     # det valgte vaerk. Er der ikke valgt vaerk endnu, vises de alle - en tom
@@ -412,8 +413,8 @@ def build_item_editor():
     # Parent her er raekkebeholderen, ikke galleriet - kun et galleris
     # DIREKTE barn kender Parent.TemplateWidth. Beholderen er selv saa bred
     # som skabelonen, saa Parent.Width giver det samme tal.
-    txtObjRow = text_ctrl("txtVhpObjRowText", "ThisItem.Display", size=13, height=24,
-                          width="Parent.Width - 26 - 10 - 4", wrap="false")
+    txtObjRow = grow(text_ctrl("txtVhpObjRowText", "ThisItem.Display", size=13, height=24,
+                               wrap="false"))
     objRowTpl = group("conVhpObjRow", [chkObj, txtObjRow], direction="Horizontal",
                       gap=10, height="Parent.TemplateHeight - 2",
                       align_items="Center", width="Parent.TemplateWidth")
@@ -499,7 +500,7 @@ def build_item_editor():
     objBlock = group("conVhpItemObjBlock",
                      [objLabelRow, objHint, galObj, objEmpty, objChosen, objMeta],
                      direction="Vertical", gap=6, width="Parent.Width",
-                     fill_portions=0, align_in_container="Start")
+                     fill_portions=0)
 
     # Functional Location og Object List staar OVEN PAA HINANDEN i hoejre
     # kolonne. De to hoerer sammen - objektlisten kan foerst bruges, naar en
@@ -686,7 +687,9 @@ def build_items_section():
     h = if_below("Desktop",
                  f"({rail.h}) + {SPLIT_GAP} + ({editor.h})",
                  f"Max(({rail.h}), ({editor.h}))")
-    rail.props["Width"] = if_below("Desktop", "Parent.Width", str(RAIL_W))
+    # SHELL_W, ikke Parent.Width: Parent.Width er splittets Width-EGENSKAB,
+    # som er hele kroppens - uden dens padding og scrollbar trukket fra.
+    rail.props["Width"] = if_below("Desktop", SHELL_W, str(RAIL_W))
     editor.props["Width"] = EDITOR_W
     return group("conVhpItemsSplit", [rail, editor], direction="Horizontal", gap=SPLIT_GAP,
                  height=h, wrap="true")
