@@ -342,10 +342,13 @@ Tomme rækker (FL3) gemmes ikke.
 Seedet fra `sharepoint/seed/MD_FLKey.csv` (6.733 rækker), som genereres af
 `node tools/fl/harness.js seed` ud af `html/lookups.generated.js`.
 
-**Appen slår kun `Function` op her** - 6.441 nøgler er over
-delegeringsgrænsen, så opslaget er én delegeret `LookUp` pr. forskellig
-nøgle. Aggregat, komponent og BR18 er små og ligger som navngivne formler
-genereret af de samme data (docs/31, PX5).
+**Appen læser ikke listen.** Nøglerne er bygget ind i appen fra de samme
+data, som HTML-siden har dem i klienten (`lookups.generated.js`): et opslag
+pr. række mod 6.441 funktionsnøgler i SharePoint kan ikke delegeres, og
+SharePoint ville så kun lede i de første 500-2000 rækker (docs/31, PX5).
+Listen er seedet til flows, Excel og en serverside-gentagelse af
+valideringen - den "ene sandhed", `powerfx/03-validering.fx` siger skal
+kunne genimplementeres.
 
 ### Landingssiden
 

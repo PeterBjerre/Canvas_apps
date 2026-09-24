@@ -496,6 +496,53 @@
    }
   },
   {
+   "id": "T23a",
+   "rule": "FL23",
+   "fl": "SSV10 LAC",
+   "expect": {
+    "status": "valid",
+    "cls": "NO CLASS"
+   },
+   "note": "En klasseloes raekke UDEN fejl kan ikke opstaa med motoren: className er kun tom sammen med en fejl eller et tomt FL (= FL required.). Reglen kan derfor ikke udloeses - se docs/31"
+  },
+  {
+   "id": "T24a",
+   "rule": "FL24",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "valid",
+    "hasNot": [
+     "Rules data missing."
+    ]
+   },
+   "note": "Reglerne er bygget ind i appen; uden dem bygger den ikke. Reglen kan ikke udloeses i appen - se docs/31"
+  },
+  {
+   "id": "T25a",
+   "rule": "FL25",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "valid"
+   }
+  },
+  {
+   "id": "T25b",
+   "rule": "FL25",
+   "fl": "SSV10 LAC10AB001 KA1",
+   "expect": {
+    "status": "warning"
+   },
+   "note": "advarsel blokerer ikke"
+  },
+  {
+   "id": "T25c",
+   "rule": "FL25",
+   "fl": "XXX10 LAC10AB001",
+   "expect": {
+    "status": "invalid"
+   }
+  },
+  {
    "id": "T30a",
    "rule": "FL30",
    "fl": "SSV10 LAC10AB001 -B01",
@@ -544,6 +591,29 @@
    },
    "vals": {
     "Operating pressure uom": "Foo"
+   }
+  },
+  {
+   "id": "T32a",
+   "rule": "FL32",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "valid",
+    "hasNot": [
+     "Description: Required field."
+    ]
+   }
+  },
+  {
+   "id": "T32b",
+   "rule": "FL32",
+   "fl": "SSV10 LAC10AB001",
+   "desc": "",
+   "expect": {
+    "status": "invalid",
+    "has": [
+     "Description: Required field."
+    ]
    }
   },
   {
@@ -629,6 +699,32 @@
    "vals": {
     "Atex": "Y",
     "ABC Indic.": "B"
+   }
+  },
+  {
+   "id": "T36a",
+   "rule": "FL36",
+   "fl": "SSV10 LAC1234",
+   "vals": {
+    "EX-Marking": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+   },
+   "expect": {
+    "status": "valid"
+   },
+   "note": "KAB har ikke trinet TRMNEW"
+  },
+  {
+   "id": "T36b",
+   "rule": "FL36",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "vals": {
+    "EX-Marking": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+   },
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "EX-Marking: Max 30 characters."
+    ]
    }
   },
   {
@@ -776,6 +872,32 @@
     "Design flow uom": "x"
    },
    "note": "raekkefoelgen er Char-tabellens foerst, saa trinets (validateSpoolFields:1183 foer 1202)"
+  },
+  {
+   "id": "T42a",
+   "rule": "FL42",
+   "fl": "SSV10 LAC10AB001 QT01",
+   "vals": {
+    "Design pressure uom": "Barg"
+   },
+   "expect": {
+    "status": "valid"
+   }
+  },
+  {
+   "id": "T42b",
+   "rule": "FL42",
+   "fl": "SSV10 LAC10AB001 QT01",
+   "vals": {
+    "Design pressure uom": "bar g"
+   },
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "Design pressure uom: Value must match dropdown options."
+    ]
+   },
+   "note": "samme besked een gang, selv om feltet tjekkes baade af Char (FL31), soegenoeglen (FL42) og trinet (FL37)"
   },
   {
    "id": "T43a",
@@ -1124,6 +1246,32 @@
    "vals": {
     "Operating pressure uom": "Bar|foo"
    }
+  },
+  {
+   "id": "T55a",
+   "rule": "FL55",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "vals": {
+    "Operating pressure": "123456789012"
+   },
+   "expect": {
+    "status": "valid"
+   }
+  },
+  {
+   "id": "T55b",
+   "rule": "FL55",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "vals": {
+    "Operating pressure": "1234567890123"
+   },
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "Operating pressure: Max 12 characters."
+    ]
+   },
+   "note": "to tjek med samme besked - kun een"
   },
   {
    "id": "T56a",
