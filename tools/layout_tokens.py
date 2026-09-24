@@ -179,6 +179,23 @@ PAGE_PAD_R = 16
 # Bredere end de 17 px, Windows' klassiske scrollbar fylder i Edge og
 # Chrome. Et par pixels for meget koster intet; een for lidt klipper.
 SCROLLBAR_W = 18
+# GALLERIETS RESERVE
+#
+# En gallerirakkes bredde bestemmer Studio SELV. Aflaest i egenskabs-
+# panelet stod der foerst 320 (et fald-tilbage-tal) og siden Parent.Width -
+# aldrig det udtryk, builderen skrev. Rakken er altsaa saa bred, som
+# galleriet giver den, og vores tal er kun et BUDGET for cellerne.
+#
+# Er budgettet bare nogle faa pixels for stort, ligger den sidste celle
+# uden for rakken - og siden rakken skjuler sit overloeb, forsvinder den i
+# stedet for at blive tegnet udenfor. Det var knapperne i listen, anden
+# gang.
+#
+# Budgettet skal derfor vaere en NEDRE graense med luft. 40 px er en
+# kolonnebredde mindre til beskrivelsen og kan ikke vaeltes af en kant, en
+# scrollbar der alligevel kom, eller en afrunding.
+GALLERY_RESERVE = 40
+
 # Luft, saa ingen raekke nogensinde er regnet til at passe PAA pixlen.
 # Afrunding af broekdele og en kant paa 1 px maa ikke kunne vaelte den.
 FIT_SLACK = 6

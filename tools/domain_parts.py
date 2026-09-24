@@ -57,7 +57,7 @@ from build_helpers import (text_ctrl, group, button, button_row, text_input, the
                            date_picker,
                            number_input, dropdown, card, field_cell, row_n,
                            label_row, pin_widths, badge, top_bar, grow)
-from layout_tokens import SCROLLBAR_W
+from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE
 import domain_config as cfg
 import attflows
 
@@ -765,12 +765,19 @@ ROW_BTN = {"btnDomRowOpen": 60, "btnDomRowDetails": 72, "btnDomRowDocs": 64,
 ROW_BTN_H = 30
 ROW_BTN_GAP = 4
 ACTIONS_W = sum(ROW_BTN.values()) + ROW_BTN_GAP * (len(ROW_BTN) - 1)
+# Paa en tablet er der ikke plads til fem knapper OG en laeselig
+# beskrivelse. Docs og Copy er de to, man kan undvaere: dokumenterne staar
+# ogsaa i detaljeruden, og en kopi kan laves fra den aabne raekke.
+ROW_BTN_NARROW = ("btnDomRowDocs", "btnDomRowCopy")
+ACTIONS_W_NARROW = (ACTIONS_W - sum(ROW_BTN[b] + ROW_BTN_GAP
+                                    for b in ROW_BTN_NARROW))
 
 # Sidste kolonne i LIST_COLS er handlingerne. Bredden staar som 0 i de to
 # domain_config.py og regnes HER - ellers skulle det samme tal vedligeholdes
 # to steder, og det ene ville blive glemt.
 LIST_COLS = [(n, ACTIONS_W if i == len(cfg.LIST_COLS) - 1 else w)
              for i, (n, w) in enumerate(cfg.LIST_COLS)]
+LAST_COL = len(LIST_COLS) - 1
 FIXED = sum(w for _n, w in LIST_COLS) + GAP * (len(LIST_COLS) - 1)
 # Beskrivelseskolonnen tager RESTEN af bredden - men hoejst 460.
 #
@@ -785,7 +792,10 @@ FIXED = sum(w for _n, w in LIST_COLS) + GAP * (len(LIST_COLS) - 1)
 # og den trak hverken kortets padding, galleriets TemplatePadding eller dets
 # scrollbar fra. Nu regnes den af HALF_W (som er regnet af SHELL_W):
 #   kortets padding 2 x 18, TemplatePadding 2 x 2, scrollbar.
-ROWS_W = f"({SHELL_W} - 36 - 4 - {SCROLLBAR_W})"
+# Budgettet for raekkens celler - en NEDRE graense for den bredde,
+# galleriet giver skabelonen. GALLERY_RESERVE er luften; se RAMMEN og
+# GALLERY_RESERVE i tools/layout_tokens.py.
+ROWS_W = f"({SHELL_W} - 36 - 4 - {SCROLLBAR_W} - {GALLERY_RESERVE})"
 # De midterste kolonner (nummer, FL/leverandoer, vaerk) skjules, naar der
 # ikke er plads til dem OG en laeselig beskrivelse. Ellers blev raekken
 # bredere end listen, og knapperne i hoejre side var skubbet ud.
@@ -794,8 +804,10 @@ FIXED_SMALL = FIXED - sum(w + GAP for _n, w in MID_COLS)
 SHOW_MID = f"({ROWS_W}) >= {FIXED} + 150"
 # Paa en tablet skjules ogsaa FILES - Docs-knappen viser filerne alligevel.
 FILES_COL = LIST_COLS[-2][1] + GAP
-FIXED_TINY = FIXED_SMALL - FILES_COL
+# Under den her graense: ingen FILES-kolonne og kun tre knapper.
+FIXED_TINY = FIXED_SMALL - FILES_COL - (ACTIONS_W - ACTIONS_W_NARROW)
 SHOW_FILES = f"({ROWS_W}) >= {FIXED_SMALL} + 150"
+ACT_W = f"If({SHOW_FILES}, {ACTIONS_W}, {ACTIONS_W_NARROW})"
 MAIN_W = (f"Max(Min(({ROWS_W}) - If({SHOW_MID}, {FIXED}, "
           f"If({SHOW_FILES}, {FIXED_SMALL}, {FIXED_TINY})), 460), 150)")
 
@@ -812,7 +824,7 @@ SCOPE = (
 
 
 def _head_cell(i, label, width):
-    w = MAIN_W if width == 0 else width
+    w = MAIN_W if width == 0 else (ACT_W if i == LAST_COL else width)
     return text_ctrl(f"txtDomHead{i}", f'"{label}"', size=11, color=C_MUTED,
                      weight="Semibold", height=18, width=w, wrap="false",
                      visible=(SHOW_MID if 1 <= i <= len(cfg.LIST_FIELDS)
@@ -974,9 +986,11 @@ def build_rows():
         # Dokumenterne paa DENNE raekke - uden at laese den ind i
         # formularen foerst.
         button("btnDomRowDocs", '"Docs"', open_docs_fx(),
-               width=ROW_BTN["btnDomRowDocs"], height=ROW_BTN_H),
+               width=ROW_BTN["btnDomRowDocs"], height=ROW_BTN_H,
+               visible=SHOW_FILES),
         button("btnDomRowCopy", '"Copy"', copy_row_fx(),
-               width=ROW_BTN["btnDomRowCopy"], height=ROW_BTN_H),
+               width=ROW_BTN["btnDomRowCopy"], height=ROW_BTN_H,
+               visible=SHOW_FILES),
         button("btnDomRowDelete", '"Delete"', delete_this_row_fx(),
                danger=True, width=ROW_BTN["btnDomRowDelete"], height=ROW_BTN_H),
     ]
@@ -987,7 +1001,7 @@ def build_rows():
                          "  ROW_BTN: %s\n  raekken: %s" % (want, got))
     cells.append(group("conDomRowActions", acts, direction="Horizontal",
                        gap=ROW_BTN_GAP, height=ROW_BTN_H, align_items="Center",
-                       width=str(ACTIONS_W), align_in_container="Center"))
+                       width=ACT_W, align_in_container="Center"))
     for b in acts:
         b.props["Size"] = "13"
 
