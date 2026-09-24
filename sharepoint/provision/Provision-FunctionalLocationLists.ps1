@@ -67,10 +67,12 @@ if (-not $ClientId) { $ClientId = '9bc3ab49-b65d-410a-85ad-de819febfddc' }
 Connect-PnPOnline -Url $SiteUrl -Interactive -ClientId $ClientId
 
 # ---------------------------------------------------------------------------
-# Hjaelpefunktioner - samme form som Provision-VHPlanLists.ps1
+# Hjaelpefunktioner - samme form som Provision-VHPlanLists.ps1. Navnene
+# er repoets (New-MdList/New-MdField/New-MdNoteField): tools/check_datasources.py
+# laeser dem og ved derfor, at listerne og kolonnerne kommer herfra.
 # ---------------------------------------------------------------------------
 
-function New-FlList {
+function New-MdList {
     param([string]$Title, [string]$Description)
     if (Get-PnPList -Identity $Title -ErrorAction SilentlyContinue) {
         Write-Host "  = Liste '$Title' findes allerede" -ForegroundColor DarkGray
@@ -81,7 +83,7 @@ function New-FlList {
     }
 }
 
-function New-FlField {
+function New-MdField {
     param(
         [string]$List, [string]$Name, [string]$Type,
         [string[]]$Choices, [switch]$Indexed, [switch]$Required
@@ -102,7 +104,7 @@ function New-FlField {
 
 # Flerlinjet tekst som REN tekst. Rich text ville lade SharePoint saette
 # HTML-tags ind i JSON'en, og saa kan hverken appen eller flowet laese den.
-function New-FlNoteField {
+function New-MdNoteField {
     param([string]$List, [string]$Name)
     if (-not (Get-PnPField -List $List -Identity $Name -ErrorAction SilentlyContinue)) {
         Add-PnPField -List $List -DisplayName $Name -InternalName $Name -Type Note | Out-Null
@@ -138,42 +140,42 @@ Write-Host "`n=== Functional Location ===" -ForegroundColor Cyan
 # ---------------------------------------------------------------------------
 # FunctionalLocationRequests - hovedet
 # ---------------------------------------------------------------------------
-New-FlList 'FunctionalLocationRequests' 'Anmodninger om nye Functional Locations (SPOOL)'
-New-FlField 'FunctionalLocationRequests' 'RequestGuid'    Text     -Indexed -Required
-New-FlField 'FunctionalLocationRequests' 'Status'         Choice   -Indexed -Choices $REQUEST_STATUS
-New-FlField 'FunctionalLocationRequests' 'RequesterEmail' Text     -Indexed
-New-FlField 'FunctionalLocationRequests' 'RequesterName'  Text
-New-FlField 'FunctionalLocationRequests' 'RowCount'       Number
-New-FlField 'FunctionalLocationRequests' 'ReadyCount'     Number
-New-FlField 'FunctionalLocationRequests' 'IssueCount'     Number
-New-FlField 'FunctionalLocationRequests' 'WarningCount'   Number
-New-FlField 'FunctionalLocationRequests' 'SubmittedOn'    DateTime
-New-FlField 'FunctionalLocationRequests' 'IndexItemId'    Number
-New-FlNoteField 'FunctionalLocationRequests' 'PayloadJson'
+New-MdList 'FunctionalLocationRequests' 'Anmodninger om nye Functional Locations (SPOOL)'
+New-MdField 'FunctionalLocationRequests' 'RequestGuid'    Text     -Indexed -Required
+New-MdField 'FunctionalLocationRequests' 'Status'         Choice   -Indexed -Choices $REQUEST_STATUS
+New-MdField 'FunctionalLocationRequests' 'RequesterEmail' Text     -Indexed
+New-MdField 'FunctionalLocationRequests' 'RequesterName'  Text
+New-MdField 'FunctionalLocationRequests' 'RowCount'       Number
+New-MdField 'FunctionalLocationRequests' 'ReadyCount'     Number
+New-MdField 'FunctionalLocationRequests' 'IssueCount'     Number
+New-MdField 'FunctionalLocationRequests' 'WarningCount'   Number
+New-MdField 'FunctionalLocationRequests' 'SubmittedOn'    DateTime
+New-MdField 'FunctionalLocationRequests' 'IndexItemId'    Number
+New-MdNoteField 'FunctionalLocationRequests' 'PayloadJson'
 Set-PnPField -List 'FunctionalLocationRequests' -Identity 'Title' -Values @{ Title = 'RequestNo'; Indexed = $true }
 Remove-FromDefaultView 'FunctionalLocationRequests' 'PayloadJson'
 
 # ---------------------------------------------------------------------------
 # FunctionalLocationItems - een raekke pr. FL
 # ---------------------------------------------------------------------------
-New-FlList 'FunctionalLocationItems' 'Functional Locations pr. anmodning, med spool-felter'
-New-FlField 'FunctionalLocationItems' 'RequestGuid'             Text   -Indexed -Required
-New-FlField 'FunctionalLocationItems' 'RequestId'               Number -Indexed
-New-FlField 'FunctionalLocationItems' 'RowNo'                   Number
-New-FlField 'FunctionalLocationItems' 'FunctionalLocation'      Text   -Indexed
-New-FlField 'FunctionalLocationItems' 'Description'             Text
-New-FlField 'FunctionalLocationItems' 'KksType'                 Text
-New-FlField 'FunctionalLocationItems' 'AssignedClass'           Text   -Indexed
-New-FlField 'FunctionalLocationItems' 'RowStatus'               Choice -Indexed -Choices $ROW_STATUS
-New-FlField 'FunctionalLocationItems' 'FirstIssue'              Text
-New-FlField 'FunctionalLocationItems' 'IssueCount'              Number
+New-MdList 'FunctionalLocationItems' 'Functional Locations pr. anmodning, med spool-felter'
+New-MdField 'FunctionalLocationItems' 'RequestGuid'             Text   -Indexed -Required
+New-MdField 'FunctionalLocationItems' 'RequestId'               Number -Indexed
+New-MdField 'FunctionalLocationItems' 'RowNo'                   Number
+New-MdField 'FunctionalLocationItems' 'FunctionalLocation'      Text   -Indexed
+New-MdField 'FunctionalLocationItems' 'Description'             Text
+New-MdField 'FunctionalLocationItems' 'KksType'                 Text
+New-MdField 'FunctionalLocationItems' 'AssignedClass'           Text   -Indexed
+New-MdField 'FunctionalLocationItems' 'RowStatus'               Choice -Indexed -Choices $ROW_STATUS
+New-MdField 'FunctionalLocationItems' 'FirstIssue'              Text
+New-MdField 'FunctionalLocationItems' 'IssueCount'              Number
 # Tre spool-felter staar OGSAA som egne kolonner, saa de kan filtreres i
 # SharePoint. SCE er den, VH-plans prioritetsregel venter paa (docs/16).
-New-FlField 'FunctionalLocationItems' 'TrmAssignment'           Text
-New-FlField 'FunctionalLocationItems' 'AbcIndic'                Text
-New-FlField 'FunctionalLocationItems' 'SafetyCriticalEquipment' Text   -Indexed
-New-FlField 'FunctionalLocationItems' 'RequesterEmail'          Text   -Indexed
-New-FlNoteField 'FunctionalLocationItems' 'SpoolValuesJson'
+New-MdField 'FunctionalLocationItems' 'TrmAssignment'           Text
+New-MdField 'FunctionalLocationItems' 'AbcIndic'                Text
+New-MdField 'FunctionalLocationItems' 'SafetyCriticalEquipment' Text   -Indexed
+New-MdField 'FunctionalLocationItems' 'RequesterEmail'          Text   -Indexed
+New-MdNoteField 'FunctionalLocationItems' 'SpoolValuesJson'
 # Title er raekkens klientnoegle (GUID). Den er appens join-noegle mellem
 # samlingen og listen, og det er den, der goer gem GENOPTAGELIGT: en raekke,
 # der blev oprettet foer en fejl, findes igen paa RowGuid og oprettes ikke
@@ -184,10 +186,10 @@ Remove-FromDefaultView 'FunctionalLocationItems' 'SpoolValuesJson'
 # ---------------------------------------------------------------------------
 # MD_FLKey - noeglerne bag klassebestemmelsen (docs/16)
 # ---------------------------------------------------------------------------
-New-FlList 'MD_FLKey' 'Noegler til klassebestemmelse af Functional Locations (FL_LOOKUPS)'
-New-FlField 'MD_FLKey' 'KeyType'     Text -Indexed -Required
-New-FlField 'MD_FLKey' 'Value'       Text
-New-FlField 'MD_FLKey' 'Description' Text
+New-MdList 'MD_FLKey' 'Noegler til klassebestemmelse af Functional Locations (FL_LOOKUPS)'
+New-MdField 'MD_FLKey' 'KeyType'     Text -Indexed -Required
+New-MdField 'MD_FLKey' 'Value'       Text
+New-MdField 'MD_FLKey' 'Description' Text
 # Opslaget i appen er LookUp(MD_FLKey, KeyType = "Function" && KeyValue = k).
 # Begge kolonner SKAL vaere indekseret: der er 6.441 funktionsnoegler, og
 # uden indeks afviser SharePoint forespoergslen over 5.000 elementer.

@@ -71,7 +71,16 @@
           "functionalLocations": {
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "object",
+              "required": [
+                "functionalLocation"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "functionalLocation": {
+                  "type": "string"
+                }
+              }
             }
           }
         }
@@ -155,14 +164,32 @@
         "blockingIssues": {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "object",
+            "required": [
+              "message"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "message": {
+                "type": "string"
+              }
+            }
           },
-          "description": "Ordret og i raekkefoelge, som originalen giver dem."
+          "description": "Ordret og i raekkefoelge, som originalen giver dem. Objekter og ikke strenge: Power Fx' JSON() skriver en tabel som en liste af records."
         },
         "warnings": {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "object",
+            "required": [
+              "message"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "message": {
+                "type": "string"
+              }
+            }
           }
         },
         "spoolValues": {
