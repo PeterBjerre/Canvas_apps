@@ -26,6 +26,10 @@ Screens:
                 =0
             LayoutMinWidth: |-
                 =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
             Width: |-
                 =Parent.Width
           Children:
@@ -42,7 +46,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =25 + (If(((App.Width - 64)) >= (484) + (240) + 20, Max((52), (If((If(((App.Width - 64)) >= (484) + (240) + 20, 484, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 36, (36) + (36) + 10))), (52) + 20 + (If((If(((App.Width - 64)) >= (484) + (240) + 20, 484, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 36, (36) + (36) + 10))))
+                      =25 + (If(((App.Width - 64)) >= (482) + (240) + 20, Max((52), (If((If(((App.Width - 64)) >= (482) + (240) + 20, 482, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 36, (36) + 10 + (36) + 10 + (36) + 10 + (36)))), (52) + 20 + (If((If(((App.Width - 64)) >= (482) + (240) + 20, 482, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 36, (36) + 10 + (36) + 10 + (36) + 10 + (36)))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -51,6 +55,10 @@ Screens:
                       =10
                   LayoutMinWidth: |-
                       =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
                   PaddingBottom: |-
                       =0
                   PaddingLeft: |-
@@ -73,17 +81,19 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =If(((App.Width - 64)) >= (484) + (240) + 20, Max((52), (If((If(((App.Width - 64)) >= (484) + (240) + 20, 484, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 36, (36) + (36) + 10))), (52) + 20 + (If((If(((App.Width - 64)) >= (484) + (240) + 20, 484, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 36, (36) + (36) + 10)))
+                            =If(((App.Width - 64)) >= (482) + (240) + 20, Max((52), (If((If(((App.Width - 64)) >= (482) + (240) + 20, 482, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 36, (36) + 10 + (36) + 10 + (36) + 10 + (36)))), (52) + 20 + (If((If(((App.Width - 64)) >= (482) + (240) + 20, 482, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 36, (36) + 10 + (36) + 10 + (36) + 10 + (36))))
                         LayoutAlignItems: |-
-                            =LayoutAlignItems.Center
+                            =If(((App.Width - 64)) >= (482) + (240) + 20, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                         LayoutDirection: |-
-                            =LayoutDirection.Horizontal
+                            =If(((App.Width - 64)) >= (482) + (240) + 20, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                         LayoutGap: |-
                             =20
                         LayoutMinWidth: |-
                             =0
-                        LayoutWrap: |-
-                            =true
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
                         Width: |-
                             =Parent.Width
                       Children:
@@ -96,7 +106,7 @@ Screens:
                               DropShadow: |-
                                   =DropShadow.None
                               FillPortions: |-
-                                  =0
+                                  =If(((App.Width - 64)) >= (482) + (240) + 20, 1, 0)
                               Height: |-
                                   =52
                               LayoutAlignItems: |-
@@ -107,8 +117,12 @@ Screens:
                                   =2
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
-                                  =If(((App.Width - 64)) >= (484) + (240) + 20, Parent.Width - ((484)) - 21, (Parent.Width - 0) / 1 - 1)
+                                  =240
                             Children:
                               - txtVhpTitle:
                                   Control: ModernText
@@ -185,19 +199,21 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((If(((App.Width - 64)) >= (484) + (240) + 20, 484, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 36, (36) + (36) + 10)
+                                  =If((If(((App.Width - 64)) >= (482) + (240) + 20, 482, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 36, (36) + 10 + (36) + 10 + (36) + 10 + (36))
                               LayoutAlignItems: |-
-                                  =LayoutAlignItems.Center
+                                  =If((If(((App.Width - 64)) >= (482) + (240) + 20, 482, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                               LayoutDirection: |-
-                                  =LayoutDirection.Horizontal
+                                  =If((If(((App.Width - 64)) >= (482) + (240) + 20, 482, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =10
                               LayoutMinWidth: |-
-                                  =0
-                              LayoutWrap: |-
-                                  =true
+                                  =If(((App.Width - 64)) >= (482) + (240) + 20, 482, 0)
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
-                                  =If(((App.Width - 64)) >= (484) + (240) + 20, 484, (Parent.Width - 0) / 1 - 1)
+                                  =482
                             Children:
                               - btnVhpTheme:
                                   Control: ModernButton
@@ -225,7 +241,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((If(((App.Width - 64)) >= (482) + (240) + 20, 482, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 92, 0)
                                     OnSelect: |-
                                         =Set(darkModeEnabled, !darkModeEnabled);
                                         ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
@@ -245,7 +261,7 @@ Screens:
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
-                                        =If((If(((App.Width - 64)) >= (484) + (240) + 20, 484, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 92, (Parent.Width - 10) / 2 - 1)
+                                        =92
                               - btnVhpBackToHub:
                                   Control: ModernButton
                                   Properties:
@@ -272,7 +288,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((If(((App.Width - 64)) >= (482) + (240) + 20, 482, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 120, 0)
                                     OnSelect: |-
                                         =Launch("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/f387047d-86af-4d6a-8370-afcf35939436" & "?theme=" & If(darkModeEnabled, "dark", "light"), { }, LaunchTarget.Replace)
                                     RadiusBottomLeft: |-
@@ -290,7 +306,7 @@ Screens:
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
-                                        =If((If(((App.Width - 64)) >= (484) + (240) + 20, 484, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 120, (Parent.Width - 10) / 2 - 1)
+                                        =120
                               - btnVhpValidate:
                                   Control: ModernButton
                                   Properties:
@@ -313,7 +329,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((If(((App.Width - 64)) >= (482) + (240) + 20, 482, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 110, 0)
                                     OnSelect: |-
                                         =Set(varVhpPlanValidated, true);
                                         Set(varVhpItemValidated, true);
@@ -426,7 +442,7 @@ Screens:
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
-                                        =If((If(((App.Width - 64)) >= (484) + (240) + 20, 484, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 110, (Parent.Width - 10) / 2 - 1)
+                                        =110
                               - btnVhpExport:
                                   Control: ModernButton
                                   Properties:
@@ -453,7 +469,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((If(((App.Width - 64)) >= (482) + (240) + 20, 482, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 130, 0)
                                     OnSelect: |-
                                         =Set(
                                             varVhpExportJson,
@@ -523,7 +539,7 @@ Screens:
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
-                                        =If((If(((App.Width - 64)) >= (484) + (240) + 20, 484, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 130, (Parent.Width - 10) / 2 - 1)
+                                        =130
                   - conVhpHeaderRule:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -546,6 +562,10 @@ Screens:
                             =8
                         LayoutMinWidth: |-
                             =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
                         Width: |-
                             =Parent.Width
             - conVhpBody:
@@ -561,7 +581,7 @@ Screens:
                   FillPortions: |-
                       =1
                   Height: |-
-                      =Parent.Height - (25 + (If(((App.Width - 64)) >= (484) + (240) + 20, Max((52), (If((If(((App.Width - 64)) >= (484) + (240) + 20, 484, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 36, (36) + (36) + 10))), (52) + 20 + (If((If(((App.Width - 64)) >= (484) + (240) + 20, 484, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 36, (36) + (36) + 10)))))
+                      =Parent.Height - (25 + (If(((App.Width - 64)) >= (482) + (240) + 20, Max((52), (If((If(((App.Width - 64)) >= (482) + (240) + 20, 482, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 36, (36) + 10 + (36) + 10 + (36) + 10 + (36)))), (52) + 20 + (If((If(((App.Width - 64)) >= (482) + (240) + 20, 482, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 36, (36) + 10 + (36) + 10 + (36) + 10 + (36))))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -570,6 +590,8 @@ Screens:
                       =20
                   LayoutMinWidth: |-
                       =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
                   LayoutOverflowY: |-
                       =LayoutOverflow.Scroll
                   PaddingBottom: |-
@@ -598,7 +620,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =120 + (If((((App.Width - 64) - 32)) < 820, 60, 40)) + 12 + (If((((App.Width - 64) - 32)) >= (118) + (118) + (118) + (118) + (118) + 32, 26, (26) + (26) + (26) + 16))
+                            =122 + (If((((App.Width - 64) - 32)) < 820, 60, 40)) + 12 + (If((((App.Width - 64) - 32)) >= (118) + (118) + (118) + (118) + (118) + 32, 26, (26) + 8 + (26) + 8 + (26) + 8 + (26) + 8 + (26)))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -607,6 +629,10 @@ Screens:
                             =12
                         LayoutMinWidth: |-
                             =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
                         PaddingBottom: |-
                             =16
                         PaddingLeft: |-
@@ -668,17 +694,19 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - 64) - 32)) >= (118) + (118) + (118) + (118) + (118) + 32, 26, (26) + (26) + (26) + 16)
+                                  =If((((App.Width - 64) - 32)) >= (118) + (118) + (118) + (118) + (118) + 32, 26, (26) + 8 + (26) + 8 + (26) + 8 + (26) + 8 + (26))
                               LayoutAlignItems: |-
-                                  =LayoutAlignItems.Center
+                                  =If((((App.Width - 64) - 32)) >= (118) + (118) + (118) + (118) + (118) + 32, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                               LayoutDirection: |-
-                                  =LayoutDirection.Horizontal
+                                  =If((((App.Width - 64) - 32)) >= (118) + (118) + (118) + (118) + (118) + 32, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =8
                               LayoutMinWidth: |-
                                   =0
-                              LayoutWrap: |-
-                                  =true
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
                                   =Parent.Width
                             Children:
@@ -706,7 +734,7 @@ Screens:
                                     Height: |-
                                         =26
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((((App.Width - 64) - 32)) >= (118) + (118) + (118) + (118) + (118) + 32, 118, 0)
                                     PaddingBottom: |-
                                         =0
                                     PaddingLeft: |-
@@ -728,7 +756,7 @@ Screens:
                                     Text: |-
                                         ="1. Plan"
                                     Width: |-
-                                        =If((((App.Width - 64) - 32)) >= (118) + (118) + (118) + (118) + (118) + 32, 118, (Parent.Width - 8) / 2 - 1)
+                                        =118
                                     Wrap: |-
                                         =false
                               - txtVhpStep2:
@@ -755,7 +783,7 @@ Screens:
                                     Height: |-
                                         =26
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((((App.Width - 64) - 32)) >= (118) + (118) + (118) + (118) + (118) + 32, 118, 0)
                                     PaddingBottom: |-
                                         =0
                                     PaddingLeft: |-
@@ -777,7 +805,7 @@ Screens:
                                     Text: |-
                                         ="2. Item"
                                     Width: |-
-                                        =If((((App.Width - 64) - 32)) >= (118) + (118) + (118) + (118) + (118) + 32, 118, (Parent.Width - 8) / 2 - 1)
+                                        =118
                                     Wrap: |-
                                         =false
                               - txtVhpStep3:
@@ -804,7 +832,7 @@ Screens:
                                     Height: |-
                                         =26
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((((App.Width - 64) - 32)) >= (118) + (118) + (118) + (118) + (118) + 32, 118, 0)
                                     PaddingBottom: |-
                                         =0
                                     PaddingLeft: |-
@@ -826,7 +854,7 @@ Screens:
                                     Text: |-
                                         ="3. Tasklist"
                                     Width: |-
-                                        =If((((App.Width - 64) - 32)) >= (118) + (118) + (118) + (118) + (118) + 32, 118, (Parent.Width - 8) / 2 - 1)
+                                        =118
                                     Wrap: |-
                                         =false
                               - txtVhpStep4:
@@ -853,7 +881,7 @@ Screens:
                                     Height: |-
                                         =26
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((((App.Width - 64) - 32)) >= (118) + (118) + (118) + (118) + (118) + 32, 118, 0)
                                     PaddingBottom: |-
                                         =0
                                     PaddingLeft: |-
@@ -875,7 +903,7 @@ Screens:
                                     Text: |-
                                         =If(varVhpPlan.PlanType = "Strategy", "4. Packages", "4. Operations")
                                     Width: |-
-                                        =If((((App.Width - 64) - 32)) >= (118) + (118) + (118) + (118) + (118) + 32, 118, (Parent.Width - 8) / 2 - 1)
+                                        =118
                                     Wrap: |-
                                         =false
                               - txtVhpStep5:
@@ -902,7 +930,7 @@ Screens:
                                     Height: |-
                                         =26
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((((App.Width - 64) - 32)) >= (118) + (118) + (118) + (118) + (118) + 32, 118, 0)
                                     PaddingBottom: |-
                                         =0
                                     PaddingLeft: |-
@@ -924,7 +952,7 @@ Screens:
                                     Text: |-
                                         ="5. Dispatch"
                                     Width: |-
-                                        =If((((App.Width - 64) - 32)) >= (118) + (118) + (118) + (118) + (118) + 32, 118, (Parent.Width - 8) / 2 - 1)
+                                        =118
                                     Wrap: |-
                                         =false
                         - txtVhpRuntimeInfo:
@@ -969,7 +997,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =28
+                                  =30
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Center
                               LayoutDirection: |-
@@ -978,6 +1006,10 @@ Screens:
                                   =3
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
                                   =285
                             Children:
@@ -1073,7 +1105,7 @@ Screens:
                                     FontWeight: |-
                                         =FontWeight.Semibold
                                     Height: |-
-                                        =28
+                                        =30
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     OnSelect: |-
@@ -1124,6 +1156,10 @@ Screens:
                             =14
                         LayoutMinWidth: |-
                             =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
                         PaddingBottom: |-
                             =18
                         PaddingLeft: |-
@@ -1163,6 +1199,10 @@ Screens:
                                   =12
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
                                   =Parent.Width
                             Children:
@@ -1186,8 +1226,12 @@ Screens:
                                         =2
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
-                                        =Parent.Width - 198
+                                        =0
                                   Children:
                                     - conVhpPlanHeadTitle:
                                         Control: ModernText
@@ -1373,6 +1417,10 @@ Screens:
                                   =4
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               PaddingBottom: |-
                                   =12
                               PaddingLeft: |-
@@ -1443,6 +1491,10 @@ Screens:
                                               =2
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.TemplateWidth
                                         Children:
@@ -1607,6 +1659,10 @@ Screens:
                                   =16
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
                                   =Parent.Width
                             Children:
@@ -1630,6 +1686,10 @@ Screens:
                                         =20
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     LayoutWrap: |-
                                         =true
                                     Width: |-
@@ -1657,6 +1717,10 @@ Screens:
                                               =6
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
                                         Children:
@@ -1680,6 +1744,10 @@ Screens:
                                                     =3
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
                                                     =Parent.Width
                                               Children:
@@ -1861,6 +1929,10 @@ Screens:
                                               =6
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
                                         Children:
@@ -1884,6 +1956,10 @@ Screens:
                                                     =3
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
                                                     =Parent.Width
                                               Children:
@@ -2024,6 +2100,10 @@ Screens:
                                               =6
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
                                         Children:
@@ -2047,6 +2127,10 @@ Screens:
                                                     =3
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
                                                     =Parent.Width
                                               Children:
@@ -2228,6 +2312,10 @@ Screens:
                                               =6
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
                                         Children:
@@ -2251,6 +2339,10 @@ Screens:
                                                     =3
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
                                                     =Parent.Width
                                               Children:
@@ -2430,6 +2522,10 @@ Screens:
                                         =20
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     LayoutWrap: |-
                                         =true
                                     Width: |-
@@ -2457,6 +2553,10 @@ Screens:
                                               =6
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
                                         Children:
@@ -2480,6 +2580,10 @@ Screens:
                                                     =3
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
                                                     =Parent.Width
                                               Children:
@@ -2663,6 +2767,10 @@ Screens:
                                               =6
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
                                         Children:
@@ -2686,6 +2794,10 @@ Screens:
                                                     =3
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
                                                     =Parent.Width
                                               Children:
@@ -2836,6 +2948,10 @@ Screens:
                                               =6
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
                                         Children:
@@ -2859,6 +2975,10 @@ Screens:
                                                     =3
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
                                                     =Parent.Width
                                               Children:
@@ -3040,6 +3160,10 @@ Screens:
                                               =6
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
                                         Children:
@@ -3063,6 +3187,10 @@ Screens:
                                                     =3
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
                                                     =Parent.Width
                                               Children:
@@ -3242,6 +3370,10 @@ Screens:
                                         =20
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     LayoutWrap: |-
                                         =true
                                     Width: |-
@@ -3269,6 +3401,10 @@ Screens:
                                               =6
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
                                         Children:
@@ -3292,6 +3428,10 @@ Screens:
                                                     =3
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
                                                     =Parent.Width
                                               Children:
@@ -3444,6 +3584,10 @@ Screens:
                                               =6
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
                                         Children:
@@ -3467,6 +3611,10 @@ Screens:
                                                     =3
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
                                                     =Parent.Width
                                               Children:
@@ -3605,6 +3753,10 @@ Screens:
                                               =6
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
                                         Children:
@@ -3628,6 +3780,10 @@ Screens:
                                                     =3
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
                                                     =Parent.Width
                                               Children:
@@ -3766,6 +3922,10 @@ Screens:
                                               =6
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
                                         Children:
@@ -3789,6 +3949,10 @@ Screens:
                                                     =3
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
                                                     =Parent.Width
                                               Children:
@@ -3880,6 +4044,10 @@ Screens:
                                                     =8
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
                                                     =Parent.Width
                                               Children:
@@ -4097,6 +4265,10 @@ Screens:
                                   =16
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
                                   =Parent.Width
                             Children:
@@ -4120,8 +4292,12 @@ Screens:
                                         =2
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
-                                        =Parent.Width
+                                        =0
                                   Children:
                                     - txtVhpPlanMeta:
                                         Control: ModernText
@@ -4342,6 +4518,10 @@ Screens:
                             =20
                         LayoutMinWidth: |-
                             =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
                         LayoutWrap: |-
                             =true
                         Width: |-
@@ -4371,6 +4551,10 @@ Screens:
                                   =12
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               PaddingBottom: |-
                                   =18
                               PaddingLeft: |-
@@ -4388,7 +4572,7 @@ Screens:
                               RadiusTopRight: |-
                                   =14
                               Width: |-
-                                  =If(LayoutRank < 3, Parent.Width, 360)
+                                  =If(LayoutRank < 3, (App.Width - 64), 360)
                             Children:
                               - conVhpItemsHead:
                                   Control: GroupContainer
@@ -4410,6 +4594,10 @@ Screens:
                                         =12
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =Parent.Width
                                   Children:
@@ -4433,8 +4621,12 @@ Screens:
                                               =2
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
-                                              =Parent.Width - 76
+                                              =0
                                         Children:
                                           - conVhpItemsHeadTitle:
                                               Control: ModernText
@@ -4567,6 +4759,10 @@ Screens:
                                         =8
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =Parent.Width
                                   Children:
@@ -4862,6 +5058,10 @@ Screens:
                                               =10
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           PaddingBottom: |-
                                               =10
                                           PaddingLeft: |-
@@ -4901,8 +5101,12 @@ Screens:
                                                     =2
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
-                                                    =Parent.Width - 70 - 10
+                                                    =0
                                               Children:
                                                 - txtVhpItemCardTitle:
                                                     Control: ModernText
@@ -5019,6 +5223,10 @@ Screens:
                                                     =6
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
                                                     =70
                                               Children:
@@ -5204,6 +5412,10 @@ Screens:
                                   =14
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               PaddingBottom: |-
                                   =18
                               PaddingLeft: |-
@@ -5243,6 +5455,10 @@ Screens:
                                         =12
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =Parent.Width
                                   Children:
@@ -5266,8 +5482,12 @@ Screens:
                                               =2
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
-                                              =Parent.Width - 122
+                                              =0
                                         Children:
                                           - conVhpEditorHeadTitle:
                                               Control: ModernText
@@ -5406,6 +5626,10 @@ Screens:
                                         =4
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     PaddingBottom: |-
                                         =12
                                     PaddingLeft: |-
@@ -5476,6 +5700,10 @@ Screens:
                                                     =2
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
                                                     =Parent.TemplateWidth
                                               Children:
@@ -5613,6 +5841,10 @@ Screens:
                                         =16
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =Parent.Width
                                   Children:
@@ -5648,6 +5880,10 @@ Screens:
                                               =20
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           LayoutWrap: |-
                                               =true
                                           Width: |-
@@ -5676,6 +5912,10 @@ Screens:
                                                     =16
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
                                                     =If((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) < 640, (If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36), (((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 20 - ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3)))
                                               Children:
@@ -5699,6 +5939,10 @@ Screens:
                                                           =20
                                                       LayoutMinWidth: |-
                                                           =0
+                                                      LayoutOverflowX: |-
+                                                          =LayoutOverflow.Hide
+                                                      LayoutOverflowY: |-
+                                                          =LayoutOverflow.Hide
                                                       LayoutWrap: |-
                                                           =true
                                                       Width: |-
@@ -5726,6 +5970,10 @@ Screens:
                                                                 =6
                                                             LayoutMinWidth: |-
                                                                 =0
+                                                            LayoutOverflowX: |-
+                                                                =LayoutOverflow.Hide
+                                                            LayoutOverflowY: |-
+                                                                =LayoutOverflow.Hide
                                                             Width: |-
                                                                 =If(((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 20 - ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3))) < 640, (((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 20 - ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3)), ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 20 - ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3)) - 20) / 2)
                                                           Children:
@@ -5749,6 +5997,10 @@ Screens:
                                                                       =3
                                                                   LayoutMinWidth: |-
                                                                       =0
+                                                                  LayoutOverflowX: |-
+                                                                      =LayoutOverflow.Hide
+                                                                  LayoutOverflowY: |-
+                                                                      =LayoutOverflow.Hide
                                                                   Width: |-
                                                                       =Parent.Width
                                                                 Children:
@@ -5928,6 +6180,10 @@ Screens:
                                                                 =6
                                                             LayoutMinWidth: |-
                                                                 =0
+                                                            LayoutOverflowX: |-
+                                                                =LayoutOverflow.Hide
+                                                            LayoutOverflowY: |-
+                                                                =LayoutOverflow.Hide
                                                             Width: |-
                                                                 =If(((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 20 - ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3))) < 640, (((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 20 - ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3)), ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 20 - ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3)) - 20) / 2)
                                                           Children:
@@ -5951,6 +6207,10 @@ Screens:
                                                                       =3
                                                                   LayoutMinWidth: |-
                                                                       =0
+                                                                  LayoutOverflowX: |-
+                                                                      =LayoutOverflow.Hide
+                                                                  LayoutOverflowY: |-
+                                                                      =LayoutOverflow.Hide
                                                                   Width: |-
                                                                       =Parent.Width
                                                                 Children:
@@ -6137,6 +6397,10 @@ Screens:
                                                           =20
                                                       LayoutMinWidth: |-
                                                           =0
+                                                      LayoutOverflowX: |-
+                                                          =LayoutOverflow.Hide
+                                                      LayoutOverflowY: |-
+                                                          =LayoutOverflow.Hide
                                                       LayoutWrap: |-
                                                           =true
                                                       Width: |-
@@ -6164,6 +6428,10 @@ Screens:
                                                                 =6
                                                             LayoutMinWidth: |-
                                                                 =0
+                                                            LayoutOverflowX: |-
+                                                                =LayoutOverflow.Hide
+                                                            LayoutOverflowY: |-
+                                                                =LayoutOverflow.Hide
                                                             Width: |-
                                                                 =If(((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 20 - ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3))) < 640, (((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 20 - ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3)), ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 20 - ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3)) - 20) / 2)
                                                           Children:
@@ -6187,6 +6455,10 @@ Screens:
                                                                       =3
                                                                   LayoutMinWidth: |-
                                                                       =0
+                                                                  LayoutOverflowX: |-
+                                                                      =LayoutOverflow.Hide
+                                                                  LayoutOverflowY: |-
+                                                                      =LayoutOverflow.Hide
                                                                   Width: |-
                                                                       =Parent.Width
                                                                 Children:
@@ -6380,6 +6652,10 @@ Screens:
                                                                 =6
                                                             LayoutMinWidth: |-
                                                                 =0
+                                                            LayoutOverflowX: |-
+                                                                =LayoutOverflow.Hide
+                                                            LayoutOverflowY: |-
+                                                                =LayoutOverflow.Hide
                                                             Width: |-
                                                                 =If(((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 20 - ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3))) < 640, (((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 20 - ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3)), ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 20 - ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3)) - 20) / 2)
                                                           Children:
@@ -6403,6 +6679,10 @@ Screens:
                                                                       =3
                                                                   LayoutMinWidth: |-
                                                                       =0
+                                                                  LayoutOverflowX: |-
+                                                                      =LayoutOverflow.Hide
+                                                                  LayoutOverflowY: |-
+                                                                      =LayoutOverflow.Hide
                                                                   Width: |-
                                                                       =Parent.Width
                                                                 Children:
@@ -6543,6 +6823,10 @@ Screens:
                                                           =20
                                                       LayoutMinWidth: |-
                                                           =0
+                                                      LayoutOverflowX: |-
+                                                          =LayoutOverflow.Hide
+                                                      LayoutOverflowY: |-
+                                                          =LayoutOverflow.Hide
                                                       LayoutWrap: |-
                                                           =true
                                                       Width: |-
@@ -6570,6 +6854,10 @@ Screens:
                                                                 =6
                                                             LayoutMinWidth: |-
                                                                 =0
+                                                            LayoutOverflowX: |-
+                                                                =LayoutOverflow.Hide
+                                                            LayoutOverflowY: |-
+                                                                =LayoutOverflow.Hide
                                                             Width: |-
                                                                 =If(((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 20 - ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3))) < 640, (((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 20 - ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3)), ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 20 - ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3)) - 20) / 2)
                                                           Children:
@@ -6593,6 +6881,10 @@ Screens:
                                                                       =3
                                                                   LayoutMinWidth: |-
                                                                       =0
+                                                                  LayoutOverflowX: |-
+                                                                      =LayoutOverflow.Hide
+                                                                  LayoutOverflowY: |-
+                                                                      =LayoutOverflow.Hide
                                                                   Width: |-
                                                                       =Parent.Width
                                                                 Children:
@@ -6731,6 +7023,10 @@ Screens:
                                                                 =6
                                                             LayoutMinWidth: |-
                                                                 =0
+                                                            LayoutOverflowX: |-
+                                                                =LayoutOverflow.Hide
+                                                            LayoutOverflowY: |-
+                                                                =LayoutOverflow.Hide
                                                             Width: |-
                                                                 =If(((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 20 - ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3))) < 640, (((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 20 - ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3)), ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 20 - ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3)) - 20) / 2)
                                                           Children:
@@ -6754,6 +7050,10 @@ Screens:
                                                                       =3
                                                                   LayoutMinWidth: |-
                                                                       =0
+                                                                  LayoutOverflowX: |-
+                                                                      =LayoutOverflow.Hide
+                                                                  LayoutOverflowY: |-
+                                                                      =LayoutOverflow.Hide
                                                                   Width: |-
                                                                       =Parent.Width
                                                                 Children:
@@ -6897,6 +7197,10 @@ Screens:
                                                           =6
                                                       LayoutMinWidth: |-
                                                           =0
+                                                      LayoutOverflowX: |-
+                                                          =LayoutOverflow.Hide
+                                                      LayoutOverflowY: |-
+                                                          =LayoutOverflow.Hide
                                                       Width: |-
                                                           =If(((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 20 - ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3))) < 640, (((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 20 - ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3)), ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 20 - ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3)) - 0) / 1)
                                                     Children:
@@ -6920,6 +7224,10 @@ Screens:
                                                                 =3
                                                             LayoutMinWidth: |-
                                                                 =0
+                                                            LayoutOverflowX: |-
+                                                                =LayoutOverflow.Hide
+                                                            LayoutOverflowY: |-
+                                                                =LayoutOverflow.Hide
                                                             Width: |-
                                                                 =Parent.Width
                                                           Children:
@@ -7066,6 +7374,10 @@ Screens:
                                                     =LayoutJustifyContent.Start
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
                                                     =If((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) < 640, (If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36), ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3))
                                               Children:
@@ -7073,8 +7385,6 @@ Screens:
                                                     Control: GroupContainer
                                                     Variant: AutoLayout
                                                     Properties:
-                                                      AlignInContainer: |-
-                                                          =AlignInContainer.Start
                                                       BorderStyle: |-
                                                           =BorderStyle.None
                                                       DropShadow: |-
@@ -7091,6 +7401,10 @@ Screens:
                                                           =6
                                                       LayoutMinWidth: |-
                                                           =0
+                                                      LayoutOverflowX: |-
+                                                          =LayoutOverflow.Hide
+                                                      LayoutOverflowY: |-
+                                                          =LayoutOverflow.Hide
                                                       Width: |-
                                                           =Parent.Width
                                                     Children:
@@ -7114,6 +7428,10 @@ Screens:
                                                                 =3
                                                             LayoutMinWidth: |-
                                                                 =0
+                                                            LayoutOverflowX: |-
+                                                                =LayoutOverflow.Hide
+                                                            LayoutOverflowY: |-
+                                                                =LayoutOverflow.Hide
                                                             Width: |-
                                                                 =Parent.Width
                                                           Children:
@@ -7244,6 +7562,10 @@ Screens:
                                                                 =8
                                                             LayoutMinWidth: |-
                                                                 =0
+                                                            LayoutOverflowX: |-
+                                                                =LayoutOverflow.Hide
+                                                            LayoutOverflowY: |-
+                                                                =LayoutOverflow.Hide
                                                             Width: |-
                                                                 =Parent.Width
                                                           Children:
@@ -7266,6 +7588,8 @@ Screens:
                                                                       =If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
                                                                   Fill: |-
                                                                       =If(If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                                  FillPortions: |-
+                                                                      =1
                                                                   Font: |-
                                                                       =Font.'Segoe UI'
                                                                   Height: |-
@@ -7287,7 +7611,7 @@ Screens:
                                                                   ValidationState: |-
                                                                       =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                                                   Width: |-
-                                                                      =Parent.Width - 84 - 8
+                                                                      =0
                                                             - btnVhpFlSearch:
                                                                 Control: ModernButton
                                                                 Properties:
@@ -7512,8 +7836,6 @@ Screens:
                                                     Control: GroupContainer
                                                     Variant: AutoLayout
                                                     Properties:
-                                                      AlignInContainer: |-
-                                                          =AlignInContainer.Start
                                                       BorderStyle: |-
                                                           =BorderStyle.None
                                                       DropShadow: |-
@@ -7533,6 +7855,10 @@ Screens:
                                                           =6
                                                       LayoutMinWidth: |-
                                                           =0
+                                                      LayoutOverflowX: |-
+                                                          =LayoutOverflow.Hide
+                                                      LayoutOverflowY: |-
+                                                          =LayoutOverflow.Hide
                                                       Width: |-
                                                           =Parent.Width
                                                     Children:
@@ -7556,6 +7882,10 @@ Screens:
                                                                 =3
                                                             LayoutMinWidth: |-
                                                                 =0
+                                                            LayoutOverflowX: |-
+                                                                =LayoutOverflow.Hide
+                                                            LayoutOverflowY: |-
+                                                                =LayoutOverflow.Hide
                                                             Width: |-
                                                                 =Parent.Width
                                                           Children:
@@ -7693,6 +8023,10 @@ Screens:
                                                                       =10
                                                                   LayoutMinWidth: |-
                                                                       =0
+                                                                  LayoutOverflowX: |-
+                                                                      =LayoutOverflow.Hide
+                                                                  LayoutOverflowY: |-
+                                                                      =LayoutOverflow.Hide
                                                                   Width: |-
                                                                       =Parent.TemplateWidth
                                                                 Children:
@@ -7733,10 +8067,14 @@ Screens:
                                                                             =C.'text-primary'
                                                                         Fill: |-
                                                                             =RGBA(0, 0, 0, 0)
+                                                                        FillPortions: |-
+                                                                            =1
                                                                         Font: |-
                                                                             =Font.'Segoe UI'
                                                                         Height: |-
                                                                             =24
+                                                                        LayoutMinWidth: |-
+                                                                            =0
                                                                         PaddingBottom: |-
                                                                             =0
                                                                         PaddingLeft: |-
@@ -7750,7 +8088,7 @@ Screens:
                                                                         Text: |-
                                                                             =ThisItem.Display
                                                                         Width: |-
-                                                                            =Parent.Width - 26 - 10 - 4
+                                                                            =0
                                                                         Wrap: |-
                                                                             =false
                                                       - txtVhpObjEmpty:
@@ -7929,6 +8267,10 @@ Screens:
                                         =16
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =Parent.Width
                                   Children:
@@ -8092,6 +8434,10 @@ Screens:
                             =14
                         LayoutMinWidth: |-
                             =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
                         PaddingBottom: |-
                             =18
                         PaddingLeft: |-
@@ -8131,6 +8477,10 @@ Screens:
                                   =12
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
                                   =Parent.Width
                             Children:
@@ -8154,8 +8504,12 @@ Screens:
                                         =2
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
-                                        =Parent.Width - 198
+                                        =0
                                   Children:
                                     - conVhpOpsHeadTitle:
                                         Control: ModernText
@@ -8341,6 +8695,10 @@ Screens:
                                   =4
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               PaddingBottom: |-
                                   =12
                               PaddingLeft: |-
@@ -8411,6 +8769,10 @@ Screens:
                                               =2
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.TemplateWidth
                                         Children:
@@ -8529,15 +8891,17 @@ Screens:
                               Height: |-
                                   =If((((App.Width - 64) - 36)) >= (168) + (168) + (168) + (168) + 18, 34, (34) + If(IfError((varVhpPlan.PlanType = "Strategy"), false), 6 + (34), 0) + 6 + (34) + 6 + (34))
                               LayoutAlignItems: |-
-                                  =LayoutAlignItems.Center
+                                  =If((((App.Width - 64) - 36)) >= (168) + (168) + (168) + (168) + 18, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                               LayoutDirection: |-
-                                  =LayoutDirection.Horizontal
+                                  =If((((App.Width - 64) - 36)) >= (168) + (168) + (168) + (168) + 18, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =6
                               LayoutMinWidth: |-
                                   =0
-                              LayoutWrap: |-
-                                  =true
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
                                   =Parent.Width
                             Children:
@@ -8569,7 +8933,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((((App.Width - 64) - 36)) >= (168) + (168) + (168) + (168) + 18, 168, 0)
                                     OnSelect: |-
                                         =Set(varVhpOpsTab, "ops")
                                     RadiusBottomLeft: |-
@@ -8587,7 +8951,7 @@ Screens:
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
-                                        =If((((App.Width - 64) - 36)) >= (168) + (168) + (168) + (168) + 18, 168, (Parent.Width - 0) / 1 - 1)
+                                        =168
                               - btnVhpTabPkg:
                                   Control: ModernButton
                                   Properties:
@@ -8616,7 +8980,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((((App.Width - 64) - 36)) >= (168) + (168) + (168) + (168) + 18, 168, 0)
                                     OnSelect: |-
                                         =Set(varVhpOpsTab, "pkg")
                                     RadiusBottomLeft: |-
@@ -8636,7 +9000,7 @@ Screens:
                                     Visible: |-
                                         =IfError((varVhpPlan.PlanType = "Strategy"), false)
                                     Width: |-
-                                        =If((((App.Width - 64) - 36)) >= (168) + (168) + (168) + (168) + 18, 168, (Parent.Width - 0) / 1 - 1)
+                                        =168
                               - btnVhpTabMat:
                                   Control: ModernButton
                                   Properties:
@@ -8665,7 +9029,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((((App.Width - 64) - 36)) >= (168) + (168) + (168) + (168) + 18, 168, 0)
                                     OnSelect: |-
                                         =Set(varVhpOpsTab, "mat")
                                     RadiusBottomLeft: |-
@@ -8683,7 +9047,7 @@ Screens:
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
-                                        =If((((App.Width - 64) - 36)) >= (168) + (168) + (168) + (168) + 18, 168, (Parent.Width - 0) / 1 - 1)
+                                        =168
                               - btnVhpTabAtt:
                                   Control: ModernButton
                                   Properties:
@@ -8712,7 +9076,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((((App.Width - 64) - 36)) >= (168) + (168) + (168) + (168) + 18, 168, 0)
                                     OnSelect: |-
                                         =Set(varVhpOpsTab, "att")
                                     RadiusBottomLeft: |-
@@ -8730,7 +9094,7 @@ Screens:
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
-                                        =If((((App.Width - 64) - 36)) >= (168) + (168) + (168) + (168) + 18, 168, (Parent.Width - 0) / 1 - 1)
+                                        =168
                         - conVhpOpsPane:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -8751,6 +9115,10 @@ Screens:
                                   =8
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Visible: |-
                                   =IfError(IsBlank(varVhpOpsTab) || IfError(varVhpOpsTab = "ops", false) || (IfError(varVhpOpsTab = "pkg", false) && !(varVhpPlan.PlanType = "Strategy")), false)
                               Width: |-
@@ -8776,6 +9144,10 @@ Screens:
                                         =12
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =Parent.Width
                                   Children:
@@ -8801,6 +9173,10 @@ Screens:
                                               =6
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), 360)
                                         Children:
@@ -8824,6 +9200,10 @@ Screens:
                                                     =3
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
                                                     =Parent.Width
                                               Children:
@@ -8970,6 +9350,10 @@ Screens:
                                               =8
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -9284,6 +9668,8 @@ Screens:
                                         =0
                                     LayoutOverflowX: |-
                                         =LayoutOverflow.Scroll
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =Parent.Width
                                   Children:
@@ -9328,6 +9714,10 @@ Screens:
                                               =8
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =1348
                                     - galVhpOps:
@@ -9385,6 +9775,10 @@ Screens:
                                                     =10
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
                                                     =Parent.TemplateWidth
                                               Children:
@@ -9990,6 +10384,10 @@ Screens:
                                               =8
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Visible: |-
                                               =IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false)
                                           Width: |-
@@ -10088,6 +10486,10 @@ Screens:
                                   =12
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Visible: |-
                                   =IfError(IfError(varVhpOpsTab = "pkg", false) && (varVhpPlan.PlanType = "Strategy"), false)
                               Width: |-
@@ -10121,6 +10523,10 @@ Screens:
                                         =4
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     PaddingBottom: |-
                                         =12
                                     PaddingLeft: |-
@@ -10191,6 +10597,10 @@ Screens:
                                                     =2
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
                                                     =Parent.TemplateWidth
                                               Children:
@@ -10357,6 +10767,10 @@ Screens:
                                         =8
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Visible: |-
                                         =IfError((!IsBlank(varVhpPlan.Strategy) && CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 0 && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0), false)
                                     Width: |-
@@ -10617,6 +11031,8 @@ Screens:
                                         =0
                                     LayoutOverflowX: |-
                                         =LayoutOverflow.Scroll
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Visible: |-
                                         =IfError((!IsBlank(varVhpPlan.Strategy) && CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 0 && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0), false)
                                     Width: |-
@@ -10642,6 +11058,10 @@ Screens:
                                               =0
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =260 + CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) * 64
                                         Children:
@@ -10737,6 +11157,10 @@ Screens:
                                                           =LayoutJustifyContent.Center
                                                       LayoutMinWidth: |-
                                                           =0
+                                                      LayoutOverflowX: |-
+                                                          =LayoutOverflow.Hide
+                                                      LayoutOverflowY: |-
+                                                          =LayoutOverflow.Hide
                                                       Width: |-
                                                           =Parent.TemplateWidth
                                                     Children:
@@ -10799,6 +11223,10 @@ Screens:
                                               =8
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =260 + CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) * 64
                                     - galVhpPkgRows:
@@ -10856,6 +11284,10 @@ Screens:
                                                     =0
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
                                                     =Parent.TemplateWidth
                                               Children:
@@ -10988,6 +11420,10 @@ Screens:
                                                                 =LayoutJustifyContent.Center
                                                             LayoutMinWidth: |-
                                                                 =0
+                                                            LayoutOverflowX: |-
+                                                                =LayoutOverflow.Hide
+                                                            LayoutOverflowY: |-
+                                                                =LayoutOverflow.Hide
                                                             Width: |-
                                                                 =Parent.TemplateWidth
                                                           Children:
@@ -11178,6 +11614,10 @@ Screens:
                                   =12
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Visible: |-
                                   =IfError(varVhpOpsTab = "mat", false)
                               Width: |-
@@ -11203,6 +11643,10 @@ Screens:
                                         =8
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =Parent.Width
                                   Children:
@@ -11375,6 +11819,8 @@ Screens:
                                         =0
                                     LayoutOverflowX: |-
                                         =LayoutOverflow.Scroll
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =Parent.Width
                                   Children:
@@ -11419,6 +11865,10 @@ Screens:
                                               =8
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =670
                                     - galVhpMaterials:
@@ -11476,6 +11926,10 @@ Screens:
                                                     =10
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
                                                     =Parent.TemplateWidth
                                               Children:
@@ -11750,6 +12204,10 @@ Screens:
                                   =12
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Visible: |-
                                   =IfError(varVhpOpsTab = "att", false)
                               Width: |-
@@ -11802,6 +12260,10 @@ Screens:
                                         =8
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =Parent.Width
                                   Children:
@@ -12172,6 +12634,10 @@ Screens:
                                               =10
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.TemplateWidth
                                         Children:
@@ -12283,7 +12749,7 @@ Screens:
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 FillPortions: |-
-                                                    =0
+                                                    =1
                                                 Height: |-
                                                     =26
                                                 Items: |-
@@ -12306,7 +12772,7 @@ Screens:
                                                 TemplateSize: |-
                                                     =64
                                                 Width: |-
-                                                    =Parent.Width - 540
+                                                    =0
                                                 WrapCount: |-
                                                     =1
                                               Children:
@@ -12415,6 +12881,10 @@ Screens:
                             =10
                         LayoutMinWidth: |-
                             =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
                         PaddingBottom: |-
                             =18
                         PaddingLeft: |-
@@ -12454,6 +12924,10 @@ Screens:
                                   =12
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
                                   =Parent.Width
                             Children:
@@ -12477,8 +12951,12 @@ Screens:
                                         =2
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
-                                        =Parent.Width - 76
+                                        =0
                                   Children:
                                     - conVhpDispatchHeadTitle:
                                         Control: ModernText
@@ -12740,6 +13218,10 @@ Screens:
                             =10
                         LayoutMinWidth: |-
                             =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
                         PaddingBottom: |-
                             =18
                         PaddingLeft: |-
@@ -12779,6 +13261,10 @@ Screens:
                                   =12
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
                                   =Parent.Width
                             Children:
@@ -12802,8 +13288,12 @@ Screens:
                                         =2
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
-                                        =Parent.Width - 76
+                                        =0
                                   Children:
                                     - conVhpSaveHeadTitle:
                                         Control: ModernText
@@ -12979,6 +13469,10 @@ Screens:
                                   =8
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
                                   =Parent.Width
                             Children:
@@ -13843,6 +14337,10 @@ Screens:
                 =12
             LayoutMinWidth: |-
                 =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
             PaddingBottom: |-
                 =18
             PaddingLeft: |-
@@ -13890,6 +14388,10 @@ Screens:
                       =LayoutJustifyContent.SpaceBetween
                   LayoutMinWidth: |-
                       =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
                   Width: |-
                       =Parent.Width
                 Children:
@@ -13989,6 +14491,10 @@ Screens:
                       =12
                   LayoutMinWidth: |-
                       =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
                   Width: |-
                       =Parent.Width
                 Children:
@@ -14009,6 +14515,8 @@ Screens:
                             =""
                         Fill: |-
                             =C.'input-bg'
+                        FillPortions: |-
+                            =1
                         Font: |-
                             =Font.'Segoe UI'
                         Height: |-
@@ -14030,7 +14538,7 @@ Screens:
                         ValidationState: |-
                             =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                         Width: |-
-                            =Parent.Width - 220
+                            =0
                   - chkVhpPickerSelectAll:
                       Control: ModernCheckbox
                       Properties:
@@ -14126,6 +14634,8 @@ Screens:
                       =4
                   LayoutMinWidth: |-
                       =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
                   LayoutOverflowY: |-
                       =LayoutOverflow.Scroll
                   Width: |-
@@ -14172,6 +14682,10 @@ Screens:
                             =8
                         LayoutMinWidth: |-
                             =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
                         Width: |-
                             =Parent.Width
                   - galVhpPicker:
@@ -14232,6 +14746,10 @@ Screens:
                                   =10
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
                                   =Parent.TemplateWidth
                             Children:
@@ -14470,6 +14988,10 @@ Screens:
                       =LayoutJustifyContent.End
                   LayoutMinWidth: |-
                       =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
                   Width: |-
                       =Parent.Width
                 Children:
@@ -14609,6 +15131,10 @@ Screens:
                 =12
             LayoutMinWidth: |-
                 =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
             PaddingBottom: |-
                 =18
             PaddingLeft: |-
@@ -14656,6 +15182,10 @@ Screens:
                       =LayoutJustifyContent.SpaceBetween
                   LayoutMinWidth: |-
                       =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
                   Width: |-
                       =Parent.Width
                 Children:
@@ -14829,6 +15359,10 @@ Screens:
                       =LayoutJustifyContent.End
                   LayoutMinWidth: |-
                       =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
                   Width: |-
                       =Parent.Width
                 Children:

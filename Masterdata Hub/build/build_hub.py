@@ -23,7 +23,7 @@ from build_helpers import (text_ctrl, group, button, card, theme_button,
                            flow_row, top_bar)
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, APP_TARGET
 from design_tokens import theme_query
-from layout_tokens import if_below
+from layout_tokens import if_below, SCROLLBAR_W
 
 # Hubben aabner satellitterne. Temaet skal med i URL'en, fordi
 # SaveData-lageret er isoleret pr. app-id: uden den ville en moerk hub
@@ -61,7 +61,11 @@ FIXED = sum(w for _, w in COLS) + GAP * (len(COLS) - 1)
 # kender Parent.TemplateWidth, og raekkens indhold ligger et niveau
 # dybere. Begge foraeldre er lige saa brede som skabelonen, saa
 # Parent.Width giver det samme tal og virker begge steder.
-MAIN_W = f"Parent.Width - {FIXED}"
+#
+# REGNET AF DEN BREDDE, LISTEN HAR - ikke af Parent.Width, som er
+# raekkens Width-EGENSKAB og hverken traekker kortets padding, galleriets
+# TemplatePadding eller dets scrollbar fra.
+MAIN_W = f"({SHELL_W} - 36 - 4 - {SCROLLBAR_W} - {FIXED})"
 
 ROW_H = 46
 GAL_ROWS = 9
@@ -155,7 +159,7 @@ def build_tiles():
         bFilter = button(f"btnMdTileFilter{n}",
                          f'If(gblDomain = "{d["key"]}", "Show all", "Filter")',
                          f'Set(gblDomain, If(gblDomain = "{d["key"]}", "", "{d["key"]}"))',
-                         width=bw, height=28)
+                         width=bw, height=30)
         if d["url"]:
             # Temaet sendes MED i URL'en. SaveData er isoleret pr. app-id,
             # saa uden det ville satellitten aabne i sit eget gamle tema -
@@ -165,10 +169,10 @@ def build_tiles():
             new_action = ('Notify("This app has not been built yet.", NotificationType.Warning)')
         bNew = button(f"btnMdTileNew{n}",
                       '"New request"' if d["url"] else '"Coming soon"',
-                      new_action, primary=bool(d["url"]), width=bw, height=28,
+                      new_action, primary=bool(d["url"]), width=bw, height=30,
                       display_mode="DisplayMode.Edit" if d["url"] else "DisplayMode.Disabled")
         btns = group(f"conMdTileBtns{n}", [bFilter, bNew], direction="Horizontal", gap=6,
-                     height=28, align_items="Center")
+                     height=30, align_items="Center")
 
         tiles.append(group(
             f"conMdTile{n}", [stripe, name, count, lbl, btns], direction="Vertical", gap=6,
@@ -301,7 +305,7 @@ def build_list():
                        f"        {APP_TARGET}\n"
                        "    )\n"
                        ")"),
-                      width=COLS[5][1], height=28,
+                      width=COLS[5][1], height=30,
                       accessible=f'"Open " & ThisItem.{COL_NO} & " in the domain app"')
 
     row = group("conMdRow", [badge, main, plant, stat, when, open_btn],

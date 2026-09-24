@@ -116,15 +116,24 @@ alle tre er nu spærret af byggeriet. Hele forklaringen står i
    plads på Windows og ingen på Mac — derfor så fejlen tilfældig ud. Sæt
    aldrig paddingen op "så tallet passer"; det var præcis den fejl.
 3. **To tilstande.** En række, der kan ombryde, bygges med
-   `build_helpers.flow_row()`: enten én linje, eller et gitter med et fast
-   antal kolonner. Skriv aldrig `wrap="true"` med en håndregnet højde.
-   Bjælken er `build_helpers.top_bar()` i alle fire apps.
+   `build_helpers.flow_row()`: enten vandret på én linje, eller lodret med
+   ét barn pr. linje (`LayoutDirection = If(...)`). Skriv aldrig
+   `wrap="true"` med en håndregnet højde. Bjælken er
+   `build_helpers.top_bar()` i alle fire apps.
+4. **`Parent.Width` er forælderens Width-EGENSKAB, ikke pladsen inden i
+   den.** Padding og scrollbar er ikke trukket fra. Regn aldrig med den:
+   resten af en række er `build_helpers.grow(ctrl)` (FillPortions), en
+   bestemt bredde regnes af `SHELL_W`. Det var den fejl, der sendte
+   bjælkens knapper ned under kanten i første udgave af rammen.
+5. **Knapper er mindst 30 px høje**, og containere skjuler overløb
+   (`LayoutOverflow.Hide`), med mindre de skal scrolle.
 
 | Du vil … | Gør |
 |---|---|
 | Tilføje en sektion | Læg kortet i listen til `app_frame(...)` |
 | Tilføje en knap i bjælken | Tilføj den til listen til `top_bar(...)` — intet andet |
 | Lave en række, der ombryder | `flow_row(...)` |
+| Lade et felt tage resten af en række | `grow(ctrl)` — aldrig `Parent.Width - n` |
 | Regne en højde | Konstanter, `App.Width`/`LayoutRank`, `CountRows(col…)`. Aldrig en datakilde |
 
 ## Fire apps — hver med sin selvstændige build-mappe
@@ -370,6 +379,11 @@ layoutfejl bor:
 23. Rammen: `con<X>Root` → header med fast højde + præcis én krop med
    `Scroll`. Headerens højde må ikke afhænge af data (23b), og padding +
    scrollbar + luft skal være mindst `SHELL_INSET` (23c)
+4d. En række, der skifter retning, skal passe i sin vandrette tilstand —
+   i den bredde, den faktisk får
+24. `Parent.Width` må ikke indgå i et regnestykke. Den er forælderens
+   Width-egenskab; padding og scrollbar er ikke trukket fra
+25. En knap er mindst 30 px høj
 
 Punkt 7 fanger den klassiske: du sletter en kontrol og glemmer en
 `Reset()` på den et andet sted. Det ville ellers først vælte i compile.
