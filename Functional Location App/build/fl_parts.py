@@ -394,7 +394,7 @@ DD_ITEMS = """Ungroup(
                     !(Upper(Value) in With({ lid: ThisItem.List }, Filter(nfFlLists, List = lid)).UValue)) },
         { G: ForAll(Sort(With({ lid: ThisItem.List }, Filter(nfFlLists, List = lid)), Ord) As O, { Value: O.Value }) }
     ),
-    "G"
+    G
 )"""
 
 LBL_W = 200
