@@ -281,8 +281,12 @@ def build_strategy_body():
     )
     cellsGal = _pkg_cell_gallery("galVhpPkgCells", cellWrap, items=cell_items)
 
+    # Hele skabelonens hoejde, ikke "- 2": cellerne er ROW_H hoeje, og
+    # skabelonen er ROW_H. Med "- 2" var raekken 38 px til 40 px indhold.
+    # Det kunne foerst ses, da skabelonens hoejde blev skrevet ud som et
+    # tal (gen_screen.resolve_templates) i stedet for Parent.TemplateHeight.
     matrixRow = group("conVhpPkgRow", [rowOpNo, rowText, cellsGal], direction="Horizontal", gap=0,
-                      height="Parent.TemplateHeight - 2", align_items="Center",
+                      height="Parent.TemplateHeight", align_items="Center",
                       width="Parent.TemplateWidth")
 
     rowsGal = Ctrl(
@@ -301,7 +305,7 @@ def build_strategy_body():
             "TabIndex": "0",
             "TemplatePadding": "2",
             "TemplateSize": str(ROW_H),
-            "Width": MATRIX_W,
+            "Width": f"{MATRIX_W} + 4",   # + TemplatePadding i begge sider
             "WrapCount": "1",
         },
         children=[matrixRow], h=f"Max(CountRows({OPS_ACTIVE}), 1) * {GAL_ROW_H}")

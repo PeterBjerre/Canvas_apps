@@ -26,6 +26,8 @@ Tjekket foretager fire kontroller:
   24. Parent.Width maa ikke indgaa i et regnestykke - den er foraelderens
      Width-EGENSKAB, ikke pladsen inden i den
   25. En knap er mindst 30 px hoej
+  26. Ingen Parent.Template* - og en gallerirakke skal rumme sine celler
+  27. En tekst er mindst 1,5 x sin skriftstoerrelse hoej
   23. Rammen: con<X>Root -> header med fast hoejde + een krop, der
      scroller. Headerens hoejde maa ikke afhaenge af data, og padding +
      scrollbar + luft skal vaere mindst SHELL_INSET. Se
@@ -696,6 +698,75 @@ def main():
         h = evaluate((body.get("Properties") or {}).get("Height"), 1366, 3, 4, 4)
         if h is not None and h < 30:
             problems.append(f"[25] {name}: knappen er {h:.0f} px hoej - mindst 30")
+
+    # --- 26. Galleriernes skabeloner -------------------------------------
+    #
+    # Parent.TemplateWidth gav 320 i Studio - containerens standardbredde.
+    # Listens raekke var 320 px bred til 1200 px indhold, og alt efter
+    # beskrivelsen laa uden for den. gen_screen.resolve_templates skriver nu
+    # skabelonens bredde og hoejde ud som udtryk; her efterproeves det, og at
+    # raekken kan rumme sine celler ved hver skaermbredde.
+    for p, name, body in all_nodes:
+        for key, val in (body.get("Properties") or {}).items():
+            if isinstance(val, str) and "Parent.Template" in val:
+                problems.append(f"[26] {name}.{key}: Parent.Template* - Studio gav "
+                                f"320. Brug gen_screen.resolve_templates")
+        if body.get("Control") != "Gallery":
+            continue
+        for k in body.get("Children") or []:
+            (kn, kb), = k.items()
+            kp = kb.get("Properties") or {}
+            if "Horizontal" not in (kp.get("LayoutDirection") or "") or \
+                    "true" in (kp.get("LayoutWrap") or ""):
+                continue
+            gap = float(re.sub(r"[^0-9.]", "", kp.get("LayoutGap", "=0")) or 0)
+            # Tabeller med kolonner kraever mindst Tablet. Apperne er tablet-
+            # og desktoplayouts; paa en telefon kan syv kolonner ikke staa.
+            for w in [x for x in WIDTHS if x >= lay.min_width("Tablet")]:
+                own = evaluate(kp.get("Width"), w, 3, 4, 4)
+                if own is None:
+                    problems.append(f"[26] {kn}: skabelonens bredde kan ikke "
+                                    f"efterregnes ved App.Width={w}")
+                    break
+                need, n, ok = 0.0, 0, True
+                for c in kb.get("Children") or []:
+                    (cn, cb), = c.items()
+                    cp = cb.get("Properties") or {}
+                    vis = evaluate(cp.get("Visible"), w, 3, 4, 4)
+                    if vis is not None and not vis:
+                        continue
+                    if (evaluate(cp.get("FillPortions"), w, 3, 4, 4) or 0) > 0:
+                        cw = evaluate(cp.get("LayoutMinWidth"), w, 3, 4, 4) or 0
+                    else:
+                        cw = evaluate(cp.get("Width"), w, 3, 4, 4)
+                    if cw is None:
+                        ok = False
+                        break
+                    need += cw
+                    n += 1
+                if not ok:
+                    continue
+                need += gap * max(0, n - 1) + _num(kp.get("PaddingLeft"), w, 3, 4, 4) \
+                    + _num(kp.get("PaddingRight"), w, 3, 4, 4)
+                if need > own + 0.5:
+                    problems.append(f"[26] {kn}: cellerne fylder {need:.0f} px i en "
+                                    f"raekke paa {own:.0f} px (App.Width={w}) - det "
+                                    f"sidste er skjult")
+                    break
+
+    # --- 27. En tekst skal vaere mindst een linje hoej --------------------
+    #
+    # Ellers viser den moderne Text-kontrol sin egen scrollbar. Det var den
+    # moerke streg i topbjaelken: titlen var 22 pt i 30 px.
+    for p, name, body in all_nodes:
+        if body.get("Control") != "ModernText":
+            continue
+        pr = body.get("Properties") or {}
+        size = evaluate(pr.get("Size", "=14"), 1366, 3, 4, 4)
+        h = evaluate(pr.get("Height"), 1366, 3, 4, 4)
+        if size and h is not None and h < size * 1.5 - 0.01:
+            problems.append(f"[27] {name}: {size:.0f} pt i {h:.0f} px - mindst "
+                            f"{size * 1.5:.0f}, ellers faar teksten sin egen scrollbar")
 
     # --- 23. Rammen ------------------------------------------------------
     #
