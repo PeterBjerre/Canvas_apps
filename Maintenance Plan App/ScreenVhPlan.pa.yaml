@@ -4801,7 +4801,6 @@ Screens:
                                                       )
                                                   )
                                               );
-                                              Set(varVhpFlLastSearch, "");
                                                   Reset(drpVhpItemFL); Reset(txtVhpFlQuery); Reset(txtVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(drpVhpItemRevision); Reset(txtVhpItemOrstedResponsible); Reset(txtVhpItemInitials); Reset(txtVhpItemLongText); Reset(drpVhpItemTasklist);
                                                   Set(varVhpRuntimeInfo, "Item " & Text(varVhpNextItemId) & " added.")
                                               )
@@ -4900,7 +4899,6 @@ Screens:
                                                       )
                                                   )
                                               );
-                                              Set(varVhpFlLastSearch, "");
                                                       Reset(drpVhpItemFL); Reset(txtVhpFlQuery); Reset(txtVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(drpVhpItemRevision); Reset(txtVhpItemOrstedResponsible); Reset(txtVhpItemInitials); Reset(txtVhpItemLongText); Reset(drpVhpItemTasklist);
                                                       Set(varVhpRuntimeInfo, "Item copied. Functional Location cleared on the copied item.")
                                                   )
@@ -5296,7 +5294,6 @@ Screens:
                                                                   )
                                                               )
                                                           );
-                                                          Set(varVhpFlLastSearch, "");
                                                           Reset(drpVhpItemFL); Reset(txtVhpFlQuery); Reset(txtVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(drpVhpItemRevision); Reset(txtVhpItemOrstedResponsible); Reset(txtVhpItemInitials); Reset(txtVhpItemLongText); Reset(drpVhpItemTasklist)
                                                       RadiusBottomLeft: |-
                                                           =10
@@ -7643,7 +7640,6 @@ Screens:
                                                                           )
                                                                       )
                                                                                   );
-                                                                                  Set(varVhpFlLastSearch, q);
                                                                                   Set(
                                                                                       varVhpFlMeta,
                                                                                       With(
@@ -7661,7 +7657,6 @@ Screens:
                                                                                       )
                                                                                   ),
                                                                                   Clear(colVhpFlSearch);
-                                                                                  Set(varVhpFlLastSearch, "");
                                                                                   Set(varVhpFlMeta, "Search failed: " & FirstError.Message)
                                                                               )
                                                                           )
@@ -10786,25 +10781,29 @@ Screens:
                                               =If(
                                                   IsBlank(varVhpActiveItemId),
                                                   Set(varVhpRuntimeInfo, "Select an item first."),
-                                                  ForAll(
-                                                      Filter(colVhpOperations, ItemId = varVhpActiveItemId) As OP,
-                                                      With(
-                                                          {
-                                                              minH: Min(
-                                                                  Filter(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy) As P, ";" & Text(P.PackageNo) & ";" in Coalesce(OP.PackagesKey, ";")),
-                                                                  Hierarchy
-                                                              )
-                                                          },
-                                                          If(
-                                                              !IsBlank(minH),
-                                                              UpdateIf(
-                                                                  colVhpOperations,
-                                                                  ItemId = OP.ItemId && OperationNo = OP.OperationNo,
-                                                                  {
-                                                                      PackagesKey:
-                                                                          ";" & Concat(Sort(Filter(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy), Hierarchy >= minH), PackageNo), Text(PackageNo) & ";")
-                                                                  }
-                                                              )
+                                                  With(
+                                                      { src: Filter(colVhpOperations, ItemId = varVhpActiveItemId) },
+                                                      Patch(
+                                                          colVhpOperations,
+                                                          src,
+                                                          ForAll(
+                                                              src As OP,
+                                                              {
+                                                                  PackagesKey:
+                                                                      With(
+                                                                          {
+                                                                              minH: Min(
+                                                                                  Filter(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy) As P, ";" & Text(P.PackageNo) & ";" in Coalesce(OP.PackagesKey, ";")),
+                                                                                  Hierarchy
+                                                                              )
+                                                                          },
+                                                                          If(
+                                                                              IsBlank(minH),
+                                                                              Coalesce(OP.PackagesKey, ";"),
+                                                                              ";" & Concat(Sort(Filter(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy), Hierarchy >= minH), PackageNo), Text(PackageNo) & ";")
+                                                                          )
+                                                                      )
+                                                              }
                                                           )
                                                       )
                                                   );
@@ -14537,15 +14536,30 @@ Screens:
                         Label: |-
                             ="Select all visible"
                         OnCheck: |-
-                            =ForAll(Filter(
+                            =Collect(
+                                colVhpPickerSelected,
+                                ForAll(
+                                    Filter(
+                                        Filter(
                                 LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
                                 IsBlank(Trim(txtVhpPickerSearch.Text)) || Trim(txtVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
-                            ) As VOP, If(CountRows(Filter(colVhpPickerSelected, OperationNo = VOP.OperationNo)) = 0, Collect(colVhpPickerSelected, { OperationNo: VOP.OperationNo })))
+                            ) As VOP,
+                                        CountRows(Filter(colVhpPickerSelected, OperationNo = VOP.OperationNo)) = 0
+                                    ) As NEW,
+                                    { OperationNo: NEW.OperationNo }
+                                )
+                            )
                         OnUncheck: |-
-                            =ForAll(Filter(
+                            =Remove(
+                                colVhpPickerSelected,
+                                Filter(
+                                    colVhpPickerSelected As SEL,
+                                    CountRows(Filter(Filter(
                                 LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
                                 IsBlank(Trim(txtVhpPickerSearch.Text)) || Trim(txtVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
-                            ) As VOP, RemoveIf(colVhpPickerSelected, OperationNo = VOP.OperationNo))
+                            ) As VOP, VOP.OperationNo = SEL.OperationNo)) > 0
+                                )
+                            )
                         Width: |-
                             =200
             - txtVhpPickerInfo:

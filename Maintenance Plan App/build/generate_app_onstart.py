@@ -42,15 +42,6 @@ def working_collection_block():
     return "\n\n".join(out)
 
 
-def static_block():
-    out = []
-    for name, rows, why in cfg.STATIC_TABLES:
-        recs = ",\n        ".join(
-            "{ " + ", ".join(f'{k}: "{v}"' for k, v in r.items()) + " }" for r in rows)
-        out.append(f"// {why}\nClearCollect(\n    {name},\n    Table(\n        {recs}\n    )\n);")
-    return "\n\n".join(out)
-
-
 # ---------------------------------------------------------------------------
 # Skaermens tilstand. INGEN demo-plan: appen aabner tom, og brugeren
 # opretter eller indlaeser en plan.
@@ -89,7 +80,6 @@ Set(varVhpActiveItemId, 1);
 Set(varVhpNextItemId, 1);
 Set(varVhpRuntimeInfo, "");
 Set(varVhpFlMeta, "");
-Set(varVhpFlLastSearch, "");
 Set(varVhpLastValidationErrors, "");
 Set(varVhpExportJson, "");
 Set(varVhpTasklistPickerOpen, false);
@@ -159,7 +149,7 @@ def build_onstart():
         ", ".join("%s: %s" % kv for kv in prefs_schema.items()),
         prefs_name)
     blocks = [working_collection_block(), prefs, tok.onstart_block(),
-              static_block(), VARS_BLOCK.strip(), build_load.load_block()]
+              VARS_BLOCK.strip(), build_load.load_block()]
     s = "\n\n".join(b for b in blocks if b).rstrip()
     return s[:-1] if s.endswith(";") else s
 

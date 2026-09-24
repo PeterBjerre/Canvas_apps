@@ -157,25 +157,43 @@ def build_strategy_body():
             "If(\n"
             "    IsBlank(varVhpActiveItemId),\n"
             "    Set(varVhpRuntimeInfo, \"Select an item first.\"),\n"
-            f"    ForAll(\n"
-            f"        {OPS_ACTIVE} As OP,\n"
-            "        With(\n"
-            "            {\n"
-            "                minH: Min(\n"
-            f"                    Filter({PKGS} As P, \";\" & Text(P.PackageNo) & \";\" in Coalesce(OP.PackagesKey, \";\")),\n"
-            "                    Hierarchy\n"
-            "                )\n"
-            "            },\n"
-            "            If(\n"
-            "                !IsBlank(minH),\n"
-            "                UpdateIf(\n"
-            "                    colVhpOperations,\n"
-            "                    ItemId = OP.ItemId && OperationNo = OP.OperationNo,\n"
-            "                    {\n"
-            "                        PackagesKey:\n"
-            f"                            \";\" & Concat(Sort(Filter({PKGS}, Hierarchy >= minH), PackageNo), Text(PackageNo) & \";\")\n"
-            "                    }\n"
-            "                )\n"
+            # EEN skrivning, ikke een pr. operation.
+            #
+            # Her stod ForAll(operationer, UpdateIf(colVhpOperations, ...)).
+            # App checker: ForAllWithMutation - hver skrivning faar alt, der
+            # afhaenger af samlingen, til at genberegne, saa en plan med 40
+            # operationer gav 40 runder.
+            #
+            # ForAll returnerer en TABEL, saa de to tabeller - raekkerne og
+            # aendringerne - regnes faerdige foerst og skrives i eet Patch.
+            # Formen er dokumenteret: Patch(kilde, raekker, aendringer).
+            #
+            # Raekker uden pakker faar deres egen noegle tilbage. Foer blev
+            # de sprunget over med et If; nu skrives den samme vaerdi, og
+            # resultatet er det samme.
+            f"    With(\n"
+            f"        {{ src: {OPS_ACTIVE} }},\n"
+            "        Patch(\n"
+            "            colVhpOperations,\n"
+            "            src,\n"
+            "            ForAll(\n"
+            "                src As OP,\n"
+            "                {\n"
+            "                    PackagesKey:\n"
+            "                        With(\n"
+            "                            {\n"
+            "                                minH: Min(\n"
+            f"                                    Filter({PKGS} As P, \";\" & Text(P.PackageNo) & \";\" in Coalesce(OP.PackagesKey, \";\")),\n"
+            "                                    Hierarchy\n"
+            "                                )\n"
+            "                            },\n"
+            "                            If(\n"
+            "                                IsBlank(minH),\n"
+            "                                Coalesce(OP.PackagesKey, \";\"),\n"
+            f"                                \";\" & Concat(Sort(Filter({PKGS}, Hierarchy >= minH), PackageNo), Text(PackageNo) & \";\")\n"
+            "                            )\n"
+            "                        )\n"
+            "                }\n"
             "            )\n"
             "        )\n"
             "    );\n"
