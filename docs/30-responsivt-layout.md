@@ -285,6 +285,17 @@ rammens egen `Parent.Height`.
   samlinger (`CountRows(col…)`). Aldrig af en datakilde, og aldrig af en
   anden kontrols `.Height`.
 
+## Deploy: Studio skal have det træ, vi byggede
+
+Efter popupperne stod indsend-kortet over listen i Studio, bjælkens
+knapper var byttet rundt, og listens rækker havde igen kun beskrivelsen.
+Den byggede YAML var rigtig. Studio var det ikke: det var præcis de
+kontroller, der var **flyttet** til en ny forælder.
+
+`canvas_mcp.py deploy` sammenligner nu træet i Studio med det byggede
+(`tools/deploy_verify.py`) og stopper med en fejl, hvis de er forskellige.
+`--clean` sender først en tom skærm, så træet bygges på ny.
+
 ## Det, der stadig står
 
 - **Tabeller på en telefon.** Listerne har op til syv kolonner og fire
