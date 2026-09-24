@@ -26,6 +26,10 @@ Screens:
                 =0
             LayoutMinWidth: |-
                 =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
             Width: |-
                 =Parent.Width
           Children:
@@ -42,7 +46,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =25 + (If(((App.Width - 64)) >= (440) + (240) + 20, Max((52), (If((If(((App.Width - 64)) >= (440) + (240) + 20, 440, (App.Width - 64))) >= (336) + (92) + 10, 34, (34)))), (52) + 20 + (If((If(((App.Width - 64)) >= (440) + (240) + 20, 440, (App.Width - 64))) >= (336) + (92) + 10, 34, (34)))))
+                      =25 + (If(((App.Width - 64)) >= (438) + (240) + 20, Max((52), (If((If(((App.Width - 64)) >= (438) + (240) + 20, 438, (App.Width - 64))) >= (336) + (92) + 10, 34, (34) + 10 + (34)))), (52) + 20 + (If((If(((App.Width - 64)) >= (438) + (240) + 20, 438, (App.Width - 64))) >= (336) + (92) + 10, 34, (34) + 10 + (34)))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -51,6 +55,10 @@ Screens:
                       =10
                   LayoutMinWidth: |-
                       =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
                   PaddingBottom: |-
                       =0
                   PaddingLeft: |-
@@ -73,17 +81,19 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =If(((App.Width - 64)) >= (440) + (240) + 20, Max((52), (If((If(((App.Width - 64)) >= (440) + (240) + 20, 440, (App.Width - 64))) >= (336) + (92) + 10, 34, (34)))), (52) + 20 + (If((If(((App.Width - 64)) >= (440) + (240) + 20, 440, (App.Width - 64))) >= (336) + (92) + 10, 34, (34))))
+                            =If(((App.Width - 64)) >= (438) + (240) + 20, Max((52), (If((If(((App.Width - 64)) >= (438) + (240) + 20, 438, (App.Width - 64))) >= (336) + (92) + 10, 34, (34) + 10 + (34)))), (52) + 20 + (If((If(((App.Width - 64)) >= (438) + (240) + 20, 438, (App.Width - 64))) >= (336) + (92) + 10, 34, (34) + 10 + (34))))
                         LayoutAlignItems: |-
-                            =LayoutAlignItems.Center
+                            =If(((App.Width - 64)) >= (438) + (240) + 20, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                         LayoutDirection: |-
-                            =LayoutDirection.Horizontal
+                            =If(((App.Width - 64)) >= (438) + (240) + 20, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                         LayoutGap: |-
                             =20
                         LayoutMinWidth: |-
                             =0
-                        LayoutWrap: |-
-                            =true
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
                         Width: |-
                             =Parent.Width
                       Children:
@@ -96,7 +106,7 @@ Screens:
                               DropShadow: |-
                                   =DropShadow.None
                               FillPortions: |-
-                                  =0
+                                  =If(((App.Width - 64)) >= (438) + (240) + 20, 1, 0)
                               Height: |-
                                   =52
                               LayoutAlignItems: |-
@@ -107,8 +117,12 @@ Screens:
                                   =2
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
-                                  =If(((App.Width - 64)) >= (440) + (240) + 20, Parent.Width - ((440)) - 21, (Parent.Width - 0) / 1 - 1)
+                                  =240
                             Children:
                               - txtMdTitle:
                                   Control: ModernText
@@ -185,19 +199,21 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((If(((App.Width - 64)) >= (440) + (240) + 20, 440, (App.Width - 64))) >= (336) + (92) + 10, 34, (34))
+                                  =If((If(((App.Width - 64)) >= (438) + (240) + 20, 438, (App.Width - 64))) >= (336) + (92) + 10, 34, (34) + 10 + (34))
                               LayoutAlignItems: |-
-                                  =LayoutAlignItems.Center
+                                  =If((If(((App.Width - 64)) >= (438) + (240) + 20, 438, (App.Width - 64))) >= (336) + (92) + 10, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                               LayoutDirection: |-
-                                  =LayoutDirection.Horizontal
+                                  =If((If(((App.Width - 64)) >= (438) + (240) + 20, 438, (App.Width - 64))) >= (336) + (92) + 10, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =10
                               LayoutMinWidth: |-
-                                  =0
-                              LayoutWrap: |-
-                                  =true
+                                  =If(((App.Width - 64)) >= (438) + (240) + 20, 438, 0)
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
-                                  =If(((App.Width - 64)) >= (440) + (240) + 20, 440, (Parent.Width - 0) / 1 - 1)
+                                  =438
                             Children:
                               - conMdSeg:
                                   Control: GroupContainer
@@ -218,9 +234,13 @@ Screens:
                                     LayoutGap: |-
                                         =0
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((If(((App.Width - 64)) >= (438) + (240) + 20, 438, (App.Width - 64))) >= (336) + (92) + 10, 336, 0)
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((If(((App.Width - 64)) >= (440) + (240) + 20, 440, (App.Width - 64))) >= (336) + (92) + 10, 336, (Parent.Width - 10) / 2 - 1)
+                                        =336
                                   Children:
                                     - btnMdViewMine:
                                         Control: ModernButton
@@ -338,7 +358,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((If(((App.Width - 64)) >= (438) + (240) + 20, 438, (App.Width - 64))) >= (336) + (92) + 10, 92, 0)
                                     OnSelect: |-
                                         =Set(darkModeEnabled, !darkModeEnabled);
                                         ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
@@ -358,7 +378,7 @@ Screens:
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
-                                        =If((If(((App.Width - 64)) >= (440) + (240) + 20, 440, (App.Width - 64))) >= (336) + (92) + 10, 92, (Parent.Width - 10) / 2 - 1)
+                                        =92
                   - conMdHeaderRule:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -381,6 +401,10 @@ Screens:
                             =8
                         LayoutMinWidth: |-
                             =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
                         Width: |-
                             =Parent.Width
             - conMdBody:
@@ -396,7 +420,7 @@ Screens:
                   FillPortions: |-
                       =1
                   Height: |-
-                      =Parent.Height - (25 + (If(((App.Width - 64)) >= (440) + (240) + 20, Max((52), (If((If(((App.Width - 64)) >= (440) + (240) + 20, 440, (App.Width - 64))) >= (336) + (92) + 10, 34, (34)))), (52) + 20 + (If((If(((App.Width - 64)) >= (440) + (240) + 20, 440, (App.Width - 64))) >= (336) + (92) + 10, 34, (34))))))
+                      =Parent.Height - (25 + (If(((App.Width - 64)) >= (438) + (240) + 20, Max((52), (If((If(((App.Width - 64)) >= (438) + (240) + 20, 438, (App.Width - 64))) >= (336) + (92) + 10, 34, (34) + 10 + (34)))), (52) + 20 + (If((If(((App.Width - 64)) >= (438) + (240) + 20, 438, (App.Width - 64))) >= (336) + (92) + 10, 34, (34) + 10 + (34))))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -405,6 +429,8 @@ Screens:
                       =16
                   LayoutMinWidth: |-
                       =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
                   LayoutOverflowY: |-
                       =LayoutOverflow.Scroll
                   PaddingBottom: |-
@@ -429,7 +455,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =If(LayoutRank < 2, 5, If(LayoutRank < 3, 3, 1)) * (148) + (If(LayoutRank < 2, 5, If(LayoutRank < 3, 3, 1)) - 1) * 10
+                            =If(LayoutRank < 2, 5, If(LayoutRank < 3, 3, 1)) * (150) + (If(LayoutRank < 2, 5, If(LayoutRank < 3, 3, 1)) - 1) * 10
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -438,6 +464,10 @@ Screens:
                             =10
                         LayoutMinWidth: |-
                             =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
                         LayoutWrap: |-
                             =true
                         Width: |-
@@ -458,7 +488,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =148
+                                  =150
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -467,6 +497,10 @@ Screens:
                                   =6
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               PaddingBottom: |-
                                   =12
                               PaddingLeft: |-
@@ -508,6 +542,10 @@ Screens:
                                         =8
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =34
                               - txtMdTileNameFL:
@@ -626,7 +664,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =28
+                                        =30
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Center
                                     LayoutDirection: |-
@@ -635,6 +673,10 @@ Screens:
                                         =6
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =Parent.Width
                                   Children:
@@ -660,7 +702,7 @@ Screens:
                                           FontWeight: |-
                                               =FontWeight.Semibold
                                           Height: |-
-                                              =28
+                                              =30
                                           Layout: |-
                                               =ButtonLayout.TextOnly
                                           OnSelect: |-
@@ -705,7 +747,7 @@ Screens:
                                           FontWeight: |-
                                               =FontWeight.Semibold
                                           Height: |-
-                                              =28
+                                              =30
                                           Layout: |-
                                               =ButtonLayout.TextOnly
                                           OnSelect: |-
@@ -741,7 +783,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =148
+                                  =150
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -750,6 +792,10 @@ Screens:
                                   =6
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               PaddingBottom: |-
                                   =12
                               PaddingLeft: |-
@@ -791,6 +837,10 @@ Screens:
                                         =8
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =34
                               - txtMdTileNameEQ:
@@ -909,7 +959,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =28
+                                        =30
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Center
                                     LayoutDirection: |-
@@ -918,6 +968,10 @@ Screens:
                                         =6
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =Parent.Width
                                   Children:
@@ -943,7 +997,7 @@ Screens:
                                           FontWeight: |-
                                               =FontWeight.Semibold
                                           Height: |-
-                                              =28
+                                              =30
                                           Layout: |-
                                               =ButtonLayout.TextOnly
                                           OnSelect: |-
@@ -984,7 +1038,7 @@ Screens:
                                           FontWeight: |-
                                               =FontWeight.Semibold
                                           Height: |-
-                                              =28
+                                              =30
                                           Layout: |-
                                               =ButtonLayout.TextOnly
                                           OnSelect: |-
@@ -1020,7 +1074,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =148
+                                  =150
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -1029,6 +1083,10 @@ Screens:
                                   =6
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               PaddingBottom: |-
                                   =12
                               PaddingLeft: |-
@@ -1070,6 +1128,10 @@ Screens:
                                         =8
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =34
                               - txtMdTileNameMP:
@@ -1188,7 +1250,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =28
+                                        =30
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Center
                                     LayoutDirection: |-
@@ -1197,6 +1259,10 @@ Screens:
                                         =6
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =Parent.Width
                                   Children:
@@ -1222,7 +1288,7 @@ Screens:
                                           FontWeight: |-
                                               =FontWeight.Semibold
                                           Height: |-
-                                              =28
+                                              =30
                                           Layout: |-
                                               =ButtonLayout.TextOnly
                                           OnSelect: |-
@@ -1267,7 +1333,7 @@ Screens:
                                           FontWeight: |-
                                               =FontWeight.Semibold
                                           Height: |-
-                                              =28
+                                              =30
                                           Layout: |-
                                               =ButtonLayout.TextOnly
                                           OnSelect: |-
@@ -1303,7 +1369,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =148
+                                  =150
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -1312,6 +1378,10 @@ Screens:
                                   =6
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               PaddingBottom: |-
                                   =12
                               PaddingLeft: |-
@@ -1353,6 +1423,10 @@ Screens:
                                         =8
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =34
                               - txtMdTileNameMAT:
@@ -1471,7 +1545,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =28
+                                        =30
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Center
                                     LayoutDirection: |-
@@ -1480,6 +1554,10 @@ Screens:
                                         =6
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =Parent.Width
                                   Children:
@@ -1505,7 +1583,7 @@ Screens:
                                           FontWeight: |-
                                               =FontWeight.Semibold
                                           Height: |-
-                                              =28
+                                              =30
                                           Layout: |-
                                               =ButtonLayout.TextOnly
                                           OnSelect: |-
@@ -1546,7 +1624,7 @@ Screens:
                                           FontWeight: |-
                                               =FontWeight.Semibold
                                           Height: |-
-                                              =28
+                                              =30
                                           Layout: |-
                                               =ButtonLayout.TextOnly
                                           OnSelect: |-
@@ -1582,7 +1660,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =148
+                                  =150
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -1591,6 +1669,10 @@ Screens:
                                   =6
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               PaddingBottom: |-
                                   =12
                               PaddingLeft: |-
@@ -1632,6 +1714,10 @@ Screens:
                                         =8
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =34
                               - txtMdTileNameVHP:
@@ -1750,7 +1836,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =28
+                                        =30
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Center
                                     LayoutDirection: |-
@@ -1759,6 +1845,10 @@ Screens:
                                         =6
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =Parent.Width
                                   Children:
@@ -1784,7 +1874,7 @@ Screens:
                                           FontWeight: |-
                                               =FontWeight.Semibold
                                           Height: |-
-                                              =28
+                                              =30
                                           Layout: |-
                                               =ButtonLayout.TextOnly
                                           OnSelect: |-
@@ -1825,7 +1915,7 @@ Screens:
                                           FontWeight: |-
                                               =FontWeight.Semibold
                                           Height: |-
-                                              =28
+                                              =30
                                           Layout: |-
                                               =ButtonLayout.TextOnly
                                           OnSelect: |-
@@ -1859,15 +1949,17 @@ Screens:
                         Height: |-
                             =If(((App.Width - 64)) >= (104) + (104) + (104) + (200) + (180) + 32, 32, (32) + 8 + (32) + 8 + (32) + 8 + (32) + 8 + (32))
                         LayoutAlignItems: |-
-                            =LayoutAlignItems.Center
+                            =If(((App.Width - 64)) >= (104) + (104) + (104) + (200) + (180) + 32, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                         LayoutDirection: |-
-                            =LayoutDirection.Horizontal
+                            =If(((App.Width - 64)) >= (104) + (104) + (104) + (200) + (180) + 32, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                         LayoutGap: |-
                             =8
                         LayoutMinWidth: |-
                             =0
-                        LayoutWrap: |-
-                            =true
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
                         Width: |-
                             =Parent.Width
                       Children:
@@ -1888,6 +1980,8 @@ Screens:
                                   =""
                               Fill: |-
                                   =C.'text-on-primary'
+                              FillPortions: |-
+                                  =If(((App.Width - 64)) >= (104) + (104) + (104) + (200) + (180) + 32, 1, 0)
                               Font: |-
                                   =Font.'Segoe UI'
                               Height: |-
@@ -1909,7 +2003,7 @@ Screens:
                               Type: |-
                                   =TextInputType.Search
                               Width: |-
-                                  =If(((App.Width - 64)) >= (104) + (104) + (104) + (200) + (180) + 32, Parent.Width - ((104) + (104) + (104) + (200)) - 33, (Parent.Width - 0) / 1 - 1)
+                                  =180
                         - btnMdStOpen:
                             Control: ModernButton
                             Properties:
@@ -1938,7 +2032,7 @@ Screens:
                               Layout: |-
                                   =ButtonLayout.TextOnly
                               LayoutMinWidth: |-
-                                  =0
+                                  =If(((App.Width - 64)) >= (104) + (104) + (104) + (200) + (180) + 32, 104, 0)
                               OnSelect: |-
                                   =Set(gblStatusMode, "open")
                               RadiusBottomLeft: |-
@@ -1956,7 +2050,7 @@ Screens:
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
-                                  =If(((App.Width - 64)) >= (104) + (104) + (104) + (200) + (180) + 32, 104, (Parent.Width - 0) / 1 - 1)
+                                  =104
                         - btnMdStDone:
                             Control: ModernButton
                             Properties:
@@ -1985,7 +2079,7 @@ Screens:
                               Layout: |-
                                   =ButtonLayout.TextOnly
                               LayoutMinWidth: |-
-                                  =0
+                                  =If(((App.Width - 64)) >= (104) + (104) + (104) + (200) + (180) + 32, 104, 0)
                               OnSelect: |-
                                   =Set(gblStatusMode, "done")
                               RadiusBottomLeft: |-
@@ -2003,7 +2097,7 @@ Screens:
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
-                                  =If(((App.Width - 64)) >= (104) + (104) + (104) + (200) + (180) + 32, 104, (Parent.Width - 0) / 1 - 1)
+                                  =104
                         - btnMdStAll:
                             Control: ModernButton
                             Properties:
@@ -2032,7 +2126,7 @@ Screens:
                               Layout: |-
                                   =ButtonLayout.TextOnly
                               LayoutMinWidth: |-
-                                  =0
+                                  =If(((App.Width - 64)) >= (104) + (104) + (104) + (200) + (180) + 32, 104, 0)
                               OnSelect: |-
                                   =Set(gblStatusMode, "all")
                               RadiusBottomLeft: |-
@@ -2050,7 +2144,7 @@ Screens:
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
-                                  =If(((App.Width - 64)) >= (104) + (104) + (104) + (200) + (180) + 32, 104, (Parent.Width - 0) / 1 - 1)
+                                  =104
                         - txtMdCount:
                             Control: ModernText
                             Properties:
@@ -2075,7 +2169,7 @@ Screens:
                               Height: |-
                                   =32
                               LayoutMinWidth: |-
-                                  =0
+                                  =If(((App.Width - 64)) >= (104) + (104) + (104) + (200) + (180) + 32, 200, 0)
                               PaddingBottom: |-
                                   =0
                               PaddingLeft: |-
@@ -2093,7 +2187,7 @@ Screens:
                                       Filter('MD_RequestIndex', IsOpen = true)
                                   ))) & " requests in this view"
                               Width: |-
-                                  =If(((App.Width - 64)) >= (104) + (104) + (104) + (200) + (180) + 32, 200, (Parent.Width - 0) / 1 - 1)
+                                  =200
                               Wrap: |-
                                   =false
                   - conMdListCard:
@@ -2120,6 +2214,10 @@ Screens:
                             =8
                         LayoutMinWidth: |-
                             =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
                         PaddingBottom: |-
                             =18
                         PaddingLeft: |-
@@ -2159,6 +2257,10 @@ Screens:
                                   =10
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
                                   =Parent.Width
                             Children:
@@ -2229,7 +2331,7 @@ Screens:
                                     Text: |-
                                         ="REQUEST"
                                     Width: |-
-                                        =Parent.Width - 580
+                                        =((App.Width - 64) - 36 - 4 - 18 - 580)
                                     Wrap: |-
                                         =false
                               - txtMdH2:
@@ -2445,6 +2547,10 @@ Screens:
                                         =10
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =Parent.TemplateWidth
                                   Children:
@@ -2539,8 +2645,12 @@ Screens:
                                               =2
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
-                                              =Parent.Width - 580
+                                              =((App.Width - 64) - 36 - 4 - 18 - 580)
                                         Children:
                                           - txtMdRowNo:
                                               Control: ModernText
@@ -2657,6 +2767,10 @@ Screens:
                                               =5
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =176
                                         Children:
@@ -2769,6 +2883,10 @@ Screens:
                                                     =3
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
                                                     =112
                                               Children:
@@ -2805,6 +2923,10 @@ Screens:
                                                           =8
                                                       LayoutMinWidth: |-
                                                           =0
+                                                      LayoutOverflowX: |-
+                                                          =LayoutOverflow.Hide
+                                                      LayoutOverflowY: |-
+                                                          =LayoutOverflow.Hide
                                                       Width: |-
                                                           =20
                                                 - conMdStep2:
@@ -2840,6 +2962,10 @@ Screens:
                                                           =8
                                                       LayoutMinWidth: |-
                                                           =0
+                                                      LayoutOverflowX: |-
+                                                          =LayoutOverflow.Hide
+                                                      LayoutOverflowY: |-
+                                                          =LayoutOverflow.Hide
                                                       Width: |-
                                                           =20
                                                 - conMdStep3:
@@ -2875,6 +3001,10 @@ Screens:
                                                           =8
                                                       LayoutMinWidth: |-
                                                           =0
+                                                      LayoutOverflowX: |-
+                                                          =LayoutOverflow.Hide
+                                                      LayoutOverflowY: |-
+                                                          =LayoutOverflow.Hide
                                                       Width: |-
                                                           =20
                                                 - conMdStep4:
@@ -2910,6 +3040,10 @@ Screens:
                                                           =8
                                                       LayoutMinWidth: |-
                                                           =0
+                                                      LayoutOverflowX: |-
+                                                          =LayoutOverflow.Hide
+                                                      LayoutOverflowY: |-
+                                                          =LayoutOverflow.Hide
                                                       Width: |-
                                                           =20
                                                 - conMdStep5:
@@ -2945,6 +3079,10 @@ Screens:
                                                           =8
                                                       LayoutMinWidth: |-
                                                           =0
+                                                      LayoutOverflowX: |-
+                                                          =LayoutOverflow.Hide
+                                                      LayoutOverflowY: |-
+                                                          =LayoutOverflow.Hide
                                                       Width: |-
                                                           =20
                                     - txtMdRowWhen:
@@ -3010,7 +3148,7 @@ Screens:
                                           FontWeight: |-
                                               =FontWeight.Semibold
                                           Height: |-
-                                              =28
+                                              =30
                                           Layout: |-
                                               =ButtonLayout.TextOnly
                                           OnSelect: |-

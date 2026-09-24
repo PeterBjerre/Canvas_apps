@@ -79,6 +79,10 @@ Screens:
                 =0
             LayoutMinWidth: |-
                 =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
             Width: |-
                 =Parent.Width
           Children:
@@ -95,7 +99,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =25 + (If(((App.Width - 64)) >= (524) + (240) + 20, Max((52), (If((If(((App.Width - 64)) >= (524) + (240) + 20, 524, (App.Width - 64))) >= (110) + (150) + (92) + (140) + 30, 36, (24) + (36) + 10))), (52) + 20 + (If((If(((App.Width - 64)) >= (524) + (240) + 20, 524, (App.Width - 64))) >= (110) + (150) + (92) + (140) + 30, 36, (24) + (36) + 10))))
+                      =25 + (If(((App.Width - 64)) >= (522) + (240) + 20, Max((52), (If((If(((App.Width - 64)) >= (522) + (240) + 20, 522, (App.Width - 64))) >= (110) + (150) + (92) + (140) + 30, 36, (22) + 10 + (24) + 10 + (34) + 10 + (36)))), (52) + 20 + (If((If(((App.Width - 64)) >= (522) + (240) + 20, 522, (App.Width - 64))) >= (110) + (150) + (92) + (140) + 30, 36, (22) + 10 + (24) + 10 + (34) + 10 + (36)))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -104,6 +108,10 @@ Screens:
                       =10
                   LayoutMinWidth: |-
                       =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
                   PaddingBottom: |-
                       =0
                   PaddingLeft: |-
@@ -126,17 +134,19 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =If(((App.Width - 64)) >= (524) + (240) + 20, Max((52), (If((If(((App.Width - 64)) >= (524) + (240) + 20, 524, (App.Width - 64))) >= (110) + (150) + (92) + (140) + 30, 36, (24) + (36) + 10))), (52) + 20 + (If((If(((App.Width - 64)) >= (524) + (240) + 20, 524, (App.Width - 64))) >= (110) + (150) + (92) + (140) + 30, 36, (24) + (36) + 10)))
+                            =If(((App.Width - 64)) >= (522) + (240) + 20, Max((52), (If((If(((App.Width - 64)) >= (522) + (240) + 20, 522, (App.Width - 64))) >= (110) + (150) + (92) + (140) + 30, 36, (22) + 10 + (24) + 10 + (34) + 10 + (36)))), (52) + 20 + (If((If(((App.Width - 64)) >= (522) + (240) + 20, 522, (App.Width - 64))) >= (110) + (150) + (92) + (140) + 30, 36, (22) + 10 + (24) + 10 + (34) + 10 + (36))))
                         LayoutAlignItems: |-
-                            =LayoutAlignItems.Center
+                            =If(((App.Width - 64)) >= (522) + (240) + 20, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                         LayoutDirection: |-
-                            =LayoutDirection.Horizontal
+                            =If(((App.Width - 64)) >= (522) + (240) + 20, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                         LayoutGap: |-
                             =20
                         LayoutMinWidth: |-
                             =0
-                        LayoutWrap: |-
-                            =true
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
                         Width: |-
                             =Parent.Width
                       Children:
@@ -149,7 +159,7 @@ Screens:
                               DropShadow: |-
                                   =DropShadow.None
                               FillPortions: |-
-                                  =0
+                                  =If(((App.Width - 64)) >= (522) + (240) + 20, 1, 0)
                               Height: |-
                                   =52
                               LayoutAlignItems: |-
@@ -160,8 +170,12 @@ Screens:
                                   =2
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
-                                  =If(((App.Width - 64)) >= (524) + (240) + 20, Parent.Width - ((524)) - 21, (Parent.Width - 0) / 1 - 1)
+                                  =240
                             Children:
                               - txtDomTitle:
                                   Control: ModernText
@@ -238,19 +252,21 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((If(((App.Width - 64)) >= (524) + (240) + 20, 524, (App.Width - 64))) >= (110) + (150) + (92) + (140) + 30, 36, (24) + (36) + 10)
+                                  =If((If(((App.Width - 64)) >= (522) + (240) + 20, 522, (App.Width - 64))) >= (110) + (150) + (92) + (140) + 30, 36, (22) + 10 + (24) + 10 + (34) + 10 + (36))
                               LayoutAlignItems: |-
-                                  =LayoutAlignItems.Center
+                                  =If((If(((App.Width - 64)) >= (522) + (240) + 20, 522, (App.Width - 64))) >= (110) + (150) + (92) + (140) + 30, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                               LayoutDirection: |-
-                                  =LayoutDirection.Horizontal
+                                  =If((If(((App.Width - 64)) >= (522) + (240) + 20, 522, (App.Width - 64))) >= (110) + (150) + (92) + (140) + 30, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =10
                               LayoutMinWidth: |-
-                                  =0
-                              LayoutWrap: |-
-                                  =true
+                                  =If(((App.Width - 64)) >= (522) + (240) + 20, 522, 0)
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
-                                  =If(((App.Width - 64)) >= (524) + (240) + 20, 524, (Parent.Width - 0) / 1 - 1)
+                                  =522
                             Children:
                               - txtDomCount:
                                   Control: ModernText
@@ -276,7 +292,7 @@ Screens:
                                     Height: |-
                                         =22
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((If(((App.Width - 64)) >= (522) + (240) + 20, 522, (App.Width - 64))) >= (110) + (150) + (92) + (140) + 30, 110, 0)
                                     PaddingBottom: |-
                                         =0
                                     PaddingLeft: |-
@@ -298,7 +314,7 @@ Screens:
                                     Text: |-
                                         ="Rows: " & CountRows(colDomRows)
                                     Width: |-
-                                        =If((If(((App.Width - 64)) >= (524) + (240) + 20, 524, (App.Width - 64))) >= (110) + (150) + (92) + (140) + 30, 110, (Parent.Width - 10) / 2 - 1)
+                                        =110
                                     Wrap: |-
                                         =false
                               - txtDomReqNo:
@@ -321,7 +337,7 @@ Screens:
                                     Height: |-
                                         =24
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((If(((App.Width - 64)) >= (522) + (240) + 20, 522, (App.Width - 64))) >= (110) + (150) + (92) + (140) + 30, 150, 0)
                                     PaddingBottom: |-
                                         =0
                                     PaddingLeft: |-
@@ -335,7 +351,7 @@ Screens:
                                     Text: |-
                                         =If(IsBlank(varDomRequestNo), "Not submitted", varDomRequestNo)
                                     Width: |-
-                                        =If((If(((App.Width - 64)) >= (524) + (240) + 20, 524, (App.Width - 64))) >= (110) + (150) + (92) + (140) + 30, 150, (Parent.Width - 10) / 2 - 1)
+                                        =150
                                     Wrap: |-
                                         =false
                               - btnDomTheme:
@@ -364,7 +380,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((If(((App.Width - 64)) >= (522) + (240) + 20, 522, (App.Width - 64))) >= (110) + (150) + (92) + (140) + 30, 92, 0)
                                     OnSelect: |-
                                         =Set(darkModeEnabled, !darkModeEnabled);
                                         ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
@@ -384,7 +400,7 @@ Screens:
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
-                                        =If((If(((App.Width - 64)) >= (524) + (240) + 20, 524, (App.Width - 64))) >= (110) + (150) + (92) + (140) + 30, 92, (Parent.Width - 10) / 2 - 1)
+                                        =92
                               - btnDomBack:
                                   Control: ModernButton
                                   Properties:
@@ -411,7 +427,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((If(((App.Width - 64)) >= (522) + (240) + 20, 522, (App.Width - 64))) >= (110) + (150) + (92) + (140) + 30, 140, 0)
                                     OnSelect: |-
                                         =Launch("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/f387047d-86af-4d6a-8370-afcf35939436" & "?theme=" & If(darkModeEnabled, "dark", "light"), { }, LaunchTarget.Replace)
                                     RadiusBottomLeft: |-
@@ -429,7 +445,7 @@ Screens:
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
-                                        =If((If(((App.Width - 64)) >= (524) + (240) + 20, 524, (App.Width - 64))) >= (110) + (150) + (92) + (140) + 30, 140, (Parent.Width - 10) / 2 - 1)
+                                        =140
                   - conDomHeaderRule:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -452,6 +468,10 @@ Screens:
                             =8
                         LayoutMinWidth: |-
                             =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
                         Width: |-
                             =Parent.Width
             - conDomBody:
@@ -467,7 +487,7 @@ Screens:
                   FillPortions: |-
                       =1
                   Height: |-
-                      =Parent.Height - (25 + (If(((App.Width - 64)) >= (524) + (240) + 20, Max((52), (If((If(((App.Width - 64)) >= (524) + (240) + 20, 524, (App.Width - 64))) >= (110) + (150) + (92) + (140) + 30, 36, (24) + (36) + 10))), (52) + 20 + (If((If(((App.Width - 64)) >= (524) + (240) + 20, 524, (App.Width - 64))) >= (110) + (150) + (92) + (140) + 30, 36, (24) + (36) + 10)))))
+                      =Parent.Height - (25 + (If(((App.Width - 64)) >= (522) + (240) + 20, Max((52), (If((If(((App.Width - 64)) >= (522) + (240) + 20, 522, (App.Width - 64))) >= (110) + (150) + (92) + (140) + 30, 36, (22) + 10 + (24) + 10 + (34) + 10 + (36)))), (52) + 20 + (If((If(((App.Width - 64)) >= (522) + (240) + 20, 522, (App.Width - 64))) >= (110) + (150) + (92) + (140) + 30, 36, (22) + 10 + (24) + 10 + (34) + 10 + (36))))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -476,6 +496,8 @@ Screens:
                       =16
                   LayoutMinWidth: |-
                       =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
                   LayoutOverflowY: |-
                       =LayoutOverflow.Scroll
                   PaddingBottom: |-
@@ -513,6 +535,10 @@ Screens:
                             =14
                         LayoutMinWidth: |-
                             =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
                         PaddingBottom: |-
                             =18
                         PaddingLeft: |-
@@ -552,6 +578,10 @@ Screens:
                                   =2
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
                                   =Parent.Width
                             Children:
@@ -682,6 +712,10 @@ Screens:
                                   =20
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               LayoutWrap: |-
                                   =true
                               Width: |-
@@ -709,6 +743,10 @@ Screens:
                                         =6
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
                                   Children:
@@ -732,6 +770,10 @@ Screens:
                                               =3
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -874,6 +916,10 @@ Screens:
                                         =6
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
                                   Children:
@@ -897,6 +943,10 @@ Screens:
                                               =3
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -1039,6 +1089,10 @@ Screens:
                                   =6
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
                                   =Parent.Width
                             Children:
@@ -1062,6 +1116,10 @@ Screens:
                                         =3
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =Parent.Width
                                   Children:
@@ -1118,6 +1176,10 @@ Screens:
                                         =8
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =Parent.Width
                                   Children:
@@ -1140,6 +1202,8 @@ Screens:
                                               =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                           Fill: |-
                                               =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                          FillPortions: |-
+                                              =1
                                           Font: |-
                                               =Font.'Segoe UI'
                                           Height: |-
@@ -1161,7 +1225,7 @@ Screens:
                                           ValidationState: |-
                                               =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                           Width: |-
-                                              =Parent.Width
+                                              =0
                                     - btnDomFlSearch:
                                         Control: ModernButton
                                         Properties:
@@ -1423,6 +1487,10 @@ Screens:
                                   =20
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               LayoutWrap: |-
                                   =true
                               Width: |-
@@ -1450,6 +1518,10 @@ Screens:
                                         =6
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
                                   Children:
@@ -1473,6 +1545,10 @@ Screens:
                                               =3
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -1576,6 +1652,10 @@ Screens:
                                         =6
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
                                   Children:
@@ -1599,6 +1679,10 @@ Screens:
                                               =3
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -1702,6 +1786,10 @@ Screens:
                                         =6
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
                                   Children:
@@ -1725,6 +1813,10 @@ Screens:
                                               =3
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -1859,6 +1951,10 @@ Screens:
                                   =20
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               LayoutWrap: |-
                                   =true
                               Width: |-
@@ -1886,6 +1982,10 @@ Screens:
                                         =6
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
                                   Children:
@@ -1909,6 +2009,10 @@ Screens:
                                               =3
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -2012,6 +2116,10 @@ Screens:
                                         =6
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
                                   Children:
@@ -2035,6 +2143,10 @@ Screens:
                                               =3
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -2138,6 +2250,10 @@ Screens:
                                         =6
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
                                   Children:
@@ -2161,6 +2277,10 @@ Screens:
                                               =3
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -2295,6 +2415,10 @@ Screens:
                                   =20
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               LayoutWrap: |-
                                   =true
                               Width: |-
@@ -2322,6 +2446,10 @@ Screens:
                                         =6
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
                                   Children:
@@ -2345,6 +2473,10 @@ Screens:
                                               =3
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -2448,6 +2580,10 @@ Screens:
                                         =6
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
                                   Children:
@@ -2471,6 +2607,10 @@ Screens:
                                               =3
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -2574,6 +2714,10 @@ Screens:
                                         =6
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
                                   Children:
@@ -2597,6 +2741,10 @@ Screens:
                                               =3
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -2700,6 +2848,10 @@ Screens:
                                         =6
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
                                   Children:
@@ -2723,6 +2875,10 @@ Screens:
                                               =3
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -2857,6 +3013,10 @@ Screens:
                                   =20
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               LayoutWrap: |-
                                   =true
                               Width: |-
@@ -2884,6 +3044,10 @@ Screens:
                                         =6
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
                                   Children:
@@ -2907,6 +3071,10 @@ Screens:
                                               =3
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -3010,6 +3178,10 @@ Screens:
                                         =6
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
                                   Children:
@@ -3033,6 +3205,10 @@ Screens:
                                               =3
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -3169,6 +3345,10 @@ Screens:
                                   =6
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
                                   =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 0) / 1)
                             Children:
@@ -3192,6 +3372,10 @@ Screens:
                                         =3
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
                                         =Parent.Width
                                   Children:
@@ -3293,6 +3477,10 @@ Screens:
                                   =8
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
                                   =Parent.Width
                             Children:
@@ -3805,6 +3993,10 @@ Screens:
                             =20
                         LayoutMinWidth: |-
                             =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
                         LayoutWrap: |-
                             =true
                         Width: |-
@@ -3835,6 +4027,10 @@ Screens:
                                   =16
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
                                   =If(LayoutRank < 4, (App.Width - 64), ((App.Width - 64) - 20) / 2)
                             Children:
@@ -3867,6 +4063,10 @@ Screens:
                                         =14
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     PaddingBottom: |-
                                         =18
                                     PaddingLeft: |-
@@ -3939,6 +4139,10 @@ Screens:
                                               =12
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -4044,6 +4248,10 @@ Screens:
                                               =10
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -4079,7 +4287,7 @@ Screens:
                                                 Text: |-
                                                     ="MATERIAL"
                                                 Width: |-
-                                                    =Max(Min(Parent.Width - 712, 460), 150)
+                                                    =Max(Min(((If(LayoutRank < 4, (App.Width - 64), ((App.Width - 64) - 20) / 2) - 36 - 4 - 18)) - If(((If(LayoutRank < 4, (App.Width - 64), ((App.Width - 64) - 20) / 2) - 36 - 4 - 18)) >= 760 + 150, 760, 425), 460), 150)
                                                 Wrap: |-
                                                     =false
                                           - txtDomHead1:
@@ -4115,6 +4323,8 @@ Screens:
                                                     =11
                                                 Text: |-
                                                     ="MFR. PART NO."
+                                                Visible: |-
+                                                    =((If(LayoutRank < 4, (App.Width - 64), ((App.Width - 64) - 20) / 2) - 36 - 4 - 18)) >= 760 + 150
                                                 Width: |-
                                                     =130
                                                 Wrap: |-
@@ -4152,6 +4362,8 @@ Screens:
                                                     =11
                                                 Text: |-
                                                     ="SUPPLIER"
+                                                Visible: |-
+                                                    =((If(LayoutRank < 4, (App.Width - 64), ((App.Width - 64) - 20) / 2) - 36 - 4 - 18)) >= 760 + 150
                                                 Width: |-
                                                     =120
                                                 Wrap: |-
@@ -4189,6 +4401,8 @@ Screens:
                                                     =11
                                                 Text: |-
                                                     ="PLANT"
+                                                Visible: |-
+                                                    =((If(LayoutRank < 4, (App.Width - 64), ((App.Width - 64) - 20) / 2) - 36 - 4 - 18)) >= 760 + 150
                                                 Width: |-
                                                     =55
                                                 Wrap: |-
@@ -4287,7 +4501,7 @@ Screens:
                                                 Height: |-
                                                     =18
                                                 LayoutMinWidth: |-
-                                                    =232
+                                                    =280
                                                 PaddingBottom: |-
                                                     =0
                                                 PaddingLeft: |-
@@ -4301,7 +4515,7 @@ Screens:
                                                 Text: |-
                                                     =""
                                                 Width: |-
-                                                    =232
+                                                    =280
                                                 Wrap: |-
                                                     =false
                                     - galDomRows:
@@ -4426,6 +4640,10 @@ Screens:
                                                     =LayoutJustifyContent.Start
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
                                                     =Parent.TemplateWidth
                                               Children:
@@ -4459,7 +4677,7 @@ Screens:
                                                       Text: |-
                                                           =If(IsBlank(Trim(ThisItem.MaterialDescription)), "(no text)", ThisItem.MaterialDescription)
                                                       Width: |-
-                                                          =Max(Min(Parent.Width - 712, 460), 150)
+                                                          =Max(Min(((If(LayoutRank < 4, (App.Width - 64), ((App.Width - 64) - 20) / 2) - 36 - 4 - 18)) - If(((If(LayoutRank < 4, (App.Width - 64), ((App.Width - 64) - 20) / 2) - 36 - 4 - 18)) >= 760 + 150, 760, 425), 460), 150)
                                                       Wrap: |-
                                                           =false
                                                 - txtDomRow0:
@@ -4493,6 +4711,8 @@ Screens:
                                                           =13
                                                       Text: |-
                                                           =ThisItem.ManufacturerPartNo
+                                                      Visible: |-
+                                                          =((If(LayoutRank < 4, (App.Width - 64), ((App.Width - 64) - 20) / 2) - 36 - 4 - 18)) >= 760 + 150
                                                       Width: |-
                                                           =130
                                                       Wrap: |-
@@ -4528,6 +4748,8 @@ Screens:
                                                           =13
                                                       Text: |-
                                                           =ThisItem.Supplier
+                                                      Visible: |-
+                                                          =((If(LayoutRank < 4, (App.Width - 64), ((App.Width - 64) - 20) / 2) - 36 - 4 - 18)) >= 760 + 150
                                                       Width: |-
                                                           =120
                                                       Wrap: |-
@@ -4563,6 +4785,8 @@ Screens:
                                                           =13
                                                       Text: |-
                                                           =ThisItem.Plant
+                                                      Visible: |-
+                                                          =((If(LayoutRank < 4, (App.Width - 64), ((App.Width - 64) - 20) / 2) - 36 - 4 - 18)) >= 760 + 150
                                                       Width: |-
                                                           =55
                                                       Wrap: |-
@@ -4591,7 +4815,7 @@ Screens:
                                                       Height: |-
                                                           =22
                                                       LayoutMinWidth: |-
-                                                          =40
+                                                          =75
                                                       PaddingBottom: |-
                                                           =0
                                                       PaddingLeft: |-
@@ -4613,7 +4837,7 @@ Screens:
                                                       Text: |-
                                                           =ThisItem.Status
                                                       Width: |-
-                                                          =40
+                                                          =75
                                                       Wrap: |-
                                                           =false
                                                 - txtDomRowFiles:
@@ -4655,6 +4879,8 @@ Screens:
                                                     Control: GroupContainer
                                                     Variant: AutoLayout
                                                     Properties:
+                                                      AlignInContainer: |-
+                                                          =AlignInContainer.Center
                                                       BorderStyle: |-
                                                           =BorderStyle.None
                                                       DropShadow: |-
@@ -4662,7 +4888,7 @@ Screens:
                                                       FillPortions: |-
                                                           =0
                                                       Height: |-
-                                                          =26
+                                                          =30
                                                       LayoutAlignItems: |-
                                                           =LayoutAlignItems.Center
                                                       LayoutDirection: |-
@@ -4670,9 +4896,13 @@ Screens:
                                                       LayoutGap: |-
                                                           =4
                                                       LayoutMinWidth: |-
-                                                          =232
+                                                          =280
+                                                      LayoutOverflowX: |-
+                                                          =LayoutOverflow.Hide
+                                                      LayoutOverflowY: |-
+                                                          =LayoutOverflow.Hide
                                                       Width: |-
-                                                          =232
+                                                          =280
                                                     Children:
                                                       - btnDomRowOpen:
                                                           Control: ModernButton
@@ -4696,7 +4926,7 @@ Screens:
                                                             FontWeight: |-
                                                                 =FontWeight.Semibold
                                                             Height: |-
-                                                                =26
+                                                                =30
                                                             Layout: |-
                                                                 =ButtonLayout.TextOnly
                                                             OnSelect: |-
@@ -4763,13 +4993,13 @@ Screens:
                                                             RadiusTopRight: |-
                                                                 =10
                                                             Size: |-
-                                                                =14
+                                                                =13
                                                             Text: |-
                                                                 ="Edit"
                                                             VerticalAlign: |-
                                                                 =VerticalAlign.Middle
                                                             Width: |-
-                                                                =48
+                                                                =60
                                                       - btnDomRowDetails:
                                                           Control: ModernButton
                                                           Properties:
@@ -4792,7 +5022,7 @@ Screens:
                                                             FontWeight: |-
                                                                 =FontWeight.Semibold
                                                             Height: |-
-                                                                =26
+                                                                =30
                                                             Layout: |-
                                                                 =ButtonLayout.TextOnly
                                                             OnSelect: |-
@@ -4806,13 +5036,13 @@ Screens:
                                                             RadiusTopRight: |-
                                                                 =10
                                                             Size: |-
-                                                                =14
+                                                                =13
                                                             Text: |-
                                                                 ="Details"
                                                             VerticalAlign: |-
                                                                 =VerticalAlign.Middle
                                                             Width: |-
-                                                                =64
+                                                                =72
                                                       - btnDomRowCopy:
                                                           Control: ModernButton
                                                           Properties:
@@ -4835,7 +5065,7 @@ Screens:
                                                             FontWeight: |-
                                                                 =FontWeight.Semibold
                                                             Height: |-
-                                                                =26
+                                                                =30
                                                             Layout: |-
                                                                 =ButtonLayout.TextOnly
                                                             OnSelect: |-
@@ -4868,13 +5098,13 @@ Screens:
                                                             RadiusTopRight: |-
                                                                 =10
                                                             Size: |-
-                                                                =14
+                                                                =13
                                                             Text: |-
                                                                 ="Copy"
                                                             VerticalAlign: |-
                                                                 =VerticalAlign.Middle
                                                             Width: |-
-                                                                =50
+                                                                =64
                                                       - btnDomRowDelete:
                                                           Control: ModernButton
                                                           Properties:
@@ -4897,7 +5127,7 @@ Screens:
                                                             FontWeight: |-
                                                                 =FontWeight.Semibold
                                                             Height: |-
-                                                                =26
+                                                                =30
                                                             Layout: |-
                                                                 =ButtonLayout.TextOnly
                                                             OnSelect: |-
@@ -4972,13 +5202,13 @@ Screens:
                                                             RadiusTopRight: |-
                                                                 =10
                                                             Size: |-
-                                                                =14
+                                                                =13
                                                             Text: |-
                                                                 ="Delete"
                                                             VerticalAlign: |-
                                                                 =VerticalAlign.Middle
                                                             Width: |-
-                                                                =58
+                                                                =72
                                     - txtDomNoRows:
                                         Control: ModernText
                                         Properties:
@@ -5036,6 +5266,10 @@ Screens:
                                         =14
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     PaddingBottom: |-
                                         =18
                                     PaddingLeft: |-
@@ -5077,6 +5311,10 @@ Screens:
                                               =16
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -5100,8 +5338,12 @@ Screens:
                                                     =2
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
-                                                    =Parent.Width
+                                                    =0
                                               Children:
                                                 - txtDomDetKey:
                                                     Control: ModernText
@@ -5209,6 +5451,10 @@ Screens:
                                                     =LayoutJustifyContent.End
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
                                                     =416
                                               Children:
@@ -5505,6 +5751,10 @@ Screens:
                                               =12
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -5556,10 +5806,14 @@ Screens:
                                                     =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
+                                                FillPortions: |-
+                                                    =1
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =20
+                                                LayoutMinWidth: |-
+                                                    =0
                                                 PaddingBottom: |-
                                                     =0
                                                 PaddingLeft: |-
@@ -5573,7 +5827,7 @@ Screens:
                                                 Text: |-
                                                     =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).MaterialDescription, "-")
                                                 Width: |-
-                                                    =Parent.Width - 190 - 12
+                                                    =0
                                                 Wrap: |-
                                                     =false
                                     - conDomDet1:
@@ -5596,6 +5850,10 @@ Screens:
                                               =12
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -5647,10 +5905,14 @@ Screens:
                                                     =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
+                                                FillPortions: |-
+                                                    =1
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =20
+                                                LayoutMinWidth: |-
+                                                    =0
                                                 PaddingBottom: |-
                                                     =0
                                                 PaddingLeft: |-
@@ -5664,7 +5926,7 @@ Screens:
                                                 Text: |-
                                                     =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).Plant, "-")
                                                 Width: |-
-                                                    =Parent.Width - 190 - 12
+                                                    =0
                                                 Wrap: |-
                                                     =false
                                     - conDomDet2:
@@ -5687,6 +5949,10 @@ Screens:
                                               =12
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -5738,10 +6004,14 @@ Screens:
                                                     =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
+                                                FillPortions: |-
+                                                    =1
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =20
+                                                LayoutMinWidth: |-
+                                                    =0
                                                 PaddingBottom: |-
                                                     =0
                                                 PaddingLeft: |-
@@ -5755,7 +6025,7 @@ Screens:
                                                 Text: |-
                                                     =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).Status, "-")
                                                 Width: |-
-                                                    =Parent.Width - 190 - 12
+                                                    =0
                                                 Wrap: |-
                                                     =false
                                     - conDomDet3:
@@ -5778,6 +6048,10 @@ Screens:
                                               =12
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -5829,10 +6103,14 @@ Screens:
                                                     =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
+                                                FillPortions: |-
+                                                    =1
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =20
+                                                LayoutMinWidth: |-
+                                                    =0
                                                 PaddingBottom: |-
                                                     =0
                                                 PaddingLeft: |-
@@ -5846,7 +6124,7 @@ Screens:
                                                 Text: |-
                                                     =Text(Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).FileCount, 0))
                                                 Width: |-
-                                                    =Parent.Width - 190 - 12
+                                                    =0
                                                 Wrap: |-
                                                     =false
                                     - conDomDet4:
@@ -5869,6 +6147,10 @@ Screens:
                                               =12
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -5920,10 +6202,14 @@ Screens:
                                                     =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
+                                                FillPortions: |-
+                                                    =1
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =20
+                                                LayoutMinWidth: |-
+                                                    =0
                                                 PaddingBottom: |-
                                                     =0
                                                 PaddingLeft: |-
@@ -5937,7 +6223,7 @@ Screens:
                                                 Text: |-
                                                     =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).FunctionalLocation, "-")
                                                 Width: |-
-                                                    =Parent.Width - 190 - 12
+                                                    =0
                                                 Wrap: |-
                                                     =false
                                     - conDomDet5:
@@ -5960,6 +6246,10 @@ Screens:
                                               =12
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -6011,10 +6301,14 @@ Screens:
                                                     =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
+                                                FillPortions: |-
+                                                    =1
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =20
+                                                LayoutMinWidth: |-
+                                                    =0
                                                 PaddingBottom: |-
                                                     =0
                                                 PaddingLeft: |-
@@ -6028,7 +6322,7 @@ Screens:
                                                 Text: |-
                                                     =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).Manufacturer, "-")
                                                 Width: |-
-                                                    =Parent.Width - 190 - 12
+                                                    =0
                                                 Wrap: |-
                                                     =false
                                     - conDomDet6:
@@ -6051,6 +6345,10 @@ Screens:
                                               =12
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -6102,10 +6400,14 @@ Screens:
                                                     =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
+                                                FillPortions: |-
+                                                    =1
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =20
+                                                LayoutMinWidth: |-
+                                                    =0
                                                 PaddingBottom: |-
                                                     =0
                                                 PaddingLeft: |-
@@ -6119,7 +6421,7 @@ Screens:
                                                 Text: |-
                                                     =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).ModelNumber, "-")
                                                 Width: |-
-                                                    =Parent.Width - 190 - 12
+                                                    =0
                                                 Wrap: |-
                                                     =false
                                     - conDomDet7:
@@ -6142,6 +6444,10 @@ Screens:
                                               =12
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -6193,10 +6499,14 @@ Screens:
                                                     =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
+                                                FillPortions: |-
+                                                    =1
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =20
+                                                LayoutMinWidth: |-
+                                                    =0
                                                 PaddingBottom: |-
                                                     =0
                                                 PaddingLeft: |-
@@ -6210,7 +6520,7 @@ Screens:
                                                 Text: |-
                                                     =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).ManufacturerPartNo, "-")
                                                 Width: |-
-                                                    =Parent.Width - 190 - 12
+                                                    =0
                                                 Wrap: |-
                                                     =false
                                     - conDomDet8:
@@ -6233,6 +6543,10 @@ Screens:
                                               =12
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -6284,10 +6598,14 @@ Screens:
                                                     =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
+                                                FillPortions: |-
+                                                    =1
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =20
+                                                LayoutMinWidth: |-
+                                                    =0
                                                 PaddingBottom: |-
                                                     =0
                                                 PaddingLeft: |-
@@ -6301,7 +6619,7 @@ Screens:
                                                 Text: |-
                                                     =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).Supplier, "-")
                                                 Width: |-
-                                                    =Parent.Width - 190 - 12
+                                                    =0
                                                 Wrap: |-
                                                     =false
                                     - conDomDet9:
@@ -6324,6 +6642,10 @@ Screens:
                                               =12
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -6375,10 +6697,14 @@ Screens:
                                                     =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
+                                                FillPortions: |-
+                                                    =1
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =20
+                                                LayoutMinWidth: |-
+                                                    =0
                                                 PaddingBottom: |-
                                                     =0
                                                 PaddingLeft: |-
@@ -6392,7 +6718,7 @@ Screens:
                                                 Text: |-
                                                     =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).SupplierPartNo, "-")
                                                 Width: |-
-                                                    =Parent.Width - 190 - 12
+                                                    =0
                                                 Wrap: |-
                                                     =false
                                     - conDomDet10:
@@ -6415,6 +6741,10 @@ Screens:
                                               =12
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -6466,10 +6796,14 @@ Screens:
                                                     =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
+                                                FillPortions: |-
+                                                    =1
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =20
+                                                LayoutMinWidth: |-
+                                                    =0
                                                 PaddingBottom: |-
                                                     =0
                                                 PaddingLeft: |-
@@ -6483,7 +6817,7 @@ Screens:
                                                 Text: |-
                                                     =If(IsBlank(LookUp(colDomRows, RowId = varDomDetailsId).DeliveringTime), "-", Text(LookUp(colDomRows, RowId = varDomDetailsId).DeliveringTime))
                                                 Width: |-
-                                                    =Parent.Width - 190 - 12
+                                                    =0
                                                 Wrap: |-
                                                     =false
                                     - conDomDet11:
@@ -6506,6 +6840,10 @@ Screens:
                                               =12
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -6557,10 +6895,14 @@ Screens:
                                                     =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
+                                                FillPortions: |-
+                                                    =1
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =20
+                                                LayoutMinWidth: |-
+                                                    =0
                                                 PaddingBottom: |-
                                                     =0
                                                 PaddingLeft: |-
@@ -6574,7 +6916,7 @@ Screens:
                                                 Text: |-
                                                     =If(IsBlank(LookUp(colDomRows, RowId = varDomDetailsId).Price), "-", Text(LookUp(colDomRows, RowId = varDomDetailsId).Price))
                                                 Width: |-
-                                                    =Parent.Width - 190 - 12
+                                                    =0
                                                 Wrap: |-
                                                     =false
                                     - conDomDet12:
@@ -6597,6 +6939,10 @@ Screens:
                                               =12
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -6648,10 +6994,14 @@ Screens:
                                                     =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
+                                                FillPortions: |-
+                                                    =1
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =20
+                                                LayoutMinWidth: |-
+                                                    =0
                                                 PaddingBottom: |-
                                                     =0
                                                 PaddingLeft: |-
@@ -6665,7 +7015,7 @@ Screens:
                                                 Text: |-
                                                     =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).PriceUnit, "-")
                                                 Width: |-
-                                                    =Parent.Width - 190 - 12
+                                                    =0
                                                 Wrap: |-
                                                     =false
                                     - conDomDet13:
@@ -6688,6 +7038,10 @@ Screens:
                                               =12
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -6739,10 +7093,14 @@ Screens:
                                                     =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
+                                                FillPortions: |-
+                                                    =1
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =20
+                                                LayoutMinWidth: |-
+                                                    =0
                                                 PaddingBottom: |-
                                                     =0
                                                 PaddingLeft: |-
@@ -6756,7 +7114,7 @@ Screens:
                                                 Text: |-
                                                     =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).StockUnit, "-")
                                                 Width: |-
-                                                    =Parent.Width - 190 - 12
+                                                    =0
                                                 Wrap: |-
                                                     =false
                                     - conDomDet14:
@@ -6779,6 +7137,10 @@ Screens:
                                               =12
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -6830,10 +7192,14 @@ Screens:
                                                     =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
+                                                FillPortions: |-
+                                                    =1
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =20
+                                                LayoutMinWidth: |-
+                                                    =0
                                                 PaddingBottom: |-
                                                     =0
                                                 PaddingLeft: |-
@@ -6847,7 +7213,7 @@ Screens:
                                                 Text: |-
                                                     =If(IsBlank(LookUp(colDomRows, RowId = varDomDetailsId).RecommendedStock), "-", Text(LookUp(colDomRows, RowId = varDomDetailsId).RecommendedStock))
                                                 Width: |-
-                                                    =Parent.Width - 190 - 12
+                                                    =0
                                                 Wrap: |-
                                                     =false
                                     - conDomDet15:
@@ -6870,6 +7236,10 @@ Screens:
                                               =12
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -6921,10 +7291,14 @@ Screens:
                                                     =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
+                                                FillPortions: |-
+                                                    =1
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =20
+                                                LayoutMinWidth: |-
+                                                    =0
                                                 PaddingBottom: |-
                                                     =0
                                                 PaddingLeft: |-
@@ -6938,7 +7312,7 @@ Screens:
                                                 Text: |-
                                                     =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).StrategicPart, "-")
                                                 Width: |-
-                                                    =Parent.Width - 190 - 12
+                                                    =0
                                                 Wrap: |-
                                                     =false
                                     - conDomDet16:
@@ -6961,6 +7335,10 @@ Screens:
                                               =12
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -7012,10 +7390,14 @@ Screens:
                                                     =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
+                                                FillPortions: |-
+                                                    =1
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =20
+                                                LayoutMinWidth: |-
+                                                    =0
                                                 PaddingBottom: |-
                                                     =0
                                                 PaddingLeft: |-
@@ -7029,7 +7411,7 @@ Screens:
                                                 Text: |-
                                                     =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).WearPart, "-")
                                                 Width: |-
-                                                    =Parent.Width - 190 - 12
+                                                    =0
                                                 Wrap: |-
                                                     =false
                                     - conDomDet17:
@@ -7052,6 +7434,10 @@ Screens:
                                               =12
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -7103,10 +7489,14 @@ Screens:
                                                     =C.'text-primary'
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
+                                                FillPortions: |-
+                                                    =1
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =20
+                                                LayoutMinWidth: |-
+                                                    =0
                                                 PaddingBottom: |-
                                                     =0
                                                 PaddingLeft: |-
@@ -7120,7 +7510,7 @@ Screens:
                                                 Text: |-
                                                     =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).LongText, "-")
                                                 Width: |-
-                                                    =Parent.Width - 190 - 12
+                                                    =0
                                                 Wrap: |-
                                                     =false
                         - conDomRight:
@@ -7143,6 +7533,10 @@ Screens:
                                   =16
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
                                   =If(LayoutRank < 4, (App.Width - 64), ((App.Width - 64) - 20) / 2)
                             Children:
@@ -7170,6 +7564,10 @@ Screens:
                                         =14
                                     LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     PaddingBottom: |-
                                         =18
                                     PaddingLeft: |-
@@ -7271,6 +7669,10 @@ Screens:
                                               =8
                                           LayoutMinWidth: |-
                                               =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -7586,6 +7988,10 @@ Screens:
                                                     =10
                                                 LayoutMinWidth: |-
                                                     =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
                                                 Width: |-
                                                     =Parent.TemplateWidth
                                               Children:
@@ -7665,7 +8071,7 @@ Screens:
                                                       FontWeight: |-
                                                           =FontWeight.Semibold
                                                       Height: |-
-                                                          =28
+                                                          =30
                                                       Layout: |-
                                                           =ButtonLayout.TextOnly
                                                       LayoutMinWidth: |-
@@ -7753,6 +8159,10 @@ Screens:
                             =14
                         LayoutMinWidth: |-
                             =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
                         PaddingBottom: |-
                             =18
                         PaddingLeft: |-
@@ -7831,6 +8241,10 @@ Screens:
                                   =8
                               LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
                                   =Parent.Width
                             Children:

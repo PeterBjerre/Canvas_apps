@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED, C_PRIMARY, C_WHITE, \
     C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, C_TRANSPARENT, C_DIVIDER, \
     C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY, FONT
-from build_helpers import text_ctrl, group, button, text_input
+from build_helpers import text_ctrl, group, button, text_input, grow
 from design_tokens import ref_hex
 
 MUT_HEX = ref_hex("text-muted")
@@ -58,7 +58,8 @@ def build_tasklist_picker_modal():
                     justify="SpaceBetween", align_items="Center")
 
     txtSearch = text_input("txtVhpPickerSearch", "\"\"", placeholder="\"Search operation no, text, work center\"",
-                            width="Parent.Width - 220", height=36, label="\"Search operations\"")
+                            height=36, label="\"Search operations\"")
+    grow(txtSearch)
     chkSelectAll = Ctrl("chkVhpPickerSelectAll", "ModernCheckbox", props={
         "AccessibleLabel": "\"Select all visible\"",
         "Default": (

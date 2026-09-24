@@ -151,10 +151,11 @@ def group(name, children, direction="Vertical", gap=8, height=None, width="Paren
         props["LayoutWrap"] = wrap
     if justify is not None:
         props["LayoutJustifyContent"] = f"LayoutJustifyContent.{justify}"
-    if overflow_y is not None:
-        props["LayoutOverflowY"] = f"LayoutOverflow.{overflow_y}"
-    if overflow_x is not None:
-        props["LayoutOverflowX"] = f"LayoutOverflow.{overflow_x}"
+    # OVERLOEB SKJULES, MED MINDRE DET SKAL SCROLLE - skrevet ud, ikke
+    # overladt til platformens standard. Et barn, der var bare et par
+    # pixels for hoejt, gav en scrollbar midt i topbjaelken.
+    props["LayoutOverflowY"] = f"LayoutOverflow.{overflow_y or 'Hide'}"
+    props["LayoutOverflowX"] = f"LayoutOverflow.{overflow_x or 'Hide'}"
     if visible is not None:
         props["Visible"] = visible
     if align_in_container is not None:
@@ -268,79 +269,83 @@ def _max_expr(hs):
     return hs[0] if len(hs) == 1 else "Max(%s)" % ", ".join("(%s)" % h for h in hs)
 
 
-def flow_row(name, children, container_w, gap=8, narrow_cols=1, flex=None,
-             flex_min=0, align_items="Center", **group_kw):
-    """En vandret raekke, der ENTEN staar paa een linje ELLER som et gitter.
-    Aldrig noget midt imellem.
+def grow(ctrl, min_w=0):
+    """Barnet tager RESTEN af en vandret raekke - regnet af platformen.
 
-    HVORFOR IKKE BARE LayoutWrap
-    ----------------------------
-    LayoutWrap lader platformen bestemme, hvor mange linjer det bliver - og
-    det tal afhaenger af den bredde, containeren FAKTISK faar. Hoejden er
-    derimod regnet her i Python. De to maa aldrig vaere uenige, men de
-    kunne: en raekke regnet til at fylde SHELL_W paa pixlen, i en container
-    der var scrollbarens 17 px smallere, ombroed til to linjer med hoejde
-    til een. Sidste barn blev klippet vaek. Det var de forsvundne knapper.
+    Her stod "Parent.Width - <de andre>". Men Parent.Width er FORAELDERENS
+    WIDTH-EGENSKAB, ikke pladsen inden i den: padding og scrollbar er ikke
+    trukket fra, og inde i et kort er det som regel hele skaermens bredde.
+    FillPortions lader Power Apps regne resten ud af den plads, der er.
+    Layout-tjekkets regel 24 afviser Parent.Width i et regnestykke."""
+    ctrl.props["FillPortions"] = "1"
+    ctrl.props["LayoutMinWidth"] = str(min_w)
+    ctrl.props["Width"] = str(min_w)
+    return ctrl
 
-    wrap_row_height(), som stod her foer, regnede med hoejst TO linjer. Paa
-    en smal skaerm blev det tre, fire eller fem.
 
-    HER ER DER KUN TO TILSTANDE, OG BEGGE ER REGNET UD
-    ------------------------------------------------
-      passer   ->  alle boern paa een linje med deres egne bredder.
-                   Hoejde = det hoejeste barn.
-      passer   ->  boernene faar bredden (Parent.Width - gaps) / narrow_cols
-      ikke         MINUS 1 px, saa praecis narrow_cols staar paa hver linje.
-                   Antallet af linjer er ceil(n / narrow_cols) - et tal, ikke
-                   et gaet. Hoejde = summen af linjerne.
+def flow_row(name, children, container_w, gap=8, flex=None, flex_min=0,
+             **group_kw):
+    """En raekke, der ENTEN staar vandret paa een linje ELLER lodret med
+    eet barn pr. linje. Aldrig noget midt imellem - og ALDRIG LayoutWrap.
 
-    Om den passer, afgoeres af boernenes EGNE bredder mod container_w, saa
-    graensen flytter sig selv, naar nogen tilfoejer en knap.
+    HVORFOR IKKE LayoutWrap
+    -----------------------
+    Med wrap bestemmer platformen, hvor mange linjer det bliver, ud fra
+    den bredde, containeren FAKTISK har. Hoejden er regnet her i Python.
+    Er de to bare een pixel uenige, havner det sidste barn paa en linje,
+    hoejden ikke har plads til - og det er klippet vaek. Det var de
+    forsvundne knapper, to gange.
 
-    flex = et af boernene, der tager RESTEN af linjen (typisk titlen). Det
-    taelles med flex_min px i graensen.
+    HER SKIFTER RETNINGEN, IKKE LINJEANTALLET
+    -----------------------------------------
+      passer   ->  LayoutDirection.Horizontal. Hoejde = det hoejeste barn.
+      passer   ->  LayoutDirection.Vertical med Stretch: hvert barn sin
+      ikke         egen linje i fuld bredde. Hoejde = summen.
 
-    Boernenes Width overskrives. Et barn, der selv er en flow_row, skal
-    derfor bygges med container_w=flow_child_w(...) for den her raekke -
-    se top_bar().
+    Konstruktionen er den, den haandbyggede Materials-app brugte paa sine
+    raekker, og dermed bevist i dette miljoe.
+
+    DEN FLEKSIBLE DEL REGNES AF PLATFORMEN
+    --------------------------------------
+    flex = det barn, der tager resten af linjen (typisk titlen). Det faar
+    FillPortions = 1 - saa er det Power Apps, der regner resten ud, af den
+    bredde der faktisk er. Her stod "Parent.Width - 545", og Parent.Width er
+    FORAELDERENS WIDTH-EGENSKAB, ikke pladsen inden i den: headerens 58 px
+    padding var ikke trukket fra, raekken var 57 px for bred, og knapperne
+    ombroed ned under bjaelkens kant.
+
+    Graensen (passer/passer ikke) regnes af boernenes egne bredder mod
+    container_w, som altid er regnet af SHELL_W - en NEDRE graense for den
+    bredde, der er. Tilfoejes en knap, flytter graensen sig selv.
     """
-    n = len(children)
-    vis_any = any(c.vis for c in children)
-    if vis_any and narrow_cols != 1:
-        raise SystemExit("flow_row %s: skjulte boern kan kun staa i een "
-                         "kolonne, naar raekken stables" % name)
-    wide = [None if c is flex else str(c.props["Width"]) for c in children]
-    fixed = [w for w in wide if w is not None]
     ok = flow_ok(children, container_w, gap, flex, flex_min)
-    narrow_w = "(Parent.Width - %d) / %d - 1" % (gap * (narrow_cols - 1), narrow_cols)
-    for c, w in zip(children, wide):
-        if w is None:
-            # Resten af den FAKTISKE linje - Parent.Width, ikke container_w.
-            # Graensen ovenfor er afgjort med den forsigtige bredde; naar den
-            # er sand, er der mindst saa meget plads, og titlen maa gerne
-            # tage det hele, saa knapperne staar helt ude til hoejre.
-            w = "Parent.Width - (%s) - %d" % (_sum_expr(fixed, 0), gap * len(fixed) + 1)
-        c.props["Width"] = "If(%s, %s, %s)" % (ok, w, narrow_w)
-        c.props["LayoutMinWidth"] = "0"
+    for c in children:
+        if c is flex:
+            c.props["Width"] = str(flex_min)
+            c.props["FillPortions"] = "If(%s, 1, 0)" % ok
+            c.props["LayoutMinWidth"] = "0"
+        else:
+            # Laast i raekken, saa den fleksible del er den eneste, der kan
+            # give efter. Lodret er Stretch - saa maa den gerne vaere smal.
+            c.props["LayoutMinWidth"] = "If(%s, %s, 0)" % (ok, c.props["Width"])
 
     hs = [0 if c.h is None else c.h for c in children]
     one = _max_expr(hs)
-    if narrow_cols == 1:
-        parts = []
-        for i, c in enumerate(children):
-            g = 0 if i == 0 else gap
-            h = hs[i]
-            if c.vis:
-                parts.append("If(%s, %d + (%s), 0)" % (c.vis, g, h))
-            else:
-                parts.append("%d + (%s)" % (g, h) if g else "(%s)" % h)
-        stacked = " + ".join(parts)
-    else:
-        lines = [hs[i:i + narrow_cols] for i in range(0, n, narrow_cols)]
-        stacked = _sum_expr([_max_expr(l) for l in lines], gap)
-    height = "If(%s, %s, %s)" % (ok, one, stacked)
-    return group(name, children, direction="Horizontal", gap=gap, wrap="true",
-                 align_items=align_items, height=height, **group_kw)
+    parts = []
+    for i, c in enumerate(children):
+        g = 0 if i == 0 else gap
+        if c.vis:
+            parts.append("If(%s, %d + (%s), 0)" % (c.vis, g, hs[i]))
+        else:
+            parts.append("%d + (%s)" % (g, hs[i]) if g else "(%s)" % hs[i])
+    stacked = " + ".join(parts)
+    row = group(name, children, direction="Horizontal", gap=gap,
+                height="If(%s, %s, %s)" % (ok, one, stacked), **group_kw)
+    row.props["LayoutDirection"] = ("If(%s, LayoutDirection.Horizontal, "
+                                    "LayoutDirection.Vertical)" % ok)
+    row.props["LayoutAlignItems"] = ("If(%s, LayoutAlignItems.Center, "
+                                     "LayoutAlignItems.Stretch)" % ok)
+    return row
 
 
 def flow_ok(children, container_w, gap=8, flex=None, flex_min=0):
@@ -358,49 +363,35 @@ def flow_ok(children, container_w, gap=8, flex=None, flex_min=0):
     return _fits_expr(container_w, _sum_expr(terms, gap))
 
 
-def flow_child_w(row_ok, wide_w, container_w):
-    """Den bredde, et barn af en flow_row regner med: sin egen, naar
-    raekken staar paa een linje, og hele containerens, naar den stables.
-    Bruges, naar barnet SELV er en flow_row (knapperne i top_bar)."""
-    return "If(%s, %s, %s)" % (row_ok, wide_w, container_w)
-
-
 def top_bar(prefix, title, subtitle, actions, container_w, gap=20,
             action_gap=10, min_title=240, title_size=22):
     """Bjaelken oeverst - den SAMME konstruktion i alle fire apps.
 
-    Venstre: titel og undertitel, som tager resten af linjen.
+    Venstre: titel og undertitel. De tager RESTEN af linjen (FillPortions),
+    saa knapperne altid staar helt ude til hoejre.
     Hoejre:  handlingerne, hver med sin faste bredde.
 
     Der er ingen haandskrevet tabel over knapbredderne, og ingen vagt der
     skal holde den i trit: graensen regnes af de kontroller, der faktisk
     staar i raekken. Tilfoejes en knap, flytter graensen sig selv.
 
-    Staar den i rammens header (app_frame), scroller den aldrig vaek, og
-    dens hoejde afhaenger kun af App.Width - aldrig af data.
-
-    Smal skaerm: titlen over knapperne, og knapperne to og to.
+    Smal skaerm: titlen over knapperne. Er der heller ikke plads til
+    knapperne paa een linje, staar de under hinanden.
     """
     t = text_ctrl("txt%sTitle" % prefix, title, size=title_size, weight="Semibold",
                   height=30, wrap="false")
     sub = text_ctrl("txt%sSub" % prefix, subtitle, size=13, color=C_MUTED,
                     height=20, wrap="false")
-    left = group("con%sBarLeft" % prefix, [t, sub], direction="Vertical", gap=2,
-                 width="0")
-    # +2: knapperne staar i deres EGEN wrap-raekke, og den er praecis saa
-    # bred som dem. Uden luft kunne en afrunding paa en broekdel af en
-    # pixel sende den sidste knap ned paa en linje, der ikke er der.
+    left = group("con%sBarLeft" % prefix, [t, sub], direction="Vertical", gap=2)
     act_w = (sum(int(str(a.props["Width"])) for a in actions)
-             + action_gap * (len(actions) - 1) + 2)
+             + action_gap * (len(actions) - 1))
     # Graensen for hele bjaelken skal kendes, FOER hoejresiden bygges:
-    # hoejresidens egen container er "min bredde, hvis bjaelken passer,
-    # ellers hele linjen". flow_ok() er den samme funktion, flow_row selv
-    # bruger, saa de to kan ikke regne forskelligt.
-    right = group("con%sBarRight" % prefix, [], width=str(act_w))
-    bar_ok = flow_ok([left, right], container_w, gap, flex=left, flex_min=min_title)
-    right_cw = flow_child_w(bar_ok, str(act_w), container_w)
-    right = flow_row("con%sBarRight" % prefix, actions, right_cw, gap=action_gap,
-                     narrow_cols=2)
+    # hoejresidens plads er "sin egen bredde, hvis bjaelken staar paa een
+    # linje, ellers hele bjaelkens".
+    probe = group("con%sBarRight" % prefix, [], width=str(act_w))
+    bar_ok = flow_ok([left, probe], container_w, gap, flex=left, flex_min=min_title)
+    right = flow_row("con%sBarRight" % prefix, actions,
+                     "If(%s, %d, %s)" % (bar_ok, act_w, container_w), gap=action_gap)
     right.props["Width"] = str(act_w)
     return flow_row("con%sBar" % prefix, [left, right], container_w, gap=gap,
                     flex=left, flex_min=min_title)
