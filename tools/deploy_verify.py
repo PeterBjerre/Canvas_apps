@@ -91,7 +91,17 @@ def compare(built_path, server_path, limit=40):
                          % (parent, ", ".join(mine), ", ".join(theirs)))
     for n in sorted(set(a) & set(b)):
         pa, pb = a[n][3], b[n][3]
+        # STUDIO EJER SKABELONENS STOERRELSE.
+        #
+        # Et galleris oeverste barn faar sin bredde af Studio, uanset hvad
+        # vi skriver. Aflaest i egenskabspanelet stod der foerst 320 og
+        # siden Parent.Width - aldrig builderens udtryk. Det er ikke en
+        # fejl, og det maa ikke stoppe et deploy. Cellerne INDE i raekken
+        # maales i stedet mod et budget med luft (GALLERY_RESERVE).
+        in_gallery = a.get(a[n][0], (None, 0, "", {}))[2] == "Gallery"
         for key in sorted(set(pa) & set(pb)):
+            if in_gallery and key in ("Width", "Height"):
+                continue
             if _norm_value(pa[key]) != _norm_value(pb[key]):
                 found.append("%s.%s: Studio har en anden vaerdi\n"
                              "        bygget: %s\n        Studio: %s"
