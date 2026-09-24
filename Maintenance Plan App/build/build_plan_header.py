@@ -63,11 +63,14 @@ def section_header(name, title, desc, step_label, help_section=None):
         reserved += 64 + 12
 
     if right:
-        left = grow(group(f"{name}Left", [t, d], direction="Vertical", gap=2, height=48))
-        return group(f"{name}", [left] + right, direction="Horizontal", gap=12, height=48,
+        # Hoejden REGNES af titlen og beskrivelsen - her stod 48, og da
+        # teksterne fik deres rigtige linjehoejde (build_helpers.TEXT_LINE),
+        # var indholdet 51.
+        left = grow(group(f"{name}Left", [t, d], direction="Vertical", gap=2))
+        return group(f"{name}", [left] + right, direction="Horizontal", gap=12,
                      align_items="Center")
-    left = grow(group(f"{name}Left", [t, d], direction="Vertical", gap=2, height=48))
-    return group(f"{name}", [left], direction="Horizontal", gap=12, height=48, align_items="Center")
+    left = grow(group(f"{name}Left", [t, d], direction="Vertical", gap=2))
+    return group(f"{name}", [left], direction="Horizontal", gap=12, align_items="Center")
 
 
 # Hoejden paa EET afsnit i hjaelpepanelet.

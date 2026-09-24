@@ -11,7 +11,7 @@ import build_help as bh
 from build_strategy import build_strategy_body, IS_STRATEGY
 import sp_config as cfg
 from design_tokens import ref_hex
-from layout_tokens import fits, TWO_COL_MIN
+from layout_tokens import SCROLLBAR_W, fits, TWO_COL_MIN
 
 # HTML kender ikke RGBA(). ref_hex giver den SAMME token som hex.
 MUT_HEX = ref_hex("text-muted")
@@ -344,7 +344,7 @@ def _materials_pane():
         "TabIndex": "0",
         "TemplatePadding": "2",
         "TemplateSize": str(MAT_ROW_H),
-        "Width": str(MAT_TABLE_W),
+        "Width": str(MAT_TABLE_W + 4 + SCROLLBAR_W),
         "WrapCount": "1",
     }, children=[row], h=gal_h)
 
@@ -839,7 +839,9 @@ def build_tasklist_section():
             "TabIndex": "0",
             "TemplatePadding": "2",
             "TemplateSize": "38",
-            "Width": str(OPS_TABLE_W),
+            # Tabellen + TemplatePadding + scrollbar. Var galleriet kun
+            # tabellens bredde, laa sidste kolonne under scrollbaren.
+            "Width": str(OPS_TABLE_W + 4 + SCROLLBAR_W),
             "WrapCount": "1",
         },
         children=[opRow], h=gal_h)

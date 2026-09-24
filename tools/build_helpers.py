@@ -64,9 +64,23 @@ HINTS_ON = "IfError(varVhpShowHints, false)"
 # skaerm.
 
 
+# En tekstkontrol skal vaere mindst saa hoej som en linje af sin egen
+# skrift. Er den ikke det, viser den moderne Text-kontrol sin EGEN
+# scrollbar - det var den moerke streg midt i topbjaelken: titlen var 22 pt
+# i 30 px. Samme forhold stod paa VH-planens sektionstitler (19 i 26) og
+# hubbens tal (26 i 32). 1,5 x skriftstoerrelsen giver luft til Semibold.
+TEXT_LINE = 1.5
+
+
+def text_min_height(size):
+    return int(-(-size * TEXT_LINE // 1))
+
+
 def text_ctrl(name, text, size=14, color=C_TITLE, weight=None, wrap="false",
               align=None, height=20, width=None, fill=C_TRANSPARENT,
               accessible=None, visible=None, layout_min_width=None, extra=None):
+    if isinstance(height, (int, float)) and height < text_min_height(size):
+        height = text_min_height(size)
     props = {
         "AccessibleLabel": accessible if accessible else text,
         "BorderStyle": "BorderStyle.None",
