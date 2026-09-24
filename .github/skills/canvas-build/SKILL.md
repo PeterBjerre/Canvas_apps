@@ -127,6 +127,13 @@ alle tre er nu spærret af byggeriet. Hele forklaringen står i
    bjælkens knapper ned under kanten i første udgave af rammen.
 5. **Knapper er mindst 30 px høje**, og containere skjuler overløb
    (`LayoutOverflow.Hide`), med mindre de skal scrolle.
+6. **Skriv aldrig `Parent.TemplateWidth`/`TemplateHeight` med vilje i
+   forventning om galleriets bredde** — i Studio gav den 320. Skriv dem
+   gerne i en builder; `gen_screen.resolve_templates()` erstatter dem med
+   et udregnet udtryk, før skærmen skrives, og regel 26 sikrer, at ingen
+   slipper igennem.
+7. **En tekst er mindst 1,5 × sin skriftstørrelse høj** — ellers får den
+   sin egen scrollbar. `text_ctrl()` sørger selv for det.
 
 | Du vil … | Gør |
 |---|---|
@@ -384,6 +391,9 @@ layoutfejl bor:
 24. `Parent.Width` må ikke indgå i et regnestykke. Den er forælderens
    Width-egenskab; padding og scrollbar er ikke trukket fra
 25. En knap er mindst 30 px høj
+26. Ingen `Parent.Template*` i den byggede skærm, og en gallerirække skal
+   rumme sine celler fra Tablet og op
+27. En tekst er mindst 1,5 × sin skriftstørrelse høj
 
 Punkt 7 fanger den klassiske: du sletter en kontrol og glemmer en
 `Reset()` på den et andet sted. Det ville ellers først vælte i compile.
