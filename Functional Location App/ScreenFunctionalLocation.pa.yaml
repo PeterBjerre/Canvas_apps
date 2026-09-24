@@ -49,7 +49,7 @@ Screens:
                               )
                           }
                       ),
-                      "Vals"
+                      Vals
                   )
               );
               Set(varFlNextRowNo, Max(colFlRows, RowNo) + 1);
@@ -499,9 +499,9 @@ Screens:
                                                       )
                                                   }
                                               ),
-                                              "Items"
+                                              Items
                                           ),
-                                          "Bad"
+                                          Bad
                                       )
                                   );
                                   
@@ -509,7 +509,7 @@ Screens:
                                   ClearCollect(
                                       colFlIssues,
                                       ForAll(
-                                          GroupBy(colFlIssuesRaw, "RowGuid", "Sev", "Msg", "Grp") As G,
+                                          GroupBy(colFlIssuesRaw, RowGuid, Sev, Msg, Grp) As G,
                                           With(
                                               { f: First(Sort(G.Grp, Ord)) },
                                               { RowGuid: G.RowGuid, Sev: G.Sev, Msg: G.Msg, Ord: f.Ord, Code: f.Code,
@@ -3115,8 +3115,7 @@ Screens:
                                                 ForAll(Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) As I, { RowGuid: I.RowGuid, ID: I.ID })
                                             );
                                             IfError(
-                                                Patch(FunctionalLocationItems, ForAll(Filter(colFlRows, Status <> "draft" && !(RowGuid in colFlSp.RowGuid)), Defaults(FunctionalLocationItems)),
-                                                      ForAll(Filter(colFlRows, Status <> "draft" && !(RowGuid in colFlSp.RowGuid)) As R, {
+                                                Collect(FunctionalLocationItems, ForAll(Filter(colFlRows, Status <> "draft" && !(RowGuid in colFlSp.RowGuid)) As R, {
                                                         RowGuid: R.RowGuid,
                                                         RequestGuid: varFlRequestGuid,
                                                         RequestId: varFlReq.ID,
@@ -3141,8 +3140,10 @@ Screens:
                                                 Collect(colFlSaveErrors, { Where: "New rows", Msg: FirstError.Message })
                                             );
                                             IfError(
-                                                Patch(FunctionalLocationItems, ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, { ID: LookUp(colFlSp, RowGuid = R.RowGuid).ID }),
-                                                      ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, {
+                                                With(
+                                                    { ex: Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) },
+                                                    Patch(FunctionalLocationItems, ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, LookUp(ex, RowGuid = R.RowGuid)),
+                                                          ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, {
                                                         RowGuid: R.RowGuid,
                                                         RequestGuid: varFlRequestGuid,
                                                         RequestId: varFlReq.ID,
@@ -3163,13 +3164,17 @@ Screens:
                                                                    { field: V.Field, value: V.Value }),
                                                             JSONFormat.Compact
                                                         )
-                                                    })),
+                                                    }))
+                                                ),
                                                 Collect(colFlSaveErrors, { Where: "Rows", Msg: FirstError.Message })
                                             );
                                         
                                             // 3. Raekker, der ikke laengere er i appen.
                                             IfError(
-                                                Remove(FunctionalLocationItems, ForAll(Filter(colFlSp, !(RowGuid in Filter(colFlRows, Status <> "draft").RowGuid)) As D, { ID: D.ID })),
+                                                With(
+                                                    { ex: Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) },
+                                                    Remove(FunctionalLocationItems, Filter(ex, !(RowGuid in Filter(colFlRows, Status <> "draft").RowGuid)))
+                                                ),
                                                 Collect(colFlSaveErrors, { Where: "Deleted rows", Msg: FirstError.Message })
                                             );
                                         
@@ -3326,8 +3331,7 @@ Screens:
                                                     ForAll(Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) As I, { RowGuid: I.RowGuid, ID: I.ID })
                                                 );
                                                 IfError(
-                                                    Patch(FunctionalLocationItems, ForAll(Filter(colFlRows, Status <> "draft" && !(RowGuid in colFlSp.RowGuid)), Defaults(FunctionalLocationItems)),
-                                                          ForAll(Filter(colFlRows, Status <> "draft" && !(RowGuid in colFlSp.RowGuid)) As R, {
+                                                    Collect(FunctionalLocationItems, ForAll(Filter(colFlRows, Status <> "draft" && !(RowGuid in colFlSp.RowGuid)) As R, {
                                                             RowGuid: R.RowGuid,
                                                             RequestGuid: varFlRequestGuid,
                                                             RequestId: varFlReq.ID,
@@ -3352,8 +3356,10 @@ Screens:
                                                     Collect(colFlSaveErrors, { Where: "New rows", Msg: FirstError.Message })
                                                 );
                                                 IfError(
-                                                    Patch(FunctionalLocationItems, ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, { ID: LookUp(colFlSp, RowGuid = R.RowGuid).ID }),
-                                                          ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, {
+                                                    With(
+                                                        { ex: Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) },
+                                                        Patch(FunctionalLocationItems, ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, LookUp(ex, RowGuid = R.RowGuid)),
+                                                              ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, {
                                                             RowGuid: R.RowGuid,
                                                             RequestGuid: varFlRequestGuid,
                                                             RequestId: varFlReq.ID,
@@ -3374,13 +3380,17 @@ Screens:
                                                                        { field: V.Field, value: V.Value }),
                                                                 JSONFormat.Compact
                                                             )
-                                                        })),
+                                                        }))
+                                                    ),
                                                     Collect(colFlSaveErrors, { Where: "Rows", Msg: FirstError.Message })
                                                 );
                                             
                                                 // 3. Raekker, der ikke laengere er i appen.
                                                 IfError(
-                                                    Remove(FunctionalLocationItems, ForAll(Filter(colFlSp, !(RowGuid in Filter(colFlRows, Status <> "draft").RowGuid)) As D, { ID: D.ID })),
+                                                    With(
+                                                        { ex: Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) },
+                                                        Remove(FunctionalLocationItems, Filter(ex, !(RowGuid in Filter(colFlRows, Status <> "draft").RowGuid)))
+                                                    ),
                                                     Collect(colFlSaveErrors, { Where: "Deleted rows", Msg: FirstError.Message })
                                                 );
                                             
@@ -4215,7 +4225,7 @@ Screens:
                                                             !(Upper(Value) in With({ lid: ThisItem.List }, Filter(nfFlLists, List = lid)).UValue)) },
                                                 { G: ForAll(Sort(With({ lid: ThisItem.List }, Filter(nfFlLists, List = lid)), Ord) As O, { Value: O.Value }) }
                                             ),
-                                            "G"
+                                            G
                                         ), Upper(Value) = Upper(ThisItem.Value))
                                     DisplayMode: |-
                                         =If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)
@@ -4235,7 +4245,7 @@ Screens:
                                                             !(Upper(Value) in With({ lid: ThisItem.List }, Filter(nfFlLists, List = lid)).UValue)) },
                                                 { G: ForAll(Sort(With({ lid: ThisItem.List }, Filter(nfFlLists, List = lid)), Ord) As O, { Value: O.Value }) }
                                             ),
-                                            "G"
+                                            G
                                         )
                                     LayoutMinWidth: |-
                                         =0

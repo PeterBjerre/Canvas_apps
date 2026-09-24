@@ -166,7 +166,8 @@ ellers fra standardkolonnerne, ellers er det feltnavnet med versaler
 | PX8 | Klassetabellen med 30-50 dynamiske kolonner (`mode-all`) kan ikke laves som et canvas-galleri med dynamiske kolonner uden en celle pr. felt | Kompakt tabel i fanen, og "All columns" er detaljeruden (FL61), som viser og redigerer hver kolonne. Samme felter, samme editorer, samme beskeder - kun layoutet er et andet. Se AQ4 |
 | PX9 | Hovertooltips (`data-hint`) | `Tooltip` findes kun på interaktive kontroller (`check_layout` regel 10). Hjælpeteksten sidder derfor på en lille `?`-knap ved beskeden (`btnFlRowHint`), der også viser teksten ved klik |
 | PX10 | `Blob` + `<a download>` kan ikke laves i en canvas app | Export JSON viser JSON'en i en popup, hvor den kan kopieres. Indholdet er det samme som snapshottet |
-| PX11 | Opdatering af mange SharePoint-rækker med `LookUp(Liste, ID = X.ID)` i en `ForAll` kan ikke delegeres | Gem peger de eksisterende rækker ud med `{ ID: … }` (listens primærnøgle) i én `Patch` med to tabeller, og sletter med `Remove(Liste, ForAll(…, { ID: … }))` |
+| PX11 | Opdatering af mange SharePoint-rækker med `LookUp(Liste, ID = X.ID)` i en `ForAll` kan ikke delegeres, og `{ ID: … }`-records afvises som base-rækker i `Patch`/`Remove` (issue #32) | Anmodningens rækker hentes én gang med et delegerbart filter på `varFlRequestGuid` (`With({ ex: … })`). Base-rækkerne slås op i den tabel. Nye rækker skrives med én `Collect` |
+| PX12 | `GroupBy`, `Ungroup`, `DropColumns` m.fl. kræver kolonnenavne som navne, ikke strenge (issue #32: 42 compile-fejl) | Skrevet som navne. `check_layout` regel 31 stopper byggeriet, hvis en streng sniger sig ind |
 
 ## Afvigelser mellem JS og VBA (JS vinder)
 
@@ -388,7 +389,5 @@ coauthoring-session i Studio og appens id. Ingen af de tre findes i det
 miljø, appen er bygget i, så compile er ikke kørt. Alt, der kan
 efterprøves uden Studio, er grønt: layout-, datakilde-, sprog- og
 PowerShell-tjekket, regeltesten mod de originale JS-filer og
-dokumenttjekket. De Power Fx-konstruktioner, der ikke er brugt i repoet
-før, og som derfor skal ses i den første compile: `GroupBy`/`Ungroup`
-med kolonnenavne som strenge, `exactin` mod en lang streng,
-`Patch(Liste, tabel af { ID }, tabel)` og `Remove(Liste, tabel af { ID })`.
+dokumenttjekket. Første compile (issue #32) afviste kolonnenavne som strenge og
+`{ ID }`-records som base-rækker - begge rettet (PX11, PX12).
