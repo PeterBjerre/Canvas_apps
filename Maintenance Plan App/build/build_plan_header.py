@@ -34,43 +34,39 @@ REQ_CYCLE = f"(varVhpPlanValidated && {LIVE_NOT_STRATEGY})"
 
 
 def help_var(section):
-    return f"varVhpHelp{section.capitalize()}"
+    """Alle fire hjaelpepaneler foelger den ENE Help-knap i topbjaelken
+    (build_hero.btnVhpHelp) - den samme variabel som feltforklaringerne.
+    Foer havde hver sektion sin egen "? Help" og sin egen variabel."""
+    return "varVhpShowHints"
 
 
-def section_header(name, title, desc, step_label, help_section=None):
-    """Sektionsoverskrift, evt. med et ? der folder hjaelpepanelet ud.
+def required_legend():
+    """ "* Required" - forklaringen paa stjernerne. Stod i hero-kortet; nu i
+    Plan Header, hvor de foerste stjerner staar."""
+    star = text_ctrl("txtVhpLegendStar", "\"*\"", size=13, color=C_REQUIRED, weight="Semibold",
+                     height=20, width=10, wrap="false")
+    txt = text_ctrl("txtVhpLegendText", "\"Required\"", size=13, color=C_MUTED, height=20,
+                    width=70, wrap="false")
+    return group("conVhpLegend", [star, txt], direction="Horizontal", gap=3, height=20,
+                 align_items="Center", width=83)
 
-    Knappen skifter en variabel, og panelet ser paa den samme variabel. To
-    kontroller, ingen tilstand at holde styr paa."""
+
+def section_header(name, title, desc, step_label, extra_right=()):
+    """Sektionsoverskrift: titel og beskrivelse til venstre, evt. ekstra
+    kontroller og et trin-badge til hoejre."""
     t = text_ctrl(f"{name}Title", f"\"{title}\"", size=19, weight="Semibold", height=26, wrap="false")
     d = text_ctrl(f"{name}Desc", f"\"{desc}\"", size=13, color=C_MUTED, height=20, wrap="false")
 
-    right = []
-    reserved = 0
-    if help_section:
-        v = help_var(help_section)
-        btn = button(f"{name}Help", f"If({v}, \"Hide help\", \"? Help\")",
-                     f"Set({v}, !{v})", width=110, height=30)
-        btn.props["Appearance"] = f"If({v}, ButtonAppearance.Primary, ButtonAppearance.Outline)"
-        btn.props["BasePaletteColor"] = C_INFO_FG
-        btn.props["Color"] = f"If({v}, {C_WHITE}, {C_INFO_FG})"
-        btn.props["BorderColor"] = C_CARD_BORDER
-        btn.props["BorderThickness"] = "1"
-        right.append(btn)
-        reserved += 110 + 12
+    right = list(extra_right)
     if step_label:
         right.append(badge(f"{name}Badge", f"\"{step_label}\"", width=64))
-        reserved += 64 + 12
 
-    if right:
-        # Hoejden REGNES af titlen og beskrivelsen - her stod 48, og da
-        # teksterne fik deres rigtige linjehoejde (build_helpers.TEXT_LINE),
-        # var indholdet 51.
-        left = grow(group(f"{name}Left", [t, d], direction="Vertical", gap=2))
-        return group(f"{name}", [left] + right, direction="Horizontal", gap=12,
-                     align_items="Center")
+    # Hoejden REGNES af titlen og beskrivelsen - her stod 48, og da
+    # teksterne fik deres rigtige linjehoejde (build_helpers.TEXT_LINE),
+    # var indholdet 51.
     left = grow(group(f"{name}Left", [t, d], direction="Vertical", gap=2))
-    return group(f"{name}", [left], direction="Horizontal", gap=12, align_items="Center")
+    return group(f"{name}", [left] + right, direction="Horizontal", gap=12,
+                 align_items="Center")
 
 
 # Hoejden paa EET afsnit i hjaelpepanelet.
@@ -136,7 +132,7 @@ def help_panel(name, section):
 def build_plan_header():
     header = section_header("conVhpPlanHead", "Plan Header",
                             "Master data and scheduling parameters for the maintenance plan.", "Step 1",
-                            help_section="plan")
+                            extra_right=[required_legend()])
     helpPanel = help_panel("conVhpPlanHelp", "plan")
 
     lockState = text_ctrl(

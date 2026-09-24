@@ -273,8 +273,7 @@ def build_items_rail():
 
 def build_item_editor():
     header = section_header("conVhpEditorHead", "Item Editor",
-                            "Full item fields with functional location lookup.", "",
-                            help_section="item")
+                            "Full item fields with functional location lookup.", "")
     helpPanel = help_panel("conVhpItemHelp", "item")
 
     # --- Functional Location: soegefelt, soegeknap, dropdown ---------------
@@ -595,7 +594,7 @@ def build_item_editor():
         "If(IsBlank(varVhpActiveItemId), \"No item selected.\", \"Item \" & Text(varVhpActiveItemId) & \" - status: \" & Upper(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status))",
         size=12, color=C_MUTED, height=18, wrap="true")
     # Hvert udfald siger det HOEJT. Knappen skrev foer kun i
-    # varVhpRuntimeInfo, som staar i hero-kortet oeverst paa skaermen - er
+    # varVhpRuntimeInfo, som stod i hero-kortet oeverst paa skaermen - var
     # man scrollet ned til Item Editoren, kan man ikke se den, og saa ser et
     # klik ud som om der ikke skete noget. Notify staar oven paa skaermen,
     # uanset hvor man er.

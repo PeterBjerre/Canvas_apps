@@ -46,7 +46,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =25 + (0 + (Max((55), (36), (36), (36), (36))) * 1 + 0)
+                      =25 + (0 + (Max((61), (36), (36), (36), (36), (36))) * 1 + 0)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -81,7 +81,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =0 + (Max((55), (36), (36), (36), (36))) * 1 + 0
+                            =0 + (Max((61), (36), (36), (36), (36), (36))) * 1 + 0
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Center
                         LayoutDirection: |-
@@ -108,7 +108,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =55
+                                  =61
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -122,7 +122,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Width: |-
-                                  =Max(0, ((((App.Width)) - 24 - 34)) - (If(LayoutRank >= 2, (92) + 10, 0)) - ((120) + 10) - ((110) + 10) - (If(LayoutRank >= 2, (130) + 10, 0)) - 2)
+                                  =Max(0, ((((App.Width)) - 24 - 34)) - ((100) + 10) - (If(LayoutRank >= 2, (92) + 10, 0)) - ((120) + 10) - ((110) + 10) - (If(LayoutRank >= 2, (130) + 10, 0)) - 2)
                             Children:
                               - txtVhpTitle:
                                   Control: ModernText
@@ -157,37 +157,377 @@ Screens:
                                         ="VH-plan"
                                     Wrap: |-
                                         =false
-                              - txtVhpSub:
-                                  Control: ModernText
+                              - conVhpBarSub:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
                                   Properties:
-                                    AccessibleLabel: |-
-                                        ="Maintenance plans for SAP PM"
                                     BorderStyle: |-
                                         =BorderStyle.None
-                                    BorderThickness: |-
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
                                         =0
-                                    Color: |-
-                                        =C.'text-muted'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
                                     Height: |-
-                                        =20
-                                    PaddingBottom: |-
+                                        =26
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Horizontal
+                                    LayoutGap: |-
                                         =0
-                                    PaddingLeft: |-
+                                    LayoutMinWidth: |-
                                         =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =13
-                                    Text: |-
-                                        ="Maintenance plans for SAP PM"
-                                    Wrap: |-
-                                        =false
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
+                                    Width: |-
+                                        =Parent.Width
+                                  Children:
+                                    - conVhpProcessStrip:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =26
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Center
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          Visible: |-
+                                              =((App.Width - 64) - (100 + 10) - (If(LayoutRank >= 2, 92 + 10, 0)) - (120 + 10) - (110 + 10) - (If(LayoutRank >= 2, 130 + 10, 0)) - 2) >= 622
+                                          Width: |-
+                                              =622
+                                        Children:
+                                          - txtVhpStep1:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="1. Plan"
+                                                Align: |-
+                                                    =Align.Center
+                                                AlignInContainer: |-
+                                                    =AlignInContainer.Center
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =If(true, C.'text-on-primary', C.'text-muted')
+                                                Fill: |-
+                                                    =If(true, C.'color-brand-primary', C.'state-neutral-bg')
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =26
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =8
+                                                PaddingRight: |-
+                                                    =8
+                                                PaddingTop: |-
+                                                    =0
+                                                RadiusBottomLeft: |-
+                                                    =14
+                                                RadiusBottomRight: |-
+                                                    =14
+                                                RadiusTopLeft: |-
+                                                    =14
+                                                RadiusTopRight: |-
+                                                    =14
+                                                Size: |-
+                                                    =12
+                                                Text: |-
+                                                    ="1. Plan"
+                                                Width: |-
+                                                    =118
+                                                Wrap: |-
+                                                    =false
+                                          - txtVhpStep2:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="2. Item"
+                                                Align: |-
+                                                    =Align.Center
+                                                AlignInContainer: |-
+                                                    =AlignInContainer.Center
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =If(varVhpPlanCommitted, C.'text-on-primary', C.'text-muted')
+                                                Fill: |-
+                                                    =If(varVhpPlanCommitted, C.'color-brand-primary', C.'state-neutral-bg')
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =26
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =8
+                                                PaddingRight: |-
+                                                    =8
+                                                PaddingTop: |-
+                                                    =0
+                                                RadiusBottomLeft: |-
+                                                    =14
+                                                RadiusBottomRight: |-
+                                                    =14
+                                                RadiusTopLeft: |-
+                                                    =14
+                                                RadiusTopRight: |-
+                                                    =14
+                                                Size: |-
+                                                    =12
+                                                Text: |-
+                                                    ="2. Item"
+                                                Width: |-
+                                                    =118
+                                                Wrap: |-
+                                                    =false
+                                          - txtVhpStep3:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="3. Tasklist"
+                                                Align: |-
+                                                    =Align.Center
+                                                AlignInContainer: |-
+                                                    =AlignInContainer.Center
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =If(varVhpPlanCommitted && CountRows(colVhpItems) > 0, C.'text-on-primary', C.'text-muted')
+                                                Fill: |-
+                                                    =If(varVhpPlanCommitted && CountRows(colVhpItems) > 0, C.'color-brand-primary', C.'state-neutral-bg')
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =26
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =8
+                                                PaddingRight: |-
+                                                    =8
+                                                PaddingTop: |-
+                                                    =0
+                                                RadiusBottomLeft: |-
+                                                    =14
+                                                RadiusBottomRight: |-
+                                                    =14
+                                                RadiusTopLeft: |-
+                                                    =14
+                                                RadiusTopRight: |-
+                                                    =14
+                                                Size: |-
+                                                    =12
+                                                Text: |-
+                                                    ="3. Tasklist"
+                                                Width: |-
+                                                    =118
+                                                Wrap: |-
+                                                    =false
+                                          - txtVhpStep4:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    =If(varVhpPlan.PlanType = "Strategy", "4. Packages", "4. Operations")
+                                                Align: |-
+                                                    =Align.Center
+                                                AlignInContainer: |-
+                                                    =AlignInContainer.Center
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =If(varVhpPlanCommitted && !IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId, TasklistKey)), C.'text-on-primary', C.'text-muted')
+                                                Fill: |-
+                                                    =If(varVhpPlanCommitted && !IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId, TasklistKey)), C.'color-brand-primary', C.'state-neutral-bg')
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =26
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =8
+                                                PaddingRight: |-
+                                                    =8
+                                                PaddingTop: |-
+                                                    =0
+                                                RadiusBottomLeft: |-
+                                                    =14
+                                                RadiusBottomRight: |-
+                                                    =14
+                                                RadiusTopLeft: |-
+                                                    =14
+                                                RadiusTopRight: |-
+                                                    =14
+                                                Size: |-
+                                                    =12
+                                                Text: |-
+                                                    =If(varVhpPlan.PlanType = "Strategy", "4. Packages", "4. Operations")
+                                                Width: |-
+                                                    =118
+                                                Wrap: |-
+                                                    =false
+                                          - txtVhpStep5:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="5. Dispatch"
+                                                Align: |-
+                                                    =Align.Center
+                                                AlignInContainer: |-
+                                                    =AlignInContainer.Center
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =If(varVhpPlanCommitted && CountRows(colVhpOperations) > 0, C.'text-on-primary', C.'text-muted')
+                                                Fill: |-
+                                                    =If(varVhpPlanCommitted && CountRows(colVhpOperations) > 0, C.'color-brand-primary', C.'state-neutral-bg')
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =26
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =8
+                                                PaddingRight: |-
+                                                    =8
+                                                PaddingTop: |-
+                                                    =0
+                                                RadiusBottomLeft: |-
+                                                    =14
+                                                RadiusBottomRight: |-
+                                                    =14
+                                                RadiusTopLeft: |-
+                                                    =14
+                                                RadiusTopRight: |-
+                                                    =14
+                                                Size: |-
+                                                    =12
+                                                Text: |-
+                                                    ="5. Dispatch"
+                                                Width: |-
+                                                    =118
+                                                Wrap: |-
+                                                    =false
+                                    - txtVhpSub:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Maintenance plans for SAP PM"
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-muted'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =26
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =13
+                                          Text: |-
+                                              ="Maintenance plans for SAP PM"
+                                          Visible: |-
+                                              =!(((App.Width - 64) - (100 + 10) - (If(LayoutRank >= 2, 92 + 10, 0)) - (120 + 10) - (110 + 10) - (If(LayoutRank >= 2, 130 + 10, 0)) - 2) >= 622)
+                                          Wrap: |-
+                                              =false
+                        - btnVhpHelp:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  =If(IfError(varVhpShowHints, false), "Hide help", "? Help")
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              Appearance: |-
+                                  =If(IfError(varVhpShowHints, false), ButtonAppearance.Primary, ButtonAppearance.Outline)
+                              BasePaletteColor: |-
+                                  =C.'state-info-fg'
+                              BorderColor: |-
+                                  =C.'border-default'
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =If(IfError(varVhpShowHints, false), C.'text-on-primary', C.'state-info-fg')
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =36
+                              Layout: |-
+                                  =ButtonLayout.TextOnly
+                              LayoutMinWidth: |-
+                                  =100
+                              OnSelect: |-
+                                  =Set(varVhpShowHints, !IfError(varVhpShowHints, false))
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Size: |-
+                                  =14
+                              Text: |-
+                                  =If(IfError(varVhpShowHints, false), "Hide help", "? Help")
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Width: |-
+                                  =100
                         - btnVhpTheme:
                             Control: ModernButton
                             Properties:
@@ -558,7 +898,7 @@ Screens:
                   FillPortions: |-
                       =1
                   Height: |-
-                      =Parent.Height - (25 + (0 + (Max((55), (36), (36), (36), (36))) * 1 + 0))
+                      =Parent.Height - (25 + (0 + (Max((61), (36), (36), (36), (36), (36))) * 1 + 0))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -582,527 +922,6 @@ Screens:
                   Width: |-
                       =Parent.Width
                 Children:
-                  - conVhpHero:
-                      Control: GroupContainer
-                      Variant: AutoLayout
-                      Properties:
-                        BorderColor: |-
-                            =C.'border-default'
-                        BorderThickness: |-
-                            =1
-                        DropShadow: |-
-                            =DropShadow.None
-                        Fill: |-
-                            =C.'bg-card'
-                        FillPortions: |-
-                            =0
-                        Height: |-
-                            =122 + (If((((App.Width - 64) - 32)) < 820, 60, 40)) + 12 + (If((((App.Width - 64) - 32)) >= (118) + (118) + (118) + (118) + (118) + 32, 26, (26) + 8 + (26) + 8 + (26) + 8 + (26) + 8 + (26)))
-                        LayoutAlignItems: |-
-                            =LayoutAlignItems.Stretch
-                        LayoutDirection: |-
-                            =LayoutDirection.Vertical
-                        LayoutGap: |-
-                            =12
-                        LayoutMinWidth: |-
-                            =0
-                        LayoutOverflowX: |-
-                            =LayoutOverflow.Hide
-                        LayoutOverflowY: |-
-                            =LayoutOverflow.Hide
-                        PaddingBottom: |-
-                            =16
-                        PaddingLeft: |-
-                            =16
-                        PaddingRight: |-
-                            =16
-                        PaddingTop: |-
-                            =16
-                        RadiusBottomLeft: |-
-                            =14
-                        RadiusBottomRight: |-
-                            =14
-                        RadiusTopLeft: |-
-                            =14
-                        RadiusTopRight: |-
-                            =14
-                        Width: |-
-                            =Parent.Width
-                      Children:
-                        - txtVhpSubtitle:
-                            Control: ModernText
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Create the plan header, lock the plan, add items, link a task list per item, then report via an email draft."
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Color: |-
-                                  =C.'text-muted'
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              Height: |-
-                                  =If((((App.Width - 64) - 32)) < 820, 60, 40)
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
-                              Size: |-
-                                  =14
-                              Text: |-
-                                  ="Create the plan header, lock the plan, add items, link a task list per item, then report via an email draft."
-                              Wrap: |-
-                                  =true
-                        - conVhpProcessStrip:
-                            Control: GroupContainer
-                            Variant: AutoLayout
-                            Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              FillPortions: |-
-                                  =0
-                              Height: |-
-                                  =If((((App.Width - 64) - 32)) >= (118) + (118) + (118) + (118) + (118) + 32, 26, (26) + 8 + (26) + 8 + (26) + 8 + (26) + 8 + (26))
-                              LayoutAlignItems: |-
-                                  =If((((App.Width - 64) - 32)) >= (118) + (118) + (118) + (118) + (118) + 32, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
-                              LayoutDirection: |-
-                                  =If((((App.Width - 64) - 32)) >= (118) + (118) + (118) + (118) + (118) + 32, LayoutDirection.Horizontal, LayoutDirection.Vertical)
-                              LayoutGap: |-
-                                  =8
-                              LayoutMinWidth: |-
-                                  =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              Width: |-
-                                  =Parent.Width
-                            Children:
-                              - txtVhpStep1:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="1. Plan"
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =If(true, C.'text-on-primary', C.'text-muted')
-                                    Fill: |-
-                                        =If(true, C.'color-brand-primary', C.'state-neutral-bg')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =26
-                                    LayoutMinWidth: |-
-                                        =If((((App.Width - 64) - 32)) >= (118) + (118) + (118) + (118) + (118) + 32, 118, 0)
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =8
-                                    PaddingRight: |-
-                                        =8
-                                    PaddingTop: |-
-                                        =0
-                                    RadiusBottomLeft: |-
-                                        =14
-                                    RadiusBottomRight: |-
-                                        =14
-                                    RadiusTopLeft: |-
-                                        =14
-                                    RadiusTopRight: |-
-                                        =14
-                                    Size: |-
-                                        =12
-                                    Text: |-
-                                        ="1. Plan"
-                                    Width: |-
-                                        =118
-                                    Wrap: |-
-                                        =false
-                              - txtVhpStep2:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="2. Item"
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =If(varVhpPlanCommitted, C.'text-on-primary', C.'text-muted')
-                                    Fill: |-
-                                        =If(varVhpPlanCommitted, C.'color-brand-primary', C.'state-neutral-bg')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =26
-                                    LayoutMinWidth: |-
-                                        =If((((App.Width - 64) - 32)) >= (118) + (118) + (118) + (118) + (118) + 32, 118, 0)
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =8
-                                    PaddingRight: |-
-                                        =8
-                                    PaddingTop: |-
-                                        =0
-                                    RadiusBottomLeft: |-
-                                        =14
-                                    RadiusBottomRight: |-
-                                        =14
-                                    RadiusTopLeft: |-
-                                        =14
-                                    RadiusTopRight: |-
-                                        =14
-                                    Size: |-
-                                        =12
-                                    Text: |-
-                                        ="2. Item"
-                                    Width: |-
-                                        =118
-                                    Wrap: |-
-                                        =false
-                              - txtVhpStep3:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="3. Tasklist"
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =If(varVhpPlanCommitted && CountRows(colVhpItems) > 0, C.'text-on-primary', C.'text-muted')
-                                    Fill: |-
-                                        =If(varVhpPlanCommitted && CountRows(colVhpItems) > 0, C.'color-brand-primary', C.'state-neutral-bg')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =26
-                                    LayoutMinWidth: |-
-                                        =If((((App.Width - 64) - 32)) >= (118) + (118) + (118) + (118) + (118) + 32, 118, 0)
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =8
-                                    PaddingRight: |-
-                                        =8
-                                    PaddingTop: |-
-                                        =0
-                                    RadiusBottomLeft: |-
-                                        =14
-                                    RadiusBottomRight: |-
-                                        =14
-                                    RadiusTopLeft: |-
-                                        =14
-                                    RadiusTopRight: |-
-                                        =14
-                                    Size: |-
-                                        =12
-                                    Text: |-
-                                        ="3. Tasklist"
-                                    Width: |-
-                                        =118
-                                    Wrap: |-
-                                        =false
-                              - txtVhpStep4:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =If(varVhpPlan.PlanType = "Strategy", "4. Packages", "4. Operations")
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =If(varVhpPlanCommitted && !IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId, TasklistKey)), C.'text-on-primary', C.'text-muted')
-                                    Fill: |-
-                                        =If(varVhpPlanCommitted && !IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId, TasklistKey)), C.'color-brand-primary', C.'state-neutral-bg')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =26
-                                    LayoutMinWidth: |-
-                                        =If((((App.Width - 64) - 32)) >= (118) + (118) + (118) + (118) + (118) + 32, 118, 0)
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =8
-                                    PaddingRight: |-
-                                        =8
-                                    PaddingTop: |-
-                                        =0
-                                    RadiusBottomLeft: |-
-                                        =14
-                                    RadiusBottomRight: |-
-                                        =14
-                                    RadiusTopLeft: |-
-                                        =14
-                                    RadiusTopRight: |-
-                                        =14
-                                    Size: |-
-                                        =12
-                                    Text: |-
-                                        =If(varVhpPlan.PlanType = "Strategy", "4. Packages", "4. Operations")
-                                    Width: |-
-                                        =118
-                                    Wrap: |-
-                                        =false
-                              - txtVhpStep5:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="5. Dispatch"
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =If(varVhpPlanCommitted && CountRows(colVhpOperations) > 0, C.'text-on-primary', C.'text-muted')
-                                    Fill: |-
-                                        =If(varVhpPlanCommitted && CountRows(colVhpOperations) > 0, C.'color-brand-primary', C.'state-neutral-bg')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =26
-                                    LayoutMinWidth: |-
-                                        =If((((App.Width - 64) - 32)) >= (118) + (118) + (118) + (118) + (118) + 32, 118, 0)
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =8
-                                    PaddingRight: |-
-                                        =8
-                                    PaddingTop: |-
-                                        =0
-                                    RadiusBottomLeft: |-
-                                        =14
-                                    RadiusBottomRight: |-
-                                        =14
-                                    RadiusTopLeft: |-
-                                        =14
-                                    RadiusTopRight: |-
-                                        =14
-                                    Size: |-
-                                        =12
-                                    Text: |-
-                                        ="5. Dispatch"
-                                    Width: |-
-                                        =118
-                                    Wrap: |-
-                                        =false
-                        - txtVhpRuntimeInfo:
-                            Control: ModernText
-                            Properties:
-                              AccessibleLabel: |-
-                                  =varVhpRuntimeInfo
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Color: |-
-                                  =C.'text-muted'
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              Height: |-
-                                  =36
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
-                              Size: |-
-                                  =13
-                              Text: |-
-                                  =varVhpRuntimeInfo
-                              Wrap: |-
-                                  =true
-                        - conVhpLegend:
-                            Control: GroupContainer
-                            Variant: AutoLayout
-                            Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              FillPortions: |-
-                                  =0
-                              Height: |-
-                                  =30
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Center
-                              LayoutDirection: |-
-                                  =LayoutDirection.Horizontal
-                              LayoutGap: |-
-                                  =3
-                              LayoutMinWidth: |-
-                                  =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              Width: |-
-                                  =285
-                            Children:
-                              - txtVhpLegendStar:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="*"
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'state-error-fg'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =20
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =13
-                                    Text: |-
-                                        ="*"
-                                    Width: |-
-                                        =10
-                                    Wrap: |-
-                                        =false
-                              - txtVhpLegendText:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Required"
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-muted'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =20
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =13
-                                    Text: |-
-                                        ="Required"
-                                    Width: |-
-                                        =110
-                                    Wrap: |-
-                                        =false
-                              - btnVhpToggleHints:
-                                  Control: ModernButton
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =If(IfError(varVhpShowHints, false), "Hide field help", "Show field help")
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    Appearance: |-
-                                        =If(IfError(varVhpShowHints, false), ButtonAppearance.Primary, ButtonAppearance.Outline)
-                                    BasePaletteColor: |-
-                                        =C.'state-info-fg'
-                                    BorderColor: |-
-                                        =C.'border-default'
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =If(IfError(varVhpShowHints, false), C.'text-on-primary', C.'state-info-fg')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =30
-                                    Layout: |-
-                                        =ButtonLayout.TextOnly
-                                    OnSelect: |-
-                                        =Set(varVhpShowHints, !IfError(varVhpShowHints, false))
-                                    RadiusBottomLeft: |-
-                                        =10
-                                    RadiusBottomRight: |-
-                                        =10
-                                    RadiusTopLeft: |-
-                                        =10
-                                    RadiusTopRight: |-
-                                        =10
-                                    Size: |-
-                                        =12
-                                    Text: |-
-                                        =If(IfError(varVhpShowHints, false), "Hide field help", "Show field help")
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
-                                    Width: |-
-                                        =150
                   - conVhpPlanCard:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -1118,7 +937,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =132 + (0 + (Max((51), (30), (22))) * 1 + 0) + If(IfError(varVhpHelpPlan, false), 14 + (24 + (Max(CountRows(Sort(
+                            =132 + (0 + (Max((51), (20), (22))) * 1 + 0) + If(IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "plan" && Kind = "Panel"),
                                 Ord
                             )), 1) * 88) + If(CountRows(Sort(
@@ -1167,7 +986,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =0 + (Max((51), (30), (22))) * 1 + 0
+                                  =0 + (Max((51), (20), (22))) * 1 + 0
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Center
                               LayoutDirection: |-
@@ -1208,7 +1027,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =Max(0, (((((App.Width)) - 24 - 16 - 18) - 18 - 18)) - ((110) + 12) - ((64) + 12) - 2)
+                                        =Max(0, (((((App.Width)) - 24 - 16 - 18) - 18 - 18)) - ((83) + 12) - ((64) + 12) - 2)
                                   Children:
                                     - conVhpPlanHeadTitle:
                                         Control: ModernText
@@ -1274,51 +1093,101 @@ Screens:
                                               ="Master data and scheduling parameters for the maintenance plan."
                                           Wrap: |-
                                               =false
-                              - conVhpPlanHeadHelp:
-                                  Control: ModernButton
+                              - conVhpLegend:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =If(varVhpHelpPlan, "Hide help", "? Help")
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    Appearance: |-
-                                        =If(varVhpHelpPlan, ButtonAppearance.Primary, ButtonAppearance.Outline)
-                                    BasePaletteColor: |-
-                                        =C.'state-info-fg'
-                                    BorderColor: |-
-                                        =C.'border-default'
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =If(varVhpHelpPlan, C.'text-on-primary', C.'state-info-fg')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
                                     Height: |-
-                                        =30
-                                    Layout: |-
-                                        =ButtonLayout.TextOnly
-                                    OnSelect: |-
-                                        =Set(varVhpHelpPlan, !varVhpHelpPlan)
-                                    RadiusBottomLeft: |-
-                                        =10
-                                    RadiusBottomRight: |-
-                                        =10
-                                    RadiusTopLeft: |-
-                                        =10
-                                    RadiusTopRight: |-
-                                        =10
-                                    Size: |-
-                                        =14
-                                    Text: |-
-                                        =If(varVhpHelpPlan, "Hide help", "? Help")
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
+                                        =20
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Center
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Horizontal
+                                    LayoutGap: |-
+                                        =3
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
-                                        =110
+                                        =83
+                                  Children:
+                                    - txtVhpLegendStar:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="*"
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'state-error-fg'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =20
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =13
+                                          Text: |-
+                                              ="*"
+                                          Width: |-
+                                              =10
+                                          Wrap: |-
+                                              =false
+                                    - txtVhpLegendText:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Required"
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-muted'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =20
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =13
+                                          Text: |-
+                                              ="Required"
+                                          Width: |-
+                                              =70
+                                          Wrap: |-
+                                              =false
                               - conVhpPlanHeadBadge:
                                   Control: ModernText
                                   Properties:
@@ -1415,7 +1284,7 @@ Screens:
                               RadiusTopRight: |-
                                   =10
                               Visible: |-
-                                  =IfError(varVhpHelpPlan, false)
+                                  =IfError(varVhpShowHints, false)
                               Width: |-
                                   =Parent.Width
                             Children:
@@ -4452,7 +4321,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =If(LayoutRank < 3, (84 + (0 + (Max((51), (22))) * 1 + 0) + 12 + (Max(CountRows(colVhpItems), 1) * 94) + If(IfError(CountRows(colVhpItems) = 0, true), 12 + (40), 0)) + 20 + (86 + (0 + (Max((51), (30))) * 1 + 0) + If(IfError(varVhpHelpItem, false), 14 + (24 + (Max(CountRows(Sort(
+                            =If(LayoutRank < 3, (84 + (0 + (Max((51), (22))) * 1 + 0) + 12 + (Max(CountRows(colVhpItems), 1) * 94) + If(IfError(CountRows(colVhpItems) = 0, true), 12 + (40), 0)) + 20 + (86 + (0 + ((51)) * 1 + 0) + If(IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "item" && Kind = "Panel"),
                                 Ord
                             )), 1) * 88) + If(CountRows(Sort(
@@ -4470,7 +4339,7 @@ Screens:
                             )) = 0, true), 6 + (32), 0))) - ((If(((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 20 - ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3))) < 640, (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 20, Max((62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))))) + (If(((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 20 - ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3))) < 640, (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 20, Max((62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))))) + (If(((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 20 - ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3))) < 640, (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 20, Max((62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))))) + 48) - 26 - If(IfError(varVhpShowHints, false), 6 + 32, 0))) + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (166 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 16 + (280 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + If(IfError(CountRows(Filter(
                                 colVhpFlSearch,
                                 !IsBlank(Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(drpVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
-                            )) = 0, true), 6 + (32), 0)))))))), Max((84 + (0 + (Max((51), (22))) * 1 + 0) + 12 + (Max(CountRows(colVhpItems), 1) * 94) + If(IfError(CountRows(colVhpItems) = 0, true), 12 + (40), 0)), (86 + (0 + (Max((51), (30))) * 1 + 0) + If(IfError(varVhpHelpItem, false), 14 + (24 + (Max(CountRows(Sort(
+                            )) = 0, true), 6 + (32), 0)))))))), Max((84 + (0 + (Max((51), (22))) * 1 + 0) + 12 + (Max(CountRows(colVhpItems), 1) * 94) + If(IfError(CountRows(colVhpItems) = 0, true), 12 + (40), 0)), (86 + (0 + ((51)) * 1 + 0) + If(IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "item" && Kind = "Panel"),
                                 Ord
                             )), 1) * 88) + If(CountRows(Sort(
@@ -5361,7 +5230,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =86 + (0 + (Max((51), (30))) * 1 + 0) + If(IfError(varVhpHelpItem, false), 14 + (24 + (Max(CountRows(Sort(
+                                  =86 + (0 + ((51)) * 1 + 0) + If(IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
                                       Filter(colVhpHelp, Key = "item" && Kind = "Panel"),
                                       Ord
                                   )), 1) * 88) + If(CountRows(Sort(
@@ -5422,7 +5291,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =0 + (Max((51), (30))) * 1 + 0
+                                        =0 + ((51)) * 1 + 0
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Center
                                     LayoutDirection: |-
@@ -5463,7 +5332,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =Max(0, (((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20)) - 18 - 18)) - ((110) + 12) - 2)
+                                              =Max(0, (((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20)) - 18 - 18)) - 2)
                                         Children:
                                           - conVhpEditorHeadTitle:
                                               Control: ModernText
@@ -5529,51 +5398,6 @@ Screens:
                                                     ="Full item fields with functional location lookup."
                                                 Wrap: |-
                                                     =false
-                                    - conVhpEditorHeadHelp:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =If(varVhpHelpItem, "Hide help", "? Help")
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          Appearance: |-
-                                              =If(varVhpHelpItem, ButtonAppearance.Primary, ButtonAppearance.Outline)
-                                          BasePaletteColor: |-
-                                              =C.'state-info-fg'
-                                          BorderColor: |-
-                                              =C.'border-default'
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =If(varVhpHelpItem, C.'text-on-primary', C.'state-info-fg')
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =30
-                                          Layout: |-
-                                              =ButtonLayout.TextOnly
-                                          OnSelect: |-
-                                              =Set(varVhpHelpItem, !varVhpHelpItem)
-                                          RadiusBottomLeft: |-
-                                              =10
-                                          RadiusBottomRight: |-
-                                              =10
-                                          RadiusTopLeft: |-
-                                              =10
-                                          RadiusTopRight: |-
-                                              =10
-                                          Size: |-
-                                              =14
-                                          Text: |-
-                                              =If(varVhpHelpItem, "Hide help", "? Help")
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =110
                               - conVhpItemHelp:
                                   Control: GroupContainer
                                   Variant: AutoLayout
@@ -5623,7 +5447,7 @@ Screens:
                                     RadiusTopRight: |-
                                         =10
                                     Visible: |-
-                                        =IfError(varVhpHelpItem, false)
+                                        =IfError(varVhpShowHints, false)
                                     Width: |-
                                         =Parent.Width
                                   Children:
@@ -8389,13 +8213,13 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =36 + (0 + (Max((51), (30), (22))) * 1 + 0) + If(IfError(varVhpHelpOps, false), 14 + (24 + (Max(CountRows(Sort(
+                            =36 + (0 + (Max((51), (22))) * 1 + 0) + If(IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "ops" && Kind = "Panel"),
                                 Ord
                             )), 1) * 88) + If(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "ops" && Kind = "Panel"),
                                 Ord
-                            )) = 0, 4 + (32), 0)), 0) + 14 + (If((((App.Width - 64) - 36)) >= (168) + (168) + (168) + (168) + 18, 34, (34) + If(IfError((varVhpPlan.PlanType = "Strategy"), false), 6 + (34), 0) + 6 + (34) + 6 + (34))) + If(IfError(IsBlank(varVhpOpsTab) || IfError(varVhpOpsTab = "ops", false) || (IfError(varVhpOpsTab = "pkg", false) && !(varVhpPlan.PlanType = "Strategy")), false), 14 + (26 + (48 + (62)) + If(IfError(varVhpShowHints && !IsBlank(varVhpActiveItemId), false), 8 + (32), 0) + 8 + (27 + 4 + (Max(CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)), 1) * 40) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (1), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (24), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) = 0, false), 4 + (24), 0))), 0) + If(IfError(IfError(varVhpOpsTab = "pkg", false) && (varVhpPlan.PlanType = "Strategy"), false), 14 + (32 + If(IfError(varVhpHelpPkg, false), 0 + (24 + (Max(CountRows(Sort(
+                            )) = 0, 4 + (32), 0)), 0) + 14 + (If((((App.Width - 64) - 36)) >= (168) + (168) + (168) + (168) + 18, 34, (34) + If(IfError((varVhpPlan.PlanType = "Strategy"), false), 6 + (34), 0) + 6 + (34) + 6 + (34))) + If(IfError(IsBlank(varVhpOpsTab) || IfError(varVhpOpsTab = "ops", false) || (IfError(varVhpOpsTab = "pkg", false) && !(varVhpPlan.PlanType = "Strategy")), false), 14 + (26 + (48 + (62)) + If(IfError(varVhpShowHints && !IsBlank(varVhpActiveItemId), false), 8 + (32), 0) + 8 + (27 + 4 + (Max(CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)), 1) * 40) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (1), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (24), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) = 0, false), 4 + (24), 0))), 0) + If(IfError(IfError(varVhpOpsTab = "pkg", false) && (varVhpPlan.PlanType = "Strategy"), false), 14 + (32 + If(IfError(varVhpShowHints, false), 0 + (24 + (Max(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "pkg" && Kind = "Panel"),
                                 Ord
                             )), 1) * 88) + If(CountRows(Sort(
@@ -8444,7 +8268,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =0 + (Max((51), (30), (22))) * 1 + 0
+                                  =0 + (Max((51), (22))) * 1 + 0
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Center
                               LayoutDirection: |-
@@ -8485,7 +8309,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =Max(0, (((((App.Width)) - 24 - 16 - 18) - 18 - 18)) - ((110) + 12) - ((64) + 12) - 2)
+                                        =Max(0, (((((App.Width)) - 24 - 16 - 18) - 18 - 18)) - ((64) + 12) - 2)
                                   Children:
                                     - conVhpOpsHeadTitle:
                                         Control: ModernText
@@ -8551,51 +8375,6 @@ Screens:
                                               ="Link a task list to the active item and add operation lines."
                                           Wrap: |-
                                               =false
-                              - conVhpOpsHeadHelp:
-                                  Control: ModernButton
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =If(varVhpHelpOps, "Hide help", "? Help")
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    Appearance: |-
-                                        =If(varVhpHelpOps, ButtonAppearance.Primary, ButtonAppearance.Outline)
-                                    BasePaletteColor: |-
-                                        =C.'state-info-fg'
-                                    BorderColor: |-
-                                        =C.'border-default'
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =If(varVhpHelpOps, C.'text-on-primary', C.'state-info-fg')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =30
-                                    Layout: |-
-                                        =ButtonLayout.TextOnly
-                                    OnSelect: |-
-                                        =Set(varVhpHelpOps, !varVhpHelpOps)
-                                    RadiusBottomLeft: |-
-                                        =10
-                                    RadiusBottomRight: |-
-                                        =10
-                                    RadiusTopLeft: |-
-                                        =10
-                                    RadiusTopRight: |-
-                                        =10
-                                    Size: |-
-                                        =14
-                                    Text: |-
-                                        =If(varVhpHelpOps, "Hide help", "? Help")
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
-                                    Width: |-
-                                        =110
                               - conVhpOpsHeadBadge:
                                   Control: ModernText
                                   Properties:
@@ -8692,7 +8471,7 @@ Screens:
                               RadiusTopRight: |-
                                   =10
                               Visible: |-
-                                  =IfError(varVhpHelpOps, false)
+                                  =IfError(varVhpShowHints, false)
                               Width: |-
                                   =Parent.Width
                             Children:
@@ -10449,7 +10228,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =32 + If(IfError(varVhpHelpPkg, false), 0 + (24 + (Max(CountRows(Sort(
+                                  =32 + If(IfError(varVhpShowHints, false), 0 + (24 + (Max(CountRows(Sort(
                                       Filter(colVhpHelp, Key = "pkg" && Kind = "Panel"),
                                       Ord
                                   )), 1) * 88) + If(CountRows(Sort(
@@ -10522,7 +10301,7 @@ Screens:
                                     RadiusTopRight: |-
                                         =10
                                     Visible: |-
-                                        =IfError(varVhpHelpPkg, false)
+                                        =IfError(varVhpShowHints, false)
                                     Width: |-
                                         =Parent.Width
                                   Children:
