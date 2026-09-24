@@ -1,0 +1,362 @@
+﻿<!doctype html>
+<html lang="da" xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Orsted SAP Shell - VH-plan</title>
+  <link rel="stylesheet" href="tokens.css?v=20260804" />
+  <link rel="stylesheet" href="styles.css?v=20260804" />
+  <link rel="stylesheet" href="site.css?v=20260804" />
+  <link rel="stylesheet" href="shell.css?v=20260807" />
+
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:_dlc_DocId msdt:dt="string">Deca00015517-1540791522-20144</mso:_dlc_DocId>
+<mso:_dlc_DocIdItemGuid msdt:dt="string">9647f4ab-6ea9-4c2c-b51f-c58d4335f3ee</mso:_dlc_DocIdItemGuid>
+<mso:_dlc_DocIdUrl msdt:dt="string">https://orsted.sharepoint.com/teams/Sapvedligehold/_layouts/15/DocIdRedir.aspx?ID=Deca00015517-1540791522-20144, Deca00015517-1540791522-20144</mso:_dlc_DocIdUrl>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head>
+<body data-page="vh-plan">
+  <div class="site-shell" id="vhComboHost">
+    <header class="site-topbar">
+      <a class="site-brand" href="index.html">
+        <span class="site-brand-mark" aria-hidden="true"></span>
+        <span>BIO SAP</span>
+      </a>
+      <nav class="site-nav" aria-label="Main navigation">
+        <a href="index.html" data-nav="home">Forside</a>
+        <a href="functional-location.html" data-nav="functional-location">Functional Location</a>
+        <a href="vh-plan.html" data-nav="vh-plan">VH-plan</a>
+        <a href="materialer.html" data-nav="materialer">Materialer</a>
+        <a href="equipment.html" data-nav="equipment">Equipment</a>
+        <a href="kks-kks.html" data-nav="kks">KKS</a>
+        <a href="vgb-aggregat.html" data-nav="vgb">VGB</a>
+        <a href="faq.html" data-nav="faq">FAQ</a>
+      </nav>
+    </header>
+
+    <section class="site-hero vh-hero" id="vhSectionHeader">
+      <div class="vh-hero-grid">
+        <div class="vh-object-header">
+          <h1>VH-plan</h1>
+          <p class="vh-object-subtitle">Opret planheader, lås planen, tilføj items, bind tasklist pr. item, indberet via mailkladde.</p>
+        </div>
+
+        <div class="vh-hero-actions" aria-label="Plan actions">
+          <div class="vh-action-primary-row">
+            <button id="btnValidateVh" class="action-btn primary" type="button">Validate</button>
+            <button id="btnExportVh" class="action-btn" type="button">Export JSON</button>
+          </div>
+        </div>
+      </div>
+
+      <nav class="vh-process-strip" aria-label="VH process steps">
+        <a id="vhStepPlan" class="vh-process-step" href="#vhSectionPlan">1. Plan</a>
+        <a id="vhStepItem" class="vh-process-step" href="#vhSectionItems">2. Item</a>
+        <a id="vhStepTasklist" class="vh-process-step" href="#vhSectionTasklist">3. Tasklist</a>
+        <a id="vhStepOperations" class="vh-process-step" href="#vhSectionTasklist">4. Operations</a>
+        <a id="vhStepDispatch" class="vh-process-step" href="#vhSectionDispatch">5. Dispatch</a>
+      </nav>
+
+      <p id="vhRuntimeInfo" class="small-muted vh-runtime-strip" aria-live="polite" aria-atomic="true">Ready.</p>
+      <p class="required-legend">Skal udfyldes</p>
+    </section>
+
+    <section class="vh-shell">
+      <div class="glass-panel vh-section-card" id="vhSectionPlan">
+        <div class="vh-section-head">
+          <div>
+            <h2>Plan Header</h2>
+            <p>Vedligeholdelsesplanens stamdata og tidsparametre.</p>
+          </div>
+          <span class="vh-section-badge">Step 1</span>
+        </div>
+        <div id="vhPlanLockState" class="inline-helper" aria-live="polite"></div>
+
+        <div class="vh-plan-grid">
+          <div class="form-block" data-required="true">
+            <label for="planPlant">Plant</label>
+            <select id="planPlant"></select>
+          </div>
+
+          <div class="form-block" data-required="true">
+            <label for="planStatus">Status</label>
+            <select id="planStatus"></select>
+          </div>
+
+          <div class="form-block" data-required="true">
+            <label for="planText">Plan Text</label>
+            <input id="planText" type="text" maxlength="40" />
+          </div>
+
+          <div class="form-block">
+            <label for="planSortField">Sort Field</label>
+            <select id="planSortField"></select>
+          </div>
+
+          <div class="form-block" data-required="true">
+            <label for="planCycle">Cycle</label>
+            <input id="planCycle" type="number" min="1" step="1" />
+          </div>
+
+          <div class="form-block" data-required="true">
+            <label for="planUnit">Unit</label>
+            <select id="planUnit"></select>
+          </div>
+
+          <div class="form-block">
+            <label for="planCallHorizon">Call Horizon</label>
+            <select id="planCallHorizon"></select>
+          </div>
+
+          <div class="form-block">
+            <label for="planSchedulingIndicator">Scheduling Indicator</label>
+            <input id="planSchedulingIndicator" type="text" />
+          </div>
+
+          <div class="form-block" data-required="true">
+            <label for="planFirstCallDay">First Call Day</label>
+            <input id="planFirstCallDay" type="number" min="1" max="31" step="1" />
+          </div>
+
+          <div class="form-block" data-required="true">
+            <label for="planFirstCallMonth">First Call Month</label>
+            <input id="planFirstCallMonth" type="number" min="1" max="12" step="1" />
+          </div>
+
+          <div class="form-block" data-required="true">
+            <label for="planFirstCallYear">First Call Year</label>
+            <input id="planFirstCallYear" type="number" min="2020" max="2100" step="1" />
+          </div>
+
+          <div class="form-block">
+            <label for="planStatutorySortField">Statutory Sort Field</label>
+            <input id="planStatutorySortField" type="text" />
+          </div>
+        </div>
+
+        <div class="vh-plan-footer">
+          <div class="vh-plan-footer-info">
+            <div id="vhPlanMeta" class="inline-helper"></div>
+            <div id="vhOptionsState" class="inline-helper" aria-live="polite"></div>
+          </div>
+          <div class="vh-plan-actions">
+            <button id="btnCommitVhPlan" class="action-btn primary" type="button">Save</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="vh-split">
+        <div class="glass-panel vh-section-card" id="vhSectionItems">
+          <div class="vh-section-head">
+            <div>
+              <h2>Items</h2>
+              <p>Hvert item har eget FL, tasklist-binding og operationer.</p>
+            </div>
+            <span class="vh-section-badge">Step 2</span>
+          </div>
+          <div class="control-row vh-item-actions">
+            <button id="btnAddVhItem" class="action-btn" type="button">Add item</button>
+            <button id="btnCopyVhItem" class="action-btn" type="button">Copy item</button>
+            <button id="btnRemoveVhItem" class="action-btn danger" type="button">Remove item</button>
+          </div>
+          <div id="vhItemsRail" class="items-rail"></div>
+        </div>
+
+        <div class="glass-panel vh-section-card" id="vhSectionEditor">
+          <div class="vh-section-head">
+            <div>
+              <h2>Item Editor</h2>
+              <p>Fulde itemfelter med SAP-opslag af Functional Location.</p>
+            </div>
+          </div>
+          <div class="item-editor">
+            <div class="vh-item-fl-grid">
+              <div class="form-block combo-box" data-required="true">
+                <label for="itemFunctionalLocation">Functional Location</label>
+                <input id="itemFunctionalLocation" type="text" />
+                <div id="vhFlSuggestions" class="combo-panel-lite" hidden></div>
+                <div id="vhFlMeta" class="inline-helper"></div>
+              </div>
+
+              <div class="form-block form-block-span-2">
+                <label>FL Description</label>
+                <div id="vhFlDescription" class="inline-helper" aria-live="polite"></div>
+              </div>
+
+              <div class="form-block form-block-end">
+                <label>&nbsp;</label>
+                <button id="btnVhVerifyFl" class="action-btn" type="button">Verify FL in SAP</button>
+              </div>
+            </div>
+
+            <div class="item-editor-grid">
+              <div class="form-block" data-required="true">
+                <label for="itemShortText">Item Short Text</label>
+                <input id="itemShortText" type="text" maxlength="40" />
+              </div>
+              <div class="form-block" data-required="true">
+                <label for="itemMainWorkCenter">Main Work Center</label>
+                <select id="itemMainWorkCenter"></select>
+              </div>
+              <div class="form-block" data-required="true">
+                <label for="itemActivityType">Maintenance Activity Type</label>
+                <select id="itemActivityType"></select>
+              </div>
+
+              <div class="form-block">
+                <label for="itemObjectList">Object List</label>
+                <input id="itemObjectList" type="text" />
+              </div>
+              <div class="form-block">
+                <label for="itemRevision">Revision</label>
+                <select id="itemRevision"></select>
+              </div>
+
+              <div class="form-block">
+                <label for="itemOrstedResponsible">Orsted Responsible</label>
+                <input id="itemOrstedResponsible" type="text" />
+              </div>
+              <div class="form-block">
+                <label for="itemInitials">Initials</label>
+                <input id="itemInitials" type="text" maxlength="12" />
+              </div>
+            </div>
+
+            <div class="form-block">
+              <label for="itemLongText">Item Long Text</label>
+              <textarea id="itemLongText"></textarea>
+            </div>
+          </div>
+
+          <div class="vh-plan-footer">
+            <div class="vh-plan-footer-info">
+              <div id="vhItemMeta" class="inline-helper"></div>
+            </div>
+            <div class="vh-plan-actions">
+              <button id="btnSaveVhItem" class="action-btn primary" type="button">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-panel vh-section-card" id="vhSectionTasklist">
+        <div class="vh-section-head">
+          <div>
+            <h2>Tasklist and Operations</h2>
+            <p>Bind tasklist til aktivt item og vælg linjer via popup med multiple choice.</p>
+          </div>
+          <span class="vh-section-badge">Step 3-4</span>
+        </div>
+        <div class="tasklist-toolbar">
+          <div class="form-block" data-required="true">
+            <label for="itemTasklistSelect">Tasklist For Active Item</label>
+            <select id="itemTasklistSelect"></select>
+          </div>
+
+          <div class="tasklist-action-row">
+            <button id="btnApplyTasklist" class="action-btn" type="button">Apply tasklist</button>
+            <button id="btnAddTasklistLines" class="action-btn primary" type="button">Add lines from tasklist</button>
+            <button id="btnAddOperation" class="action-btn" type="button">Add operation</button>
+            <button id="btnRemoveOperation" class="action-btn danger" type="button">Remove operation</button>
+          </div>
+        </div>
+
+        <div id="vhTasklistMeta" class="inline-helper"></div>
+
+        <div class="ops-table-wrap">
+          <table class="ops-table" aria-label="Tasklist operations">
+            <thead>
+              <tr>
+                <th scope="col">Sel</th>
+                <th scope="col">Op No.</th>
+                <th scope="col">Operation Short Text</th>
+                <th scope="col">Work (H)</th>
+                <th scope="col">Dur. (H)</th>
+                <th scope="col">Main Work Center</th>
+                <th scope="col">Vendor</th>
+                <th scope="col">Long Text</th>
+              </tr>
+            </thead>
+            <tbody id="vhOperationsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="glass-panel vh-section-card" id="vhPlanStatePanel">
+        <div class="vh-section-head" id="vhSectionDispatch">
+          <div>
+            <h2>Dispatch and Control</h2>
+            <p>Kontrolstatus før indberetning via mailkladde.</p>
+          </div>
+          <span class="vh-section-badge">Step 5</span>
+        </div>
+        <div class="inline-helper" id="vhPlanStatusInline" aria-live="polite">Create plan, then add items and operations.</div>
+        <div class="inline-helper" id="vhTasklistHintInline">Tasklist operations are linked to each item and exported in mail draft.</div>
+      </div>
+
+    </section>
+
+    <footer class="footer-note">
+      VH shell.
+    </footer>
+  </div>
+
+  <div id="vhTasklistPickerModal" class="vh-modal" hidden>
+    <div class="vh-modal-backdrop" data-modal-close="tasklist-picker"></div>
+    <div class="vh-modal-panel" role="dialog" aria-modal="true" aria-labelledby="vhTasklistPickerTitle">
+      <div class="vh-modal-header">
+        <h3 id="vhTasklistPickerTitle">Select tasklist lines</h3>
+        <button id="btnTasklistPickerClose" class="action-btn" type="button">Close</button>
+      </div>
+
+      <div class="vh-modal-toolbar">
+        <input id="vhTasklistPickerSearch" type="text" aria-label="Søg i tasklist-linjer" placeholder="Search operation no, text, work center" />
+        <label class="vh-modal-select-all">
+          <input id="vhTasklistPickerSelectAll" type="checkbox" />
+          Select all visible
+        </label>
+      </div>
+
+      <div id="vhTasklistPickerInfo" class="inline-helper" aria-live="polite"></div>
+
+      <div class="vh-picker-list-wrap">
+        <table class="vh-picker-table" aria-label="Tasklist line picker">
+          <thead>
+            <tr>
+              <th scope="col">Sel</th>
+              <th scope="col">Op No.</th>
+              <th scope="col">Operation Short Text</th>
+              <th scope="col">Main Work Center</th>
+              <th scope="col">Ctrl</th>
+              <th scope="col">Work (H)</th>
+              <th scope="col">Dur. (H)</th>
+            </tr>
+          </thead>
+          <tbody id="vhTasklistPickerBody"></tbody>
+        </table>
+      </div>
+
+      <div class="vh-modal-actions">
+        <button id="btnTasklistPickerCancel" class="action-btn" type="button">Cancel</button>
+        <button id="btnTasklistPickerAddSelected" class="action-btn primary" type="button">Add selected lines</button>
+      </div>
+    </div>
+  </div>
+
+  <button id="btnSendEmailVh" class="email-fab" type="button">Send as email</button>
+
+  <script src="js/modules/text-utils.js"></script>
+  <script src="js/modules/required-fields.js?v=20260805"></script>
+  <script src="js/odata-client.js"></script>
+  <script src="js/data/vh-plan-options.js"></script>
+  <script src="js/data/vh-tasklist-data.js"></script>
+  <script src="js/modules/mailto-utils.js"></script>
+  <script src="js/app-vh-plan.js?v=20260805"></script>
+  <script src="js/shell.js?v=20260731"></script>
+</body>
+</html>
+
+
+

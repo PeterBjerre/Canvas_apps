@@ -1,0 +1,202 @@
+﻿<!doctype html>
+<html lang="da" xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Spare Parts Intake 2026</title>
+  <link rel="stylesheet" href="tokens.css?v=20260804" />
+  <link rel="stylesheet" href="styles.css?v=20260804" />
+  <link rel="stylesheet" href="shell.css?v=20260807" />
+
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:_dlc_DocId msdt:dt="string">Deca00015517-1540791522-20153</mso:_dlc_DocId>
+<mso:_dlc_DocIdItemGuid msdt:dt="string">710bc810-f52f-4144-a228-a2935515c8fb</mso:_dlc_DocIdItemGuid>
+<mso:_dlc_DocIdUrl msdt:dt="string">https://orsted.sharepoint.com/teams/Sapvedligehold/_layouts/15/DocIdRedir.aspx?ID=Deca00015517-1540791522-20153, Deca00015517-1540791522-20153</mso:_dlc_DocIdUrl>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero glass">
+      <div class="hero-main">
+        <p class="eyebrow">Materialer</p>
+        <h1>Supplier Intake</h1>
+        <div class="hero-stats" aria-label="Row counters" aria-live="polite" aria-atomic="true">
+          <span class="hero-stat">Total <strong id="kpiRows">0</strong></span>
+          <span class="hero-stat">Valid <strong id="kpiValid">0</strong></span>
+          <span class="hero-stat">Invalid <strong id="kpiInvalid">0</strong></span>
+        </div>
+      </div>
+      <div class="hero-actions">
+        <div class="hero-actions-top">
+          <div class="mode-switch" role="group" aria-label="Material mode switch">
+            <button id="btnModeDrift" class="toggle-pill" type="button" data-mode="drift" aria-pressed="false">Drift</button>
+            <button id="btnModeProject" class="toggle-pill" type="button" data-mode="project" aria-pressed="false">Projekt</button>
+          </div>
+          <button id="btnLocalProxy" class="toggle-pill" type="button" aria-pressed="false">Local proxy: OFF</button>
+        </div>
+        <div class="hero-actions-bottom">
+          <button id="btnExportCsv" class="btn btn-accent" type="button">Export CSV</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel glass form-section">
+        <div class="panel-head form-head">
+          <h2>Spare Parts Form</h2>
+          <p class="required-legend">Skal udfyldes</p>
+          <div class="form-head-actions">
+            <button id="btnToggleNoBom" class="toggle-pill" type="button" aria-pressed="false">No BOM Item: OFF</button>
+          </div>
+        </div>
+
+        <form id="spareForm" class="form-grid" novalidate>
+          <input id="bypassFunctionalLocation" type="checkbox" class="sr-only" aria-label="Bypass Functional Location validation" />
+          <label class="hintable" data-required="true" data-hint="Functional Location: max 40 characters. KKS syntax is validated locally. On save, Tplnr is verified in SAP OData. If found, Pltxt is shown.">Functional Location
+            <input id="functionalLocation" name="functionalLocation" maxlength="40" required autocomplete="off" />
+            <div id="functionalLocationDesc" class="field-meta"></div>
+            <div id="functionalLocationSuggestions" class="combo-panel" hidden></div>
+          </label>
+          <label class="hintable" data-required="true" data-hint="Manufacturer: max 30 characters.">Manufacturer
+            <input id="manufacturer" name="manufacturer" maxlength="30" />
+          </label>
+          <label class="hintable" data-required="true" data-hint="Model Number: max 30 characters.">Model Number
+            <input id="modelNumber" name="modelNumber" maxlength="30" />
+          </label>
+          <label class="hintable" data-required="true" data-hint="Manufacturer Part No.: max 30 characters.">Manufacturer Part No.
+            <input id="manufacturerPartNo" name="manufacturerPartNo" maxlength="30" />
+          </label>
+          <label class="hintable" data-required="true" data-hint="Material Description: max 40 characters.">Material Description
+            <input id="materialDescription" name="materialDescription" maxlength="40" />
+          </label>
+          <label class="hintable" data-hint="Documentation: either DECA or a valid file name (for example manual.pdf).">Documentation: file name or DECA
+            <div class="doc-picker">
+              <input id="documentation" name="documentation" placeholder="manual.pdf, image.png, or DECA" />
+              <button id="btnPickDocumentation" class="btn btn-ghost" type="button">Select file</button>
+              <input id="documentationFile" type="file" hidden />
+            </div>
+          </label>
+          <label class="hintable" data-required="true" data-hint="Stock Unit: text value (for example PC, EA, SET).">Stock Unit
+            <input id="stockUnit" name="stockUnit" autocomplete="off" />
+            <div id="stockUnitSuggestions" class="combo-panel" hidden></div>
+          </label>
+          <label class="hintable" data-required="true" data-hint="Price: numeric value, minimum 0.">Price
+            <input id="price" name="price" type="number" min="0" step="0.01" />
+          </label>
+          <label class="hintable" data-required="true" data-hint="Price unit: text value (for example PC, 10, 100).">Price unit
+            <input id="priceUnit" name="priceUnit" autocomplete="off" />
+            <div id="priceUnitSuggestions" class="combo-panel" hidden></div>
+          </label>
+          <label class="hintable" data-hint="Delivering time: minimum 30.">Delivering time
+            <input id="deliveringTime" name="deliveringTime" type="number" min="30" step="1" value="30" />
+          </label>
+          <label class="hintable" data-hint="Recommended stock: integer, minimum 0.">Recommended stock
+            <input id="recommendedStock" name="recommendedStock" type="number" min="0" step="1" />
+          </label>
+          <label class="hintable" data-hint="Supplier: free text.">Supplier
+            <input id="supplier" name="supplier" />
+          </label>
+          <label class="hintable" data-hint="Supplier's Part no.: free text.">Supplier's Part no.
+            <input id="supplierPartNo" name="supplierPartNo" />
+          </label>
+          <label class="hintable" data-hint="Strategic part: default is NO.">Strategic part
+            <input id="strategicPart" name="strategicPart" class="no-clear-btn" autocomplete="off" value="NO" />
+            <div id="strategicPartSuggestions" class="combo-panel" hidden></div>
+          </label>
+          <label class="hintable" data-hint="Wear part: choose YES or NO.">Wear part
+            <input id="wearPart" name="wearPart" class="no-clear-btn" autocomplete="off" value="NO" />
+            <div id="wearPartSuggestions" class="combo-panel" hidden></div>
+          </label>
+          <div class="bottom-row span-4">
+            <div class="meta-strip">
+              <p>Plant: <strong id="detectedPlant">-</strong></p>
+              <p>Row status: <strong id="detectedStatus">Not validated</strong></p>
+            </div>
+            <div class="form-actions form-actions-right">
+              <button id="btnSave" class="btn btn-accent" type="submit">Save row</button>
+              <button id="btnReset" class="btn btn-ghost" type="button">Reset form</button>
+            </div>
+          </div>
+        </form>
+
+        <div id="validationList" class="validation-list"></div>
+      </section>
+    </main>
+
+    <section class="panel glass rows-section">
+      <div class="panel-head split">
+        <div>
+          <h2>Saved Rows</h2>
+        </div>
+        <div class="filter-row">
+          <input id="searchInput" type="search" aria-label="Search saved rows" placeholder="Search FL, supplier, part no., material..." />
+          <select id="statusFilter" aria-label="Filter by status">
+            <option value="all">All status</option>
+            <option value="valid">Only valid</option>
+            <option value="invalid">Only invalid</option>
+          </select>
+          <select id="plantFilter" aria-label="Filter by plant">
+            <option value="all">All plants</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="material-table-toolbar" aria-label="Table view options">
+        <div class="class-view-presets">
+          <button id="btnMaterialViewCompact" type="button" class="class-view-btn" aria-pressed="true">Compact</button>
+          <button id="btnMaterialViewAll" type="button" class="class-view-btn" aria-pressed="false">All columns</button>
+        </div>
+      </div>
+
+      <div class="table-wrap spareparts-table-wrap">
+        <table id="rowsTable" class="spareparts-table">
+          <thead>
+            <tr>
+              <th scope="col">Status</th>
+              <th scope="col">Functional Location</th>
+              <th scope="col">Manufacturer</th>
+              <th scope="col">Model Number</th>
+              <th scope="col">Manufacturer Part No.</th>
+              <th scope="col">Material Description</th>
+              <th scope="col">Documentation</th>
+              <th scope="col">Stock Unit</th>
+              <th scope="col">Price</th>
+              <th scope="col">Price Unit</th>
+              <th scope="col">Delivering Time</th>
+              <th scope="col">Recommended Stock</th>
+              <th scope="col">Supplier</th>
+              <th scope="col">Supplier Part No.</th>
+              <th scope="col">Strategic Part</th>
+              <th scope="col">Wear Part</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="rowsBody"></tbody>
+        </table>
+      </div>
+      <div class="rows-footer">
+        <button id="btnSubmitRows" class="btn btn-accent" type="button">Submit saved rows</button>
+      </div>
+    </section>
+
+    <footer class="foot-note glass">
+      <p>Standalone.</p>
+      <p id="runtimeInfo">Ready.</p>
+    </footer>
+  </div>
+
+  <button id="btnSendEmailMaterialer" class="email-fab" type="button">Send as email</button>
+
+  <div id="materialDetailsHost"></div>
+
+  <script src="js/modules/text-utils.js"></script>
+  <script src="js/modules/required-fields.js?v=20260805"></script>
+  <script src="js/modules/mailto-utils.js"></script>
+  <script src="js/app-standalone.js?v=20260805"></script>
+  <script src="js/app-materialer-wrapper.js?v=20260731"></script>
+  <script src="js/embed-bridge.js?v=20260801"></script>
+  <script src="js/shell.js?v=20260731"></script>
+</body>
+</html>

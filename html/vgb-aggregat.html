@@ -1,0 +1,125 @@
+﻿<!doctype html>
+<html lang="da" xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Orsted SAP Shell - VGB Aggregat</title>
+  <link rel="stylesheet" href="tokens.css?v=20260804" />
+  <link rel="stylesheet" href="styles.css?v=20260804" />
+  <link rel="stylesheet" href="site.css?v=20260804" />
+  <link rel="stylesheet" href="shell.css?v=20260807" />
+
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:_dlc_DocId msdt:dt="string">Deca00015517-1540791522-20190</mso:_dlc_DocId>
+<mso:_dlc_DocIdItemGuid msdt:dt="string">a6da90c0-ec6a-47cc-9a57-0d3fc24ab8d3</mso:_dlc_DocIdItemGuid>
+<mso:_dlc_DocIdUrl msdt:dt="string">https://orsted.sharepoint.com/teams/Sapvedligehold/_layouts/15/DocIdRedir.aspx?ID=Deca00015517-1540791522-20190, Deca00015517-1540791522-20190</mso:_dlc_DocIdUrl>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head>
+<body data-page="vgb" data-vgb-section="aggregate" data-kks-detail="off" data-kks-mode-scope="vgb">
+  <div class="site-shell">
+    <header class="site-topbar">
+      <a class="site-brand" href="index.html">
+        <span class="site-brand-mark" aria-hidden="true"></span>
+        <span>BIO SAP</span>
+      </a>
+      <nav class="site-nav" aria-label="Main navigation">
+        <a href="index.html" data-nav="home">Forside</a>
+        <a href="functional-location.html" data-nav="functional-location">Functional Location</a>
+        <a href="vh-plan.html" data-nav="vh-plan">VH-plan</a>
+        <a href="materialer.html" data-nav="materialer">Materialer</a>
+        <a href="equipment.html" data-nav="equipment">Equipment</a>
+        <a href="kks-kks.html" data-nav="kks">KKS</a>
+        <a href="vgb-aggregat.html" data-nav="vgb">VGB</a>
+        <a href="faq.html" data-nav="faq">FAQ</a>
+      </nav>
+    </header>
+
+    <section class="site-hero kks-hero">
+      <div class="kks-hero-main">
+        <h1>VGB Opslag</h1>
+        <p>Aggregatnøgle (Del 2 - Aggregateliste) baseret på VGB-B 105.1. Dansk og Tysk vises i separate kolonner.</p>
+      </div>
+    </section>
+
+    <section class="glass-panel kks-control-shell">
+      <div class="lookup-toolbar">
+        <div class="hero-action-row" aria-label="Nøgleområde">
+          <a class="hero-link-btn primary" href="vgb-aggregat.html">Aggregatnøgle</a>
+          <a class="hero-link-btn" href="vgb-komponent.html">Komponentnøgle</a>
+        </div>
+        <div class="kks-nav-mode" aria-label="Navigationsvisning">
+          <div class="kks-nav-mode-switch" role="group" aria-label="Skift navigationsmode">
+            <button id="kksNavModeClassic" type="button" class="kks-nav-mode-btn" data-mode="classic" aria-pressed="true">Klassisk</button>
+            <button id="kksNavModeExplorer" type="button" class="kks-nav-mode-btn" data-mode="explorer" aria-pressed="false">Explorer</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="kksClassicShell" class="kks-nav-stack">
+        <div class="kks-nav-lane">
+          <div id="kksLevel1Row" class="kks-filter-row kks-level-row" aria-label="VGB aggregatgrupper"></div>
+        </div>
+        <div class="kks-nav-lane">
+          <div id="kksLevel2Row" class="kks-filter-row kks-level-row" aria-label="VGB undergrupper"></div>
+        </div>
+      </div>
+
+      <div id="kksExplorerShell" class="kks-explorer-shell" hidden>
+        <div class="kks-explorer-toolbar">
+          <button type="button" id="kksExplorerBack" class="kks-explorer-action" data-action="back" title="Tilbage">&lt;</button>
+          <button type="button" id="kksExplorerForward" class="kks-explorer-action" data-action="forward" title="Frem">&gt;</button>
+          <button type="button" id="kksExplorerUp" class="kks-explorer-action" data-action="up" title="Op">^</button>
+          <div id="kksExplorerCrumbs" class="kks-explorer-crumbs" aria-label="VGB sti"></div>
+        </div>
+        <div id="kksExplorerNodes" class="kks-explorer-nodes" aria-label="VGB mapper"></div>
+      </div>
+
+      <div id="kksSearchRail" class="kks-search-rail">
+        <div class="kks-search-line">
+          <div class="kks-search-combo combo-box">
+            <input id="kksSearch" class="kks-search" type="search" aria-label="Søg i VGB-koder" placeholder="Søg VGB kode eller Dansk term" autocomplete="off" />
+            <div id="kksSearchSuggestions" class="combo-panel" hidden></div>
+          </div>
+          <div id="kksPath" class="kks-path"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="glass-panel kks-preview-shell kks-preview-full">
+      <div class="kks-preview-head">
+        <p id="kksPreviewTitle" class="kks-preview-title">Indlæser VGB-data...</p>
+      </div>
+
+      <div class="data-table-wrap">
+        <table class="data-table data-table-kks data-table-vgb">
+          <thead>
+            <tr>
+              <th scope="col">Kode</th>
+              <th scope="col">Dansk</th>
+              <th scope="col">Tysk</th>
+              <th scope="col">Kilde</th>
+            </tr>
+          </thead>
+          <tbody id="kksRowsBody"></tbody>
+        </table>
+      </div>
+
+      <div id="kksRowsEmpty" class="kks-empty-state" hidden aria-live="polite">Ingen rækker i den valgte visning.</div>
+    </section>
+
+    <footer class="footer-note">
+      VGB navigation shell.
+    </footer>
+  </div>
+
+  <script src="js/modules/text-utils.js"></script>
+  <script src="data/vgb-docx-extract.inline.js"></script>
+  <script src="js/app-vgb.js?v=20260803"></script>
+  <script src="js/shell.js?v=20260731"></script>
+</body>
+</html>
+
+
+

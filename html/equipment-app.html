@@ -1,0 +1,219 @@
+﻿<!doctype html>
+<html lang="da" xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Equipment Intake 2026</title>
+  <link rel="stylesheet" href="tokens.css?v=20260804" />
+  <link rel="stylesheet" href="styles.css?v=20260804" />
+  <link rel="stylesheet" href="shell.css?v=20260807" />
+
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:_dlc_DocId msdt:dt="string">Deca00015517-1540791522-20215</mso:_dlc_DocId>
+<mso:_dlc_DocIdItemGuid msdt:dt="string">b3b4b662-b94b-4207-865e-441ea268ef26</mso:_dlc_DocIdItemGuid>
+<mso:_dlc_DocIdUrl msdt:dt="string">https://orsted.sharepoint.com/teams/Sapvedligehold/_layouts/15/DocIdRedir.aspx?ID=Deca00015517-1540791522-20215, Deca00015517-1540791522-20215</mso:_dlc_DocIdUrl>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero glass">
+      <div class="hero-main">
+        <p class="eyebrow">Equipment Drift</p>
+        <h1>Equipment Intake</h1>
+        <div class="hero-stats" aria-label="Row counters" aria-live="polite" aria-atomic="true">
+          <span class="hero-stat">Total <strong id="kpiRows">0</strong></span>
+          <span class="hero-stat">Valid <strong id="kpiValid">0</strong></span>
+          <span class="hero-stat">Invalid <strong id="kpiInvalid">0</strong></span>
+        </div>
+      </div>
+      <div class="hero-actions">
+        <div class="hero-actions-top">
+          <button id="btnLocalProxy" class="toggle-pill" type="button" aria-pressed="false">Local proxy: OFF</button>
+        </div>
+        <div class="hero-actions-bottom">
+          <button id="btnExportCsv" class="btn btn-accent" type="button">Export CSV</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel glass form-section">
+        <div class="panel-head form-head">
+          <h2>Equipment Form</h2>
+          <p class="required-legend">Skal udfyldes</p>
+        </div>
+
+        <form id="equipmentForm" class="form-grid" novalidate>
+          <label class="hintable" data-hint="Status: Ny, Ændre eller Slettes. Ved Ny er Equipmentnummer låst.">Status
+            <select id="requestType" name="requestType" required>
+              <option value="new" selected>Ny</option>
+              <option value="change">Ændre</option>
+              <option value="delete">Slettes</option>
+            </select>
+          </label>
+
+          <label class="hintable" data-hint="Plant: vælg anlæg fra liste.">Plant
+            <select id="plant" name="plant" required></select>
+          </label>
+
+          <label class="hintable" data-hint="Equipmentnummer: maks 30 tegn. Tilladt: A-Z, 0-9, punktum, underscore, slash og bindestreg.">Equipmentnummer
+            <input id="equipmentNumber" name="equipmentNumber" maxlength="30" autocomplete="off" />
+          </label>
+
+          <label class="hintable" data-hint="Beskrivelse: maks 40 tegn.">Beskrivelse
+            <input id="description" name="description" maxlength="40" required />
+          </label>
+
+          <label class="hintable" data-hint="Equipment type: vælg fra liste.">Equipment type
+            <select id="equipmentCategory" name="equipmentCategory" required></select>
+          </label>
+
+          <label class="hintable" data-hint="Fabrikat: maks 30 tegn.">Fabrikat
+            <input id="manufacturer" name="manufacturer" maxlength="30" />
+          </label>
+
+          <label class="hintable" data-hint="Type betegnelse: maks 30 tegn.">Type betegnelse
+            <input id="typeDesignation" name="typeDesignation" maxlength="30" />
+          </label>
+
+          <label class="hintable" data-hint="Serienummer: maks 30 tegn.">Serienummer
+            <input id="serialNumber" name="serialNumber" maxlength="30" />
+          </label>
+
+          <label class="hintable" data-hint="Func. location: KKS valideres lokalt. Ved gemning forsøges SAP OData-opslag.">Func. location
+            <input id="functionalLocation" name="functionalLocation" maxlength="30" required autocomplete="off" />
+            <div id="functionalLocationDesc" class="field-meta"></div>
+            <div id="functionalLocationSuggestions" class="combo-panel" hidden></div>
+          </label>
+
+          <label class="hintable" data-hint="Func. loc. 1: maks 30 tegn. Tilladt: A-Z, 0-9, punktum, underscore, slash og bindestreg.">Func. loc. 1
+            <input id="functionalLocation1" name="functionalLocation1" maxlength="30" autocomplete="off" />
+          </label>
+
+          <label class="hintable" data-hint="Functional location 2: maks 30 tegn. Tilladt: A-Z, 0-9, punktum, underscore, slash og bindestreg.">Functional location 2
+            <input id="functionalLocation2" name="functionalLocation2" maxlength="30" autocomplete="off" />
+          </label>
+
+          <label class="hintable" data-hint="Klasse data: maks 40 tegn.">Klasse data
+            <input id="classData" name="classData" maxlength="40" />
+          </label>
+
+          <label class="hintable" data-hint="ROOM (koordinater): maks 8 tegn.">ROOM (koordinater)
+            <input id="roomCoordinates" name="roomCoordinates" maxlength="8" />
+          </label>
+
+          <label class="hintable" data-hint="Placering: maks 30 tegn.">Placering
+            <input id="placement" name="placement" maxlength="30" />
+          </label>
+
+          <label class="hintable" data-hint="Garanti start: vælg dato i kalenderen (dd/mm/yyyy).">Garanti start
+            <div class="eq-date-wrap">
+              <input id="warrantyStart" name="warrantyStart" type="text" class="eq-date-input no-clear-btn" inputmode="numeric" autocomplete="off" placeholder="dd / mm / yyyy" />
+              <input id="warrantyStartPicker" type="date" class="eq-date-picker-native" tabindex="-1" aria-hidden="true" />
+              <button type="button" class="eq-date-trigger" data-date-target="warrantyStart" aria-label="Open calendar for Garanti start"></button>
+            </div>
+          </label>
+
+          <label class="hintable" data-hint="Garanti slut: vælg dato i kalenderen (dd/mm/yyyy).">Garanti slut
+            <div class="eq-date-wrap">
+              <input id="warrantyEnd" name="warrantyEnd" type="text" class="eq-date-input no-clear-btn" inputmode="numeric" autocomplete="off" placeholder="dd / mm / yyyy" />
+              <input id="warrantyEndPicker" type="date" class="eq-date-picker-native" tabindex="-1" aria-hidden="true" />
+              <button type="button" class="eq-date-trigger" data-date-target="warrantyEnd" aria-label="Open calendar for Garanti slut"></button>
+            </div>
+          </label>
+
+          <label class="hintable" data-hint="Dokument type: vælg filtype fra underliggende data.">Dokument type
+            <select id="documentType" name="documentType"></select>
+          </label>
+
+          <label class="hintable" data-hint="Dokument link: maks 255 tegn.">Dokument link
+            <input id="documentLink" name="documentLink" maxlength="255" />
+          </label>
+
+          <div class="bottom-row span-4">
+            <div class="meta-strip">
+              <p>Detected plant: <strong id="detectedPlant">-</strong></p>
+              <p>Row status: <strong id="detectedStatus">Not validated</strong></p>
+            </div>
+            <div class="form-actions form-actions-right">
+              <button id="btnSave" class="btn btn-accent" type="submit">Save row</button>
+              <button id="btnReset" class="btn btn-ghost" type="button">Reset form</button>
+            </div>
+          </div>
+        </form>
+
+        <div id="validationList" class="validation-list"></div>
+      </section>
+    </main>
+
+    <section class="panel glass rows-section">
+      <div class="panel-head split">
+        <div>
+          <h2>Saved Rows</h2>
+        </div>
+        <div class="filter-row">
+          <input id="searchInput" type="search" aria-label="Search saved rows" placeholder="Search FL, equipment no, type, description..." />
+          <select id="statusFilter" aria-label="Filter by status">
+            <option value="all">All status</option>
+            <option value="valid">Only valid</option>
+            <option value="warning">Only warning</option>
+            <option value="invalid">Only invalid</option>
+          </select>
+          <select id="plantFilter" aria-label="Filter by plant">
+            <option value="all">All plants</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="material-table-toolbar" aria-label="Table view options">
+        <div class="class-view-presets">
+          <button id="btnEquipmentViewCompact" type="button" class="class-view-btn" aria-pressed="true">Compact</button>
+          <button id="btnEquipmentViewAll" type="button" class="class-view-btn" aria-pressed="false">All columns</button>
+        </div>
+      </div>
+
+      <div class="table-wrap spareparts-table-wrap">
+        <table id="rowsTable" class="spareparts-table">
+          <thead>
+            <tr>
+              <th scope="col">Validation</th>
+              <th scope="col">Plant</th>
+              <th scope="col">Func. location</th>
+              <th scope="col">Equipmentnummer</th>
+              <th scope="col">Beskrivelse</th>
+              <th scope="col">Equipment type</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="rowsBody"></tbody>
+        </table>
+      </div>
+      <div class="rows-footer">
+        <button id="btnSubmitRows" class="btn btn-accent" type="button">Submit saved rows</button>
+      </div>
+    </section>
+
+    <footer class="foot-note glass">
+      <p>Equipment drift mode.</p>
+      <p id="runtimeInfo">Ready.</p>
+    </footer>
+  </div>
+
+  <button id="btnSendEmailEquipment" class="email-fab" type="button">Send as email</button>
+
+  <div id="equipmentDetailsHost"></div>
+  <div id="fieldNoteHost"></div>
+
+  <script src="js/modules/text-utils.js"></script>
+  <script src="js/modules/required-fields.js?v=20260805"></script>
+  <script src="js/data/lookups.generated.js"></script>
+  <script src="js/modules/mailto-utils.js"></script>
+  <script src="js/odata-client.js"></script>
+  <script src="js/app-equipment.js?v=20260805"></script>
+  <script src="js/embed-bridge.js?v=20260801"></script>
+  <script src="js/shell.js?v=20260731"></script>
+</body>
+</html>
+

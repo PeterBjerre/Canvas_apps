@@ -1,0 +1,188 @@
+﻿<!doctype html>
+<html lang="da" xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Orsted SAP Shell - KKS Guideline</title>
+  <link rel="stylesheet" href="tokens.css?v=20260804" />
+  <link rel="stylesheet" href="styles.css?v=20260804" />
+  <link rel="stylesheet" href="site.css?v=20260804" />
+  <link rel="stylesheet" href="shell.css?v=20260807" />
+
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:_dlc_DocId msdt:dt="string">Deca00015517-1540791522-20157</mso:_dlc_DocId>
+<mso:_dlc_DocIdItemGuid msdt:dt="string">66412c7f-7af8-4684-9f56-6641be01226c</mso:_dlc_DocIdItemGuid>
+<mso:_dlc_DocIdUrl msdt:dt="string">https://orsted.sharepoint.com/teams/Sapvedligehold/_layouts/15/DocIdRedir.aspx?ID=Deca00015517-1540791522-20157, Deca00015517-1540791522-20157</mso:_dlc_DocIdUrl>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head>
+<body data-page="kks">
+  <div class="site-shell">
+    <header class="site-topbar">
+      <a class="site-brand" href="index.html">
+        <span class="site-brand-mark" aria-hidden="true"></span>
+        <span>BIO SAP</span>
+      </a>
+      <nav class="site-nav" aria-label="Main navigation">
+        <a href="index.html" data-nav="home">Forside</a>
+        <a href="functional-location.html" data-nav="functional-location">Functional Location</a>
+        <a href="vh-plan.html" data-nav="vh-plan">VH-plan</a>
+        <a href="materialer.html" data-nav="materialer">Materialer</a>
+        <a href="equipment.html" data-nav="equipment">Equipment</a>
+        <a href="kks-kks.html" data-nav="kks">KKS</a>
+        <a href="vgb-aggregat.html" data-nav="vgb">VGB</a>
+        <a href="faq.html" data-nav="faq">FAQ</a>
+      </nav>
+    </header>
+
+    <section class="site-hero">
+      <h1>KKS Guideline (Dansk)</h1>
+      <div class="hero-action-row">
+        <a class="hero-link-btn" href="kks-kks.html">Tilbage til KKS</a>
+        <a class="hero-link-btn" href="../KKS/KKS/VGB-B 105 E.pdf" target="_blank" rel="noopener">Åbn VGB-B 105 E (PDF)</a>
+      </div>
+      <p class="kks-page-subtitle">Praktisk vejledning baseret på VGB-B 105.1 (oversat side 11-84) til kodning, kontrol og dagligt opslag.</p>
+    </section>
+
+    <section class="glass-panel kks-guideline-shell" aria-label="KKS guideline">
+        <div class="kks-guide-block">
+          <h2>1. Formål med KKS</h2>
+          <p>KKS anvendes til entydig identifikation af anlægsdele på tværs af dokumentation, vedligehold, reservedele, signaler og tegninger. Et korrekt opbygget KKS-udtryk skal kunne genfindes på tværs af SAP, teknisk dokumentation og driftssystemer.</p>
+        </div>
+
+        <div class="kks-guide-block">
+          <h2>1A. Kildesider fra PDF med forklaring</h2>
+          <p>Herunder er udvalgte sider direkte fra VGB-B 105 E med den praktiske tolkning, der bruges i dette KKS-flow.</p>
+          <div class="kks-guide-figure-grid">
+            <figure class="kks-guide-figure">
+              <img src="assets/kks/vgb-b105e-page01-cover.png" alt="VGB-B 105 E forside" loading="lazy" />
+              <figcaption>
+                <strong>Forside / dokumenttype</strong>
+                <span>Bruges som reference for version og standardkilde, så teamet validerer mod samme udgave.</span>
+              </figcaption>
+            </figure>
+
+            <figure class="kks-guide-figure">
+              <img src="assets/kks/vgb-b105e-page42-function-key-revisions.png" alt="VGB side 42 med function key revisions" loading="lazy" />
+              <figcaption>
+                <strong>Function key revisions (side 42)</strong>
+                <span>Viser konkrete ændringer i funktionsnøgler (fx HEA/HEB/HEC). Bruges til at kontrollere om lokale koder er opdaterede.</span>
+              </figcaption>
+            </figure>
+
+            <figure class="kks-guide-figure">
+              <img src="assets/kks/vgb-b105e-page46-combustion-air-changes.png" alt="VGB side 46 med combustion air system ændringer" loading="lazy" />
+              <figcaption>
+                <strong>Systemgrænser og limits (side 46)</strong>
+                <span>Eksempler på "from incl." og "to excl." som skal omsættes til entydige grænser i jeres klassificering.</span>
+              </figcaption>
+            </figure>
+
+            <figure class="kks-guide-figure">
+              <img src="assets/kks/vgb-b105e-page48-equipment-unit-key.png" alt="VGB side 48 med equipment unit key" loading="lazy" />
+              <figcaption>
+                <strong>Equipment unit key (side 48)</strong>
+                <span>Direkte eksempel på aggregatnøgle-spor (U/US), som nu er synligt i KKS Aggregatnøgle-siden.</span>
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+
+        <div class="kks-guide-block">
+          <h2>2. Kildegrundlag (VGB)</h2>
+          <p>Denne guideline bygger på oversættelsen af VGB-B 105.1 med omfang side 11-84.</p>
+          <ul>
+            <li>Regel i kilden: AG/BM-koder bevares 1:1.</li>
+            <li>Oversættelse må kun bruges ved verificeret match.</li>
+            <li>Materialet er struktureret i Del 1 (Termliste), Del 2 (Aggregateliste), Del 3 (Driftmiddelliste).</li>
+          </ul>
+        </div>
+
+        <div class="kks-guide-block">
+          <h2>3. Fire spor i denne løsning</h2>
+          <ul>
+            <li>Funktionsnøgle: beskriver system/teknisk funktion.</li>
+            <li>Aggregatnøgle: beskriver overordnet equipment unit.</li>
+            <li>Komponentnøgle: beskriver den konkrete komponenttype.</li>
+            <li>Guideline: regler, notation og kontrolpunkter.</li>
+          </ul>
+        </div>
+
+        <div class="kks-guide-block">
+          <h2>4. Opbygning af kode (praktisk)</h2>
+          <p>Et KKS-udtryk sammensættes i praksis af delkoder, hvor hvert segment har en fast semantik:</p>
+          <ul>
+            <li>Anlægs/plant reference.</li>
+            <li>Funktionsrelateret systemkode.</li>
+            <li>Aggregat- eller komponentidentifikation.</li>
+            <li>Løbenummer og eventuel variant/afledt markering.</li>
+          </ul>
+          <p>Regel: hver del må kun udtrykke sin egen betydning. Undgå at "gemme" ekstra information i et segment.</p>
+        </div>
+
+        <div class="kks-guide-block">
+          <h2>5. Navngivningsregler du kan håndhæve nu</h2>
+          <ul>
+            <li>Brug kun gyldige tegn og fast længde pr. segment.</li>
+            <li>Undgå lokale forkortelser, der ikke findes i nøglelisterne.</li>
+            <li>Samme fysiske objekt skal have samme KKS i alle dokumenttyper.</li>
+            <li>Hvis funktion og komponent peger i hver sin retning, så korrigeres funktion først.</li>
+          </ul>
+        </div>
+
+        <div class="kks-guide-block">
+          <h2>6. AG/BM praksis fra VGB-listerne</h2>
+          <p>Del 2 og Del 3 viser samme begreb i to spor: aggregatkode (AG) og driftsmiddelkode (BM).</p>
+          <ul>
+            <li>Eksempel fra VGB: AG AA (Abscheidearmaturen) mappes til dansk "Adskillelsesbeslag".</li>
+            <li>Tilsvarende BM-spor: KA bruges for ventil/driftsmiddel-gruppen med samme faglige betydning.</li>
+            <li>Praktisk regel: næste valideringspunkt er altid om AG/BM-betydning er konsekvent på tværs af SAP-objekt, tegning og reservedelsliste.</li>
+          </ul>
+        </div>
+
+        <div class="kks-guide-block">
+          <h2>7. Smart måde at omsætte PDF til opslag</h2>
+          <p>Brug denne 5-trins metode, når nye tabeller kommer i PDF-format:</p>
+          <ol>
+            <li>Udpeg nøgletype: funktionsnøgle, aggregatnøgle eller komponentnøgle.</li>
+            <li>Map PDF-kolonner til standardfelter: code, class, description_da, description_en.</li>
+            <li>Generer ens runtime-format (window.KKS_DATA) pr. nøgletype.</li>
+            <li>Kør deduplikering på code + description og sortering på code.</li>
+            <li>Valider 10 stikprøver i UI (søgning, row-click, L1/L2/L3 navigation).</li>
+          </ol>
+          <p>Denne metode gør jer uafhængige af manuelle copy/paste-opslag og giver stabil struktur på tværs af nøgler.</p>
+        </div>
+
+        <div class="kks-guide-block">
+          <h2>8. Kvalitetscheck for idriftsættelse</h2>
+          <ul>
+            <li>Ingen dubletter på kode med modstridende beskrivelse.</li>
+            <li>Topniveau-bogstaver (fx H) har tydelig heading i UI.</li>
+            <li>Søgning finder både kodefragmenter og beskrivelsestekst.</li>
+            <li>Row-click fra ALL visning leder til korrekt niveau.</li>
+          </ul>
+        </div>
+
+        <div class="kks-guide-block">
+          <h2>9. Governance i drift</h2>
+          <ul>
+            <li>En ansvarlig datakilde pr. nøgletype.</li>
+            <li>Versionsdato på publicerede tabeller.</li>
+            <li>Ændringslog ved ny/udgået kode.</li>
+            <li>Fast review af kritiske systembogstaver (A, B, H, L, M, S, U).</li>
+          </ul>
+        </div>
+    </section>
+
+    <footer class="footer-note">
+      KKS shell.
+    </footer>
+  </div>
+
+  <script src="js/shell.js?v=20260731"></script>
+</body>
+</html>
+
+
+

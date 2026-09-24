@@ -1,0 +1,97 @@
+﻿<!doctype html>
+<html lang="da" xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Orsted SAP Shell - Functional Location Extract</title>
+  <link rel="stylesheet" href="tokens.css?v=20260804" />
+  <link rel="stylesheet" href="styles.css?v=20260804" />
+  <link rel="stylesheet" href="site.css?v=20260804" />
+  <link rel="stylesheet" href="shell.css?v=20260807" />
+
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:_dlc_DocId msdt:dt="string">Deca00015517-1540791522-20111</mso:_dlc_DocId>
+<mso:_dlc_DocIdItemGuid msdt:dt="string">49f07996-60ae-4928-b242-ee3f4f5eb65d</mso:_dlc_DocIdItemGuid>
+<mso:_dlc_DocIdUrl msdt:dt="string">https://orsted.sharepoint.com/teams/Sapvedligehold/_layouts/15/DocIdRedir.aspx?ID=Deca00015517-1540791522-20111, Deca00015517-1540791522-20111</mso:_dlc_DocIdUrl>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head>
+<body data-page="functional-location">
+  <div class="site-shell">
+    <header class="site-topbar">
+      <a class="site-brand" href="index.html">
+        <span class="site-brand-mark" aria-hidden="true"></span>
+        <span>BIO SAP</span>
+      </a>
+      <nav class="site-nav" aria-label="Main navigation">
+        <a href="index.html" data-nav="home">Forside</a>
+        <a href="functional-location.html" data-nav="functional-location">Functional Location</a>
+        <a href="vh-plan.html" data-nav="vh-plan">VH-plan</a>
+        <a href="materialer.html" data-nav="materialer">Materialer</a>
+        <a href="equipment.html" data-nav="equipment">Equipment</a>
+        <a href="kks-kks.html" data-nav="kks">KKS</a>
+        <a href="vgb-aggregat.html" data-nav="vgb">VGB</a>
+        <a href="faq.html" data-nav="faq">FAQ</a>
+      </nav>
+    </header>
+
+    <section class="site-hero">
+      <h1>Functional Location - Extract</h1>
+      <div class="hero-action-row">
+        <a class="hero-link-btn" href="functional-location.html">Back</a>
+        <button id="btnExtractClassify" class="action-btn primary" type="button">Extract and Classify</button>
+      </div>
+      <p id="flExtractRuntime" class="small-muted" aria-live="polite" aria-atomic="true">Paste FL values and run extract.</p>
+    </section>
+
+    <section class="workspace-grid">
+      <div class="workspace-main">
+        <div class="glass-panel">
+          <h2>Extract Input</h2>
+          <p class="small-muted">One FL per line. Optional format: FL;ACT_CLASS.</p>
+          <textarea id="flExtractInput" class="extract-input" aria-label="Functional Location input, one per line" spellcheck="false"></textarea>
+        </div>
+
+        <div class="glass-panel">
+          <h2>Extract Output</h2>
+          <div id="flExtractClassTabs" class="pill-tab-row" aria-label="Extract class tabs"></div>
+          <div id="flExtractOutput"></div>
+        </div>
+      </div>
+
+      <aside class="workspace-side">
+        <div class="glass-panel">
+          <h3>Metrics</h3>
+          <div class="metric-grid" aria-live="polite" aria-atomic="true">
+            <div class="metric-card">
+              <span class="label">Input Rows</span>
+              <span id="flExtractMetricRows" class="value">0</span>
+            </div>
+            <div class="metric-card">
+              <span class="label">Class Buckets</span>
+              <span id="flExtractMetricClasses" class="value">0</span>
+            </div>
+            <div class="metric-card">
+              <span class="label">Rules Data</span>
+              <span id="flExtractDataState" class="value">-</span>
+            </div>
+          </div>
+          <p id="flExtractMeta" class="small-muted" aria-live="polite" aria-atomic="true">-</p>
+        </div>
+      </aside>
+    </section>
+
+    <footer class="footer-note">FL extract.</footer>
+  </div>
+
+  <script src="js/modules/text-utils.js"></script>
+  <script src="js/data/lookups.generated.js"></script>
+  <script src="js/data/fl-classification-data.js"></script>
+  <script src="js/modules/fl-rule-engine.js"></script>
+  <script src="js/app-functional-location-extract.js?v=20260803"></script>
+  <script src="js/shell.js?v=20260731"></script>
+</body>
+</html>
+
+

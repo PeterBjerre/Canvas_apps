@@ -1,0 +1,1966 @@
+/* Kelvin shell: navigation rail, command palette, density and the component layer.
+   Loaded last so it resolves the legacy stylesheets onto the token system. */
+
+/* ---------------------------------------------------------------- base */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-ui);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-normal);
+  color: var(--text-primary);
+  background: var(--surface-app);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body:not([data-embedded="true"]) {
+  background-image: none;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-tight);
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+h1 {
+  font-size: var(--fs-xl);
+}
+
+h2 {
+  font-size: var(--fs-lg);
+}
+
+h3 {
+  font-size: var(--fs-md);
+}
+
+/* Weight above 600 is never used: hierarchy comes from size, colour and space. */
+strong,
+b,
+th,
+.btn,
+button,
+.eyebrow,
+.hero-stat,
+.status,
+.toggle-pill,
+.action-btn,
+.table-btn {
+  font-weight: var(--fw-semibold);
+}
+
+/* Structured identifiers align character by character so a wrong digit is visible. */
+.kv-code,
+.kks-code,
+.vgb-code,
+td[data-code],
+.combo-key,
+.eq-date-input,
+input[name*="quipment"],
+input[name*="unctional"] {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+table,
+.hero-stat strong,
+.meta-strip p {
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: var(--a-100);
+  color: var(--a-700);
+}
+
+/* ------------------------------------------------------------ focus */
+
+/* Real selectors, not :where(), so legacy outlines cannot double up the ring. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+  border-radius: var(--r-sm);
+}
+
+.kv-skip {
+  position: fixed;
+  top: var(--sp-2);
+  left: var(--sp-2);
+  z-index: calc(var(--z-palette) + 10);
+  padding: var(--sp-2) var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--n-900);
+  color: var(--n-0);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  text-decoration: none;
+  transform: translateY(-200%);
+  transition: transform var(--dur-1) var(--ease-out);
+}
+
+.kv-skip:focus-visible {
+  transform: translateY(0);
+  box-shadow: var(--e-3);
+}
+
+/* ------------------------------------------------------------- rail */
+
+body[data-shell="rail"] {
+  padding-left: var(--rail-w);
+}
+
+.kv-rail {
+  position: fixed;
+  inset-block: 0;
+  left: 0;
+  z-index: var(--z-rail);
+  width: var(--rail-w);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-2);
+  background: var(--n-0);
+  border-right: 1px solid var(--border-subtle);
+  transition: width var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
+  overflow: hidden;
+}
+
+/* Expands as an overlay so the workspace never reflows. */
+.kv-rail:hover,
+.kv-rail:focus-within {
+  width: var(--rail-w-open);
+  box-shadow: var(--e-3);
+}
+
+.kv-rail-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2);
+  margin-bottom: var(--sp-2);
+  border-radius: var(--r-md);
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.kv-rail-mark {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: var(--a-500);
+  display: grid;
+  place-items: center;
+  color: var(--text-on-accent);
+  font-family: var(--font-data);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: -0.04em;
+}
+
+.kv-rail-wordmark {
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity var(--dur-1) var(--ease-out);
+}
+
+.kv-rail:hover .kv-rail-wordmark,
+.kv-rail:focus-within .kv-rail-wordmark {
+  opacity: 1;
+}
+
+.kv-rail-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.kv-rail-foot {
+  margin-top: auto;
+  display: grid;
+  gap: 2px;
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.kv-rail-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  padding: var(--sp-2);
+  border: 0;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--dur-1) var(--ease-out), color var(--dur-1) var(--ease-out);
+}
+
+.kv-rail-item:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.kv-rail-icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+}
+
+.kv-rail-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.kv-rail-label {
+  opacity: 0;
+  transition: opacity var(--dur-1) var(--ease-out);
+}
+
+.kv-rail:hover .kv-rail-label,
+.kv-rail:focus-within .kv-rail-label {
+  opacity: 1;
+}
+
+.kv-rail-item[aria-current="page"] {
+  background: var(--surface-selected);
+  color: var(--a-700);
+}
+
+/* The active marker is the one place the accent appears in the chrome. */
+.kv-rail-item[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  translate: 0 -50%;
+  width: 3px;
+  height: 20px;
+  border-radius: 0 var(--r-full) var(--r-full) 0;
+  background: var(--a-500);
+}
+
+.kv-rail-kbd {
+  margin-left: auto;
+  opacity: 0;
+  transition: opacity var(--dur-1) var(--ease-out);
+}
+
+.kv-rail:hover .kv-rail-kbd,
+.kv-rail:focus-within .kv-rail-kbd {
+  opacity: 1;
+}
+
+kbd {
+  font-family: var(--font-data);
+  font-size: var(--fs-2xs);
+  padding: 2px 5px;
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: var(--r-sm);
+  background: var(--n-50);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------- density */
+
+.kv-density {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: var(--sp-1) var(--sp-2);
+}
+
+.kv-density-label {
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  opacity: 0;
+  height: 0;
+  overflow: hidden;
+  transition: opacity var(--dur-1) var(--ease-out);
+}
+
+.kv-rail:hover .kv-density-label,
+.kv-rail:focus-within .kv-density-label {
+  opacity: 1;
+  height: auto;
+}
+
+.kv-density-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--r-sm);
+  background: var(--surface-sunken);
+  transition: none;
+}
+
+.kv-rail:hover .kv-density-group,
+.kv-rail:focus-within .kv-density-group {
+  flex-direction: row;
+}
+
+.kv-density-btn {
+  width: 28px;
+  height: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 3px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  color: var(--n-500);
+  transition: background-color var(--dur-1) var(--ease-out), color var(--dur-1) var(--ease-out);
+}
+
+.kv-density-btn i {
+  display: block;
+  width: 13px;
+  height: 1.5px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+.kv-density-btn[data-density-value="compact"] {
+  gap: 2px;
+}
+
+.kv-density-btn[data-density-value="condensed"] {
+  gap: 1px;
+}
+
+.kv-density-btn:hover {
+  background: var(--n-200);
+  color: var(--text-secondary);
+}
+
+.kv-density-btn[aria-pressed="true"] {
+  background: var(--n-0);
+  box-shadow: var(--e-1);
+  color: var(--a-600);
+}
+
+/* -------------------------------------------------- command palette */
+
+.kv-palette-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-palette);
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  padding: clamp(48px, 12vh, 140px) var(--sp-4) var(--sp-4);
+  background: rgba(15, 22, 33, 0.32);
+  animation: kv-fade var(--dur-1) var(--ease-out) both;
+}
+
+.kv-palette-backdrop[hidden] {
+  display: none;
+}
+
+@supports (backdrop-filter: blur(2px)) {
+  .kv-palette-backdrop {
+    backdrop-filter: blur(2px);
+  }
+}
+
+.kv-palette {
+  width: min(640px, 100%);
+  max-height: min(60vh, 520px);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface-raised);
+  box-shadow: var(--e-3);
+  overflow: hidden;
+  animation: kv-rise var(--dur-2) var(--ease-out) both;
+}
+
+@keyframes kv-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes kv-rise {
+  from { opacity: 0; transform: translateY(-6px) scale(0.99); }
+  to { opacity: 1; transform: none; }
+}
+
+.kv-palette-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.kv-palette-input-wrap svg {
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+  stroke: var(--text-tertiary);
+  stroke-width: 1.7;
+  fill: none;
+  stroke-linecap: round;
+}
+
+.kv-palette-input {
+  flex: 1 1 auto;
+  border: 0;
+  outline: none;
+  padding: 0;
+  min-height: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--fs-md);
+  color: var(--text-primary);
+  box-shadow: none;
+}
+
+.kv-palette-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.kv-palette-input:focus,
+.kv-palette-input:focus-visible {
+  outline: none;
+  border: 0;
+  box-shadow: none;
+}
+
+.kv-palette-list {
+  list-style: none;
+  margin: 0;
+  padding: var(--sp-2);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: grid;
+  gap: 1px;
+}
+
+.kv-palette-group {
+  padding: var(--sp-3) var(--sp-2) var(--sp-1);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.kv-palette-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  scroll-margin: var(--sp-2);
+}
+
+.kv-palette-item[aria-selected="true"] {
+  background: var(--surface-selected);
+}
+
+.kv-palette-item[aria-selected="true"] .kv-palette-title {
+  color: var(--a-700);
+}
+
+.kv-palette-body {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.kv-palette-title {
+  display: block;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kv-palette-sub {
+  display: block;
+  font-size: var(--fs-xs);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kv-palette-item mark {
+  background: transparent;
+  color: var(--a-600);
+  font-weight: var(--fw-semibold);
+}
+
+.kv-palette-empty {
+  padding: var(--sp-8) var(--sp-4);
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: var(--fs-sm);
+}
+
+.kv-palette-foot {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-2) var(--sp-4);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--n-25);
+  font-size: var(--fs-2xs);
+  color: var(--text-tertiary);
+}
+
+.kv-palette-foot span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+
+/* Row located from the palette. */
+.kv-flash {
+  animation: kv-flash var(--dur-2) var(--ease-out) 3 alternate;
+}
+
+@keyframes kv-flash {
+  to { background-color: var(--a-100); }
+}
+
+/* --------------------------------------------------- shell + header */
+
+/* Hidden unconditionally rather than under body[data-shell]: that attribute is
+   set by shell.js, which runs after the page's blocking data scripts, so the
+   legacy bar painted for a beat on data-heavy pages. */
+.site-topbar {
+  display: none;
+}
+
+/* One content column for the whole app. Every top-level section is a direct
+   child of this wrapper, so header, toolbar, forms, tables and footer all
+   inherit the same outer width and the same left/right edge. */
+.site-shell,
+.app-shell {
+  width: var(--content-width);
+  margin: var(--section-gap) auto var(--sp-10);
+  gap: var(--section-gap);
+}
+
+/* Legacy per-page width overrides (KKS/VGB at 1660/14px, home, FAQ) are more
+   specific than the rule above, so they are neutralised rather than deleted. */
+body[data-page] .site-shell,
+body[data-page] .app-shell {
+  width: var(--content-width);
+}
+
+body[data-page] .card-grid,
+.faq-layout,
+.kks-preview-full {
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+  margin-top: 0;
+}
+
+/* Embedded apps sit inside an iframe that already occupies the content column,
+   so they must not apply the gutter a second time or their cards would be
+   inset relative to the wrapper's header card. The wrapper owns the outer
+   spacing; the frame contributes only the gap between its own sections. */
+body[data-embedded="true"] .app-shell {
+  width: 100%;
+  margin: 0;
+  gap: var(--section-gap);
+}
+
+/* The legacy rule pulled the frame 36px past its host with a negative margin to
+   cancel the app-shell's own gutter. That gutter is gone, so the frame now maps
+   1:1 onto the content column and the embedded cards share the header's edges. */
+/* Start height only: both shell-frame scripts overwrite style.height inline
+   from the embedded app's postMessage, which outranks this rule. */
+.materialer-shell-host iframe,
+.equipment-shell-host iframe {
+  width: 100%;
+  height: 62vh;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+@media (max-width: 720px) {
+  :root {
+    --page-gutter: var(--sp-4);
+  }
+}
+
+/* ------------------------------------------------- shared page header */
+
+/* One header pattern for every page: a framed header card that holds the
+   category, title, description, status badges and actions as a single block.
+   Legacy heroes ship five different child shapes, so the slot is resolved by
+   role instead of by markup order: title left, actions right, prose below. */
+.site-hero,
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: var(--sp-6);
+  row-gap: var(--sp-4);
+  padding: var(--card-padding);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius);
+  box-shadow: var(--e-1);
+  backdrop-filter: none;
+}
+
+/* Anything without an assigned role spans the header rather than guessing. */
+.site-hero > *,
+.hero > * {
+  grid-column: 1 / -1;
+  min-width: 0;
+  margin: 0;
+}
+
+/* Title slot. */
+.site-hero > h1,
+.hero > h1,
+.hero-main,
+.kks-hero-main {
+  grid-column: 1;
+  display: grid;
+  gap: var(--sp-2);
+  align-content: center;
+}
+
+/* Description slot. Left as a full-width child it opened a row of its own and
+   pushed the actions down into a third row, which read as a second toolbar.
+   The legacy 72ch clamp is dropped so the sentence keeps to one line. */
+.site-hero > p,
+.hero > p {
+  grid-column: 1;
+  max-width: none;
+}
+
+/* Status badges belong to the title block but sit below the description, so
+   they are placed as their own row rather than nested in the title slot. */
+.site-hero > .hero-stats,
+.hero > .hero-stats {
+  grid-column: 1;
+  justify-self: start;
+}
+
+/* Action slot, pinned to the trailing edge of the title row. Scoped to direct
+   children: the same classes are reused inside lookup cards, where they must
+   lay out as ordinary control rows rather than header actions. */
+.site-hero > .hero-actions,
+.hero > .hero-actions,
+.site-hero > .hero-action-row,
+.hero > .hero-action-row,
+.site-hero > .kks-nav-mode,
+.hero > .kks-nav-mode {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  align-self: center;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+}
+
+.hero-actions-top,
+.hero-actions-bottom {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: 0;
+}
+
+.site-hero h1,
+.hero h1 {
+  margin: 0;
+  font-size: var(--fs-xl);
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+.site-hero p,
+.hero .lead {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
+}
+
+/* ------------------------------------------------ lookup / filter card */
+
+/* Scope and view-mode selectors live with the lookup tool they control, as the
+   first row of the filter card. Grouping is carried by whitespace alone: a rule
+   here would split one interaction area into two apparent panels. */
+.lookup-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-2);
+}
+
+.lookup-toolbar > .hero-action-row,
+.lookup-toolbar > .kks-nav-mode {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: 0;
+}
+
+/* ------------------------------------------------ section rhythm */
+
+/* Section stacks shipped five different gaps (8, 10, 10, 12, 12px). They all
+   hold sibling cards, so they share the page's vertical rhythm. */
+.layout,
+.workspace-grid,
+.vh-shell,
+.faq-layout,
+.faq-main,
+.card-grid,
+.kks-shell {
+  gap: var(--section-gap);
+}
+
+/* Decorative 3px accent bar; card identity comes from the shared surface. */
+.vh-section-card::before {
+  content: none;
+}
+
+@media (max-width: 720px) {
+  .site-hero,
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .site-hero > .hero-actions,
+  .hero > .hero-actions,
+  .site-hero > .hero-action-row,
+  .hero > .hero-action-row,
+  .site-hero > .kks-nav-mode,
+  .hero > .kks-nav-mode {
+    grid-column: 1;
+    grid-row: auto;
+    justify-self: start;
+    justify-content: flex-start;
+  }
+}
+
+/* Embedded app frames sit under the wrapper page's own header, so their title
+   block would repeat it. The header collapses to its counters and actions. */
+body[data-embedded="true"] .hero > .hero-main > .eyebrow,
+body[data-embedded="true"] .hero > .hero-main > h1 {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The wrapper page owns the header, so the embedded app's own one is dropped
+   entirely; its counters and actions are mirrored over postMessage instead. */
+body[data-embedded="true"] .hero,
+body[data-embedded="true"] .hero.glass {
+  display: none;
+}
+
+/* Drift/Projekt are page links, so they need the pill shape a button gets free. */
+a.toggle-pill {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.mode-switch a.toggle-pill[aria-current="page"] {
+  background: var(--a-500);
+  border-color: var(--a-500);
+  color: var(--text-on-accent);
+}
+
+.hero-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: 0;
+}
+
+.hero-stat,
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  min-height: 24px;
+  padding: 0 var(--sp-2);
+  border-radius: var(--r-full);
+  border: 1px solid var(--border);
+  background: var(--surface-sunken);
+  color: var(--text-secondary);
+  font-size: var(--fs-2xs);
+  white-space: nowrap;
+}
+
+.hero-stat strong {
+  color: var(--text-primary);
+  font-size: var(--fs-xs);
+}
+
+/* A counter is read data, so it sits on the page rather than in it. .status
+   keeps the sunken fill: it is a state marker, not a surface. */
+.hero-stat {
+  background: var(--surface-control);
+  box-shadow: var(--e-1);
+}
+
+.eyebrow {
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-tertiary);
+}
+
+/* Status strip keeps the card's horizontal padding so its text lines up with
+   the content above it, but stays visually slim. */
+.footer-note,
+.foot-note {
+  padding: var(--sp-3) var(--card-padding);
+  color: var(--text-tertiary);
+  font-size: var(--fs-xs);
+}
+
+/* ------------------------------------------------------- containers */
+
+/* A surface separates by border and shadow together; either alone lands under
+   the visibility threshold against this page tone. */
+.glass,
+.glass-panel,
+.panel,
+.nav-card {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius);
+  box-shadow: var(--e-1);
+  backdrop-filter: none;
+}
+
+.panel,
+.glass-panel {
+  padding: var(--card-padding);
+}
+
+/* Floating surfaces resolve to the two shared elevation steps. Legacy values
+   ran up to 34% alpha, which reads as a hard edge rather than depth. */
+.site-submenu,
+.combo-panel-lite,
+.hover-hint,
+.email-fab {
+  box-shadow: var(--e-2);
+  backdrop-filter: none;
+}
+
+.class-detail-modal,
+.vh-modal-panel,
+.field-note-modal,
+.combo-panel {
+  box-shadow: var(--e-3);
+  backdrop-filter: none;
+}
+
+.nav-card:hover {
+  box-shadow: var(--e-2);
+}
+
+/* Legacy sheets each invented their own near-white. They are resolved here so
+   every surface in the product sits on one of three tones. */
+.data-table-wrap,
+.class-detail-grid-wrap,
+.class-detail-modal,
+.field-note-modal,
+.field-note-body,
+.vh-modal-panel,
+.vh-picker-list-wrap,
+.ops-table-wrap,
+.items-rail,
+.faq-item,
+.site-submenu,
+.combo-panel-lite,
+.hover-hint,
+.kks-explorer-crumbs,
+.kks-explorer-nodes,
+.kks-toolbar-search,
+.kks-filter-row,
+.kks-guide-figure,
+.kks-preview-frame {
+  background: var(--surface-raised);
+}
+
+.table-input,
+.faq-search,
+.extract-input,
+.kks-search,
+.class-detail-select,
+.clear-btn,
+.form-block textarea,
+.ops-table textarea,
+.vh-modal-toolbar input[type="text"],
+.kks-search-lang-btn[aria-pressed="true"] {
+  background: var(--surface-control);
+}
+
+.hero-link-btn:hover,
+.kks-explorer-action:hover,
+.field-note-btn:hover,
+.clear-btn:hover {
+  background: var(--surface-hover);
+}
+
+/* Zebra stays one step below hover so the two never read as the same state. */
+.ops-table tbody tr:nth-child(even):not(.active),
+.vh-picker-table tbody tr:nth-child(even) {
+  background: var(--n-50);
+}
+
+.panel-head {
+  margin-bottom: var(--sp-3);
+}
+
+.panel-head h2 {
+  font-size: var(--fs-lg);
+}
+
+.panel-head p {
+  color: var(--text-secondary);
+  font-size: var(--fs-xs);
+}
+
+.card-grid {
+  gap: var(--sp-3);
+}
+
+.nav-card {
+  padding: var(--sp-4);
+  transition: border-color var(--dur-1) var(--ease-out), box-shadow var(--dur-1) var(--ease-out);
+}
+
+.nav-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--e-2);
+  transform: none;
+}
+
+.nav-card h2 {
+  font-size: var(--fs-md);
+}
+
+.nav-card p {
+  color: var(--text-secondary);
+  font-size: var(--fs-xs);
+}
+
+/* ---------------------------------------------------------- buttons */
+
+.btn,
+.action-btn,
+.table-btn,
+.toggle-pill,
+.class-view-btn,
+.file-btn,
+.btn-ghost {
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  min-height: var(--ctl-h);
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-control);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background-color var(--dur-1) var(--ease-out), border-color var(--dur-1) var(--ease-out), color var(--dur-1) var(--ease-out);
+}
+
+/* Interactive targets never move under the cursor. */
+.btn:hover,
+.action-btn:hover,
+.table-btn:hover,
+.toggle-pill:hover,
+.class-view-btn:hover,
+.material-table-toolbar .class-view-btn:hover,
+.email-fab:hover,
+.nav-card:hover,
+.site-nav a:hover {
+  transform: none;
+  filter: none;
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+
+.btn:active,
+.action-btn:active,
+.table-btn:active {
+  background: var(--n-150);
+}
+
+.btn-accent,
+.action-btn.primary,
+.email-fab {
+  background: var(--a-600);
+  border-color: var(--a-600);
+  color: var(--text-on-accent);
+}
+
+/* .email-fab is excluded: it resolves to --e-2 further down as a floating control. */
+.btn-accent,
+.action-btn.primary {
+  box-shadow: var(--e-accent);
+}
+
+.btn-accent:hover,
+.action-btn.primary:hover,
+.email-fab:hover {
+  background: var(--a-700);
+  border-color: var(--a-700);
+  color: var(--text-on-accent);
+}
+
+.table-btn {
+  min-height: calc(var(--ctl-h) - 6px);
+  padding: 0 var(--sp-2);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+}
+
+.table-btn.danger {
+  background: var(--danger-50);
+  border-color: var(--danger-100);
+  color: var(--danger-700);
+}
+
+.table-btn.danger:hover {
+  background: var(--danger-100);
+  border-color: var(--danger-500);
+}
+
+.toggle-pill,
+.class-view-btn,
+.material-table-toolbar .class-view-btn {
+  border-radius: var(--r-full);
+  font-size: var(--fs-xs);
+  background: var(--surface-control);
+  color: var(--text-secondary);
+}
+
+.toggle-pill[aria-pressed="true"],
+.class-view-btn[aria-pressed="true"],
+.material-table-toolbar .class-view-btn[aria-pressed="true"],
+.mode-switch .toggle-pill[aria-pressed="true"],
+.kks-nav-mode-btn[aria-pressed="true"] {
+  background: var(--a-500);
+  border-color: var(--a-500);
+  color: var(--text-on-accent);
+  box-shadow: none;
+}
+
+.mode-switch,
+.kks-nav-mode-switch {
+  padding: 2px;
+  border-radius: var(--r-full);
+  border: 1px solid var(--border);
+  background: var(--surface-sunken);
+  box-shadow: none;
+}
+
+.email-fab {
+  border-radius: var(--r-full);
+  box-shadow: var(--e-2);
+  font-size: var(--fs-sm);
+}
+
+/* ------------------------------------------------------------ forms */
+
+.form-grid {
+  gap: var(--field-gap) var(--sp-3);
+}
+
+.form-grid label {
+  gap: var(--sp-1);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  color: var(--text-secondary);
+}
+
+input,
+select,
+textarea,
+.eq-select-trigger {
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  min-height: var(--ctl-h);
+  padding: var(--sp-1) var(--sp-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-control);
+  color: var(--text-primary);
+  transition: border-color var(--dur-1) var(--ease-out), box-shadow var(--dur-1) var(--ease-out);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-tertiary);
+}
+
+input:hover,
+select:hover,
+.eq-select-trigger:hover {
+  border-color: var(--border-strong);
+}
+
+/* Matched to .eq-select-trigger. background-color only: the caret arrives as a
+   legacy background-image and the shorthand would wipe it. */
+.vh-select-trigger,
+select:not(.class-cell-select),
+.form-block select {
+  min-height: var(--ctl-h);
+  border-radius: var(--r-md);
+  background-color: var(--surface-control);
+  font-size: var(--fs-sm);
+  color: var(--text-primary);
+  transition: border-color var(--dur-1) var(--ease-out), box-shadow var(--dur-1) var(--ease-out);
+}
+
+.vh-select-trigger:hover,
+.form-block select:hover {
+  border-color: var(--border-strong);
+}
+
+/* Disabled must stay visibly different now that the enabled state is white. */
+select:disabled,
+.form-block select:disabled,
+.vh-select-wrap.is-disabled .vh-select-trigger {
+  background-color: var(--surface-sunken);
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+.eq-select-trigger:focus,
+.eq-select-wrap.open .eq-select-trigger {
+  outline: none;
+  border-color: var(--a-500);
+  box-shadow: var(--ring-inset);
+}
+
+.eq-select-trigger,
+select {
+  background-image: none;
+  padding-right: var(--sp-6);
+}
+
+.eq-select-wrap,
+label .input-wrap,
+.doc-picker {
+  position: relative;
+}
+
+/* The button was centred with translateY(-50%), which every hover rule in the
+   sheet then overwrote, dropping it half its height. Laid out, not translated. */
+.doc-picker {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.doc-picker .btn {
+  position: static;
+  transform: none;
+  flex: 0 0 auto;
+  margin-top: 0;
+}
+
+/* The button was centred with translateY(-50%), which every hover rule in the
+   sheet then overwrote, dropping it half its height. Laid out, not translated. */
+.doc-picker {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.doc-picker .btn {
+  position: static;
+  transform: none;
+  flex: 0 0 auto;
+  margin-top: 0;
+}
+
+/* Chevron drawn once, as a mask, instead of stacked gradient triangles. */
+.eq-select-wrap::after,
+.form-grid select + .kv-caret,
+select {
+  --caret: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 6.5 8 10.5 12 6.5' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+select {
+  background-image: var(--caret);
+  background-repeat: no-repeat;
+  background-position: right var(--sp-2) center;
+  background-size: 16px 16px;
+}
+
+.eq-select-wrap::after {
+  content: "";
+  position: absolute;
+  right: var(--sp-2);
+  top: 50%;
+  translate: 0 -50%;
+  width: 16px;
+  height: 16px;
+  background: var(--text-tertiary);
+  mask: var(--caret) center / 16px 16px no-repeat;
+  pointer-events: none;
+}
+
+.field-valid {
+  border-color: var(--ok-500);
+  box-shadow: inset 0 0 0 1px var(--ok-500);
+}
+
+.field-invalid {
+  border-color: var(--danger-500);
+  box-shadow: inset 0 0 0 1px var(--danger-500);
+}
+
+.field-bypass {
+  background: var(--surface-sunken);
+  border-style: dashed;
+}
+
+.field-meta {
+  font-size: var(--fs-2xs);
+  color: var(--text-tertiary);
+}
+
+.field-meta.ok { color: var(--ok-700); }
+.field-meta.warn { color: var(--warn-700); }
+.field-meta.error { color: var(--danger-700); }
+
+.field-note-btn,
+.clear-btn {
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  color: var(--text-tertiary);
+  font-weight: var(--fw-semibold);
+  transition: background-color var(--dur-1) var(--ease-out), color var(--dur-1) var(--ease-out);
+}
+
+.field-note-btn:hover,
+.clear-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+/* background-color only: the shorthand would drop the calendar icon that
+   styles.css paints as a background-image on this trigger. */
+.eq-date-trigger {
+  border: 1px solid var(--border);
+  background-color: var(--surface-control);
+  background-size: 15px 15px;
+  transition: background-color var(--dur-1) var(--ease-out), border-color var(--dur-1) var(--ease-out);
+}
+
+.eq-date-trigger:hover {
+  background-color: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+
+/* The overlay swallows hover on the button, so the wrapper drives the state. */
+.eq-date-wrap:hover .eq-date-trigger {
+  background-color: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+
+/* The native picker is laid over the trigger with its indicator stretched to
+   fill it, so a pointer click opens the calendar through the browser itself
+   instead of showPicker(), which is blocked inside file:// frames. The generic
+   input sizing above must not apply here or the box stops matching the icon. */
+.eq-date-picker-native {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  opacity: 0;
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.eq-date-picker-native::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Keyboard focus lands on the button underneath, so it shows the ring. */
+.eq-date-wrap:focus-within .eq-date-trigger {
+  border-color: var(--a-500);
+}
+
+.eq-date-input {
+  background-image: none;
+  color: var(--text-primary);
+  font-weight: var(--fw-regular);
+}
+
+.note {
+  border-radius: var(--r-md);
+  border: 1px solid var(--warn-100);
+  background: var(--warn-50);
+  color: var(--warn-700);
+  font-size: var(--fs-xs);
+  padding: var(--sp-1) var(--sp-2);
+}
+
+.note.ok {
+  border-color: var(--ok-100);
+  background: var(--ok-50);
+  color: var(--ok-700);
+}
+
+.meta-strip p {
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-sunken);
+  font-size: var(--fs-2xs);
+  color: var(--text-secondary);
+}
+
+/* ----------------------------------------------------------- tables */
+
+.table-wrap,
+.data-table-wrap,
+.spareparts-table-wrap,
+.class-detail-grid-wrap {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  background: var(--surface-raised);
+}
+
+/* Data is the point, so it gets the height. */
+.table-wrap {
+  max-height: min(72vh, 900px);
+}
+
+.spareparts-table-wrap {
+  max-height: min(62vh, 760px);
+}
+
+/* Not every legacy table wraps its header row in <thead>. */
+table th,
+.class-detail-table thead th {
+  background: var(--n-50);
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+  padding: var(--sp-2) var(--cell-px);
+  white-space: nowrap;
+}
+
+/* Sticky headers must stay fully opaque or scrolled rows bleed through. */
+table th {
+  background-clip: padding-box;
+}
+
+/* One sticky contract for every scrollable table. The legacy sheets each
+   repeated these three declarations next to their own header styling. */
+thead th,
+.class-detail-table thead th,
+.ops-table thead th,
+.vh-picker-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  box-shadow: var(--e-sticky);
+}
+
+/* These two headers were the last on the legacy blue; the neutral tone is what
+   every other table header in the product already uses. */
+.ops-table thead th,
+.vh-picker-table thead th {
+  background: var(--n-50);
+  color: var(--text-secondary);
+}
+
+/* Wins over .small-muted, which the element also carries and which is shared
+   with every other legacy page. */
+.vh-runtime-strip {
+  font-size: var(--fs-xs);
+}
+
+/* Overrides the legacy box-shadow:none so the current step reads as the one
+   raised item in the strip. */
+.vh-process-step.active {
+  box-shadow: var(--e-accent);
+}
+
+tbody td,
+.class-detail-table tbody td {
+  padding: var(--cell-py) var(--cell-px);
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: var(--fs-table);
+  color: var(--text-primary);
+  line-height: var(--lh-normal);
+}
+
+tbody tr {
+  transition: background-color var(--dur-1) var(--ease-out);
+}
+
+tbody tr:hover {
+  background: var(--surface-hover);
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.spareparts-table th:first-child,
+.spareparts-table td:first-child,
+.spareparts-table th:last-child,
+.spareparts-table td:last-child {
+  background: transparent;
+}
+
+.status {
+  min-width: 0;
+  border-radius: var(--r-sm);
+  padding: 2px var(--sp-2);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+}
+
+.status.valid {
+  background: var(--ok-50);
+  color: var(--ok-700);
+  border-color: var(--ok-100);
+}
+
+.status.warning {
+  background: var(--warn-50);
+  color: var(--warn-700);
+  border-color: var(--warn-100);
+}
+
+.status.invalid {
+  background: var(--danger-50);
+  color: var(--danger-700);
+  border-color: var(--danger-100);
+}
+
+.sub-badge {
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-sunken);
+  color: var(--text-secondary);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-medium);
+}
+
+/* ------------------------------------------------ overlays + popups */
+
+.combo-panel,
+.eq-select-panel,
+.hover-hint,
+.site-submenu {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-raised);
+  box-shadow: var(--e-3);
+}
+
+.combo-panel::before {
+  display: none;
+}
+
+/* One dropdown appearance across VH, Equipment, Materialer and FL. The row
+   dividers come from VH; border and radius stay on tokens rather than the
+   legacy blues VH still carried. */
+.vh-select-panel,
+.eq-select-panel,
+.combo-panel-lite,
+.combo-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-raised);
+  box-shadow: var(--e-3);
+}
+
+.vh-select-panel .combo-option,
+.combo-panel-lite .combo-option,
+.eq-select-panel .combo-item,
+.combo-panel .combo-item {
+  border-radius: 0;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: var(--sp-2) var(--sp-3);
+  font-size: var(--fs-sm);
+  color: var(--text-primary);
+}
+
+.vh-select-panel .combo-option:last-child,
+.combo-panel-lite .combo-option:last-child,
+.eq-select-panel .combo-item:last-child,
+.combo-panel .combo-item:last-child {
+  border-bottom: 0;
+}
+
+.vh-select-panel .combo-option:hover,
+.vh-select-panel .combo-option.active,
+.combo-panel-lite .combo-option:hover,
+.combo-panel-lite .combo-option.active,
+.eq-select-panel .combo-item:hover,
+.eq-select-panel .combo-item.active,
+.combo-panel .combo-item:hover,
+.combo-panel .combo-item.active {
+  background: var(--surface-selected);
+  color: var(--a-700);
+}
+
+.combo-item {
+  border-bottom: 0;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  color: var(--text-primary);
+  font-size: var(--fs-sm);
+  transition: background-color var(--dur-1) var(--ease-out);
+}
+
+.combo-item:hover,
+.combo-item.active {
+  background: var(--surface-selected);
+  color: var(--a-700);
+}
+
+.combo-item .combo-key {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+}
+
+.combo-item .combo-text {
+  font-size: var(--fs-xs);
+  color: var(--text-tertiary);
+}
+
+.no-results {
+  color: var(--text-tertiary);
+  font-size: var(--fs-xs);
+}
+
+.hover-hint {
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+  padding: var(--sp-2) var(--sp-3);
+}
+
+/* One scrim for every modal. It separates by dimming, so it does not also
+   blur. Geometry and stacking stay with each modal: the legacy sheets carry
+   responsive overrides that a rule in this file would outrank. */
+.class-detail-backdrop,
+.field-note-backdrop,
+.vh-modal-backdrop {
+  background: rgba(15, 22, 33, 0.32);
+  backdrop-filter: none;
+}
+
+.class-detail-modal,
+.vh-modal-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface-raised);
+  box-shadow: var(--e-3);
+  padding: var(--sp-5);
+}
+
+/* --------------------------------------------------- loading states */
+
+.kv-skeleton {
+  border-radius: var(--r-sm);
+  background: linear-gradient(90deg, var(--n-100) 25%, var(--n-150) 37%, var(--n-100) 63%);
+  background-size: 400% 100%;
+  animation: kv-shimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes kv-shimmer {
+  to { background-position: -135% 0; }
+}
+
+.kv-empty {
+  padding: var(--sp-10) var(--sp-4);
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: var(--fs-sm);
+}
+
+/* --------------------------------------------------------- scrollbar */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--n-300) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--n-300);
+  border: 3px solid var(--surface-raised);
+  border-radius: var(--r-full);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--n-400);
+}
+
+/* -------------------------------------------------------- responsive */
+
+@media (max-width: 900px) {
+  body[data-shell="rail"] {
+    padding-left: 0;
+    padding-bottom: var(--rail-w);
+  }
+
+  .kv-rail {
+    inset-block: auto 0;
+    inset-inline: 0;
+    width: 100%;
+    height: var(--rail-w);
+    flex-direction: row;
+    align-items: center;
+    border-right: 0;
+    border-top: 1px solid var(--border-subtle);
+    overflow-x: auto;
+  }
+
+  .kv-rail:hover,
+  .kv-rail:focus-within {
+    width: 100%;
+  }
+
+  .kv-rail-brand,
+  .kv-rail-foot {
+    display: none;
+  }
+
+  .kv-rail-list {
+    grid-auto-flow: column;
+    gap: var(--sp-1);
+  }
+
+  .kv-rail-label {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kv-palette,
+  .kv-palette-backdrop,
+  .kv-skeleton,
+  .kv-flash {
+    animation: none;
+  }
+}
+
+/*
+ * Legacy focus rules declare their own faint ring at class-level specificity.
+ * These match that specificity so keyboard focus always resolves to the token
+ * ring, while mouse focus keeps the quieter legacy treatment.
+ */
+.table-input:focus-visible,
+.class-cell-input:focus-visible,
+.class-cell-select:focus-visible,
+.class-detail-input:focus-visible,
+.class-detail-select:focus-visible,
+.fl-select-trigger:focus-visible,
+.vh-select-trigger:focus-visible,
+.eq-select-trigger:focus-visible,
+.extract-input:focus-visible,
+.faq-search:focus-visible,
+.kks-search:focus-visible,
+.form-block input:focus-visible,
+.form-block select:focus-visible,
+.form-block textarea:focus-visible,
+.ops-table input:focus-visible,
+.ops-table textarea:focus-visible {
+  outline: none;
+  border-color: var(--a-500);
+  box-shadow: var(--ring);
+}
+
+/* Required fields: asterisk on the label, hairline tint on the control. */
+.req-label {
+  display: inline-block;
+}
+
+.req-mark {
+  color: var(--danger-500);
+  font-size: 0.9em;
+  font-weight: var(--fw-semibold);
+  line-height: 1;
+  margin-inline-start: 2px;
+}
+
+[data-required="true"] > input,
+[data-required="true"] > select,
+[data-required="true"] > textarea,
+[data-required="true"] > .input-wrap > input,
+[data-required="true"] > .doc-picker > input,
+[data-required="true"] > .eq-date-wrap > .eq-date-input,
+[data-required="true"] > .vh-select-wrap > .vh-select-trigger,
+[data-required="true"] > .eq-select-wrap > .eq-select-trigger {
+  border-color: color-mix(in oklab, var(--danger-500) 26%, var(--border-strong));
+}
+
+[data-required="true"] > input:focus,
+[data-required="true"] > input:focus-visible,
+[data-required="true"] > select:focus,
+[data-required="true"] > select:focus-visible,
+[data-required="true"] > textarea:focus,
+[data-required="true"] > textarea:focus-visible,
+[data-required="true"] > .input-wrap > input:focus,
+[data-required="true"] > .input-wrap > input:focus-visible,
+[data-required="true"] > .doc-picker > input:focus,
+[data-required="true"] > .doc-picker > input:focus-visible,
+[data-required="true"] > .eq-date-wrap > .eq-date-input:focus,
+[data-required="true"] > .eq-date-wrap > .eq-date-input:focus-visible,
+[data-required="true"] > .vh-select-wrap > .vh-select-trigger:focus,
+[data-required="true"] > .vh-select-wrap > .vh-select-trigger:focus-visible,
+[data-required="true"] > .eq-select-wrap > .eq-select-trigger:focus,
+[data-required="true"] > .eq-select-wrap > .eq-select-trigger:focus-visible {
+  border-color: var(--a-500);
+}
+
+.required-legend {
+  margin: 0;
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+}
+
+.form-head > .required-legend {
+  margin-inline-end: auto;
+}
+
+.required-legend::before {
+  content: "*";
+  color: var(--danger-500);
+  font-weight: var(--fw-semibold);
+  margin-inline-end: 4px;
+}
+
+/* ------------------------------------------------- home landing page */
+
+/* The landing page is the only place the accent carries decoration. One ramp
+   runs from the hero rail into the seven card hairlines, so the row reads as a
+   single object instead of seven identical tiles. Everything is scoped to
+   body[data-page="home"] to keep the working pages flat. */
+
+body[data-page="home"] .site-hero {
+  position: relative;
+  overflow: hidden;
+}
+
+body[data-page="home"] .site-hero::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 2px;
+  background-image: linear-gradient(90deg, var(--a-300), var(--a-500) 50%, var(--a-700));
+}
+
+body[data-page="home"] .nav-card {
+  --card-accent: var(--a-500);
+  --spot-x: 50%;
+  --spot-y: 0%;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition:
+    transform var(--dur-2) var(--ease-out),
+    border-color var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-2) var(--ease-out),
+    opacity var(--dur-2) var(--ease-out);
+}
+
+body[data-page="home"] .nav-card:nth-child(1) { --card-accent: var(--a-300); }
+body[data-page="home"] .nav-card:nth-child(2) { --card-accent: color-mix(in oklab, var(--a-300) 60%, var(--a-400)); }
+body[data-page="home"] .nav-card:nth-child(3) { --card-accent: var(--a-400); }
+body[data-page="home"] .nav-card:nth-child(4) { --card-accent: var(--a-500); }
+body[data-page="home"] .nav-card:nth-child(5) { --card-accent: color-mix(in oklab, var(--a-500) 55%, var(--a-600)); }
+body[data-page="home"] .nav-card:nth-child(6) { --card-accent: var(--a-600); }
+body[data-page="home"] .nav-card:nth-child(7) { --card-accent: var(--a-700); }
+
+/* --spot-x / --spot-y are written by app-home.js on pointermove. */
+body[data-page="home"] .nav-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  background-image: radial-gradient(
+    220px circle at var(--spot-x) var(--spot-y),
+    color-mix(in oklab, var(--card-accent) 6%, transparent),
+    transparent 72%
+  );
+  transition: opacity var(--dur-2) var(--ease-out);
+}
+
+body[data-page="home"] .nav-card::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  opacity: 0.5;
+  background-color: var(--card-accent);
+  transition: height var(--dur-2) var(--ease-out), opacity var(--dur-2) var(--ease-out);
+}
+
+body[data-page="home"] .nav-card:hover,
+body[data-page="home"] .nav-card:focus-visible {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklab, var(--card-accent) 30%, var(--border));
+  box-shadow:
+    var(--e-2),
+    0 6px 16px -14px color-mix(in oklab, var(--card-accent) 18%, transparent);
+}
+
+body[data-page="home"] .nav-card:hover::before,
+body[data-page="home"] .nav-card:focus-visible::before {
+  opacity: 1;
+}
+
+body[data-page="home"] .nav-card:hover::after,
+body[data-page="home"] .nav-card:focus-visible::after {
+  height: 2px;
+  opacity: 0.85;
+}
+
+body[data-page="home"] .card-grid:has(.nav-card:hover) .nav-card:not(:hover) {
+  opacity: 0.8;
+}
+
+body[data-page="home"] .nav-card h2 {
+  transition: color var(--dur-2) var(--ease-out);
+}
+
+body[data-page="home"] .nav-card:hover h2,
+body[data-page="home"] .nav-card:focus-visible h2 {
+  color: var(--a-700);
+}
+
+body[data-page="home"] .nav-card h2,
+body[data-page="home"] .nav-card p {
+  text-wrap: balance;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-page="home"] .nav-card,
+  body[data-page="home"] .nav-card::before,
+  body[data-page="home"] .nav-card::after,
+  body[data-page="home"] .nav-card h2 {
+    transition: none;
+  }
+
+  body[data-page="home"] .nav-card:hover,
+  body[data-page="home"] .nav-card:focus-visible {
+    transform: none;
+  }
+
+  body[data-page="home"] .card-grid:has(.nav-card:hover) .nav-card:not(:hover) {
+    opacity: 1;
+  }
+}
