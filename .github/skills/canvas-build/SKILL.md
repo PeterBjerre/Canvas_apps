@@ -599,6 +599,13 @@ python tools\canvas_mcp.py deploy --app equipment --clean
 træet bygges på ny i filens rækkefølge. Brug den altid, når en ændring
 flytter en kontrol til en ny forælder.
 
+Den tomme udgave sendes **uden `App.OnStart`**: OnStart sætter variabler
+til `Blank()`, og deres type kan kun udledes af kontroller, der bruger dem
+— på en tom skærm er der ingen. **Og en fejlet compile er ikke uden
+virkning:** Studio tog imod den tomme skærm, selvom valideringen fejlede.
+Derfor sendes den rigtige skærm altid bagefter, og det er dens compile,
+der afgør, om deployet lykkedes.
+
 **Compile før sync.** Fejler compile, så stop — synk ikke en app, der ikke
 kan oversættes. `cmd_deploy` i `tools/canvas_mcp.py` håndhæver det nu selv:
 den læser fejltallet ud af `compile_canvas`' svar og afbryder. Før stod
