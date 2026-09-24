@@ -90,6 +90,8 @@ Set(varDomRequestGuid, "");
 Set(varDomActiveRowId, Blank());
 // Hvilken raekke detaljeruden viser. Blank = ruden er skjult.
 Set(varDomDetailsId, Blank());
+// Hvilken raekke dokumentpopuppen viser. Blank = lukket.
+Set(varDomDocsId, Blank());
 Set(varDomRowStatus, "valid");
 Set(varDomAttJson, "");
 Set(varDomFlMsg, "");

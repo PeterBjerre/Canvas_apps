@@ -161,7 +161,7 @@ class Ctrl:
     # vis = Visible-udtryk, hvis kontrollen kan vaere skjult. Forelderen
     #       taeller den saa kun med, naar den er synlig.
     __slots__ = ("name", "control", "variant", "props", "children", "h", "_vis",
-                 "_tpl_w", "_tpl_h")
+                 "_tpl_w", "_tpl_h", "_grow")
 
     def __init__(self, name, control, variant=None, props=None, children=None, h=None, vis=None):
         self.name = name
@@ -171,6 +171,7 @@ class Ctrl:
         self.children = children or []
         self.h = h
         self._tpl_w = self._tpl_h = None
+        self._grow = None      # mindstebredde, naar barnet tager resten
         self._vis = None
         if vis is not None:
             self.vis = vis
@@ -365,8 +366,47 @@ def resolve_templates(nodes, parent=None, parent_inner=None):
             inner = cw
         else:
             inner = None if cw is None else _inner(c, cw)
+        if c.children and inner is not None and c.control == "GroupContainer" \
+                and "Horizontal" in _p(c, "LayoutDirection", ""):
+            _resolve_grow(c, inner)
         if c.children:
             resolve_templates(c.children, c, inner)
+
+
+def _resolve_grow(row, inner):
+    """Det barn, der skal tage RESTEN af en vandret raekke, faar en
+    UDREGNET bredde - ikke FillPortions.
+
+    FillPortions var den fleksible del i topbjaelken og i detaljepopuppens
+    hoved. Begge steder stod knapperne ved siden af den og blev i Studio
+    tegnet en linje for lavt - skaaret over af beholderens kant. Listens
+    raekker har kun faste, udregnede bredder, og dér stod knapperne
+    rigtigt. Derfor regnes resten ud her: pladsen inden i raekken (en nedre
+    graense - padding og scrollbar er trukket fra) minus de andre boern og
+    mellemrummene, minus 2 px luft."""
+    kids = row.children
+    growers = [k for k in kids if k._grow is not None]
+    if not growers:
+        return
+    if len(growers) > 1:
+        raise SystemExit(f"gen_screen: {row.name} har mere end eet barn, der "
+                         f"skal tage resten ({', '.join(k.name for k in growers)})")
+    g = growers[0]
+    gap = _p(row, "LayoutGap", "0")
+    terms = []
+    for k in kids:
+        if k is g:
+            continue
+        w = _p(k, "Width", "")
+        if not w or "Parent." in w:
+            raise SystemExit(f"gen_screen: {row.name}: {k.name} har ingen fast "
+                             f"bredde ({w or 'ingen'}) - saa kan resten ikke regnes ud")
+        t = f"({w}) + {gap}"
+        terms.append(f"If({k.vis}, {t}, 0)" if k.vis else t)
+    rest = f"({inner})" + "".join(f" - ({t})" for t in terms) + " - 2"
+    g.props["Width"] = f"Max({g._grow}, {rest})"
+    g.props["FillPortions"] = "0"
+    g.props["LayoutMinWidth"] = str(g._grow)
 
 
 def render_screen(screen_name, screen_props, children):
