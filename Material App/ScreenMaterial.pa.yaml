@@ -4197,7 +4197,7 @@ Screens:
                                     Text: |-
                                         ="MATERIAL"
                                     Width: |-
-                                        =Max(Min((((App.Width - 64) - 36 - 4 - 18)) - If((((App.Width - 64) - 36 - 4 - 18)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18)) >= 493 + 150, 493, 443)), 460), 150)
+                                        =Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)
                                     Wrap: |-
                                         =false
                               - txtDomHead1:
@@ -4234,7 +4234,7 @@ Screens:
                                     Text: |-
                                         ="MFR. PART NO."
                                     Visible: |-
-                                        =(((App.Width - 64) - 36 - 4 - 18)) >= 828 + 150
+                                        =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150
                                     Width: |-
                                         =130
                                     Wrap: |-
@@ -4273,7 +4273,7 @@ Screens:
                                     Text: |-
                                         ="SUPPLIER"
                                     Visible: |-
-                                        =(((App.Width - 64) - 36 - 4 - 18)) >= 828 + 150
+                                        =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150
                                     Width: |-
                                         =120
                                     Wrap: |-
@@ -4312,7 +4312,7 @@ Screens:
                                     Text: |-
                                         ="PLANT"
                                     Visible: |-
-                                        =(((App.Width - 64) - 36 - 4 - 18)) >= 828 + 150
+                                        =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150
                                     Width: |-
                                         =55
                                     Wrap: |-
@@ -4388,7 +4388,7 @@ Screens:
                                     Text: |-
                                         ="FILES"
                                     Visible: |-
-                                        =(((App.Width - 64) - 36 - 4 - 18)) >= 493 + 150
+                                        =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150
                                     Width: |-
                                         =40
                                     Wrap: |-
@@ -4412,8 +4412,6 @@ Screens:
                                         =FontWeight.Semibold
                                     Height: |-
                                         =18
-                                    LayoutMinWidth: |-
-                                        =348
                                     PaddingBottom: |-
                                         =0
                                     PaddingLeft: |-
@@ -4427,7 +4425,7 @@ Screens:
                                     Text: |-
                                         =""
                                     Width: |-
-                                        =348
+                                        =If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 348, 212)
                                     Wrap: |-
                                         =false
                         - galDomRows:
@@ -4522,7 +4520,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =(((((App.Width)) - 24 - 16 - 18) - 18 - 18) - 2 * 2 - 18)
+                                        =(((((App.Width)) - 24 - 16 - 18) - 18 - 18) - 2 * 2 - 18 - 40)
                                   Children:
                                     - txtDomRowText:
                                         Control: ModernText
@@ -4554,7 +4552,7 @@ Screens:
                                           Text: |-
                                               =If(IsBlank(Trim(ThisItem.MaterialDescription)), "(no text)", ThisItem.MaterialDescription)
                                           Width: |-
-                                              =Max(Min((((App.Width - 64) - 36 - 4 - 18)) - If((((App.Width - 64) - 36 - 4 - 18)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18)) >= 493 + 150, 493, 443)), 460), 150)
+                                              =Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)
                                           Wrap: |-
                                               =false
                                     - txtDomRow0:
@@ -4589,7 +4587,7 @@ Screens:
                                           Text: |-
                                               =ThisItem.ManufacturerPartNo
                                           Visible: |-
-                                              =(((App.Width - 64) - 36 - 4 - 18)) >= 828 + 150
+                                              =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150
                                           Width: |-
                                               =130
                                           Wrap: |-
@@ -4626,7 +4624,7 @@ Screens:
                                           Text: |-
                                               =ThisItem.Supplier
                                           Visible: |-
-                                              =(((App.Width - 64) - 36 - 4 - 18)) >= 828 + 150
+                                              =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150
                                           Width: |-
                                               =120
                                           Wrap: |-
@@ -4663,7 +4661,7 @@ Screens:
                                           Text: |-
                                               =ThisItem.Plant
                                           Visible: |-
-                                              =(((App.Width - 64) - 36 - 4 - 18)) >= 828 + 150
+                                              =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150
                                           Width: |-
                                               =55
                                           Wrap: |-
@@ -4749,7 +4747,7 @@ Screens:
                                           Text: |-
                                               =Text(ThisItem.FileCount)
                                           Visible: |-
-                                              =(((App.Width - 64) - 36 - 4 - 18)) >= 493 + 150
+                                              =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150
                                           Width: |-
                                               =40
                                           Wrap: |-
@@ -4775,13 +4773,13 @@ Screens:
                                           LayoutGap: |-
                                               =4
                                           LayoutMinWidth: |-
-                                              =348
+                                              =0
                                           LayoutOverflowX: |-
                                               =LayoutOverflow.Hide
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =348
+                                              =If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 348, 212)
                                         Children:
                                           - btnDomRowOpen:
                                               Control: ModernButton
@@ -4963,6 +4961,8 @@ Screens:
                                                     ="Docs"
                                                 VerticalAlign: |-
                                                     =VerticalAlign.Middle
+                                                Visible: |-
+                                                    =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150
                                                 Width: |-
                                                     =64
                                           - btnDomRowCopy:
@@ -5025,6 +5025,8 @@ Screens:
                                                     ="Copy"
                                                 VerticalAlign: |-
                                                     =VerticalAlign.Middle
+                                                Visible: |-
+                                                    =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150
                                                 Width: |-
                                                     =64
                                           - btnDomRowDelete:
@@ -8463,7 +8465,7 @@ Screens:
                         LayoutOverflowY: |-
                             =LayoutOverflow.Hide
                         Width: |-
-                            =(((Min(760, App.Width - 32)) - 18 - 18) - 2 * 2 - 18)
+                            =(((Min(760, App.Width - 32)) - 18 - 18) - 2 * 2 - 18 - 40)
                       Children:
                         - chkDomAttSel:
                             Control: ModernCheckbox
@@ -8518,7 +8520,7 @@ Screens:
                               Text: |-
                                   =ThisItem.FileName
                               Width: |-
-                                  =Max(0, ((((Min(760, App.Width - 32)) - 18 - 18) - 2 * 2 - 18)) - ((30) + 10) - ((80) + 10) - 2)
+                                  =Max(0, ((((Min(760, App.Width - 32)) - 18 - 18) - 2 * 2 - 18 - 40)) - ((30) + 10) - ((80) + 10) - 2)
                               Wrap: |-
                                   =false
                         - btnDomAttOpen:

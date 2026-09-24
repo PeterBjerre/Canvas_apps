@@ -137,7 +137,12 @@ alle tre er nu spærret af byggeriet. Hele forklaringen står i
 8. **Ingen `FillPortions` i en vandret række.** `grow(ctrl)` markerer den
    del, der tager resten; bredden regnes ud, når skærmen skrives. Ved
    siden af en FillPortions-del blev knapperne tegnet en linje for lavt.
-9. **Equipment og Material: Details og Documents er popups** med hver sin
+9. **En gallerirækkes bredde bestemmer Studio.** Aflæst i Studio: først
+   320, siden `Parent.Width` — aldrig builderens udtryk. Vores tal er et
+   **budget for cellerne**, og det skal være en nedre grænse:
+   `GALLERY_RESERVE` trækkes fra, når bredden stammer fra en
+   `Parent.Width`-kæde. Regel 26 måler cellerne mod budgettet.
+10. **Equipment og Material: Details og Documents er popups** med hver sin
    række (`varDomDetailsId`, `varDomDocsId`). Rækken har fem knapper:
    Edit, Details, Docs, Copy, Delete.
 
@@ -598,6 +603,13 @@ python tools\canvas_mcp.py deploy --app equipment --clean
 `--clean` sender først en tom skærm og derefter den rigtige, så hele
 træet bygges på ny i filens rækkefølge. Brug den altid, når en ændring
 flytter en kontrol til en ny forælder.
+
+Den tomme udgave sendes **uden `App.OnStart`**: OnStart sætter variabler
+til `Blank()`, og deres type kan kun udledes af kontroller, der bruger dem
+— på en tom skærm er der ingen. **Og en fejlet compile er ikke uden
+virkning:** Studio tog imod den tomme skærm, selvom valideringen fejlede.
+Derfor sendes den rigtige skærm altid bagefter, og det er dens compile,
+der afgør, om deployet lykkedes.
 
 **Compile før sync.** Fejler compile, så stop — synk ikke en app, der ikke
 kan oversættes. `cmd_deploy` i `tools/canvas_mcp.py` håndhæver det nu selv:

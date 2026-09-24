@@ -447,6 +447,26 @@ def verify_tree(staging, app, files):
     return total
 
 
+def _app_without_onstart(src, dst):
+    """App.pa.yaml UDEN OnStart - kun til den tomme skaerm.
+
+    OnStart saetter varDomActiveRowId, varDomDetailsId og varDomDocsId til
+    Blank(). Deres TYPE kan Power Fx kun udlede af kontrollerne, der bruger
+    dem - og paa en tom skaerm er der ingen. Det gav tre compile-fejl. Den
+    rigtige App.pa.yaml, med OnStart, sendes lige bagefter."""
+    import yaml
+    doc = yaml.safe_load(open(src, encoding="utf-8"))
+    props = doc["App"]["Properties"]
+    props.pop("OnStart", None)
+    lines = ["App:", "  Properties:"]
+    for k, v in props.items():
+        lines.append("    %s: |-" % k)
+        for i, line in enumerate(str(v).split("\n")):
+            lines.append("        " + ("=" + line.lstrip("=") if i == 0 else line))
+    with open(dst, "w", encoding="utf-8", newline="\n") as f:
+        f.write("\n".join(lines) + "\n")
+
+
 def clean_stage(app, staging, files):
     """En udgave af appen, hvor hver skaerm er TOM.
 
@@ -465,7 +485,7 @@ def clean_stage(app, staging, files):
         if f.startswith("Screen"):
             dv.blank_screen(os.path.join(src, f), os.path.join(staging, f))
         elif f == "App.pa.yaml":
-            shutil.copy2(os.path.join(src, f), os.path.join(staging, f))
+            _app_without_onstart(os.path.join(src, f), os.path.join(staging, f))
     out("tom udgave til %s" % staging)
 
 
@@ -609,11 +629,19 @@ def cmd_deploy(client, args, cfg):
         txt = client.call("compile_canvas", {"directoryPath": blank},
                           timeout=args.timeout)
         out(indent(txt))
+        # IKKE STOP HER.
+        #
+        # Foerste udgave stoppede, hvis den tomme skaerm gav fejl, og sagde
+        # "appen er uaendret". Det passede ikke: Studio tager imod skaermen,
+        # OGSAA naar valideringen fejler - skaermen var tom bagefter. At
+        # stoppe efterlod altsaa appen uden en skaerm, og det er det
+        # vaerste udfald. Den rigtige skaerm sendes derfor altid bagefter;
+        # det er DENS compile, der afgoer, om deployet lykkedes.
         n = compile_errors(txt)
         if n:
             out("")
-            out("STOP: den tomme skaerm blev afvist (%d fejl). Appen er uaendret." % n)
-            raise SystemExit(1)
+            out("   (den tomme skaerm gav %d fejl - fortsaetter med den rigtige;" % n)
+            out("    det er den, der taeller)")
 
     out("=== compile_canvas (her naar aendringen Studio) ===")
     txt = client.call("compile_canvas", {"directoryPath": staging},
@@ -627,15 +655,16 @@ def cmd_deploy(client, args, cfg):
     # found", og til sidst "Faerdig. Tjek appen i Studio". Fejlene stod
     # fire linjer laengere oppe og blev rullet vaek af resten.
     #
-    # sync_canvas henter serverens tilstand NED. Naar compile blev afvist,
-    # er serverens tilstand den GAMLE app - saa driftrapporten nedenfor
-    # sammenligner det, vi sendte, med noget, der aldrig blev taget imod,
-    # og kalder forskellen "normalisering".
+    # OBS: en afvist compile er IKKE noedvendigvis uden virkning. Et
+    # --clean-deploy viste, at Studio tog imod en tom skaerm, selvom
+    # valideringen fejlede. Beskeden nedenfor lover derfor ikke laengere,
+    # at appen er uaendret.
     n = compile_errors(txt)
     if n:
         out("")
         out("STOP: compile afviste %d fejl. Der synkes ikke." % n)
-        out("Appen i Studio er UAENDRET - rettelsen naaede aldrig frem.")
+        out("Appen i Studio kan vaere DELVIST aendret - Studio tager imod")
+        out("skaermen, ogsaa naar valideringen fejler.")
         out("")
         out("Ret fejlen i builderen, ikke i YAML'en:")
         out("    python3 tools/build_all.py")

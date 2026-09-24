@@ -71,7 +71,8 @@ OUT_DIR = _out_dir()
 ROOT = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 from design_tokens import ref as _t, TRANSPARENT
-from layout_tokens import below, if_below, SHELL_W, SCROLLBAR_W
+from layout_tokens import (below, if_below, SHELL_W, SCROLLBAR_W,
+                           GALLERY_RESERVE)
 
 # ---------------------------------------------------------------------------
 # Farver
@@ -161,7 +162,7 @@ class Ctrl:
     # vis = Visible-udtryk, hvis kontrollen kan vaere skjult. Forelderen
     #       taeller den saa kun med, naar den er synlig.
     __slots__ = ("name", "control", "variant", "props", "children", "h", "_vis",
-                 "_tpl_w", "_tpl_h", "_grow")
+                 "_tpl_w", "_tpl_h", "_tpl_unc", "_grow")
 
     def __init__(self, name, control, variant=None, props=None, children=None, h=None, vis=None):
         self.name = name
@@ -171,6 +172,7 @@ class Ctrl:
         self.children = children or []
         self.h = h
         self._tpl_w = self._tpl_h = None
+        self._tpl_unc = False
         self._grow = None      # mindstebredde, naar barnet tager resten
         self._vis = None
         if vis is not None:
@@ -325,19 +327,32 @@ def _stretches(parent, child):
             and not any(x in own for x in (".Start", ".Center", ".End")))
 
 
-def resolve_templates(nodes, parent=None, parent_inner=None):
+def resolve_templates(nodes, parent=None, parent_inner=None, uncertain=False):
+    """uncertain: kommer bredden fra en Parent.Width-kaede?
+
+    Saa er vores tal en NEDRE graense - ikke den bredde, platformen giver.
+    Det er fint for en almindelig container, der bare bliver lidt smallere
+    end noedvendigt. Men et GALLERIS skabelon faar sin bredde af Studio,
+    og cellerne i rakken maales mod VORES tal. Er det for stort, ligger den
+    sidste celle uden for rakken. Derfor traekkes GALLERY_RESERVE fra, naar
+    kaeden er usikker."""
     for c in nodes:
         w = _p(c, "Width", "")
+        unc = uncertain
         if parent is not None and parent.control == "Gallery":
             cw = parent._tpl_w
+            unc = parent._tpl_unc
         elif _stretches(parent, c):
             cw = parent_inner
+            unc = True                 # foraelderen straekker: vi gaetter
         elif w and "Parent." not in w:
             cw = w
+            unc = False                # et tal, vi selv har skrevet
         elif w in ("Parent.Width", "App.Width") and parent is None:
             cw = "App.Width"
         elif w == "Parent.Width":
             cw = parent_inner          # nedre graense: pladsen, ikke egenskaben
+            unc = True
         else:
             cw = None
         if parent is not None and parent.control == "Gallery":
@@ -360,9 +375,14 @@ def resolve_templates(nodes, parent=None, parent_inner=None):
             if c.variant == "Horizontal":
                 c._tpl_w = size
                 c._tpl_h = f"({_p(c, 'Height')}) - 2 * {pad}"
+                c._tpl_unc = False
             else:
-                c._tpl_w = None if cw is None else f"({cw}) - 2 * {pad} - {sb}"
+                res = GALLERY_RESERVE if unc else 0
+                c._tpl_w = (None if cw is None
+                            else f"({cw}) - 2 * {pad} - {sb}"
+                                 + (f" - {res}" if res else ""))
                 c._tpl_h = size
+                c._tpl_unc = unc
             inner = cw
         else:
             inner = None if cw is None else _inner(c, cw)
@@ -370,7 +390,7 @@ def resolve_templates(nodes, parent=None, parent_inner=None):
                 and "Horizontal" in _p(c, "LayoutDirection", ""):
             _resolve_grow(c, inner)
         if c.children:
-            resolve_templates(c.children, c, inner)
+            resolve_templates(c.children, c, inner, unc)
 
 
 def _resolve_grow(row, inner):

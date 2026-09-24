@@ -201,7 +201,7 @@ def build_tasklist_picker_modal():
     modal = group(
         "conVhpPickerModal", [headRow, toolbar, infoText, listWrap, footer], direction="Vertical", gap=12,
         fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=16,
-        pad=(18, 18, 18, 18), width=680, drop_shadow="ExtraBold", visible="varVhpTasklistPickerOpen")
+        pad=(18, 18, 18, 18), width=740, drop_shadow="ExtraBold", visible="varVhpTasklistPickerOpen")
     modal.props["X"] = "(App.Width - Self.Width) / 2"
     modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
     return modal
