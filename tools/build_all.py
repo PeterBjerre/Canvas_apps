@@ -260,8 +260,12 @@ def main(argv=None):
             if r.returncode:
                 print("  -> reglerne er ikke i trit. Koer: node tools/fl/harness.js plan")
                 return r.returncode
+            doc_check = True
         else:
             print("\nNB: node findes ikke - FL-reglerne er IKKE efterproevet mod html/*.js.")
+        doc_check = True
+    else:
+        doc_check = False
 
     rc = 0
     for app, scripts in apps:
@@ -300,6 +304,14 @@ def main(argv=None):
         print("\nDe hoerer i app-mapperne. Slet dem, og find ud af hvilken")
         print("builder der skrev dem det forkerte sted.")
         return 1
+
+    # docs/31 er kontrakten for FL-appen: findes hver henvisning i
+    # "Implementeret i", og har hver regel sine testsager? Efter bygningen,
+    # fordi den ogsaa slaar kontrolnavne op i den byggede skaerm.
+    if doc_check:
+        r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "fl", "check_rules_doc.py")])
+        if r.returncode:
+            rc = r.returncode
 
     # Til sidst, fordi det laeser de .pa.yaml, byggeriet lige har skrevet:
     # findes hver SharePoint-kolonne, formlerne bruger, i virkeligheden?

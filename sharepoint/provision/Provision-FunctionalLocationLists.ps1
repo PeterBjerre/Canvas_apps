@@ -12,11 +12,11 @@
                                    det frosne JSON-snapshot ved indsend
       FunctionalLocationItems      een raekke pr. FL, med spool-felterne
                                    som JSON (SpoolValuesJson)
-      MD_FLKey                     noeglerne bag klassebestemmelsen. Appen
-                                   slaar KUN funktionsnoeglerne op her - de
-                                   er 6.441 og kan ikke ligge i appen. De
-                                   tre smaa tabeller ligger som navngivne
-                                   formler (docs/31, PX5).
+      MD_FLKey                     noeglerne bag klassebestemmelsen, til
+                                   flows, Excel og serverside-validering.
+                                   Appen har de samme noegler bygget ind
+                                   (docs/31, PX5) - et opslag pr. raekke
+                                   mod 6.441 noegler kan ikke delegeres.
 
     Indeksraekken paa landingssiden (MD_RequestIndex) oprettes af
     Provision-RequestIndex.ps1. Domaenet 'FunctionalLocation' findes der
@@ -190,7 +190,7 @@ New-MdList 'MD_FLKey' 'Noegler til klassebestemmelse af Functional Locations (FL
 New-MdField 'MD_FLKey' 'KeyType'     Text -Indexed -Required
 New-MdField 'MD_FLKey' 'Value'       Text
 New-MdField 'MD_FLKey' 'Description' Text
-# Opslaget i appen er LookUp(MD_FLKey, KeyType = "Function" && KeyValue = k).
+# Et opslag er LookUp(MD_FLKey, KeyType = "Function" && KeyValue = k).
 # Begge kolonner SKAL vaere indekseret: der er 6.441 funktionsnoegler, og
 # uden indeks afviser SharePoint forespoergslen over 5.000 elementer.
 Set-PnPField -List 'MD_FLKey' -Identity 'Title' -Values @{ Title = 'KeyValue'; Indexed = $true }
@@ -233,8 +233,9 @@ if ($SeedMasterData -or $ReseedKeys) {
 
 Write-Host "`nFaerdig.`n" -ForegroundColor Cyan
 Write-Host "Naeste skridt:" -ForegroundColor Yellow
-Write-Host "  1. Tilfoej de tre lister + MD_RequestIndex som datakilder i appen i Studio."
+Write-Host "  1. Tilfoej FunctionalLocationRequests, FunctionalLocationItems og"
+Write-Host "     MD_RequestIndex som datakilder i appen i Studio."
 Write-Host "  2. Koer sharepoint/inspect/Export-ListSchema.ps1, saa check_datasources.py"
 Write-Host "     kan efterproeve kolonnerne."
-Write-Host "  3. Verificer i Studio, at LookUp(MD_FLKey, KeyType = ""Function"" && KeyValue = ...)"
-Write-Host "     IKKE giver en delegationsadvarsel."
+Write-Host "  3. Saet appens app_id i tools/canvas_apps.json (functionallocation) og byg igen,"
+Write-Host "     saa AppUrl i MD_RequestIndex peger paa appen."
