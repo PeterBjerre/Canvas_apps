@@ -80,7 +80,7 @@ mod koden før denne ændring:
 
 ---
 
-## Metoden: tre regler
+## Metoden
 
 ### Regel A — Rammen: bjælken står uden for det, der scroller
 
@@ -127,25 +127,64 @@ at passe, passer — på Mac og på Windows.
 ### Regel C — To tilstande, aldrig noget midt imellem
 
 `build_helpers.flow_row()` erstatter `wrap_row_height()`. En række står
-**enten** på én linje **eller** som et gitter med et fast antal kolonner:
+**enten** vandret på én linje **eller** lodret med ét barn pr. linje — og
+den bruger **ikke** `LayoutWrap`:
 
-| Tilstand | Bredder | Linjer | Højde |
-|---|---|---|---|
-| passer | børnenes egne | 1 | det højeste barn |
-| passer ikke | `(Parent.Width − gaps) / kolonner − 1` | `ceil(n / kolonner)` | summen af linjerne |
+| Tilstand | `LayoutDirection` | Højde |
+|---|---|---|
+| passer | `Horizontal` | det højeste barn |
+| passer ikke | `Vertical` (Stretch) | summen af børnene |
 
-Platformen får aldrig lov at bestemme, hvor mange linjer det bliver.
-Antallet er et tal, Python kender — derfor kan højden ikke være forkert.
+Med `LayoutWrap` bestemmer platformen, hvor mange linjer det bliver, ud fra
+den bredde, den faktisk har. Højden er regnet i Python. Er de to én pixel
+uenige, havner det sidste barn på en linje, højden ikke har — klippet væk.
+Her skifter **retningen**, og antallet af linjer er et tal, Python kender.
+Konstruktionen (`LayoutDirection = If(...)`) er den, den håndbyggede
+Materials-app brugte på sine rækker, og dermed bevist i dette miljø.
 
 Grænsen regnes af børnenes egne bredder mod den forsigtige bredde, så den
 flytter sig selv, når nogen tilføjer en knap. `flex=` lader ét barn
-(typisk titlen) tage resten af linjen.
+(typisk titlen) tage resten af linjen med `FillPortions` — se regel D.
 
 `build_helpers.top_bar()` er bjælken i alle fire apps: titel og undertitel
 til venstre, handlinger til højre. På en smal skærm står titlen over
-knapperne, og knapperne står to og to. Der er ingen håndskreven tabel over
-knapbredderne og ingen vagt, der skal holde den i trit — `BAR_RIGHT`,
-`HERO_BTNS`, `ACTIONS_W` og deres vagter er væk.
+knapperne. Der er ingen håndskreven tabel over knapbredderne og ingen
+vagt, der skal holde den i trit — `BAR_RIGHT`, `HERO_BTNS`, `ACTIONS_W` og
+deres vagter er væk.
+
+### Regel D — `Parent.Width` er en egenskab, ikke pladsen
+
+`Parent.Width` i en kontrol er **forælderens Width-egenskab** — ikke den
+plads, der er inden i forælderen. Padding trækkes ikke fra, og en
+scrollbar heller ikke. Inde i et kort i kroppen er `Parent.Width` som regel
+hele skærmens bredde.
+
+Første udgave af rammen regnede titlen i bjælken som
+`Parent.Width - 545`. Headerens 58 px padding var ikke trukket fra,
+rækken var 57 px for bred, og knapperne blev sendt ned på en linje under
+bjælkens kant: **usynlige**. Regel 24 finder 98 kontroller med det mønster i den udgave, der stod i Studio.
+
+Derfor:
+
+- **Resten af en række** → `build_helpers.grow(ctrl)`: `FillPortions = 1`.
+  Så er det platformen, der regner resten ud — af den plads, der er.
+- **En bestemt bredde** → regnet af `SHELL_W` (eller en bredde afledt af
+  den, fx `HALF_W`, `FORM_W`). Galleriernes rækker trækker kortets
+  padding, `TemplatePadding` og galleriets scrollbar fra.
+- **`Parent.Width` alene** er kun i orden, hvor forælderen alligevel
+  strækker barnet (lodret + Stretch) — dér bruges værdien ikke.
+
+### Regel E — Knapper er mindst 30 px høje
+
+Rækkeknapperne i Equipment og Material var 26 px med 14 pt tekst og stod
+som tomme kanter i bunden af rækken. Den håndbyggede app brugte 30 px og
+13 pt, og de knapper virkede. Alle knapper er nu mindst 30 px.
+
+### Regel F — Overløb skjules, med mindre det skal scrolle
+
+Hver container skriver `LayoutOverflowX/Y = Hide`, med mindre den er
+bygget til at scrolle. Et barn, der var et par pixels for højt, gav før en
+scrollbar midt i topbjælken.
 
 ---
 
@@ -157,6 +196,14 @@ knapbredderne og ingen vagt, der skal holde den i trit — `BAR_RIGHT`,
 | **23** | Rammen: første barn er `con<X>Root` (Parent.Width × Parent.Height, scroller ikke), præcis én krop med `Scroll` og `FillPortions > 0` |
 | **23b** | Headerens højde må ikke nævne `CountRows`, `Filter`, `LookUp`, `IsEmpty`, `col*`, `var*`, `gbl*` — og skal kunne regnes ud ved alle testbredder |
 | **23c** | Padding + scrollbar + luft ≥ `SHELL_INSET`. Sætter nogen paddingen op igen, som i `863c168`, stopper byggeriet |
+| **4d** | En række, der skifter retning, efterprøves i sin vandrette tilstand mod den bredde, den faktisk får: de faste børn plus den fleksibles mindstebredde skal kunne stå på linjen |
+| **24** | `Parent.Width` må ikke indgå i et regnestykke — og kun stå alene, hvor forælderen strækker barnet. `Parent.TemplateWidth` kun alene på et galleris direkte barn |
+| **25** | En `ModernButton` er mindst 30 px høj |
+
+Og `real_width()` / `prop_width()` skelner nu mellem de to ting, der hed
+det samme: den plads en kontrol **får**, og den værdi `Parent.Width` i dens
+børn **svarer**. Første udgave af tjekket regnede dem som én — derfor så
+det ikke bjælkefejlen.
 
 `evaluate()` kan nu også regne på `varDom*`, `gbl*`, `!`, `<>`, tekst i
 anførselstegn og `IsEmpty(…)` — ugunstigste tilfælde: det, der kun vises for
@@ -173,6 +220,7 @@ rammens egen `Parent.Height`.
 | Rammen selv scroller | 23a + 4c |
 | `conDomSplit` tilbage til højde til én linje | 3 + 4c |
 | Bjælkens højreside 20 px bredere end grænsen | 4c |
+| Første udgave af rammen, som den stod i Studio (`Parent.Width - 545`) | 24 + 4c: *"conDomBar: ombryder til 2 linjer … højden er 52"* — præcis billedet |
 | Uændret | tavs |
 
 ---
@@ -185,9 +233,10 @@ rammens egen `Parent.Height`.
   andet.
 - **En række, der skal kunne ombryde** → `flow_row()`. Skriv aldrig
   `wrap="true"` med en håndregnet højde.
+- **Et felt, der skal tage resten af en række** → `grow(ctrl)`.
 - **En bredde** → regn af `SHELL_W` (eller en container-bredde afledt af
-  den), aldrig af `App.Width` direkte. `Parent.Width` er også sikkert: den
-  er den faktiske bredde.
+  den), aldrig af `App.Width` direkte — og **aldrig af `Parent.Width`**:
+  den er forælderens Width-egenskab, ikke pladsen inden i den.
 - **En højde** → må afhænge af konstanter, `App.Width`/`LayoutRank` og
   samlinger (`CountRows(col…)`). Aldrig af en datakilde, og aldrig af en
   anden kontrols `.Height`.

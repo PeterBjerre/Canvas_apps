@@ -5,7 +5,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQU
                         C_WHITE, C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, FONT, SHELL_W)
 import build_help as bh
 from build_helpers import (text_ctrl, group, button, text_input, number_input, dropdown, label_row,
-                           field_cell, row_n, col_width, badge, card)
+                           field_cell, row_n, col_width, badge, card, grow)
 
 DM_PLAN = "If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)"
 REQ_PLAN = "varVhpPlanValidated"
@@ -63,11 +63,10 @@ def section_header(name, title, desc, step_label, help_section=None):
         reserved += 64 + 12
 
     if right:
-        left = group(f"{name}Left", [t, d], direction="Vertical", gap=2, height=48, fill_portions=1,
-                     width=f"Parent.Width - {reserved}")
+        left = grow(group(f"{name}Left", [t, d], direction="Vertical", gap=2, height=48))
         return group(f"{name}", [left] + right, direction="Horizontal", gap=12, height=48,
                      align_items="Center")
-    left = group(f"{name}Left", [t, d], direction="Vertical", gap=2, height=48, fill_portions=1)
+    left = grow(group(f"{name}Left", [t, d], direction="Vertical", gap=2, height=48))
     return group(f"{name}", [left], direction="Horizontal", gap=12, height=48, align_items="Center")
 
 
@@ -257,8 +256,8 @@ def build_plan_header():
             "Text(CountRows(colVhpMainWorkCenters)) & \" work centres.\""
         ),
         size=12, color=C_MUTED, height=18, wrap="true")
-    footerInfo = group("conVhpPlanFooterInfo", [planMeta, optionsState], direction="Vertical", gap=2, height=40,
-                       fill_portions=1)
+    footerInfo = grow(group("conVhpPlanFooterInfo", [planMeta, optionsState], direction="Vertical",
+                            gap=2, height=40))
 
     btnSave = button(
         "btnVhpPlanSave", "If(varVhpPlanLocked, \"Edit\", \"Save\")",

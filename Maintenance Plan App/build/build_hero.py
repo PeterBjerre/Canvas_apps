@@ -20,7 +20,7 @@ HERO_CW = f"({SHELL_W} - 32)"
 BW = {"btnVhpTheme": 92, "btnVhpBackToHub": 120,
       "btnVhpValidate": 110, "btnVhpExport": 130}
 
-# Procesindikatorens fem chips. Enten paa een linje, eller to og to -
+# Procesindikatorens fem chips. Enten paa een linje, eller under hinanden -
 # build_helpers.flow_row. En CONTAINER-graense, ikke en enhedsklasse: fem
 # chips fylder det samme, uanset om skaermen er en telefon eller en 4K.
 CHIP_W, CHIP_GAP, N_CHIPS = 118, 8, 5
@@ -266,11 +266,10 @@ def build_hero():
                 "RadiusBottomLeft": "14", "RadiusBottomRight": "14",
                 "RadiusTopLeft": "14", "RadiusTopRight": "14",
             }))
-    # Fem chips a 118 px + 4 gaps a 8 = 622 px. Under det staar de to og
-    # to - tre linjer. Her stod "to linjer" som hoejde under graensen, men
-    # paa en smal skaerm blev det tre, og den sidste chip var klippet.
-    processStrip = flow_row("conVhpProcessStrip", steps, HERO_CW, gap=CHIP_GAP,
-                            narrow_cols=2)
+    # Fem chips a 118 px + 4 gaps a 8 = 622 px. Under det staar de under
+    # hinanden. Her stod "to linjer" som hoejde under graensen, men paa en
+    # smal skaerm blev det tre, og den sidste chip var klippet.
+    processStrip = flow_row("conVhpProcessStrip", steps, HERO_CW, gap=CHIP_GAP)
 
     runtimeInfo = text_ctrl("txtVhpRuntimeInfo", "varVhpRuntimeInfo", size=13, color=C_MUTED, height=36,
                             wrap="true")
@@ -289,7 +288,7 @@ def build_hero():
         "btnVhpToggleHints",
         'If(IfError(varVhpShowHints, false), "Hide field help", "Show field help")',
         "Set(varVhpShowHints, !IfError(varVhpShowHints, false))",
-        width=150, height=28)
+        width=150, height=30)
     btnHints.props["Appearance"] = ("If(IfError(varVhpShowHints, false), "
                                     "ButtonAppearance.Primary, ButtonAppearance.Outline)")
     btnHints.props["BasePaletteColor"] = C_INFO_FG
@@ -299,7 +298,7 @@ def build_hero():
     btnHints.props["Size"] = "12"
 
     legend = group("conVhpLegend", [legendStar, legendText, btnHints], direction="Horizontal",
-                   gap=3, height=28, align_items="Center", width=285)
+                   gap=3, height=30, align_items="Center", width=285)
 
     return group("conVhpHero", [subtitle, processStrip, runtimeInfo, legend], direction="Vertical", gap=12,
                  fill=C_CARD_BG, border_color=C_CARD_BORDER, radius=14, pad=(16, 16, 16, 16))

@@ -22,6 +22,10 @@ Tjekket foretager fire kontroller:
   4c. Hver wrap-raekke SPILLES: boernene pakkes i linjer, som autolayout
      goer det, i den bredde containeren faktisk faar - med scrollbaren
      trukket fra. Hoejden skal rumme de linjer, der kommer ud af det
+  4d. En raekke, der skifter retning, skal passe i sin vandrette tilstand
+  24. Parent.Width maa ikke indgaa i et regnestykke - den er foraelderens
+     Width-EGENSKAB, ikke pladsen inden i den
+  25. En knap er mindst 30 px hoej
   23. Rammen: con<X>Root -> header med fast hoejde + een krop, der
      scroller. Headerens hoejde maa ikke afhaenge af data, og padding +
      scrollbar + luft skal vaere mindst SHELL_INSET. Se
@@ -272,6 +276,37 @@ def evaluate(expr, w, n_items, n_ops, n_pkgs):
         return None
 
 
+def _enum_state(expr, w, true_word, false_word):
+    """En LayoutDirection eller LayoutAlignItems, der kan vaere en FORMEL.
+
+    flow_row() skifter retning efter bredden:
+        If(<passer>, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+    Tjekket skal derfor spoerge ved HVER bredde, hvilken af de to det er.
+    Her stod "Vertical" in tekst - og en formel indeholder begge ord.
+    Returnerer True/False, eller None hvis det ikke kan afgoeres."""
+    e = (expr or "").strip()
+    if e.startswith("="):
+        e = e[1:].strip()
+    if not e:
+        return None
+    if "If(" not in e:
+        return true_word in e
+    e = re.sub(r"\b(?:LayoutDirection|LayoutAlignItems)\.%s\b" % true_word, "1", e)
+    e = re.sub(r"\b(?:LayoutDirection|LayoutAlignItems)\.\w+", "0", e)
+    v = evaluate(e, w, 0, 0, 3)
+    return None if v is None else bool(v)
+
+
+def is_vertical(props, w):
+    v = _enum_state(props.get("LayoutDirection"), w, "Vertical", "Horizontal")
+    return bool(v)
+
+
+def is_stretch(props, w):
+    v = _enum_state(props.get("LayoutAlignItems"), w, "Stretch", "")
+    return bool(v)
+
+
 def collect(nodes, path="", out=None):
     out = [] if out is None else out
     for item in nodes or []:
@@ -301,7 +336,6 @@ def main():
         kids = body.get("Children") or []
         if body.get("Control") != "GroupContainer" or not kids:
             continue
-        vertical = "Vertical" in (props.get("LayoutDirection") or "")
         gap = float(re.sub(r"[^0-9.]", "", props.get("LayoutGap", "=8")) or 8)
         pt = float(re.sub(r"[^0-9.]", "", props.get("PaddingTop", "=0")) or 0)
         pb = float(re.sub(r"[^0-9.]", "", props.get("PaddingBottom", "=0")) or 0)
@@ -319,6 +353,7 @@ def main():
             continue
 
         for w in WIDTHS:
+            vertical = is_vertical(props, w)
             for ni in ITEM_COUNTS:
                 for no in OP_COUNTS:
                     for npk in PKG_COUNTS:
@@ -452,12 +487,37 @@ def main():
                  - _num(pp_.get("PaddingRight"), w, ni, no, npk))
         if (pp_.get("LayoutOverflowY") or "").strip() == "=LayoutOverflow.Scroll":
             inner -= lay.SCROLLBAR_W
-        vertical = "Vertical" in (pp_.get("LayoutDirection") or "")
-        stretch = "Stretch" in (pp_.get("LayoutAlignItems") or "")
+        vertical = is_vertical(pp_, w)
+        stretch = is_stretch(pp_, w)
         own_align = (props.get("AlignInContainer") or "")
         if vertical and stretch and not re.search(r"\.(Start|Center|End)\b", own_align):
             return inner
-        e = (props.get("Width") or "").replace("Parent.Width", "(%s)" % inner)
+        if (not vertical) and (evaluate(props.get("FillPortions"), w, ni, no, npk) or 0) > 0:
+            return None     # platformen fordeler resten - ikke et tal her
+        # Parent.Width er FORAELDERENS WIDTH-EGENSKAB, ikke pladsen inden i
+        # den. Her stod pladsen inden i den - og saa kunne tjekket ikke se,
+        # at "Parent.Width - 545" i topbjaelken var 57 px for bredt.
+        pwp = prop_width(parent, w, ni, no, npk)
+        if pwp is None and "Parent.Width" in (props.get("Width") or ""):
+            return None
+        e = (props.get("Width") or "").replace("Parent.Width", "(%s)" % pwp)
+        return evaluate(e, w, ni, no, npk)
+
+    def prop_width(path, w, ni, no, npk, depth=0):
+        """Vaerdien af en kontrols Width-EGENSKAB - det, Parent.Width i et
+        barn svarer. Den er IKKE traekket fri af padding eller scrollbar."""
+        if depth > 30:
+            return None
+        body = by_path.get(path)
+        if body is None:
+            return None
+        e = (body.get("Properties") or {}).get("Width") or ""
+        parent = path.rsplit("/", 1)[0]
+        if "Parent.Width" in e:
+            pv = float(w) if not parent else prop_width(parent, w, ni, no, npk, depth + 1)
+            if pv is None:
+                return None
+            e = e.replace("Parent.Width", "(%s)" % pv)
         return evaluate(e, w, ni, no, npk)
 
     # --- 4c. Ombrydningen, som platformen faktisk laver den --------------
@@ -491,6 +551,9 @@ def main():
                     continue
                 avail -= (_num(props.get("PaddingLeft"), w, ni, 4, 4)
                           + _num(props.get("PaddingRight"), w, ni, 4, 4))
+                prop_w = prop_width(p, w, ni, 4, 4)
+                if prop_w is None:
+                    prop_w = avail
                 lines, cur_w, cur_h, ok = [], None, 0.0, True
                 for k in kids:
                     (kn, kb), = k.items()
@@ -500,8 +563,11 @@ def main():
                         shown = evaluate(vis, w, ni, 4, 4)
                         if shown is not None and not shown:
                             continue
+                    # Parent.Width i barnet er raekkens Width-EGENSKAB -
+                    # ikke den plads, der er (avail). Det er forskellen, der
+                    # sendte topbjaelkens knapper ned under kanten.
                     kw = evaluate((kp.get("Width") or "").replace(
-                        "Parent.Width", "(%s)" % avail), w, ni, 4, 4)
+                        "Parent.Width", "(%s)" % prop_w), w, ni, 4, 4)
                     kh = evaluate(kp.get("Height"), w, ni, 4, 4)
                     if kw is None or kh is None:
                         ok = False
@@ -529,6 +595,107 @@ def main():
                 break
         if found:
             problems.append(found)
+
+    # --- 4d. En raekke, der skifter retning, skal passe, naar den er vandret
+    #
+    # flow_row() staar vandret, naar dens graense siger "passer", og
+    # lodret ellers. Graensen er regnet af SHELL_W; her efterproeves den mod
+    # den bredde, raekken FAKTISK faar - padding, scrollbar og Stretch
+    # medregnet. De faste boern plus den fleksibles mindstebredde skal
+    # kunne staa paa linjen, ellers skubbes det sidste ud over kanten.
+    for p, name, body in all_nodes:
+        props = body.get("Properties") or {}
+        if "If(" not in (props.get("LayoutDirection") or ""):
+            continue
+        gap = float(re.sub(r"[^0-9.]", "", props.get("LayoutGap", "=8")) or 8)
+        for w in WIDTHS:
+            if is_vertical(props, w):
+                continue
+            avail = real_width(p, w, 3, 4, 4)
+            if avail is None:
+                problems.append(f"[4d] {name}: bredden kan ikke efterregnes ved "
+                                f"App.Width={w}")
+                break
+            avail -= (_num(props.get("PaddingLeft"), w, 3, 4, 4)
+                      + _num(props.get("PaddingRight"), w, 3, 4, 4))
+            need, n = 0.0, 0
+            for k in body.get("Children") or []:
+                (kn, kb), = k.items()
+                kp = kb.get("Properties") or {}
+                vis = evaluate(kp.get("Visible"), w, 3, 4, 4)
+                if vis is not None and not vis:
+                    continue
+                if (evaluate(kp.get("FillPortions"), w, 3, 4, 4) or 0) > 0:
+                    kw = evaluate(kp.get("LayoutMinWidth"), w, 3, 4, 4) or 0
+                else:
+                    kw = evaluate(kp.get("Width"), w, 3, 4, 4)
+                if kw is None:
+                    need = None
+                    break
+                need += kw
+                n += 1
+            if need is None:
+                continue
+            need += gap * max(0, n - 1)
+            if need > avail + 0.5:
+                problems.append(f"[4d] {name}: vandret ved App.Width={w}, men "
+                                f"boernene fylder {need:.0f} px i {avail:.0f} px "
+                                f"(scrollbar medregnet) - det sidste skubbes ud")
+                break
+
+    # --- 24. Parent.Width maa ikke indgaa i regnestykker ----------------
+    #
+    # Parent.Width er FORAELDERENS WIDTH-EGENSKAB - ikke pladsen inden i
+    # den. Padding traekkes ikke fra, og en scrollbar heller ikke. Inde i et
+    # kort med 18 px padding i en krop med 58 px er "Parent.Width" som regel
+    # hele skaermens bredde.
+    #
+    # Topbjaelken regnede titlen som "Parent.Width - 545". Headerens
+    # padding var ikke trukket fra, raekken var 57 px for bred, og
+    # knapperne ombroed ned under bjaelkens kant - usynlige.
+    #
+    # Tilladt er kun:
+    #   Parent.Width           alene, hvor foraelderen alligevel straekker
+    #                          barnet (lodret + Stretch) - vaerdien bruges
+    #                          ikke til noget
+    #   Parent.TemplateWidth   alene, paa et galleris direkte barn
+    # Alt andet: en fleksibel del (FillPortions = 1) eller en bredde regnet
+    # af SHELL_W.
+    for p, name, body in all_nodes:
+        props = body.get("Properties") or {}
+        wv = (props.get("Width") or "").strip()
+        if "Parent." not in wv:
+            continue
+        parent = p.rsplit("/", 1)[0]
+        pb = by_path.get(parent) if parent else None
+        pp_ = (pb or {}).get("Properties") or {}
+        if wv == "=Parent.TemplateWidth" and (pb or {}).get("Control") == "Gallery":
+            continue
+        if wv == "=Parent.Width":
+            if pb is None:
+                continue
+            if all(is_vertical(pp_, w) and is_stretch(pp_, w) for w in WIDTHS) \
+                    and not re.search(r"\.(Start|Center|End)\b",
+                                      props.get("AlignInContainer") or ""):
+                continue
+        problems.append(
+            f"[24] {name}: Width = {wv[1:][:60]} - Parent.Width er "
+            f"foraelderens Width-EGENSKAB, ikke pladsen inden i den (padding "
+            f"og scrollbar er ikke trukket fra). Brug FillPortions "
+            f"(build_helpers.grow) eller en bredde regnet af SHELL_W")
+
+    # --- 25. En knap skal vaere mindst 30 px hoej -------------------------
+    #
+    # Raekkeknapperne i Equipment og Material var 26 px med 14 pt tekst, og
+    # de stod som tomme kanter i bunden af raekken. Den moderne knap har en
+    # mindstehoejde; den haandbyggede Materials-app brugte 30 px og 13 pt,
+    # og de knapper virkede.
+    for p, name, body in all_nodes:
+        if body.get("Control") != "ModernButton":
+            continue
+        h = evaluate((body.get("Properties") or {}).get("Height"), 1366, 3, 4, 4)
+        if h is not None and h < 30:
+            problems.append(f"[25] {name}: knappen er {h:.0f} px hoej - mindst 30")
 
     # --- 23. Rammen ------------------------------------------------------
     #

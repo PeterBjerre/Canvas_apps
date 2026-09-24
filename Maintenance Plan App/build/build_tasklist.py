@@ -5,7 +5,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQU
                         C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, C_VALID_FG, C_INVALID_FG,
                         C_DIVIDER, C_TRANSPARENT, C_INPUT_BG, FONT, SHELL_W)
 from build_helpers import (flow_row, text_ctrl, group, button, button_row, text_input, number_input, dropdown,
-                           label_row, field_cell, two_col_row, badge, card, pin_widths)
+                           label_row, field_cell, two_col_row, badge, card, pin_widths, grow)
 from build_plan_header import section_header, help_panel
 import build_help as bh
 from build_strategy import build_strategy_body, IS_STRATEGY
@@ -517,9 +517,10 @@ def _attachments_pane():
         "TabIndex": "0",
         "TemplatePadding": "0",
         "TemplateSize": str(ATT_CELL_W),
-        "Width": "Parent.Width - 540",
+        "Width": "0",
         "WrapCount": "1",
     }, children=[_att_ops_cell()], h=26)
+    grow(opsGal)
 
     row = group("conVhpAttRow", pin_widths([chkSel, txtName, txtScope, opsGal]),
                 direction="Horizontal", gap=10, height="Parent.TemplateHeight - 2",
