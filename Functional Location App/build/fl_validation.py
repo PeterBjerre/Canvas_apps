@@ -286,9 +286,9 @@ def spool_issues():
                 )
             }}
         ),
-        "Items"
+        Items
     ),
-    "Bad"
+    Bad
 )"""
 
 
@@ -312,7 +312,7 @@ def issues_raw():
 DEDUPE = """ClearCollect(
     colFlIssues,
     ForAll(
-        GroupBy(colFlIssuesRaw, "RowGuid", "Sev", "Msg", "Grp") As G,
+        GroupBy(colFlIssuesRaw, RowGuid, Sev, Msg, Grp) As G,
         With(
             { f: First(Sort(G.Grp, Ord)) },
             { RowGuid: G.RowGuid, Sev: G.Sev, Msg: G.Msg, Ord: f.Ord, Code: f.Code,
