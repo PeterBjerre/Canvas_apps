@@ -183,8 +183,33 @@ som tomme kanter i bunden af rækken. Den håndbyggede app brugte 30 px og
 ### Regel F — Overløb skjules, med mindre det skal scrolle
 
 Hver container skriver `LayoutOverflowX/Y = Hide`, med mindre den er
-bygget til at scrolle. Et barn, der var et par pixels for højt, gav før en
-scrollbar midt i topbjælken.
+bygget til at scrolle.
+
+### Regel G — Galleriernes skabeloner skrives ud, ikke læses
+
+Aflæst i Studio: listens række i Equipment var **320 px** bred.
+`Parent.TemplateWidth` gav containerens standardbredde, ikke galleriets.
+Beskrivelsen alene er 460 px, så status, filer og alle fire knapper lå
+uden for rækken — skjult.
+
+`gen_screen.resolve_templates()` regner nu hver containers bredde ud fra
+rammen og ned (padding og scrollbar trukket fra, Stretch respekteret) og
+skriver skabelonens bredde og højde som et udtryk. Kan en bredde ikke
+regnes ud, stopper byggeriet. Ingen builder skal selv gøre noget — det
+sker i `render_screen`.
+
+Da skabelonerne fik rigtige tal, kunne tjekket se fire tabeller i VH-plan,
+hvor sidste kolonne lå under galleriets scrollbar (operationer, materialer,
+tasklist-vælgeren, pakkematricen). Gallerierne er nu tabellen + padding +
+scrollbar brede.
+
+### Regel H — En tekst er mindst 1,5 × sin skriftstørrelse høj
+
+Den mørke streg i topbjælken var **`txtDomTitle`**: titlen var 22 pt i
+30 px, og den moderne Text-kontrol viser sin egen scrollbar, når teksten
+ikke kan være der. Samme forhold stod på VH-planens sektionstitler (19 i
+26) og hubbens tal (26 i 32). `build_helpers.text_ctrl()` hæver nu selv
+højden til 1,5 × skriftstørrelsen, og højde-algebraen følger med.
 
 ---
 
@@ -199,6 +224,8 @@ scrollbar midt i topbjælken.
 | **4d** | En række, der skifter retning, efterprøves i sin vandrette tilstand mod den bredde, den faktisk får: de faste børn plus den fleksibles mindstebredde skal kunne stå på linjen |
 | **24** | `Parent.Width` må ikke indgå i et regnestykke — og kun stå alene, hvor forælderen strækker barnet. `Parent.TemplateWidth` kun alene på et galleris direkte barn |
 | **25** | En `ModernButton` er mindst 30 px høj |
+| **26** | Ingen `Parent.Template*` i en formel — og en galleriræke skal kunne rumme sine celler ved hver bredde fra Tablet og op |
+| **27** | En `ModernText` er mindst 1,5 × sin skriftstørrelse høj |
 
 Og `real_width()` / `prop_width()` skelner nu mellem de to ting, der hed
 det samme: den plads en kontrol **får**, og den værdi `Parent.Width` i dens
@@ -242,6 +269,10 @@ rammens egen `Parent.Height`.
   anden kontrols `.Height`.
 
 ## Det, der stadig står
+
+- **Tabeller på en telefon.** Listerne har op til syv kolonner og fire
+  knapper pr. række; under Tablet (720 px) kan de ikke stå. Regel 26
+  efterprøver dem fra 720 px og op.
 
 - **Modalerne i VH-plan** har faste bredder (680 og 620 px). De ligger
   uden for rammen og passer fra Tablet (720 px) og op. Apperne er tablet-

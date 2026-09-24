@@ -71,7 +71,7 @@ OUT_DIR = _out_dir()
 ROOT = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 from design_tokens import ref as _t, TRANSPARENT
-from layout_tokens import below, if_below, SHELL_W
+from layout_tokens import below, if_below, SHELL_W, SCROLLBAR_W
 
 # ---------------------------------------------------------------------------
 # Farver
@@ -160,7 +160,8 @@ class Ctrl:
     #       som .Height i en formel.
     # vis = Visible-udtryk, hvis kontrollen kan vaere skjult. Forelderen
     #       taeller den saa kun med, naar den er synlig.
-    __slots__ = ("name", "control", "variant", "props", "children", "h", "_vis")
+    __slots__ = ("name", "control", "variant", "props", "children", "h", "_vis",
+                 "_tpl_w", "_tpl_h")
 
     def __init__(self, name, control, variant=None, props=None, children=None, h=None, vis=None):
         self.name = name
@@ -169,6 +170,7 @@ class Ctrl:
         self.props = props or {}
         self.children = children or []
         self.h = h
+        self._tpl_w = self._tpl_h = None
         self._vis = None
         if vis is not None:
             self.vis = vis
@@ -277,7 +279,98 @@ def render(node, item_indent):
     return lines
 
 
+# ---------------------------------------------------------------------------
+# Galleriernes skabeloner: bredde og hoejde skrives ud, ikke laest
+# ---------------------------------------------------------------------------
+# Parent.TemplateWidth gav 320 i Studio - containerens standardbredde, ikke
+# galleriets. Listens raekke var derfor 320 px bred, beskrivelsen alene
+# 460, og alt efter den (status, filer, knapperne) laa uden for raekken.
+#
+# Her regnes hver containers bredde ud fra RAMMEN og ned - padding og
+# scrollbar trukket fra, Stretch respekteret - og skabelonens bredde og
+# hoejde skrives som et udtryk. Kan en bredde ikke regnes ud, stopper
+# byggeriet: saa er det ikke et gaet, der ender i Studio.
+def _p(ctrl, key, default="0"):
+    return str(ctrl.props.get(key, default)).strip()
+
+
+def _num_or(expr, default=0):
+    try:
+        return float(expr)
+    except ValueError:
+        return None
+
+
+def _inner(ctrl, cw):
+    """Pladsen inden i en container med bredden cw."""
+    pads = [_p(ctrl, "PaddingLeft"), _p(ctrl, "PaddingRight")]
+    extra = SCROLLBAR_W if "Scroll" in _p(ctrl, "LayoutOverflowY", "") else 0
+    terms = [x for x in pads if x not in ("0", "")]
+    out = f"({cw})"
+    for t in terms:
+        out += f" - {t}"
+    if extra:
+        out += f" - {extra}"
+    return out
+
+
+def _stretches(parent, child):
+    if parent is None or parent.control != "GroupContainer":
+        return False
+    d = _p(parent, "LayoutDirection", "")
+    a = _p(parent, "LayoutAlignItems", "")
+    own = _p(child, "AlignInContainer", "")
+    return (d == "LayoutDirection.Vertical" and a == "LayoutAlignItems.Stretch"
+            and not any(x in own for x in (".Start", ".Center", ".End")))
+
+
+def resolve_templates(nodes, parent=None, parent_inner=None):
+    for c in nodes:
+        w = _p(c, "Width", "")
+        if parent is not None and parent.control == "Gallery":
+            cw = parent._tpl_w
+        elif _stretches(parent, c):
+            cw = parent_inner
+        elif w and "Parent." not in w:
+            cw = w
+        elif w in ("Parent.Width", "App.Width") and parent is None:
+            cw = "App.Width"
+        elif w == "Parent.Width":
+            cw = parent_inner          # nedre graense: pladsen, ikke egenskaben
+        else:
+            cw = None
+        if parent is not None and parent.control == "Gallery":
+            for key, val in (("Width", parent._tpl_w), ("Height", parent._tpl_h)):
+                cur = _p(c, key, "")
+                if "Parent.Template" in cur:
+                    if val is None:
+                        raise SystemExit(
+                            f"gen_screen: {c.name}.{key} bruger Parent.Template*, men "
+                            f"galleriet {parent.name}s {key.lower()} kan ikke regnes ud")
+                    new = cur.replace(f"Parent.Template{key}", f"({val})")
+                    c.props[key] = new
+                    if key == "Height":
+                        c.h = new
+            cw = parent._tpl_w
+        if c.control == "Gallery":
+            pad = _p(c, "TemplatePadding", "0")
+            size = _p(c, "TemplateSize", "0")
+            sb = SCROLLBAR_W if _p(c, "ShowScrollbar", "false") == "true" else 0
+            if c.variant == "Horizontal":
+                c._tpl_w = size
+                c._tpl_h = f"({_p(c, 'Height')}) - 2 * {pad}"
+            else:
+                c._tpl_w = None if cw is None else f"({cw}) - 2 * {pad} - {sb}"
+                c._tpl_h = size
+            inner = cw
+        else:
+            inner = None if cw is None else _inner(c, cw)
+        if c.children:
+            resolve_templates(c.children, c, inner)
+
+
 def render_screen(screen_name, screen_props, children):
+    resolve_templates(children)
     lines = ["Screens:", f"  {screen_name}:", "    Properties:"]
     ppad = " " * 6
     cpad = " " * 10

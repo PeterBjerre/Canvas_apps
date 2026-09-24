@@ -22,7 +22,10 @@ VISIBLE_OPS = (
 PICKER_COLS = [
     ("SEL", 26),
     ("OP NO.", 54),
-    ("OPERATION SHORT TEXT", 234),
+    # 198, ikke 234: raekken skal kunne staa i galleriets 636 px minus
+    # TemplatePadding og scrollbar (614). Ved 234 laa varigheden under
+    # scrollbaren.
+    ("OPERATION SHORT TEXT", 198),
     ("MAIN WORK CENTER", 114),
     ("CTRL", 54),
     ("WORK", 54),
@@ -112,7 +115,7 @@ def build_tasklist_picker_modal():
         "Width": "26",
     })
     txtRowOpNo = text_ctrl("txtVhpPickerOpNo", "ThisItem.OperationNo", size=13, height=28, width=54, wrap="false")
-    txtRowShort = text_ctrl("txtVhpPickerShortText", "ThisItem.OperationShortText", size=13, height=28, width=234,
+    txtRowShort = text_ctrl("txtVhpPickerShortText", "ThisItem.OperationShortText", size=13, height=28, width=dict(PICKER_COLS)["OPERATION SHORT TEXT"],
                             wrap="false")
     txtRowMwc = text_ctrl("txtVhpPickerMwc", "ThisItem.MainWorkCenter", size=13, height=28, width=114, wrap="false")
     txtRowCtrl = text_ctrl("txtVhpPickerCtrl", "ThisItem.ControlKey", size=13, height=28, width=54, wrap="false")
@@ -147,8 +150,11 @@ def build_tasklist_picker_modal():
         },
         children=[pickerRow], h=280)
 
+    # Ingen scroll her: beholderen er praecis saa hoej som sit indhold, og
+    # galleriet scroller selv. To scrollbarer oven i hinanden tog 18 px
+    # ekstra af bredden, og sidste kolonne laa under dem.
     listWrap = group("conVhpPickerListWrap", [headHtml, divider, gallery], direction="Vertical", gap=4,
-                     overflow_y="Scroll", width=636)
+                     width=636)
 
     btnCancel = button("btnVhpPickerCancel", "\"Cancel\"",
                        "Set(varVhpTasklistPickerOpen, false); Clear(colVhpPickerSelected)", width=100, height=36)
