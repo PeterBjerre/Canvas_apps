@@ -203,6 +203,34 @@ hvor sidste kolonne lå under galleriets scrollbar (operationer, materialer,
 tasklist-vælgeren, pakkematricen). Gallerierne er nu tabellen + padding +
 scrollbar brede.
 
+### Regel J — En gallerirækkes bredde er Studios, ikke vores
+
+Aflæst i egenskabspanelet i Studio stod `conDomRow.Width` først som
+**320** og senere som **`Parent.Width`** — aldrig det udtryk, builderen
+skrev. Et galleris øverste barn får sin bredde af Studio, uanset hvad vi
+skriver i YAML'en.
+
+Vores tal er derfor ikke rækkens bredde; det er et **budget for cellerne**.
+Er budgettet bare nogle få pixels for stort, ligger den sidste celle uden
+for rækken — og siden rækken skjuler sit overløb, forsvinder den i stedet
+for at blive tegnet udenfor. Det var knapperne i listen, anden gang.
+
+`GALLERY_RESERVE` (40 px) trækkes derfor fra, når skabelonens bredde
+stammer fra en `Parent.Width`-kæde — altså når vi gætter. Er galleriets
+bredde et tal, vi selv har skrevet, er der intet at gætte, og reserven
+bruges ikke. Usikkerheden følger med ned gennem træet
+(`gen_screen.resolve_templates`).
+
+Efterregnet i Equipment: 46 px luft ved hver eneste skærmbredde.
+
+På en tablet er der ikke plads til fem knapper **og** en læselig
+beskrivelse. Docs og Copy skjules derfor først — dokumenterne står også i
+detaljeruden — og derefter FILES- og de tre midterste kolonner.
+
+`deploy_verify` ser bort fra `Width`/`Height` på et galleris øverste barn,
+fordi Studio ejer dem. Alt andet — også cellerne inde i rækken —
+sammenlignes stadig.
+
 ### Regel I — Ingen `FillPortions` i en række: resten regnes ud
 
 I topbjælken og i detaljepopuppens hoved stod knapperne ved siden af en

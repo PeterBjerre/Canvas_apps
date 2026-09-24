@@ -137,7 +137,12 @@ alle tre er nu spærret af byggeriet. Hele forklaringen står i
 8. **Ingen `FillPortions` i en vandret række.** `grow(ctrl)` markerer den
    del, der tager resten; bredden regnes ud, når skærmen skrives. Ved
    siden af en FillPortions-del blev knapperne tegnet en linje for lavt.
-9. **Equipment og Material: Details og Documents er popups** med hver sin
+9. **En gallerirækkes bredde bestemmer Studio.** Aflæst i Studio: først
+   320, siden `Parent.Width` — aldrig builderens udtryk. Vores tal er et
+   **budget for cellerne**, og det skal være en nedre grænse:
+   `GALLERY_RESERVE` trækkes fra, når bredden stammer fra en
+   `Parent.Width`-kæde. Regel 26 måler cellerne mod budgettet.
+10. **Equipment og Material: Details og Documents er popups** med hver sin
    række (`varDomDetailsId`, `varDomDocsId`). Rækken har fem knapper:
    Edit, Details, Docs, Copy, Delete.
 

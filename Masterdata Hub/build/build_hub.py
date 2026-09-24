@@ -23,7 +23,7 @@ from build_helpers import (text_ctrl, group, button, card, theme_button,
                            flow_row, top_bar)
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, APP_TARGET
 from design_tokens import theme_query
-from layout_tokens import if_below, SCROLLBAR_W
+from layout_tokens import if_below, SCROLLBAR_W, GALLERY_RESERVE
 
 # Hubben aabner satellitterne. Temaet skal med i URL'en, fordi
 # SaveData-lageret er isoleret pr. app-id: uden den ville en moerk hub
@@ -65,7 +65,7 @@ FIXED = sum(w for _, w in COLS) + GAP * (len(COLS) - 1)
 # REGNET AF DEN BREDDE, LISTEN HAR - ikke af Parent.Width, som er
 # raekkens Width-EGENSKAB og hverken traekker kortets padding, galleriets
 # TemplatePadding eller dets scrollbar fra.
-MAIN_W = f"({SHELL_W} - 36 - 4 - {SCROLLBAR_W} - {FIXED})"
+MAIN_W = f"({SHELL_W} - 36 - 4 - {SCROLLBAR_W} - {GALLERY_RESERVE} - {FIXED})"
 
 ROW_H = 46
 GAL_ROWS = 9
