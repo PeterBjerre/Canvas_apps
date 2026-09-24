@@ -29,6 +29,7 @@ Tjekket foretager fire kontroller:
   26. Ingen Parent.Template* - og en gallerirakke skal rumme sine celler
   27. En tekst er mindst 1,5 x sin skriftstoerrelse hoej
   28. Ingen FillPortions i en vandret raekke, der ikke ombryder
+  29. Listens overskrift og dens raekke har de samme kolonnebredder
   23. Rammen: con<X>Root -> header med fast hoejde + een krop, der
      scroller. Headerens hoejde maa ikke afhaenge af data, og padding +
      scrollbar + luft skal vaere mindst SHELL_INSET. Se
@@ -754,6 +755,63 @@ def main():
                                     f"raekke paa {own:.0f} px (App.Width={w}) - det "
                                     f"sidste er skjult")
                     break
+
+    # --- 29. Overskriften og raekken skal have SAMME kolonnebredder ------
+    #
+    # Regel 5 goer det for de overskrifter, der er en HtmlViewer. Den her
+    # goer det for dem, der er rigtige kontroller.
+    #
+    # Hubben viste hvorfor: baade overskriften og raekken skrev
+    # "Parent.Width - 580". Samme formel - men overskriftens foraelder er
+    # kortet (~1600 px), og raekkens er gallerirakken, som Studio gav en
+    # helt anden bredde. Overskrifterne stod spredt ud over hele kortet,
+    # mens raekkens felter var klemt sammen i venstre side.
+    #
+    # Naar de to maales mod hinanden, kan den slags ikke staa.
+    for p, name, body in all_nodes:
+        if body.get("Control") != "Gallery":
+            continue
+        kids = body.get("Children") or []
+        if not kids:
+            continue
+        (rname, rbody), = kids[0].items()
+        rcells = rbody.get("Children") or []
+        parent = p.rsplit("/", 1)[0]
+        pb = by_path.get(parent) or {}
+        head = None
+        for sib in (pb.get("Children") or []):
+            (sn, sbody), = sib.items()
+            if "Head" not in sn or sbody.get("Control") != "GroupContainer":
+                continue
+            hk = sbody.get("Children") or []
+            # EN TABELOVERSKRIFT BESTAAR KUN AF ETIKETTER. Uden det krav
+            # blev VH-plans sektionshoved (titel + knapper) parret med
+            # item-kortet, fordi de tilfaeldigvis har lige mange boern.
+            if len(hk) != len(rcells) or not hk:
+                continue
+            if any(list(x.values())[0].get("Control") != "ModernText" for x in hk):
+                continue
+            head = (sn, sbody)
+            break
+        if head is None or not rcells:
+            continue
+        hname, hbody = head
+        for w in [x for x in WIDTHS if x >= lay.min_width("Tablet")]:
+            bad = None
+            for hc, rc in zip(hbody.get("Children") or [], rcells):
+                (hn, hb), = hc.items()
+                (rn, rb), = rc.items()
+                hw = evaluate((hb.get("Properties") or {}).get("Width"), w, 3, 4, 4)
+                rw = evaluate((rb.get("Properties") or {}).get("Width"), w, 3, 4, 4)
+                if hw is None or rw is None or abs(hw - rw) < 0.51:
+                    continue
+                bad = (hn, hw, rn, rw)
+                break
+            if bad:
+                problems.append(
+                    f"[29] {hname} og {rname} flugter ikke ved App.Width={w}: "
+                    f"{bad[0]} er {bad[1]:.0f} px, {bad[2]} er {bad[3]:.0f} px")
+                break
 
     # --- 27. En tekst skal vaere mindst een linje hoej --------------------
     #
