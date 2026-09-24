@@ -46,7 +46,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =25 + (If(((App.Width - 64)) >= (482) + (240) + 20, Max((55), (If((If(((App.Width - 64)) >= (482) + (240) + 20, 482, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 36, (36) + 10 + (36) + 10 + (36) + 10 + (36)))), (55) + 20 + (If((If(((App.Width - 64)) >= (482) + (240) + 20, 482, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 36, (36) + 10 + (36) + 10 + (36) + 10 + (36)))))
+                      =25 + (0 + (Max((55), (36), (36), (36), (36))) * 1 + 0)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -81,13 +81,13 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =If(((App.Width - 64)) >= (482) + (240) + 20, Max((55), (If((If(((App.Width - 64)) >= (482) + (240) + 20, 482, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 36, (36) + 10 + (36) + 10 + (36) + 10 + (36)))), (55) + 20 + (If((If(((App.Width - 64)) >= (482) + (240) + 20, 482, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 36, (36) + 10 + (36) + 10 + (36) + 10 + (36))))
+                            =0 + (Max((55), (36), (36), (36), (36))) * 1 + 0
                         LayoutAlignItems: |-
-                            =If(((App.Width - 64)) >= (482) + (240) + 20, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                            =LayoutAlignItems.Center
                         LayoutDirection: |-
-                            =If(((App.Width - 64)) >= (482) + (240) + 20, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                            =LayoutDirection.Horizontal
                         LayoutGap: |-
-                            =20
+                            =10
                         LayoutMinWidth: |-
                             =0
                         LayoutOverflowX: |-
@@ -106,7 +106,7 @@ Screens:
                               DropShadow: |-
                                   =DropShadow.None
                               FillPortions: |-
-                                  =If(((App.Width - 64)) >= (482) + (240) + 20, 1, 0)
+                                  =0
                               Height: |-
                                   =55
                               LayoutAlignItems: |-
@@ -122,7 +122,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Width: |-
-                                  =240
+                                  =Max(0, ((((App.Width)) - 24 - 34)) - (If(LayoutRank >= 2, (92) + 10, 0)) - ((120) + 10) - ((110) + 10) - (If(LayoutRank >= 2, (130) + 10, 0)) - 2)
                             Children:
                               - txtVhpTitle:
                                   Control: ModernText
@@ -188,358 +188,335 @@ Screens:
                                         ="Maintenance plans for SAP PM"
                                     Wrap: |-
                                         =false
-                        - conVhpBarRight:
-                            Control: GroupContainer
-                            Variant: AutoLayout
+                        - btnVhpTheme:
+                            Control: ModernButton
                             Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              FillPortions: |-
-                                  =0
+                              AccessibleLabel: |-
+                                  =If(darkModeEnabled, "Switch to light theme", "Switch to dark theme")
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              Appearance: |-
+                                  =ButtonAppearance.Outline
+                              BorderColor: |-
+                                  =C.'border-default'
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =C.'text-primary'
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
                               Height: |-
-                                  =If((If(((App.Width - 64)) >= (482) + (240) + 20, 482, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 36, (36) + 10 + (36) + 10 + (36) + 10 + (36))
-                              LayoutAlignItems: |-
-                                  =If((If(((App.Width - 64)) >= (482) + (240) + 20, 482, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
-                              LayoutDirection: |-
-                                  =If((If(((App.Width - 64)) >= (482) + (240) + 20, 482, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, LayoutDirection.Horizontal, LayoutDirection.Vertical)
-                              LayoutGap: |-
-                                  =10
+                                  =36
+                              Layout: |-
+                                  =ButtonLayout.TextOnly
                               LayoutMinWidth: |-
-                                  =If(((App.Width - 64)) >= (482) + (240) + 20, 482, 0)
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
+                                  =92
+                              OnSelect: |-
+                                  =Set(darkModeEnabled, !darkModeEnabled);
+                                  ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
+                                  IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Size: |-
+                                  =14
+                              Text: |-
+                                  =If(darkModeEnabled, "Light", "Dark")
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Visible: |-
+                                  =LayoutRank >= 2
                               Width: |-
-                                  =482
-                            Children:
-                              - btnVhpTheme:
-                                  Control: ModernButton
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =If(darkModeEnabled, "Switch to light theme", "Switch to dark theme")
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    Appearance: |-
-                                        =ButtonAppearance.Outline
-                                    BorderColor: |-
-                                        =C.'border-default'
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =C.'text-primary'
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =36
-                                    Layout: |-
-                                        =ButtonLayout.TextOnly
-                                    LayoutMinWidth: |-
-                                        =If((If(((App.Width - 64)) >= (482) + (240) + 20, 482, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 92, 0)
-                                    OnSelect: |-
-                                        =Set(darkModeEnabled, !darkModeEnabled);
-                                        ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
-                                        IfError(SaveData(colAppPrefs, "prefs"), Blank())
-                                    RadiusBottomLeft: |-
-                                        =10
-                                    RadiusBottomRight: |-
-                                        =10
-                                    RadiusTopLeft: |-
-                                        =10
-                                    RadiusTopRight: |-
-                                        =10
-                                    Size: |-
-                                        =14
-                                    Text: |-
-                                        =If(darkModeEnabled, "Light", "Dark")
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
-                                    Width: |-
-                                        =92
-                              - btnVhpBackToHub:
-                                  Control: ModernButton
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="To the hub"
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    Appearance: |-
-                                        =ButtonAppearance.Outline
-                                    BorderColor: |-
-                                        =C.'border-default'
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =C.'text-primary'
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =36
-                                    Layout: |-
-                                        =ButtonLayout.TextOnly
-                                    LayoutMinWidth: |-
-                                        =If((If(((App.Width - 64)) >= (482) + (240) + 20, 482, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 120, 0)
-                                    OnSelect: |-
-                                        =Launch("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/f387047d-86af-4d6a-8370-afcf35939436" & "?theme=" & If(darkModeEnabled, "dark", "light"), { }, LaunchTarget.Replace)
-                                    RadiusBottomLeft: |-
-                                        =10
-                                    RadiusBottomRight: |-
-                                        =10
-                                    RadiusTopLeft: |-
-                                        =10
-                                    RadiusTopRight: |-
-                                        =10
-                                    Size: |-
-                                        =14
-                                    Text: |-
-                                        ="To the hub"
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
-                                    Width: |-
-                                        =120
-                              - btnVhpValidate:
-                                  Control: ModernButton
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Validate"
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    Color: |-
-                                        =C.'text-on-primary'
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =36
-                                    Layout: |-
-                                        =ButtonLayout.TextOnly
-                                    LayoutMinWidth: |-
-                                        =If((If(((App.Width - 64)) >= (482) + (240) + 20, 482, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 110, 0)
-                                    OnSelect: |-
-                                        =Set(varVhpPlanValidated, true);
-                                        Set(varVhpItemValidated, true);
-                                        With(
-                                            { isStrat: varVhpPlan.PlanType = "Strategy" },
-                                            With(
-                                                {
-                                                    itemErr:
-                                                        Concat(
-                                                            Filter(
-                                                                colVhpItems,
-                                                                IsBlank(ShortText) || IsBlank(MainWorkCenter) || IsBlank(ActivityType) || IsBlank(FunctionalLocation)
-                                                            ),
-                                                            "Item " & Text(ItemId) & " (" & Coalesce(ShortText, "no short text") & "): missing required fields.",
-                                                            Char(10)
-                                                        ),
-                                                    s1:
-                                                        If(isStrat && IsBlank(varVhpPlan.Strategy),
-                                                            "S1: A strategy must be chosen on a strategy plan.", ""),
-                                                    s3:
-                                                        If(isStrat,
-                                                            Concat(
-                                                                Filter(colVhpItems, IsBlank(TasklistKey)),
-                                                                "S3: Item " & Text(ItemId) & " has no task list - the package allocation belongs to the task list.",
-                                                                Char(10)
-                                                            ), ""),
-                                                    s4:
-                                                        If(isStrat,
-                                                            Concat(
-                                                                Filter(colVhpOperations, Len(Coalesce(PackagesKey, ";")) <= 1),
-                                                                "S4: Item " & Text(ItemId) & " operation " & OperationNo &
-                                                                " has no package and would never be carried out.",
-                                                                Char(10)
-                                                            ), ""),
-                                                    s5:
-                                                        If(isStrat,
-                                                            Concat(
-                                                                Filter(
-                                                                    colVhpStrategyPackages As P,
-                                                                    P.StrategyKey = varVhpPlan.Strategy &&
-                                                                    CountRows(Filter(colVhpOperations, ";" & Text(P.PackageNo) & ";" in Coalesce(PackagesKey, ";"))) = 0
-                                                                ),
-                                                                "S5: Package " & ShortCode & " (" & Text(CycleLength) & " " & CycleUnit &
-                                                                ") has no operations - the plan would call an empty order.",
-                                                                Char(10)
-                                                            ), "")
-                                        ,
-                                                    r1:
-                                                        If(
-                                                            !IsBlank(varVhpPlan.Plant) && !IsBlank(varVhpPlan.PlanText) &&
-                                                                !StartsWith(Upper(varVhpPlan.PlanText), Upper(varVhpPlan.Plant)),
-                                                            "R1: Plan Text should start with the plant code " & varVhpPlan.Plant &
-                                                                " - otherwise the plan cannot be found without searching by plant.", ""),
-                                                    r2:
-                                                        With(
-                                                            { n: CountRows(Filter(colVhpItems, StartsWith(ActivityType, "110") || StartsWith(ActivityType, "115"))) },
-                                                            If(
-                                                                n > 0 && IsBlank(varVhpPlan.SortField),
-                                                                "R2: Sort Field is required: " & Text(n) &
-                                                                    " item(s) have activity type 110 or 115.", "")),
-                                                    r4:
-                                                        With(
-                                                            { n: CountRows(Filter(colVhpItems, !IsBlank(Revision))) },
-                                                            If(
-                                                                n > 0 && (varVhpPlan.FirstCallDay <> 1 || varVhpPlan.FirstCallMonth <> 1),
-                                                                "R4: " & Text(n) & " item(s) are marked as outage work. " &
-                                                                    "First call must be 01/01, otherwise the task misses the outage.", "")),
-                                                    r5:
-                                                        With(
-                                                            { m: LookUp(colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon) },
-                                                            If(
-                                                                !IsBlank(varVhpPlan.CallHorizon) && m.SchedPeriod < 2,
-                                                                "R5: Scheduling period must be at least 2 years because of " &
-                                                                    "the cost simulation in the BI report.", ""))
-                                                },
-                                                Set(
-                                                    varVhpLastValidationErrors,
-                                                    Concat(
-                                                        Filter(
-                                                            Table(
-                                                                { t: itemErr }, { t: s1 }, { t: s3 }, { t: s4 }, { t: s5 },
-                                                                { t: r1 }, { t: r2 }, { t: r4 }, { t: r5 }
-                                                            ),
-                                                            !IsBlank(t)
-                                                        ),
-                                                        t, Char(10)
-                                                    )
-                                                )
-                                            )
-                                        );
-                                        Set(
-                                            varVhpRuntimeInfo,
-                                            "Validated: " & Text(CountRows(colVhpItems)) & " item(s), " &
-                                            Text(CountRows(colVhpOperations)) & " operation line(s), " &
-                                            Text(CountRows(Filter(colVhpItems, Status = "invalid"))) & " invalid item(s)." &
-                                            If(IsBlank(varVhpLastValidationErrors), " No validation issues.", " See validation report.")
-                                        )
-                                    RadiusBottomLeft: |-
-                                        =10
-                                    RadiusBottomRight: |-
-                                        =10
-                                    RadiusTopLeft: |-
-                                        =10
-                                    RadiusTopRight: |-
-                                        =10
-                                    Size: |-
-                                        =14
-                                    Text: |-
-                                        ="Validate"
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
-                                    Width: |-
-                                        =110
-                              - btnVhpExport:
-                                  Control: ModernButton
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Export JSON"
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    Appearance: |-
-                                        =ButtonAppearance.Outline
-                                    BorderColor: |-
-                                        =C.'border-default'
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =C.'text-primary'
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =36
-                                    Layout: |-
-                                        =ButtonLayout.TextOnly
-                                    LayoutMinWidth: |-
-                                        =If((If(((App.Width - 64)) >= (482) + (240) + 20, 482, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 130, 0)
-                                    OnSelect: |-
-                                        =Set(
-                                            varVhpExportJson,
-                                            JSON(
-                                                {
-                                                    plant: varVhpPlan.Plant,
-                                                    planType: varVhpPlan.PlanType,
-                                                    strategy: varVhpPlan.Strategy,
-                                                    planText: varVhpPlan.PlanText,
-                                                    cycle: varVhpPlan.Cycle,
-                                                    unit: varVhpPlan.Unit,
-                                                    packages:
-                                                        ForAll(
-                                                            Sort(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy), PackageNo),
-                                                            { packageNo: PackageNo, shortCode: ShortCode, cycleLength: CycleLength,
-                                                              cycleUnit: CycleUnit, hierarchy: Hierarchy }
-                                                        ),
-                                                    items:
-                                                        ForAll(
-                                                            Sort(colVhpItems, ItemId) As I,
-                                                            {
-                                                                itemId: I.ItemId, shortText: I.ShortText,
-                                                                functionalLocation: I.FunctionalLocation,
-                                                                mainWorkCenter: I.MainWorkCenter, activityType: I.ActivityType,
-                                                                tasklistKey: I.TasklistKey, status: I.Status,
-                                                                operations:
-                                                                    ForAll(
-                                                                        Sort(Filter(colVhpOperations, ItemId = I.ItemId), Value(OperationNo)) As OP,
-                                                                        {
-                                                                            operationNo: OP.OperationNo,
-                                                                            shortText: OP.OperationShortText,
-                                                                            work: OP.WorkHours, duration: OP.DurationHours,
-                                                                            mainWorkCenter: OP.MainWorkCenter, vendor: OP.Vendor,
-                                                                            packages:
-                                                                                ForAll(
-                                                                                    Sort(
-                                                                                        Filter(
-                                                                                            colVhpStrategyPackages As P,
-                                                                                            P.StrategyKey = varVhpPlan.Strategy &&
-                                                                                            ";" & Text(P.PackageNo) & ";" in Coalesce(OP.PackagesKey, ";")
-                                                                                        ),
-                                                                                        PackageNo
-                                                                                    ),
-                                                                                    { packageNo: PackageNo }
-                                                                                )
-                                                                        }
-                                                                    )
-                                                            }
-                                                        )
-                                                },
-                                                JSONFormat.IndentFour
-                                            )
-                                        );
-                                        Set(varVhpRuntimeInfo, "JSON exported: " & Text(CountRows(colVhpItems)) & " item(s), " & Text(Len(varVhpExportJson)) & " characters.")
-                                    RadiusBottomLeft: |-
-                                        =10
-                                    RadiusBottomRight: |-
-                                        =10
-                                    RadiusTopLeft: |-
-                                        =10
-                                    RadiusTopRight: |-
-                                        =10
-                                    Size: |-
-                                        =14
-                                    Text: |-
-                                        ="Export JSON"
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
-                                    Width: |-
-                                        =130
+                                  =92
+                        - btnVhpBackToHub:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="To the hub"
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              Appearance: |-
+                                  =ButtonAppearance.Outline
+                              BorderColor: |-
+                                  =C.'border-default'
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =C.'text-primary'
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =36
+                              Layout: |-
+                                  =ButtonLayout.TextOnly
+                              LayoutMinWidth: |-
+                                  =120
+                              OnSelect: |-
+                                  =Launch("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/f387047d-86af-4d6a-8370-afcf35939436" & "?theme=" & If(darkModeEnabled, "dark", "light"), { }, LaunchTarget.Replace)
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Size: |-
+                                  =14
+                              Text: |-
+                                  ="To the hub"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Width: |-
+                                  =120
+                        - btnVhpValidate:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Validate"
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
+                              Color: |-
+                                  =C.'text-on-primary'
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =36
+                              Layout: |-
+                                  =ButtonLayout.TextOnly
+                              LayoutMinWidth: |-
+                                  =110
+                              OnSelect: |-
+                                  =Set(varVhpPlanValidated, true);
+                                  Set(varVhpItemValidated, true);
+                                  With(
+                                      { isStrat: varVhpPlan.PlanType = "Strategy" },
+                                      With(
+                                          {
+                                              itemErr:
+                                                  Concat(
+                                                      Filter(
+                                                          colVhpItems,
+                                                          IsBlank(ShortText) || IsBlank(MainWorkCenter) || IsBlank(ActivityType) || IsBlank(FunctionalLocation)
+                                                      ),
+                                                      "Item " & Text(ItemId) & " (" & Coalesce(ShortText, "no short text") & "): missing required fields.",
+                                                      Char(10)
+                                                  ),
+                                              s1:
+                                                  If(isStrat && IsBlank(varVhpPlan.Strategy),
+                                                      "S1: A strategy must be chosen on a strategy plan.", ""),
+                                              s3:
+                                                  If(isStrat,
+                                                      Concat(
+                                                          Filter(colVhpItems, IsBlank(TasklistKey)),
+                                                          "S3: Item " & Text(ItemId) & " has no task list - the package allocation belongs to the task list.",
+                                                          Char(10)
+                                                      ), ""),
+                                              s4:
+                                                  If(isStrat,
+                                                      Concat(
+                                                          Filter(colVhpOperations, Len(Coalesce(PackagesKey, ";")) <= 1),
+                                                          "S4: Item " & Text(ItemId) & " operation " & OperationNo &
+                                                          " has no package and would never be carried out.",
+                                                          Char(10)
+                                                      ), ""),
+                                              s5:
+                                                  If(isStrat,
+                                                      Concat(
+                                                          Filter(
+                                                              colVhpStrategyPackages As P,
+                                                              P.StrategyKey = varVhpPlan.Strategy &&
+                                                              CountRows(Filter(colVhpOperations, ";" & Text(P.PackageNo) & ";" in Coalesce(PackagesKey, ";"))) = 0
+                                                          ),
+                                                          "S5: Package " & ShortCode & " (" & Text(CycleLength) & " " & CycleUnit &
+                                                          ") has no operations - the plan would call an empty order.",
+                                                          Char(10)
+                                                      ), "")
+                                  ,
+                                              r1:
+                                                  If(
+                                                      !IsBlank(varVhpPlan.Plant) && !IsBlank(varVhpPlan.PlanText) &&
+                                                          !StartsWith(Upper(varVhpPlan.PlanText), Upper(varVhpPlan.Plant)),
+                                                      "R1: Plan Text should start with the plant code " & varVhpPlan.Plant &
+                                                          " - otherwise the plan cannot be found without searching by plant.", ""),
+                                              r2:
+                                                  With(
+                                                      { n: CountRows(Filter(colVhpItems, StartsWith(ActivityType, "110") || StartsWith(ActivityType, "115"))) },
+                                                      If(
+                                                          n > 0 && IsBlank(varVhpPlan.SortField),
+                                                          "R2: Sort Field is required: " & Text(n) &
+                                                              " item(s) have activity type 110 or 115.", "")),
+                                              r4:
+                                                  With(
+                                                      { n: CountRows(Filter(colVhpItems, !IsBlank(Revision))) },
+                                                      If(
+                                                          n > 0 && (varVhpPlan.FirstCallDay <> 1 || varVhpPlan.FirstCallMonth <> 1),
+                                                          "R4: " & Text(n) & " item(s) are marked as outage work. " &
+                                                              "First call must be 01/01, otherwise the task misses the outage.", "")),
+                                              r5:
+                                                  With(
+                                                      { m: LookUp(colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon) },
+                                                      If(
+                                                          !IsBlank(varVhpPlan.CallHorizon) && m.SchedPeriod < 2,
+                                                          "R5: Scheduling period must be at least 2 years because of " &
+                                                              "the cost simulation in the BI report.", ""))
+                                          },
+                                          Set(
+                                              varVhpLastValidationErrors,
+                                              Concat(
+                                                  Filter(
+                                                      Table(
+                                                          { t: itemErr }, { t: s1 }, { t: s3 }, { t: s4 }, { t: s5 },
+                                                          { t: r1 }, { t: r2 }, { t: r4 }, { t: r5 }
+                                                      ),
+                                                      !IsBlank(t)
+                                                  ),
+                                                  t, Char(10)
+                                              )
+                                          )
+                                      )
+                                  );
+                                  Set(
+                                      varVhpRuntimeInfo,
+                                      "Validated: " & Text(CountRows(colVhpItems)) & " item(s), " &
+                                      Text(CountRows(colVhpOperations)) & " operation line(s), " &
+                                      Text(CountRows(Filter(colVhpItems, Status = "invalid"))) & " invalid item(s)." &
+                                      If(IsBlank(varVhpLastValidationErrors), " No validation issues.", " See validation report.")
+                                  )
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Size: |-
+                                  =14
+                              Text: |-
+                                  ="Validate"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Width: |-
+                                  =110
+                        - btnVhpExport:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Export JSON"
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              Appearance: |-
+                                  =ButtonAppearance.Outline
+                              BorderColor: |-
+                                  =C.'border-default'
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =C.'text-primary'
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =36
+                              Layout: |-
+                                  =ButtonLayout.TextOnly
+                              LayoutMinWidth: |-
+                                  =130
+                              OnSelect: |-
+                                  =Set(
+                                      varVhpExportJson,
+                                      JSON(
+                                          {
+                                              plant: varVhpPlan.Plant,
+                                              planType: varVhpPlan.PlanType,
+                                              strategy: varVhpPlan.Strategy,
+                                              planText: varVhpPlan.PlanText,
+                                              cycle: varVhpPlan.Cycle,
+                                              unit: varVhpPlan.Unit,
+                                              packages:
+                                                  ForAll(
+                                                      Sort(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy), PackageNo),
+                                                      { packageNo: PackageNo, shortCode: ShortCode, cycleLength: CycleLength,
+                                                        cycleUnit: CycleUnit, hierarchy: Hierarchy }
+                                                  ),
+                                              items:
+                                                  ForAll(
+                                                      Sort(colVhpItems, ItemId) As I,
+                                                      {
+                                                          itemId: I.ItemId, shortText: I.ShortText,
+                                                          functionalLocation: I.FunctionalLocation,
+                                                          mainWorkCenter: I.MainWorkCenter, activityType: I.ActivityType,
+                                                          tasklistKey: I.TasklistKey, status: I.Status,
+                                                          operations:
+                                                              ForAll(
+                                                                  Sort(Filter(colVhpOperations, ItemId = I.ItemId), Value(OperationNo)) As OP,
+                                                                  {
+                                                                      operationNo: OP.OperationNo,
+                                                                      shortText: OP.OperationShortText,
+                                                                      work: OP.WorkHours, duration: OP.DurationHours,
+                                                                      mainWorkCenter: OP.MainWorkCenter, vendor: OP.Vendor,
+                                                                      packages:
+                                                                          ForAll(
+                                                                              Sort(
+                                                                                  Filter(
+                                                                                      colVhpStrategyPackages As P,
+                                                                                      P.StrategyKey = varVhpPlan.Strategy &&
+                                                                                      ";" & Text(P.PackageNo) & ";" in Coalesce(OP.PackagesKey, ";")
+                                                                                  ),
+                                                                                  PackageNo
+                                                                              ),
+                                                                              { packageNo: PackageNo }
+                                                                          )
+                                                                  }
+                                                              )
+                                                      }
+                                                  )
+                                          },
+                                          JSONFormat.IndentFour
+                                      )
+                                  );
+                                  Set(varVhpRuntimeInfo, "JSON exported: " & Text(CountRows(colVhpItems)) & " item(s), " & Text(Len(varVhpExportJson)) & " characters.")
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Size: |-
+                                  =14
+                              Text: |-
+                                  ="Export JSON"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Visible: |-
+                                  =LayoutRank >= 2
+                              Width: |-
+                                  =130
                   - conVhpHeaderRule:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -581,7 +558,7 @@ Screens:
                   FillPortions: |-
                       =1
                   Height: |-
-                      =Parent.Height - (25 + (If(((App.Width - 64)) >= (482) + (240) + 20, Max((55), (If((If(((App.Width - 64)) >= (482) + (240) + 20, 482, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 36, (36) + 10 + (36) + 10 + (36) + 10 + (36)))), (55) + 20 + (If((If(((App.Width - 64)) >= (482) + (240) + 20, 482, (App.Width - 64))) >= (92) + (120) + (110) + (130) + 30, 36, (36) + 10 + (36) + 10 + (36) + 10 + (36))))))
+                      =Parent.Height - (25 + (0 + (Max((55), (36), (36), (36), (36))) * 1 + 0))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -1215,7 +1192,7 @@ Screens:
                                     DropShadow: |-
                                         =DropShadow.None
                                     FillPortions: |-
-                                        =1
+                                        =0
                                     Height: |-
                                         =51
                                     LayoutAlignItems: |-
@@ -1231,7 +1208,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =0
+                                        =Max(0, (((((App.Width)) - 24 - 16 - 18) - 18 - 18)) - ((110) + 12) - ((64) + 12) - 2)
                                   Children:
                                     - conVhpPlanHeadTitle:
                                         Control: ModernText
@@ -4281,7 +4258,7 @@ Screens:
                                     DropShadow: |-
                                         =DropShadow.None
                                     FillPortions: |-
-                                        =1
+                                        =0
                                     Height: |-
                                         =40
                                     LayoutAlignItems: |-
@@ -4297,7 +4274,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =0
+                                        =Max(0, (((((App.Width)) - 24 - 16 - 18) - 18 - 18)) - ((140) + 16) - 2)
                                   Children:
                                     - txtVhpPlanMeta:
                                         Control: ModernText
@@ -4610,7 +4587,7 @@ Screens:
                                           DropShadow: |-
                                               =DropShadow.None
                                           FillPortions: |-
-                                              =1
+                                              =0
                                           Height: |-
                                               =51
                                           LayoutAlignItems: |-
@@ -4626,7 +4603,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =0
+                                              =Max(0, (((If(LayoutRank < 3, (App.Width - 64), 360)) - 18 - 18)) - ((64) + 12) - 2)
                                         Children:
                                           - conVhpItemsHeadTitle:
                                               Control: ModernText
@@ -5090,7 +5067,7 @@ Screens:
                                                 DropShadow: |-
                                                     =DropShadow.None
                                                 FillPortions: |-
-                                                    =1
+                                                    =0
                                                 Height: |-
                                                     =61
                                                 LayoutAlignItems: |-
@@ -5106,7 +5083,7 @@ Screens:
                                                 LayoutOverflowY: |-
                                                     =LayoutOverflow.Hide
                                                 Width: |-
-                                                    =0
+                                                    =Max(0, ((((If(LayoutRank < 3, (App.Width - 64), 360)) - 18 - 18) - 2 * 6 - 0) - 12 - 12) - ((70) + 10) - 2)
                                               Children:
                                                 - txtVhpItemCardTitle:
                                                     Control: ModernText
@@ -5471,7 +5448,7 @@ Screens:
                                           DropShadow: |-
                                               =DropShadow.None
                                           FillPortions: |-
-                                              =1
+                                              =0
                                           Height: |-
                                               =51
                                           LayoutAlignItems: |-
@@ -5487,7 +5464,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =0
+                                              =Max(0, (((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20)) - 18 - 18)) - ((110) + 12) - 2)
                                         Children:
                                           - conVhpEditorHeadTitle:
                                               Control: ModernText
@@ -7589,7 +7566,7 @@ Screens:
                                                                   Fill: |-
                                                                       =If(If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                                   FillPortions: |-
-                                                                      =1
+                                                                      =0
                                                                   Font: |-
                                                                       =Font.'Segoe UI'
                                                                   Height: |-
@@ -7611,7 +7588,7 @@ Screens:
                                                                   ValidationState: |-
                                                                       =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                                                   Width: |-
-                                                                      =0
+                                                                      =Max(0, ((((If((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) < 640, (If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36), ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3)))))) - ((84) + 8) - 2)
                                                             - btnVhpFlSearch:
                                                                 Control: ModernButton
                                                                 Properties:
@@ -8068,7 +8045,7 @@ Screens:
                                                                         Fill: |-
                                                                             =RGBA(0, 0, 0, 0)
                                                                         FillPortions: |-
-                                                                            =1
+                                                                            =0
                                                                         Font: |-
                                                                             =Font.'Segoe UI'
                                                                         Height: |-
@@ -8088,7 +8065,7 @@ Screens:
                                                                         Text: |-
                                                                             =ThisItem.Display
                                                                         Width: |-
-                                                                            =0
+                                                                            =Max(0, (((((If((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) < 640, (If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36), ((((If(LayoutRank < 3, (App.Width - 64), (App.Width - 64) - 360 - 20) - 36) - 2) - 40) / 3))))) - 2 * 2 - 18)) - ((26) + 10) - 2)
                                                                         Wrap: |-
                                                                             =false
                                                       - txtVhpObjEmpty:
@@ -8493,7 +8470,7 @@ Screens:
                                     DropShadow: |-
                                         =DropShadow.None
                                     FillPortions: |-
-                                        =1
+                                        =0
                                     Height: |-
                                         =51
                                     LayoutAlignItems: |-
@@ -8509,7 +8486,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =0
+                                        =Max(0, (((((App.Width)) - 24 - 16 - 18) - 18 - 18)) - ((110) + 12) - ((64) + 12) - 2)
                                   Children:
                                     - conVhpOpsHeadTitle:
                                         Control: ModernText
@@ -12749,7 +12726,7 @@ Screens:
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 FillPortions: |-
-                                                    =1
+                                                    =0
                                                 Height: |-
                                                     =26
                                                 Items: |-
@@ -12772,7 +12749,7 @@ Screens:
                                                 TemplateSize: |-
                                                     =64
                                                 Width: |-
-                                                    =0
+                                                    =Max(0, (((((((App.Width)) - 24 - 16 - 18) - 18 - 18)) - 2 * 2 - 18)) - ((30) + 10) - ((260) + 10) - ((240) + 10) - 2)
                                                 WrapCount: |-
                                                     =1
                                               Children:
@@ -12940,7 +12917,7 @@ Screens:
                                     DropShadow: |-
                                         =DropShadow.None
                                     FillPortions: |-
-                                        =1
+                                        =0
                                     Height: |-
                                         =51
                                     LayoutAlignItems: |-
@@ -12956,7 +12933,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =0
+                                        =Max(0, (((((App.Width)) - 24 - 16 - 18) - 18 - 18)) - ((64) + 12) - 2)
                                   Children:
                                     - conVhpDispatchHeadTitle:
                                         Control: ModernText
@@ -13277,7 +13254,7 @@ Screens:
                                     DropShadow: |-
                                         =DropShadow.None
                                     FillPortions: |-
-                                        =1
+                                        =0
                                     Height: |-
                                         =51
                                     LayoutAlignItems: |-
@@ -13293,7 +13270,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =0
+                                        =Max(0, (((((App.Width)) - 24 - 16 - 18) - 18 - 18)) - ((64) + 12) - 2)
                                   Children:
                                     - conVhpSaveHeadTitle:
                                         Control: ModernText
@@ -14516,7 +14493,7 @@ Screens:
                         Fill: |-
                             =C.'input-bg'
                         FillPortions: |-
-                            =1
+                            =0
                         Font: |-
                             =Font.'Segoe UI'
                         Height: |-
@@ -14538,7 +14515,7 @@ Screens:
                         ValidationState: |-
                             =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                         Width: |-
-                            =0
+                            =Max(0, (((680) - 18 - 18)) - ((200) + 12) - 2)
                   - chkVhpPickerSelectAll:
                       Control: ModernCheckbox
                       Properties:

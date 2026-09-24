@@ -233,7 +233,8 @@ def build_top_bar():
     (build_helpers.top_bar). Den staar i rammens header, saa Validate og
     Export JSON altid kan naas, ogsaa langt nede i en lang plan."""
     return top_bar("Vhp", '"VH-plan"', '"Maintenance plans for SAP PM"',
-                   _actions(), SHELL_W)
+                   _actions(),
+                   narrow_hide=("btnVhpTheme", "btnVhpExport"))
 
 
 def build_hero():
