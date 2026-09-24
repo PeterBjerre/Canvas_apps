@@ -107,10 +107,7 @@ Set(varVhpShowHints, false);
 
 // Fanen i Tasklist-sektionen. Operations er den man er i oftest.
 Set(varVhpOpsTab, "ops");
-Set(varVhpHelpPlan, false);
-Set(varVhpHelpItem, false);
-Set(varVhpHelpOps, false);
-Set(varVhpHelpPkg, false);"""
+"""
 
 
 def check_plan_record():

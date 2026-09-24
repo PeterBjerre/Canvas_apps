@@ -5462,18 +5462,24 @@ Screens:
                                                     Patch(MD_RequestIndex, varDomIdx, { RequestNo: varDomRequestNo })
                                                 );
                                         
-                                                Patch(
-                                                    EquipmentItems,
-                                                    ForAll(
-                                                        Filter(colDomRows, Status <> "submitted") As R,
-                                                        LookUp(EquipmentItems, ID = R.RowId)
-                                                    ),
-                                                    ForAll(
-                                                        Filter(colDomRows, Status <> "submitted") As R,
-                                                        {
-                                                            RequestNo: varDomRequestNo,
-                                                            RequestGuid: varDomRequestGuid
-                                                        }
+                                                With(
+                                                    {
+                                                        src:
+                                                            Filter(
+                                                                Filter(EquipmentItems, RequesterEmail = varDomMe) As S,
+                                                                CountRows(Filter(Filter(colDomRows, Status <> "submitted"), RowId = S.ID)) > 0
+                                                            )
+                                                    },
+                                                    Patch(
+                                                        EquipmentItems,
+                                                        src,
+                                                        ForAll(
+                                                            src,
+                                                            {
+                                                                RequestNo: varDomRequestNo,
+                                                                RequestGuid: varDomRequestGuid
+                                                            }
+                                                        )
                                                     )
                                                 );
                                         
@@ -5600,20 +5606,26 @@ Screens:
                                                     Patch(MD_RequestIndex, varDomIdx, { RequestNo: varDomRequestNo })
                                                 );
                                         
-                                                Patch(
-                                                    EquipmentItems,
-                                                    ForAll(
-                                                        Filter(colDomRows, Status = "valid") As R,
-                                                        LookUp(EquipmentItems, ID = R.RowId)
-                                                    ),
-                                                    ForAll(
-                                                        Filter(colDomRows, Status = "valid") As R,
-                                                        {
-                                                            RequestNo: varDomRequestNo,
-                                                            RequestGuid: varDomRequestGuid,
-                                                            RowStatus: { Value: "submitted" },
-                                                            SubmittedOn: Now()
-                                                        }
+                                                With(
+                                                    {
+                                                        src:
+                                                            Filter(
+                                                                Filter(EquipmentItems, RequesterEmail = varDomMe) As S,
+                                                                CountRows(Filter(Filter(colDomRows, Status = "valid"), RowId = S.ID)) > 0
+                                                            )
+                                                    },
+                                                    Patch(
+                                                        EquipmentItems,
+                                                        src,
+                                                        ForAll(
+                                                            src,
+                                                            {
+                                                                RequestNo: varDomRequestNo,
+                                                                RequestGuid: varDomRequestGuid,
+                                                                RowStatus: { Value: "submitted" },
+                                                                SubmittedOn: Now()
+                                                            }
+                                                        )
                                                     )
                                                 );
                                         

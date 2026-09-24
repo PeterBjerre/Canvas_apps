@@ -201,9 +201,9 @@ panelet. Nummereringen står urørt, så fejlen kan genkendes her og i
 |---|---|---|
 | 22 hints (niveau 1) | `build_help.py` → `HINTS` | bygget |
 | 4 hjælpepaneler, 19 afsnit (niveau 2) | `build_help.py` → `PANELS` | bygget |
-| `?`-knap i sektionsoverskriften | `build_plan_header.section_header(help_section=...)` | bygget |
+| EEN Help-knap i topbjælken (btnVhpHelp) | `build_hero._actions` | bygget |
 | Panel-rendering | `build_plan_header.help_panel(name, section)` | bygget |
-| `varVhpHelpPlan/Item/Ops/Pkg` | `generate_app_onstart.py` | bygget |
+| `varVhpShowHints` (styrer ogsaa de fire hjaelpepaneler) | `generate_app_onstart.py` | bygget |
 | R1–R5 | `build_hero.py` | bygget |
 
 Panelerne sidder på **Plan Header**, **Item Editor**, **Tasklist and
