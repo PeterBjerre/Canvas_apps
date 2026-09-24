@@ -44,6 +44,7 @@ APPS = [
     ("Masterdata Hub",       ["generate_hub_onstart.py", "assemble_hub.py"]),
     ("Equipment App",        ["generate_app_onstart.py", "assemble_screen.py"]),
     ("Material App",         ["generate_app_onstart.py", "assemble_screen.py"]),
+    ("Functional Location App", ["generate_app_onstart.py", "assemble_screen.py"]),
 ]
 
 # EQUIPMENTS OG MATERIALS MAA AFVIGE
@@ -165,7 +166,8 @@ def pick_apps(which):
     if not which:
         return APPS
     alias = {"vhplan": "Maintenance Plan App", "hub": "Masterdata Hub",
-             "equipment": "Equipment App", "material": "Material App"}
+             "equipment": "Equipment App", "material": "Material App",
+             "functionallocation": "Functional Location App"}
     want = alias.get(which.lower(), which)
     hit = [(a, s) for a, s in APPS if a.lower() == want.lower()]
     if not hit:
@@ -242,6 +244,24 @@ def main(argv=None):
         print("\nFarver hoerer i tools/design_tokens.py. En farve skrevet")
         print("her ville ikke skifte med temaet.")
         return 1
+
+    # FUNCTIONAL LOCATION: REGLERNE SKAL VAERE I TRIT MED HTML'EN
+    #
+    # Appens regler er foldet ud af html/*.js til fl_rules.generated.json.
+    # "test" koerer testmatrixen og differentialtesten mod de ORIGINALE
+    # JS-filer og fejler, hvis planen er gaaet ud af trit med dem. Uden
+    # Node kan det ikke koeres - saa siges det hoejt, men byggeriet stopper
+    # ikke: den genererede plan er committet.
+    if any(a == "Functional Location App" for a, _ in apps):
+        node = shutil.which("node")
+        if node:
+            print("\n=== Functional Location: regler mod html/*.js ===")
+            r = subprocess.run([node, os.path.join(ROOT, "tools", "fl", "harness.js"), "test"])
+            if r.returncode:
+                print("  -> reglerne er ikke i trit. Koer: node tools/fl/harness.js plan")
+                return r.returncode
+        else:
+            print("\nNB: node findes ikke - FL-reglerne er IKKE efterproevet mod html/*.js.")
 
     rc = 0
     for app, scripts in apps:
