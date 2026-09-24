@@ -579,6 +579,26 @@ Equipment-appen er **`Equipments`** (`orsted_equipments_ebf7d`, i
 solutionen). Den ældre `dd9544e2-…` uden for solutionen findes stadig, men
 intet i repoet peger på den længere.
 
+**Deploy efterprøver træet — og `--clean`, når en kontrol er flyttet.**
+Studio flytter ikke pålideligt en kontrol fra én forælder til en anden:
+da listekortet og bjælkens knapper blev flyttet, stod de i Studio i en
+anden rækkefølge end i den byggede YAML, og listens rækker havde mistet
+deres bredde. Driftrapporten kaldte det "normalisering".
+
+`deploy` sammenligner nu TRÆET efter sync (`tools/deploy_verify.py`):
+samme kontroller, samme forælder, samme rækkefølge, samme værdi, hvor
+begge sider har egenskaben. Normalisering (fjernede egenskaber) tælles
+ikke — efterprøvet mod en rigtig servereksport: 0 fund. Er der fund,
+stopper den og siger:
+
+```powershell
+python tools\canvas_mcp.py deploy --app equipment --clean
+```
+
+`--clean` sender først en tom skærm og derefter den rigtige, så hele
+træet bygges på ny i filens rækkefølge. Brug den altid, når en ændring
+flytter en kontrol til en ny forælder.
+
 **Compile før sync.** Fejler compile, så stop — synk ikke en app, der ikke
 kan oversættes. `cmd_deploy` i `tools/canvas_mcp.py` håndhæver det nu selv:
 den læser fejltallet ud af `compile_canvas`' svar og afbryder. Før stod
