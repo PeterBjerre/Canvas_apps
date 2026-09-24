@@ -418,6 +418,57 @@ def stage(app, staging):
     return files
 
 
+def verify_tree(staging, app, files):
+    """Er traeet i Studio det, vi byggede? Se tools/deploy_verify.py.
+
+    Returnerer antallet af fund. Normalisering (egenskaber, serveren har
+    fjernet) taelles ikke - kun en anden foraelder, en anden raekkefoelge,
+    en manglende kontrol eller en egenskab med en ANDEN vaerdi."""
+    sys.path.insert(0, os.path.join(ROOT, "tools"))
+    import deploy_verify as dv
+    src = app_dir(app)
+    total = 0
+    out("")
+    out("=== Traeet i Studio mod det byggede ===")
+    for f in files:
+        if not f.startswith("Screen"):
+            continue
+        a = os.path.join(src, f)
+        b = os.path.join(staging, f)
+        if not os.path.exists(b):
+            out("   %-28s findes ikke paa serveren" % f)
+            total += 1
+            continue
+        found = dv.compare(a, b)
+        total += len(found)
+        out("   %-28s %s" % (f, "samme trae" if not found else "%d fund" % len(found)))
+        for x in found:
+            out("      " + x)
+    return total
+
+
+def clean_stage(app, staging, files):
+    """En udgave af appen, hvor hver skaerm er TOM.
+
+    Studio flytter ikke paalideligt en kontrol fra een foraelder til en
+    anden: da listekortet og bjaelkens knapper blev flyttet, havnede de i
+    en anden raekkefoelge, og listens raekker mistede deres bredde. Sendes
+    den tomme skaerm foerst, fjernes alle kontroller, og den rigtige bygger
+    derefter hele traeet paa ny - i den raekkefoelge, der staar i filen."""
+    sys.path.insert(0, os.path.join(ROOT, "tools"))
+    import deploy_verify as dv
+    src = app_dir(app)
+    if os.path.isdir(staging):
+        shutil.rmtree(staging)
+    os.makedirs(staging)
+    for f in files:
+        if f.startswith("Screen"):
+            dv.blank_screen(os.path.join(src, f), os.path.join(staging, f))
+        elif f == "App.pa.yaml":
+            shutil.copy2(os.path.join(src, f), os.path.join(staging, f))
+    out("tom udgave til %s" % staging)
+
+
 def report_drift(staging, app, files):
     """Hvad aendrede serveren i det, vi sendte?
 
@@ -551,6 +602,19 @@ def cmd_deploy(client, args, cfg):
 
     connect(client, app, args.login_hint, args.auth_flow)
 
+    if args.clean:
+        blank = staging + "-tom"
+        clean_stage(app, blank, files)
+        out("=== compile_canvas: TOM skaerm (--clean) ===")
+        txt = client.call("compile_canvas", {"directoryPath": blank},
+                          timeout=args.timeout)
+        out(indent(txt))
+        n = compile_errors(txt)
+        if n:
+            out("")
+            out("STOP: den tomme skaerm blev afvist (%d fejl). Appen er uaendret." % n)
+            raise SystemExit(1)
+
     out("=== compile_canvas (her naar aendringen Studio) ===")
     txt = client.call("compile_canvas", {"directoryPath": staging},
                       timeout=args.timeout)
@@ -589,8 +653,17 @@ def cmd_deploy(client, args, cfg):
 
     checkers(client)
     report_drift(staging, app, files)
+    bad = verify_tree(staging, app, files)
     out("")
-    out("Faerdig. Tjek appen i Studio-fanen - den skulle have opdateret sig.")
+    if bad:
+        out("FEJL: Studio har IKKE det byggede trae (%d fund ovenfor)." % bad)
+        out("Det sker, naar en kontrol er flyttet til en ny foraelder -")
+        out("Studio flytter den ikke paalideligt. Byg traeet paa ny:")
+        out("")
+        out("    python tools\\canvas_mcp.py deploy --app %s --clean" % app["key"])
+        out("")
+        raise SystemExit(2)
+    out("Faerdig. Traeet i Studio er det byggede.")
 
 
 def cmd_check(client, args, cfg):
@@ -633,6 +706,9 @@ def main(argv=None):
     p.add_argument("--stage", help="deploy: arbejdsmappen der sendes fra")
     p.add_argument("--no-build", action="store_true",
                    help="deploy: spring tools/build_all.py over")
+    p.add_argument("--clean", action="store_true",
+                   help="deploy: send foerst en TOM skaerm, saa hele traeet "
+                        "bygges paa ny (brug den, naar en kontrol er flyttet)")
     p.add_argument("--compile-only", action="store_true",
                    help="deploy: stop efter compile")
     p.add_argument("--login-hint", help="e-mail, hvis du skal logge ind som "
