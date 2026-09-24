@@ -96,6 +96,10 @@ function loadOriginals() {
 //   UE    klasse MKP, key12=UE, vaerdi tom            "Required when aggregate key is UE."
 //   UEFP  som UE og key17=FP                          "Required for UE/FP."
 //   KKS   syntaksfejl paa FL                          KKS-motorens besked
+// Feltmoenstrene i Power Fx-form. fl_validation.py laeser dem fra
+// fl_rules.generated.json - de staar kun HER.
+const FIELD_PFX = { NUMSIGN: "^[0-9.,/+\\-]*$", NUMCOMMA: "^[0-9,]*$", NUMDOT: "^[0-9.,]*$" };
+
 function regexId(re) {
   const map = {
     "^[0-9.,\\-\\/+]*$": "NUMSIGN",
@@ -255,6 +259,9 @@ function buildPlan(o) {
       Object.entries(set).map(([k17, d]) => ({ Key12: k12, Key17: k17, Description: d }))),
     plants: [...rd.allowedPlantSet],
     functionKeyCount: rd.functionKeySet.size,
+    // Alle funktionsnoegler - appen har dem som navngiven formel, ligesom
+    // siden har dem i lookups.generated.js (docs/31 PX5).
+    functionKeys: [...rd.functionKeySet].sort(),
     classHelp: ctl.CLASS_HELP,
     compactColumns: ctl.COMPACT_COLUMN_ORDER,
     lookupsHeaders: Object.fromEntries(Object.entries(L).map(([k, v]) => [k, v.headers])),
@@ -275,7 +282,8 @@ function flatValidate(rowsIn, P, o) {
     const toks = TU.toText(v).split("|").map(TU.toText).filter(Boolean);
     return toks.every((t) => allowed.has(N(t)));
   };
-  const rgx = { NUMSIGN: /^[0-9.,\-/+]*$/, NUMCOMMA: /^[0-9,]*$/, NUMDOT: /^[0-9.,]*$/ };
+  // Samme tre moenstre, som fl_validation.py skriver dem i Power Fx.
+  const rgx = Object.fromEntries(Object.entries(FIELD_PFX).map(([k, v]) => [k, new RegExp(v)]));
   const agg = Object.fromEntries(P.aggregate.map((r) => [r.Key, r.Cls]));
   const comp = Object.fromEntries(P.component.map((r) => [r.Key, r.Cls]));
   const br18 = {};
@@ -399,7 +407,36 @@ function enginePatterns() {
     elf: one("ELF_FALLBACK_PATTERN"), mkp: one("MKP_ERROR_PATTERN"), fp: one("FP_ERROR_PATTERN"),
   };
 }
-const PAT = enginePatterns();
+// POWER FX-UDGAVEN AF ET MOENSTER (docs/31, PX2/PX3)
+//
+// \d og \w er ASCII i JS, men Unicode i Power Fx - de skrives derfor ud
+// som [0-9] og [A-Za-z0-9_]. En bindestreg i en tegnklasse escapes, og en
+// gruppe med eet alternativ, (FP), skrives uden gruppe. Den flade evaluator
+// bruger DISSE moenstre, saa differentialtesten ogsaa efterproever
+// konverteringen - ikke kun reglerne.
+function toPfx(src) {
+  let out = "", inClass = false;
+  for (let i = 0; i < src.length; i += 1) {
+    const c = src[i];
+    if (c === "\\" && i + 1 < src.length) {
+      const n = src[i + 1];
+      i += 1;
+      if (n === "d") { out += inClass ? "0-9" : "[0-9]"; continue; }
+      if (n === "w") { out += inClass ? "A-Za-z0-9_" : "[A-Za-z0-9_]"; continue; }
+      out += "\\" + n;
+      continue;
+    }
+    if (c === "[") { inClass = true; out += c; if (src[i + 1] === "-") { out += "\\-"; i += 1; } continue; }
+    if (c === "]") { inClass = false; out += c; continue; }
+    out += c;
+  }
+  return out.replace(/\(([A-Z]+)\)/g, "$1");
+}
+const PAT_JS = enginePatterns();
+const PAT = {
+  kks: PAT_JS.kks.map(toPfx), legacy: toPfx(PAT_JS.legacy), short: PAT_JS.short.map(toPfx),
+  elf: toPfx(PAT_JS.elf), mkp: toPfx(PAT_JS.mkp), fp: toPfx(PAT_JS.fp),
+};
 const PATTERNS = PAT.kks.map((s) => new RegExp(s));
 const LEGACY = new RegExp(PAT.legacy);
 const SHORT = PAT.short.map((s) => new RegExp(s));
@@ -435,6 +472,8 @@ function cmdPlan() {
   const o = loadOriginals();
   const P = buildPlan(o);
   P.patterns = PAT;
+  P.patternsJs = PAT_JS;
+  P.fieldPatterns = FIELD_PFX;
   fs.writeFileSync(OUT_PLAN, JSON.stringify(P, null, 1) + "\n", "utf8");
   console.log(`Skrev ${path.relative(ROOT, OUT_PLAN)}: ${P.classes.length} klasser, ${P.plan.length} tjek, ` +
               `${P.columns.length} kolonner, ${new Set(P.lists.map((l) => l.List)).size} lister.`);
