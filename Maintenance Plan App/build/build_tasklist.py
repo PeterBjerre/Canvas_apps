@@ -564,8 +564,7 @@ def _attachments_pane():
 
 def build_tasklist_section():
     header = section_header("conVhpOpsHead", "Tasklist and Operations",
-                            "Link a task list to the active item and add operation lines.", "Step 3",
-                            help_section="ops")
+                            "Link a task list to the active item and add operation lines.", "Step 3")
     helpPanel = help_panel("conVhpOpsHelp", "ops")
 
     drpTasklist = dropdown(

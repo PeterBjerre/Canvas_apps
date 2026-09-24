@@ -223,13 +223,23 @@ def save_action(submit=False):
         "                        },\n"
         "                        OrstedResponsibleEmail: Lower(User().Email),\n"
         "                        InitialOrstedResponsible: IT.Initials,\n"
+        # OPSLAG I SAMLINGEN, IKKE I LISTEN
+        #
+        # Her stod LookUp(MaintenanceActivityTypeList, ...) og
+        # LookUp(MainWorkCenters, Trim(Title) = ...) - inde i et ForAll,
+        # altsaa et SharePoint-opslag PR. ITEM. Begge er navngivne formler
+        # i forvejen (dovent hentet, cachet, og nu med Id), saa opslaget
+        # koster ingenting og kan ikke give en delegeringsadvarsel.
+        #
+        # Trim staar nu i den navngivne formel, hvor det udfoeres een gang
+        # pr. arbejdscenter - ikke een gang pr. item.
         f"                        MaintenanceActivityType: With(\n"
-        f"                            {{ a: LookUp({cfg.L_ACTTYPES}, Title = IT.ActivityType) }},\n"
-        "                            If(IsBlank(a.ID), Blank(), { Id: a.ID, Value: a.Title })\n"
+        f"                            {{ a: LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType) }},\n"
+        "                            If(IsBlank(a.Id), Blank(), { Id: a.Id, Value: a.Value })\n"
         "                        ),\n"
         f"                        MainWorkCenter: With(\n"
-        f"                            {{ w: LookUp({cfg.L_WORKCENTERS}, Trim(Title) = IT.MainWorkCenter) }},\n"
-        "                            If(IsBlank(w.ID), Blank(), { Id: w.ID, Value: w.Title })\n"
+        f"                            {{ w: LookUp(colVhpMainWorkCenters, Value = IT.MainWorkCenter) }},\n"
+        "                            If(IsBlank(w.Id), Blank(), { Id: w.Id, Value: w.Value })\n"
         "                        )\n"
         "                    }"
     )
@@ -339,14 +349,21 @@ def save_action(submit=False):
         # Filter ER delegerbart paa SharePoint for = paa tekst og paa et
         # opslags underfelt, saa filtreringen sker paa serveren, og Remove
         # faar praecis de raekker der skal vaek.
+        # VARIABLERNE, IKKE With-FELTERNE
+        #
+        # SharePoint delegerer kun en sammenligning mod noget, der er ENS
+        # for alle raekker: en global variabel, en kontrolegenskab eller en
+        # konstant. planKey og planId er felter i et With-scope, og
+        # compile svarede med fire delegeringsadvarsler. De to variabler
+        # saettes lige ovenfor og har praecis de samme vaerdier.
         f"                        Remove({cfg.L_MATERIALS},\n"
-        f"                            Filter({cfg.L_MATERIALS}, PlanKey = planKey));\n"
+        f"                            Filter({cfg.L_MATERIALS}, PlanKey = varVhpPlanKey));\n"
         f"                        Remove({cfg.L_ATTACHMENTS},\n"
-        f"                            Filter({cfg.L_ATTACHMENTS}, PlanKey = planKey));\n"
+        f"                            Filter({cfg.L_ATTACHMENTS}, PlanKey = varVhpPlanKey));\n"
         f"                        Remove({cfg.L_TASKS},\n"
-        f"                            Filter({cfg.L_TASKS}, MaintenancePlanID.Id = planId));\n"
+        f"                            Filter({cfg.L_TASKS}, MaintenancePlanID.Id = varVhpPlanSpId));\n"
         f"                        Remove({cfg.L_ITEMS},\n"
-        f"                            Filter({cfg.L_ITEMS}, MaintenancePlanNo.Id = planId));\n"
+        f"                            Filter({cfg.L_ITEMS}, MaintenancePlanNo.Id = varVhpPlanSpId));\n"
         "\n"
         "                        // --- 3. items ------------------------------\n"
         # BATCH, IKKE EEN AD GANGEN

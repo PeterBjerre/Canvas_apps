@@ -378,7 +378,7 @@ def flow_ok(children, container_w, gap=8, flex=None, flex_min=0):
 
 
 def top_bar(prefix, title, subtitle, actions, container_w=None, gap=10,
-            narrow_hide=()):
+            narrow_hide=(), sub=None):
     """Bjaelken oeverst - den SAMME konstruktion i alle fire apps.
 
     EEN vandret raekke uden formler i retning eller justering: titlen og
@@ -392,12 +392,15 @@ def top_bar(prefix, title, subtitle, actions, container_w=None, gap=10,
     rigtigt. Det er den konstruktion, bjaelken nu har.
 
     narrow_hide: knapper, der skjules under "Tablet", saa resten kan staa.
+    sub: kontroller, der staar under titlen I STEDET for undertitlen
+         (VH-planens procestrin). Deres hoejde goer bjaelken hoejere.
     """
     t = text_ctrl("txt%sTitle" % prefix, title, size=22, weight="Semibold",
                   height=30, wrap="false")
-    sub = text_ctrl("txt%sSub" % prefix, subtitle, size=13, color=C_MUTED,
-                    height=20, wrap="false")
-    left = grow(group("con%sBarLeft" % prefix, [t, sub], direction="Vertical", gap=2))
+    if sub is None:
+        sub = [text_ctrl("txt%sSub" % prefix, subtitle, size=13, color=C_MUTED,
+                         height=20, wrap="false")]
+    left = grow(group("con%sBarLeft" % prefix, [t] + list(sub), direction="Vertical", gap=2))
     for a in actions:
         a.props["AlignInContainer"] = "AlignInContainer.Center"
         a.props["LayoutMinWidth"] = str(a.props["Width"])
