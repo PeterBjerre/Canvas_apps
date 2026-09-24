@@ -101,6 +101,32 @@ i tabellen, stopper byggeriet.
 
 Det hele står i `docs/27-layouttokens.md`.
 
+## Den fjerde regel: rammen, og ingen række der ombryder på må og få
+
+Bjælker, der forsvandt, og knapper, der ikke kunne ses, havde tre årsager —
+alle tre er nu spærret af byggeriet. Hele forklaringen står i
+`docs/30-responsivt-layout.md`.
+
+1. **Rammen.** Hver skærm er `build_helpers.app_frame(prefix, bjælke, kort)`:
+   en header med fast højde (bjælken) og en krop, der scroller. **Byg
+   aldrig en skal, hvis højde er summen af kortene** — kroppen scroller, og
+   kortene står direkte i den.
+2. **`SHELL_W` er en nedre grænse.** Padding, scrollbar (18 px) og luft
+   (6 px) står i `RAMMEN` i `tools/layout_tokens.py`. Scrollbaren tager
+   plads på Windows og ingen på Mac — derfor så fejlen tilfældig ud. Sæt
+   aldrig paddingen op "så tallet passer"; det var præcis den fejl.
+3. **To tilstande.** En række, der kan ombryde, bygges med
+   `build_helpers.flow_row()`: enten én linje, eller et gitter med et fast
+   antal kolonner. Skriv aldrig `wrap="true"` med en håndregnet højde.
+   Bjælken er `build_helpers.top_bar()` i alle fire apps.
+
+| Du vil … | Gør |
+|---|---|
+| Tilføje en sektion | Læg kortet i listen til `app_frame(...)` |
+| Tilføje en knap i bjælken | Tilføj den til listen til `top_bar(...)` — intet andet |
+| Lave en række, der ombryder | `flow_row(...)` |
+| Regne en højde | Konstanter, `App.Width`/`LayoutRank`, `CountRows(col…)`. Aldrig en datakilde |
+
 ## Fire apps — hver med sin selvstændige build-mappe
 
 | App | Mappe | Skærm | Byg |
@@ -217,7 +243,7 @@ nævner kontrollen.
 | `sp_config.py` | **Datakilde-kontrakten**: hvilke SharePoint-lister og kolonner appen læser. Ret HER, ikke i formlerne |
 | `gen_screen.py` | Kontroltræ-DSL, stylingkonstanter, **højde-algebra** (`stack_height`, `row_height`) |
 | `build_helpers.py` | Byggeklodser: `card`, `group`, `field_cell`, `button_row`, inputs, `combobox` |
-| `build_hero.py` | Hero, procesindikator, **Validate** og **Export JSON** |
+| `build_hero.py` | Topbjælken (**Validate**, **Export JSON**, hub, tema) og hero-kortet med procesindikatoren |
 | `build_plan_header.py` | Planhoved, plantype, strategivalg, `section_header` |
 | `build_items.py` | Items-skinne, Item Editor, FL-felt, objektliste |
 | `build_flsearch.py` | **Flow-kontrakten for FL-søgning** — outputnavn og feltnavne ligger kun her |
@@ -336,7 +362,14 @@ layoutfejl bor:
    kontrollen ville bare forsvinde, måske kun i det ene tema
 8c. Ingen formel sammenligner `App.Width` med et tal — breakpoints hører i
    `tools/layout_tokens.py`
-9. Ingen **lodret** container har et barn med `FillPortions <> 0`
+9. Ingen **lodret** container har et barn med `FillPortions <> 0` —
+   undtagen rammens krop, som skal fylde skærmen under headeren
+4c. Hver wrap-række **spilles**: børnene pakkes i linjer, som autolayout
+   gør det, i den bredde containeren faktisk får — **med scrollbaren
+   trukket fra**. Højden skal rumme de linjer, der kommer ud af det
+23. Rammen: `con<X>Root` → header med fast højde + præcis én krop med
+   `Scroll`. Headerens højde må ikke afhænge af data (23b), og padding +
+   scrollbar + luft skal være mindst `SHELL_INSET` (23c)
 
 Punkt 7 fanger den klassiske: du sletter en kontrol og glemmer en
 `Reset()` på den et andet sted. Det ville ellers først vælte i compile.
@@ -583,7 +616,7 @@ eksplicitte `Height` på nogle blad-kontroller.
 aldrig den normaliserede YAML tilbage over kildefilerne — så mister du de
 egenskaber, builderne bevidst sætter.
 
-## Otte ting der aldrig må regressere
+## Ni ting der aldrig må regressere
 
 1. **Ingen `Height`-formel må referere en anden kontrol.** I en
    AutoLayout-container sætter forælderen børnenes størrelse, så en forælder
@@ -626,6 +659,10 @@ egenskaber, builderne bevidst sætter.
    `Collect` af én lokal record og ingen listeopslag.
 8. **Padding tælles med i højden.** Det gør `stack_height()` automatisk —
    omgå den ikke ved at sætte `height=` manuelt på et kort.
+9. **Bjælken står i rammens header, og `SHELL_W` lover aldrig mere, end der
+   er.** Ingen skal-sum, ingen `wrap="true"` med håndregnet højde, ingen
+   padding der æder scrollbarens plads. Regel 4c og 23 håndhæver det — se
+   `docs/30-responsivt-layout.md`.
 
 ### Brug ikke `Classic/ComboBox` til søgning
 

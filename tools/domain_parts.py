@@ -55,7 +55,7 @@ from layout_tokens import below, if_below, fits
 from build_helpers import (text_ctrl, group, button, button_row, text_input, theme_button,
                            date_picker,
                            number_input, dropdown, card, field_cell, row_n,
-                           label_row, pin_widths, badge)
+                           label_row, pin_widths, badge, top_bar)
 import domain_config as cfg
 import attflows
 
@@ -112,36 +112,11 @@ DM_ROW = ('If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
 # eller en anden raekke hentes, for saa er det en ny formular.
 REQUIRED = "varDomValidated"
 
-# ---------------------------------------------------------------------------
-# Topbjaelkens regnestykke. Se build_bar() for hvorfor det er regnet ud.
-# ---------------------------------------------------------------------------
-BAR_GAP = 10                         # MELLEM knapperne i hoejresiden
-# MELLEM de to grupper. Den stod som et raat 20 i group("conDomBar", ...),
-# mens venstresiden reserverede BAR_RIGHT_W + BAR_GAP - altsaa 10.
-#
-#     venstre + gap + hoejre = (SHELL_W - 552) + 20 + 542 = SHELL_W + 10
-#
-# Bjaelken var 10 px for bred VED ENHVER SKAERMBREDDE, og da den har
-# wrap="true", ombroed den altid. Den oeverste sektion i BEGGE
-# domaeneapper stod derfor i to rader med en tom foerste rad.
-#
-# To tal, der skulle vaere det samme, og intet der sagde det. Nu er det
-# eet navn, brugt begge steder.
-BAR_OUTER_GAP = 20
-BAR_SLACK = 20                       # luft i HOEJRESIDEN, taelles kun EEN gang:
-                                     # den er en del af BAR_RIGHT_W, og venstresiden
-                                     # traekker derfor kun BAR_RIGHT_W + BAR_OUTER_GAP
-                                     # fra. Blev den talt med begge steder, fik titlen
-                                     # 220 px ved braekpunktet, hvor der staar 240.
-BAR_MIN_TITLE = 240                  # under det er titlen ikke laeselig
-BAR_RIGHT = [("txtDomCount", 110), ("txtDomReqNo", 150),
-             ("btnDomTheme", 92), ("btnDomBack", 140)]
-BAR_RIGHT_W = (sum(w for _, w in BAR_RIGHT)
-               + BAR_GAP * (len(BAR_RIGHT) - 1) + BAR_SLACK)
-# Braekpunktet: er der plads til BAADE hoejresiden og en laeselig titel?
-# Det er en CONTAINER-graense og ikke en enhedsklasse - en bjaelke med een
-# knap mere skal ombryde tidligere, uanset hvad slags enhed det er.
-BAR_MIN_W = BAR_RIGHT_W + BAR_OUTER_GAP + BAR_MIN_TITLE
+# Topbjaelken regnes af build_helpers.top_bar() - af de kontroller, der
+# faktisk staar i den. Her stod foer en haandskrevet tabel (BAR_RIGHT), et
+# gap, en slack, en mindste titelbredde og en vagt, der skulle holde dem i
+# trit. Den holdt dem i trit med hinanden - men ikke med scrollbaren, og
+# derfor forsvandt hoejresiden. Se RAMMEN i tools/layout_tokens.py.
 DM_SEL = ('If(IsBlank(varDomActiveRowId), DisplayMode.Disabled, DisplayMode.Edit)')
 
 
@@ -149,36 +124,13 @@ DM_SEL = ('If(IsBlank(varDomActiveRowId), DisplayMode.Disabled, DisplayMode.Edit
 # Den flade top
 # ---------------------------------------------------------------------------
 def build_bar():
-    """Toplinjen.
+    """Toplinjen. Den staar i rammens header (build_helpers.app_frame), saa
+    den scroller aldrig vaek, og dens hoejde afhaenger kun af App.Width.
 
-    BREDDERNE MAA IKKE KUNNE BLIVE NEGATIVE
-    ---------------------------------------
-    Her stod venstre side som "Parent.Width - 520" og hoejre som faste 500.
-    Paa et smalt vindue blev venstre side negativ, og hoejre side - med
-    nummeret, status og knappen tilbage til hubben - blev klippet vaek.
-    Knapperne var der; de kunne bare ikke ses.
-
-    Nu bryder linjen om i stedet: under braekpunktet staar de to grupper
-    under hinanden, og wrap_rows=2 faar hoejden til at taelle begge rader
-    med."""
-    title = text_ctrl("txtDomTitle", f'"{cfg.TITLE}"', size=22, weight="Semibold",
-                      height=30, wrap="false")
-    sub = text_ctrl("txtDomSub", f'"{cfg.SUBTITLE}"', size=13, color=C_MUTED,
-                    height=20, wrap="false")
-    # BREDDERNE ER REGNET UD, IKKE SKREVET AF
-    #
-    # Her stod tre tal, der skulle passe sammen, og som intet knyttede
-    # sammen: hoejresiden var 440, venstresiden reserverede 500, og
-    # braekpunktet var 900. Da temaknappen gjorde hoejresiden 102 px
-    # bredere, fulgte de to andre ikke med - og bjaelken ville have
-    # ombrudt paa enhver skaermbredde.
-    #
-    # Nu kommer alle tre af BAR_RIGHT. Tilfoejes en knap, flytter
-    # braekpunktet sig med.
-    left = group("conDomBarLeft", [title, sub], direction="Vertical", gap=2,
-                 width=fits(SHELL_W, BAR_MIN_W, SHELL_W,
-                            f"{SHELL_W} - {BAR_RIGHT_W + BAR_OUTER_GAP}"))
-
+    Alt om bredderne - hvornaar den stables, og hvor meget titlen faar -
+    regnes af top_bar() ud af de fire kontroller herunder. Tidligere stod
+    det som fem konstanter og en vagt; de passede sammen, men ikke med den
+    bredde, platformen faktisk gav, naar der var en scrollbar."""
     count = badge("txtDomCount", '"Rows: " & CountRows(colDomRows)', width=110)
     no = text_ctrl("txtDomReqNo",
                    'If(IsBlank(varDomRequestNo), "Not submitted", varDomRequestNo)',
@@ -190,29 +142,8 @@ def build_bar():
                   f'LaunchTarget.Replace)',
                   width=140)
     theme = theme_button("btnDomTheme")
-    row = pin_widths([count, no, theme, back])
-    got = [(c.name, int(c.props["Width"])) for c in row]
-    if got != BAR_RIGHT:
-        raise SystemExit("BAR_RIGHT passer ikke paa bjaelkens hoejreside:\n"
-                         "  BAR_RIGHT: %s\n  raekken:   %s" % (BAR_RIGHT, got))
-    right = group("conDomBarRight", row,
-                  direction="Horizontal", gap=BAR_GAP, align_items="Center",
-                  justify="End", width=str(BAR_RIGHT_W))
-    # HOEJDEN SKAL FOELGE OMBRYDNINGEN, IKKE ANTAGE DEN
-    #
-    # Her stod wrap_rows=2, og row_height() ganger uden betingelse: hoejden
-    # blev Max(52, 36) * 2 + 20 = 124 ved ENHVER skaermbredde. Paa alt
-    # bredere end braekpunktet staar bjaelken paa EEN raekke a 52 px, og de
-    # resterende 72 px blev et tomt baelte oeverst i baade Equipment og
-    # Material. Det var det, der saa forkert ud.
-    #
-    # Nu er hoejden den SAMME betingelse, som afgoer ombrydningen - regnet
-    # af de to gruppers egne hoejder, saa den ikke kan komme ud af trit.
-    one = max(int(left.h), int(right.h))
-    two = one * 2 + BAR_OUTER_GAP
-    return group("conDomBar", [left, right], direction="Horizontal",
-                 gap=BAR_OUTER_GAP, align_items="Center", wrap="true",
-                 height=fits(SHELL_W, BAR_MIN_W, str(two), str(one)))
+    return top_bar("Dom", f'"{cfg.TITLE}"', f'"{cfg.SUBTITLE}"',
+                   [count, no, theme, back], SHELL_W)
 
 
 # ---------------------------------------------------------------------------

@@ -12,18 +12,14 @@ import os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from gen_screen import render_screen, C_APP_BG, OUT_DIR
-from build_helpers import group
+from build_helpers import app_frame
 from build_hub import build_bar, build_tiles, build_filters, build_list
 
 
 def build_screen():
-    shell = group("conMdShell",
-                  [build_bar(), build_tiles(), build_filters(), build_list()],
-                  direction="Vertical", gap=16,
-                  # 32, ikke 24: SHELL_W er "App.Width - 64".
-                  pad=(20, 32, 40, 32))
-    root = group("conMdRoot", [shell], direction="Vertical", height="Parent.Height",
-                 width="Parent.Width", overflow_y="Scroll", fill=C_APP_BG)
+    # RAMMEN: bjaelken i en header, der ikke scroller, og resten i en
+    # krop, der goer. Se build_helpers.app_frame.
+    root = app_frame("Md", build_bar(), [build_tiles(), build_filters(), build_list()])
     return render_screen("ScreenMdHub", {"Fill": C_APP_BG}, [root])
 
 
