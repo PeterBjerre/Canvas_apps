@@ -1,6 +1,6 @@
 # SAP masterdata – canvas apps og indmeldinger
 
-Canvas apps og indmeldingsflow til SAP masterdata. **Fire apps:**
+Canvas apps og indmeldingsflow til SAP masterdata. **Fem apps:**
 
 | App | Mappe | Rolle |
 |---|---|---|
@@ -8,6 +8,7 @@ Canvas apps og indmeldingsflow til SAP masterdata. **Fire apps:**
 | **VH-plan** | [`Maintenance Plan App/`](Maintenance%20Plan%20App) | Indmelding af vedligeholdsplaner, inkl. strategiplaner med pakker |
 | **Equipments** | [`Equipment App/`](Equipment%20App) | Indmelding af udstyr |
 | **Materials** | [`Material App/`](Material%20App) | Indmelding af reservedele |
+| **Functional Location** | [`Functional Location App/`](Functional%20Location%20App) | Functional Locations (SPOOL): KKS-syntaks, klasse og spool-felter pr. klasse. Reglerne er HTML-sidens (`html/functional-location.html` + JS) - se [`docs/31`](docs/31-functional-location-regler.md) |
 
 > **Equipments og Materials deler byggeklodser, men er to apps.** De var
 > engang den samme app med to konfigurationsfiler; nu skal de kunne to
@@ -20,7 +21,7 @@ Alle `.pa.yaml`-skærme er **genereret** af Python-builderne i den enkelte
 apps `build/`-mappe. Byg alle fire og efterregn layoutet med:
 
 ```bash
-python3 tools/build_all.py       # alle fire
+python3 tools/build_all.py       # alle fem
 python3 tools/build_all.py --app equipment
 ```
 
