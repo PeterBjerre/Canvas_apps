@@ -50,7 +50,7 @@ ENV_ID = env.ENV_ID
 # som "Kommer snart" og kan ikke aabnes - appen findes ikke endnu.
 DOMAINS = [
     {"key": "FunctionalLocation", "short": "FL",  "name": "Functional location",
-     "color": _t("domain-fl"),  "app": None},
+     "color": _t("domain-fl"),  "app": "functionallocation"},
     {"key": "Equipment",          "short": "EQ",  "name": "Equipment",
      "color": _t("domain-eq"),  "app": "equipment"},
     {"key": "MeasuringPoint",     "short": "MP",  "name": "Measuring point",

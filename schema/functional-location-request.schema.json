@@ -1,0 +1,218 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contoso.example/schemas/functional-location-request-1.0.json",
+  "title": "Functional Location anmodning (SPOOL)",
+  "description": "Snapshot, som Functional Location App skriver i FunctionalLocationRequests.PayloadJson ved indsend. Formen er HTML-sidens Export JSON (app-functional-location.js:2254-2276: generatedAt, source, rows, classBuckets, ruleMeta) plus anmodningens egne felter. Reglerne bag status og beskeder staar i docs/31-functional-location-regler.md.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "requestGuid",
+    "requestNo",
+    "submittedBy",
+    "submittedOn",
+    "generatedAt",
+    "source",
+    "rows",
+    "classBuckets",
+    "ruleMeta"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "requestGuid": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Idempotensnoegle. Dannes i appen foer foerste skrivning og aendres aldrig. En modtager SKAL afvise en genindsendelse med samme GUID."
+    },
+    "requestNo": {
+      "type": "string",
+      "pattern": "^FL-[0-9]{6}$"
+    },
+    "submittedBy": {
+      "type": "string",
+      "format": "email"
+    },
+    "submittedOn": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Som i HTML-sidens eksport."
+    },
+    "source": {
+      "const": "functional-location-canvas-app",
+      "description": "HTML-sidens eksport skriver functional-location-web-shell."
+    },
+    "rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/row"
+      },
+      "description": "Kun ikke-tomme raekker (docs/31 FL3). Ved indsend er ingen raekke invalid (FL68)."
+    },
+    "classBuckets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "className",
+          "functionalLocations"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "className": {
+            "type": "string"
+          },
+          "functionalLocations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "functionalLocation"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "functionalLocation": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "description": "Klassefanerne (FL28): raekker, der ikke er draft og har en klasse, sorteret paa FL."
+    },
+    "ruleMeta": {
+      "type": "object",
+      "required": [
+        "componentCount",
+        "aggregateCount",
+        "functionKeyCount",
+        "ruleSource"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "componentCount": {
+          "type": "integer"
+        },
+        "aggregateCount": {
+          "type": "integer"
+        },
+        "functionKeyCount": {
+          "type": "integer"
+        },
+        "ruleSource": {
+          "type": "string",
+          "description": "Hvilke regler raekkerne er valideret mod - fl_rules.generated.json's kilde."
+        }
+      }
+    }
+  },
+  "$defs": {
+    "row": {
+      "type": "object",
+      "required": [
+        "rowNo",
+        "functionalLocation",
+        "description",
+        "kksType",
+        "assignedClass",
+        "status",
+        "blockingIssues",
+        "warnings",
+        "spoolValues"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "rowNo": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "functionalLocation": {
+          "type": "string",
+          "maxLength": 40,
+          "description": "Normaliseret: versaler, trimmet (FL1)."
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "kksType": {
+          "enum": [
+            "",
+            "KKS",
+            "KKSKA",
+            "KKSKV"
+          ]
+        },
+        "assignedClass": {
+          "type": "string",
+          "description": "ELF, GIV, KAB, MAA, MKP, MKP_AC ... NO CLASS, eller tom ved klassefejl."
+        },
+        "status": {
+          "enum": [
+            "valid",
+            "warning",
+            "invalid"
+          ]
+        },
+        "blockingIssues": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "message"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "message": {
+                "type": "string"
+              }
+            }
+          },
+          "description": "Ordret og i raekkefoelge, som originalen giver dem. Objekter og ikke strenge: Power Fx' JSON() skriver en tabel som en liste af records."
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "message"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "spoolValues": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "field",
+              "value"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "field": {
+                "type": "string",
+                "description": "Normaliseret feltnavn (versaler), som controllerens spoolValues-noegler."
+              },
+              "value": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

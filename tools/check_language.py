@@ -110,7 +110,11 @@ def check():
     for path in screens():
         n_files += 1
         txt = io.open(path, encoding="utf-8").read()
-        for m in re.finditer(r'"((?:[^"\\]|"")*)"', txt):
+        # Power Fx har ingen backslash-escapes i strenge - kun "" for et
+        # anfoerselstegn. Her stod [^"\\], og saa var et regex-moenster som
+        # "[0-9\s]" nok til at forskyde parringen af anfoerselstegn resten af
+        # filen: tjekket laeste kode som tekst og meldte den som dansk.
+        for m in re.finditer(r'"((?:[^"]|"")*)"', txt):
             v = m.group(1).strip()
             if len(v) < 3 or v in ALLOW or SKIP.match(v):
                 continue

@@ -410,6 +410,20 @@ def provisioned_lists():
     return out
 
 
+def named_formulas():
+    """Navnene i hver apps App.Formulas: linjer paa formen "navn = ..."."""
+    out = set()
+    for app in os.listdir(ROOT):
+        path = os.path.join(ROOT, app, "App.pa.yaml")
+        if not os.path.isfile(path):
+            continue
+        txt = open(path, encoding="utf-8").read()
+        m = re.search(r"^    Formulas: \|\n((?:      .*\n|\n)*)", txt, re.M)
+        if m:
+            out.update(re.findall(r"^      =?([A-Za-z_]\w*)\s*=", m.group(1), re.M))
+    return out
+
+
 def main():
     schema = load_schema()
     if schema is None:
@@ -423,7 +437,7 @@ def main():
     prov_choices = provisioned_choices()
     screens = []
     for app in ("Maintenance Plan App", "Masterdata Hub",
-                "Equipment App", "Material App"):
+                "Equipment App", "Material App", "Functional Location App"):
         d = os.path.join(ROOT, app)
         if not os.path.isdir(d):
             continue
@@ -445,7 +459,12 @@ def main():
     # praecis som en liste, saa de ender i samme opsamling og skal sorteres
     # fra her - ellers melder tjekket dem som stavefejl.
     prov_lists = provisioned_lists()
-    missing = {l for l in used - set(schema) if not l.startswith("col")}
+    # NAVNGIVNE FORMLER er heller ikke lister. De bruges i LookUp og Filter
+    # ligesom en liste, men de er defineret i App.Formulas - fx
+    # Functional Location-appens regeltabeller (nfFlPlan ...).
+    named = named_formulas()
+    missing = {l for l in used - set(schema)
+               if not l.startswith("col") and l not in named}
     missing_known = sorted(l for l in missing if l in prov_lists)
     missing_unknown = sorted(l for l in missing if l not in prov_lists)
 

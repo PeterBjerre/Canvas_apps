@@ -1,0 +1,1335 @@
+{
+ "cases": [
+  {
+   "id": "T01a",
+   "rule": "FL1",
+   "fl": " ssv10 lac10ab001 ",
+   "expect": {
+    "status": "valid",
+    "cls": "MKP",
+    "kks": "KKS"
+   },
+   "note": "NBSP, smaa bogstaver og mellemrum normaliseres"
+  },
+  {
+   "id": "T01b",
+   "rule": "FL1",
+   "fl": "SSV10-LAC10AB001",
+   "expect": {
+    "status": "invalid",
+    "has": [
+     "KKS invalid."
+    ]
+   }
+  },
+  {
+   "id": "T03a",
+   "rule": "FL3",
+   "fl": "",
+   "expect": {
+    "status": "draft"
+   },
+   "desc": ""
+  },
+  {
+   "id": "T03b",
+   "rule": "FL3",
+   "fl": "   ",
+   "expect": {
+    "status": "invalid",
+    "has": [
+     "FL required."
+    ]
+   },
+   "desc": "x"
+  },
+  {
+   "id": "T04a",
+   "rule": "FL4",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "valid",
+    "hasNot": [
+     "FL required."
+    ]
+   }
+  },
+  {
+   "id": "T04b",
+   "rule": "FL4",
+   "fl": "",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "FL required."
+    ]
+   }
+  },
+  {
+   "id": "T05a",
+   "rule": "FL5",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "invalid",
+    "has": [
+     "Duplicate FL."
+    ]
+   },
+   "group": "dup"
+  },
+  {
+   "id": "T05b",
+   "rule": "FL5",
+   "fl": "ssv10 lac10ab001",
+   "expect": {
+    "status": "invalid",
+    "has": [
+     "Duplicate FL."
+    ]
+   },
+   "group": "dup",
+   "note": "dublet uanset store/smaa bogstaver"
+  },
+  {
+   "id": "T05c",
+   "rule": "FL5",
+   "fl": "SSV10 LAC10AH001",
+   "expect": {
+    "status": "valid",
+    "hasNot": [
+     "Duplicate FL."
+    ]
+   },
+   "group": "dup"
+  },
+  {
+   "id": "T06a",
+   "rule": "FL6",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "valid"
+   },
+   "desc": "Pumpe"
+  },
+  {
+   "id": "T06b",
+   "rule": "FL6",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "Description required before Ready for SAP.",
+     "Description: Required field."
+    ]
+   },
+   "desc": ""
+  },
+  {
+   "id": "T07a",
+   "rule": "FL7",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "valid"
+   },
+   "desc": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  },
+  {
+   "id": "T07b",
+   "rule": "FL7",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "Description > 40.",
+     "Description: Max 40 characters."
+    ]
+   },
+   "desc": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  },
+  {
+   "id": "T08a",
+   "rule": "FL8",
+   "fl": "SSV10 LAC1234",
+   "expect": {
+    "status": "valid",
+    "kks": "KKSKA",
+    "cls": "KAB"
+   }
+  },
+  {
+   "id": "T08b",
+   "rule": "FL8",
+   "fl": "SSV10 LAC10 1234",
+   "expect": {
+    "status": "valid",
+    "kks": "KKSKV",
+    "cls": "KAB"
+   }
+  },
+  {
+   "id": "T08c",
+   "rule": "FL8",
+   "fl": "SSV10 LAC   1234",
+   "expect": {
+    "status": "valid",
+    "kks": "KKSKV",
+    "cls": "KAB"
+   }
+  },
+  {
+   "id": "T08d",
+   "rule": "FL8",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "valid",
+    "kks": "KKS"
+   }
+  },
+  {
+   "id": "T09a",
+   "rule": "FL9",
+   "fl": "SSV10 LAC10AB001 KA01",
+   "expect": {
+    "status": "valid",
+    "hasNot": [
+     "Legacy format."
+    ]
+   }
+  },
+  {
+   "id": "T09b",
+   "rule": "FL9",
+   "fl": "SSV10 LAC10AB001 KA1",
+   "expect": {
+    "status": "warning",
+    "kks": "KKS",
+    "cls": "MKP_VA",
+    "has": [
+     "Legacy format."
+    ]
+   }
+  },
+  {
+   "id": "T10a",
+   "rule": "FL10",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "valid",
+    "hasNot": [
+     "KKS invalid."
+    ]
+   }
+  },
+  {
+   "id": "T10b",
+   "rule": "FL10",
+   "fl": "SSV10 LAC10ZZ",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "KKS invalid.",
+     "Class not determined.",
+     "Functional Location: KKS invalid."
+    ]
+   }
+  },
+  {
+   "id": "T11a",
+   "rule": "FL11",
+   "fl": "AVV10 LAC10AB001",
+   "expect": {
+    "status": "valid"
+   }
+  },
+  {
+   "id": "T11b",
+   "rule": "FL11",
+   "fl": "XXX10 LAC10AB001",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "Plant key invalid."
+    ]
+   }
+  },
+  {
+   "id": "T12a",
+   "rule": "FL12",
+   "fl": "SSV10 ZZZ10AB001",
+   "expect": {
+    "status": "valid"
+   },
+   "env": "noFunctionKeys",
+   "note": "tom FunctionKeyDict = intet tjek"
+  },
+  {
+   "id": "T12b",
+   "rule": "FL12",
+   "fl": "SSV10 ZZZ10AB001",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "Function key invalid."
+    ]
+   }
+  },
+  {
+   "id": "T13a",
+   "rule": "FL13",
+   "fl": "SSV10 UAB10UF001D",
+   "expect": {
+    "status": "valid",
+    "cls": "MKP"
+   }
+  },
+  {
+   "id": "T13b",
+   "rule": "FL13",
+   "fl": "SSV10 LAC10UF001D",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "UF/UE requires U function key."
+    ]
+   }
+  },
+  {
+   "id": "T14a",
+   "rule": "FL14",
+   "fl": "SSV10 UAB10UF001D",
+   "expect": {
+    "status": "valid",
+    "hasNot": [
+     "BR18 rules missing for UF."
+    ]
+   }
+  },
+  {
+   "id": "T14b",
+   "rule": "FL14",
+   "fl": "SSV10 UAB10UF001D",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "BR18 rules missing for UF."
+    ]
+   },
+   "env": "noBr18UF"
+  },
+  {
+   "id": "T15a",
+   "rule": "FL15",
+   "fl": "SSV10 UAB10UF001G",
+   "expect": {
+    "status": "valid"
+   }
+  },
+  {
+   "id": "T15b",
+   "rule": "FL15",
+   "fl": "SSV10 UAB10UF001A",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "BR18 key17 invalid for UF."
+    ]
+   }
+  },
+  {
+   "id": "T16a",
+   "rule": "FL16",
+   "fl": "SSV10 LAC1234",
+   "expect": {
+    "cls": "KAB",
+    "status": "valid"
+   }
+  },
+  {
+   "id": "T16b",
+   "rule": "FL16",
+   "fl": "XXX10 LAC1234",
+   "expect": {
+    "cls": "KAB",
+    "status": "invalid",
+    "exact": [
+     "Plant key invalid."
+    ]
+   },
+   "note": "KAB accepteres, selvom andre noegler fejler"
+  },
+  {
+   "id": "T17a",
+   "rule": "FL17",
+   "fl": "SSV10 LAC10AB001 KA01",
+   "expect": {
+    "status": "valid",
+    "cls": "MKP_VA"
+   }
+  },
+  {
+   "id": "T17b",
+   "rule": "FL17",
+   "fl": "SSV10 LAC10AB001 QQ01",
+   "expect": {
+    "status": "invalid",
+    "cls": "",
+    "exact": [
+     "Component key invalid."
+    ]
+   }
+  },
+  {
+   "id": "T17c",
+   "rule": "FL17",
+   "fl": "SSV10 LAC10ZZ001 KA01",
+   "expect": {
+    "status": "invalid",
+    "cls": "",
+    "exact": [
+     "Equipment key invalid."
+    ]
+   }
+  },
+  {
+   "id": "T18a",
+   "rule": "FL18",
+   "fl": "SSV10 LAC10AH001",
+   "expect": {
+    "status": "valid",
+    "cls": "ELF"
+   }
+  },
+  {
+   "id": "T18b",
+   "rule": "FL18",
+   "fl": "SSV10 LAC10QT001",
+   "expect": {
+    "status": "invalid",
+    "cls": "",
+    "exact": [
+     "Class not determined."
+    ]
+   }
+  },
+  {
+   "id": "T19a",
+   "rule": "FL19",
+   "fl": "SSV10 UAB10UE001FD",
+   "expect": {
+    "status": "valid",
+    "cls": "MKP"
+   },
+   "vals": {
+    "Fire Classification": "BK EI 60 (60 min)"
+   }
+  },
+  {
+   "id": "T19b",
+   "rule": "FL19",
+   "fl": "SSV10 LAC10ZZ001FD",
+   "expect": {
+    "status": "invalid",
+    "has": [
+     "Equipment key invalid."
+    ]
+   }
+  },
+  {
+   "id": "T20a",
+   "rule": "FL20",
+   "fl": "SSV10 LAC",
+   "expect": {
+    "status": "valid",
+    "cls": "NO CLASS"
+   }
+  },
+  {
+   "id": "T20b",
+   "rule": "FL20",
+   "fl": "SSV10 LA2",
+   "expect": {
+    "status": "invalid",
+    "has": [
+     "KKS invalid."
+    ]
+   }
+  },
+  {
+   "id": "T21a",
+   "rule": "FL21",
+   "fl": "SSV10 ABC10",
+   "expect": {
+    "status": "valid",
+    "cls": "ELF"
+   }
+  },
+  {
+   "id": "T21b",
+   "rule": "FL21",
+   "fl": "SSV10 1BC10",
+   "expect": {
+    "status": "invalid",
+    "has": [
+     "KKS invalid."
+    ]
+   }
+  },
+  {
+   "id": "T22a",
+   "rule": "FL22",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "valid",
+    "hasNot": [
+     "Class not determined."
+    ]
+   }
+  },
+  {
+   "id": "T22b",
+   "rule": "FL22",
+   "fl": "SSV10 LAC10QT001",
+   "expect": {
+    "has": [
+     "Class not determined."
+    ]
+   }
+  },
+  {
+   "id": "T23a",
+   "rule": "FL23",
+   "fl": "SSV10 LAC",
+   "expect": {
+    "status": "valid",
+    "cls": "NO CLASS"
+   },
+   "note": "En klasseloes raekke UDEN fejl kan ikke opstaa med motoren: className er kun tom sammen med en fejl eller et tomt FL (= FL required.). Reglen kan derfor ikke udloeses - se docs/31"
+  },
+  {
+   "id": "T24a",
+   "rule": "FL24",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "valid",
+    "hasNot": [
+     "Rules data missing."
+    ]
+   },
+   "note": "Reglerne er bygget ind i appen; uden dem bygger den ikke. Reglen kan ikke udloeses i appen - se docs/31"
+  },
+  {
+   "id": "T25a",
+   "rule": "FL25",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "valid"
+   }
+  },
+  {
+   "id": "T25b",
+   "rule": "FL25",
+   "fl": "SSV10 LAC10AB001 KA1",
+   "expect": {
+    "status": "warning"
+   },
+   "note": "advarsel blokerer ikke"
+  },
+  {
+   "id": "T25c",
+   "rule": "FL25",
+   "fl": "XXX10 LAC10AB001",
+   "expect": {
+    "status": "invalid"
+   }
+  },
+  {
+   "id": "T30a",
+   "rule": "FL30",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "expect": {
+    "status": "valid",
+    "cls": "GIV"
+   },
+   "vals": {
+    "Remarks": "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+   }
+  },
+  {
+   "id": "T30b",
+   "rule": "FL30",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "Remarks: Max 30 characters."
+    ]
+   },
+   "vals": {
+    "Remarks": "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+   }
+  },
+  {
+   "id": "T31a",
+   "rule": "FL31",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "expect": {
+    "status": "valid"
+   },
+   "vals": {
+    "Operating pressure uom": "Bar"
+   }
+  },
+  {
+   "id": "T31b",
+   "rule": "FL31",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "Operating pressure uom: Value must match dropdown options."
+    ]
+   },
+   "vals": {
+    "Operating pressure uom": "Foo"
+   }
+  },
+  {
+   "id": "T32a",
+   "rule": "FL32",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "valid",
+    "hasNot": [
+     "Description: Required field."
+    ]
+   }
+  },
+  {
+   "id": "T32b",
+   "rule": "FL32",
+   "fl": "SSV10 LAC10AB001",
+   "desc": "",
+   "expect": {
+    "status": "invalid",
+    "has": [
+     "Description: Required field."
+    ]
+   }
+  },
+  {
+   "id": "T33a",
+   "rule": "FL33",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "valid"
+   },
+   "vals": {
+    "Manufacturer": "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+    "Room": "R1234567"
+   }
+  },
+  {
+   "id": "T33b",
+   "rule": "FL33",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "Manufacturer: Max 30 characters.",
+     "Room: Max 8 characters."
+    ]
+   },
+   "vals": {
+    "Manufacturer": "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+    "Room": "R12345678"
+   }
+  },
+  {
+   "id": "T34a",
+   "rule": "FL34",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "valid"
+   },
+   "vals": {
+    "Warranty Start": "29.02.2024",
+    "Warranty End": "20241231"
+   }
+  },
+  {
+   "id": "T34b",
+   "rule": "FL34",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "Warranty Start: Use DD.MM.YYYY or YYYYMMDD.",
+     "Warranty End: Use DD.MM.YYYY or YYYYMMDD."
+    ]
+   },
+   "vals": {
+    "Warranty Start": "20230229",
+    "Warranty End": "2024-12-31"
+   }
+  },
+  {
+   "id": "T35a",
+   "rule": "FL35",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "valid"
+   },
+   "vals": {
+    "Atex": "x",
+    "ABC Indic.": "A",
+    "PTW": "X"
+   }
+  },
+  {
+   "id": "T35b",
+   "rule": "FL35",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "Atex: Allowed values: X.",
+     "ABC Indic.: Allowed values: A."
+    ]
+   },
+   "vals": {
+    "Atex": "Y",
+    "ABC Indic.": "B"
+   }
+  },
+  {
+   "id": "T36a",
+   "rule": "FL36",
+   "fl": "SSV10 LAC1234",
+   "vals": {
+    "EX-Marking": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+   },
+   "expect": {
+    "status": "valid"
+   },
+   "note": "KAB har ikke trinet TRMNEW"
+  },
+  {
+   "id": "T36b",
+   "rule": "FL36",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "vals": {
+    "EX-Marking": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+   },
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "EX-Marking: Max 30 characters."
+    ]
+   }
+  },
+  {
+   "id": "T37a",
+   "rule": "FL37",
+   "fl": "SSV10 LAC10AB001 QT01",
+   "expect": {
+    "status": "valid",
+    "cls": "MAA"
+   },
+   "vals": {
+    "Design pressure": "-1,5/+2",
+    "Design pressure uom": "psi"
+   }
+  },
+  {
+   "id": "T37b",
+   "rule": "FL37",
+   "fl": "SSV10 LAC10AB001 QT01",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "Design pressure uom: Value must match dropdown options.",
+     "Design pressure: Max 8 characters.",
+     "Design pressure: Invalid value format."
+    ]
+   },
+   "vals": {
+    "Design pressure": "12345678a",
+    "Design pressure uom": "foo"
+   },
+   "note": "raekkefoelgen er Char-tabellens foerst, saa trinets (validateSpoolFields:1183 foer 1202)"
+  },
+  {
+   "id": "T38a",
+   "rule": "FL38",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "expect": {
+    "status": "valid"
+   },
+   "vals": {
+    "Operating pressure": "123456789012"
+   }
+  },
+  {
+   "id": "T38b",
+   "rule": "FL38",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "Operating pressure: Max 12 characters."
+    ]
+   },
+   "vals": {
+    "Operating pressure": "1234567890123"
+   },
+   "note": "Char og trin siger begge 12 - beskeden staar een gang"
+  },
+  {
+   "id": "T39a",
+   "rule": "FL39",
+   "fl": "SSV10 LAC10AB001 QT01",
+   "expect": {
+    "status": "valid"
+   },
+   "vals": {
+    "Design temperature": "12345678",
+    "Design temperature uom": "K"
+   }
+  },
+  {
+   "id": "T39b",
+   "rule": "FL39",
+   "fl": "SSV10 LAC10AB001 QT01",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "Design temperature uom: Value must match dropdown options.",
+     "Design temperature: Max 8 characters."
+    ]
+   },
+   "vals": {
+    "Design temperature": "123456789",
+    "Design temperature uom": "C"
+   },
+   "note": "raekkefoelgen er Char-tabellens foerst, saa trinets (validateSpoolFields:1183 foer 1202)"
+  },
+  {
+   "id": "T40a",
+   "rule": "FL40",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "expect": {
+    "status": "valid"
+   },
+   "vals": {
+    "Operating temperature": "-10/+40",
+    "Operating temperature uom": "°C"
+   }
+  },
+  {
+   "id": "T40b",
+   "rule": "FL40",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "Operating temperature: Max 10 characters.",
+     "Operating temperature uom: Value must match dropdown options.",
+     "Operating temperature: Invalid value format."
+    ]
+   },
+   "vals": {
+    "Operating temperature": "1234567890A",
+    "Operating temperature uom": "x"
+   },
+   "note": "raekkefoelgen er Char-tabellens foerst, saa trinets (validateSpoolFields:1183 foer 1202)"
+  },
+  {
+   "id": "T41a",
+   "rule": "FL41",
+   "fl": "SSV10 LAC10AB001 KN01",
+   "expect": {
+    "status": "valid",
+    "cls": "MKP_FA"
+   },
+   "vals": {
+    "Design flow": "10",
+    "Design flow uom": "m³/h"
+   }
+  },
+  {
+   "id": "T41b",
+   "rule": "FL41",
+   "fl": "SSV10 LAC10AB001 KN01",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "Design flow uom: Value must match dropdown options.",
+     "Design flow: Invalid value format."
+    ]
+   },
+   "vals": {
+    "Design flow": "ti",
+    "Design flow uom": "x"
+   },
+   "note": "raekkefoelgen er Char-tabellens foerst, saa trinets (validateSpoolFields:1183 foer 1202)"
+  },
+  {
+   "id": "T42a",
+   "rule": "FL42",
+   "fl": "SSV10 LAC10AB001 QT01",
+   "vals": {
+    "Design pressure uom": "Barg"
+   },
+   "expect": {
+    "status": "valid"
+   }
+  },
+  {
+   "id": "T42b",
+   "rule": "FL42",
+   "fl": "SSV10 LAC10AB001 QT01",
+   "vals": {
+    "Design pressure uom": "bar g"
+   },
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "Design pressure uom: Value must match dropdown options."
+    ]
+   },
+   "note": "samme besked een gang, selv om feltet tjekkes baade af Char (FL31), soegenoeglen (FL42) og trinet (FL37)"
+  },
+  {
+   "id": "T43a",
+   "rule": "FL43",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "expect": {
+    "status": "valid"
+   },
+   "vals": {
+    "Typekredse": "1.1 Energi-/flowmåler"
+   }
+  },
+  {
+   "id": "T43b",
+   "rule": "FL43",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "Typekredse: Value must match dropdown options."
+    ]
+   },
+   "vals": {
+    "Typekredse": "9.9"
+   }
+  },
+  {
+   "id": "T44a",
+   "rule": "FL44",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "expect": {
+    "status": "valid"
+   },
+   "vals": {
+    "Test Method": "nr1: end to end test",
+    "Test Method 2": "Nr4: Test af signalvej"
+   }
+  },
+  {
+   "id": "T44b",
+   "rule": "FL44",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "Test Method 2: Value must match dropdown options."
+    ]
+   },
+   "vals": {
+    "Test Method 2": "Nr9"
+   }
+  },
+  {
+   "id": "T45a",
+   "rule": "FL45",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "expect": {
+    "status": "valid"
+   },
+   "vals": {
+    "EX-Marking": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+   }
+  },
+  {
+   "id": "T45b",
+   "rule": "FL45",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "EX-Marking: Max 30 characters."
+    ]
+   },
+   "vals": {
+    "EX-Marking": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+   }
+  },
+  {
+   "id": "T46a",
+   "rule": "FL46",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "expect": {
+    "status": "valid"
+   },
+   "vals": {
+    "Safety Critical Equipment": "1.1 Evakuering-alarm/sirene"
+   }
+  },
+  {
+   "id": "T46b",
+   "rule": "FL46",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "Safety Critical Equipment: Value must match dropdown options."
+    ]
+   },
+   "vals": {
+    "Safety Critical Equipment": "2.4 Hængere"
+   },
+   "note": "gyldig for RBR, ikke for GIV"
+  },
+  {
+   "id": "T47a",
+   "rule": "FL47",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "valid"
+   },
+   "vals": {
+    "Fire Classification": "BK EI 60 (60 min)",
+    "Fire Sealing Type": "brandplade"
+   }
+  },
+  {
+   "id": "T47b",
+   "rule": "FL47",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "FIRE CLASSIFICATION: Value must match dropdown options.",
+     "FIRE SEALING TYPE: Value must match dropdown options."
+    ]
+   },
+   "vals": {
+    "Fire Classification": "EI 60",
+    "Fire Sealing Type": "Tape"
+   }
+  },
+  {
+   "id": "T47c",
+   "rule": "FL47",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "expect": {
+    "status": "valid"
+   },
+   "vals": {
+    "Fire Classification": "EI 60"
+   },
+   "note": "kun MKP og NO CLASS tjekker brandfelterne"
+  },
+  {
+   "id": "T48a",
+   "rule": "FL48",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "expect": {
+    "status": "valid",
+    "vals": {
+     "TRM ASSIGNMENT": "X",
+     "ABC INDIC.": "A"
+    }
+   },
+   "vals": {
+    "EX-Marking": "Ex d"
+   }
+  },
+  {
+   "id": "T48b",
+   "rule": "FL48",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "expect": {
+    "status": "valid",
+    "vals": {
+     "TRM ASSIGNMENT": "",
+     "ABC INDIC.": "A"
+    }
+   },
+   "vals": {
+    "TRM assignment": "X",
+    "ABC Indic.": "A"
+   },
+   "note": "TRM ryddes, ABC bliver staaende"
+  },
+  {
+   "id": "T48c",
+   "rule": "FL48",
+   "fl": "SSV10 LAC1234",
+   "expect": {
+    "status": "valid",
+    "vals": {
+     "TRM ASSIGNMENT": "X"
+    }
+   },
+   "vals": {
+    "TRM assignment": "X"
+   },
+   "note": "KAB har ikke TRMNEW - intet roeres"
+  },
+  {
+   "id": "T49a",
+   "rule": "FL49",
+   "fl": "SSV10 UAB10UE001FD",
+   "expect": {
+    "vals": {
+     "TRM ASSIGNMENT": "X"
+    }
+   },
+   "vals": {
+    "Fire Classification": "BK EI 60 (60 min)"
+   }
+  },
+  {
+   "id": "T49b",
+   "rule": "FL49",
+   "fl": "SSV10 UAB10UF001D",
+   "expect": {
+    "vals": {
+     "TRM ASSIGNMENT": ""
+    }
+   }
+  },
+  {
+   "id": "T50a",
+   "rule": "FL50",
+   "fl": "SSV10 UAB10UE001FD",
+   "expect": {
+    "status": "valid"
+   },
+   "vals": {
+    "Fire Classification": "BK EI 60 (60 min)"
+   }
+  },
+  {
+   "id": "T50b",
+   "rule": "FL50",
+   "fl": "SSV10 UAB10UE001FD",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "FIRE CLASSIFICATION: Required when aggregate key is UE."
+    ]
+   }
+  },
+  {
+   "id": "T51a",
+   "rule": "FL51",
+   "fl": "SSV10 UAB10UE001FP",
+   "expect": {
+    "status": "valid"
+   },
+   "vals": {
+    "Fire Classification": "BK EI 60 (60 min)",
+    "Fire Sealing Type": "Brandplade",
+    "Fire Sealing Product": "Hilti CP 611A"
+   }
+  },
+  {
+   "id": "T51b",
+   "rule": "FL51",
+   "fl": "SSV10 UAB10UE001FP",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "FIRE SEALING TYPE: Required for UE/FP.",
+     "FIRE SEALING PRODUCT: Required for UE/FP."
+    ]
+   },
+   "vals": {
+    "Fire Classification": "BK EI 60 (60 min)"
+   }
+  },
+  {
+   "id": "T52a",
+   "rule": "FL52",
+   "fl": "SSV10 LAC10AB001 -Q01",
+   "expect": {
+    "status": "valid",
+    "cls": "TAF"
+   },
+   "vals": {
+    "Voltage [V]": "0.4"
+   }
+  },
+  {
+   "id": "T52b",
+   "rule": "FL52",
+   "fl": "SSV10 LAC1234",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "Voltage [V]: Invalid value format."
+    ]
+   },
+   "vals": {
+    "Voltage [V]": "0.4"
+   },
+   "note": "KAB: kun cifre og komma"
+  },
+  {
+   "id": "T52c",
+   "rule": "FL52",
+   "fl": "SSV10 LAC10AB001 -A01",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "Power [kW]: Invalid value format."
+    ]
+   },
+   "vals": {
+    "Power [kW]": "12.5"
+   }
+  },
+  {
+   "id": "T53a",
+   "rule": "FL53",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "hasNot": [
+     "Functional Location: KKS invalid."
+    ]
+   }
+  },
+  {
+   "id": "T53b",
+   "rule": "FL53",
+   "fl": "SSV10 LAC10ZZ",
+   "expect": {
+    "has": [
+     "Functional Location: KKS invalid."
+    ]
+   }
+  },
+  {
+   "id": "T54a",
+   "rule": "FL54",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "expect": {
+    "status": "valid"
+   },
+   "vals": {
+    "Operating pressure uom": " bar | PSI "
+   }
+  },
+  {
+   "id": "T54b",
+   "rule": "FL54",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "Operating pressure uom: Value must match dropdown options."
+    ]
+   },
+   "vals": {
+    "Operating pressure uom": "Bar|foo"
+   }
+  },
+  {
+   "id": "T55a",
+   "rule": "FL55",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "vals": {
+    "Operating pressure": "123456789012"
+   },
+   "expect": {
+    "status": "valid"
+   }
+  },
+  {
+   "id": "T55b",
+   "rule": "FL55",
+   "fl": "SSV10 LAC10AB001 -B01",
+   "vals": {
+    "Operating pressure": "1234567890123"
+   },
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "Operating pressure: Max 12 characters."
+    ]
+   },
+   "note": "to tjek med samme besked - kun een"
+  },
+  {
+   "id": "T56a",
+   "rule": "FL56",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "valid"
+   },
+   "vals": {
+    "Atex": "   "
+   },
+   "note": "en blank vaerdi er ingen vaerdi"
+  },
+  {
+   "id": "T56b",
+   "rule": "FL56",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "Atex: Allowed values: X."
+    ]
+   },
+   "vals": {
+    "Atex": " XX "
+   }
+  }
+ ],
+ "fuzzFl": [
+  "SSV10 LAC10AB001",
+  "SSV10 LAC10AB001 KA01",
+  "SSV10 LAC10AB001 KA1",
+  "SSV10 LAC1234",
+  "SSV10 LAC10 1234",
+  "SSV10 UAB10UE001FP",
+  "SSV10 UAB10UE001FD",
+  "SSV10 UAB10UF001D",
+  "SSV10 LAC10UF001D",
+  "XXX10 LAC10AB001",
+  "SSV10 LAC10AB001 -B01",
+  "SSV10 LAC",
+  "SSV10 ABC10",
+  "SSV10 LAC10AH001",
+  "SSV10 LAC10QT001",
+  "SSV10 LAC10AN001",
+  "SSV10 LAC10AT001",
+  "SSV10 LAC10AB001 KP01",
+  "SSV10 LAC10AB001 KC01",
+  "SSV10 LAC10AB001 QT01",
+  "SSV10 LAC10AB001 -Q01",
+  "SSV10 LAC10AB001 KT01",
+  "SSV10 LAC10AB001 MR01",
+  "SSV10 LAC10AB001 MS01",
+  "SSV10 LAC10AB001 KD01",
+  "SSV10 LAC10AB001 KN01",
+  "SSV10 LAC10AB001 -A01",
+  "AVV10",
+  "",
+  "SSV10 LAC10     X-A01"
+ ]
+}
