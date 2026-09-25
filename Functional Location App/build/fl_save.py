@@ -155,17 +155,25 @@ If(
         colFlSp,
         ForAll(Filter({L}, RequestGuid = varFlRequestGuid) As I, {{ RowGuid: I.RowGuid, ID: I.ID }})
     );
+    // IfError vil ikke have en TABEL som vaerdi - og det er, hvad Collect
+    // og en Patch med tabeller giver. Compile: "Invalid argument type
+    // (Table). Expecting a Record value instead" (issue #32). Derfor
+    // slutter begge grene i en skalar.
     IfError(
-        Collect({L}, ForAll({new_rows} As R, {_row_record()})),
-        Collect(colFlSaveErrors, {{ Where: "New rows", Msg: FirstError.Message }})
+        Collect({L}, ForAll({new_rows} As R, {_row_record()}));
+        true,
+        Collect(colFlSaveErrors, {{ Where: "New rows", Msg: FirstError.Message }});
+        false
     );
     IfError(
         With(
             {{ ex: Filter({L}, RequestGuid = varFlRequestGuid) }},
             Patch({L}, ForAll({old_rows} As R, LookUp(ex, RowGuid = R.RowGuid)),
                   ForAll({old_rows} As R, {_row_record()}))
-        ),
-        Collect(colFlSaveErrors, {{ Where: "Rows", Msg: FirstError.Message }})
+        );
+        true,
+        Collect(colFlSaveErrors, {{ Where: "Rows", Msg: FirstError.Message }});
+        false
     );
 
     // 3. Raekker, der ikke laengere er i appen.
@@ -173,8 +181,10 @@ If(
         With(
             {{ ex: Filter({L}, RequestGuid = varFlRequestGuid) }},
             Remove({L}, Filter(ex, !(RowGuid in {LIVE}.RowGuid)))
-        ),
-        Collect(colFlSaveErrors, {{ Where: "Deleted rows", Msg: FirstError.Message }})
+        );
+        true,
+        Collect(colFlSaveErrors, {{ Where: "Deleted rows", Msg: FirstError.Message }});
+        false
     );
 
     // 4. Landingssiden.

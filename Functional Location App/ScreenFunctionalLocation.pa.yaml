@@ -3114,6 +3114,10 @@ Screens:
                                                 colFlSp,
                                                 ForAll(Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) As I, { RowGuid: I.RowGuid, ID: I.ID })
                                             );
+                                            // IfError vil ikke have en TABEL som vaerdi - og det er, hvad Collect
+                                            // og en Patch med tabeller giver. Compile: "Invalid argument type
+                                            // (Table). Expecting a Record value instead" (issue #32). Derfor
+                                            // slutter begge grene i en skalar.
                                             IfError(
                                                 Collect(FunctionalLocationItems, ForAll(Filter(colFlRows, Status <> "draft" && !(RowGuid in colFlSp.RowGuid)) As R, {
                                                         RowGuid: R.RowGuid,
@@ -3136,8 +3140,10 @@ Screens:
                                                                    { field: V.Field, value: V.Value }),
                                                             JSONFormat.Compact
                                                         )
-                                                    })),
-                                                Collect(colFlSaveErrors, { Where: "New rows", Msg: FirstError.Message })
+                                                    }));
+                                                true,
+                                                Collect(colFlSaveErrors, { Where: "New rows", Msg: FirstError.Message });
+                                                false
                                             );
                                             IfError(
                                                 With(
@@ -3165,8 +3171,10 @@ Screens:
                                                             JSONFormat.Compact
                                                         )
                                                     }))
-                                                ),
-                                                Collect(colFlSaveErrors, { Where: "Rows", Msg: FirstError.Message })
+                                                );
+                                                true,
+                                                Collect(colFlSaveErrors, { Where: "Rows", Msg: FirstError.Message });
+                                                false
                                             );
                                         
                                             // 3. Raekker, der ikke laengere er i appen.
@@ -3174,8 +3182,10 @@ Screens:
                                                 With(
                                                     { ex: Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) },
                                                     Remove(FunctionalLocationItems, Filter(ex, !(RowGuid in Filter(colFlRows, Status <> "draft").RowGuid)))
-                                                ),
-                                                Collect(colFlSaveErrors, { Where: "Deleted rows", Msg: FirstError.Message })
+                                                );
+                                                true,
+                                                Collect(colFlSaveErrors, { Where: "Deleted rows", Msg: FirstError.Message });
+                                                false
                                             );
                                         
                                             // 4. Landingssiden.
@@ -3330,6 +3340,10 @@ Screens:
                                                     colFlSp,
                                                     ForAll(Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) As I, { RowGuid: I.RowGuid, ID: I.ID })
                                                 );
+                                                // IfError vil ikke have en TABEL som vaerdi - og det er, hvad Collect
+                                                // og en Patch med tabeller giver. Compile: "Invalid argument type
+                                                // (Table). Expecting a Record value instead" (issue #32). Derfor
+                                                // slutter begge grene i en skalar.
                                                 IfError(
                                                     Collect(FunctionalLocationItems, ForAll(Filter(colFlRows, Status <> "draft" && !(RowGuid in colFlSp.RowGuid)) As R, {
                                                             RowGuid: R.RowGuid,
@@ -3352,8 +3366,10 @@ Screens:
                                                                        { field: V.Field, value: V.Value }),
                                                                 JSONFormat.Compact
                                                             )
-                                                        })),
-                                                    Collect(colFlSaveErrors, { Where: "New rows", Msg: FirstError.Message })
+                                                        }));
+                                                    true,
+                                                    Collect(colFlSaveErrors, { Where: "New rows", Msg: FirstError.Message });
+                                                    false
                                                 );
                                                 IfError(
                                                     With(
@@ -3381,8 +3397,10 @@ Screens:
                                                                 JSONFormat.Compact
                                                             )
                                                         }))
-                                                    ),
-                                                    Collect(colFlSaveErrors, { Where: "Rows", Msg: FirstError.Message })
+                                                    );
+                                                    true,
+                                                    Collect(colFlSaveErrors, { Where: "Rows", Msg: FirstError.Message });
+                                                    false
                                                 );
                                             
                                                 // 3. Raekker, der ikke laengere er i appen.
@@ -3390,8 +3408,10 @@ Screens:
                                                     With(
                                                         { ex: Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) },
                                                         Remove(FunctionalLocationItems, Filter(ex, !(RowGuid in Filter(colFlRows, Status <> "draft").RowGuid)))
-                                                    ),
-                                                    Collect(colFlSaveErrors, { Where: "Deleted rows", Msg: FirstError.Message })
+                                                    );
+                                                    true,
+                                                    Collect(colFlSaveErrors, { Where: "Deleted rows", Msg: FirstError.Message });
+                                                    false
                                                 );
                                             
                                                 // 4. Landingssiden.
