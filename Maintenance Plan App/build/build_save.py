@@ -563,8 +563,8 @@ def save_action(submit=False):
         "        ),\n"
         "\n"
         "        Set(varVhpSaving, false);\n"
-        "        Set(varVhpRuntimeInfo, \"Gemning fejlede: \" & FirstError.Message);\n"
-        "        Notify(\"Gemning fejlede: \" & FirstError.Message, NotificationType.Error)\n"
+        "        Set(varVhpRuntimeInfo, \"Save failed: \" & FirstError.Message);\n"
+        "        Notify(\"Save failed: \" & FirstError.Message, NotificationType.Error)\n"
         "    )\n"
         ")"
     )

@@ -17,7 +17,7 @@ from gen_screen import (
     C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED,
     C_PRIMARY, C_PRIMARY2, C_WHITE, C_TRANSPARENT, C_INPUT_BG, C_DISABLED_BG,
     C_DIVIDER, C_VALID_FG, C_VALID_BG, C_INVALID_FG, C_INVALID_BG,
-    C_BORDER_OK, C_BORDER_ERROR,
+    C_BORDER_OK, C_BORDER_ERROR, C_PRIMARY_SOFT,
     C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, FONT,
     SHELL_W, EDITOR_W, RAIL_W, SPLIT_GAP, OUT_DIR,
 )
@@ -468,6 +468,20 @@ def button_row(name, buttons, container_w, gap=8, height=36, align_items="Center
                  align_items=align_items)
 
 
+def fit_button_row(name, buttons, container_w, gap=8):
+    """Knapraekke, hvor hver knap er saa bred som sin tekst.
+
+    button_row() deler hele bredden ligeligt, og paa en bred skaerm blev
+    "Save" 300 px bred med fire bogstaver i. Her faar hver knap den bredde,
+    dens tekst skal bruge, og de staar til venstre.
+
+    Passer de ikke paa een linje, staar de under hinanden - det er
+    flow_row(), og derfor ombryder raekken aldrig halvt."""
+    for b in buttons:
+        b.props["Width"] = str(fit_button_width(b.props["Text"]))
+    return flow_row(name, buttons, container_w, gap=gap)
+
+
 def border_rule(empty_test, required_formula="false"):
     """DEN ENE REGEL om, hvad en feltkant siger.
 
@@ -649,6 +663,64 @@ def dropdown(name, items, default, item_display="ThisItem.Value", required_formu
     return Ctrl(name, "ModernDropdown", props=props, h=height)
 
 
+def themed_dropdown(name, items, default_text, value_col="Value", required_formula="false",
+                    width="Parent.Width", height=36, display_mode=None, label=None,
+                    onchange=None):
+    """Dropdown, hvis LISTE ogsaa foelger temaet.
+
+    HVORFOR IKKE ModernDropdown
+    ---------------------------
+    Den moderne dropdown aabner sin liste som en Fluent-flyout, og den
+    flyout farves af Fluent-temaet - ikke af kontrollens egne egenskaber.
+    Appen saetter ikke Fluent-temaet (farverne er C, se design_tokens.py),
+    saa listen var hvid/graa i moerk tilstand, med vores naesten-hvide
+    tekst ovenpaa. Man kunne ikke laese, hvad man valgte imellem.
+
+    Classic/DropDown tegner sin liste med Fill, Color, HoverFill og
+    SelectionFill - og dem giver vi tokens. Saa skifter listen med temaet
+    som alt andet.
+
+    Default er TEKSTEN i value_col - ikke en record, som ModernDropdown
+    ville have. Selected er stadig hele recorden, saa Self.Selected.Code
+    virker som foer."""
+    props = {
+        "AccessibleLabel": label if label else f"\"{name}\"",
+        "AllowEmptySelection": "true",
+        "BorderColor": border_rule(f"IsBlank(Self.Selected.{value_col})", required_formula),
+        "BorderStyle": "BorderStyle.Solid",
+        "BorderThickness": "1",
+        "ChevronBackground": input_fill(display_mode),
+        "ChevronDisabledBackground": C_DISABLED_BG,
+        "ChevronDisabledFill": C_MUTED,
+        "ChevronFill": C_TITLE,
+        "ChevronHoverBackground": C_PRIMARY_SOFT,
+        "ChevronHoverFill": C_TITLE,
+        "Color": C_TITLE,
+        "Default": default_text,
+        "DisabledColor": C_MUTED,
+        "DisabledFill": C_DISABLED_BG,
+        "Fill": input_fill(display_mode),
+        "Font": FONT,
+        "Height": str(height),
+        "HoverColor": C_TITLE,
+        "HoverFill": C_PRIMARY_SOFT,
+        "Items": items,
+        "Items.Value": value_col,
+        "PaddingLeft": "12",
+        "PressedColor": C_WHITE,
+        "PressedFill": C_PRIMARY,
+        "SelectionColor": C_WHITE,
+        "SelectionFill": C_PRIMARY,
+        "Size": "14",
+        "Width": width,
+    }
+    if display_mode is not None:
+        props["DisplayMode"] = display_mode
+    if onchange is not None:
+        props["OnChange"] = onchange
+    return Ctrl(name, "Classic/DropDown", props=props, h=height)
+
+
 def combobox(name, items, display_field="Display", multi=False, default_items=None,
              placeholder="\"Search\"", required_formula="false", width="Parent.Width",
              height=40, display_mode=None, onchange=None, label=None):
@@ -761,8 +833,64 @@ def pin_widths(ctrls):
     return ctrls
 
 
-def label_row(name, label_text, required=False, width="Parent.Width"):
-    kids = [text_ctrl(f"{name}Lbl", f"\"{label_text}\"", size=13, weight="Semibold", height=20, wrap="false")]
+# ---------------------------------------------------------------------------
+# Tekstbredde - regnet i Python, fordi Power Fx ikke kan maale en tekst
+# ---------------------------------------------------------------------------
+# Andel af skriftstoerrelsen, et tegn fylder i Segoe UI. Et skoen, ikke en
+# maaling - og med vilje et skoen, der rammer lidt for BREDT: en label, der
+# er fire pixels for bred, flytter stjernen fire pixels; en, der er fire
+# pixels for smal, klipper det sidste bogstav af.
+_EM = {"upper": 0.68, "lower": 0.56, "digit": 0.58, "space": 0.3, "narrow": 0.34}
+_NARROW = set("ijlrtf.,:;!|'()[]-/")
+
+
+def text_px(text, size=14, semibold=True):
+    """Hvor bred en LITTERAL tekst er, i pixels (afrundet op).
+
+    Bruges hvor en kontrol skal vaere saa bred som sin tekst og ikke
+    bredere: labelen foran en paakraevet-stjerne, og knapper."""
+    em = 0.0
+    for ch in text:
+        if ch == " ":
+            em += _EM["space"]
+        elif ch in _NARROW:
+            em += _EM["narrow"]
+        elif ch.isdigit():
+            em += _EM["digit"]
+        elif ch.isupper():
+            em += _EM["upper"]
+        else:
+            em += _EM["lower"]
+    w = em * size * (1.06 if semibold else 1.0) * 1.1
+    return int(-(-w // 1))
+
+
+def fit_button_width(text, size=14, min_w=72):
+    """Knapbredden til en tekst: teksten + 2 x 16 px luft.
+
+    text er Power Fx-litteralen ('"Save draft"'), som den staar i button().
+    """
+    lit = text.strip()
+    if not (lit.startswith('"') and lit.endswith('"')):
+        raise ValueError("fit_button_width kraever en tekstlitteral, fik %r" % text)
+    return max(min_w, text_px(lit[1:-1], size) + 32)
+
+
+def label_row(name, label_text, required=False, width="Parent.Width", cell_w=None):
+    """Feltets overskrift - og stjernen LIGE efter den.
+
+    Labelen fyldte foer hele cellens bredde, saa stjernen stod ude ved
+    cellens hoejre kant, langt fra den tekst, den hoerer til. Nu er labelen
+    saa bred som sin tekst (text_px), og stjernen staar 3 px efter.
+
+    cell_w er cellens bredde, naar den kendes. Labelen maa aldrig blive
+    bredere end cellen minus stjernen - saa klipper den hellere, end den
+    skubber stjernen ud af raekken."""
+    lbl_w = text_px(label_text, 13)
+    if cell_w is not None:
+        lbl_w = "Min(%d, (%s) - 13)" % (lbl_w, cell_w)
+    kids = [text_ctrl(f"{name}Lbl", f"\"{label_text}\"", size=13, weight="Semibold", height=20,
+                      width=lbl_w if required else None, wrap="false")]
     if required:
         kids.append(text_ctrl(f"{name}Star", "\"*\"", size=13, color=C_REQUIRED, weight="Semibold",
                               height=20, width=10, wrap="false", accessible="\"Required\""))
@@ -796,7 +924,8 @@ def field_cell(name, label_text, input_ctrl, required=False, hint_text=None, wid
     #
     # Hoejdealgebraen taeller kun synlige boern med, saa linjerne koster
     # ingen plads, naar de er slaaet fra.
-    kids = [label_row(name, label_text, required=required), input_ctrl]
+    w = width or col_width(container_w, cols, gap)
+    kids = [label_row(name, label_text, required=required, cell_w=w), input_ctrl]
     if hint_text is not None:
         kids.append(text_ctrl(f"{name}Hint", hint_text, size=12, color=C_MUTED,
                               height=32, wrap="true",
@@ -819,7 +948,6 @@ def field_cell(name, label_text, input_ctrl, required=False, hint_text=None, wid
         acc = label_text + (", required" if required else "")
         input_ctrl.props["AccessibleLabel"] = '"%s"' % acc.replace('"', '""')
 
-    w = width or col_width(container_w, cols, gap)
     fp = (if_below("Desktop", "0", "1")
           if fill_portions_formula is None else fill_portions_formula)
     return group(name, kids, direction="Vertical", gap=6, width=w,
