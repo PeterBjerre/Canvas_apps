@@ -1359,55 +1359,52 @@ def main():
                         problems.append(f"[31] {name}.{key}: {m.group(1)}(..., {args[i]}) - "
                                         f"kolonnenavnet skal skrives som et navn, ikke en streng")
 
-    # --- 32. IfError vil ikke have en tabel som vaerdi -------------------
+    # --- 32. IfError: begge grene skal ende i en skalar ------------------
     #
-    # Collect(...) og Patch(liste, tabel, tabel) giver en TABEL, og IfError
-    # afviser den: "Invalid argument type (Table). Expecting a Record value
-    # instead" (issue #32, to gange). Afslut vaerdien med en skalar:
-    #     IfError(Collect(...); true, ...)
-    def _first_arg(val, par):
-        end = _balanced(val, par)
-        depth, in_str, cur = 0, False, ""
-        for ch in val[par + 1:end]:
+    # IfError kraever, at vaerdien og fallbacken har SAMME type. Patch af een
+    # raekke giver en record, Collect og Patch med tabeller en tabel, og
+    # compile svarer "Invalid argument type (Table). Expecting a Record value
+    # instead". Det kostede tre compile-runder i issue #32: foerste rettelse
+    # saa kun paa VAERDIEN, men fejlen sad i IfError(Patch(...), Collect(...)).
+    #
+    # Reglen: ender en gren (efter sidste ';') i Patch, Collect, ClearCollect
+    # eller Remove, er typen noget andet end i de oevrige grene. Afslut den
+    # med '; true' / '; false'.
+    MUT = re.compile(r"(Patch|Collect|ClearCollect|Remove|RemoveIf)\(")
+
+    def _split_top(txt, seps):
+        parts, depth, in_str, cur = [], 0, False, ""
+        for ch in txt:
             if ch == '"':
                 in_str = not in_str
             if not in_str and ch in "([{":
                 depth += 1
             elif not in_str and ch in ")]}":
                 depth -= 1
-            if not in_str and depth == 0 and ch in ",;":
-                return cur.strip(), ch
-            cur += ch
-        return cur.strip(), ""
+            if not in_str and depth == 0 and ch in seps:
+                parts.append(cur.strip())
+                cur = ""
+            else:
+                cur += ch
+        parts.append(cur.strip())
+        return parts
 
     for p_, name, body in all_nodes:
         for key, val in (body.get("Properties") or {}).items():
             if not isinstance(val, str):
                 continue
             for m in re.finditer(r"\bIfError\(", val):
-                arg, stop = _first_arg(val, m.end() - 1)
-                if stop == ";":
-                    continue          # kaeden slutter et andet sted
-                body = arg
-                if body.startswith("With("):
-                    # With's krop er det, der staar efter recorden
-                    inner = body[len("With("):]
-                    depth, in_str, cut = 0, False, -1
-                    for i, ch in enumerate(inner):
-                        if ch == '"':
-                            in_str = not in_str
-                        if not in_str and ch in "([{":
-                            depth += 1
-                        elif not in_str and ch in ")]}":
-                            depth -= 1
-                        if not in_str and depth == 0 and ch == ",":
-                            cut = i
-                            break
-                    body = inner[cut + 1:].strip() if cut >= 0 else ""
-                if re.match(r"(Collect|ClearCollect)\(", body) or \
-                        (re.match(r"Patch\(", body) and "ForAll(" in body):
-                    problems.append(f"[32] {name}.{key}: IfError({arg[:40]}...) - vaerdien er "
-                                    f"en tabel. Afslut den med '; true'")
+                par = m.end() - 1
+                end = _balanced(val, par)
+                if end < 0:
+                    continue
+                for arg in _split_top(val[par + 1:end], ","):
+                    last = _split_top(arg, ";")[-1]
+                    last = re.sub(r"^(//[^\n]*\n\s*)+", "", last)
+                    if MUT.match(last):
+                        problems.append(f"[32] {name}.{key}: en gren i IfError ender i "
+                                        f"{last[:40]}... - vaerdi og fallback skal have samme "
+                                        f"type. Afslut grenen med '; true' / '; false'")
 
     # --- 11. Efterstillet komma i Power Fx ---------------------------------
     # Power Fx tillader ikke et komma lige foer en lukkeparentes. Det sker,
