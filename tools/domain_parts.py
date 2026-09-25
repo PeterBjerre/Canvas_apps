@@ -308,7 +308,10 @@ def build_fl_cells(cell_w):
                  width=fit_button_width('"Search"'), display_mode=busy_dm,
                  accessible='"Search functional location"')
     btn.props["LayoutMinWidth"] = btn.props["Width"]
-    row = group("conDomFlSearchRow", [q, btn], direction="Horizontal", gap=8,
+    # IKKE "conDomFlSearchRow": label_row() kalder sin egen raekke
+    # <celle>Row, og cellen hedder conDomFlSearch. To kontroller med samme
+    # navn afvises af compile (issue #29) - check_layout regel 0 fanger det.
+    row = group("conDomFlQueryRow", [q, btn], direction="Horizontal", gap=8,
                 height=36, align_items="Center", width=cell_w)
 
     newline = 'Find(Char(10), txtDomFlQuery.Text) > 0'
