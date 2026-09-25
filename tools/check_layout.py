@@ -331,6 +331,18 @@ def main():
     all_nodes = collect(screen["Children"])
     problems = []
 
+    # --- 0. Hvert kontrolnavn findes kun een gang ------------------------
+    # Studio afviser skaermen: "An entity with name 'X' already exists".
+    # Det skete i issue #29, hvor label_row() navngav sin raekke
+    # conDomFlSearchRow - samme navn, som builderen gav soegeraekken.
+    # Compile er foerst efter en hel runde gennem MCP-serveren.
+    seen = {}
+    for p, name, body in all_nodes:
+        seen[name] = seen.get(name, 0) + 1
+    for name in sorted(n for n, c in seen.items() if c > 1):
+        problems.append(f"[0] kontrolnavnet '{name}' findes {seen[name]} gange "
+                        f"- compile vil fejle")
+
     # --- 1. Ingen kontrol-til-kontrol hoejdereferencer ---------------------
     for p, name, body in all_nodes:
         h = (body.get("Properties") or {}).get("Height")
