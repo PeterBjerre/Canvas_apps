@@ -115,10 +115,10 @@ def build_bar():
     # Temaknappen staar YDERST TIL HOEJRE og med engelsk tekst som resten
     # af hubben. Den er den samme kontrol som i de tre satellitter - se
     # build_helpers.theme_button.
-    theme = theme_button("btnMdTheme", light_label='"Dark"', dark_label='"Light"')
+    theme = theme_button("conMdTheme")
     return top_bar("Md", '"Masterdata"',
                    '"SAP requests - " & If(gblView = "mine", gblMe, "queue, whole department")',
-                   [seg, theme], narrow_hide=("btnMdTheme",))
+                   [seg, theme], narrow_hide=("conMdTheme",))
 
 
 # ---------------------------------------------------------------------------
