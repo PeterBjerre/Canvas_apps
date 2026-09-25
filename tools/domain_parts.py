@@ -153,7 +153,7 @@ def build_bar():
                   f'Launch("{cfg.HUB_URL}" & {theme_query("?")}, {{ }}, '
                   f'LaunchTarget.Replace)',
                   width=140)
-    theme = theme_button("btnDomTheme")
+    theme = theme_button("conDomTheme")
     return top_bar("Dom", f'"{cfg.TITLE}"', f'"{cfg.SUBTITLE}"',
                    [count, no, theme, back],
                    narrow_hide=("txtDomCount", "txtDomReqNo"))
