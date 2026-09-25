@@ -135,15 +135,19 @@ IfError(
                 RequesterName: User().FullName
             }}
         )
-    ),
-    Collect(colFlSaveErrors, {{ Where: "Header", Msg: FirstError.Message }})
+    );
+    true,
+    Collect(colFlSaveErrors, {{ Where: "Header", Msg: FirstError.Message }});
+    false
 );
 If(
     IsBlank(varFlRequestNo) && !IsBlank(varFlReq.ID),
     Set(varFlRequestNo, "{cfg.PREFIX}-" & Text(varFlReq.ID, "000000"));
     IfError(
-        Patch({cfg.L_REQ}, varFlReq, {{ RequestNo: varFlRequestNo }}),
-        Collect(colFlSaveErrors, {{ Where: "Request number", Msg: FirstError.Message }})
+        Patch({cfg.L_REQ}, varFlReq, {{ RequestNo: varFlRequestNo }});
+        true,
+        Collect(colFlSaveErrors, {{ Where: "Request number", Msg: FirstError.Message }});
+        false
     )
 );
 
@@ -155,10 +159,11 @@ If(
         colFlSp,
         ForAll(Filter({L}, RequestGuid = varFlRequestGuid) As I, {{ RowGuid: I.RowGuid, ID: I.ID }})
     );
-    // IfError vil ikke have en TABEL som vaerdi - og det er, hvad Collect
-    // og en Patch med tabeller giver. Compile: "Invalid argument type
-    // (Table). Expecting a Record value instead" (issue #32). Derfor
-    // slutter begge grene i en skalar.
+    // IfError kraever, at vaerdien og fallbacken har SAMME type. Patch af
+    // een raekke giver en record, Collect en tabel - og compile svarer
+    // "Invalid argument type (Table). Expecting a Record value instead"
+    // (issue #32, tre runder). Derfor slutter BEGGE grene af hver IfError
+    // i gemmet i en skalar: '; true' og '; false'.
     IfError(
         Collect({L}, ForAll({new_rows} As R, {_row_record()}));
         true,
@@ -189,8 +194,10 @@ If(
 
     // 4. Landingssiden.
     IfError(
-    {_index_patch(status, step)},
-        Collect(colFlSaveErrors, {{ Where: "Landing page", Msg: FirstError.Message }})
+    {_index_patch(status, step)};
+        true,
+        Collect(colFlSaveErrors, {{ Where: "Landing page", Msg: FirstError.Message }});
+        false
     );
 
     // 5. Status SIDST - og kun naar alt andet lykkedes.
@@ -207,8 +214,10 @@ If(
                     WarningCount: {WARNS},
                     IndexItemId: varFlIdx.ID
                 }}
-            ),
-            Collect(colFlSaveErrors, {{ Where: "Status", Msg: FirstError.Message }})
+            );
+            true,
+            Collect(colFlSaveErrors, {{ Where: "Status", Msg: FirstError.Message }});
+            false
         )
     )
 );
