@@ -168,6 +168,7 @@ ellers fra standardkolonnerne, ellers er det feltnavnet med versaler
 | PX10 | `Blob` + `<a download>` kan ikke laves i en canvas app | Export JSON viser JSON'en i en popup, hvor den kan kopieres. Indholdet er det samme som snapshottet |
 | PX11 | Opdatering af mange SharePoint-rækker med `LookUp(Liste, ID = X.ID)` i en `ForAll` kan ikke delegeres, og `{ ID: … }`-records afvises som base-rækker i `Patch`/`Remove` (issue #32) | Anmodningens rækker hentes én gang med et delegerbart filter på `varFlRequestGuid` (`With({ ex: … })`). Base-rækkerne slås op i den tabel. Nye rækker skrives med én `Collect` |
 | PX12 | `GroupBy`, `Ungroup`, `DropColumns` m.fl. kræver kolonnenavne som navne, ikke strenge (issue #32: 42 compile-fejl) | Skrevet som navne. `check_layout` regel 31 stopper byggeriet, hvis en streng sniger sig ind |
+| PX13 | `IfError` godtager ikke en tabel som værdi, og det er, hvad `Collect(Liste, …)` og `Patch(Liste, tabel, tabel)` giver (issue #32, anden runde) | Værdien og fallbacken ender i `; true` / `; false`. `check_layout` regel 32 stopper byggeriet ved en `IfError` med tabelværdi |
 
 ## Afvigelser mellem JS og VBA (JS vinder)
 
@@ -389,5 +390,5 @@ coauthoring-session i Studio og appens id. Ingen af de tre findes i det
 miljø, appen er bygget i, så compile er ikke kørt. Alt, der kan
 efterprøves uden Studio, er grønt: layout-, datakilde-, sprog- og
 PowerShell-tjekket, regeltesten mod de originale JS-filer og
-dokumenttjekket. Første compile (issue #32) afviste kolonnenavne som strenge og
-`{ ID }`-records som base-rækker - begge rettet (PX11, PX12).
+dokumenttjekket. Compile (issue #32) afviste kolonnenavne som strenge, `{ ID }`-records
+som base-rækker og `IfError` med en tabel som værdi - rettet (PX11-PX13).
