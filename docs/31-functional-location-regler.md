@@ -168,7 +168,7 @@ ellers fra standardkolonnerne, ellers er det feltnavnet med versaler
 | PX10 | `Blob` + `<a download>` kan ikke laves i en canvas app | Export JSON viser JSON'en i en popup, hvor den kan kopieres. Indholdet er det samme som snapshottet |
 | PX11 | Opdatering af mange SharePoint-rækker med `LookUp(Liste, ID = X.ID)` i en `ForAll` kan ikke delegeres, og `{ ID: … }`-records afvises som base-rækker i `Patch`/`Remove` (issue #32) | Anmodningens rækker hentes én gang med et delegerbart filter på `varFlRequestGuid` (`With({ ex: … })`). Base-rækkerne slås op i den tabel. Nye rækker skrives med én `Collect` |
 | PX12 | `GroupBy`, `Ungroup`, `DropColumns` m.fl. kræver kolonnenavne som navne, ikke strenge (issue #32: 42 compile-fejl) | Skrevet som navne. `check_layout` regel 31 stopper byggeriet, hvis en streng sniger sig ind |
-| PX13 | `IfError` godtager ikke en tabel som værdi, og det er, hvad `Collect(Liste, …)` og `Patch(Liste, tabel, tabel)` giver (issue #32, anden runde) | Værdien og fallbacken ender i `; true` / `; false`. `check_layout` regel 32 stopper byggeriet ved en `IfError` med tabelværdi |
+| PX13 | `IfError` kræver, at værdi og fallback har samme type. `Patch` af én række giver en record, `Collect` en tabel (issue #32 - fejlen sad i `IfError(Patch(…), Collect(…))` om hovedet, og de to første rettelser ramte andre `IfError`) | Alle grene i gemmets `IfError` ender i `; true` / `; false`. `check_layout` regel 32 stopper byggeriet, når en gren ender i `Patch`, `Collect`, `ClearCollect` eller `Remove` |
 
 ## Afvigelser mellem JS og VBA (JS vinder)
 
