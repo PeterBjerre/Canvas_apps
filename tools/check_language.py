@@ -61,6 +61,11 @@ SINGLE = {
     "fabrikant", "fabrikantens", "noegle", "noeglen", "detaljer",
     "kladde", "moerk", "lys", "tema", "hjaelp", "tilbage", "naeste",
     "forrige", "gemte", "valgte", "ingen", "alle",
+    # Issue #29: Materials-appens feltnavne og sektioner stod paa dansk i
+    # domain_config.py - og slap igennem, fordi ingen af ordene stod her.
+    "stamdata", "modelnummer", "varenr", "leveringstid", "dage",
+    "prisenhed", "lagerenhed", "klassificering", "sliddel",
+    "bemaerkninger", "langtekst", "fundet", "gemning", "fejlede",
 }
 
 DANISH = re.compile(
