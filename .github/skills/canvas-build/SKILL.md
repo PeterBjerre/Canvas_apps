@@ -410,8 +410,9 @@ layoutfejl bor:
 31. `GroupBy`, `Ungroup`, `DropColumns`, `ShowColumns`, `AddColumns` og
     `RenameColumns` tager kolonnenavne som NAVNE, ikke strenge - Studio
     afviser strengformen (issue #32)
-32. `IfError` faar ikke en tabel som vaerdi (`Collect`, `Patch` med tabeller)
-    - afslut vaerdien med `; true` (issue #32)
+32. `IfError`: vaerdi og fallback skal have SAMME type. `Patch` af een raekke
+    er en record, `Collect` en tabel - afslut begge grene med `; true` /
+    `; false` (issue #32)
 30. Et filter mod en SharePoint-liste sammenligner mod noget konstant —
    ellers kan det ikke delegeres
 
