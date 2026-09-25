@@ -56,6 +56,7 @@ Screens:
           Set(varDomFWarrantyEnd, Blank());
           Set(varDomFLongText, "");
           Set(varDomFlMsg, "");
+          Set(varDomFlQuery, "");
           Reset(txtDomFlQuery);
           Set(varDomInfo, "New row - fill in and save.")
     Children:
@@ -507,7 +508,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =288 + (46) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + (62) + (62) + 60, Max((62), (62), (62), (62)))) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + (62) + (62) + 60, Max((62), (62), (62), (62)))) + 14 + (152) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + (62) + (62) + 60, Max((62), (62), (62), (62)))) + 14 + (If((((App.Width - 64) - 36)) < 640, (62), (62))) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + 20, Max((62), (62)))) + 14 + (166)
+                            =238 + (46) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + (62) + (62) + 60, Max((62), (62), (62), (62)))) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + (62) + (62) + 60, Max((62), (62), (62), (62)))) + 14 + (If((((App.Width - 64) - 36)) < 640, (20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))) + (62) + (62) + (62) + 60, Max((20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))), (62), (62), (62)))) + If(!IsBlank(varDomFlMsg), 14 + (18), 0) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + (62) + 40, Max((62), (62), (62)))) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + 20, Max((62), (62)))) + 14 + (166) + 14 + (If((((App.Width - 64) - 36)) >= (111) + (72) + (91) + (111) + 24, 36, (36) + 8 + (36) + 8 + (36) + 8 + (36)))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -713,7 +714,7 @@ Screens:
                                     DropShadow: |-
                                         =DropShadow.None
                                     FillPortions: |-
-                                        =If(LayoutRank < 3, 0, 1)
+                                        =0
                                     Height: |-
                                         =62
                                     LayoutAlignItems: |-
@@ -789,6 +790,8 @@ Screens:
                                                     =13
                                                 Text: |-
                                                     ="Description"
+                                                Width: |-
+                                                    =Min(82, (If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)) - 13)
                                                 Wrap: |-
                                                     =false
                                           - conDomTextStar:
@@ -886,7 +889,7 @@ Screens:
                                     DropShadow: |-
                                         =DropShadow.None
                                     FillPortions: |-
-                                        =If(LayoutRank < 3, 0, 1)
+                                        =0
                                     Height: |-
                                         =62
                                     LayoutAlignItems: |-
@@ -962,6 +965,8 @@ Screens:
                                                     =13
                                                 Text: |-
                                                     ="Plant"
+                                                Width: |-
+                                                    =Min(38, (If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)) - 13)
                                                 Wrap: |-
                                                     =false
                                           - conDomPlantStar:
@@ -1000,12 +1005,12 @@ Screens:
                                                 Wrap: |-
                                                     =false
                                     - drpDomPlant:
-                                        Control: ModernDropdown
+                                        Control: Classic/DropDown
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Plant, required"
-                                          Appearance: |-
-                                              =Appearance.Outline
+                                          AllowEmptySelection: |-
+                                              =true
                                           BorderColor: |-
                                               =If(
                                                   varDomValidated && IsBlank(Self.Selected.Value),
@@ -1016,10 +1021,26 @@ Screens:
                                               =BorderStyle.Solid
                                           BorderThickness: |-
                                               =1
+                                          ChevronBackground: |-
+                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                          ChevronDisabledBackground: |-
+                                              =C.'input-bg-disabled'
+                                          ChevronDisabledFill: |-
+                                              =C.'text-muted'
+                                          ChevronFill: |-
+                                              =C.'text-primary'
+                                          ChevronHoverBackground: |-
+                                              =C.'color-brand-primary-soft'
+                                          ChevronHoverFill: |-
+                                              =C.'text-primary'
                                           Color: |-
                                               =C.'text-primary'
                                           Default: |-
-                                              =LookUp(colDomPlants, Value = varDomFPlant)
+                                              =varDomFPlant
+                                          DisabledColor: |-
+                                              =C.'text-muted'
+                                          DisabledFill: |-
+                                              =C.'input-bg-disabled'
                                           DisplayMode: |-
                                               =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                           Fill: |-
@@ -1028,26 +1049,28 @@ Screens:
                                               =Font.'Segoe UI'
                                           Height: |-
                                               =36
-                                          ItemDisplayText: |-
-                                              =ThisItem.Value
+                                          HoverColor: |-
+                                              =C.'text-primary'
+                                          HoverFill: |-
+                                              =C.'color-brand-primary-soft'
                                           Items: |-
                                               =colDomPlants
-                                          LayoutMinWidth: |-
-                                              =0
+                                          Items.Value: |-
+                                              =Value
                                           OnChange: |-
                                               =Set(varDomFPlant, Self.Selected.Value)
-                                          RadiusBottomLeft: |-
-                                              =10
-                                          RadiusBottomRight: |-
-                                              =10
-                                          RadiusTopLeft: |-
-                                              =10
-                                          RadiusTopRight: |-
-                                              =10
+                                          PaddingLeft: |-
+                                              =12
+                                          PressedColor: |-
+                                              =C.'text-on-primary'
+                                          PressedFill: |-
+                                              =C.'color-brand-primary'
+                                          SelectionColor: |-
+                                              =C.'text-on-primary'
+                                          SelectionFill: |-
+                                              =C.'color-brand-primary'
                                           Size: |-
                                               =14
-                                          ValidationState: |-
-                                              =If(varDomValidated && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                                           Width: |-
                                               =Parent.Width
                               - conRequestType:
@@ -1061,7 +1084,7 @@ Screens:
                                     DropShadow: |-
                                         =DropShadow.None
                                     FillPortions: |-
-                                        =If(LayoutRank < 3, 0, 1)
+                                        =0
                                     Height: |-
                                         =62
                                     LayoutAlignItems: |-
@@ -1195,7 +1218,7 @@ Screens:
                                     DropShadow: |-
                                         =DropShadow.None
                                     FillPortions: |-
-                                        =If(LayoutRank < 3, 0, 1)
+                                        =0
                                     Height: |-
                                         =62
                                     LayoutAlignItems: |-
@@ -1244,7 +1267,7 @@ Screens:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Equipmentnummer"
+                                                    ="Equipment number"
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -1270,14 +1293,14 @@ Screens:
                                                 Size: |-
                                                     =13
                                                 Text: |-
-                                                    ="Equipmentnummer"
+                                                    ="Equipment number"
                                                 Wrap: |-
                                                     =false
                                     - inpEquipmentNumber:
                                         Control: ModernTextInput
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Equipmentnummer"
+                                              ="Equipment number"
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -1322,7 +1345,7 @@ Screens:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  ="Stamdata"
+                                  ="Master data"
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -1348,7 +1371,7 @@ Screens:
                               Size: |-
                                   =13
                               Text: |-
-                                  ="Stamdata"
+                                  ="Master data"
                               Wrap: |-
                                   =false
                         - conDomRow1_3:
@@ -1391,7 +1414,7 @@ Screens:
                                     DropShadow: |-
                                         =DropShadow.None
                                     FillPortions: |-
-                                        =If(LayoutRank < 3, 0, 1)
+                                        =0
                                     Height: |-
                                         =62
                                     LayoutAlignItems: |-
@@ -1525,7 +1548,7 @@ Screens:
                                     DropShadow: |-
                                         =DropShadow.None
                                     FillPortions: |-
-                                        =If(LayoutRank < 3, 0, 1)
+                                        =0
                                     Height: |-
                                         =62
                                     LayoutAlignItems: |-
@@ -1574,7 +1597,7 @@ Screens:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Fabrikat"
+                                                    ="Manufacturer"
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -1600,14 +1623,14 @@ Screens:
                                                 Size: |-
                                                     =13
                                                 Text: |-
-                                                    ="Fabrikat"
+                                                    ="Manufacturer"
                                                 Wrap: |-
                                                     =false
                                     - inpManufacturer:
                                         Control: ModernTextInput
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Fabrikat"
+                                              ="Manufacturer"
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -1659,7 +1682,7 @@ Screens:
                                     DropShadow: |-
                                         =DropShadow.None
                                     FillPortions: |-
-                                        =If(LayoutRank < 3, 0, 1)
+                                        =0
                                     Height: |-
                                         =62
                                     LayoutAlignItems: |-
@@ -1708,7 +1731,7 @@ Screens:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Type betegnelse"
+                                                    ="Type designation"
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -1734,14 +1757,14 @@ Screens:
                                                 Size: |-
                                                     =13
                                                 Text: |-
-                                                    ="Type betegnelse"
+                                                    ="Type designation"
                                                 Wrap: |-
                                                     =false
                                     - inpTypeDesignation:
                                         Control: ModernTextInput
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Type betegnelse"
+                                              ="Type designation"
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -1793,7 +1816,7 @@ Screens:
                                     DropShadow: |-
                                         =DropShadow.None
                                     FillPortions: |-
-                                        =If(LayoutRank < 3, 0, 1)
+                                        =0
                                     Height: |-
                                         =62
                                     LayoutAlignItems: |-
@@ -1842,7 +1865,7 @@ Screens:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Serienummer"
+                                                    ="Serial number"
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -1868,14 +1891,14 @@ Screens:
                                                 Size: |-
                                                     =13
                                                 Text: |-
-                                                    ="Serienummer"
+                                                    ="Serial number"
                                                 Wrap: |-
                                                     =false
                                     - inpSerialNumber:
                                         Control: ModernTextInput
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Serienummer"
+                                              ="Serial number"
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -1949,7 +1972,7 @@ Screens:
                                   ="Where it sits"
                               Wrap: |-
                                   =false
-                        - conDomFlBlock:
+                        - conDomRow2_2:
                             Control: GroupContainer
                             Variant: AutoLayout
                             Properties:
@@ -1960,370 +1983,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =152
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
-                              LayoutDirection: |-
-                                  =LayoutDirection.Vertical
-                              LayoutGap: |-
-                                  =6
-                              LayoutMinWidth: |-
-                                  =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              Width: |-
-                                  =Parent.Width
-                            Children:
-                              - conDomFlLblRow:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
-                                  Properties:
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =20
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Center
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =3
-                                    LayoutMinWidth: |-
-                                        =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    Width: |-
-                                        =Parent.Width
-                                  Children:
-                                    - conDomFlLblLbl:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Functional location"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =20
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              ="Functional location"
-                                          Wrap: |-
-                                              =false
-                              - conDomFlSearchRow:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
-                                  Properties:
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =36
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Center
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =8
-                                    LayoutMinWidth: |-
-                                        =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    Width: |-
-                                        =Parent.Width
-                                  Children:
-                                    - txtDomFlQuery:
-                                        Control: ModernTextInput
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Search functional location"
-                                          BorderColor: |-
-                                              =C.'border-default'
-                                          BorderStyle: |-
-                                              =BorderStyle.Solid
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Default: |-
-                                              =""
-                                          DisplayMode: |-
-                                              =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
-                                          Fill: |-
-                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
-                                          FillPortions: |-
-                                              =0
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =36
-                                          LayoutMinWidth: |-
-                                              =0
-                                          Placeholder: |-
-                                              ="At least 7 characters - e.g. SSV10 KAB10"
-                                          RadiusBottomLeft: |-
-                                              =10
-                                          RadiusBottomRight: |-
-                                              =10
-                                          RadiusTopLeft: |-
-                                              =10
-                                          RadiusTopRight: |-
-                                              =10
-                                          Size: |-
-                                              =14
-                                          ValidationState: |-
-                                              =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
-                                          Width: |-
-                                              =Max(0, ((((((App.Width)) - 24 - 16 - 18) - 18 - 18))) - ((90) + 8) - 2)
-                                    - btnDomFlSearch:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Search"
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          Appearance: |-
-                                              =ButtonAppearance.Outline
-                                          BorderColor: |-
-                                              =C.'border-default'
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =C.'text-primary'
-                                          DisplayMode: |-
-                                              =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =36
-                                          Layout: |-
-                                              =ButtonLayout.TextOnly
-                                          LayoutMinWidth: |-
-                                              =90
-                                          OnSelect: |-
-                                              =With(
-                                                  { q: Trim(txtDomFlQuery.Text) },
-                                                  If(
-                                                      Len(q) < 7,
-                                                      Notify(
-                                                          "Type at least 7 characters before searching.",
-                                                          NotificationType.Warning
-                                                      ),
-                                              
-                                                      Set(varDomFlMsg, "Searching for " & q & " ...");
-                                                      IfError(
-                                                          Set(varDomFlRaw, 'BioSap-Integration-FunctionalLocations'.Run(q));
-                                                          If(
-                                                              IsBlank(varDomFlRaw) || IsBlank(varDomFlRaw.functionallocationoutput),
-                                                              Clear(colDomFl),
-                                                              ClearCollect(
-                                                  colDomFl,
-                                                  ForAll(
-                                                      Table(ParseJSON(varDomFlRaw.functionallocationoutput)) As R,
-                                                      {
-                                                          Code: Text(R.Value.functionKey),
-                                                          Description: Text(R.Value.description),
-                                                          Display: Text(R.Value.functionKey) & " - " & Text(R.Value.description) &
-                                                              If(Boolean(R.Value.maintainable), "", "   (not maintainable)"),
-                                                          Maintainable: Boolean(R.Value.maintainable),
-                                                          Level: Text(R.Value.level)
-                                                      }
-                                                  )
-                                              )
-                                                          );
-                                                          Set(
-                                                              varDomFlMsg,
-                                                              With(
-                                                                  { n: CountRows(colDomFl) },
-                                                                  If(
-                                                                      n = 0,
-                                                                      "No Functional Locations found for " & q & ".",
-                                                                      Text(n) & " Functional Locations fundet for " & q & ". " &
-                                                                          If(
-                                                                              n > 50,
-                                                                              "The list is long - type more characters to narrow it.",
-                                                                              "Select one from the list below."
-                                                                          )
-                                                                  )
-                                                              )
-                                                          ),
-                                                          Clear(colDomFl);
-                                                          Set(varDomFlMsg, "Search failed: " & FirstError.Message)
-                                                      )
-                                                  )
-                                              )
-                                          RadiusBottomLeft: |-
-                                              =10
-                                          RadiusBottomRight: |-
-                                              =10
-                                          RadiusTopLeft: |-
-                                              =10
-                                          RadiusTopRight: |-
-                                              =10
-                                          Size: |-
-                                              =14
-                                          Text: |-
-                                              ="Search"
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =90
-                              - drpDomFl:
-                                  Control: ModernDropdown
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Select functional location"
-                                    Appearance: |-
-                                        =Appearance.Outline
-                                    BorderColor: |-
-                                        =C.'border-default'
-                                    BorderStyle: |-
-                                        =BorderStyle.Solid
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =C.'text-primary'
-                                    Default: |-
-                                        =LookUp(colDomFl, Code = varDomFFunctionalLocation)
-                                    DisplayMode: |-
-                                        =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
-                                    Fill: |-
-                                        =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =36
-                                    ItemDisplayText: |-
-                                        =ThisItem.Display
-                                    Items: |-
-                                        =colDomFl
-                                    LayoutMinWidth: |-
-                                        =0
-                                    OnChange: |-
-                                        =Set(varDomFFunctionalLocation, Self.Selected.Code)
-                                    RadiusBottomLeft: |-
-                                        =10
-                                    RadiusBottomRight: |-
-                                        =10
-                                    RadiusTopLeft: |-
-                                        =10
-                                    RadiusTopRight: |-
-                                        =10
-                                    Size: |-
-                                        =14
-                                    ValidationState: |-
-                                        =If(false && IsBlank(Self.Selected.Code), ValidationState.Error, ValidationState.None)
-                                    Width: |-
-                                        =Parent.Width
-                              - txtDomFlChosen:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =If(IsBlank(varDomFFunctionalLocation), "None selected", "Selected: " & varDomFFunctionalLocation)
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-muted'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =18
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =12
-                                    Text: |-
-                                        =If(IsBlank(varDomFFunctionalLocation), "None selected", "Selected: " & varDomFFunctionalLocation)
-                                    Wrap: |-
-                                        =false
-                              - txtDomFlMsg:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =varDomFlMsg
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-muted'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =18
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =12
-                                    Text: |-
-                                        =varDomFlMsg
-                                    Wrap: |-
-                                        =false
-                        - conDomRow2_4:
-                            Control: GroupContainer
-                            Variant: AutoLayout
-                            Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              FillPortions: |-
-                                  =0
-                              Height: |-
-                                  =If((((App.Width - 64) - 36)) < 640, (62) + (62) + (62) + (62) + 60, Max((62), (62), (62), (62)))
+                                  =If((((App.Width - 64) - 36)) < 640, (20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))) + (62) + (62) + (62) + 60, Max((20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))), (62), (62), (62)))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -2341,6 +2001,544 @@ Screens:
                               Width: |-
                                   =Parent.Width
                             Children:
+                              - conDomFlSearch:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Start
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =6
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
+                                    Width: |-
+                                        =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
+                                  Children:
+                                    - conDomFlSearchRow:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =20
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Center
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =3
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          Width: |-
+                                              =Parent.Width
+                                        Children:
+                                          - conDomFlSearchLbl:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Search functional location"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =13
+                                                Text: |-
+                                                    ="Search functional location"
+                                                Wrap: |-
+                                                    =false
+                                    - conDomFlSearchWrap:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0)
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Stretch
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Vertical
+                                          LayoutGap: |-
+                                              =0
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          Width: |-
+                                              =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
+                                        Children:
+                                          - conDomFlSearchRow:
+                                              Control: GroupContainer
+                                              Variant: AutoLayout
+                                              Properties:
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                DropShadow: |-
+                                                    =DropShadow.None
+                                                FillPortions: |-
+                                                    =0
+                                                Height: |-
+                                                    =36
+                                                LayoutAlignItems: |-
+                                                    =LayoutAlignItems.Center
+                                                LayoutDirection: |-
+                                                    =LayoutDirection.Horizontal
+                                                LayoutGap: |-
+                                                    =8
+                                                LayoutMinWidth: |-
+                                                    =0
+                                                LayoutOverflowX: |-
+                                                    =LayoutOverflow.Hide
+                                                LayoutOverflowY: |-
+                                                    =LayoutOverflow.Hide
+                                                Width: |-
+                                                    =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
+                                              Children:
+                                                - txtDomFlQuery:
+                                                    Control: ModernTextInput
+                                                    Properties:
+                                                      AccessibleLabel: |-
+                                                          ="Search functional location - at least 7 characters, then Enter"
+                                                      BorderColor: |-
+                                                          =C.'border-default'
+                                                      BorderStyle: |-
+                                                          =BorderStyle.Solid
+                                                      BorderThickness: |-
+                                                          =1
+                                                      Color: |-
+                                                          =C.'text-primary'
+                                                      Default: |-
+                                                          =varDomFlQuery
+                                                      DisplayMode: |-
+                                                          =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                                      Fill: |-
+                                                          =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                      FillPortions: |-
+                                                          =0
+                                                      Font: |-
+                                                          =Font.'Segoe UI'
+                                                      Height: |-
+                                                          =36
+                                                      LayoutMinWidth: |-
+                                                          =0
+                                                      Placeholder: |-
+                                                          ="e.g. SSV10 KAB10"
+                                                      RadiusBottomLeft: |-
+                                                          =10
+                                                      RadiusBottomRight: |-
+                                                          =10
+                                                      RadiusTopLeft: |-
+                                                          =10
+                                                      RadiusTopRight: |-
+                                                          =10
+                                                      Size: |-
+                                                          =14
+                                                      Type: |-
+                                                          =TextInputType.Multiline
+                                                      ValidationState: |-
+                                                          =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                                                      Width: |-
+                                                          =Max(0, ((((If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4))))) - ((86) + 8) - 2)
+                                                - btnDomFlSearch:
+                                                    Control: ModernButton
+                                                    Properties:
+                                                      AccessibleLabel: |-
+                                                          ="Search functional location"
+                                                      Align: |-
+                                                          =Align.Center
+                                                      AlignInContainer: |-
+                                                          =AlignInContainer.Center
+                                                      Appearance: |-
+                                                          =ButtonAppearance.Outline
+                                                      BorderColor: |-
+                                                          =C.'border-default'
+                                                      BorderThickness: |-
+                                                          =1
+                                                      Color: |-
+                                                          =C.'text-primary'
+                                                      DisplayMode: |-
+                                                          =If(varDomFlBusy, DisplayMode.Disabled, If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit))
+                                                      Font: |-
+                                                          =Font.'Segoe UI'
+                                                      FontWeight: |-
+                                                          =FontWeight.Semibold
+                                                      Height: |-
+                                                          =36
+                                                      Layout: |-
+                                                          =ButtonLayout.TextOnly
+                                                      LayoutMinWidth: |-
+                                                          =86
+                                                      OnSelect: |-
+                                                          =Set(varDomFlQuery, txtDomFlQuery.Text);
+                                                          With(
+                                                              { q: Trim(txtDomFlQuery.Text) },
+                                                              If(
+                                                                  Len(q) < 7,
+                                                                  Notify(
+                                                                      "Type at least 7 characters before searching.",
+                                                                      NotificationType.Warning
+                                                                  ),
+                                                          
+                                                                  Set(varDomFlBusy, true);
+                                                                  Set(varDomFlMsg, "Searching for " & q & " ...");
+                                                                  IfError(
+                                                                      Set(varDomFlRaw, 'BioSap-Integration-FunctionalLocations'.Run(q));
+                                                                      If(
+                                                                          IsBlank(varDomFlRaw) || IsBlank(varDomFlRaw.functionallocationoutput),
+                                                                          Clear(colDomFl),
+                                                                          ClearCollect(
+                                                              colDomFl,
+                                                              ForAll(
+                                                                  Table(ParseJSON(varDomFlRaw.functionallocationoutput)) As R,
+                                                                  {
+                                                                      Code: Text(R.Value.functionKey),
+                                                                      Description: Text(R.Value.description),
+                                                                      Display: Text(R.Value.functionKey) & " - " & Text(R.Value.description) &
+                                                                          If(Boolean(R.Value.maintainable), "", "   (not maintainable)"),
+                                                                      Maintainable: Boolean(R.Value.maintainable),
+                                                                      Level: Text(R.Value.level)
+                                                                  }
+                                                              )
+                                                          )
+                                                                      );
+                                                                      Set(
+                                                                          varDomFlMsg,
+                                                                          With(
+                                                                              { n: CountRows(colDomFl) },
+                                                                              If(
+                                                                                  n = 0,
+                                                                                  "No Functional Locations found for " & q & ".",
+                                                                                  Text(n) & " Functional Locations found for " & q & ". " &
+                                                                                      If(
+                                                                                          n > 50,
+                                                                                          "The list is long - type more characters to narrow it.",
+                                                                                          "Select one from the list below."
+                                                                                      )
+                                                                              )
+                                                                          )
+                                                                      ),
+                                                                      Clear(colDomFl);
+                                                                      Set(varDomFlMsg, "Search failed: " & FirstError.Message)
+                                                                  );
+                                                                  Set(varDomFlBusy, false)
+                                                              )
+                                                          )
+                                                      RadiusBottomLeft: |-
+                                                          =10
+                                                      RadiusBottomRight: |-
+                                                          =10
+                                                      RadiusTopLeft: |-
+                                                          =10
+                                                      RadiusTopRight: |-
+                                                          =10
+                                                      Size: |-
+                                                          =14
+                                                      Text: |-
+                                                          =If(varDomFlBusy, Left("...", 1 + varDomFlDots), "Search")
+                                                      VerticalAlign: |-
+                                                          =VerticalAlign.Middle
+                                                      Width: |-
+                                                          =86
+                                          - tmrDomFlEnter:
+                                              Control: Timer
+                                              Properties:
+                                                AutoPause: |-
+                                                    =false
+                                                AutoStart: |-
+                                                    =false
+                                                Duration: |-
+                                                    =1
+                                                Height: |-
+                                                    =1
+                                                OnTimerStart: |-
+                                                    =Set(varDomFlQuery, Substitute(Substitute(txtDomFlQuery.Text, Char(13), ""), Char(10), ""));
+                                                    Reset(txtDomFlQuery);
+                                                    With(
+                                                        { q: Trim(varDomFlQuery) },
+                                                        If(
+                                                            Len(q) < 7,
+                                                            Notify(
+                                                                "Type at least 7 characters before searching.",
+                                                                NotificationType.Warning
+                                                            ),
+                                                    
+                                                            Set(varDomFlBusy, true);
+                                                            Set(varDomFlMsg, "Searching for " & q & " ...");
+                                                            IfError(
+                                                                Set(varDomFlRaw, 'BioSap-Integration-FunctionalLocations'.Run(q));
+                                                                If(
+                                                                    IsBlank(varDomFlRaw) || IsBlank(varDomFlRaw.functionallocationoutput),
+                                                                    Clear(colDomFl),
+                                                                    ClearCollect(
+                                                        colDomFl,
+                                                        ForAll(
+                                                            Table(ParseJSON(varDomFlRaw.functionallocationoutput)) As R,
+                                                            {
+                                                                Code: Text(R.Value.functionKey),
+                                                                Description: Text(R.Value.description),
+                                                                Display: Text(R.Value.functionKey) & " - " & Text(R.Value.description) &
+                                                                    If(Boolean(R.Value.maintainable), "", "   (not maintainable)"),
+                                                                Maintainable: Boolean(R.Value.maintainable),
+                                                                Level: Text(R.Value.level)
+                                                            }
+                                                        )
+                                                    )
+                                                                );
+                                                                Set(
+                                                                    varDomFlMsg,
+                                                                    With(
+                                                                        { n: CountRows(colDomFl) },
+                                                                        If(
+                                                                            n = 0,
+                                                                            "No Functional Locations found for " & q & ".",
+                                                                            Text(n) & " Functional Locations found for " & q & ". " &
+                                                                                If(
+                                                                                    n > 50,
+                                                                                    "The list is long - type more characters to narrow it.",
+                                                                                    "Select one from the list below."
+                                                                                )
+                                                                        )
+                                                                    )
+                                                                ),
+                                                                Clear(colDomFl);
+                                                                Set(varDomFlMsg, "Search failed: " & FirstError.Message)
+                                                            );
+                                                            Set(varDomFlBusy, false)
+                                                        )
+                                                    )
+                                                Repeat: |-
+                                                    =false
+                                                Start: |-
+                                                    =Find(Char(10), txtDomFlQuery.Text) > 0 && !varDomFlBusy
+                                                Visible: |-
+                                                    =false
+                                                Width: |-
+                                                    =1
+                                          - tmrDomFlDots:
+                                              Control: Timer
+                                              Properties:
+                                                AutoPause: |-
+                                                    =false
+                                                AutoStart: |-
+                                                    =false
+                                                Duration: |-
+                                                    =400
+                                                Height: |-
+                                                    =1
+                                                OnTimerEnd: |-
+                                                    =Set(varDomFlDots, Mod(varDomFlDots + 1, 3))
+                                                Repeat: |-
+                                                    =true
+                                                Start: |-
+                                                    =varDomFlBusy
+                                                Visible: |-
+                                                    =false
+                                                Width: |-
+                                                    =1
+                              - conDomFlSelect:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Start
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =62
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =6
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
+                                    Width: |-
+                                        =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
+                                  Children:
+                                    - conDomFlSelectRow:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =20
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Center
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =3
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          Width: |-
+                                              =Parent.Width
+                                        Children:
+                                          - conDomFlSelectLbl:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Functional location"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =13
+                                                Text: |-
+                                                    ="Functional location"
+                                                Wrap: |-
+                                                    =false
+                                    - drpDomFl:
+                                        Control: Classic/DropDown
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Functional location"
+                                          AllowEmptySelection: |-
+                                              =true
+                                          BorderColor: |-
+                                              =C.'border-default'
+                                          BorderStyle: |-
+                                              =BorderStyle.Solid
+                                          BorderThickness: |-
+                                              =1
+                                          ChevronBackground: |-
+                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                          ChevronDisabledBackground: |-
+                                              =C.'input-bg-disabled'
+                                          ChevronDisabledFill: |-
+                                              =C.'text-muted'
+                                          ChevronFill: |-
+                                              =C.'text-primary'
+                                          ChevronHoverBackground: |-
+                                              =C.'color-brand-primary-soft'
+                                          ChevronHoverFill: |-
+                                              =C.'text-primary'
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Default: |-
+                                              =LookUp(colDomFl, Code = varDomFFunctionalLocation).Display
+                                          DisabledColor: |-
+                                              =C.'text-muted'
+                                          DisabledFill: |-
+                                              =C.'input-bg-disabled'
+                                          DisplayMode: |-
+                                              =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                          Fill: |-
+                                              =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =36
+                                          HoverColor: |-
+                                              =C.'text-primary'
+                                          HoverFill: |-
+                                              =C.'color-brand-primary-soft'
+                                          Items: |-
+                                              =colDomFl
+                                          Items.Value: |-
+                                              =Display
+                                          OnChange: |-
+                                              =Set(varDomFFunctionalLocation, Self.Selected.Code)
+                                          PaddingLeft: |-
+                                              =12
+                                          PressedColor: |-
+                                              =C.'text-on-primary'
+                                          PressedFill: |-
+                                              =C.'color-brand-primary'
+                                          SelectionColor: |-
+                                              =C.'text-on-primary'
+                                          SelectionFill: |-
+                                              =C.'color-brand-primary'
+                                          Size: |-
+                                              =14
+                                          Width: |-
+                                              =Parent.Width
                               - conFunctionalLocation1:
                                   Control: GroupContainer
                                   Variant: AutoLayout
@@ -2352,7 +2550,7 @@ Screens:
                                     DropShadow: |-
                                         =DropShadow.None
                                     FillPortions: |-
-                                        =If(LayoutRank < 3, 0, 1)
+                                        =0
                                     Height: |-
                                         =62
                                     LayoutAlignItems: |-
@@ -2486,7 +2684,7 @@ Screens:
                                     DropShadow: |-
                                         =DropShadow.None
                                     FillPortions: |-
-                                        =If(LayoutRank < 3, 0, 1)
+                                        =0
                                     Height: |-
                                         =62
                                     LayoutAlignItems: |-
@@ -2609,6 +2807,68 @@ Screens:
                                               =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                           Width: |-
                                               =Parent.Width
+                        - txtDomFlMsg:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  =varDomFlMsg
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-muted'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =18
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =12
+                              Text: |-
+                                  =varDomFlMsg
+                              Visible: |-
+                                  =!IsBlank(varDomFlMsg)
+                              Wrap: |-
+                                  =false
+                        - conDomRow2_end:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =If((((App.Width - 64) - 36)) < 640, (62) + (62) + (62) + 40, Max((62), (62), (62)))
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Stretch
+                              LayoutDirection: |-
+                                  =LayoutDirection.Horizontal
+                              LayoutGap: |-
+                                  =20
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              LayoutWrap: |-
+                                  =true
+                              Width: |-
+                                  =Parent.Width
+                            Children:
                               - conClassData:
                                   Control: GroupContainer
                                   Variant: AutoLayout
@@ -2620,7 +2880,7 @@ Screens:
                                     DropShadow: |-
                                         =DropShadow.None
                                     FillPortions: |-
-                                        =If(LayoutRank < 3, 0, 1)
+                                        =0
                                     Height: |-
                                         =62
                                     LayoutAlignItems: |-
@@ -2669,7 +2929,7 @@ Screens:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Klasse data"
+                                                    ="Class data"
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -2695,14 +2955,14 @@ Screens:
                                                 Size: |-
                                                     =13
                                                 Text: |-
-                                                    ="Klasse data"
+                                                    ="Class data"
                                                 Wrap: |-
                                                     =false
                                     - inpClassData:
                                         Control: ModernTextInput
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Klasse data"
+                                              ="Class data"
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -2754,7 +3014,7 @@ Screens:
                                     DropShadow: |-
                                         =DropShadow.None
                                     FillPortions: |-
-                                        =If(LayoutRank < 3, 0, 1)
+                                        =0
                                     Height: |-
                                         =62
                                     LayoutAlignItems: |-
@@ -2803,7 +3063,7 @@ Screens:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Rum koordinater"
+                                                    ="Room coordinates"
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -2829,14 +3089,14 @@ Screens:
                                                 Size: |-
                                                     =13
                                                 Text: |-
-                                                    ="Rum koordinater"
+                                                    ="Room coordinates"
                                                 Wrap: |-
                                                     =false
                                     - inpRoomCoordinates:
                                         Control: ModernTextInput
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Rum koordinater"
+                                              ="Room coordinates"
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -2877,35 +3137,6 @@ Screens:
                                               =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                           Width: |-
                                               =Parent.Width
-                        - conDomRow2_end:
-                            Control: GroupContainer
-                            Variant: AutoLayout
-                            Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              FillPortions: |-
-                                  =0
-                              Height: |-
-                                  =If((((App.Width - 64) - 36)) < 640, (62), (62))
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
-                              LayoutDirection: |-
-                                  =LayoutDirection.Horizontal
-                              LayoutGap: |-
-                                  =20
-                              LayoutMinWidth: |-
-                                  =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              LayoutWrap: |-
-                                  =true
-                              Width: |-
-                                  =Parent.Width
-                            Children:
                               - conPlacement:
                                   Control: GroupContainer
                                   Variant: AutoLayout
@@ -2917,7 +3148,7 @@ Screens:
                                     DropShadow: |-
                                         =DropShadow.None
                                     FillPortions: |-
-                                        =If(LayoutRank < 3, 0, 1)
+                                        =0
                                     Height: |-
                                         =62
                                     LayoutAlignItems: |-
@@ -2966,7 +3197,7 @@ Screens:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Placeringstekst"
+                                                    ="Placement text"
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -2992,14 +3223,14 @@ Screens:
                                                 Size: |-
                                                     =13
                                                 Text: |-
-                                                    ="Placeringstekst"
+                                                    ="Placement text"
                                                 Wrap: |-
                                                     =false
                                     - inpPlacement:
                                         Control: ModernTextInput
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Placeringstekst"
+                                              ="Placement text"
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -3113,7 +3344,7 @@ Screens:
                                     DropShadow: |-
                                         =DropShadow.None
                                     FillPortions: |-
-                                        =If(LayoutRank < 3, 0, 1)
+                                        =0
                                     Height: |-
                                         =62
                                     LayoutAlignItems: |-
@@ -3245,7 +3476,7 @@ Screens:
                                     DropShadow: |-
                                         =DropShadow.None
                                     FillPortions: |-
-                                        =If(LayoutRank < 3, 0, 1)
+                                        =0
                                     Height: |-
                                         =62
                                     LayoutAlignItems: |-
@@ -3370,7 +3601,7 @@ Screens:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  ="Bemaerkninger"
+                                  ="Remarks"
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -3396,7 +3627,7 @@ Screens:
                               Size: |-
                                   =13
                               Text: |-
-                                  ="Bemaerkninger"
+                                  ="Remarks"
                               Wrap: |-
                                   =false
                         - conLongText:
@@ -3459,7 +3690,7 @@ Screens:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Langtekst"
+                                              ="Long text"
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -3485,14 +3716,14 @@ Screens:
                                           Size: |-
                                               =13
                                           Text: |-
-                                              ="Langtekst"
+                                              ="Long text"
                                           Wrap: |-
                                               =false
                               - inpLongText:
                                   Control: ModernTextInput
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Langtekst"
+                                        ="Long text"
                                     BorderColor: |-
                                         =C.'border-default'
                                     BorderStyle: |-
@@ -3544,11 +3775,11 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =36
+                                  =If((((App.Width - 64) - 36)) >= (111) + (72) + (91) + (111) + 24, 36, (36) + 8 + (36) + 8 + (36) + 8 + (36))
                               LayoutAlignItems: |-
-                                  =LayoutAlignItems.Center
+                                  =If((((App.Width - 64) - 36)) >= (111) + (72) + (91) + (111) + 24, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                               LayoutDirection: |-
-                                  =LayoutDirection.Horizontal
+                                  =If((((App.Width - 64) - 36)) >= (111) + (72) + (91) + (111) + 24, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =8
                               LayoutMinWidth: |-
@@ -3588,7 +3819,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((((App.Width - 64) - 36)) >= (111) + (72) + (91) + (111) + 24, 111, 0)
                                     OnSelect: |-
                                         =Set(varDomValidated, true);
                                         If(
@@ -3682,8 +3913,8 @@ Screens:
                                             Set(varDomInfo, "Draft saved as " & LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey);
                                             Notify("Draft saved as " & LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey, NotificationType.Success),
                                         
-                                            Set(varDomInfo, "Gemning fejlede: " & FirstError.Message);
-                                            Notify("Gemning fejlede: " & FirstError.Message, NotificationType.Error)
+                                            Set(varDomInfo, "Save failed: " & FirstError.Message);
+                                            Notify("Save failed: " & FirstError.Message, NotificationType.Error)
                                             )
                                         )
                                     RadiusBottomLeft: |-
@@ -3701,7 +3932,7 @@ Screens:
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
-                                        =(((App.Width - 64) - 36) - 24) / 4
+                                        =111
                               - btnDomSave:
                                   Control: ModernButton
                                   Properties:
@@ -3726,7 +3957,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((((App.Width - 64) - 36)) >= (111) + (72) + (91) + (111) + 24, 72, 0)
                                     OnSelect: |-
                                         =Set(varDomValidated, true);
                                         If(
@@ -3820,8 +4051,8 @@ Screens:
                                             Set(varDomInfo, "Saved as " & LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey);
                                             Notify("Saved as " & LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey, NotificationType.Success),
                                         
-                                            Set(varDomInfo, "Gemning fejlede: " & FirstError.Message);
-                                            Notify("Gemning fejlede: " & FirstError.Message, NotificationType.Error)
+                                            Set(varDomInfo, "Save failed: " & FirstError.Message);
+                                            Notify("Save failed: " & FirstError.Message, NotificationType.Error)
                                             )
                                         )
                                     RadiusBottomLeft: |-
@@ -3839,7 +4070,7 @@ Screens:
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
-                                        =(((App.Width - 64) - 36) - 24) / 4
+                                        =72
                               - btnDomNew:
                                   Control: ModernButton
                                   Properties:
@@ -3866,7 +4097,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((((App.Width - 64) - 36)) >= (111) + (72) + (91) + (111) + 24, 91, 0)
                                     OnSelect: |-
                                         =Set(varDomActiveRowId, Blank());
                                         Set(varDomRowStatus, "valid");
@@ -3889,6 +4120,7 @@ Screens:
                                         Set(varDomFWarrantyEnd, Blank());
                                         Set(varDomFLongText, "");
                                         Set(varDomFlMsg, "");
+                                        Set(varDomFlQuery, "");
                                         Reset(txtDomFlQuery);
                                         Set(varDomInfo, "New row - fill in and save.")
                                     RadiusBottomLeft: |-
@@ -3906,7 +4138,7 @@ Screens:
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
-                                        =(((App.Width - 64) - 36) - 24) / 4
+                                        =91
                               - btnDomDelete:
                                   Control: ModernButton
                                   Properties:
@@ -3935,7 +4167,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((((App.Width - 64) - 36)) >= (111) + (72) + (91) + (111) + 24, 111, 0)
                                     OnSelect: |-
                                         =If(
                                             IsBlank(varDomActiveRowId),
@@ -3998,6 +4230,7 @@ Screens:
                                             Set(varDomFWarrantyEnd, Blank());
                                             Set(varDomFLongText, "");
                                             Set(varDomFlMsg, "");
+                                            Set(varDomFlQuery, "");
                                             Reset(txtDomFlQuery);
                                             Set(varDomInfo, "Row deleted. The documents remain in the library.")
                                         )
@@ -4016,7 +4249,7 @@ Screens:
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
-                                        =(((App.Width - 64) - 36) - 24) / 4
+                                        =111
                         - txtDomFormInfo:
                             Control: ModernText
                             Properties:
@@ -4200,46 +4433,66 @@ Screens:
                                     Width: |-
                                         =360
                               - drpDomStatusFilter:
-                                  Control: ModernDropdown
+                                  Control: Classic/DropDown
                                   Properties:
                                     AccessibleLabel: |-
                                         ="Filter by status"
-                                    Appearance: |-
-                                        =Appearance.Outline
+                                    AllowEmptySelection: |-
+                                        =true
                                     BorderColor: |-
                                         =C.'border-default'
                                     BorderStyle: |-
                                         =BorderStyle.Solid
                                     BorderThickness: |-
                                         =1
+                                    ChevronBackground: |-
+                                        =C.'input-bg'
+                                    ChevronDisabledBackground: |-
+                                        =C.'input-bg-disabled'
+                                    ChevronDisabledFill: |-
+                                        =C.'text-muted'
+                                    ChevronFill: |-
+                                        =C.'text-primary'
+                                    ChevronHoverBackground: |-
+                                        =C.'color-brand-primary-soft'
+                                    ChevronHoverFill: |-
+                                        =C.'text-primary'
                                     Color: |-
                                         =C.'text-primary'
                                     Default: |-
-                                        =LookUp(["all", "draft", "valid", "submitted"], Value = "all")
+                                        ="all"
+                                    DisabledColor: |-
+                                        =C.'text-muted'
+                                    DisabledFill: |-
+                                        =C.'input-bg-disabled'
                                     Fill: |-
                                         =C.'input-bg'
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
                                         =36
-                                    ItemDisplayText: |-
-                                        =ThisItem.Value
+                                    HoverColor: |-
+                                        =C.'text-primary'
+                                    HoverFill: |-
+                                        =C.'color-brand-primary-soft'
                                     Items: |-
                                         =["all", "draft", "valid", "submitted"]
+                                    Items.Value: |-
+                                        =Value
                                     LayoutMinWidth: |-
                                         =160
-                                    RadiusBottomLeft: |-
-                                        =10
-                                    RadiusBottomRight: |-
-                                        =10
-                                    RadiusTopLeft: |-
-                                        =10
-                                    RadiusTopRight: |-
-                                        =10
+                                    PaddingLeft: |-
+                                        =12
+                                    PressedColor: |-
+                                        =C.'text-on-primary'
+                                    PressedFill: |-
+                                        =C.'color-brand-primary'
+                                    SelectionColor: |-
+                                        =C.'text-on-primary'
+                                    SelectionFill: |-
+                                        =C.'color-brand-primary'
                                     Size: |-
                                         =14
-                                    ValidationState: |-
-                                        =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                                     Width: |-
                                         =160
                         - conDomListHead:
@@ -4582,7 +4835,11 @@ Screens:
                                   Set(varDomFPlacement, ThisItem.Placement);
                                   Set(varDomFWarrantyStart, ThisItem.WarrantyStart);
                                   Set(varDomFWarrantyEnd, ThisItem.WarrantyEnd);
-                                  Set(varDomFLongText, ThisItem.LongText)
+                                  Set(varDomFLongText, ThisItem.LongText);
+                                  If(
+                                      !IsBlank(ThisItem.FunctionalLocation) && IsBlank(LookUp(colDomFl, Code = ThisItem.FunctionalLocation)),
+                                      Collect(colDomFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation, Maintainable: true, Level: "" })
+                                  )
                               Selectable: |-
                                   =true
                               ShowScrollbar: |-
@@ -4931,7 +5188,11 @@ Screens:
                                                     Set(varDomFPlacement, ThisItem.Placement);
                                                     Set(varDomFWarrantyStart, ThisItem.WarrantyStart);
                                                     Set(varDomFWarrantyEnd, ThisItem.WarrantyEnd);
-                                                    Set(varDomFLongText, ThisItem.LongText)
+                                                    Set(varDomFLongText, ThisItem.LongText);
+                                                    If(
+                                                        !IsBlank(ThisItem.FunctionalLocation) && IsBlank(LookUp(colDomFl, Code = ThisItem.FunctionalLocation)),
+                                                        Collect(colDomFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation, Maintainable: true, Level: "" })
+                                                    )
                                                 RadiusBottomLeft: |-
                                                     =10
                                                 RadiusBottomRight: |-
@@ -5117,6 +5378,10 @@ Screens:
                                                     Set(varDomFWarrantyStart, ThisItem.WarrantyStart);
                                                     Set(varDomFWarrantyEnd, ThisItem.WarrantyEnd);
                                                     Set(varDomFLongText, ThisItem.LongText);
+                                                    If(
+                                                        !IsBlank(ThisItem.FunctionalLocation) && IsBlank(LookUp(colDomFl, Code = ThisItem.FunctionalLocation)),
+                                                        Collect(colDomFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation, Maintainable: true, Level: "" })
+                                                    );
                                                     Set(varDomInfo, "Copied to a new row - not saved yet. Documents were not copied.")
                                                 RadiusBottomLeft: |-
                                                     =10
@@ -5192,6 +5457,7 @@ Screens:
                                                         Set(varDomFWarrantyEnd, Blank());
                                                         Set(varDomFLongText, "");
                                                         Set(varDomFlMsg, "");
+                                                        Set(varDomFlQuery, "");
                                                         Reset(txtDomFlQuery);
                                                         Set(varDomInfo, "New row - fill in and save.")
                                                     );
@@ -5291,7 +5557,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =138
+                            =88 + 14 + (If((((App.Width - 64) - 36)) >= (134) + (82) + (124) + 16, 36, (36) + 8 + (36) + 8 + (36)))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -5373,11 +5639,11 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =36
+                                  =If((((App.Width - 64) - 36)) >= (134) + (82) + (124) + 16, 36, (36) + 8 + (36) + 8 + (36))
                               LayoutAlignItems: |-
-                                  =LayoutAlignItems.Center
+                                  =If((((App.Width - 64) - 36)) >= (134) + (82) + (124) + 16, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                               LayoutDirection: |-
-                                  =LayoutDirection.Horizontal
+                                  =If((((App.Width - 64) - 36)) >= (134) + (82) + (124) + 16, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =8
                               LayoutMinWidth: |-
@@ -5417,7 +5683,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((((App.Width - 64) - 36)) >= (134) + (82) + (124) + 16, 134, 0)
                                     OnSelect: |-
                                         =If(
                                             CountRows(Filter(colDomRows, Status <> "submitted")) = 0,
@@ -5536,7 +5802,7 @@ Screens:
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
-                                        =((App.Width - 64) - 16) / 3
+                                        =134
                               - btnDomSubmit:
                                   Control: ModernButton
                                   Properties:
@@ -5561,7 +5827,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((((App.Width - 64) - 36)) >= (134) + (82) + (124) + 16, 82, 0)
                                     OnSelect: |-
                                         =If(
                                             CountRows(Filter(colDomRows, Status = "valid")) = 0,
@@ -5682,7 +5948,7 @@ Screens:
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
-                                        =((App.Width - 64) - 16) / 3
+                                        =82
                               - btnDomReload:
                                   Control: ModernButton
                                   Properties:
@@ -5709,7 +5975,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((((App.Width - 64) - 36)) >= (134) + (82) + (124) + 16, 124, 0)
                                     OnSelect: |-
                                         =ClearCollect(
                                             colDomRows,
@@ -5757,7 +6023,7 @@ Screens:
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
-                                        =((App.Width - 64) - 16) / 3
+                                        =124
                         - txtDomSubmitNote:
                             Control: ModernText
                             Properties:
@@ -6184,6 +6450,10 @@ Screens:
                             Set(varDomFWarrantyStart, LookUp(colDomRows, RowId = varDomDetailsId).WarrantyStart);
                             Set(varDomFWarrantyEnd, LookUp(colDomRows, RowId = varDomDetailsId).WarrantyEnd);
                             Set(varDomFLongText, LookUp(colDomRows, RowId = varDomDetailsId).LongText);
+                            If(
+                                !IsBlank(LookUp(colDomRows, RowId = varDomDetailsId).FunctionalLocation) && IsBlank(LookUp(colDomFl, Code = LookUp(colDomRows, RowId = varDomDetailsId).FunctionalLocation)),
+                                Collect(colDomFl, { Code: LookUp(colDomRows, RowId = varDomDetailsId).FunctionalLocation, Description: "", Display: LookUp(colDomRows, RowId = varDomDetailsId).FunctionalLocation, Maintainable: true, Level: "" })
+                            );
                             Set(varDomDetailsId, Blank())
                         RadiusBottomLeft: |-
                             =10
@@ -6799,7 +7069,7 @@ Screens:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  ="Equipmentnummer"
+                                  ="Equipment number"
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -6825,7 +7095,7 @@ Screens:
                               Size: |-
                                   =12
                               Text: |-
-                                  ="Equipmentnummer"
+                                  ="Equipment number"
                               Width: |-
                                   =190
                               Wrap: |-
@@ -6997,7 +7267,7 @@ Screens:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  ="Fabrikat"
+                                  ="Manufacturer"
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -7023,7 +7293,7 @@ Screens:
                               Size: |-
                                   =12
                               Text: |-
-                                  ="Fabrikat"
+                                  ="Manufacturer"
                               Width: |-
                                   =190
                               Wrap: |-
@@ -7096,7 +7366,7 @@ Screens:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  ="Type betegnelse"
+                                  ="Type designation"
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -7122,7 +7392,7 @@ Screens:
                               Size: |-
                                   =12
                               Text: |-
-                                  ="Type betegnelse"
+                                  ="Type designation"
                               Width: |-
                                   =190
                               Wrap: |-
@@ -7195,7 +7465,7 @@ Screens:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  ="Serienummer"
+                                  ="Serial number"
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -7221,7 +7491,7 @@ Screens:
                               Size: |-
                                   =12
                               Text: |-
-                                  ="Serienummer"
+                                  ="Serial number"
                               Width: |-
                                   =190
                               Wrap: |-
@@ -7294,7 +7564,7 @@ Screens:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  ="Func. location"
+                                  ="Functional location"
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -7320,7 +7590,7 @@ Screens:
                               Size: |-
                                   =12
                               Text: |-
-                                  ="Func. location"
+                                  ="Functional location"
                               Width: |-
                                   =190
                               Wrap: |-
@@ -7591,7 +7861,7 @@ Screens:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  ="Klasse data"
+                                  ="Class data"
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -7617,7 +7887,7 @@ Screens:
                               Size: |-
                                   =12
                               Text: |-
-                                  ="Klasse data"
+                                  ="Class data"
                               Width: |-
                                   =190
                               Wrap: |-
@@ -7690,7 +7960,7 @@ Screens:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  ="Rum koordinater"
+                                  ="Room coordinates"
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -7716,7 +7986,7 @@ Screens:
                               Size: |-
                                   =12
                               Text: |-
-                                  ="Rum koordinater"
+                                  ="Room coordinates"
                               Width: |-
                                   =190
                               Wrap: |-
@@ -7789,7 +8059,7 @@ Screens:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  ="Placeringstekst"
+                                  ="Placement text"
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -7815,7 +8085,7 @@ Screens:
                               Size: |-
                                   =12
                               Text: |-
-                                  ="Placeringstekst"
+                                  ="Placement text"
                               Width: |-
                                   =190
                               Wrap: |-
@@ -8086,7 +8356,7 @@ Screens:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  ="Langtekst"
+                                  ="Long text"
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -8112,7 +8382,7 @@ Screens:
                               Size: |-
                                   =12
                               Text: |-
-                                  ="Langtekst"
+                                  ="Long text"
                               Width: |-
                                   =190
                               Wrap: |-
@@ -8169,7 +8439,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =242 + 14 + (Min(Max(CountRows(Filter(colDomAttachments, RowId = varDomDocsId)), 1) * 34, 340)) + If(IfError(CountRows(Filter(colDomAttachments, RowId = varDomDocsId)) = 0, false), 14 + (36), 0)
+                =192 + 14 + (If(((Min(760, App.Width - 32)) - 36) >= (195) + (175) + (164) + 16, 36, (36) + 8 + (36) + 8 + (36))) + 14 + (Min(Max(CountRows(Filter(colDomAttachments, RowId = varDomDocsId)), 1) * 34, 340)) + If(IfError(CountRows(Filter(colDomAttachments, RowId = varDomDocsId)) = 0, false), 14 + (36), 0)
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -8356,11 +8626,11 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =36
+                      =If(((Min(760, App.Width - 32)) - 36) >= (195) + (175) + (164) + 16, 36, (36) + 8 + (36) + 8 + (36))
                   LayoutAlignItems: |-
-                      =LayoutAlignItems.Center
+                      =If(((Min(760, App.Width - 32)) - 36) >= (195) + (175) + (164) + 16, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                   LayoutDirection: |-
-                      =LayoutDirection.Horizontal
+                      =If(((Min(760, App.Width - 32)) - 36) >= (195) + (175) + (164) + 16, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                   LayoutGap: |-
                       =8
                   LayoutMinWidth: |-
@@ -8396,7 +8666,7 @@ Screens:
                         Layout: |-
                             =ButtonLayout.TextOnly
                         LayoutMinWidth: |-
-                            =0
+                            =If(((Min(760, App.Width - 32)) - 36) >= (195) + (175) + (164) + 16, 195, 0)
                         OnSelect: |-
                             =If(
                                 IsBlank(LookUp(colDomRows, RowId = varDomDocsId).ItemKey),
@@ -8486,7 +8756,7 @@ Screens:
                         VerticalAlign: |-
                             =VerticalAlign.Middle
                         Width: |-
-                            =((Min(760, App.Width - 32)) - 36 - 16) / 3
+                            =195
                   - btnDomAttRefresh:
                       Control: ModernButton
                       Properties:
@@ -8515,7 +8785,7 @@ Screens:
                         Layout: |-
                             =ButtonLayout.TextOnly
                         LayoutMinWidth: |-
-                            =0
+                            =If(((Min(760, App.Width - 32)) - 36) >= (195) + (175) + (164) + 16, 175, 0)
                         OnSelect: |-
                             =If(
                                 IsBlank(LookUp(colDomRows, RowId = varDomDocsId).ItemKey),
@@ -8568,7 +8838,7 @@ Screens:
                         VerticalAlign: |-
                             =VerticalAlign.Middle
                         Width: |-
-                            =((Min(760, App.Width - 32)) - 36 - 16) / 3
+                            =175
                   - btnDomAttRemove:
                       Control: ModernButton
                       Properties:
@@ -8597,7 +8867,7 @@ Screens:
                         Layout: |-
                             =ButtonLayout.TextOnly
                         LayoutMinWidth: |-
-                            =0
+                            =If(((Min(760, App.Width - 32)) - 36) >= (195) + (175) + (164) + 16, 164, 0)
                         OnSelect: |-
                             =If(
                                 CountRows(Filter(colDomAttachments, RowId = varDomDocsId, Selected = true)) = 0,
@@ -8628,7 +8898,7 @@ Screens:
                         VerticalAlign: |-
                             =VerticalAlign.Middle
                         Width: |-
-                            =((Min(760, App.Width - 32)) - 36 - 16) / 3
+                            =164
             - galDomAttachments:
                 Control: Gallery
                 Variant: Vertical

@@ -260,7 +260,7 @@ def build_longtext_modal():
 
     box = text_input("txtVhpLongTextBox", "varVhpLongTextDraft",
                      placeholder='"Instructions for this operation"',
-                     width="Parent.Width", height=260, ttype="Multiline", label="\"Langtekst\"")
+                     width="Parent.Width", height=260, ttype="Multiline", label="\"Long text\"")
 
     # Gemmer paa knappen, ikke paa hvert tastetryk. Et OnChange pr. tegn ville
     # skrive i samlingen, mens man skriver - og Annuller ville ikke kunne

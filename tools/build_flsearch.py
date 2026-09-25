@@ -117,7 +117,8 @@ def collect_results(target_collection, raw_var=DEFAULT_RAW):
 
 
 def search_action(query_ctrl, target_collection, msg_var,
-                  label="Functional Locations", raw_var=DEFAULT_RAW):
+                  label="Functional Locations", raw_var=DEFAULT_RAW,
+                  busy_var=None, query_expr=None):
     """Soegningen, som den ser ud bag en SOEGEKNAP.
 
     HVORFOR IKKE LAENGERE EN TIMER OG EN COMBOBOX
@@ -138,10 +139,22 @@ def search_action(query_ctrl, target_collection, msg_var,
     skjule raekker. Til gengaeld kan listen blive lang - derfor siger
     beskeden til, naar resultatet er stort nok til at brugeren boer soege
     smallere.
+
+    busy_var: en variabel, der er true, MENS flowet koerer. Knappen viser
+    den som "Searching..." med prikker, der bevaeger sig - uden den kunne
+    brugeren ikke se, at et tryk paa Search overhovedet var registreret.
+    Den saettes false igen ad BEGGE veje ud (svar og fejl), fordi IfError
+    fanger fejlen og fortsaetter.
+
+    query_expr: udtrykket, soegeteksten laeses af. Standard er feltets
+    Text; Enter-tasten sender i stedet teksten uden linjeskiftet.
     """
+    q_src = query_expr if query_expr else f"{query_ctrl}.Text"
+    busy_on = f"        Set({busy_var}, true);\n" if busy_var else ""
+    busy_off = f";\n        Set({busy_var}, false)" if busy_var else ""
     return (
         f"With(\n"
-        f"    {{ q: Trim({query_ctrl}.Text) }},\n"
+        f"    {{ q: Trim({q_src}) }},\n"
         f"    If(\n"
         f"        Len(q) < {MIN_SEARCH_LEN},\n"
         f"        Notify(\n"
@@ -149,6 +162,7 @@ def search_action(query_ctrl, target_collection, msg_var,
         f"            NotificationType.Warning\n"
         f"        ),\n"
         f"\n"
+        + busy_on +
         f"        Set({msg_var}, \"Searching for \" & q & \" ...\");\n"
         f"        IfError(\n"
         f"            Set({raw_var}, {FLOW_NAME}.Run(q));\n"
@@ -164,7 +178,7 @@ def search_action(query_ctrl, target_collection, msg_var,
         f"                    If(\n"
         f"                        n = 0,\n"
         f"                        \"No {label} found for \" & q & \".\",\n"
-        f"                        Text(n) & \" {label} fundet for \" & q & \". \" &\n"
+        f"                        Text(n) & \" {label} found for \" & q & \". \" &\n"
         f"                            If(\n"
         f"                                n > {LONG_RESULT},\n"
         f"                                \"The list is long - type more characters to narrow it.\",\n"
@@ -175,7 +189,8 @@ def search_action(query_ctrl, target_collection, msg_var,
         f"            ),\n"
         f"            Clear({target_collection});\n"
         f"            Set({msg_var}, \"Search failed: \" & FirstError.Message)\n"
-        f"        )\n"
+        f"        )"
+        + busy_off + "\n"
         f"    )\n"
         f")"
     )

@@ -97,28 +97,28 @@ FL_FIELD = "FunctionalLocation"
 SECTIONS = [
     ("What should happen", [
         ("RequestType", "Type", "text", None),
-        ("EquipmentNumber", "Equipmentnummer", "text", None),
+        ("EquipmentNumber", "Equipment number", "text", None),
     ]),
-    ("Stamdata", [
+    ("Master data", [
         ("EquipmentCategory", "Equipment type", "text", None),
-        ("Manufacturer", "Fabrikat", "text", None),
-        ("TypeDesignation", "Type betegnelse", "text", None),
-        ("SerialNumber", "Serienummer", "text", None),
+        ("Manufacturer", "Manufacturer", "text", None),
+        ("TypeDesignation", "Type designation", "text", None),
+        ("SerialNumber", "Serial number", "text", None),
     ]),
     ("Where it sits", [
-        ("FunctionalLocation", "Func. location", "text", None),
+        ("FunctionalLocation", "Functional location", "text", None),
         ("FunctionalLocation1", "Func. loc. 1", "text", None),
         ("FunctionalLocation2", "Functional location 2", "text", None),
-        ("ClassData", "Klasse data", "text", None),
-        ("RoomCoordinates", "Rum koordinater", "text", None),
-        ("Placement", "Placeringstekst", "text", None),
+        ("ClassData", "Class data", "text", None),
+        ("RoomCoordinates", "Room coordinates", "text", None),
+        ("Placement", "Placement text", "text", None),
     ]),
     ("Warranty", [
         ("WarrantyStart", "Warranty from", "date", None),
         ("WarrantyEnd", "Warranty to", "date", None),
     ]),
-    ("Bemaerkninger", [
-        ("LongText", "Langtekst", "long", None),
+    ("Remarks", [
+        ("LongText", "Long text", "long", None),
     ]),
 ]
 
