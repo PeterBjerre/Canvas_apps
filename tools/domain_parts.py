@@ -53,10 +53,10 @@ from gen_screen import (Ctrl, SHELL_W, FONT,
                         C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY)
 from design_tokens import theme_query
 from layout_tokens import below, if_below, fits
-from build_helpers import (text_ctrl, group, button, button_row, text_input, theme_button,
-                           date_picker,
-                           number_input, dropdown, card, field_cell, row_n,
-                           label_row, pin_widths, badge, top_bar, grow)
+from build_helpers import (text_ctrl, group, button, text_input, theme_button,
+                           date_picker, fit_button_row, fit_button_width,
+                           number_input, themed_dropdown, card, field_cell, row_n,
+                           col_width, pin_widths, badge, top_bar, grow)
 from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE
 import domain_config as cfg
 import attflows
@@ -201,12 +201,11 @@ def _input_for(col, kind, choices):
                           ttype="Multiline",
                           onchange=f"Set({v}, Self.Text)")
     if kind == "choice":
-        # Default er en RECORD fra Items - ikke vaerdien inde i den.
+        # Classic/DropDown: Default er TEKSTEN, ikke en record - se
+        # build_helpers.themed_dropdown for hvorfor den ikke er moderne.
         items = "[" + ", ".join(f'"{x}"' for x in choices) + "]"
-        c = dropdown(name, items, f"LookUp({items}, Value = {v})",
-                     display_mode=DM_ROW)
-        c.props["OnChange"] = f"Set({v}, Self.Selected.Value)"
-        return c
+        return themed_dropdown(name, items, v, display_mode=DM_ROW,
+                               onchange=f"Set({v}, Self.Selected.Value)")
     c = text_input(name, v, max_length=255, display_mode=DM_ROW,
                    onchange=f"Set({v}, Self.Text)")
     return c
@@ -227,49 +226,134 @@ def _plant_dropdown():
 
     2. Der var slet ingen OnChange. Variablen blev altsaa aldrig sat, og
        da Gem kraever den udfyldt, kunne der ALDRIG gemmes - en fejl,
-       compile ikke kan se, fordi formlen i sig selv er gyldig."""
-    c = dropdown("drpDomPlant", "colDomPlants",
-                 "LookUp(colDomPlants, Value = varDomFPlant)",
-                 required_formula=REQUIRED, display_mode=DM_ROW)
-    c.props["OnChange"] = "Set(varDomFPlant, Self.Selected.Value)"
-    return c
+       compile ikke kan se, fordi formlen i sig selv er gyldig.
+
+    Nu er den en Classic/DropDown (build_helpers.themed_dropdown), saa
+    listen kan ses i moerk tilstand. Den vil have TEKSTEN som Default -
+    fejl 1 ovenfor gaelder kun ModernDropdown."""
+    return themed_dropdown("drpDomPlant", "colDomPlants", "varDomFPlant",
+                           required_formula=REQUIRED, display_mode=DM_ROW,
+                           onchange="Set(varDomFPlant, Self.Selected.Value)")
 
 
-def build_fl_block():
-    """Functional Location - soegefelt, soegeknap og dropdown.
+# Soegefeltets tekst uden linjeskift. Feltets Default peger paa den, saa
+# Reset() kan fjerne det linjeskift, Enter laegger i feltet.
+FL_QUERY_VAR = "varDomFlQuery"
+FL_BUSY_VAR = "varDomFlBusy"
+FL_DOTS_VAR = "varDomFlDots"
 
-    Praecis VH-plan-appens konstruktion, kopieret i build_flsearch.py.
-    Der er INGEN skjult filtrering: et tekstfelt siger HVAD der soeges, en
-    knap siger HVORNAAR, og dropdownen viser praecis det, samlingen
-    indeholder. Den foerste udgave i VH-plan brugte en combobox med
-    indbygget soegning - den fik 819 raekker og viste nul."""
-    q = text_input("txtDomFlQuery", '""',
-                   placeholder=f'"At least {fl.MIN_SEARCH_LEN} characters - e.g. SSV10 KAB10"',
-                   display_mode=DM_ROW, label="\"Search functional location\"")
+
+def _fl_search(query_expr=None):
+    return fl.search_action("txtDomFlQuery", "colDomFl", "varDomFlMsg",
+                            busy_var=FL_BUSY_VAR, query_expr=query_expr)
+
+
+def _timer(name, start, duration, repeat, on_start=None, on_end=None):
+    props = {
+        "AutoPause": "false",
+        "AutoStart": "false",
+        "Duration": str(duration),
+        "Height": "1",
+        "Repeat": "true" if repeat else "false",
+        "Start": start,
+        "Visible": "false",
+        "Width": "1",
+    }
+    if on_start:
+        props["OnTimerStart"] = on_start
+    if on_end:
+        props["OnTimerEnd"] = on_end
+    return Ctrl(name, "Timer", props=props, h=1, vis="false")
+
+
+def build_fl_cells(cell_w):
+    """Functional Location - TO celler i formularens gitter.
+
+        [ Search functional location ][ Functional location ]
+        [ tekstfelt          Search  ][ dropdown           ]
+
+    Foer fyldte blokken sin egen raekke i fuld bredde, med soegefeltet
+    strakt ud over hele kortet og en "Selected: ..."-linje under
+    dropdownen. Den linje er vaek: det valgte staar i dropdownen.
+
+    Der er stadig INGEN skjult filtrering: et tekstfelt siger HVAD der
+    soeges, en knap (eller Enter) siger HVORNAAR, og dropdownen viser
+    praecis det, samlingen indeholder. Den foerste udgave i VH-plan brugte
+    en combobox med indbygget soegning - den fik 819 raekker og viste nul.
+
+    ENTER SOEGER
+    ------------
+    Den moderne tekstboks har ingen Enter-haendelse - OnChange kommer
+    foerst, naar feltet mister fokus. Feltet er derfor Multiline: Enter
+    laegger et linjeskift i Text (TriggerOutput er Keypress), og
+    tmrDomFlEnter starter, saa snart der staar et. Den fjerner
+    linjeskiftet (Reset til FL_QUERY_VAR) og soeger. Start bliver false
+    igen efter Reset, saa naeste Enter starter den igen.
+
+    SOEGNINGEN KAN SES
+    ------------------
+    Mens flowet koerer, er knappen deaktiveret, og "Search" er skiftet ud
+    med tre prikker, der bevaeger sig (. .. ...; tmrDomFlDots). Foer skete
+    der intet synligt, fra man trykkede, til svaret kom. Knappen har samme
+    bredde i begge tilstande, saa soegefeltet ikke hopper."""
+    busy_dm = f"If({FL_BUSY_VAR}, DisplayMode.Disabled, {DM_ROW})"
+    q = text_input("txtDomFlQuery", FL_QUERY_VAR,
+                   placeholder='"e.g. SSV10 KAB10"',
+                   display_mode=DM_ROW, ttype="Multiline",
+                   label=f'"Search functional location - at least {fl.MIN_SEARCH_LEN} characters, then Enter"')
     grow(q)
-    btn = button("btnDomFlSearch", '"Search"',
-                 fl.search_action("txtDomFlQuery", "colDomFl", "varDomFlMsg"),
-                 width=90, display_mode=DM_ROW)
-    row = group("conDomFlSearchRow", pin_widths([q, btn]),
-                direction="Horizontal", gap=8, height=36, align_items="Center")
+    btn = button("btnDomFlSearch",
+                 f'If({FL_BUSY_VAR}, Left("...", 1 + {FL_DOTS_VAR}), "Search")',
+                 f"Set({FL_QUERY_VAR}, txtDomFlQuery.Text);\n" + _fl_search(),
+                 width=fit_button_width('"Search"'), display_mode=busy_dm,
+                 accessible='"Search functional location"')
+    btn.props["LayoutMinWidth"] = btn.props["Width"]
+    row = group("conDomFlSearchRow", [q, btn], direction="Horizontal", gap=8,
+                height=36, align_items="Center", width=cell_w)
 
-    drop = dropdown("drpDomFl", "colDomFl",
-                    f"LookUp(colDomFl, Code = {_var(cfg.FL_FIELD)})",
-                    item_display="ThisItem.Display", value_field="Code",
-                    display_mode=DM_ROW, label="\"Select functional location\"")
-    drop.props["OnChange"] = f"Set({_var(cfg.FL_FIELD)}, Self.Selected.Code)"
+    newline = 'Find(Char(10), txtDomFlQuery.Text) > 0'
+    enter = _timer(
+        "tmrDomFlEnter", f"{newline} && !{FL_BUSY_VAR}", 1, False,
+        on_start=(f'Set({FL_QUERY_VAR}, Substitute(Substitute(txtDomFlQuery.Text, '
+                  f'Char(13), ""), Char(10), ""));\n'
+                  f"Reset(txtDomFlQuery);\n" + _fl_search(FL_QUERY_VAR)))
+    dots = _timer("tmrDomFlDots", FL_BUSY_VAR, 400, True,
+                  on_end=f"Set({FL_DOTS_VAR}, Mod({FL_DOTS_VAR} + 1, 3))")
 
-    chosen = text_ctrl(
-        "txtDomFlChosen",
-        f'If(IsBlank({_var(cfg.FL_FIELD)}), "None selected", "Selected: " & {_var(cfg.FL_FIELD)})',
-        size=12, color=C_MUTED, height=18, wrap="false")
-    msg = text_ctrl("txtDomFlMsg", "varDomFlMsg", size=12, color=C_MUTED,
-                    height=18, wrap="false")
+    search = field_cell("conDomFlSearch", "Search functional location",
+                        group("conDomFlSearchWrap", [row, enter, dots],
+                              direction="Vertical", gap=0, width=cell_w),
+                        width=cell_w, fill_portions_formula="0")
 
-    return group("conDomFlBlock",
-                 [label_row("conDomFlLbl", "Functional location"),
-                  row, drop, chosen, msg],
-                 direction="Vertical", gap=6, width="Parent.Width")
+    drop = themed_dropdown("drpDomFl", "colDomFl",
+                           f"LookUp(colDomFl, Code = {_var(cfg.FL_FIELD)}).Display",
+                           value_col="Display", display_mode=DM_ROW,
+                           label='"Functional location"',
+                           onchange=f"Set({_var(cfg.FL_FIELD)}, Self.Selected.Code)")
+    select = field_cell("conDomFlSelect", "Functional location", drop,
+                        width=cell_w, fill_portions_formula="0")
+    return [search, select]
+
+
+def build_fl_msg():
+    """Soegningens svar - under raekken, i fuld bredde, og kun naar der er
+    noget at sige. I en fjerdedel af kortet ville det blive klippet."""
+    return text_ctrl("txtDomFlMsg", "varDomFlMsg", size=12, color=C_MUTED,
+                     height=18, wrap="false", visible="!IsBlank(varDomFlMsg)")
+
+
+def _fl_known_fx(src):
+    """Den gemte funktionsplads skal staa i dropdownen, naar en raekke
+    hentes eller kopieres - ogsaa selv om der ikke er soegt paa den.
+
+    "Selected: ..."-linjen under dropdownen var det eneste sted, den kunne
+    ses. Den linje er vaek, saa vaerdien laegges i colDomFl, hvis den ikke
+    er der i forvejen."""
+    return (f"If(\n"
+            f"    !IsBlank({src}) && IsBlank(LookUp(colDomFl, Code = {src})),\n"
+            f"    Collect(colDomFl, {{ Code: {src}, Description: \"\", Display: {src},"
+            f" Maintainable: true, Level: \"\" }})\n"
+            f");")
 
 
 def build_form():
@@ -292,16 +376,30 @@ def build_form():
     # sig. Ved at laegge dem foerst i den, fyldes raekken op til fire med de
     # to foerste af sektionens egne felter, og toppen bliver saa taet som
     # resten af formularen.
+    cell_w = col_width(FORM_W, COLS_PER_ROW)
     top_cells = [
         field_cell("conDomText", cfg.TEXT_LABEL,
                    text_input("inpDomText", "varDomFText", max_length=40,
                               placeholder=cfg.TEXT_PLACEHOLDER,
                               required_formula=REQUIRED, display_mode=DM_ROW,
                               onchange="Set(varDomFText, Self.Text)"),
-                   required=True, container_w=FORM_W, cols=COLS_PER_ROW),
+                   required=True, width=cell_w, fill_portions_formula="0"),
         field_cell("conDomPlant", cfg.PLANT_LABEL, _plant_dropdown(),
-                   required=True, container_w=FORM_W, cols=COLS_PER_ROW),
+                   required=True, width=cell_w, fill_portions_formula="0"),
     ]
+
+    # FIRE FASTE KOLONNER
+    #
+    # Cellerne voksede foer (FillPortions) paa en bred skaerm, saa en
+    # sektion med tre felter fyldte hele raekken med tre brede felter, og
+    # ingen kolonne stod under den over sig. Nu er hver celle en
+    # fjerdedel, og en kort raekke slutter bare tidligere.
+    fl_msg = []
+
+    def flush(tag, chunk):
+        kids.append(row_n(f"conDomRow{tag}", chunk, container_w=FORM_W))
+        kids.extend(fl_msg)
+        fl_msg.clear()
 
     kids = [head]
     for s_i, (section, fields) in enumerate(cfg.SECTIONS):
@@ -311,34 +409,33 @@ def build_form():
         chunk = top_cells if s_i == 0 else []
         top_cells = []
         for f_i, (col, label, kind, choices) in enumerate(fields):
-            # FL-feltet er ikke et tekstfelt - det er en soegning, og den
-            # fylder sin egen raekke.
+            # FL-feltet er ikke et tekstfelt - det er en soegning og en
+            # dropdown, to celler i gitteret.
             if col == getattr(cfg, "FL_FIELD", None):
-                if chunk:
-                    kids.append(row_n(f"conDomRow{s_i}_{f_i}", chunk,
-                                      container_w=FORM_W))
-                    chunk = []
-                kids.append(build_fl_block())
+                fl_msg.append(build_fl_msg())
+                for c in build_fl_cells(cell_w):
+                    chunk.append(c)
+                    if len(chunk) == COLS_PER_ROW:
+                        flush(f"{s_i}_{f_i}", chunk)
+                        chunk = []
                 continue
             wide = kind == "long"
             cell = field_cell(f"con{col}", label, _input_for(col, kind, choices),
-                              container_w=FORM_W,
-                              cols=1 if wide else COLS_PER_ROW,
-                              fill_portions_formula="0" if wide else None)
+                              width=None if wide else cell_w,
+                              container_w=FORM_W, cols=1,
+                              fill_portions_formula="0")
             if wide:
                 if chunk:
-                    kids.append(row_n(f"conDomRow{s_i}_{f_i}", chunk,
-                                      container_w=FORM_W))
+                    flush(f"{s_i}_{f_i}", chunk)
                     chunk = []
                 kids.append(cell)
                 continue
             chunk.append(cell)
             if len(chunk) == COLS_PER_ROW:
-                kids.append(row_n(f"conDomRow{s_i}_{f_i}", chunk,
-                                  container_w=FORM_W))
+                flush(f"{s_i}_{f_i}", chunk)
                 chunk = []
         if chunk:
-            kids.append(row_n(f"conDomRow{s_i}_end", chunk, container_w=FORM_W))
+            flush(f"{s_i}_end", chunk)
 
     # KLADDE OG FAERDIG ER TO KNAPPER
     #
@@ -353,8 +450,8 @@ def build_form():
     new = button("btnDomNew", '"New row"', clear_form_fx(), width=130)
     delete = button("btnDomDelete", '"Delete row"', delete_row_fx(),
                     danger=True, width=150, display_mode=DM_SEL)
-    kids.append(button_row("conDomFormActions",
-                           [draft, save, new, delete], FORM_W))
+    kids.append(fit_button_row("conDomFormActions",
+                               [draft, save, new, delete], FORM_W))
     kids.append(text_ctrl("txtDomFormInfo", "varDomInfo", size=12,
                           color=C_MUTED, height=18, wrap="false"))
     return card("conDomFormCard", kids)
@@ -418,6 +515,7 @@ def clear_form_fx():
     for col, _lab, kind, _ch in FIELDS:
         lines.append(f"Set({_var(col)}, {_blank(kind)});")
     lines.append('Set(varDomFlMsg, "");')
+    lines.append(f'Set({FL_QUERY_VAR}, "");')
     lines.append('Reset(txtDomFlQuery);')
     lines.append('Set(varDomInfo, "New row - fill in and save.")')
     return "\n".join(lines)
@@ -446,6 +544,8 @@ def copy_row_fx():
         lines.append(f"Set({_var(col)}, ThisItem.{col});")
     # Dokumenterne foelger IKKE med. De ligger i en mappe, der hedder den
     # gamle raekkes noegle, og kopien har ingen noegle endnu.
+    if getattr(cfg, "FL_FIELD", None):
+        lines.append(_fl_known_fx(f"ThisItem.{cfg.FL_FIELD}"))
     lines.append('Set(varDomInfo, "Copied to a new row - not saved yet. '
                  'Documents were not copied.")')
     return "\n".join(lines)
@@ -488,6 +588,8 @@ def load_row_fx():
              'Set(varDomFPlant, ThisItem.Plant);']
     for col, _lab, _kind, _ch in FIELDS:
         lines.append(f"Set({_var(col)}, ThisItem.{col});")
+    if getattr(cfg, "FL_FIELD", None):
+        lines.append(_fl_known_fx(f"ThisItem.{cfg.FL_FIELD}"))
     lines[-1] = lines[-1].rstrip(";")
     return "\n".join(lines)
 
@@ -608,8 +710,8 @@ def save_row_fx(status="valid"):
         f'    Notify("{done}" & ' + ACTIVE + '.ItemKey, '
         "NotificationType.Success),\n"
         "\n"
-        '    Set(varDomInfo, "Gemning fejlede: " & FirstError.Message);\n'
-        '    Notify("Gemning fejlede: " & FirstError.Message, '
+        '    Set(varDomInfo, "Save failed: " & FirstError.Message);\n'
+        '    Notify("Save failed: " & FirstError.Message, '
         "NotificationType.Error)\n"
         "    )\n"
         ")"
@@ -677,7 +779,7 @@ def build_attachments():
                      att.refresh_button_fx(), display_mode=DM_DOCS)
     rem = button("btnDomAttRemove", '"Remove document"', att.delete_fx(),
                  danger=True, display_mode=DM_DOCS)
-    actions = button_row("conDomAttActions", [up, refresh, rem], DOCS_INNER_W)
+    actions = fit_button_row("conDomAttActions", [up, refresh, rem], DOCS_INNER_W)
 
     chk = Ctrl("chkDomAttSel", "ModernCheckbox", props={
         "AccessibleLabel": '"Select document"',
@@ -941,8 +1043,8 @@ def build_rows():
     # colDomRows.Status og maa derfor ikke oversaettes - check_datasources
     # efterproever dem mod udtraekket.
     filt = '["all", "draft", "valid", "submitted"]'
-    status = dropdown("drpDomStatusFilter", filt,
-                      f'LookUp({filt}, Value = "all")', width="160", label="\"Filter by status\"")
+    status = themed_dropdown("drpDomStatusFilter", filt, '"all"', width="160",
+                             label="\"Filter by status\"")
     toolbar = group("conDomToolbar", pin_widths([search, status]),
                     direction="Horizontal", gap=12, align_items="Center")
 
@@ -1213,5 +1315,6 @@ def build_submit():
         size=13, height=20, wrap="false")
     return card("conDomSubmitCard",
                 [state,
-                 button_row("conDomSubmitRow", [draft, submit, reload_], SHELL_W),
+                 fit_button_row("conDomSubmitRow", [draft, submit, reload_],
+                                f"({SHELL_W} - 36)"),
                  note])

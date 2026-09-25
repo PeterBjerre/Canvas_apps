@@ -95,6 +95,10 @@ Set(varDomDocsId, Blank());
 Set(varDomRowStatus, "valid");
 Set(varDomAttJson, "");
 Set(varDomFlMsg, "");
+// FL-soegningen: teksten uden Enter-linjeskift, og om flowet koerer.
+Set(varDomFlQuery, "");
+Set(varDomFlBusy, false);
+Set(varDomFlDots, 0);
 Set(varDomInfo, "");
 
 // Er formularen blevet tjekket? Styrer om en kraevet feltkant maa vaere

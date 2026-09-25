@@ -209,3 +209,25 @@ den læser sin egen udregning tilbage. `Coalesce(…, 1840)` er ikke en
 sikkerhedsventil; den er beviset på, at udtrykket fejler. Det er rule 1 i
 `check_layout.py`, og grunden til at højderne i de repo-byggede apps regnes
 i Python.
+
+---
+
+## Issue #29 – formularen i Materials (og Equipments)
+
+Ændringerne ligger i de fælles dele (`tools/domain_parts.py`,
+`tools/build_helpers.py`), så Equipments får dem også.
+
+| Før | Nu |
+|---|---|
+| Danske feltnavne og sektioner (`Stamdata`, `Sliddel`, …) | Engelsk. `check_language.py` kender nu ordene |
+| Celler voksede, så en sektion med tre felter fyldte hele rækken | Fire faste kolonner – en kort række slutter bare tidligere |
+| FL-søgningen fyldte sin egen række i fuld bredde | To celler i gitteret: *Search functional location* og *Functional location* |
+| Stjernen stod ude ved cellens højre kant | Labelen er så bred som sin tekst (`text_px`), stjernen står 3 px efter |
+| Knapperne delte hele bredden | `fit_button_row`: hver knap så bred som sin tekst, venstrestillet |
+| Dropdown-listen var hvid/grå i mørk tilstand | `themed_dropdown` (Classic/DropDown) – listen farves af tokens |
+| Intet skete synligt ved tryk på Search | Knappen deaktiveres og viser tre levende prikker (`varDomFlBusy`) |
+| Enter gjorde ingenting | Enter søger (`tmrDomFlEnter` – se `build_fl_cells`) |
+| "Selected: SSV13 HFC10AA005" under dropdownen | Fjernet. En hentet/kopieret række lægger sin FL i `colDomFl`, så dropdownen viser den |
+
+**Skal efterprøves i Studio:** Classic/DropDown er ny i disse to apps, og
+Enter-søgningen bygger på, at et Multiline-felt lægger `Char(10)` i `Text`.

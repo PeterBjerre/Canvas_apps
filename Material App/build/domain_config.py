@@ -78,31 +78,31 @@ FL_FIELD = "FunctionalLocation"
 # colYesNo blev aldrig defineret. Derfor er de TEKST her og i SharePoint,
 # indtil listerne findes.
 SECTIONS = [
-    ("Where", [
-        ("FunctionalLocation", "Func. location", "text", None),
+    ("General", [
+        ("FunctionalLocation", "Functional location", "text", None),
     ]),
-    ("Stamdata", [
+    ("Master data", [
         ("Manufacturer", "Manufacturer", "text", None),
-        ("ModelNumber", "Modelnummer", "text", None),
+        ("ModelNumber", "Model number", "text", None),
         ("ManufacturerPartNo", "Manufacturer part no.", "text", None),
     ]),
     ("Supplier", [
         ("Supplier", "Supplier", "text", None),
-        ("SupplierPartNo", "Leverandoerens varenr.", "text", None),
-        ("DeliveringTime", "Leveringstid (dage)", "num", None),
+        ("SupplierPartNo", "Supplier part no.", "text", None),
+        ("DeliveringTime", "Delivery time (days)", "num", None),
     ]),
     ("Price and stock", [
         ("Price", "Price", "num", None),
-        ("PriceUnit", "Prisenhed", "text", None),
-        ("StockUnit", "Lagerenhed", "text", None),
+        ("PriceUnit", "Price unit", "text", None),
+        ("StockUnit", "Stock unit", "text", None),
         ("RecommendedStock", "Recommended stock", "num", None),
     ]),
-    ("Klassificering", [
+    ("Classification", [
         ("StrategicPart", "Strategic part", "text", None),
-        ("WearPart", "Sliddel", "text", None),
+        ("WearPart", "Wear part", "text", None),
     ]),
-    ("Bemaerkninger", [
-        ("LongText", "Langtekst", "long", None),
+    ("Remarks", [
+        ("LongText", "Long text", "long", None),
     ]),
 ]
 
