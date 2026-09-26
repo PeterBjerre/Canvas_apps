@@ -24,6 +24,7 @@ sys.path.insert(0, HERE)
 
 from gen_screen import render_screen, C_APP_BG, OUT_DIR
 from build_helpers import app_frame
+from side_nav import side_nav
 import fl_config as cfg
 import fl_parts as P
 import fl_save as S
@@ -47,7 +48,8 @@ def build_screen():
                      [P.build_rows(), P.build_classes(), P.build_structure(),
                       P.build_submit()])
     return render_screen(cfg.SCREEN, {"Fill": C_APP_BG, "OnVisible": on_visible()},
-                         [root, P.build_backdrop(), P.build_detail(), P.build_export()])
+                         [root, *side_nav("Fl", "functionallocation"),
+                          P.build_backdrop(), P.build_detail(), P.build_export()])
 
 
 def main():
