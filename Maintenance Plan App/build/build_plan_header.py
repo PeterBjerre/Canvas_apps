@@ -155,9 +155,9 @@ def build_plan_header():
                            item_display="ThisItem.Value", required_formula=REQ_PLAN,
                            display_mode=DM_PLAN, value_field="Key")
     drpStrategy = dropdown(
-        "drpVhpStrategy", "colVhpStrategies",
-        "LookUp(colVhpStrategies, Key = varVhpPlan.Strategy)",
-        item_display="ThisItem.Display",
+        "drpVhpStrategy", "colVhpStrategyOptions",
+        "LookUp(colVhpStrategyOptions, Key = varVhpPlan.Strategy)",
+        item_display="ThisItem.Value",
         required_formula=f"(varVhpPlanValidated && {LIVE_IS_STRATEGY})",
         display_mode=f"If(varVhpPlanLocked || {LIVE_NOT_STRATEGY}, DisplayMode.Disabled, DisplayMode.Edit)",
         value_field="Key")
