@@ -47,10 +47,12 @@ def build_screen():
     # saa det sidste kort ikke ligger under den.
     root = app_frame("Vhp", build_top_bar(), sections, body_gap=20, body_pad_b=100)
 
+    # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
+    rail, overlay = side_nav("Vhp", "vhplan", HELP_ON, HELP_ACTION)
     return render_screen("ScreenVhPlan", {"Fill": C_APP_BG},
-                         [root, *side_nav("Vhp", "vhplan", HELP_ON, HELP_ACTION),
+                         [root, rail,
                           build_modal_backdrop(), build_tasklist_picker_modal(),
-                          build_longtext_modal(), build_email_fab()])
+                          build_longtext_modal(), build_email_fab(), *overlay])
 
 
 def main():

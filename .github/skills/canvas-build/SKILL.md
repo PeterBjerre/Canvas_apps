@@ -161,11 +161,17 @@ markeret) og en fod med **Help**-kontakten (kun VH-plan) og **temaskiftet**.
 
 - Lukket er den `NAV_W` = 56 px, og rammen starter dér: `con<X>Root` har
   `X = 56`, `Width = Parent.Width - 56`. Regel 23 kræver præcis det.
-- Åbnet (`gblNavOpen`) er den `NAV_W_OPEN` = 232 px og ligger **oven på**
-  indholdet, som i HTML-siden. Derfor regner `SHELL_W` kun med den lukkede
-  bredde, og intet i rammen flytter sig, når den åbnes.
-- Den står i skærmens `Children` **lige efter rammen** og før popupperne:
-  `[root, *side_nav(prefix, app, ...), backdrop, popups...]`.
+- Åbnet er et **separat panel**, `con<X>NavOpen` (`NAV_W_OPEN` = 232 px,
+  `Visible = gblNavOpen`), der ligger **oven på** indholdet som i HTML-siden.
+  Derfor regner `SHELL_W` kun med den lukkede bredde.
+- **Ingen formel-bredde på sidebaren.** Første udgave var én container med
+  `Width = If(gblNavOpen, 232, 56)`; i Studio blev den 57 px og klippede det
+  åbne indhold, så panelet så ud til at folde sig ud bag skærmen. Skinne og
+  panel har nu hver sin faste bredde.
+- `side_nav()` returnerer `(skinne, overlag)`. Skinnen står **lige efter
+  rammen**, overlaget (sløret + panelet) står **sidst** — i en `.pa.yaml`
+  ligger det, der står senere, øverst:
+  `[root, rail, backdrop, popups..., *overlay]`.
 - Navigation er `Launch(url & ?theme=..., {}, LaunchTarget.Replace)`. Derfor
   har topbjælkerne ikke længere "To the hub".
 
