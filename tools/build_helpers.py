@@ -18,7 +18,7 @@ from gen_screen import (
     C_PRIMARY, C_PRIMARY2, C_WHITE, C_TRANSPARENT, C_INPUT_BG, C_DISABLED_BG,
     C_DIVIDER, C_VALID_FG, C_VALID_BG, C_INVALID_FG, C_INVALID_BG,
     C_BORDER_OK, C_BORDER_ERROR, C_PRIMARY_SOFT,
-    C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, FONT,
+    C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, C_WARN_FG, FONT,
     SHELL_W, EDITOR_W, RAIL_W, SPLIT_GAP, OUT_DIR,
 )
 
@@ -231,33 +231,84 @@ def button(name, text, onselect, primary=False, danger=False, width=140, height=
     return Ctrl(name, "ModernButton", props=props, h=height, vis=visible)
 
 
-def theme_button(name="btnThemeToggle", light_label='"Dark"',
-                 dark_label='"Light"', width=92, height=34):
-    """Knappen der skifter mellem lyst og moerkt tema.
+# Temaknappens maal. Eksporteret, saa en app, der regner sin bjaelke selv
+# (VH-plan, build_hero.BW), laeser det samme tal som kontrollen har.
+THEME_KNOB_W = 36
+THEME_KNOB_H = 32
+THEME_PAD = 2
+THEME_TOGGLE_W = 2 * THEME_KNOB_W + 3 * THEME_PAD           # 78
+THEME_TOGGLE_H = THEME_KNOB_H + 2 * THEME_PAD               # 36
 
-    SAMME KONSTRUKTION I ALLE FIRE APPS. Det er hele pointen: en knap, der
-    ser forskellig ud fra app til app, er praecis den slags drift, der har
-    gjort de fire apps forskellige indtil nu.
+# Sol og maane som UniChar, ikke som tegn i kildeteksten: saa kan hverken
+# en editor, en kodetabel eller sprogtjekket lave dem om.
+SUN = "UniChar(9728)"       # U+2600 BLACK SUN WITH RAYS
+MOON = "UniChar(9790)"      # U+263E LAST QUARTER MOON
 
-    TEKSTEN SIGER HVAD DER SKER, IKKE HVAD DER ER
-    ---------------------------------------------
-    Staar appen lyst, staar der "Dark" paa knappen. Det er den samme
-    konvention som i Windows og i browsere - en knap er en handling, ikke
-    en tilstandsvisning. AccessibleLabel siger det udfoerligt, fordi et
-    enkelt ord uden knappens udseende ikke er nok for en skaermlaeser.
 
-    HVORFOR SEKUNDAER
-    -----------------
-    Den skal kunne findes og ellers vaere i fred. En primaerfarvet knap
-    ville traekke oejet til sig hver gang skaermen tegnes, og temaskift er
-    noget man goer een gang.
+def theme_button(name="conThemeToggle"):
+    """Skiftet mellem lyst og moerkt tema - en pille med sol og maane.
+
+        ( [sol] maane )     lyst tema
+        ( sol [maane] )     moerkt tema
+
+    SAMME KONSTRUKTION I ALLE APPS. Det er hele pointen: en knap, der ser
+    forskellig ud fra app til app, er praecis den slags drift, der har
+    gjort appsene forskellige indtil nu.
+
+    HVORFOR IKKE EN KNAP MED "Dark"
+    -------------------------------
+    Det var den foer (issue #29/#37): en almindelig knap med ordet "Dark"
+    eller "Light" paa. Den lignede alle andre knapper i bjaelken, og man
+    skulle laese den for at vide, hvad den gjorde. Et segmenteret skift
+    med sol og maane er den form, Windows, macOS og de fleste web-apps
+    bruger i dag - og det valgte tema kan ses uden at laese noget.
+
+    HVORFOR IKKE ModernToggle
+    -------------------------
+    Den har ingen ikoner i sporet, og dens farver kommer fra Fluent-temaet,
+    som appen ikke saetter - samme fejl som ButtonAppearance.Secondary
+    (se button()). Pillen her er en GroupContainer og to ModernButton,
+    begge kontroltyper der allerede er bevist i alle apps, og alle farver
+    er tokens.
+
+    Den valgte halvdel er Primary med kortets farve som base - en lys
+    "knop" paa et graat spor i lyst tema, en moerk knop i moerkt. Den
+    anden er Outline med gennemsigtig kant, altsaa kun et ikon. Dynamisk
+    Appearance er bevist af VH-planens hjaelpeknap.
+
+    Hver halvdel saetter SIT tema; et tryk paa den valgte goer intet. Det
+    er sadan et segmenteret skift opfoerer sig - ikke som en vippekontakt,
+    hvor et tryk paa "sol" kunne give maane.
 
     Handlingen staar i tools/design_tokens.py - baade Set() og SaveData,
     saa valget ogsaa er der i morgen."""
-    lbl = f"If({DARK_VAR}, {dark_label}, {light_label})"
-    acc = (f'If({DARK_VAR}, "Switch to light theme", "Switch to dark theme")')
-    return button(name, lbl, toggle_action(), width=width, height=height,
-                  accessible=acc)
+    act = toggle_action()
+
+    def knob(suffix, glyph, is_on, is_off, label, glyph_color):
+        b = button(name + suffix, glyph, f"If({is_off},\n{act}\n)",
+                   width=THEME_KNOB_W, height=THEME_KNOB_H,
+                   accessible=(f'If({is_on}, "{label} (selected)", '
+                               f'"Switch to {label.lower()}")'))
+        b.props["Appearance"] = (f"If({is_on}, ButtonAppearance.Primary, "
+                                 f"ButtonAppearance.Outline)")
+        b.props["BasePaletteColor"] = C_CARD_BG
+        b.props["BorderColor"] = C_TRANSPARENT
+        b.props["BorderThickness"] = "0"
+        b.props["Color"] = f"If({is_on}, {glyph_color}, {C_MUTED})"
+        b.props["Size"] = "16"
+        for k in ("RadiusBottomLeft", "RadiusBottomRight",
+                  "RadiusTopLeft", "RadiusTopRight"):
+            b.props[k] = str(THEME_KNOB_H // 2)
+        b.props["LayoutMinWidth"] = str(THEME_KNOB_W)
+        return b
+
+    light = knob("Light", SUN, f"!{DARK_VAR}", DARK_VAR, "Light theme", C_WARN_FG)
+    dark = knob("Dark", MOON, DARK_VAR, f"!{DARK_VAR}", "Dark theme", C_PRIMARY)
+    return group(name, [light, dark], direction="Horizontal", gap=THEME_PAD,
+                 height=THEME_TOGGLE_H, width=THEME_TOGGLE_W,
+                 align_items="Center", fill=C_NEUTRAL_BG,
+                 radius=THEME_TOGGLE_H // 2, pad=THEME_PAD,
+                 layout_min_width=THEME_TOGGLE_W)
 
 
 def _fits_expr(container_w, needs):

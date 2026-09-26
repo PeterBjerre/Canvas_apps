@@ -94,6 +94,13 @@ FL_FIELD = "FunctionalLocation"
 # og derfor kendes ordforraadet ikke. De er TEKSTfelter her og
 # TEKSTkolonner i SharePoint, indtil listerne findes. Saa er det een linje
 # her og een i provisioneringen.
+#
+# INTET LANGTEKSTFELT (issue #37)
+# -------------------------------
+# "Remarks / Long text" er fjernet fra Equipment-appen - kun her, ikke i
+# Materials. Kolonnen LongText staar stadig i EquipmentItems: den slettes
+# ikke, saa gamle raekker beholder deres tekst, og Patch roerer den ikke,
+# fordi Patch kun skriver de felter, der staar herunder.
 SECTIONS = [
     ("What should happen", [
         ("RequestType", "Type", "text", None),
@@ -116,9 +123,6 @@ SECTIONS = [
     ("Warranty", [
         ("WarrantyStart", "Warranty from", "date", None),
         ("WarrantyEnd", "Warranty to", "date", None),
-    ]),
-    ("Remarks", [
-        ("LongText", "Long text", "long", None),
     ]),
 ]
 

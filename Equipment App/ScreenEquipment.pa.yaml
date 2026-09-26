@@ -30,8 +30,7 @@ Screens:
                       RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
                       Placement: Coalesce(R.Placement, ""),
                       WarrantyStart: R.WarrantyStart,
-                      WarrantyEnd: R.WarrantyEnd,
-                      LongText: Coalesce(R.LongText, "")
+                      WarrantyEnd: R.WarrantyEnd
                   }
               )
           );
@@ -54,7 +53,6 @@ Screens:
           Set(varDomFPlacement, "");
           Set(varDomFWarrantyStart, Blank());
           Set(varDomFWarrantyEnd, Blank());
-          Set(varDomFLongText, "");
           Set(varDomFlMsg, "");
           Set(varDomFlQuery, "");
           Reset(txtDomFlQuery);
@@ -102,7 +100,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =25 + (0 + (Max((55), (22), (24), (34), (36))) * 1 + 0)
+                      =25 + (0 + (Max((55), (22), (24), (36), (36))) * 1 + 0)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -137,7 +135,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =0 + (Max((55), (22), (24), (34), (36))) * 1 + 0
+                            =0 + (Max((55), (22), (24), (36), (36))) * 1 + 0
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Center
                         LayoutDirection: |-
@@ -178,7 +176,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Width: |-
-                                  =Max(0, ((((App.Width)) - 24 - 34)) - (If(LayoutRank >= 2, (110) + 10, 0)) - (If(LayoutRank >= 2, (150) + 10, 0)) - ((92) + 10) - ((140) + 10) - 2)
+                                  =Max(0, ((((App.Width)) - 24 - 34)) - (If(LayoutRank >= 2, (110) + 10, 0)) - (If(LayoutRank >= 2, (150) + 10, 0)) - ((78) + 10) - ((140) + 10) - 2)
                             Children:
                               - txtDomTitle:
                                   Control: ModernText
@@ -336,53 +334,155 @@ Screens:
                                   =150
                               Wrap: |-
                                   =false
-                        - btnDomTheme:
-                            Control: ModernButton
+                        - conDomTheme:
+                            Control: GroupContainer
+                            Variant: AutoLayout
                             Properties:
-                              AccessibleLabel: |-
-                                  =If(darkModeEnabled, "Switch to light theme", "Switch to dark theme")
-                              Align: |-
-                                  =Align.Center
                               AlignInContainer: |-
                                   =AlignInContainer.Center
-                              Appearance: |-
-                                  =ButtonAppearance.Outline
-                              BorderColor: |-
-                                  =C.'border-default'
-                              BorderThickness: |-
-                                  =1
-                              Color: |-
-                                  =C.'text-primary'
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              FontWeight: |-
-                                  =FontWeight.Semibold
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              Fill: |-
+                                  =C.'state-neutral-bg'
+                              FillPortions: |-
+                                  =0
                               Height: |-
-                                  =34
-                              Layout: |-
-                                  =ButtonLayout.TextOnly
+                                  =36
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Center
+                              LayoutDirection: |-
+                                  =LayoutDirection.Horizontal
+                              LayoutGap: |-
+                                  =2
                               LayoutMinWidth: |-
-                                  =92
-                              OnSelect: |-
-                                  =Set(darkModeEnabled, !darkModeEnabled);
-                                  ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
-                                  IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                                  =78
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              PaddingBottom: |-
+                                  =2
+                              PaddingLeft: |-
+                                  =2
+                              PaddingRight: |-
+                                  =2
+                              PaddingTop: |-
+                                  =2
                               RadiusBottomLeft: |-
-                                  =10
+                                  =18
                               RadiusBottomRight: |-
-                                  =10
+                                  =18
                               RadiusTopLeft: |-
-                                  =10
+                                  =18
                               RadiusTopRight: |-
-                                  =10
-                              Size: |-
-                                  =14
-                              Text: |-
-                                  =If(darkModeEnabled, "Light", "Dark")
-                              VerticalAlign: |-
-                                  =VerticalAlign.Middle
+                                  =18
                               Width: |-
-                                  =92
+                                  =78
+                            Children:
+                              - conDomThemeLight:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =If(!darkModeEnabled, "Light theme (selected)", "Switch to light theme")
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =If(!darkModeEnabled, ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                    BasePaletteColor: |-
+                                        =C.'bg-card'
+                                    BorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =If(!darkModeEnabled, C.'state-warn-fg', C.'text-muted')
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =32
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    LayoutMinWidth: |-
+                                        =36
+                                    OnSelect: |-
+                                        =If(darkModeEnabled,
+                                        Set(darkModeEnabled, !darkModeEnabled);
+                                        ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
+                                        IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                                        )
+                                    RadiusBottomLeft: |-
+                                        =16
+                                    RadiusBottomRight: |-
+                                        =16
+                                    RadiusTopLeft: |-
+                                        =16
+                                    RadiusTopRight: |-
+                                        =16
+                                    Size: |-
+                                        =16
+                                    Text: |-
+                                        =UniChar(9728)
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =36
+                              - conDomThemeDark:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =If(darkModeEnabled, "Dark theme (selected)", "Switch to dark theme")
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =If(darkModeEnabled, ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                    BasePaletteColor: |-
+                                        =C.'bg-card'
+                                    BorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =If(darkModeEnabled, C.'color-brand-primary', C.'text-muted')
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =32
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    LayoutMinWidth: |-
+                                        =36
+                                    OnSelect: |-
+                                        =If(!darkModeEnabled,
+                                        Set(darkModeEnabled, !darkModeEnabled);
+                                        ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
+                                        IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                                        )
+                                    RadiusBottomLeft: |-
+                                        =16
+                                    RadiusBottomRight: |-
+                                        =16
+                                    RadiusTopLeft: |-
+                                        =16
+                                    RadiusTopRight: |-
+                                        =16
+                                    Size: |-
+                                        =16
+                                    Text: |-
+                                        =UniChar(9790)
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =36
                         - btnDomBack:
                             Control: ModernButton
                             Properties:
@@ -469,7 +569,7 @@ Screens:
                   FillPortions: |-
                       =1
                   Height: |-
-                      =Parent.Height - (25 + (0 + (Max((55), (22), (24), (34), (36))) * 1 + 0))
+                      =Parent.Height - (25 + (0 + (Max((55), (22), (24), (36), (36))) * 1 + 0))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -508,7 +608,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =238 + (46) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + (62) + (62) + 60, Max((62), (62), (62), (62)))) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + (62) + (62) + 60, Max((62), (62), (62), (62)))) + 14 + (If((((App.Width - 64) - 36)) < 640, (20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))) + (62) + (62) + (62) + 60, Max((20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))), (62), (62), (62)))) + If(!IsBlank(varDomFlMsg), 14 + (18), 0) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + (62) + 40, Max((62), (62), (62)))) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + 20, Max((62), (62)))) + 14 + (166) + 14 + (If((((App.Width - 64) - 36)) >= (111) + (72) + (91) + (111) + 24, 36, (36) + 8 + (36) + 8 + (36) + 8 + (36)))
+                            =204 + (46) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + (62) + (62) + 60, Max((62), (62), (62), (62)))) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + (62) + (62) + 60, Max((62), (62), (62), (62)))) + 14 + (If((((App.Width - 64) - 36)) < 640, (20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))) + (62) + (62) + (62) + 60, Max((20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))), (62), (62), (62)))) + If(!IsBlank(varDomFlMsg), 14 + (18), 0) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + (62) + 40, Max((62), (62), (62)))) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + 20, Max((62), (62)))) + 14 + (If((((App.Width - 64) - 36)) >= (111) + (72) + (91) + (111) + 24, 36, (36) + 8 + (36) + 8 + (36) + 8 + (36)))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -3597,173 +3697,6 @@ Screens:
                                               =14
                                           Width: |-
                                               =Parent.Width
-                        - txtDomSec4:
-                            Control: ModernText
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Remarks"
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Color: |-
-                                  =C.'text-muted'
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              FontWeight: |-
-                                  =FontWeight.Semibold
-                              Height: |-
-                                  =20
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
-                              Size: |-
-                                  =13
-                              Text: |-
-                                  ="Remarks"
-                              Wrap: |-
-                                  =false
-                        - conLongText:
-                            Control: GroupContainer
-                            Variant: AutoLayout
-                            Properties:
-                              AlignInContainer: |-
-                                  =AlignInContainer.Start
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              FillPortions: |-
-                                  =0
-                              Height: |-
-                                  =166
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
-                              LayoutDirection: |-
-                                  =LayoutDirection.Vertical
-                              LayoutGap: |-
-                                  =6
-                              LayoutMinWidth: |-
-                                  =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              Width: |-
-                                  =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 0) / 1)
-                            Children:
-                              - conLongTextRow:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
-                                  Properties:
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =20
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Center
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =3
-                                    LayoutMinWidth: |-
-                                        =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    Width: |-
-                                        =Parent.Width
-                                  Children:
-                                    - conLongTextLbl:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Long text"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =20
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              ="Long text"
-                                          Wrap: |-
-                                              =false
-                              - inpLongText:
-                                  Control: ModernTextInput
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Long text"
-                                    BorderColor: |-
-                                        =C.'border-default'
-                                    BorderStyle: |-
-                                        =BorderStyle.Solid
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =C.'text-primary'
-                                    Default: |-
-                                        =varDomFLongText
-                                    DisplayMode: |-
-                                        =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
-                                    Fill: |-
-                                        =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =140
-                                    LayoutMinWidth: |-
-                                        =0
-                                    OnChange: |-
-                                        =Set(varDomFLongText, Self.Text)
-                                    Placeholder: |-
-                                        =""
-                                    RadiusBottomLeft: |-
-                                        =10
-                                    RadiusBottomRight: |-
-                                        =10
-                                    RadiusTopLeft: |-
-                                        =10
-                                    RadiusTopRight: |-
-                                        =10
-                                    Size: |-
-                                        =14
-                                    Type: |-
-                                        =TextInputType.Multiline
-                                    ValidationState: |-
-                                        =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
-                                    Width: |-
-                                        =Parent.Width
                         - conDomFormActions:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -3853,7 +3786,6 @@ Screens:
                                                     Placement: Trim(Coalesce(varDomFPlacement, "")),
                                                     WarrantyStart: varDomFWarrantyStart,
                                                     WarrantyEnd: varDomFWarrantyEnd,
-                                                    LongText: Trim(Coalesce(varDomFLongText, "")),
                                                     RowStatus: { Value: "draft" },
                                                     RequesterEmail: varDomMe,
                                                     RequesterName: User().FullName
@@ -3904,8 +3836,7 @@ Screens:
                                                         RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
                                                         Placement: Coalesce(R.Placement, ""),
                                                         WarrantyStart: R.WarrantyStart,
-                                                        WarrantyEnd: R.WarrantyEnd,
-                                                        LongText: Coalesce(R.LongText, "")
+                                                        WarrantyEnd: R.WarrantyEnd
                                                     }
                                                 )
                                             );
@@ -3991,7 +3922,6 @@ Screens:
                                                     Placement: Trim(Coalesce(varDomFPlacement, "")),
                                                     WarrantyStart: varDomFWarrantyStart,
                                                     WarrantyEnd: varDomFWarrantyEnd,
-                                                    LongText: Trim(Coalesce(varDomFLongText, "")),
                                                     RowStatus: { Value: "valid" },
                                                     RequesterEmail: varDomMe,
                                                     RequesterName: User().FullName
@@ -4042,8 +3972,7 @@ Screens:
                                                         RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
                                                         Placement: Coalesce(R.Placement, ""),
                                                         WarrantyStart: R.WarrantyStart,
-                                                        WarrantyEnd: R.WarrantyEnd,
-                                                        LongText: Coalesce(R.LongText, "")
+                                                        WarrantyEnd: R.WarrantyEnd
                                                     }
                                                 )
                                             );
@@ -4118,7 +4047,6 @@ Screens:
                                         Set(varDomFPlacement, "");
                                         Set(varDomFWarrantyStart, Blank());
                                         Set(varDomFWarrantyEnd, Blank());
-                                        Set(varDomFLongText, "");
                                         Set(varDomFlMsg, "");
                                         Set(varDomFlQuery, "");
                                         Reset(txtDomFlQuery);
@@ -4203,8 +4131,7 @@ Screens:
                                                         RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
                                                         Placement: Coalesce(R.Placement, ""),
                                                         WarrantyStart: R.WarrantyStart,
-                                                        WarrantyEnd: R.WarrantyEnd,
-                                                        LongText: Coalesce(R.LongText, "")
+                                                        WarrantyEnd: R.WarrantyEnd
                                                     }
                                                 )
                                             );
@@ -4228,7 +4155,6 @@ Screens:
                                             Set(varDomFPlacement, "");
                                             Set(varDomFWarrantyStart, Blank());
                                             Set(varDomFWarrantyEnd, Blank());
-                                            Set(varDomFLongText, "");
                                             Set(varDomFlMsg, "");
                                             Set(varDomFlQuery, "");
                                             Reset(txtDomFlQuery);
@@ -4835,7 +4761,6 @@ Screens:
                                   Set(varDomFPlacement, ThisItem.Placement);
                                   Set(varDomFWarrantyStart, ThisItem.WarrantyStart);
                                   Set(varDomFWarrantyEnd, ThisItem.WarrantyEnd);
-                                  Set(varDomFLongText, ThisItem.LongText);
                                   If(
                                       !IsBlank(ThisItem.FunctionalLocation) && IsBlank(LookUp(colDomFl, Code = ThisItem.FunctionalLocation)),
                                       Collect(colDomFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation, Maintainable: true, Level: "" })
@@ -5188,7 +5113,6 @@ Screens:
                                                     Set(varDomFPlacement, ThisItem.Placement);
                                                     Set(varDomFWarrantyStart, ThisItem.WarrantyStart);
                                                     Set(varDomFWarrantyEnd, ThisItem.WarrantyEnd);
-                                                    Set(varDomFLongText, ThisItem.LongText);
                                                     If(
                                                         !IsBlank(ThisItem.FunctionalLocation) && IsBlank(LookUp(colDomFl, Code = ThisItem.FunctionalLocation)),
                                                         Collect(colDomFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation, Maintainable: true, Level: "" })
@@ -5377,7 +5301,6 @@ Screens:
                                                     Set(varDomFPlacement, ThisItem.Placement);
                                                     Set(varDomFWarrantyStart, ThisItem.WarrantyStart);
                                                     Set(varDomFWarrantyEnd, ThisItem.WarrantyEnd);
-                                                    Set(varDomFLongText, ThisItem.LongText);
                                                     If(
                                                         !IsBlank(ThisItem.FunctionalLocation) && IsBlank(LookUp(colDomFl, Code = ThisItem.FunctionalLocation)),
                                                         Collect(colDomFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation, Maintainable: true, Level: "" })
@@ -5455,7 +5378,6 @@ Screens:
                                                         Set(varDomFPlacement, "");
                                                         Set(varDomFWarrantyStart, Blank());
                                                         Set(varDomFWarrantyEnd, Blank());
-                                                        Set(varDomFLongText, "");
                                                         Set(varDomFlMsg, "");
                                                         Set(varDomFlQuery, "");
                                                         Reset(txtDomFlQuery);
@@ -5487,8 +5409,7 @@ Screens:
                                                                 RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
                                                                 Placement: Coalesce(R.Placement, ""),
                                                                 WarrantyStart: R.WarrantyStart,
-                                                                WarrantyEnd: R.WarrantyEnd,
-                                                                LongText: Coalesce(R.LongText, "")
+                                                                WarrantyEnd: R.WarrantyEnd
                                                             }
                                                         )
                                                     );
@@ -5774,8 +5695,7 @@ Screens:
                                                             RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
                                                             Placement: Coalesce(R.Placement, ""),
                                                             WarrantyStart: R.WarrantyStart,
-                                                            WarrantyEnd: R.WarrantyEnd,
-                                                            LongText: Coalesce(R.LongText, "")
+                                                            WarrantyEnd: R.WarrantyEnd
                                                         }
                                                     )
                                                 );
@@ -5920,8 +5840,7 @@ Screens:
                                                             RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
                                                             Placement: Coalesce(R.Placement, ""),
                                                             WarrantyStart: R.WarrantyStart,
-                                                            WarrantyEnd: R.WarrantyEnd,
-                                                            LongText: Coalesce(R.LongText, "")
+                                                            WarrantyEnd: R.WarrantyEnd
                                                         }
                                                     )
                                                 );
@@ -6002,8 +5921,7 @@ Screens:
                                                     RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
                                                     Placement: Coalesce(R.Placement, ""),
                                                     WarrantyStart: R.WarrantyStart,
-                                                    WarrantyEnd: R.WarrantyEnd,
-                                                    LongText: Coalesce(R.LongText, "")
+                                                    WarrantyEnd: R.WarrantyEnd
                                                 }
                                             )
                                         );
@@ -6096,7 +6014,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =36 + (0 + (Max((44), (30), (30), (30), (30))) * 1 + 0) + 12 + (Min(488, App.Height - 200))
+                =36 + (0 + (Max((44), (30), (30), (30), (30))) * 1 + 0) + 12 + (Min(462, App.Height - 200))
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -6449,7 +6367,6 @@ Screens:
                             Set(varDomFPlacement, LookUp(colDomRows, RowId = varDomDetailsId).Placement);
                             Set(varDomFWarrantyStart, LookUp(colDomRows, RowId = varDomDetailsId).WarrantyStart);
                             Set(varDomFWarrantyEnd, LookUp(colDomRows, RowId = varDomDetailsId).WarrantyEnd);
-                            Set(varDomFLongText, LookUp(colDomRows, RowId = varDomDetailsId).LongText);
                             If(
                                 !IsBlank(LookUp(colDomRows, RowId = varDomDetailsId).FunctionalLocation) && IsBlank(LookUp(colDomFl, Code = LookUp(colDomRows, RowId = varDomDetailsId).FunctionalLocation)),
                                 Collect(colDomFl, { Code: LookUp(colDomRows, RowId = varDomDetailsId).FunctionalLocation, Description: "", Display: LookUp(colDomRows, RowId = varDomDetailsId).FunctionalLocation, Maintainable: true, Level: "" })
@@ -6527,7 +6444,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =Min(488, App.Height - 200)
+                      =Min(462, App.Height - 200)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -8321,105 +8238,6 @@ Screens:
                                   =13
                               Text: |-
                                   =If(IsBlank(LookUp(colDomRows, RowId = varDomDetailsId).WarrantyEnd), "-", Text(LookUp(colDomRows, RowId = varDomDetailsId).WarrantyEnd))
-                              Width: |-
-                                  =Max(0, ((((Min(820, App.Width - 32)) - 18 - 18) - 18)) - ((190) + 12) - 2)
-                              Wrap: |-
-                                  =false
-                  - conDomDet18:
-                      Control: GroupContainer
-                      Variant: AutoLayout
-                      Properties:
-                        BorderStyle: |-
-                            =BorderStyle.None
-                        DropShadow: |-
-                            =DropShadow.None
-                        FillPortions: |-
-                            =0
-                        Height: |-
-                            =20
-                        LayoutAlignItems: |-
-                            =LayoutAlignItems.Center
-                        LayoutDirection: |-
-                            =LayoutDirection.Horizontal
-                        LayoutGap: |-
-                            =12
-                        LayoutMinWidth: |-
-                            =0
-                        LayoutOverflowX: |-
-                            =LayoutOverflow.Hide
-                        LayoutOverflowY: |-
-                            =LayoutOverflow.Hide
-                        Width: |-
-                            =Parent.Width
-                      Children:
-                        - txtDomDet18L:
-                            Control: ModernText
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Long text"
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Color: |-
-                                  =C.'text-muted'
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              FontWeight: |-
-                                  =FontWeight.Semibold
-                              Height: |-
-                                  =20
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
-                              Size: |-
-                                  =12
-                              Text: |-
-                                  ="Long text"
-                              Width: |-
-                                  =190
-                              Wrap: |-
-                                  =false
-                        - txtDomDet18V:
-                            Control: ModernText
-                            Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).LongText, "-")
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Color: |-
-                                  =C.'text-primary'
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              FillPortions: |-
-                                  =0
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              Height: |-
-                                  =20
-                              LayoutMinWidth: |-
-                                  =0
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
-                              Size: |-
-                                  =13
-                              Text: |-
-                                  =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).LongText, "-")
                               Width: |-
                                   =Max(0, ((((Min(820, App.Width - 32)) - 18 - 18) - 18)) - ((190) + 12) - 2)
                               Wrap: |-
