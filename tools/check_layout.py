@@ -771,6 +771,26 @@ def main():
                                     f"sidste er skjult")
                     break
 
+    # --- 26c. Ingen container i et galleri -----------------------------
+    #
+    # Et galleris oeverste barn faar sin bredde af Studio - 320 efter et
+    # deploy med --clean. Stod raekkens celler i en container, forsvandt
+    # alt efter de foerste 320 px (Equipment, tre gange; issue #37).
+    # gen_screen.flatten_galleries folder containerne ud til celler med X
+    # og Y, og regel 26/29 maales dér. Staar der alligevel en container i
+    # et galleri, er den vej omgaaet.
+    for p, name, body in all_nodes:
+        if body.get("Control") != "Gallery":
+            continue
+        stack = list(body.get("Children") or [])
+        while stack:
+            (kn, kb), = stack.pop().items()
+            if (kb or {}).get("Control") == "GroupContainer":
+                problems.append(f"[26c] {name}: {kn} er en container i et galleri - "
+                                f"Studio ejer dens bredde. Byg skaermen med "
+                                f"gen_screen.render_screen, der folder den ud")
+            stack.extend((kb or {}).get("Children") or [])
+
     # --- 30. Delegerbare filtre: sammenlign mod noget KONSTANT ----------
     #
     # SharePoint delegerer kun en sammenligning, hvor vaerdien er ENS for

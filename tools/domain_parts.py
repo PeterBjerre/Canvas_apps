@@ -153,7 +153,7 @@ def build_bar():
                   f'Launch("{cfg.HUB_URL}" & {theme_query("?")}, {{ }}, '
                   f'LaunchTarget.Replace)',
                   width=140)
-    theme = theme_button("conDomTheme")
+    theme = theme_button("imgDomTheme")
     return top_bar("Dom", f'"{cfg.TITLE}"', f'"{cfg.SUBTITLE}"',
                    [count, no, theme, back],
                    narrow_hide=("txtDomCount", "txtDomReqNo"))
@@ -1049,47 +1049,6 @@ def build_details():
     return modal
 
 
-def _place_row(cells, acts):
-    """Raekkens celler og knapper placeret med X og Y - UDEN en raekke-
-    container omkring dem.
-
-    HVORFOR INGEN CONTAINER (issue #37, tredje gang knapperne forsvandt)
-    -------------------------------------------------------------------
-    Cellerne stod i conDomRow, en vandret container som galleriets oeverste
-    barn. Den bredde ejer Studio - se docs/30, regel J: den blev aflaest som
-    320, senere som Parent.Width, aldrig som det udtryk, vi skrev. Et
-    deploy med --clean opretter galleriet paa ny, og saa fik raekken 320 px.
-    Beskrivelsen alene er op til 460, containeren skjuler sit overloeb, og
-    status, filer og alle fem knapper forsvandt.
-
-    To gange blev det rettet ved at goere budgettet mindre (GALLERY_RESERVE).
-    Det hjaelper ikke, naar Studio giver 320: der er ingen reserve, der kan
-    daekke det. Nu er der ingen raekkebredde at give. Hver celle er et
-    direkte barn af galleriet med sin egen X, Y og Width - den klassiske
-    galleriform, hvor Studio respekterer det, der staar.
-
-    X regnes af de celler, der staar foer, og en skjult celle (Visible)
-    fylder 0. Mellemrummet er GAP mellem kolonner og ROW_BTN_GAP mellem
-    knapperne - samme tal som overskriften, der stadig er en container
-    (den staar i kortet, ikke i galleriet), saa kolonnerne flugter."""
-    out, x = [], []
-    items = cells + acts
-    for i, c in enumerate(items):
-        c.props["X"] = " + ".join(x) if x else "0"
-        c.props["Y"] = str((ROW_H - int(c.h)) // 2)
-        for k in ("AlignInContainer", "LayoutMinWidth", "FillPortions"):
-            c.props.pop(k, None)
-        # Mellem to knapper: ROW_BTN_GAP. Ellers (ogsaa fra FILES til den
-        # foerste knap): GAP, som i overskriften.
-        nxt = items[i + 1] if i + 1 < len(items) else None
-        gap = ROW_BTN_GAP if (c in acts and nxt in acts) else GAP
-        term = "(%s) + %d" % (c.props["Width"], gap)
-        vis = c.props.get("Visible")
-        x.append("If(%s, %s, 0)" % (vis, term) if vis else term)
-        out.append(c)
-    return out
-
-
 def build_rows():
     search = text_input("txtDomSearch", '""',
                         placeholder='"Search description, functional location, number"',
@@ -1157,9 +1116,19 @@ def build_rows():
     if got != want:
         raise SystemExit("ROW_BTN passer ikke paa raekkens knapper:\n"
                          "  ROW_BTN: %s\n  raekken: %s" % (want, got))
-    for btn in acts:
-        btn.props["Size"] = "13"
-    row = _place_row(cells, acts)
+    cells.append(group("conDomRowActions", acts, direction="Horizontal",
+                       gap=ROW_BTN_GAP, height=ROW_BTN_H, align_items="Center",
+                       width=ACT_W, align_in_container="Center"))
+    for b in acts:
+        b.props["Size"] = "13"
+
+    # Raekken er en container HER, men ikke i YAML'en: Studio ejer bredden
+    # paa et galleris oeverste container og gav den 320 px ved --clean, saa
+    # alt efter beskrivelsen forsvandt (issue #37).
+    # gen_screen.flatten_galleries folder den ud til celler med X og Y.
+    row = group("conDomRow", pin_widths(cells), direction="Horizontal", gap=GAP,
+                height="Parent.TemplateHeight - 2", align_items="Center",
+                justify="Start", width="Parent.TemplateWidth")
 
     gal_h = f"Max(Min(CountRows({SCOPE}), {GAL_ROWS}), 1) * {ROW_H + 2}"
     gal = Ctrl("galDomRows", "Gallery", variant="Vertical", props={
@@ -1179,7 +1148,7 @@ def build_rows():
         "TemplateSize": str(ROW_H),
         "Width": "Parent.Width",
         "WrapCount": "1",
-    }, children=row, h=gal_h)
+    }, children=[row], h=gal_h)
 
     empty = text_ctrl("txtDomNoRows",
                       '"No saved rows yet."',
