@@ -429,8 +429,226 @@ def _resolve_grow(row, inner):
     g.props["LayoutMinWidth"] = str(g._grow)
 
 
+# ---------------------------------------------------------------------------
+# Galleriernes skabeloner: INGEN containere - alt placeres med X og Y
+# ---------------------------------------------------------------------------
+# Et galleris oeverste barn faar sin bredde af Studio, ikke af os (docs/30,
+# regel J). Den blev aflaest som 320, som Parent.Width - og efter et deploy
+# med --clean igen som 320. Stod raekkens celler i en container, blev alt
+# efter de foerste 320 px skjult. Det skete tre gange i Equipment, og hver
+# rettelse gjorde bare budgettet mindre.
+#
+# Derfor foldes hver container i et galleri UD, naar skaermen skrives:
+# boernene placeres med X, Y og Width regnet af containerens egen retning,
+# gap, padding og justering - den samme opstilling, autolayout ville have
+# lavet. En container med Fill eller kant bliver til et Rectangle under
+# boernene, med containerens navn. Builderne skriver stadig containere;
+# de bliver bare aldrig til containere i et galleri.
+#
+# check_layout regel 26c stopper byggeriet, hvis en container alligevel
+# staar i et galleri.
+def _hv(ctrl):
+    h = _p(ctrl, "Height", "")
+    return h if h else str(ctrl.h if ctrl.h is not None else 0)
+
+
+def _and(*exprs):
+    parts = [e for e in exprs if e]
+    if not parts:
+        return None
+    if len(parts) == 1:
+        return parts[0]
+    return " && ".join(f"({e})" for e in parts)
+
+
+_LAYOUT_ONLY = ("AlignInContainer", "LayoutMinWidth", "LayoutMaxWidth",
+                "FillPortions", "LayoutMinHeight", "LayoutMaxHeight")
+
+
+def _background(c, x, y, w, h, vis):
+    fill = c.props.get("Fill")
+    border = c.props.get("BorderColor")
+    if not fill and not border:
+        return None
+    props = {"X": x, "Y": y, "Width": w, "Height": h,
+             "Fill": fill or TRANSPARENT,
+             "BorderColor": border or TRANSPARENT,
+             "BorderThickness": c.props.get("BorderThickness", "0"),
+             "BorderStyle": ("BorderStyle.Solid" if border else "BorderStyle.None")}
+    if vis:
+        props["Visible"] = vis
+    return Ctrl(c.name, "Rectangle", props=props, h=h)
+
+
+def _place(c, x, y, w, h, vis, out):
+    """Placer c i boksen (x, y, w, h). w/h er None, naar c har sin egen."""
+    own_vis = c.props.get("Visible")
+    vis_all = _and(vis, own_vis)
+    if c.control != "GroupContainer":
+        c.props["X"] = x
+        c.props["Y"] = y
+        if w is not None:
+            c.props["Width"] = w
+        if h is not None:
+            c.props["Height"] = h
+            c.h = h
+        if "Parent." in _p(c, "Width", ""):
+            raise SystemExit(f"gen_screen: {c.name}.Width = {_p(c, 'Width')} i et "
+                             f"galleri - bredden kan ikke placeres")
+        for k in _LAYOUT_ONLY:
+            c.props.pop(k, None)
+        if vis_all:
+            c.props["Visible"] = vis_all
+        out.append(c)
+        return
+    if "true" in _p(c, "LayoutWrap", "false"):
+        raise SystemExit(f"gen_screen: {c.name} ombryder i et galleri - kan ikke foldes ud")
+    cw = w if w is not None else _p(c, "Width", "")
+    ch = h if h is not None else _hv(c)
+    if not cw or "Parent." in cw:
+        raise SystemExit(f"gen_screen: {c.name} i et galleri har ingen bredde, "
+                         f"der kan regnes ud ({cw or 'ingen'})")
+    bg = _background(c, x, y, cw, ch, vis_all)
+    if bg is not None:
+        out.append(bg)
+    pt, pr, pb, pl = (_p(c, "Padding" + k) for k in ("Top", "Right", "Bottom", "Left"))
+    gap = _p(c, "LayoutGap", "0")
+    iw = f"({cw}) - {pl} - {pr}"
+    ih = f"({ch}) - {pt} - {pb}"
+    align = _p(c, "LayoutAlignItems", "LayoutAlignItems.Stretch").split(".")[-1]
+    justify = _p(c, "LayoutJustifyContent", "LayoutJustifyContent.Start").split(".")[-1]
+    horiz = "Horizontal" in _p(c, "LayoutDirection", "")
+    kids = c.children
+
+    def span(k):
+        return _p(k, "Width", "") if horiz else _hv(k)
+
+    def step(k, g):
+        t = f"({span(k)}) + {g}"
+        v = k.props.get("Visible")
+        return f"If({v}, {t}, 0)" if v else t
+
+    if justify not in ("Start", "Center"):
+        raise SystemExit(f"gen_screen: {c.name}: LayoutJustifyContent.{justify} "
+                         f"i et galleri er ikke understoettet")
+    offset = "0"
+    if justify == "Center":
+        total = " + ".join(step(k, gap) for k in kids) or "0"
+        offset = f"((({iw if horiz else ih}) - ({total} - {gap})) / 2)"
+    acc = []
+    for k in kids:
+        a = _p(k, "AlignInContainer", "")
+        a = a.split(".")[-1] if a and "SetByContainer" not in a else align
+        along = " + ".join([offset] + acc)
+        kw = kh = None
+        if horiz:
+            kx = f"{x} + {pl} + {along}"
+            if a == "Stretch":
+                ky, kh = f"{y} + {pt}", ih
+            elif a == "Center":
+                ky = f"{y} + {pt} + (({ih}) - ({_hv(k)})) / 2"
+            elif a == "End":
+                ky = f"{y} + {pt} + ({ih}) - ({_hv(k)})"
+            else:
+                ky = f"{y} + {pt}"
+        else:
+            ky = f"{y} + {pt} + {along}"
+            kwid = _p(k, "Width", "")
+            if a == "Stretch" or "Parent." in kwid or not kwid:
+                kx, kw = f"{x} + {pl}", iw
+            elif a == "Center":
+                kx = f"{x} + {pl} + (({iw}) - ({kwid})) / 2"
+            elif a == "End":
+                kx = f"{x} + {pl} + ({iw}) - ({kwid})"
+            else:
+                kx = f"{x} + {pl}"
+        if horiz and "Parent." in _p(k, "Width", ""):
+            raise SystemExit(f"gen_screen: {k.name}.Width = {_p(k, 'Width')} i en "
+                             f"vandret raekke i et galleri")
+        acc.append(step(k, gap))
+        _place(k, kx, ky, kw, kh, vis_all, out)
+
+
+def _gallery_checks(gal, siblings, row, leaves):
+    """De to maalinger, check_layout lavede paa raekkecontaineren (regel 26
+    og 29). Efter udfoldningen er der ingen raekke at maale paa, saa de
+    laves HER, hvor raekken stadig kendes - med check_layout's egen
+    evaluate(), saa tallene regnes paa samme maade som foer.
+
+    26: hver synlig celle slutter inden for skabelonens bredde.
+    29: en tabeloverskrift (soeskende med "Head" i navnet, kun ModernText,
+        lige saa mange boern som raekken) har de samme bredder som raekken."""
+    # tools/check_layout.py ved STIEN: hver build-mappe har en shim med
+    # samme navn, og den staar foerst paa sys.path.
+    import importlib.util
+    import layout_tokens as lay
+    spec = importlib.util.spec_from_file_location(
+        "_tools_check_layout", os.path.join(HERE, "check_layout.py"))
+    cl = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cl)
+    evaluate, WIDTHS = cl.evaluate, cl.WIDTHS
+    problems = []
+    widths = [w for w in WIDTHS if w >= lay.min_width("Tablet")]
+    for w in widths:
+        budget = evaluate(str(gal._tpl_w), w, 3, 4, 4) if gal._tpl_w else None
+        if budget is None:
+            break
+        for k in leaves:
+            vis = evaluate(k.props.get("Visible"), w, 3, 4, 4) if k.props.get("Visible") else True
+            if vis is False:
+                continue
+            x = evaluate(_p(k, "X"), w, 3, 4, 4)
+            kw = evaluate(_p(k, "Width", ""), w, 3, 4, 4)
+            if x is None or kw is None:
+                continue
+            if x + kw > budget + 0.5:
+                problems.append(f"[26] {gal.name}: {k.name} slutter ved {x + kw:.0f} px "
+                                f"i en skabelon paa {budget:.0f} px (App.Width={w})")
+                break
+    if row is not None:
+        for sib in siblings:
+            hk = sib.children
+            if ("Head" not in sib.name or sib.control != "GroupContainer" or not hk
+                    or len(hk) != len(row.children)
+                    or any(x.control != "ModernText" for x in hk)):
+                continue
+            for w in widths:
+                for hc, rc in zip(hk, row.children):
+                    hw = evaluate(_p(hc, "Width", ""), w, 3, 4, 4)
+                    rw = evaluate(_p(rc, "Width", ""), w, 3, 4, 4)
+                    if hw is not None and rw is not None and abs(hw - rw) >= 0.51:
+                        problems.append(f"[29] {sib.name} og {row.name} flugter ikke ved "
+                                        f"App.Width={w}: {hc.name} er {hw:.0f} px, "
+                                        f"{rc.name} er {rw:.0f} px")
+                        break
+            break
+    return problems
+
+
+def flatten_galleries(nodes, problems=None):
+    top = problems is None
+    problems = [] if top else problems
+    for c in nodes:
+        if c.control == "Gallery":
+            out, row = [], None
+            for k in c.children:
+                if k.control == "GroupContainer":
+                    row = row or k
+                    w = c._tpl_w if c._tpl_w is not None else _p(k, "Width", "")
+                    _place(k, "0", "0", w, _hv(k), None, out)
+                else:
+                    out.append(k)
+            problems += _gallery_checks(c, nodes, row, out)
+            c.children = out
+        if c.children:
+            flatten_galleries(c.children, problems)
+    if top and problems:
+        raise SystemExit("gen_screen: gallerierne passer ikke:\n  " + "\n  ".join(problems))
+
+
 def render_screen(screen_name, screen_props, children):
     resolve_templates(children)
+    flatten_galleries(children)
     lines = ["Screens:", f"  {screen_name}:", "    Properties:"]
     ppad = " " * 6
     cpad = " " * 10

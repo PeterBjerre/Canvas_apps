@@ -300,22 +300,31 @@ har gjort de fire apps forskellige indtil nu.
 
 | App | Kontrol | Placering |
 |---|---|---|
-| Masterdata Hub | `conMdTheme` | Toplinjen, yderst til højre |
-| Maintenance Plan | `conVhpTheme` | Hero, før "To the hub" |
-| Equipment | `conDomTheme` | Topbjælken, før "To the hub" |
-| Material | `conDomTheme` | Topbjælken, før "To the hub" |
-| Functional Location | `conFlTheme` | Topbjælken |
+| Masterdata Hub | `imgMdTheme` | Toplinjen, yderst til højre |
+| Maintenance Plan | `imgVhpTheme` | Hero, før "To the hub" |
+| Equipment | `imgDomTheme` | Topbjælken, før "To the hub" |
+| Material | `imgDomTheme` | Topbjælken, før "To the hub" |
+| Functional Location | `imgFlTheme` | Topbjælken |
 
-Den er et **segmenteret skift med sol og måne** (issue #37), ikke en knap
-med ordet "Dark": en pille (`GroupContainer`, `bg`-neutral, radius 18) med
-to `ModernButton` — `…Light` (☀, `UniChar(9728)`) og `…Dark` (☾,
-`UniChar(9790)`). Den valgte halvdel er `Primary` med kortets farve som
-base, altså en knop på et gråt spor; den anden er `Outline` uden kant.
-Hver halvdel sætter *sit* tema, og et tryk på den valgte gør intet.
-`AccessibleLabel` siger "Light theme (selected)" / "Switch to dark theme".
+Den er **ét `Image` med en SVG** (issue #37): en pille med `LIGHT` og en
+hvid knop med en sol, eller en mørk pille med en knop med en måne og
+`DARK` — som referencebilledet. `OnSelect` skifter tema, `TabIndex = 0`
+gør den tilgængelig fra tastaturet, og `AccessibleLabel` siger, hvilket
+tema der er slået til.
 
-Bredden er `build_helpers.THEME_TOGGLE_W` (78). En app, der selv regner sin
-bjælke (VH-plan, `build_hero.BW`), læser tallet derfra.
+To forsøg med containere og moderne knapper gik galt, fordi Fluent-temaet
+bestemte knappens fyld: først en mørk klat, så en hvid klat uden ikon.
+Et billede tegner præcis det, SVG'en siger. Formen (`Image` +
+`EncodeUrl` af en SVG) er den samme, som BIOSAP-appsenes logo bruger, så
+den er afprøvet i miljøet. Farverne er tokens (`C.'hex-…'`, se
+`HTML_TOKENS`), så den skifter med temaet.
+
+En PCF-komponent blev fravalgt: den kræver sin egen solution-import og
+kodekomponenter slået til i miljøet, og deploy-vejen synker kun
+`.pa.yaml`.
+
+Bredden er `build_helpers.THEME_TOGGLE_W` (104). En app, der selv regner
+sin bjælke (VH-plan, `build_hero.BW`), læser tallet derfra.
 
 **Bredderegnskabet skal følge med.** En knap mere i en række med fast
 bredde gør rækken bredere, og gør man ikke plads til den i den anden side,
