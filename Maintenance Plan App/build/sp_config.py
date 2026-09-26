@@ -235,6 +235,22 @@ def named_formulas():
                          "If(R.PackagesLoaded, \"\", \"   (packages missing)\")")])
         + ", Key)")
 
+    # Kun til drpVhpStrategy: samme form som colVhpPlanTypeOptions, { Key,
+    # Value }, og bygget direkte paa MD_Strategy. Issue #45: et --clean-
+    # deploy, hvor kontrollen oprettes forfra, gav "'Selected' isn't
+    # recognized" paa drpVhpStrategy - den eneste dropdown, hvis Items bar
+    # valgkolonner (SchedulingIndicator.Value, Hierarchical.Value) og en
+    # boolsk kolonne. drpVhpPlanType, med en ren { Key, Value }-tabel, gik
+    # igennem. Dropdownen skal kun bruge noeglen og teksten; resten af
+    # strategien slaas op i colVhpStrategies.
+    add("colVhpStrategyOptions",
+        "Sort(" + _forall(
+            L_STRATEGY,
+            [("Key", f"R.{C_STRATEGY_KEY}"),
+             ("Value", f"R.{C_STRATEGY_KEY} & \" - \" & R.StrategyName & "
+                       "If(R.PackagesLoaded, \"\", \"   (packages missing)\")")])
+        + ", Key)")
+
     add("colVhpStrategyPackages",
         _forall(L_PACKAGES, [("StrategyKey", "R.StrategyKey"),
                              ("PackageNo", "R.PackageNo"),

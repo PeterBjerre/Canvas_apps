@@ -142,6 +142,8 @@ App:
 
       colVhpStrategies = Sort(ForAll(MD_Strategy As R, { Key: R.StrategyKey, Name: R.StrategyName, SchedIndicator: R.SchedulingIndicator.Value, Hierarchical: R.Hierarchical.Value, PackagesLoaded: R.PackagesLoaded, Display: R.StrategyKey & " - " & R.StrategyName & If(R.PackagesLoaded, "", "   (packages missing)") }), Key);
 
+      colVhpStrategyOptions = Sort(ForAll(MD_Strategy As R, { Key: R.StrategyKey, Value: R.StrategyKey & " - " & R.StrategyName & If(R.PackagesLoaded, "", "   (packages missing)") }), Key);
+
       colVhpStrategyPackages = ForAll(MD_StrategyPackage As R, { StrategyKey: R.StrategyKey, PackageNo: R.PackageNo, ShortCode: R.ShortCode, CycleLength: R.CycleLength, CycleUnit: R.CycleUnit.Value, Hierarchy: R.Hierarchy, PackageText: R.PackageText });
 
       // Standardoperationerne, hentet een gang. colVhpTasklists deler dem op pr. vaerk i hukommelsen.
