@@ -465,19 +465,65 @@ _LAYOUT_ONLY = ("AlignInContainer", "LayoutMinWidth", "LayoutMaxWidth",
                 "FillPortions", "LayoutMinHeight", "LayoutMaxHeight")
 
 
+def _rounded_background(c, x, y, w, h, vis, fill, border, radius):
+    """Baggrund MED runde hjoerner (issue #45): to ModernText-lag.
+
+    Et klassisk Rectangle har ingen Radius, saa et kort med runde hjoerner
+    blev firkantet, naar det blev foldet ud i et galleri. ModernText har
+    Fill og Radius* - procestrinene i topbjaelken er bygget saadan - men
+    dens kant er ikke afproevet her. Kanten tegnes derfor som et ydre lag i
+    kantfarven og fyldet som et indre lag, der er trukket kantens bredde
+    ind. Ingen af dem har tekst; de er pynt, og teksten staar i boernene."""
+    t = c.props.get("BorderThickness", "0") if border else "0"
+    t = t if t not in ("", "0") else "0"
+
+    def layer(name, lx, ly, lw, lh, color, r):
+        props = {"X": lx, "Y": ly, "Width": lw, "Height": lh,
+                 "Text": "\"\"", "AccessibleLabel": "\"\"",
+                 "Fill": color,
+                 "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
+                 "PaddingTop": "0", "PaddingBottom": "0",
+                 "PaddingLeft": "0", "PaddingRight": "0"}
+        for k in ("TopLeft", "TopRight", "BottomLeft", "BottomRight"):
+            props["Radius" + k] = r
+        if vis:
+            props["Visible"] = vis
+        return Ctrl(name, "ModernText", props=props, h=lh)
+
+    if t == "0":
+        return [layer(c.name, x, y, w, h, fill or TRANSPARENT, radius)]
+    return [layer(c.name, x, y, w, h, border, radius),
+            layer(c.name + "Fill", f"{x} + {t}", f"{y} + {t}",
+                  f"({w}) - 2 * {t}", f"({h}) - 2 * {t}",
+                  fill or TRANSPARENT, f"Max(0, {radius} - {t})")]
+
+
 def _background(c, x, y, w, h, vis):
+    """Baggrundslagene for en udfoldet container - en liste, evt. tom."""
     fill = c.props.get("Fill")
     border = c.props.get("BorderColor")
     if not fill and not border:
-        return None
+        return []
+    radius = _p(c, "RadiusTopLeft", "0")
+    if radius not in ("", "0"):
+        return _rounded_background(c, x, y, w, h, vis, fill, border, radius)
     props = {"X": x, "Y": y, "Width": w, "Height": h,
              "Fill": fill or TRANSPARENT,
              "BorderColor": border or TRANSPARENT,
              "BorderThickness": c.props.get("BorderThickness", "0"),
-             "BorderStyle": ("BorderStyle.Solid" if border else "BorderStyle.None")}
+             "BorderStyle": ("BorderStyle.Solid" if border else "BorderStyle.None"),
+             # Ren pynt (issue #45). En figur i et galleri faar
+             # OnSelect = Select(Parent) af Studio og er dermed "interaktiv"
+             # for tilgaengelighedstjekket: det meldte conVhpItemCard for
+             # manglende AccessibleLabel og manglende tab stop. Uden OnSelect,
+             # med TabIndex -1 og en tom etiket er den et billede, som
+             # skaermlaeseren springer over - teksten staar i boernene.
+             "OnSelect": "false",
+             "TabIndex": "-1",
+             "AccessibleLabel": "\"\""}
     if vis:
         props["Visible"] = vis
-    return Ctrl(c.name, "Rectangle", props=props, h=h)
+    return [Ctrl(c.name, "Rectangle", props=props, h=h)]
 
 
 def _place(c, x, y, w, h, vis, out):
@@ -508,9 +554,7 @@ def _place(c, x, y, w, h, vis, out):
     if not cw or "Parent." in cw:
         raise SystemExit(f"gen_screen: {c.name} i et galleri har ingen bredde, "
                          f"der kan regnes ud ({cw or 'ingen'})")
-    bg = _background(c, x, y, cw, ch, vis_all)
-    if bg is not None:
-        out.append(bg)
+    out.extend(_background(c, x, y, cw, ch, vis_all))
     pt, pr, pb, pl = (_p(c, "Padding" + k) for k in ("Top", "Right", "Bottom", "Left"))
     gap = _p(c, "LayoutGap", "0")
     iw = f"({cw}) - {pl} - {pr}"
