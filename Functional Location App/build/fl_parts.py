@@ -15,7 +15,7 @@ Repoets regel er, at en del, der kun passer til een app, skrives i dens
 EGEN build-mappe (SKILL.md, "Hvordan en af dem afviger", punkt 2). Det er
 det, filen her er. De faelles ting bruges, som de er: rammen og bjaelken
 (build_helpers.app_frame / top_bar), kortene, felterne og knapperne, temaet
-(theme_button), alle farver (design_tokens) og alle breakpoints
+(tools/side_nav.py), alle farver (design_tokens) og alle breakpoints
 (layout_tokens). Ingen farve og intet breakpoint staar her.
 
 Kolonnerne i tabellerne er HTML-sidens (functional-location.html:62-70 og
@@ -27,10 +27,10 @@ import fl_save as S
 from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED, C_WHITE,
                         C_PRIMARY, C_TRANSPARENT, C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY,
                         C_BORDER_OK, C_BORDER_ERROR, C_INVALID_FG, C_WARN_FG, C_VALID_FG)
-from design_tokens import theme_query, ref_hex
+from design_tokens import ref_hex
 from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE, at_least
 from build_helpers import (text_ctrl, group, button, text_input, dropdown, card,
-                           pin_widths, top_bar, grow, theme_button, button_row, badge)
+                           pin_widths, top_bar, grow, button_row, badge)
 
 # Indsendt = laast (FL69).
 DM_EDIT = 'If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)'
@@ -104,12 +104,9 @@ def build_bar():
     count = badge("txtFlCount", COUNTS, width=220)
     verify = button("btnFlVerify", '"Verify"', V.verify_fx(), primary=True, width=100)
     export = button("btnFlExport", '"Export JSON"', S.export_fx(), width=120)
-    theme = theme_button("imgFlTheme")
-    back = button("btnFlBack", '"To the hub"',
-                  f'Launch("{cfg.HUB_URL}" & {theme_query("?")}, {{ }}, LaunchTarget.Replace)',
-                  width=120)
+    # Temaskiftet og vejen til hubben staar i sidebaren (tools/side_nav.py).
     bar = top_bar("Fl", f'"{cfg.TITLE}"', f'"{cfg.SUBTITLE}"',
-                  [count, verify, export, theme, back])
+                  [count, verify, export])
     count.vis = at_least("Desktop")
     return bar
 
@@ -132,7 +129,9 @@ V_MID = ("Kks", "Cls")
 V_FIXED = sum(w for _n, _l, w in V_COLS) + GAP * (len(V_COLS) - 1)
 V_SMALL = V_FIXED - sum(w + GAP for n, _l, w in V_COLS if n in V_MID)
 V_SHOW_MID = f"({ROWS_W}) >= {V_FIXED} + 160"
-V_VAL_W = f"Max(120, ({ROWS_W}) - If({V_SHOW_MID}, {V_FIXED}, {V_SMALL}))"
+# Mindst 64: ved 720 px er der 56 px mindre end foer - sidebaren staar
+# til venstre (tools/side_nav.py).
+V_VAL_W = f"Max(64, ({ROWS_W}) - If({V_SHOW_MID}, {V_FIXED}, {V_SMALL}))"
 ROW_H = 44
 GAL_MAX = 12
 
@@ -237,7 +236,7 @@ C_MID = ("Str", "Cls")
 C_FIXED = sum(w for _n, _l, w in C_COLS) + GAP * (len(C_COLS) - 1)
 C_SMALL = C_FIXED - sum(w + GAP for n, _l, w in C_COLS if n in C_MID)
 C_SHOW_MID = f"({ROWS_W}) >= {C_FIXED} + 160"
-C_INFO_W = f"Max(120, ({ROWS_W}) - If({C_SHOW_MID}, {C_FIXED}, {C_SMALL}))"
+C_INFO_W = f"Max(64, ({ROWS_W}) - If({C_SHOW_MID}, {C_FIXED}, {C_SMALL}))"
 
 # Faneindholdet: ALL = alle klasser, sorteret paa klasse og saa FL (renderClassTabs
 # :1661-1664); en klasse = dens raekker sorteret paa FL (:1487).

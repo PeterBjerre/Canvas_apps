@@ -3,11 +3,8 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED,
                         C_PRIMARY, C_WHITE, C_NEUTRAL_BG, C_INFO_FG, SHELL_W)
-from build_helpers import (text_ctrl, group, button, theme_button, help_toggle, top_bar,
-                           THEME_TOGGLE_W)
-from design_tokens import theme_query
+from build_helpers import text_ctrl, group, button, top_bar
 from layout_tokens import at_least
-import sp_config as cfg
 
 # Topbjaelken er ALT, der er tilbage af hero-kortet.
 #
@@ -15,16 +12,22 @@ import sp_config as cfg
 # statuslinje, "* Required" og "Show field help". Det er forenklet:
 #
 #   procestrin        -> under titlen i topbjaelken (i stedet for undertitlen)
-#   Show field help   -> EEN Help-knap i topbjaelken. Den slaar baade
+#   Show field help   -> EEN Help-kontakt i sidebaren. Den slaar baade
 #   + de fire ? Help     feltforklaringerne og sektionernes hjaelpepaneler
 #                        til og fra (varVhpShowHints).
 #   * Required        -> Plan Header-kortet, ved siden af Step 1
 #   beskrivelse       -> slettet
 #   statuslinje       -> slettet (txtVhpRuntimeInfo)
-BW = {"imgVhpHelp": THEME_TOGGLE_W, "imgVhpTheme": THEME_TOGGLE_W, "btnVhpBackToHub": 120,
-      "btnVhpValidate": 110, "btnVhpExport": 130}
+BW = {"btnVhpValidate": 110, "btnVhpExport": 130}
 BAR_GAP = 10
-NARROW_HIDE = ("imgVhpTheme", "btnVhpExport")
+NARROW_HIDE = ("btnVhpExport",)
+
+# EEN hjaelpekontakt. Foer var der fem: "Show field help" i heroen og en
+# "? Help" i hver af de fire sektioner. De slaar nu alle det samme til.
+# Den staar i sidebarens fod ved temakontakten (tools/side_nav.py) - se
+# assemble_screen.py.
+HELP_ON = "IfError(varVhpShowHints, false)"
+HELP_ACTION = f"Set(varVhpShowHints, !{HELP_ON})"
 
 # De fem procestrin. Staar paa een linje under titlen, naar der er plads -
 # ellers staar undertitlen der i stedet. Aldrig to linjer: bjaelken har en
@@ -215,27 +218,9 @@ def _actions():
         ),
         primary=False, width=BW["btnVhpExport"], height=36)
 
-    # Tilbage til hubben. De to domaeneapps har den; VH-plan havde ingen vej
-    # tilbage overhovedet - man skulle bruge browserens tilbageknap eller
-    # kende URL'en.
-    # Temaet foelger med tilbage. Uden det ville hubben skifte farve, fordi
-    # brugeren gik retur - SaveData-lageret er isoleret pr. app-id.
-    btnHub = button(
-        "btnVhpBackToHub", "\"To the hub\"",
-        f'Launch("{cfg.HUB_URL}" & {theme_query("?")}, {{ }}, LaunchTarget.Replace)',
-        primary=False, width=BW["btnVhpBackToHub"], height=36)
-
-    # Samme knap som i de tre andre apps - se build_helpers.theme_button.
-    btnTheme = theme_button("imgVhpTheme")
-
-    # EEN hjaelpeknap. Foer var der fem: "Show field help" i heroen og en
-    # "? Help" i hver af de fire sektioner. De slaar nu alle det samme til.
-    # Den er en kontakt magen til temaknappen ved siden af - se
-    # build_helpers.help_toggle.
-    on = "IfError(varVhpShowHints, false)"
-    btnHelp = help_toggle("imgVhpHelp", on, f"Set(varVhpShowHints, !{on})")
-
-    return [btnHelp, btnTheme, btnHub, btnValidate, btnExport]
+    # Help, tema og vejen til hubben staar i sidebaren - se HELP_ON og
+    # tools/side_nav.py.
+    return [btnValidate, btnExport]
 
 
 def _steps():

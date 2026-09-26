@@ -13,6 +13,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from gen_screen import render_screen, C_APP_BG, OUT_DIR
 from build_helpers import app_frame
+from side_nav import side_nav
 from build_hub import build_bar, build_tiles, build_filters, build_list
 
 
@@ -20,7 +21,7 @@ def build_screen():
     # RAMMEN: bjaelken i en header, der ikke scroller, og resten i en
     # krop, der goer. Se build_helpers.app_frame.
     root = app_frame("Md", build_bar(), [build_tiles(), build_filters(), build_list()])
-    return render_screen("ScreenMdHub", {"Fill": C_APP_BG}, [root])
+    return render_screen("ScreenMdHub", {"Fill": C_APP_BG}, [root, *side_nav("Md", "hub")])
 
 
 def main():

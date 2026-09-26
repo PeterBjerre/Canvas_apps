@@ -146,7 +146,8 @@ def rank_for(width):
 #
 # Alle fire skaerme har samme ramme (build_helpers.app_frame):
 #
-#     con<X>Root     lodret, Parent.Width x Parent.Height, scroller IKKE
+#     con<X>Root     lodret, (Parent.Width - NAV_W) x Parent.Height, X = NAV_W,
+#                    scroller IKKE
 #       con<X>Header   fast hoejde - bjaelken. Scroller aldrig vaek, og
 #                      dens hoejde afhaenger kun af App.Width.
 #       con<X>Body     FillPortions = 1, LayoutOverflowY = Scroll. Kortene
@@ -200,7 +201,17 @@ GALLERY_RESERVE = 40
 # Afrunding af broekdele og en kant paa 1 px maa ikke kunne vaelte den.
 FIT_SLACK = 6
 SHELL_INSET = PAGE_PAD_L + PAGE_PAD_R + SCROLLBAR_W + FIT_SLACK
-SHELL_W = "(App.Width - %d)" % SHELL_INSET
+
+# SIDEBAREN (tools/side_nav.py) staar til venstre for rammen i alle fem
+# apps. Lukket er den NAV_W bred, og rammen starter dér - X = NAV_W,
+# Width = Parent.Width - NAV_W. Aabnet er den NAV_W_OPEN og ligger OVEN
+# PAA indholdet som i HTML-siden (shell.css: "Expands as an overlay so the
+# workspace never reflows"). Derfor indgaar kun den LUKKEDE bredde i
+# SHELL_W: at aabne sidebaren flytter ingenting.
+NAV_W = 56
+NAV_W_OPEN = 232
+
+SHELL_W = "(App.Width - %d)" % (NAV_W + SHELL_INSET)
 
 # Top og bund. Bunden i kroppen er stor nok til, at det sidste kort ikke
 # ligger klos op ad kanten, naar man har scrollet helt ned.

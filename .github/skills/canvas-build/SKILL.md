@@ -51,7 +51,7 @@ Skal en farve bruges inde i en **HTML-streng** (`HtmlViewer`), så brug
 kan derfor ikke glide fra dem.
 
 Temaknappen er `build_helpers.theme_button()` og er **den samme kontrol i
-alle fire apps**. Byg ikke en ny.
+alle apps**. Den står i sidebarens fod (`tools/side_nav.py`). Byg ikke en ny.
 
 Det hele står i `docs/26-designtokens.md`, inkl. hvorfor farverne ikke kan
 ligge i miljøvariabler, og hvordan valget huskes.
@@ -60,7 +60,8 @@ ligge i miljøvariabler, og hvordan valget huskes.
 
 **Ingen skærm må sammenligne `App.Width` med et tal.** `check_layout.py`
 regel 8c stopper byggeriet. Aritmetik er fint — `SHELL_W` *er*
-`(App.Width - 64)` — det er kun **sammenligningen**, der er en beslutning.
+`(App.Width - 120)` (sidebaren 56 + rammen 64) — det er kun
+**sammenligningen**, der er en beslutning.
 
 Alle breakpoints står i `tools/layout_tokens.py` og bliver til to
 navngivne formler i `App.Formulas`:
@@ -151,6 +152,23 @@ alle tre er nu spærret af byggeriet. Hele forklaringen står i
    række (`varDomDetailsId`, `varDomDocsId`). Rækken har fem knapper:
    Edit, Details, Docs, Copy, Delete.
 
+### Sidebaren
+
+Alle fem apps har **den samme sidebar** til venstre: `tools/side_nav.py`,
+efter HTML-sidens navigationsskinne (`html/shell.js` / `shell.css`). Logo,
+en knap der åbner og lukker den, et punkt pr. app (den, man står i, er
+markeret) og en fod med **Help**-kontakten (kun VH-plan) og **temaskiftet**.
+
+- Lukket er den `NAV_W` = 56 px, og rammen starter dér: `con<X>Root` har
+  `X = 56`, `Width = Parent.Width - 56`. Regel 23 kræver præcis det.
+- Åbnet (`gblNavOpen`) er den `NAV_W_OPEN` = 232 px og ligger **oven på**
+  indholdet, som i HTML-siden. Derfor regner `SHELL_W` kun med den lukkede
+  bredde, og intet i rammen flytter sig, når den åbnes.
+- Den står i skærmens `Children` **lige efter rammen** og før popupperne:
+  `[root, *side_nav(prefix, app, ...), backdrop, popups...]`.
+- Navigation er `Launch(url & ?theme=..., {}, LaunchTarget.Replace)`. Derfor
+  har topbjælkerne ikke længere "To the hub".
+
 | Du vil … | Gør |
 |---|---|
 | Tilføje en sektion | Læg kortet i listen til `app_frame(...)` |
@@ -173,6 +191,7 @@ alle tre er nu spærret af byggeriet. Hele forklaringen står i
 ```
 tools/gen_screen.py      DSL, højde-algebra, C_*-navnene der peger på tokens
 tools/build_helpers.py   byggeklodser: card, group, button_row, inputs, theme_button
+tools/side_nav.py        sidebaren - den samme i alle fem apps
 tools/check_layout.py    layout-tjekket
 tools/build_domain.py    Equipments og Materials' fælles skærm
 tools/attflows.py        flow-kontrakten for dokumenter
