@@ -808,6 +808,13 @@ vises, så mistænk kontrollens eget filter før dine egne formler.**
 
 ## Navigation mellem apps: `LaunchTarget.Replace`
 
+> **Den samlede app (`BIO SAP App/`) er undtagelsen.** Dér er domænerne
+> skærme, og navigationen er `Navigate()`. Dens bygger sætter
+> `side_nav.SCREENS` og `build_hub.NEW_ACTION`/`OPEN_ACTION`. Uden dem
+> (de fem enkelte apps) gælder alt nedenfor uændret. Ret aldrig et domæne
+> i den samlede apps `build/`: den har ingen skærmbyggere, kun
+> kompositionen. Se `BIO SAP App/README.md`.
+
 De fem domæneapps er selvstændige apps, ikke skærme i hubben. Navigation
 mellem dem er derfor `Launch`, ikke `Navigate` — og den skal ske i den
 fane, brugeren står i:

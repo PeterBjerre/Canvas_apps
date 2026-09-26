@@ -202,3 +202,25 @@ domæner i samme session, falder argumentet, og så er en monolit med
 lazy-loadede skærme bedre. Det kan måles: Power Platform-analytics viser
 sessionslængde og skift pr. session. Tag beslutningen på de tal efter et
 kvartal frem for på en fornemmelse.
+
+### Opdatering: sidebaren ændrede forudsætningen
+
+Med sidebaren i alle fem apps blev skift mellem domæner det vigtigste
+navigationsmønster i brugerfladen. Hvert klik i den er en kold start, og det,
+man var i gang med, forsvinder. Antagelsen i §1, *"Ingen springer mellem
+målepunkter og materialer i samme session"*, passer ikke længere med den
+brugerflade, appene har.
+
+Derfor bygges nu også en **samlet app til test**:
+[`BIO SAP App/`](../BIO%20SAP%20App/README.md). Den bruger de fem appers egne
+byggere og følger reglerne her, bare som skærme i stedet for apps:
+
+- **Én datakilde ved start.** `App.OnStart` henter intet, og hubben er
+  startskærm.
+- **Et domæne betales først, når det åbnes.** Domænets opstart kører i dets
+  skærms `OnVisible` og kun ved første besøg, *New request* eller *Open*.
+- **VH-planen er delt i to skærme**, så forsinket indlæsning kun bygger den
+  halvdel, man står i.
+
+Satellitterne bliver, indtil den samlede app er testet. Beslutningen tages på
+testen og på målingerne i §9, ikke på fornemmelsen.

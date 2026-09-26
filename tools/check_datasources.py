@@ -437,7 +437,8 @@ def main():
     prov_choices = provisioned_choices()
     screens = []
     for app in ("Maintenance Plan App", "Masterdata Hub",
-                "Equipment App", "Material App", "Functional Location App"):
+                "Equipment App", "Material App", "Functional Location App",
+                "BIO SAP App"):
         d = os.path.join(ROOT, app)
         if not os.path.isdir(d):
             continue

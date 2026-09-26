@@ -45,6 +45,11 @@ APPS = [
     ("Equipment App",        ["generate_app_onstart.py", "assemble_screen.py"]),
     ("Material App",         ["generate_app_onstart.py", "assemble_screen.py"]),
     ("Functional Location App", ["generate_app_onstart.py", "assemble_screen.py"]),
+    # DEN SAMLEDE APP - de fem ovenfor som skaerme i een app. SIDST, fordi
+    # den bygges af deres byggere og laeser deres App.pa.yaml.
+    # generate_app.py foerst: den koerer de fem appers generatorer igen, og
+    # skaermene laeser deres OnStart. Se BIO SAP App/build/combined.py.
+    ("BIO SAP App",          ["generate_app.py", "build_screens.py", "check_combined.py"]),
 ]
 
 # EQUIPMENTS OG MATERIALS MAA AFVIGE
@@ -167,7 +172,8 @@ def pick_apps(which):
         return APPS
     alias = {"vhplan": "Maintenance Plan App", "hub": "Masterdata Hub",
              "equipment": "Equipment App", "material": "Material App",
-             "functionallocation": "Functional Location App"}
+             "functionallocation": "Functional Location App",
+             "biosap": "BIO SAP App"}
     want = alias.get(which.lower(), which)
     hit = [(a, s) for a, s in APPS if a.lower() == want.lower()]
     if not hit:
