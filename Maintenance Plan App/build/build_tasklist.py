@@ -478,7 +478,7 @@ def _attachments_pane():
         "Width": "30",
     }, h=24)
     txtName = text_ctrl("txtVhpAttName", "ThisItem.FileName", size=13, height=30,
-                        width=260, wrap="false")
+                        width=220, wrap="false")
     txtScope = text_ctrl(
         "txtVhpAttScope",
         (
@@ -487,7 +487,7 @@ def _attachments_pane():
             "    \"Whole item\",\n"
             "    \"Operations: \" & Substitute(Mid(ThisItem.OperationsKey, 2), \";\", \" \")\n"
             ")"
-        ), size=12, color=C_MUTED, height=30, width=240, wrap="false")
+        ), size=12, color=C_MUTED, height=30, width=200, wrap="false")
 
     opsGal = Ctrl("galVhpAttOps", "Gallery", variant="Horizontal", props={
         "AccessibleLabel": '"Operations for this document"',

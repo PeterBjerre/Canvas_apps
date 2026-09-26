@@ -19,8 +19,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_PRIM
                         C_ON_DOMAIN,
                         C_INFO_FG, C_INFO_BG, C_NEUTRAL_BG, C_DIVIDER, C_TRANSPARENT,
                         C_APP_BG, FONT, SHELL_W)
-from build_helpers import (text_ctrl, group, button, card, theme_button,
-                           flow_row, top_bar)
+from build_helpers import text_ctrl, group, button, card, flow_row, top_bar
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, APP_TARGET
 from design_tokens import theme_query
 from layout_tokens import if_below, SCROLLBAR_W, GALLERY_RESERVE
@@ -112,13 +111,11 @@ def build_bar():
     seg = group("conMdSeg", [_seg("btnMdViewMine", "My requests", "mine"),
                              _seg("btnMdViewQueue", "Queue", "queue")],
                 direction="Horizontal", gap=0, height=34, align_items="Center", width=336)
-    # Temaknappen staar YDERST TIL HOEJRE og med engelsk tekst som resten
-    # af hubben. Den er den samme kontrol som i de tre satellitter - se
-    # build_helpers.theme_button.
-    theme = theme_button("imgMdTheme")
+    # Temaknappen staar i sidebaren, som i de andre apps - se
+    # tools/side_nav.py.
     return top_bar("Md", '"Masterdata"',
                    '"SAP requests - " & If(gblView = "mine", gblMe, "queue, whole department")',
-                   [seg, theme], narrow_hide=("imgMdTheme",))
+                   [seg])
 
 
 # ---------------------------------------------------------------------------

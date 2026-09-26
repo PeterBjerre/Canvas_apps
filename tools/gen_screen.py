@@ -350,6 +350,9 @@ def resolve_templates(nodes, parent=None, parent_inner=None, uncertain=False):
             unc = False                # et tal, vi selv har skrevet
         elif w in ("Parent.Width", "App.Width") and parent is None:
             cw = "App.Width"
+        elif parent is None and w.startswith("Parent.Width"):
+            # Rammen: Parent.Width - NAV_W (sidebaren staar til venstre).
+            cw = "(%s)" % w.replace("Parent.Width", "App.Width")
         elif w == "Parent.Width":
             cw = parent_inner          # nedre graense: pladsen, ikke egenskaben
             unc = True

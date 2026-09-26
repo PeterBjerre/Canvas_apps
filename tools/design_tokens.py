@@ -495,7 +495,10 @@ HTML_TOKENS = ("text-primary", "text-muted",
                "state-neutral-bg", "bg-surface", "bg-app", "state-warn-fg",
                "border-default",
                # Hjaelpekontakten (build_helpers.help_toggle) - samme form.
-               "state-info-fg", "state-info-bg")
+               "state-info-fg", "state-info-bg",
+               # Sidebaren (tools/side_nav.py): logoet og markeringen af
+               # den app, man staar i.
+               "color-brand-primary", "text-on-primary")
 
 
 def _hex(rgba):

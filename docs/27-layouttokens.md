@@ -202,7 +202,8 @@ som regel interpoleret ind i en f-streng, så en vagt, der læser
 Python-kildens strengkonstanter, ser hverken bredden eller tallet. I den
 byggede YAML står begge dele.
 
-Aritmetik er i orden — `SHELL_W` *er* `(App.Width - 64)`. Det er kun
+Aritmetik er i orden — `SHELL_W` *er* `(App.Width - 120)` (sidebaren 56 +
+rammen 64). Det er kun
 **sammenligningen**, der er en beslutning om enhedsklasse.
 
 Efterprøvet mod en indsat overtrædelse: reglen fyrer.
