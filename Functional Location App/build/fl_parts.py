@@ -104,7 +104,7 @@ def build_bar():
     count = badge("txtFlCount", COUNTS, width=220)
     verify = button("btnFlVerify", '"Verify"', V.verify_fx(), primary=True, width=100)
     export = button("btnFlExport", '"Export JSON"', S.export_fx(), width=120)
-    theme = theme_button("btnFlTheme")
+    theme = theme_button("conFlTheme")
     back = button("btnFlBack", '"To the hub"',
                   f'Launch("{cfg.HUB_URL}" & {theme_query("?")}, {{ }}, LaunchTarget.Replace)',
                   width=120)

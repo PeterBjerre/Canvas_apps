@@ -3,7 +3,7 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED,
                         C_PRIMARY, C_WHITE, C_NEUTRAL_BG, C_INFO_FG, SHELL_W)
-from build_helpers import text_ctrl, group, button, theme_button, top_bar
+from build_helpers import text_ctrl, group, button, theme_button, top_bar, THEME_TOGGLE_W
 from design_tokens import theme_query
 from layout_tokens import at_least
 import sp_config as cfg
@@ -20,10 +20,10 @@ import sp_config as cfg
 #   * Required        -> Plan Header-kortet, ved siden af Step 1
 #   beskrivelse       -> slettet
 #   statuslinje       -> slettet (txtVhpRuntimeInfo)
-BW = {"btnVhpHelp": 100, "btnVhpTheme": 92, "btnVhpBackToHub": 120,
+BW = {"btnVhpHelp": 100, "conVhpTheme": THEME_TOGGLE_W, "btnVhpBackToHub": 120,
       "btnVhpValidate": 110, "btnVhpExport": 130}
 BAR_GAP = 10
-NARROW_HIDE = ("btnVhpTheme", "btnVhpExport")
+NARROW_HIDE = ("conVhpTheme", "btnVhpExport")
 
 # De fem procestrin. Staar paa een linje under titlen, naar der er plads -
 # ellers staar undertitlen der i stedet. Aldrig to linjer: bjaelken har en
@@ -225,7 +225,7 @@ def _actions():
         primary=False, width=BW["btnVhpBackToHub"], height=36)
 
     # Samme knap som i de tre andre apps - se build_helpers.theme_button.
-    btnTheme = theme_button("btnVhpTheme", width=BW["btnVhpTheme"], height=36)
+    btnTheme = theme_button("conVhpTheme")
 
     # EEN hjaelpeknap. Foer var der fem: "Show field help" i heroen og en
     # "? Help" i hver af de fire sektioner. De slaar nu alle det samme til.

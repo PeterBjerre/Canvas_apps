@@ -298,17 +298,24 @@ lokalt og gælder næste gang, appen åbnes direkte.
 knap, der ser forskellig ud fra app til app, er præcis den slags drift, der
 har gjort de fire apps forskellige indtil nu.
 
-| App | Kontrol | Placering | Tekst |
-|---|---|---|---|
-| Masterdata Hub | `btnMdTheme` | Toplinjen, yderst til højre | `Dark` / `Light` |
-| Maintenance Plan | `btnVhpTheme` | Hero, før "Til hubben" | `Moerk` / `Lys` |
-| Equipment | `btnDomTheme` | Topbjælken, før "Til hubben" | `Moerk` / `Lys` |
-| Material | `btnDomTheme` | Topbjælken, før "Til hubben" | `Moerk` / `Lys` |
+| App | Kontrol | Placering |
+|---|---|---|
+| Masterdata Hub | `conMdTheme` | Toplinjen, yderst til højre |
+| Maintenance Plan | `conVhpTheme` | Hero, før "To the hub" |
+| Equipment | `conDomTheme` | Topbjælken, før "To the hub" |
+| Material | `conDomTheme` | Topbjælken, før "To the hub" |
+| Functional Location | `conFlTheme` | Topbjælken |
 
-Teksten siger **hvad der sker**, ikke hvad der er: står appen lyst, står
-der "Mørk" på knappen. Samme konvention som Windows og browsere — en knap
-er en handling. `AccessibleLabel` siger det udførligt ("Skift til mørkt
-tema"), fordi ét ord uden knappens udseende ikke er nok for en skærmlæser.
+Den er et **segmenteret skift med sol og måne** (issue #37), ikke en knap
+med ordet "Dark": en pille (`GroupContainer`, `bg`-neutral, radius 18) med
+to `ModernButton` — `…Light` (☀, `UniChar(9728)`) og `…Dark` (☾,
+`UniChar(9790)`). Den valgte halvdel er `Primary` med kortets farve som
+base, altså en knop på et gråt spor; den anden er `Outline` uden kant.
+Hver halvdel sætter *sit* tema, og et tryk på den valgte gør intet.
+`AccessibleLabel` siger "Light theme (selected)" / "Switch to dark theme".
+
+Bredden er `build_helpers.THEME_TOGGLE_W` (78). En app, der selv regner sin
+bjælke (VH-plan, `build_hero.BW`), læser tallet derfra.
 
 **Bredderegnskabet skal følge med.** En knap mere i en række med fast
 bredde gør rækken bredere, og gør man ikke plads til den i den anden side,
