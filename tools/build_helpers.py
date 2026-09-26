@@ -241,7 +241,11 @@ THEME_TOGGLE_H = THEME_KNOB_H + 2 * THEME_PAD               # 36
 
 # Sol og maane som UniChar, ikke som tegn i kildeteksten: saa kan hverken
 # en editor, en kodetabel eller sprogtjekket lave dem om.
-SUN = "UniChar(9728)"       # U+2600 BLACK SUN WITH RAYS
+#
+# U+263C og ikke U+2600: den fyldte sol blev tegnet som en lille prik i
+# Studio (issue #37, skaermbillede). Den aabne sol med straaler er lige saa
+# stor som maanen i Segoe UI Symbol.
+SUN = "UniChar(9788)"       # U+263C WHITE SUN WITH RAYS
 MOON = "UniChar(9790)"      # U+263E LAST QUARTER MOON
 
 
@@ -263,44 +267,48 @@ def theme_button(name="conThemeToggle"):
     med sol og maane er den form, Windows, macOS og de fleste web-apps
     bruger i dag - og det valgte tema kan ses uden at laese noget.
 
-    HVORFOR IKKE ModernToggle
-    -------------------------
-    Den har ingen ikoner i sporet, og dens farver kommer fra Fluent-temaet,
-    som appen ikke saetter - samme fejl som ButtonAppearance.Secondary
-    (se button()). Pillen her er en GroupContainer og to ModernButton,
-    begge kontroltyper der allerede er bevist i alle apps, og alle farver
-    er tokens.
+    KNOPPEN ER EN CONTAINER, IKKE KNAPPENS FYLD
+    -------------------------------------------
+    Foerste udgave gav den valgte knap ButtonAppearance.Primary med
+    BasePaletteColor = kortets farve. Fluent laver en PALET af den farve og
+    fylder knappen med en af de moerke trin - i Studio blev knoppen en
+    moerkegraa klat med solen som en prik i midten. Den moderne knap har
+    ingen Fill, saa den farve kan ikke styres.
 
-    Den valgte halvdel er Primary med kortets farve som base - en lys
-    "knop" paa et graat spor i lyst tema, en moerk knop i moerkt. Den
-    anden er Outline med gennemsigtig kant, altsaa kun et ikon. Dynamisk
-    Appearance er bevist af VH-planens hjaelpeknap.
+    Nu er hver halvdel en GroupContainer, hvis Fill er en token (kortets
+    farve, naar den er valgt, ellers gennemsigtig), og knappen inden i er
+    Outline uden kant - den har intet fyld selv, saa containerens ses.
+    Samme greb som alle sekundaere knapper i appen (se button()).
 
     Hver halvdel saetter SIT tema; et tryk paa den valgte goer intet. Det
-    er sadan et segmenteret skift opfoerer sig - ikke som en vippekontakt,
-    hvor et tryk paa "sol" kunne give maane.
+    er saadan et segmenteret skift opfoerer sig.
 
     Handlingen staar i tools/design_tokens.py - baade Set() og SaveData,
     saa valget ogsaa er der i morgen."""
     act = toggle_action()
+    r = str(THEME_KNOB_H // 2)
 
     def knob(suffix, glyph, is_on, is_off, label, glyph_color):
-        b = button(name + suffix, glyph, f"If({is_off},\n{act}\n)",
+        b = button(name + suffix + "Btn", glyph, f"If({is_off},\n{act}\n)",
                    width=THEME_KNOB_W, height=THEME_KNOB_H,
                    accessible=(f'If({is_on}, "{label} (selected)", '
                                f'"Switch to {label.lower()}")'))
-        b.props["Appearance"] = (f"If({is_on}, ButtonAppearance.Primary, "
-                                 f"ButtonAppearance.Outline)")
-        b.props["BasePaletteColor"] = C_CARD_BG
         b.props["BorderColor"] = C_TRANSPARENT
         b.props["BorderThickness"] = "0"
         b.props["Color"] = f"If({is_on}, {glyph_color}, {C_MUTED})"
-        b.props["Size"] = "16"
+        b.props["Size"] = "18"
+        b.props["FontWeight"] = "FontWeight.Normal"
         for k in ("RadiusBottomLeft", "RadiusBottomRight",
                   "RadiusTopLeft", "RadiusTopRight"):
-            b.props[k] = str(THEME_KNOB_H // 2)
+            b.props[k] = r
         b.props["LayoutMinWidth"] = str(THEME_KNOB_W)
-        return b
+        return group(name + suffix, [b], direction="Horizontal", gap=0,
+                     height=THEME_KNOB_H, width=THEME_KNOB_W,
+                     align_items="Center",
+                     fill=f"If({is_on}, {C_CARD_BG}, {C_TRANSPARENT})",
+                     border_color=f"If({is_on}, {C_CARD_BORDER}, {C_TRANSPARENT})",
+                     radius=THEME_KNOB_H // 2,
+                     layout_min_width=THEME_KNOB_W)
 
     light = knob("Light", SUN, f"!{DARK_VAR}", DARK_VAR, "Light theme", C_WARN_FG)
     dark = knob("Dark", MOON, DARK_VAR, f"!{DARK_VAR}", "Dark theme", C_PRIMARY)

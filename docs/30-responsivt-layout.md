@@ -242,6 +242,14 @@ På en tablet er der ikke plads til fem knapper **og** en læselig
 beskrivelse. Docs og Copy skjules derfor først — dokumenterne står også i
 detaljeruden — og derefter FILES- og de tre midterste kolonner.
 
+**Tredje gang (issue #37): ingen rækkecontainer i Equipment/Material.**
+Et deploy med `--clean` opretter galleriet på ny, og så gav Studio
+`conDomRow` **320 px** igen — ingen reserve kan dække det. Rækken er nu
+væk: celler og knapper er galleriets direkte børn med hver sin `X`, `Y`
+og `Width` (`domain_parts._place_row`). `X` regnes af cellerne før, og en
+skjult celle fylder 0. Der er ingen rækkebredde, Studio kan overskrive.
+VH-planens fire tabeller har stadig en rækkecontainer.
+
 `deploy_verify` ser bort fra `Width`/`Height` på et galleris øverste barn,
 fordi Studio ejer dem. Alt andet — også cellerne inde i rækken —
 sammenlignes stadig.
