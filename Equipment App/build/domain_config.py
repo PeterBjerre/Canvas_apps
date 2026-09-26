@@ -112,11 +112,11 @@ SECTIONS = [
         ("TypeDesignation", "Type designation", "text", None),
         ("SerialNumber", "Serial number", "text", None),
     ]),
+    # Func. loc. 1, Functional location 2 og Class data er fjernet (issue
+    # #37) - ligesom Long text bliver kolonnerne staaende i SharePoint. Nu
+    # fylder FL-soegningen (to celler), rum og placering netop een raekke.
     ("Where it sits", [
         ("FunctionalLocation", "Functional location", "text", None),
-        ("FunctionalLocation1", "Func. loc. 1", "text", None),
-        ("FunctionalLocation2", "Functional location 2", "text", None),
-        ("ClassData", "Class data", "text", None),
         ("RoomCoordinates", "Room coordinates", "text", None),
         ("Placement", "Placement text", "text", None),
     ]),
