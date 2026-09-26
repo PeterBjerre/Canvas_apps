@@ -39,6 +39,9 @@ HVAD DER ER ANDERLEDES
     en knap (">>" / "<<  Collapse"), der aabner og lukker.
   * Et klik uden for den aabne sidebar lukker den (et gennemsigtigt
     sloer bag den), saa den ikke skal lukkes med knappen.
+  * Lukket og aaben er TO containere med hver sin faste bredde: skinnen
+    (con<X>Nav) og panelet (con<X>NavOpen, Visible = gblNavOpen). Se
+    _column for hvorfor.
   * Kommandopaletten (Ctrl+K) og taethedsvalget er ikke med. De soeger i
     og aendrer HTML-sidens DOM; det har en canvas app ikke.
 
@@ -67,7 +70,6 @@ import env_config as env
 # Aaben eller lukket. Blank ved start = lukket. Den gemmes ikke: en
 # sidebar, der stod aaben fra sidst, ville ligge oven paa formularen.
 OPEN = "gblNavOpen"
-TOGGLE = f"Set({OPEN}, !{OPEN})"
 CLOSE = f"Set({OPEN}, false)"
 
 ITEM_H = 40
@@ -149,11 +151,7 @@ def _brand_svg(w, wordmark):
     return _svg(w, BRAND_H, body)
 
 
-def _width():
-    return f"If({OPEN}, {lay.NAV_W_OPEN}, {lay.NAV_W})"
-
-
-def _image(name, img, height, onselect, label, tooltip=None, hover=True):
+def _image(name, svg, width, height, onselect, label, tooltip=None, hover=True):
     t = TRANSPARENT
     props = {
         "AccessibleLabel": label,
@@ -164,21 +162,16 @@ def _image(name, img, height, onselect, label, tooltip=None, hover=True):
         "FocusedBorderThickness": "2",
         "Height": str(height),
         "HoverFill": C_MUTED_BG if hover else t,
-        "Image": img,
+        "Image": f'"data:image/svg+xml;utf8," & EncodeUrl({svg})',
         "ImagePosition": "ImagePosition.Fit",
         "OnSelect": onselect,
         "PressedFill": C_MUTED_BG if hover else t,
         "TabIndex": "0",
-        "Width": _width(),
+        "Width": str(width),
     }
     if tooltip:
         props["Tooltip"] = tooltip
     return Ctrl(name, "Image", props=props, h=height)
-
-
-def _data_uri(open_svg, closed_svg):
-    return (f'"data:image/svg+xml;utf8," & EncodeUrl(If({OPEN},\n'
-            f'    {open_svg},\n    {closed_svg}\n))')
 
 
 def _launch(key):
@@ -186,75 +179,92 @@ def _launch(key):
     return f'{CLOSE}; Launch("{url}" & {theme_query("?")}, {{ }}, LaunchTarget.Replace)'
 
 
-def side_nav(prefix, current, help_on=None, help_action=None):
-    """Sidebaren og sloeret bag den - i den raekkefoelge, de skal staa i
-    skaermens Children, LIGE EFTER rammen (build_helpers.app_frame):
+def _column(p, suffix, w, current, is_open, help_on, help_action):
+    """Een udgave af sidebaren: den lukkede skinne eller det aabne panel.
 
-        [root, *side_nav(...), popupper ...]
-
-    Popupperne og deres sloer staar efter, saa de ligger oven paa
-    sidebaren, ligesom de ligger oven paa resten.
-
-    current:     noeglen i canvas_apps.json for den app, man staar i.
-    help_on:     Power Fx-udtryk, sandt naar hjaelpen vises. Kun apps med
-                 hjaelp (VH-plan) giver det - de andre faar ingen kontakt.
-    help_action: OnSelect, der vender hjaelpen.
-    """
-    p = prefix
-    keys = [k for k, _, _ in ITEMS]
-    if current not in keys:
-        raise ValueError("side_nav: ukendt app '%s'. Kendte: %s" % (current, ", ".join(keys)))
-
-    W_OPEN, W = lay.NAV_W_OPEN, lay.NAV_W
+    ALLE BREDDER ER FASTE TAL. Den foerste udgave var EEN container med
+    Width = If(gblNavOpen, 232, 56). I Studio blev den ved med at vaere
+    57 px bred: billederne inden i skiftede til den aabne udgave, men
+    containeren klippede dem ved kanten, og panelet saa ud til at folde
+    sig ud BAG indholdet."""
     hub = current == "hub"
-    brand = _image(f"img{p}NavBrand",
-                   _data_uri(_brand_svg(W_OPEN, True), _brand_svg(W, False)),
-                   BRAND_H, CLOSE if hub else _launch("hub"),
+    n = lambda base: f"img{p}{base}{suffix}"
+    brand = _image(n("NavBrand"), _brand_svg(w, is_open), w, BRAND_H,
+                   CLOSE if hub else _launch("hub"),
                    '"BIO SAP - Masterdata Hub"', hover=False)
-    toggle = _image(f"img{p}NavToggle",
-                    _data_uri(_item_svg(W_OPEN, ICON_COLLAPSE, "Collapse", False),
-                              _item_svg(W, ICON_EXPAND, None, False)),
-                    ITEM_H, TOGGLE,
-                    f'If({OPEN}, "Collapse menu", "Expand menu")',
-                    tooltip=f'If({OPEN}, "", "Expand menu")')
+    if is_open:
+        toggle = _image(n("NavToggle"), _item_svg(w, ICON_COLLAPSE, "Collapse", False),
+                        w, ITEM_H, CLOSE, '"Collapse menu"')
+    else:
+        toggle = _image(n("NavToggle"), _item_svg(w, ICON_EXPAND, None, False),
+                        w, ITEM_H, f"Set({OPEN}, true)", '"Expand menu"',
+                        tooltip='"Expand menu"')
     items = []
     for key, label, icon in ITEMS:
         if not env.app_id(key):
             continue
         cur = key == current
         items.append(_image(
-            f"img{p}Nav{key[0].upper()}{key[1:]}",
-            _data_uri(_item_svg(W_OPEN, icon, label, cur), _item_svg(W, icon, None, cur)),
-            ITEM_H, CLOSE if cur else _launch(key),
+            n(f"Nav{key[0].upper()}{key[1:]}"),
+            _item_svg(w, icon, label if is_open else None, cur), w, ITEM_H,
+            CLOSE if cur else _launch(key),
             f'"{label}' + (' (current app)"' if cur else '"'),
-            tooltip=f'If({OPEN}, "", "{label}")', hover=not cur))
-    top = group(f"con{p}NavTop", [brand, toggle] + items, gap=2, width=_width(),
+            tooltip=None if is_open else f'"{label}"', hover=not cur))
+    top = group(f"con{p}NavTop{suffix}", [brand, toggle] + items, gap=2, width=w,
                 align_items="Start")
 
-    compact = f"!{OPEN}"
-    foot_kids = [group(f"con{p}NavRule", [], direction="Horizontal", height=1,
-                       width=f"If({OPEN}, {W_OPEN - 20}, {W - 20})", fill=C_DIVIDER)]
+    foot_kids = [group(f"con{p}NavRule{suffix}", [], direction="Horizontal", height=1,
+                       width=w - 20, fill=C_DIVIDER)]
     if help_on is not None:
-        foot_kids.append(help_toggle(f"img{p}Help", help_on, help_action, compact=compact))
-    foot_kids.append(theme_button(f"img{p}Theme", compact=compact))
-    # Knopperne er THEME_TOGGLE_H brede, naar skinnen er lukket - venstre
-    # polstring saa de staar midt i den.
-    foot = group(f"con{p}NavFoot", foot_kids, gap=10, width=_width(), align_items="Start",
-                 pad=(0, 0, 0, (W - THEME_TOGGLE_H) // 2))
+        foot_kids.append(help_toggle(n("Help"), help_on, help_action,
+                                     compact=not is_open))
+    foot_kids.append(theme_button(n("Theme"), compact=not is_open))
+    # Knopperne er THEME_TOGGLE_H brede i den lukkede skinne - venstre
+    # polstring saa de staar midt i den. Pillerne i panelet flugter med dem.
+    foot = group(f"con{p}NavFoot{suffix}", foot_kids, gap=10, width=w, align_items="Start",
+                 pad=(0, 0, 0, (lay.NAV_W - THEME_TOGGLE_H) // 2))
 
-    # Kanten til hoejre er containerens egen ramme. Den er skubbet 1 px ud
-    # over skaermens top, venstre og bund, saa kun hoejrekanten ses - og
-    # den falder paa den sidste pixel foer rammen (X = NAV_W).
-    nav = group(f"con{p}Nav", [top, foot], gap=12, height="App.Height + 2",
-                width=f"{_width()} + 1", fill=C_SURFACE, border_color=C_DIVIDER,
+    # Kanten til hoejre er containerens egen ramme, skubbet 1 px ud over
+    # skaermens top, venstre og bund, saa kun hoejrekanten ses.
+    col = group(f"con{p}Nav{suffix}", [top, foot], gap=12, height="App.Height + 2",
+                width=w + 1, fill=C_SURFACE, border_color=C_DIVIDER,
                 border_thickness=1, pad=(13, 0, 15, 0), align_items="Start",
-                justify="SpaceBetween")
-    nav.props["X"] = "-1"
-    nav.props["Y"] = "-1"
-    nav.props["DropShadow"] = f"If({OPEN}, DropShadow.Bold, DropShadow.None)"
+                justify="SpaceBetween",
+                drop_shadow="Bold" if is_open else "None",
+                visible=OPEN if is_open else None)
+    col.props["X"] = "-1"
+    col.props["Y"] = "-1"
+    return col
 
-    # Klik uden for den aabne sidebar lukker den. Gennemsigtigt: HTML-
-    # sidens aabne skinne daemper heller ikke indholdet, den har en skygge.
+
+def side_nav(prefix, current, help_on=None, help_action=None):
+    """Sidebaren. Returnerer (skinne, overlag) - de staar to steder i
+    skaermens Children:
+
+        [root, skinne, sloer og popupper ..., *overlag]
+
+    skinne:  den lukkede udgave (NAV_W). Lige efter rammen, saa popupper
+             og deres sloer ligger oven paa den som paa alt andet.
+    overlag: et gennemsigtigt sloer (klik = luk) og det aabne panel
+             (NAV_W_OPEN, Visible = gblNavOpen). SIDST paa skaermen: i en
+             .pa.yaml ligger det, der staar senere, oeverst - saa panelet
+             ligger oven paa rammen OG oven paa popupperne.
+
+    current:     noeglen i canvas_apps.json for den app, man staar i.
+    help_on:     Power Fx-udtryk, sandt naar hjaelpen vises. Kun apps med
+                 hjaelp (VH-plan) giver det - de andre faar ingen kontakt.
+    help_action: OnSelect, der vender hjaelpen.
+    """
+    keys = [k for k, _, _ in ITEMS]
+    if current not in keys:
+        raise ValueError("side_nav: ukendt app '%s'. Kendte: %s" % (current, ", ".join(keys)))
+
+    p = prefix
+    rail = _column(p, "", lay.NAV_W, current, False, help_on, help_action)
+    panel = _column(p, "Open", lay.NAV_W_OPEN, current, True, help_on, help_action)
+
+    # Klik uden for det aabne panel lukker det. Gennemsigtigt: HTML-sidens
+    # aabne skinne daemper heller ikke indholdet, den har en skygge.
     t = TRANSPARENT
     scrim = Ctrl(f"img{p}NavScrim", "Image", props={
         "AccessibleLabel": '"Close menu"',
@@ -270,4 +280,4 @@ def side_nav(prefix, current, help_on=None, help_action=None):
         "X": "0",
         "Y": "0",
     }, h="App.Height", vis=OPEN)
-    return [scrim, nav]
+    return rail, [scrim, panel]
