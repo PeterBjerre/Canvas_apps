@@ -493,7 +493,9 @@ HTML_TOKENS = ("text-primary", "text-muted",
                # Temaskiftet er en SVG (build_helpers.theme_button) - dens
                # farver er de samme tokens som resten af appen.
                "state-neutral-bg", "bg-surface", "bg-app", "state-warn-fg",
-               "border-default")
+               "border-default",
+               # Hjaelpekontakten (build_helpers.help_toggle) - samme form.
+               "state-info-fg", "state-info-bg")
 
 
 def _hex(rgba):
