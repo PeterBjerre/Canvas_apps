@@ -1126,7 +1126,11 @@ Screens:
                                     Color: |-
                                         =C.'text-primary'
                                     Default: |-
-                                        =LookUp(colVhpItems, ItemId = varVhpActiveItemId)
+                                        =LookUp(ForAll(
+                                            Sort(colVhpItems, ItemId) As I,
+                                            { ItemId: I.ItemId, Label: "Item " & I.ItemId & " - " &
+                                                If(IsBlank(I.ShortText), "no short text", I.ShortText) }
+                                        ), ItemId = varVhpActiveItemId)
                                     Fill: |-
                                         =C.'input-bg'
                                     Font: |-
@@ -1134,9 +1138,13 @@ Screens:
                                     Height: |-
                                         =36
                                     ItemDisplayText: |-
-                                        ="Item " & Text(ThisItem.ItemId) & " - " & Coalesce(ThisItem.ShortText, "no short text")
+                                        =ThisItem.Label
                                     Items: |-
-                                        =Sort(colVhpItems, ItemId)
+                                        =ForAll(
+                                            Sort(colVhpItems, ItemId) As I,
+                                            { ItemId: I.ItemId, Label: "Item " & I.ItemId & " - " &
+                                                If(IsBlank(I.ShortText), "no short text", I.ShortText) }
+                                        )
                                     LayoutMinWidth: |-
                                         =0
                                     OnChange: |-
