@@ -328,9 +328,18 @@ def build_fl_cells(cell_w):
                               direction="Vertical", gap=0, width=cell_w),
                         width=cell_w, fill_portions_formula="0")
 
-    drop = themed_dropdown("drpDomFl", "colDomFl",
+    # ITEMS HAR EN KOLONNE, DER HEDDER Value (issue #37)
+    #
+    # Her stod Items = colDomFl og Items.Value = Display. Studio lod ikke
+    # Items.Value staa: efter compile stod der Code, og deploy-tjekket
+    # meldte, at Studios trae ikke var det byggede. Classic/DropDown viser
+    # kolonnen Value, naar der er en - det er den, vaerksfeltet og
+    # statusfilteret bruger, og dem roerer Studio ikke. Code er med, saa
+    # Self.Selected.Code stadig er den gemte vaerdi.
+    drop = themed_dropdown("drpDomFl",
+                           "ForAll(colDomFl As F, { Value: F.Display, Code: F.Code })",
                            f"LookUp(colDomFl, Code = {_var(cfg.FL_FIELD)}).Display",
-                           value_col="Display", display_mode=DM_ROW,
+                           value_col="Value", display_mode=DM_ROW,
                            label='"Functional location"',
                            onchange=f"Set({_var(cfg.FL_FIELD)}, Self.Selected.Code)")
     select = field_cell("conDomFlSelect", "Functional location", drop,
@@ -929,8 +938,12 @@ SCOPE = (
 
 def _head_cell(i, label, width):
     w = MAIN_W if width == 0 else (ACT_W if i == LAST_COL else width)
+    # Handlingskolonnen har ingen synlig overskrift, men en tom tekst uden
+    # AccessibleLabel er en fejl i tilgaengelighedstjekket (issue #37).
+    acc = f'"{label}"' if label else '"Actions"'
     return text_ctrl(f"txtDomHead{i}", f'"{label}"', size=11, color=C_MUTED,
                      weight="Semibold", height=18, width=w, wrap="false",
+                     accessible=acc,
                      visible=(SHOW_MID if 1 <= i <= len(cfg.LIST_FIELDS)
                               else SHOW_FILES if i == len(LIST_COLS) - 2 else None))
 
@@ -1252,27 +1265,23 @@ def send_fx(submit):
         # listen ville en raekke laengere nede slet ikke blive fundet - og
         # saa opretter Patch en NY raekke i stedet for at rette den gamle.
         #
-        # Nu hentes brugerens egne raekker EEN gang (RequesterEmail =
-        # varDomMe er delegerbart - samme filter som refresh_rows_fx), og
-        # udvaelgelsen sker i hukommelsen. Aendringerne er ens for alle
-        # raekker, saa de kan skrives i eet batchet Patch.
-        "        With(\n"
-        "            {\n"
-        "                src:\n"
-        "                    Filter(\n"
-        f"                        Filter({cfg.L_ROWS}, RequesterEmail = varDomMe) As S,\n"
-        f"                        CountRows(Filter({rows}, RowId = S.ID)) > 0\n"
-        "                    )\n"
-        "            },\n"
-        "            Patch(\n"
-        f"                {cfg.L_ROWS},\n"
-        "                src,\n"
-        "                ForAll(\n"
-        "                    src,\n"
-        "                    {\n"
-        + "\n".join("    " + l for l in row_patch) + "\n"
-        "                    }\n"
-        "                )\n"
+        # Derefter stod der Filter(Filter(liste, RequesterEmail = varDomMe)
+        # As S, CountRows(Filter(raekker, RowId = S.ID)) > 0). Det inderste
+        # filter blev delegeret, det yderste ikke - og compile gav fire
+        # delegeringsadvarsler paa de to send-knapper (issue #37).
+        #
+        # Nu roeres listen slet ikke for at FINDE raekkerne: samlingen
+        # kender deres ID (RowId), og en SharePoint-raekke kan patches med
+        # { ID: n } som grundraekke. Aendringerne er ens for alle raekker,
+        # saa det er stadig eet batchet Patch - to tabeller af samme laengde.
+        "        Patch(\n"
+        f"            {cfg.L_ROWS},\n"
+        f"            ForAll({rows} As X, {{ ID: X.RowId }}),\n"
+        f"            ForAll(\n"
+        f"                {rows},\n"
+        "                {\n"
+        + "\n".join(row_patch) + "\n"
+        "                }\n"
         "            )\n"
         "        );\n"
         "\n"
