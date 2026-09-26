@@ -474,7 +474,16 @@ def _background(c, x, y, w, h, vis):
              "Fill": fill or TRANSPARENT,
              "BorderColor": border or TRANSPARENT,
              "BorderThickness": c.props.get("BorderThickness", "0"),
-             "BorderStyle": ("BorderStyle.Solid" if border else "BorderStyle.None")}
+             "BorderStyle": ("BorderStyle.Solid" if border else "BorderStyle.None"),
+             # Ren pynt (issue #45). En figur i et galleri faar
+             # OnSelect = Select(Parent) af Studio og er dermed "interaktiv"
+             # for tilgaengelighedstjekket: det meldte conVhpItemCard for
+             # manglende AccessibleLabel og manglende tab stop. Uden OnSelect,
+             # med TabIndex -1 og en tom etiket er den et billede, som
+             # skaermlaeseren springer over - teksten staar i boernene.
+             "OnSelect": "false",
+             "TabIndex": "-1",
+             "AccessibleLabel": "\"\""}
     if vis:
         props["Visible"] = vis
     return Ctrl(c.name, "Rectangle", props=props, h=h)
