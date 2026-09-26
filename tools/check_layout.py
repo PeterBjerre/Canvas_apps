@@ -690,6 +690,10 @@ def main():
         pp_ = (pb or {}).get("Properties") or {}
         if wv == "=Parent.TemplateWidth" and (pb or {}).get("Control") == "Gallery":
             continue
+        # Rammen staar direkte i skaermen, som ingen padding har. Regel 23
+        # kraever praecis denne bredde (sidebaren til venstre).
+        if pb is None and wv == "=Parent.Width - %d" % lay.NAV_W:
+            continue
         if wv == "=Parent.Width":
             if pb is None:
                 continue
@@ -936,7 +940,8 @@ def main():
     #
     # Alle fire skaerme har den samme ramme (build_helpers.app_frame):
     #
-    #     con<X>Root     Parent.Width x Parent.Height, scroller IKKE
+    #     con<X>Root     (Parent.Width - NAV_W) x Parent.Height, X = NAV_W,
+    #                    scroller IKKE
     #       con<X>Header   fast hoejde, der kun afhaenger af App.Width
     #       con<X>Body     FillPortions > 0, LayoutOverflowY = Scroll
     #
@@ -962,11 +967,15 @@ def main():
         def _eq(k, v):
             return (rprops.get(k) or "").strip() == v
 
+        # Rammen starter efter sidebarens LUKKEDE bredde (tools/side_nav.py).
+        # SHELL_W regner med den - staar rammen andetsteds, lyver SHELL_W.
         if not (rname.endswith("Root") and _eq("Height", "=Parent.Height")
-                and _eq("Width", "=Parent.Width")
+                and _eq("Width", "=Parent.Width - %d" % lay.NAV_W)
+                and _eq("X", "=%d" % lay.NAV_W)
                 and "Vertical" in (rprops.get("LayoutDirection") or "")):
             problems.append(f"[23] {rname}: skaermens foerste barn skal vaere "
-                            f"rammen - lodret, Parent.Width x Parent.Height. "
+                            f"rammen - lodret, (Parent.Width - {lay.NAV_W}) x "
+                            f"Parent.Height, X = {lay.NAV_W}. "
                             f"Byg den med build_helpers.app_frame()")
         elif "Scroll" in (rprops.get("LayoutOverflowY") or ""):
             problems.append(f"[23a] {rname}: rammen selv maa ikke scrolle - saa "
@@ -1279,7 +1288,7 @@ def main():
     # splittets hoejde, flisernes bredde og deres beholders hoejde - og
     # intet i koden sagde det.
     #
-    # Aritmetik er i orden: SHELL_W er "(App.Width - 64)". Det er kun
+    # Aritmetik er i orden: SHELL_W er "(App.Width - 120)". Det er kun
     # SAMMENLIGNINGEN, der er en beslutning om enhedsklasse.
     bp = re.compile(r"App\.Width\s*[<>]=?\s*[0-9]")
     for props in screen_and_controls:

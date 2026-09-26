@@ -51,9 +51,8 @@ from gen_screen import (Ctrl, SHELL_W, FONT,
                         C_NEUTRAL_BG, C_INFO_FG, C_INFO_BG,
                         C_VALID_FG, C_VALID_BG,
                         C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY)
-from design_tokens import theme_query
 from layout_tokens import below, if_below, fits
-from build_helpers import (text_ctrl, group, button, text_input, theme_button,
+from build_helpers import (text_ctrl, group, button, text_input,
                            date_picker, fit_button_row, fit_button_width,
                            number_input, themed_dropdown, card, field_cell, row_n,
                            col_width, pin_widths, badge, top_bar, grow)
@@ -147,15 +146,9 @@ def build_bar():
     no = text_ctrl("txtDomReqNo",
                    'If(IsBlank(varDomRequestNo), "Not submitted", varDomRequestNo)',
                    size=15, weight="Semibold", height=24, width=150, wrap="false")
-    # Temaet med TILBAGE til hubben. Uden det skiftede hubben farve,
-    # fordi brugeren gik retur - lageret er isoleret pr. app-id.
-    back = button("btnDomBack", '"To the hub"',
-                  f'Launch("{cfg.HUB_URL}" & {theme_query("?")}, {{ }}, '
-                  f'LaunchTarget.Replace)',
-                  width=140)
-    theme = theme_button("imgDomTheme")
+    # Temaskiftet og vejen til hubben staar i sidebaren (tools/side_nav.py).
     return top_bar("Dom", f'"{cfg.TITLE}"', f'"{cfg.SUBTITLE}"',
-                   [count, no, theme, back],
+                   [count, no],
                    narrow_hide=("txtDomCount", "txtDomReqNo"))
 
 

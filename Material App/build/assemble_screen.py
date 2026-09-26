@@ -29,6 +29,7 @@ sys.path.insert(0, HERE)
 
 from gen_screen import render_screen, C_APP_BG, OUT_DIR
 from build_helpers import app_frame
+from side_nav import side_nav
 import domain_config as cfg
 from domain_parts import (build_bar, build_form, build_attachments,
                           build_rows, build_details, build_submit, build_backdrop,
@@ -55,7 +56,8 @@ def build_screen():
     # staar, saa det, der skal ligge bagved, skal staa foerst.
     return render_screen(cfg.SCREEN,
                          {"Fill": C_APP_BG, "OnVisible": on_visible()},
-                         [root, build_backdrop(), build_details(), build_attachments()])
+                         [root, *side_nav("Dom", "material"),
+                          build_backdrop(), build_details(), build_attachments()])
 
 
 def main():

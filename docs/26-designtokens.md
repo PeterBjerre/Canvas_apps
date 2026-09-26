@@ -300,11 +300,14 @@ har gjort de fire apps forskellige indtil nu.
 
 | App | Kontrol | Placering |
 |---|---|---|
-| Masterdata Hub | `imgMdTheme` | Toplinjen, yderst til højre |
-| Maintenance Plan | `imgVhpTheme` | Hero, før "To the hub" |
-| Equipment | `imgDomTheme` | Topbjælken, før "To the hub" |
-| Material | `imgDomTheme` | Topbjælken, før "To the hub" |
-| Functional Location | `imgFlTheme` | Topbjælken |
+| Masterdata Hub | `imgMdTheme` | Sidebarens fod |
+| Maintenance Plan | `imgVhpTheme` | Sidebarens fod, under Help (`imgVhpHelp`) |
+| Equipment | `imgDomTheme` | Sidebarens fod |
+| Material | `imgDomTheme` | Sidebarens fod |
+| Functional Location | `imgFlTheme` | Sidebarens fod |
+
+Sidebaren er `tools/side_nav.py`. Når den er lukket, er knappen kun den
+runde knop (`theme_button(compact=...)`); åbnet er den hele pillen.
 
 Den er **ét `Image` med en SVG** (issue #37): en pille med `LIGHT` og en
 hvid knop med en sol, eller en mørk pille med en knop med en måne og

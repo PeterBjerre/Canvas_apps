@@ -124,6 +124,13 @@ flugter med kortenes.
 **Den faktiske bredde er altid ≥ `SHELL_W` + 6.** En række, der er regnet til
 at passe, passer — på Mac og på Windows.
 
+**Sidebaren.** Siden alle fem apps fik sidebaren (`tools/side_nav.py`)
+starter rammen 56 px inde (`NAV_W`): `X = 56`, `Width = Parent.Width - 56`,
+og `SHELL_W = App.Width - 120`. Åbnet ligger sidebaren oven på indholdet,
+så kun den lukkede bredde indgår. Tre gallerier skulle have smallere
+kolonner ved 720 px for at passe (VH-planens dokumentliste, FL-appens to
+rækkelister).
+
 ### Regel C — To tilstande, aldrig noget midt imellem
 
 `build_helpers.flow_row()` erstatter `wrap_row_height()`. En række står

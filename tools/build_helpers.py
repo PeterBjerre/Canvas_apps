@@ -237,16 +237,20 @@ THEME_TOGGLE_W = 104
 THEME_TOGGLE_H = 36
 
 
-def _theme_svg(dark):
+def _theme_svg(dark, compact=False):
     """Pillen som SVG - LIGHT/DARK og en rund knop med sol eller maane,
     som referencebilledet i issue #37.
+
+    compact: kun knoppen i en rund ramme, uden tekst - til den lukkede
+    sidebar (tools/side_nav.py), hvor pillen ikke kan staa.
 
     Farverne er tokens (C.'hex-...'), sat ind med &. SVG'en bruger kun
     enkelte anfoerselstegn, saa den kan staa i en Power Fx-streng."""
     import math
     hx = lambda n: "\" & %s & \"" % ref_hex_expr(n)
-    W, H, R = THEME_TOGGLE_W, THEME_TOGGLE_H, THEME_TOGGLE_H // 2
-    kx = R if dark else W - R
+    H, R = THEME_TOGGLE_H, THEME_TOGGLE_H // 2
+    W = H if compact else THEME_TOGGLE_W
+    kx = R if (dark or compact) else W - R
     parts = [
         f"<svg xmlns='http://www.w3.org/2000/svg' width='{W}' height='{H}' "
         f"viewBox='0 0 {W} {H}'>",
@@ -273,16 +277,17 @@ def _theme_svg(dark):
                          f"y2='{y2:.1f}' stroke='{sun}' stroke-width='1.8' "
                          f"stroke-linecap='round'/>")
         tx, anchor, label = 14, "start", "LIGHT"
-    parts.append(f"<text x='{tx}' y='{R + 4}' text-anchor='{anchor}' "
-                 f"font-family='Segoe UI, sans-serif' font-size='12' "
-                 f"font-weight='700' letter-spacing='0.5' "
-                 f"fill='{hx('text-primary')}'>"
-                 f"{label}</text>")
+    if not compact:
+        parts.append(f"<text x='{tx}' y='{R + 4}' text-anchor='{anchor}' "
+                     f"font-family='Segoe UI, sans-serif' font-size='12' "
+                     f"font-weight='700' letter-spacing='0.5' "
+                     f"fill='{hx('text-primary')}'>"
+                     f"{label}</text>")
     parts.append("</svg>")
     return '"' + "".join(parts) + '"'
 
 
-def theme_button(name="imgThemeToggle"):
+def theme_button(name="imgThemeToggle", compact=None):
     """Skiftet mellem lyst og moerkt tema - ET billede, man trykker paa.
 
         ( LIGHT  (sol) )     lyst tema
@@ -312,9 +317,20 @@ def theme_button(name="imgThemeToggle"):
     .pa.yaml. Et billede kan det samme her uden noget af det.
 
     Handlingen staar i tools/design_tokens.py - baade Set() og SaveData,
-    saa valget ogsaa er der i morgen."""
+    saa valget ogsaa er der i morgen.
+
+    compact: Power Fx-udtryk. Er det sandt, er kontrollen kun knoppen
+    (THEME_TOGGLE_H i kvadrat) - den lukkede sidebar i tools/side_nav.py."""
     img = (f'"data:image/svg+xml;utf8," & EncodeUrl(If({DARK_VAR},\n'
            f'    {_theme_svg(True)},\n    {_theme_svg(False)}\n))')
+    width = str(THEME_TOGGLE_W)
+    if compact is not None:
+        img = (f'"data:image/svg+xml;utf8," & EncodeUrl(If(\n'
+               f'    {compact} && {DARK_VAR}, {_theme_svg(True, True)},\n'
+               f'    {compact}, {_theme_svg(False, True)},\n'
+               f'    {DARK_VAR}, {_theme_svg(True)},\n'
+               f'    {_theme_svg(False)}\n))')
+        width = f"If({compact}, {THEME_TOGGLE_H}, {THEME_TOGGLE_W})"
     t = TRANSPARENT
     props = {
         "AccessibleLabel": (f'If({DARK_VAR}, "Dark theme is on - switch to light theme", '
@@ -329,21 +345,25 @@ def theme_button(name="imgThemeToggle"):
         "ImagePosition": "ImagePosition.Fit",
         "OnSelect": toggle_action(),
         "TabIndex": "0",
-        "Width": str(THEME_TOGGLE_W),
+        "Width": width,
     }
     return Ctrl(name, "Image", props=props, h=THEME_TOGGLE_H)
 
 
-def _help_svg(on):
+def _help_svg(on, compact=False):
     """Hjaelpe-pillen - samme form som temapillen (_theme_svg).
 
         ( (?)  HELP )     slukket: graa knop til venstre
         ( HELP  (?) )     taendt: blaa knop til hoejre, blaa pille
 
     Knoppen skifter side OG farve, saa tilstanden kan ses uden at laese
-    teksten - som en almindelig kontakt."""
+    teksten - som en almindelig kontakt.
+
+    compact: kun knoppen i en rund ramme (den lukkede sidebar). Farven
+    viser stadig tilstanden."""
     hx = lambda n: "\" & %s & \"" % ref_hex_expr(n)
-    W, H, R = THEME_TOGGLE_W, THEME_TOGGLE_H, THEME_TOGGLE_H // 2
+    H, R = THEME_TOGGLE_H, THEME_TOGGLE_H // 2
+    W = H if compact else THEME_TOGGLE_W
     kx = W - R if on else R
     pill = hx('state-info-bg') if on else hx('state-neutral-bg')
     edge = hx('state-info-fg') if on else hx('border-default')
@@ -359,23 +379,33 @@ def _help_svg(on):
             f"<text x='{kx}' y='{R + 5}' text-anchor='middle' "
             f"font-family='Segoe UI, sans-serif' font-size='15' font-weight='700' "
             f"fill='{glyph}'>?</text>"
-            f"<text x='{tx}' y='{R + 4}' text-anchor='{anchor}' "
-            f"font-family='Segoe UI, sans-serif' font-size='12' "
-            f"font-weight='700' letter-spacing='0.5' "
-            f"fill='{hx('text-primary')}'>HELP</text>"
-            "</svg>" + '"')
+            + ("" if compact else
+               f"<text x='{tx}' y='{R + 4}' text-anchor='{anchor}' "
+               f"font-family='Segoe UI, sans-serif' font-size='12' "
+               f"font-weight='700' letter-spacing='0.5' "
+               f"fill='{hx('text-primary')}'>HELP</text>")
+            + "</svg>" + '"')
 
 
-def help_toggle(name, on, action):
+def help_toggle(name, on, action, compact=None):
     """Hjaelp til/fra - samme slags kontakt som temaknappen (theme_button).
 
-    on:     Power Fx-udtryk, der er sandt, naar hjaelpen vises.
-    action: OnSelect, der vender den.
+    on:      Power Fx-udtryk, der er sandt, naar hjaelpen vises.
+    action:  OnSelect, der vender den.
+    compact: Power Fx-udtryk; sandt = kun knoppen (den lukkede sidebar).
 
     Et Image med en SVG af de grunde, theme_button beskriver: en moderne
     knap tegner Fluent-temaets form, ikke vores."""
     img = (f'"data:image/svg+xml;utf8," & EncodeUrl(If({on},\n'
            f'    {_help_svg(True)},\n    {_help_svg(False)}\n))')
+    width = str(THEME_TOGGLE_W)
+    if compact is not None:
+        img = (f'"data:image/svg+xml;utf8," & EncodeUrl(If(\n'
+               f'    {compact} && {on}, {_help_svg(True, True)},\n'
+               f'    {compact}, {_help_svg(False, True)},\n'
+               f'    {on}, {_help_svg(True)},\n'
+               f'    {_help_svg(False)}\n))')
+        width = f"If({compact}, {THEME_TOGGLE_H}, {THEME_TOGGLE_W})"
     t = TRANSPARENT
     props = {
         "AccessibleLabel": (f'If({on}, "Help is shown - hide help", '
@@ -390,7 +420,7 @@ def help_toggle(name, on, action):
         "ImagePosition": "ImagePosition.Fit",
         "OnSelect": action,
         "TabIndex": "0",
-        "Width": str(THEME_TOGGLE_W),
+        "Width": width,
     }
     return Ctrl(name, "Image", props=props, h=THEME_TOGGLE_H)
 
@@ -582,8 +612,14 @@ def app_frame(prefix, header, body, body_gap=16, body_pad_b=None):
                  height="Parent.Height - (%s)" % head.h, fill_portions=1,
                  overflow_y="Scroll", fill=C_APP_BG,
                  pad=(lay.BODY_PAD_T, lay.PAGE_PAD_R, pb, lay.PAGE_PAD_L))
-    return group("con%sRoot" % prefix, [head, main], direction="Vertical", gap=0,
-                 height="Parent.Height", width="Parent.Width", fill=C_APP_BG)
+    # Sidebaren (tools/side_nav.py) staar til venstre. Rammen starter
+    # efter dens LUKKEDE bredde; aabnet ligger den oven paa rammen.
+    root = group("con%sRoot" % prefix, [head, main], direction="Vertical", gap=0,
+                 height="Parent.Height", width="Parent.Width - %d" % lay.NAV_W,
+                 fill=C_APP_BG)
+    root.props["X"] = str(lay.NAV_W)
+    root.props["Y"] = "0"
+    return root
 
 
 def button_row(name, buttons, container_w, gap=8, height=36, align_items="Center"):

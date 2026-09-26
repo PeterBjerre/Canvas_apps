@@ -85,7 +85,11 @@ Screens:
             LayoutOverflowY: |-
                 =LayoutOverflow.Hide
             Width: |-
-                =Parent.Width
+                =Parent.Width - 56
+            X: |-
+                =56
+            Y: |-
+                =0
           Children:
             - conDomHeader:
                 Control: GroupContainer
@@ -100,7 +104,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =25 + (0 + (Max((55), (22), (24), (36), (36))) * 1 + 0)
+                      =25 + (0 + (Max((55), (22), (24))) * 1 + 0)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -135,7 +139,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =0 + (Max((55), (22), (24), (36), (36))) * 1 + 0
+                            =0 + (Max((55), (22), (24))) * 1 + 0
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Center
                         LayoutDirection: |-
@@ -176,7 +180,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Width: |-
-                                  =Max(0, ((((App.Width)) - 24 - 34)) - (If(LayoutRank >= 2, (110) + 10, 0)) - (If(LayoutRank >= 2, (150) + 10, 0)) - ((104) + 10) - ((140) + 10) - 2)
+                                  =Max(0, (((((App.Width - 56))) - 24 - 34)) - (If(LayoutRank >= 2, (110) + 10, 0)) - (If(LayoutRank >= 2, (150) + 10, 0)) - 2)
                             Children:
                               - txtDomTitle:
                                   Control: ModernText
@@ -334,91 +338,6 @@ Screens:
                                   =150
                               Wrap: |-
                                   =false
-                        - imgDomTheme:
-                            Control: Image
-                            Properties:
-                              AccessibleLabel: |-
-                                  =If(darkModeEnabled, "Dark theme is on - switch to light theme", "Light theme is on - switch to dark theme")
-                              AlignInContainer: |-
-                                  =AlignInContainer.Center
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              FocusedBorderColor: |-
-                                  =C.'color-brand-primary'
-                              FocusedBorderThickness: |-
-                                  =2
-                              Height: |-
-                                  =36
-                              HoverFill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Image: |-
-                                  ="data:image/svg+xml;utf8," & EncodeUrl(If(darkModeEnabled,
-                                      "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='36' viewBox='0 0 104 36'><rect x='1' y='1' width='102' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='18' cy='18' r='14' fill='" & C.'hex-text-primary' & "'/><path d='M21 11 A7 7 0 1 0 25 21 A5.5 5.5 0 1 1 21 11 Z' fill='" & C.'hex-bg-app' & "'/><text x='90' y='22' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='12' font-weight='700' letter-spacing='0.5' fill='" & C.'hex-text-primary' & "'>DARK</text></svg>",
-                                      "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='36' viewBox='0 0 104 36'><rect x='1' y='1' width='102' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='86' cy='18' r='14' fill='" & C.'hex-bg-surface' & "'/><circle cx='86' cy='18' r='4' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8'/><line x1='92.5' y1='18.0' x2='95.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='90.6' y1='22.6' x2='92.4' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='86.0' y1='24.5' x2='86.0' y2='27.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='81.4' y1='22.6' x2='79.6' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='79.5' y1='18.0' x2='77.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='81.4' y1='13.4' x2='79.6' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='86.0' y1='11.5' x2='86.0' y2='9.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='90.6' y1='13.4' x2='92.4' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><text x='14' y='22' text-anchor='start' font-family='Segoe UI, sans-serif' font-size='12' font-weight='700' letter-spacing='0.5' fill='" & C.'hex-text-primary' & "'>LIGHT</text></svg>"
-                                  ))
-                              ImagePosition: |-
-                                  =ImagePosition.Fit
-                              LayoutMinWidth: |-
-                                  =104
-                              OnSelect: |-
-                                  =Set(darkModeEnabled, !darkModeEnabled);
-                                  ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
-                                  IfError(SaveData(colAppPrefs, "prefs"), Blank())
-                              PressedFill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              TabIndex: |-
-                                  =0
-                              Width: |-
-                                  =104
-                        - btnDomBack:
-                            Control: ModernButton
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="To the hub"
-                              Align: |-
-                                  =Align.Center
-                              AlignInContainer: |-
-                                  =AlignInContainer.Center
-                              Appearance: |-
-                                  =ButtonAppearance.Outline
-                              BorderColor: |-
-                                  =C.'border-default'
-                              BorderThickness: |-
-                                  =1
-                              Color: |-
-                                  =C.'text-primary'
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              FontWeight: |-
-                                  =FontWeight.Semibold
-                              Height: |-
-                                  =36
-                              Layout: |-
-                                  =ButtonLayout.TextOnly
-                              LayoutMinWidth: |-
-                                  =140
-                              OnSelect: |-
-                                  =Launch("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/f387047d-86af-4d6a-8370-afcf35939436" & "?theme=" & If(darkModeEnabled, "dark", "light"), { }, LaunchTarget.Replace)
-                              RadiusBottomLeft: |-
-                                  =10
-                              RadiusBottomRight: |-
-                                  =10
-                              RadiusTopLeft: |-
-                                  =10
-                              RadiusTopRight: |-
-                                  =10
-                              Size: |-
-                                  =14
-                              Text: |-
-                                  ="To the hub"
-                              VerticalAlign: |-
-                                  =VerticalAlign.Middle
-                              Width: |-
-                                  =140
                   - conDomHeaderRule:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -460,7 +379,7 @@ Screens:
                   FillPortions: |-
                       =1
                   Height: |-
-                      =Parent.Height - (25 + (0 + (Max((55), (22), (24), (36), (36))) * 1 + 0))
+                      =Parent.Height - (25 + (0 + (Max((55), (22), (24))) * 1 + 0))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -499,7 +418,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =272 + (46) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + (20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))) + (62) + 60, Max((62), (62), (20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))), (62)))) + If(!IsBlank(varDomFlMsg), 14 + (18), 0) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + (62) + 40, Max((62), (62), (62)))) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + (62) + 40, Max((62), (62), (62)))) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + (62) + (62) + 60, Max((62), (62), (62), (62)))) + 14 + (If((((App.Width - 64) - 36)) < 640, (62) + (62) + 20, Max((62), (62)))) + 14 + (166) + 14 + (If((((App.Width - 64) - 36)) >= (111) + (72) + (91) + (111) + 24, 36, (36) + 8 + (36) + 8 + (36) + 8 + (36)))
+                            =272 + (46) + 14 + (If((((App.Width - 120) - 36)) < 640, (62) + (62) + (20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))) + (62) + 60, Max((62), (62), (20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))), (62)))) + If(!IsBlank(varDomFlMsg), 14 + (18), 0) + 14 + (If((((App.Width - 120) - 36)) < 640, (62) + (62) + (62) + 40, Max((62), (62), (62)))) + 14 + (If((((App.Width - 120) - 36)) < 640, (62) + (62) + (62) + 40, Max((62), (62), (62)))) + 14 + (If((((App.Width - 120) - 36)) < 640, (62) + (62) + (62) + (62) + 60, Max((62), (62), (62), (62)))) + 14 + (If((((App.Width - 120) - 36)) < 640, (62) + (62) + 20, Max((62), (62)))) + 14 + (166) + 14 + (If((((App.Width - 120) - 36)) >= (111) + (72) + (91) + (111) + 24, 36, (36) + 8 + (36) + 8 + (36) + 8 + (36)))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -676,7 +595,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - 64) - 36)) < 640, (62) + (62) + (20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))) + (62) + 60, Max((62), (62), (20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))), (62)))
+                                  =If((((App.Width - 120) - 36)) < 640, (62) + (62) + (20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))) + (62) + 60, Max((62), (62), (20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))), (62)))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -721,7 +640,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
+                                        =If((((App.Width - 120) - 36)) < 640, ((App.Width - 120) - 36), (((App.Width - 120) - 36) - 60) / 4)
                                   Children:
                                     - conDomTextRow:
                                         Control: GroupContainer
@@ -782,7 +701,7 @@ Screens:
                                                 Text: |-
                                                     ="Material description"
                                                 Width: |-
-                                                    =Min(141, (If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)) - 13)
+                                                    =Min(141, (If((((App.Width - 120) - 36)) < 640, ((App.Width - 120) - 36), (((App.Width - 120) - 36) - 60) / 4)) - 13)
                                                 Wrap: |-
                                                     =false
                                           - conDomTextStar:
@@ -896,7 +815,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
+                                        =If((((App.Width - 120) - 36)) < 640, ((App.Width - 120) - 36), (((App.Width - 120) - 36) - 60) / 4)
                                   Children:
                                     - conDomPlantRow:
                                         Control: GroupContainer
@@ -957,7 +876,7 @@ Screens:
                                                 Text: |-
                                                     ="Plant"
                                                 Width: |-
-                                                    =Min(38, (If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)) - 13)
+                                                    =Min(38, (If((((App.Width - 120) - 36)) < 640, ((App.Width - 120) - 36), (((App.Width - 120) - 36) - 60) / 4)) - 13)
                                                 Wrap: |-
                                                     =false
                                           - conDomPlantStar:
@@ -1091,7 +1010,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
+                                        =If((((App.Width - 120) - 36)) < 640, ((App.Width - 120) - 36), (((App.Width - 120) - 36) - 60) / 4)
                                   Children:
                                     - conDomFlSearchLbl:
                                         Control: ModernText
@@ -1153,7 +1072,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
+                                              =If((((App.Width - 120) - 36)) < 640, ((App.Width - 120) - 36), (((App.Width - 120) - 36) - 60) / 4)
                                         Children:
                                           - conDomFlQueryRow:
                                               Control: GroupContainer
@@ -1180,7 +1099,7 @@ Screens:
                                                 LayoutOverflowY: |-
                                                     =LayoutOverflow.Hide
                                                 Width: |-
-                                                    =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
+                                                    =If((((App.Width - 120) - 36)) < 640, ((App.Width - 120) - 36), (((App.Width - 120) - 36) - 60) / 4)
                                               Children:
                                                 - txtDomFlQuery:
                                                     Control: ModernTextInput
@@ -1226,7 +1145,7 @@ Screens:
                                                       ValidationState: |-
                                                           =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                                       Width: |-
-                                                          =Max(0, ((((If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4))))) - ((86) + 8) - 2)
+                                                          =Max(0, ((((If((((App.Width - 120) - 36)) < 640, ((App.Width - 120) - 36), (((App.Width - 120) - 36) - 60) / 4))))) - ((86) + 8) - 2)
                                                 - btnDomFlSearch:
                                                     Control: ModernButton
                                                     Properties:
@@ -1450,7 +1369,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
+                                        =If((((App.Width - 120) - 36)) < 640, ((App.Width - 120) - 36), (((App.Width - 120) - 36) - 60) / 4)
                                   Children:
                                     - conDomFlSelectLbl:
                                         Control: ModernText
@@ -1629,7 +1548,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - 64) - 36)) < 640, (62) + (62) + (62) + 40, Max((62), (62), (62)))
+                                  =If((((App.Width - 120) - 36)) < 640, (62) + (62) + (62) + 40, Max((62), (62), (62)))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -1674,7 +1593,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
+                                        =If((((App.Width - 120) - 36)) < 640, ((App.Width - 120) - 36), (((App.Width - 120) - 36) - 60) / 4)
                                   Children:
                                     - conManufacturerLbl:
                                         Control: ModernText
@@ -1783,7 +1702,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
+                                        =If((((App.Width - 120) - 36)) < 640, ((App.Width - 120) - 36), (((App.Width - 120) - 36) - 60) / 4)
                                   Children:
                                     - conModelNumberLbl:
                                         Control: ModernText
@@ -1892,7 +1811,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
+                                        =If((((App.Width - 120) - 36)) < 640, ((App.Width - 120) - 36), (((App.Width - 120) - 36) - 60) / 4)
                                   Children:
                                     - conManufacturerPartNoLbl:
                                         Control: ModernText
@@ -2018,7 +1937,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - 64) - 36)) < 640, (62) + (62) + (62) + 40, Max((62), (62), (62)))
+                                  =If((((App.Width - 120) - 36)) < 640, (62) + (62) + (62) + 40, Max((62), (62), (62)))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -2063,7 +1982,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
+                                        =If((((App.Width - 120) - 36)) < 640, ((App.Width - 120) - 36), (((App.Width - 120) - 36) - 60) / 4)
                                   Children:
                                     - conSupplierLbl:
                                         Control: ModernText
@@ -2172,7 +2091,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
+                                        =If((((App.Width - 120) - 36)) < 640, ((App.Width - 120) - 36), (((App.Width - 120) - 36) - 60) / 4)
                                   Children:
                                     - conSupplierPartNoLbl:
                                         Control: ModernText
@@ -2281,7 +2200,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
+                                        =If((((App.Width - 120) - 36)) < 640, ((App.Width - 120) - 36), (((App.Width - 120) - 36) - 60) / 4)
                                   Children:
                                     - conDeliveringTimeLbl:
                                         Control: ModernText
@@ -2407,7 +2326,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - 64) - 36)) < 640, (62) + (62) + (62) + (62) + 60, Max((62), (62), (62), (62)))
+                                  =If((((App.Width - 120) - 36)) < 640, (62) + (62) + (62) + (62) + 60, Max((62), (62), (62), (62)))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -2452,7 +2371,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
+                                        =If((((App.Width - 120) - 36)) < 640, ((App.Width - 120) - 36), (((App.Width - 120) - 36) - 60) / 4)
                                   Children:
                                     - conPriceLbl:
                                         Control: ModernText
@@ -2561,7 +2480,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
+                                        =If((((App.Width - 120) - 36)) < 640, ((App.Width - 120) - 36), (((App.Width - 120) - 36) - 60) / 4)
                                   Children:
                                     - conPriceUnitLbl:
                                         Control: ModernText
@@ -2670,7 +2589,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
+                                        =If((((App.Width - 120) - 36)) < 640, ((App.Width - 120) - 36), (((App.Width - 120) - 36) - 60) / 4)
                                   Children:
                                     - conStockUnitLbl:
                                         Control: ModernText
@@ -2779,7 +2698,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
+                                        =If((((App.Width - 120) - 36)) < 640, ((App.Width - 120) - 36), (((App.Width - 120) - 36) - 60) / 4)
                                   Children:
                                     - conRecommendedStockLbl:
                                         Control: ModernText
@@ -2905,7 +2824,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - 64) - 36)) < 640, (62) + (62) + 20, Max((62), (62)))
+                                  =If((((App.Width - 120) - 36)) < 640, (62) + (62) + 20, Max((62), (62)))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -2950,7 +2869,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
+                                        =If((((App.Width - 120) - 36)) < 640, ((App.Width - 120) - 36), (((App.Width - 120) - 36) - 60) / 4)
                                   Children:
                                     - conStrategicPartLbl:
                                         Control: ModernText
@@ -3059,7 +2978,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 60) / 4)
+                                        =If((((App.Width - 120) - 36)) < 640, ((App.Width - 120) - 36), (((App.Width - 120) - 36) - 60) / 4)
                                   Children:
                                     - conWearPartLbl:
                                         Control: ModernText
@@ -3201,7 +3120,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Width: |-
-                                  =If((((App.Width - 64) - 36)) < 640, ((App.Width - 64) - 36), (((App.Width - 64) - 36) - 0) / 1)
+                                  =If((((App.Width - 120) - 36)) < 640, ((App.Width - 120) - 36), (((App.Width - 120) - 36) - 0) / 1)
                             Children:
                               - conLongTextLbl:
                                   Control: ModernText
@@ -3294,11 +3213,11 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - 64) - 36)) >= (111) + (72) + (91) + (111) + 24, 36, (36) + 8 + (36) + 8 + (36) + 8 + (36))
+                                  =If((((App.Width - 120) - 36)) >= (111) + (72) + (91) + (111) + 24, 36, (36) + 8 + (36) + 8 + (36) + 8 + (36))
                               LayoutAlignItems: |-
-                                  =If((((App.Width - 64) - 36)) >= (111) + (72) + (91) + (111) + 24, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                                  =If((((App.Width - 120) - 36)) >= (111) + (72) + (91) + (111) + 24, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                               LayoutDirection: |-
-                                  =If((((App.Width - 64) - 36)) >= (111) + (72) + (91) + (111) + 24, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                                  =If((((App.Width - 120) - 36)) >= (111) + (72) + (91) + (111) + 24, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =8
                               LayoutMinWidth: |-
@@ -3338,7 +3257,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 64) - 36)) >= (111) + (72) + (91) + (111) + 24, 111, 0)
+                                        =If((((App.Width - 120) - 36)) >= (111) + (72) + (91) + (111) + 24, 111, 0)
                                     OnSelect: |-
                                         =Set(varDomValidated, true);
                                         If(
@@ -3474,7 +3393,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 64) - 36)) >= (111) + (72) + (91) + (111) + 24, 72, 0)
+                                        =If((((App.Width - 120) - 36)) >= (111) + (72) + (91) + (111) + 24, 72, 0)
                                     OnSelect: |-
                                         =Set(varDomValidated, true);
                                         If(
@@ -3612,7 +3531,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 64) - 36)) >= (111) + (72) + (91) + (111) + 24, 91, 0)
+                                        =If((((App.Width - 120) - 36)) >= (111) + (72) + (91) + (111) + 24, 91, 0)
                                     OnSelect: |-
                                         =Set(varDomActiveRowId, Blank());
                                         Set(varDomRowStatus, "valid");
@@ -3681,7 +3600,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 64) - 36)) >= (111) + (72) + (91) + (111) + 24, 111, 0)
+                                        =If((((App.Width - 120) - 36)) >= (111) + (72) + (91) + (111) + 24, 111, 0)
                                     OnSelect: |-
                                         =If(
                                             IsBlank(varDomActiveRowId),
@@ -4066,7 +3985,7 @@ Screens:
                                     Text: |-
                                         ="MATERIAL"
                                     Width: |-
-                                        =Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)
+                                        =Max(Min((((App.Width - 120) - 36 - 4 - 18 - 40)) - If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)
                                     Wrap: |-
                                         =false
                               - txtDomHead1:
@@ -4103,7 +4022,7 @@ Screens:
                                     Text: |-
                                         ="MFR. PART NO."
                                     Visible: |-
-                                        =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150
+                                        =(((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150
                                     Width: |-
                                         =130
                                     Wrap: |-
@@ -4142,7 +4061,7 @@ Screens:
                                     Text: |-
                                         ="SUPPLIER"
                                     Visible: |-
-                                        =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150
+                                        =(((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150
                                     Width: |-
                                         =120
                                     Wrap: |-
@@ -4181,7 +4100,7 @@ Screens:
                                     Text: |-
                                         ="PLANT"
                                     Visible: |-
-                                        =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150
+                                        =(((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150
                                     Width: |-
                                         =55
                                     Wrap: |-
@@ -4257,7 +4176,7 @@ Screens:
                                     Text: |-
                                         ="FILES"
                                     Visible: |-
-                                        =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150
+                                        =(((App.Width - 120) - 36 - 4 - 18 - 40)) >= 493 + 150
                                     Width: |-
                                         =40
                                     Wrap: |-
@@ -4294,7 +4213,7 @@ Screens:
                                     Text: |-
                                         =""
                                     Width: |-
-                                        =If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 348, 212)
+                                        =If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 493 + 150, 348, 212)
                                     Wrap: |-
                                         =false
                         - galDomRows:
@@ -4396,7 +4315,7 @@ Screens:
                                     Text: |-
                                         =If(IsBlank(Trim(ThisItem.MaterialDescription)), "(no text)", ThisItem.MaterialDescription)
                                     Width: |-
-                                        =Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)
+                                        =Max(Min((((App.Width - 120) - 36 - 4 - 18 - 40)) - If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)
                                     Wrap: |-
                                         =false
                                     X: |-
@@ -4433,13 +4352,13 @@ Screens:
                                     Text: |-
                                         =ThisItem.ManufacturerPartNo
                                     Visible: |-
-                                        =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150
+                                        =(((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150
                                     Width: |-
                                         =130
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 0 + 0 + (Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10
+                                        =0 + 0 + 0 + (Max(Min((((App.Width - 120) - 36 - 4 - 18 - 40)) - If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10
                                     Y: |-
                                         =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                               - txtDomRow1:
@@ -4472,13 +4391,13 @@ Screens:
                                     Text: |-
                                         =ThisItem.Supplier
                                     Visible: |-
-                                        =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150
+                                        =(((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150
                                     Width: |-
                                         =120
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 0 + 0 + (Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (130) + 10, 0)
+                                        =0 + 0 + 0 + (Max(Min((((App.Width - 120) - 36 - 4 - 18 - 40)) - If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, (130) + 10, 0)
                                     Y: |-
                                         =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                               - txtDomRow2:
@@ -4511,13 +4430,13 @@ Screens:
                                     Text: |-
                                         =ThisItem.Plant
                                     Visible: |-
-                                        =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150
+                                        =(((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150
                                     Width: |-
                                         =55
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 0 + 0 + (Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (130) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (120) + 10, 0)
+                                        =0 + 0 + 0 + (Max(Min((((App.Width - 120) - 36 - 4 - 18 - 40)) - If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, (130) + 10, 0) + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, (120) + 10, 0)
                                     Y: |-
                                         =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                               - txtDomRowStatus:
@@ -4566,7 +4485,7 @@ Screens:
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 0 + 0 + (Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (130) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (120) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0)
+                                        =0 + 0 + 0 + (Max(Min((((App.Width - 120) - 36 - 4 - 18 - 40)) - If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, (130) + 10, 0) + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, (120) + 10, 0) + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0)
                                     Y: |-
                                         =0 + 0 + ((((44) - 2) - 0 - 0) - (22)) / 2
                               - txtDomRowFiles:
@@ -4599,13 +4518,13 @@ Screens:
                                     Text: |-
                                         =Text(ThisItem.FileCount)
                                     Visible: |-
-                                        =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150
+                                        =(((App.Width - 120) - 36 - 4 - 18 - 40)) >= 493 + 150
                                     Width: |-
                                         =40
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 0 + 0 + (Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (130) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (120) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10
+                                        =0 + 0 + 0 + (Max(Min((((App.Width - 120) - 36 - 4 - 18 - 40)) - If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, (130) + 10, 0) + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, (120) + 10, 0) + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10
                                     Y: |-
                                         =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                               - btnDomRowOpen:
@@ -4672,7 +4591,7 @@ Screens:
                                     Width: |-
                                         =60
                                     X: |-
-                                        =0 + 0 + 0 + (Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (130) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (120) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (40) + 10, 0) + 0 + 0
+                                        =0 + 0 + 0 + (Max(Min((((App.Width - 120) - 36 - 4 - 18 - 40)) - If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, (130) + 10, 0) + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, (120) + 10, 0) + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10 + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 493 + 150, (40) + 10, 0) + 0 + 0
                                     Y: |-
                                         =0 + 0 + ((((44) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                               - btnDomRowDetails:
@@ -4717,7 +4636,7 @@ Screens:
                                     Width: |-
                                         =72
                                     X: |-
-                                        =0 + 0 + 0 + (Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (130) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (120) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (40) + 10, 0) + 0 + 0 + (60) + 4
+                                        =0 + 0 + 0 + (Max(Min((((App.Width - 120) - 36 - 4 - 18 - 40)) - If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, (130) + 10, 0) + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, (120) + 10, 0) + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10 + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 493 + 150, (40) + 10, 0) + 0 + 0 + (60) + 4
                                     Y: |-
                                         =0 + 0 + ((((44) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                               - btnDomRowDocs:
@@ -4795,11 +4714,11 @@ Screens:
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Visible: |-
-                                        =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150
+                                        =(((App.Width - 120) - 36 - 4 - 18 - 40)) >= 493 + 150
                                     Width: |-
                                         =64
                                     X: |-
-                                        =0 + 0 + 0 + (Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (130) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (120) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (40) + 10, 0) + 0 + 0 + (60) + 4 + (72) + 4
+                                        =0 + 0 + 0 + (Max(Min((((App.Width - 120) - 36 - 4 - 18 - 40)) - If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, (130) + 10, 0) + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, (120) + 10, 0) + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10 + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 493 + 150, (40) + 10, 0) + 0 + 0 + (60) + 4 + (72) + 4
                                     Y: |-
                                         =0 + 0 + ((((44) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                               - btnDomRowCopy:
@@ -4865,11 +4784,11 @@ Screens:
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Visible: |-
-                                        =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150
+                                        =(((App.Width - 120) - 36 - 4 - 18 - 40)) >= 493 + 150
                                     Width: |-
                                         =64
                                     X: |-
-                                        =0 + 0 + 0 + (Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (130) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (120) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (40) + 10, 0) + 0 + 0 + (60) + 4 + (72) + 4 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (64) + 4, 0)
+                                        =0 + 0 + 0 + (Max(Min((((App.Width - 120) - 36 - 4 - 18 - 40)) - If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, (130) + 10, 0) + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, (120) + 10, 0) + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10 + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 493 + 150, (40) + 10, 0) + 0 + 0 + (60) + 4 + (72) + 4 + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 493 + 150, (64) + 4, 0)
                                     Y: |-
                                         =0 + 0 + ((((44) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                               - btnDomRowDelete:
@@ -4977,7 +4896,7 @@ Screens:
                                     Width: |-
                                         =72
                                     X: |-
-                                        =0 + 0 + 0 + (Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (130) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (120) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (40) + 10, 0) + 0 + 0 + (60) + 4 + (72) + 4 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (64) + 4, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (64) + 4, 0)
+                                        =0 + 0 + 0 + (Max(Min((((App.Width - 120) - 36 - 4 - 18 - 40)) - If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, (130) + 10, 0) + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, (120) + 10, 0) + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10 + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 493 + 150, (40) + 10, 0) + 0 + 0 + (60) + 4 + (72) + 4 + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 493 + 150, (64) + 4, 0) + If((((App.Width - 120) - 36 - 4 - 18 - 40)) >= 493 + 150, (64) + 4, 0)
                                     Y: |-
                                         =0 + 0 + ((((44) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                         - txtDomNoRows:
@@ -5028,7 +4947,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =88 + 14 + (If((((App.Width - 64) - 36)) >= (134) + (82) + (124) + 16, 36, (36) + 8 + (36) + 8 + (36)))
+                            =88 + 14 + (If((((App.Width - 120) - 36)) >= (134) + (82) + (124) + 16, 36, (36) + 8 + (36) + 8 + (36)))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -5110,11 +5029,11 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - 64) - 36)) >= (134) + (82) + (124) + 16, 36, (36) + 8 + (36) + 8 + (36))
+                                  =If((((App.Width - 120) - 36)) >= (134) + (82) + (124) + 16, 36, (36) + 8 + (36) + 8 + (36))
                               LayoutAlignItems: |-
-                                  =If((((App.Width - 64) - 36)) >= (134) + (82) + (124) + 16, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                                  =If((((App.Width - 120) - 36)) >= (134) + (82) + (124) + 16, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                               LayoutDirection: |-
-                                  =If((((App.Width - 64) - 36)) >= (134) + (82) + (124) + 16, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                                  =If((((App.Width - 120) - 36)) >= (134) + (82) + (124) + 16, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =8
                               LayoutMinWidth: |-
@@ -5154,7 +5073,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 64) - 36)) >= (134) + (82) + (124) + 16, 134, 0)
+                                        =If((((App.Width - 120) - 36)) >= (134) + (82) + (124) + 16, 134, 0)
                                     OnSelect: |-
                                         =If(
                                             CountRows(Filter(colDomRows, Status <> "submitted")) = 0,
@@ -5288,7 +5207,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 64) - 36)) >= (134) + (82) + (124) + 16, 82, 0)
+                                        =If((((App.Width - 120) - 36)) >= (134) + (82) + (124) + 16, 82, 0)
                                     OnSelect: |-
                                         =If(
                                             CountRows(Filter(colDomRows, Status = "valid")) = 0,
@@ -5426,7 +5345,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 64) - 36)) >= (134) + (82) + (124) + 16, 124, 0)
+                                        =If((((App.Width - 120) - 36)) >= (134) + (82) + (124) + 16, 124, 0)
                                     OnSelect: |-
                                         =ClearCollect(
                                             colDomRows,
@@ -5505,6 +5424,460 @@ Screens:
                                   ="Save as draft puts the request on the landing page with status Draft - it can still be edited. Submit locks the rows and sets the status to Submitted. Both write to the SAME row in the index."
                               Wrap: |-
                                   =false
+      - imgDomNavScrim:
+          Control: Image
+          Properties:
+            AccessibleLabel: |-
+                ="Close menu"
+            BorderStyle: |-
+                =BorderStyle.None
+            BorderThickness: |-
+                =0
+            Fill: |-
+                =RGBA(0, 0, 0, 0)
+            Height: |-
+                =App.Height
+            HoverFill: |-
+                =RGBA(0, 0, 0, 0)
+            Image: |-
+                =""
+            OnSelect: |-
+                =Set(gblNavOpen, false)
+            PressedFill: |-
+                =RGBA(0, 0, 0, 0)
+            TabIndex: |-
+                =-1
+            Visible: |-
+                =gblNavOpen
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - conDomNav:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'border-subtle'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =If(gblNavOpen, DropShadow.Bold, DropShadow.None)
+            Fill: |-
+                =C.'bg-surface'
+            FillPortions: |-
+                =0
+            Height: |-
+                =App.Height + 2
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Start
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =12
+            LayoutJustifyContent: |-
+                =LayoutJustifyContent.SpaceBetween
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =15
+            PaddingLeft: |-
+                =0
+            PaddingRight: |-
+                =0
+            PaddingTop: |-
+                =13
+            Width: |-
+                =If(gblNavOpen, 232, 56) + 1
+            X: |-
+                =-1
+            Y: |-
+                =-1
+          Children:
+            - conDomNavTop:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =296
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Start
+                  LayoutDirection: |-
+                      =LayoutDirection.Vertical
+                  LayoutGap: |-
+                      =2
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =If(gblNavOpen, 232, 56)
+                Children:
+                  - imgDomNavBrand:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="BIO SAP - Masterdata Hub"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =44
+                        HoverFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl(If(gblNavOpen,
+                                "<svg xmlns='http://www.w3.org/2000/svg' width='232' height='44' viewBox='0 0 232 44'><rect x='15' y='9' width='26' height='26' rx='7' fill='" & C.'hex-color-brand-primary' & "'/><text x='28' y='26' text-anchor='middle' font-family='Consolas, monospace' font-size='11' font-weight='700' fill='" & C.'hex-text-on-primary' & "'>BS</text><text x='56' y='28' font-family='Segoe UI, sans-serif' font-size='16' font-weight='600' fill='" & C.'hex-text-primary' & "'>BIO SAP</text></svg>",
+                                "<svg xmlns='http://www.w3.org/2000/svg' width='56' height='44' viewBox='0 0 56 44'><rect x='15' y='9' width='26' height='26' rx='7' fill='" & C.'hex-color-brand-primary' & "'/><text x='28' y='26' text-anchor='middle' font-family='Consolas, monospace' font-size='11' font-weight='700' fill='" & C.'hex-text-on-primary' & "'>BS</text></svg>"
+                            ))
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false); Launch("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/f387047d-86af-4d6a-8370-afcf35939436" & "?theme=" & If(darkModeEnabled, "dark", "light"), { }, LaunchTarget.Replace)
+                        PressedFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =If(gblNavOpen, 232, 56)
+                  - imgDomNavToggle:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            =If(gblNavOpen, "Collapse menu", "Expand menu")
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =40
+                        HoverFill: |-
+                            =C.'bg-muted'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl(If(gblNavOpen,
+                                "<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M18 6l-6 6 6 6 M12 6l-6 6 6 6'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Collapse</text></svg>",
+                                "<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l6 6-6 6 M12 6l6 6-6 6'/></g></svg>"
+                            ))
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, !gblNavOpen)
+                        PressedFill: |-
+                            =C.'bg-muted'
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            =If(gblNavOpen, "", "Expand menu")
+                        Width: |-
+                            =If(gblNavOpen, 232, 56)
+                  - imgDomNavHub:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Masterdata Hub"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =40
+                        HoverFill: |-
+                            =C.'bg-muted'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl(If(gblNavOpen,
+                                "<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5 12 3l9 7.5M5.5 9.5V20h13V9.5'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Masterdata Hub</text></svg>",
+                                "<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5 12 3l9 7.5M5.5 9.5V20h13V9.5'/></g></svg>"
+                            ))
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false); Launch("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/f387047d-86af-4d6a-8370-afcf35939436" & "?theme=" & If(darkModeEnabled, "dark", "light"), { }, LaunchTarget.Replace)
+                        PressedFill: |-
+                            =C.'bg-muted'
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            =If(gblNavOpen, "", "Masterdata Hub")
+                        Width: |-
+                            =If(gblNavOpen, 232, 56)
+                  - imgDomNavFunctionallocation:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Functional Location"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =40
+                        HoverFill: |-
+                            =C.'bg-muted'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl(If(gblNavOpen,
+                                "<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z M12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Functional Location</text></svg>",
+                                "<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z M12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z'/></g></svg>"
+                            ))
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false); Launch("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/8a6fabf2-e3a3-4f36-8ff6-94c7d33d9575" & "?theme=" & If(darkModeEnabled, "dark", "light"), { }, LaunchTarget.Replace)
+                        PressedFill: |-
+                            =C.'bg-muted'
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            =If(gblNavOpen, "", "Functional Location")
+                        Width: |-
+                            =If(gblNavOpen, 232, 56)
+                  - imgDomNavVhplan:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="VH-plan"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =40
+                        HoverFill: |-
+                            =C.'bg-muted'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl(If(gblNavOpen,
+                                "<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M4 6.5h16M4 12h16M4 17.5h10 M17.5 16.5l1.6 1.6 3-3.2'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>VH-plan</text></svg>",
+                                "<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M4 6.5h16M4 12h16M4 17.5h10 M17.5 16.5l1.6 1.6 3-3.2'/></g></svg>"
+                            ))
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false); Launch("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/11fa8d90-868a-45a4-ba23-28f2cf0671a2" & "?theme=" & If(darkModeEnabled, "dark", "light"), { }, LaunchTarget.Replace)
+                        PressedFill: |-
+                            =C.'bg-muted'
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            =If(gblNavOpen, "", "VH-plan")
+                        Width: |-
+                            =If(gblNavOpen, 232, 56)
+                  - imgDomNavMaterial:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Materials (current app)"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =40
+                        HoverFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl(If(gblNavOpen,
+                                "<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><rect x='8' y='0' width='216' height='40' rx='8' fill='" & C.'hex-state-info-bg' & "'/><rect x='0' y='10' width='3' height='20' rx='1.5' fill='" & C.'hex-color-brand-primary' & "'/><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 21 8v8l-9 5-9-5V8l9-5Z M3 8l9 5 9-5 M12 13v8'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-state-info-fg' & "'>Materials</text></svg>",
+                                "<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><rect x='8' y='0' width='40' height='40' rx='8' fill='" & C.'hex-state-info-bg' & "'/><rect x='0' y='10' width='3' height='20' rx='1.5' fill='" & C.'hex-color-brand-primary' & "'/><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 21 8v8l-9 5-9-5V8l9-5Z M3 8l9 5 9-5 M12 13v8'/></g></svg>"
+                            ))
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false)
+                        PressedFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            =If(gblNavOpen, "", "Materials")
+                        Width: |-
+                            =If(gblNavOpen, 232, 56)
+                  - imgDomNavEquipment:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Equipments"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =40
+                        HoverFill: |-
+                            =C.'bg-muted'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl(If(gblNavOpen,
+                                "<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M7 7h10v10H7z M4.5 10.5h2.5M4.5 13.5h2.5M17 10.5h2.5M17 13.5h2.5M10.5 4.5V7M13.5 4.5V7M10.5 17v2.5M13.5 17v2.5'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Equipments</text></svg>",
+                                "<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M7 7h10v10H7z M4.5 10.5h2.5M4.5 13.5h2.5M17 10.5h2.5M17 13.5h2.5M10.5 4.5V7M13.5 4.5V7M10.5 17v2.5M13.5 17v2.5'/></g></svg>"
+                            ))
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false); Launch("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/24bf3bbc-601f-480d-a8fe-7cd3180906d1" & "?theme=" & If(darkModeEnabled, "dark", "light"), { }, LaunchTarget.Replace)
+                        PressedFill: |-
+                            =C.'bg-muted'
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            =If(gblNavOpen, "", "Equipments")
+                        Width: |-
+                            =If(gblNavOpen, 232, 56)
+            - conDomNavFoot:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =47
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Start
+                  LayoutDirection: |-
+                      =LayoutDirection.Vertical
+                  LayoutGap: |-
+                      =10
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =10
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Width: |-
+                      =If(gblNavOpen, 232, 56)
+                Children:
+                  - conDomNavRule:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        Fill: |-
+                            =C.'border-subtle'
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =1
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Stretch
+                        LayoutDirection: |-
+                            =LayoutDirection.Horizontal
+                        LayoutGap: |-
+                            =8
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        Width: |-
+                            =If(gblNavOpen, 212, 36)
+                  - imgDomTheme:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            =If(darkModeEnabled, "Dark theme is on - switch to light theme", "Light theme is on - switch to dark theme")
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =36
+                        HoverFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl(If(
+                                !gblNavOpen && darkModeEnabled, "<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'><rect x='1' y='1' width='34' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='18' cy='18' r='14' fill='" & C.'hex-text-primary' & "'/><path d='M21 11 A7 7 0 1 0 25 21 A5.5 5.5 0 1 1 21 11 Z' fill='" & C.'hex-bg-app' & "'/></svg>",
+                                !gblNavOpen, "<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'><rect x='1' y='1' width='34' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='18' cy='18' r='14' fill='" & C.'hex-bg-surface' & "'/><circle cx='18' cy='18' r='4' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8'/><line x1='24.5' y1='18.0' x2='27.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='22.6' y1='22.6' x2='24.4' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='18.0' y1='24.5' x2='18.0' y2='27.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='13.4' y1='22.6' x2='11.6' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='11.5' y1='18.0' x2='9.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='13.4' y1='13.4' x2='11.6' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='18.0' y1='11.5' x2='18.0' y2='9.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='22.6' y1='13.4' x2='24.4' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/></svg>",
+                                darkModeEnabled, "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='36' viewBox='0 0 104 36'><rect x='1' y='1' width='102' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='18' cy='18' r='14' fill='" & C.'hex-text-primary' & "'/><path d='M21 11 A7 7 0 1 0 25 21 A5.5 5.5 0 1 1 21 11 Z' fill='" & C.'hex-bg-app' & "'/><text x='90' y='22' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='12' font-weight='700' letter-spacing='0.5' fill='" & C.'hex-text-primary' & "'>DARK</text></svg>",
+                                "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='36' viewBox='0 0 104 36'><rect x='1' y='1' width='102' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='86' cy='18' r='14' fill='" & C.'hex-bg-surface' & "'/><circle cx='86' cy='18' r='4' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8'/><line x1='92.5' y1='18.0' x2='95.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='90.6' y1='22.6' x2='92.4' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='86.0' y1='24.5' x2='86.0' y2='27.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='81.4' y1='22.6' x2='79.6' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='79.5' y1='18.0' x2='77.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='81.4' y1='13.4' x2='79.6' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='86.0' y1='11.5' x2='86.0' y2='9.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='90.6' y1='13.4' x2='92.4' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><text x='14' y='22' text-anchor='start' font-family='Segoe UI, sans-serif' font-size='12' font-weight='700' letter-spacing='0.5' fill='" & C.'hex-text-primary' & "'>LIGHT</text></svg>"
+                            ))
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(darkModeEnabled, !darkModeEnabled);
+                            ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
+                            IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                        PressedFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =If(!gblNavOpen, 36, 104)
       - conDomBackdrop:
           Control: GroupContainer
           Variant: AutoLayout
