@@ -20,10 +20,10 @@ import sp_config as cfg
 #   * Required        -> Plan Header-kortet, ved siden af Step 1
 #   beskrivelse       -> slettet
 #   statuslinje       -> slettet (txtVhpRuntimeInfo)
-BW = {"btnVhpHelp": 100, "conVhpTheme": THEME_TOGGLE_W, "btnVhpBackToHub": 120,
+BW = {"btnVhpHelp": 100, "imgVhpTheme": THEME_TOGGLE_W, "btnVhpBackToHub": 120,
       "btnVhpValidate": 110, "btnVhpExport": 130}
 BAR_GAP = 10
-NARROW_HIDE = ("conVhpTheme", "btnVhpExport")
+NARROW_HIDE = ("imgVhpTheme", "btnVhpExport")
 
 # De fem procestrin. Staar paa een linje under titlen, naar der er plads -
 # ellers staar undertitlen der i stedet. Aldrig to linjer: bjaelken har en
@@ -225,7 +225,7 @@ def _actions():
         primary=False, width=BW["btnVhpBackToHub"], height=36)
 
     # Samme knap som i de tre andre apps - se build_helpers.theme_button.
-    btnTheme = theme_button("conVhpTheme")
+    btnTheme = theme_button("imgVhpTheme")
 
     # EEN hjaelpeknap. Foer var der fem: "Show field help" i heroen og en
     # "? Help" i hver af de fire sektioner. De slaar nu alle det samme til.
