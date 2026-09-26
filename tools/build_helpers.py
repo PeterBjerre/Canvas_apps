@@ -334,6 +334,67 @@ def theme_button(name="imgThemeToggle"):
     return Ctrl(name, "Image", props=props, h=THEME_TOGGLE_H)
 
 
+def _help_svg(on):
+    """Hjaelpe-pillen - samme form som temapillen (_theme_svg).
+
+        ( (?)  HELP )     slukket: graa knop til venstre
+        ( HELP  (?) )     taendt: blaa knop til hoejre, blaa pille
+
+    Knoppen skifter side OG farve, saa tilstanden kan ses uden at laese
+    teksten - som en almindelig kontakt."""
+    hx = lambda n: "\" & %s & \"" % ref_hex_expr(n)
+    W, H, R = THEME_TOGGLE_W, THEME_TOGGLE_H, THEME_TOGGLE_H // 2
+    kx = W - R if on else R
+    pill = hx('state-info-bg') if on else hx('state-neutral-bg')
+    edge = hx('state-info-fg') if on else hx('border-default')
+    knob = hx('state-info-fg') if on else hx('bg-surface')
+    glyph = hx('bg-surface') if on else hx('state-info-fg')
+    tx, anchor = (14, "start") if on else (W - 14, "end")
+    return ('"' +
+            f"<svg xmlns='http://www.w3.org/2000/svg' width='{W}' height='{H}' "
+            f"viewBox='0 0 {W} {H}'>"
+            f"<rect x='1' y='1' width='{W - 2}' height='{H - 2}' rx='{R - 1}' "
+            f"fill='{pill}' stroke='{edge}'/>"
+            f"<circle cx='{kx}' cy='{R}' r='{R - 4}' fill='{knob}'/>"
+            f"<text x='{kx}' y='{R + 5}' text-anchor='middle' "
+            f"font-family='Segoe UI, sans-serif' font-size='15' font-weight='700' "
+            f"fill='{glyph}'>?</text>"
+            f"<text x='{tx}' y='{R + 4}' text-anchor='{anchor}' "
+            f"font-family='Segoe UI, sans-serif' font-size='12' "
+            f"font-weight='700' letter-spacing='0.5' "
+            f"fill='{hx('text-primary')}'>HELP</text>"
+            "</svg>" + '"')
+
+
+def help_toggle(name, on, action):
+    """Hjaelp til/fra - samme slags kontakt som temaknappen (theme_button).
+
+    on:     Power Fx-udtryk, der er sandt, naar hjaelpen vises.
+    action: OnSelect, der vender den.
+
+    Et Image med en SVG af de grunde, theme_button beskriver: en moderne
+    knap tegner Fluent-temaets form, ikke vores."""
+    img = (f'"data:image/svg+xml;utf8," & EncodeUrl(If({on},\n'
+           f'    {_help_svg(True)},\n    {_help_svg(False)}\n))')
+    t = TRANSPARENT
+    props = {
+        "AccessibleLabel": (f'If({on}, "Help is shown - hide help", '
+                            f'"Help is hidden - show help")'),
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        "FocusedBorderThickness": "2",
+        "FocusedBorderColor": C_PRIMARY,
+        "Height": str(THEME_TOGGLE_H),
+        "HoverFill": t, "PressedFill": t, "Fill": t,
+        "Image": img,
+        "ImagePosition": "ImagePosition.Fit",
+        "OnSelect": action,
+        "TabIndex": "0",
+        "Width": str(THEME_TOGGLE_W),
+    }
+    return Ctrl(name, "Image", props=props, h=THEME_TOGGLE_H)
+
+
 def _fits_expr(container_w, needs):
     """Sand, naar 'needs' px kan staa paa EEN linje i container_w.
 

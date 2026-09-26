@@ -35,7 +35,7 @@ REQ_CYCLE = f"(varVhpPlanValidated && {LIVE_NOT_STRATEGY})"
 
 def help_var(section):
     """Alle fire hjaelpepaneler foelger den ENE Help-knap i topbjaelken
-    (build_hero.btnVhpHelp) - den samme variabel som feltforklaringerne.
+    (build_hero.imgVhpHelp) - den samme variabel som feltforklaringerne.
     Foer havde hver sektion sin egen "? Help" og sin egen variabel."""
     return "varVhpShowHints"
 

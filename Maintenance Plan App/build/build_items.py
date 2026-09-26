@@ -27,9 +27,12 @@ EDITOR_COLS = 3
 # Bredden paa Soeg-knappen i FL-blokken.
 FL_BTN_W = 84
 
-# Gallerihoejde: TemplateSize + TemplatePadding pr. raekke. Den oprindelige
-# formel regnede kun med TemplateSize og klippede derfor den sidste raekke.
-ITEM_ROW_H = 88 + 6
+# Gallerihoejde: een raekke pr. item. Mellemrummet paa 6 px ligger UNDER
+# kortet i raekken (kortet er 88 hoejt), ikke i TemplatePadding - saa ville
+# det ogsaa ligge til hoejre og venstre, og kortet flugtede ikke med
+# knapperne over det.
+ITEM_GAP = 6
+ITEM_ROW_H = 88 + ITEM_GAP
 ITEMS_GAL_H = f"Max(CountRows(colVhpItems), 1) * {ITEM_ROW_H}"
 
 # Den FL der er valgt lige nu: dropdownens valg, med fald tilbage til det
@@ -236,7 +239,7 @@ def build_items_rail():
 
     itemCard = group(
         "conVhpItemCard", [cardTextCol, cardRight], direction="Horizontal", gap=10,
-        height="Parent.TemplateHeight - 2",
+        height=f"Parent.TemplateHeight - {ITEM_GAP}",
         fill=f"If(ThisItem.ItemId = varVhpActiveItemId, {C_INFO_BG}, {C_CARD_BG})",
         border_color=f"If(ThisItem.ItemId = varVhpActiveItemId, {C_INFO_FG}, {C_CARD_BORDER})",
         border_thickness=1, radius=10, pad=(10, 12, 10, 12), width="Parent.TemplateWidth",
@@ -256,9 +259,16 @@ def build_items_rail():
             "Selectable": "false",
             "ShowScrollbar": "false",
             "TabIndex": "0",
-            "TemplatePadding": "6",
-            "TemplateSize": "88",
-            "Width": "Parent.Width",
+            # Kortet skal flugte med knaprakken over det (issue #45): samme
+            # bredde som kortets indhold, ingen TemplatePadding. Bredden er
+            # skrevet ud - med Parent.Width regner gen_screen den som usikker
+            # og traekker GALLERY_RESERVE (40 px) fra kortet i raekken.
+            # Start, ikke Stretch: et straekt barn regnes ogsaa som usikkert,
+            # uanset hvad der staar i Width.
+            "AlignInContainer": "AlignInContainer.Start",
+            "TemplatePadding": "0",
+            "TemplateSize": str(ITEM_ROW_H),
+            "Width": f"({if_below('Desktop', SHELL_W, str(RAIL_W))}) - 36",
             "WrapCount": "1",
         },
         children=[itemCard], h=ITEMS_GAL_H)

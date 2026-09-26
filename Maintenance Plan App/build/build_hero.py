@@ -3,7 +3,8 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED,
                         C_PRIMARY, C_WHITE, C_NEUTRAL_BG, C_INFO_FG, SHELL_W)
-from build_helpers import text_ctrl, group, button, theme_button, top_bar, THEME_TOGGLE_W
+from build_helpers import (text_ctrl, group, button, theme_button, help_toggle, top_bar,
+                           THEME_TOGGLE_W)
 from design_tokens import theme_query
 from layout_tokens import at_least
 import sp_config as cfg
@@ -20,7 +21,7 @@ import sp_config as cfg
 #   * Required        -> Plan Header-kortet, ved siden af Step 1
 #   beskrivelse       -> slettet
 #   statuslinje       -> slettet (txtVhpRuntimeInfo)
-BW = {"btnVhpHelp": 100, "imgVhpTheme": THEME_TOGGLE_W, "btnVhpBackToHub": 120,
+BW = {"imgVhpHelp": THEME_TOGGLE_W, "imgVhpTheme": THEME_TOGGLE_W, "btnVhpBackToHub": 120,
       "btnVhpValidate": 110, "btnVhpExport": 130}
 BAR_GAP = 10
 NARROW_HIDE = ("imgVhpTheme", "btnVhpExport")
@@ -229,16 +230,10 @@ def _actions():
 
     # EEN hjaelpeknap. Foer var der fem: "Show field help" i heroen og en
     # "? Help" i hver af de fire sektioner. De slaar nu alle det samme til.
+    # Den er en kontakt magen til temaknappen ved siden af - se
+    # build_helpers.help_toggle.
     on = "IfError(varVhpShowHints, false)"
-    btnHelp = button(
-        "btnVhpHelp", f'If({on}, "Hide help", "? Help")',
-        f"Set(varVhpShowHints, !{on})",
-        width=BW["btnVhpHelp"], height=36)
-    btnHelp.props["Appearance"] = f"If({on}, ButtonAppearance.Primary, ButtonAppearance.Outline)"
-    btnHelp.props["BasePaletteColor"] = C_INFO_FG
-    btnHelp.props["Color"] = f"If({on}, {C_WHITE}, {C_INFO_FG})"
-    btnHelp.props["BorderColor"] = C_CARD_BORDER
-    btnHelp.props["BorderThickness"] = "1"
+    btnHelp = help_toggle("imgVhpHelp", on, f"Set(varVhpShowHints, !{on})")
 
     return [btnHelp, btnTheme, btnHub, btnValidate, btnExport]
 
