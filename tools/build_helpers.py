@@ -9,7 +9,7 @@ YAML'en refererer andre kontrollers .Height. Se gen_screen.stack_height.
 """
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from design_tokens import DARK_VAR, toggle_action
+from design_tokens import DARK_VAR, toggle_action, ref_hex as ref_hex_expr, TRANSPARENT
 import layout_tokens as lay
 from layout_tokens import below, at_least, fits, if_below, TWO_COL_MIN
 from gen_screen import (
@@ -231,92 +231,107 @@ def button(name, text, onselect, primary=False, danger=False, width=140, height=
     return Ctrl(name, "ModernButton", props=props, h=height, vis=visible)
 
 
-# Temaknappens maal. Eksporteret, saa en app, der regner sin bjaelke selv
+# Temaskiftets maal. Eksporteret, saa en app, der regner sin bjaelke selv
 # (VH-plan, build_hero.BW), laeser det samme tal som kontrollen har.
-THEME_KNOB_W = 36
-THEME_KNOB_H = 32
-THEME_PAD = 2
-THEME_TOGGLE_W = 2 * THEME_KNOB_W + 3 * THEME_PAD           # 78
-THEME_TOGGLE_H = THEME_KNOB_H + 2 * THEME_PAD               # 36
-
-# Sol og maane som UniChar, ikke som tegn i kildeteksten: saa kan hverken
-# en editor, en kodetabel eller sprogtjekket lave dem om.
-#
-# U+263C og ikke U+2600: den fyldte sol blev tegnet som en lille prik i
-# Studio (issue #37, skaermbillede). Den aabne sol med straaler er lige saa
-# stor som maanen i Segoe UI Symbol.
-SUN = "UniChar(9788)"       # U+263C WHITE SUN WITH RAYS
-MOON = "UniChar(9790)"      # U+263E LAST QUARTER MOON
+THEME_TOGGLE_W = 104
+THEME_TOGGLE_H = 36
 
 
-def theme_button(name="conThemeToggle"):
-    """Skiftet mellem lyst og moerkt tema - en pille med sol og maane.
+def _theme_svg(dark):
+    """Pillen som SVG - LIGHT/DARK og en rund knop med sol eller maane,
+    som referencebilledet i issue #37.
 
-        ( [sol] maane )     lyst tema
-        ( sol [maane] )     moerkt tema
+    Farverne er tokens (C.'hex-...'), sat ind med &. SVG'en bruger kun
+    enkelte anfoerselstegn, saa den kan staa i en Power Fx-streng."""
+    import math
+    hx = lambda n: "\" & %s & \"" % ref_hex_expr(n)
+    W, H, R = THEME_TOGGLE_W, THEME_TOGGLE_H, THEME_TOGGLE_H // 2
+    kx = R if dark else W - R
+    parts = [
+        f"<svg xmlns='http://www.w3.org/2000/svg' width='{W}' height='{H}' "
+        f"viewBox='0 0 {W} {H}'>",
+        f"<rect x='1' y='1' width='{W - 2}' height='{H - 2}' rx='{R - 1}' "
+        f"fill='{hx('state-neutral-bg')}' stroke='{hx('border-default')}'/>",
+        f"<circle cx='{kx}' cy='{R}' r='{R - 4}' "
+        f"fill='{hx('text-primary') if dark else hx('bg-surface')}'/>",
+    ]
+    if dark:
+        # Maane: en fuld cirkel minus en forskudt - tegnet som een sti.
+        parts.append(
+            f"<path d='M{kx + 3} {R - 7} A7 7 0 1 0 {kx + 7} {R + 3} "
+            f"A5.5 5.5 0 1 1 {kx + 3} {R - 7} Z' fill='{hx('bg-app')}'/>")
+        tx, anchor, label = W - 14, "end", "DARK"
+    else:
+        sun = hx('state-warn-fg')
+        parts.append(f"<circle cx='{kx}' cy='{R}' r='4' fill='none' "
+                     f"stroke='{sun}' stroke-width='1.8'/>")
+        for i in range(8):
+            a = i * math.pi / 4
+            x1, y1 = kx + 6.5 * math.cos(a), R + 6.5 * math.sin(a)
+            x2, y2 = kx + 9 * math.cos(a), R + 9 * math.sin(a)
+            parts.append(f"<line x1='{x1:.1f}' y1='{y1:.1f}' x2='{x2:.1f}' "
+                         f"y2='{y2:.1f}' stroke='{sun}' stroke-width='1.8' "
+                         f"stroke-linecap='round'/>")
+        tx, anchor, label = 14, "start", "LIGHT"
+    parts.append(f"<text x='{tx}' y='{R + 4}' text-anchor='{anchor}' "
+                 f"font-family='Segoe UI, sans-serif' font-size='12' "
+                 f"font-weight='700' letter-spacing='0.5' "
+                 f"fill='{hx('text-primary')}'>"
+                 f"{label}</text>")
+    parts.append("</svg>")
+    return '"' + "".join(parts) + '"'
 
-    SAMME KONSTRUKTION I ALLE APPS. Det er hele pointen: en knap, der ser
-    forskellig ud fra app til app, er praecis den slags drift, der har
-    gjort appsene forskellige indtil nu.
 
-    HVORFOR IKKE EN KNAP MED "Dark"
-    -------------------------------
-    Det var den foer (issue #29/#37): en almindelig knap med ordet "Dark"
-    eller "Light" paa. Den lignede alle andre knapper i bjaelken, og man
-    skulle laese den for at vide, hvad den gjorde. Et segmenteret skift
-    med sol og maane er den form, Windows, macOS og de fleste web-apps
-    bruger i dag - og det valgte tema kan ses uden at laese noget.
+def theme_button(name="imgThemeToggle"):
+    """Skiftet mellem lyst og moerkt tema - ET billede, man trykker paa.
 
-    KNOPPEN ER EN CONTAINER, IKKE KNAPPENS FYLD
-    -------------------------------------------
-    Foerste udgave gav den valgte knap ButtonAppearance.Primary med
-    BasePaletteColor = kortets farve. Fluent laver en PALET af den farve og
-    fylder knappen med en af de moerke trin - i Studio blev knoppen en
-    moerkegraa klat med solen som en prik i midten. Den moderne knap har
-    ingen Fill, saa den farve kan ikke styres.
+        ( LIGHT  (sol) )     lyst tema
+        ( (maane)  DARK )    moerkt tema
 
-    Nu er hver halvdel en GroupContainer, hvis Fill er en token (kortets
-    farve, naar den er valgt, ellers gennemsigtig), og knappen inden i er
-    Outline uden kant - den har intet fyld selv, saa containerens ses.
-    Samme greb som alle sekundaere knapper i appen (se button()).
+    SAMME KONTROL I ALLE APPS. Det er hele pointen.
 
-    Hver halvdel saetter SIT tema; et tryk paa den valgte goer intet. Det
-    er saadan et segmenteret skift opfoerer sig.
+    HVORFOR ET SVG-BILLEDE (issue #37)
+    ----------------------------------
+    Tredje forsoeg. De to foerste byggede pillen af containere og moderne
+    knapper, og begge gange bestemte Fluent-temaet noget, vi ikke kunne
+    styre: foerst blev knoppen en moerk klat (BasePaletteColor giver en
+    PALET, ikke en farve), saa blev den en hvid klat uden ikon, og et tryk
+    naaede ikke knappen. En moderne knap har ingen Fill.
+
+    En Image-kontrol med en SVG tegner PRAECIS det, der staar - pille,
+    knop, ikon og tekst - og har OnSelect og TabIndex, saa den kan bruges
+    med mus og tastatur. Det er den samme form, appsene i BIOSAP-
+    solutionen bruger til deres logo (Image@2.2.3 med EncodeUrl af en
+    SVG), altsaa bevist i dette miljoe. Farverne er tokens, saa den
+    skifter med temaet som alt andet.
+
+    HVORFOR IKKE EN PCF-KOMPONENT
+    -----------------------------
+    Den ville kraeve sin egen solution-import og at kodekomponenter er
+    slaaet til i miljoeet - og deploy-vejen (canvas_mcp) synker kun
+    .pa.yaml. Et billede kan det samme her uden noget af det.
 
     Handlingen staar i tools/design_tokens.py - baade Set() og SaveData,
     saa valget ogsaa er der i morgen."""
-    act = toggle_action()
-    r = str(THEME_KNOB_H // 2)
-
-    def knob(suffix, glyph, is_on, is_off, label, glyph_color):
-        b = button(name + suffix + "Btn", glyph, f"If({is_off},\n{act}\n)",
-                   width=THEME_KNOB_W, height=THEME_KNOB_H,
-                   accessible=(f'If({is_on}, "{label} (selected)", '
-                               f'"Switch to {label.lower()}")'))
-        b.props["BorderColor"] = C_TRANSPARENT
-        b.props["BorderThickness"] = "0"
-        b.props["Color"] = f"If({is_on}, {glyph_color}, {C_MUTED})"
-        b.props["Size"] = "18"
-        b.props["FontWeight"] = "FontWeight.Normal"
-        for k in ("RadiusBottomLeft", "RadiusBottomRight",
-                  "RadiusTopLeft", "RadiusTopRight"):
-            b.props[k] = r
-        b.props["LayoutMinWidth"] = str(THEME_KNOB_W)
-        return group(name + suffix, [b], direction="Horizontal", gap=0,
-                     height=THEME_KNOB_H, width=THEME_KNOB_W,
-                     align_items="Center",
-                     fill=f"If({is_on}, {C_CARD_BG}, {C_TRANSPARENT})",
-                     border_color=f"If({is_on}, {C_CARD_BORDER}, {C_TRANSPARENT})",
-                     radius=THEME_KNOB_H // 2,
-                     layout_min_width=THEME_KNOB_W)
-
-    light = knob("Light", SUN, f"!{DARK_VAR}", DARK_VAR, "Light theme", C_WARN_FG)
-    dark = knob("Dark", MOON, DARK_VAR, f"!{DARK_VAR}", "Dark theme", C_PRIMARY)
-    return group(name, [light, dark], direction="Horizontal", gap=THEME_PAD,
-                 height=THEME_TOGGLE_H, width=THEME_TOGGLE_W,
-                 align_items="Center", fill=C_NEUTRAL_BG,
-                 radius=THEME_TOGGLE_H // 2, pad=THEME_PAD,
-                 layout_min_width=THEME_TOGGLE_W)
+    img = (f'"data:image/svg+xml;utf8," & EncodeUrl(If({DARK_VAR},\n'
+           f'    {_theme_svg(True)},\n    {_theme_svg(False)}\n))')
+    t = TRANSPARENT
+    props = {
+        "AccessibleLabel": (f'If({DARK_VAR}, "Dark theme is on - switch to light theme", '
+                            f'"Light theme is on - switch to dark theme")'),
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        "FocusedBorderThickness": "2",
+        "FocusedBorderColor": C_PRIMARY,
+        "Height": str(THEME_TOGGLE_H),
+        "HoverFill": t, "PressedFill": t, "Fill": t,
+        "Image": img,
+        "ImagePosition": "ImagePosition.Fit",
+        "OnSelect": toggle_action(),
+        "TabIndex": "0",
+        "Width": str(THEME_TOGGLE_W),
+    }
+    return Ctrl(name, "Image", props=props, h=THEME_TOGGLE_H)
 
 
 def _fits_expr(container_w, needs):

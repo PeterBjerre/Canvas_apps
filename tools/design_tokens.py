@@ -489,7 +489,11 @@ _check_balance()
 # Alfa kan ikke udtrykkes i den korte hex-form og er ligegyldig her: de
 # tokens, HTML bruger, er alle helt uigennemsigtige.
 # ---------------------------------------------------------------------------
-HTML_TOKENS = ("text-primary", "text-muted")
+HTML_TOKENS = ("text-primary", "text-muted",
+               # Temaskiftet er en SVG (build_helpers.theme_button) - dens
+               # farver er de samme tokens som resten af appen.
+               "state-neutral-bg", "bg-surface", "bg-app", "state-warn-fg",
+               "border-default")
 
 
 def _hex(rgba):

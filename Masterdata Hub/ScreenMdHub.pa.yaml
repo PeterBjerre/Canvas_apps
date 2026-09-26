@@ -122,7 +122,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Width: |-
-                                  =Max(0, ((((App.Width)) - 24 - 34)) - ((336) + 10) - (If(LayoutRank >= 2, (78) + 10, 0)) - 2)
+                                  =Max(0, ((((App.Width)) - 24 - 34)) - ((336) + 10) - (If(LayoutRank >= 2, (104) + 10, 0)) - 2)
                             Children:
                               - txtMdTitle:
                                   Control: ModernText
@@ -307,231 +307,48 @@ Screens:
                                         =VerticalAlign.Middle
                                     Width: |-
                                         =168
-                        - conMdTheme:
-                            Control: GroupContainer
-                            Variant: AutoLayout
+                        - imgMdTheme:
+                            Control: Image
                             Properties:
+                              AccessibleLabel: |-
+                                  =If(darkModeEnabled, "Dark theme is on - switch to light theme", "Light theme is on - switch to dark theme")
                               AlignInContainer: |-
                                   =AlignInContainer.Center
                               BorderStyle: |-
                                   =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              Fill: |-
-                                  =C.'state-neutral-bg'
-                              FillPortions: |-
+                              BorderThickness: |-
                                   =0
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              FocusedBorderColor: |-
+                                  =C.'color-brand-primary'
+                              FocusedBorderThickness: |-
+                                  =2
                               Height: |-
                                   =36
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Center
-                              LayoutDirection: |-
-                                  =LayoutDirection.Horizontal
-                              LayoutGap: |-
-                                  =2
+                              HoverFill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Image: |-
+                                  ="data:image/svg+xml;utf8," & EncodeUrl(If(darkModeEnabled,
+                                      "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='36' viewBox='0 0 104 36'><rect x='1' y='1' width='102' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='18' cy='18' r='14' fill='" & C.'hex-text-primary' & "'/><path d='M21 11 A7 7 0 1 0 25 21 A5.5 5.5 0 1 1 21 11 Z' fill='" & C.'hex-bg-app' & "'/><text x='90' y='22' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='12' font-weight='700' letter-spacing='0.5' fill='" & C.'hex-text-primary' & "'>DARK</text></svg>",
+                                      "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='36' viewBox='0 0 104 36'><rect x='1' y='1' width='102' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='86' cy='18' r='14' fill='" & C.'hex-bg-surface' & "'/><circle cx='86' cy='18' r='4' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8'/><line x1='92.5' y1='18.0' x2='95.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='90.6' y1='22.6' x2='92.4' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='86.0' y1='24.5' x2='86.0' y2='27.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='81.4' y1='22.6' x2='79.6' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='79.5' y1='18.0' x2='77.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='81.4' y1='13.4' x2='79.6' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='86.0' y1='11.5' x2='86.0' y2='9.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='90.6' y1='13.4' x2='92.4' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><text x='14' y='22' text-anchor='start' font-family='Segoe UI, sans-serif' font-size='12' font-weight='700' letter-spacing='0.5' fill='" & C.'hex-text-primary' & "'>LIGHT</text></svg>"
+                                  ))
+                              ImagePosition: |-
+                                  =ImagePosition.Fit
                               LayoutMinWidth: |-
-                                  =78
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              PaddingBottom: |-
-                                  =2
-                              PaddingLeft: |-
-                                  =2
-                              PaddingRight: |-
-                                  =2
-                              PaddingTop: |-
-                                  =2
-                              RadiusBottomLeft: |-
-                                  =18
-                              RadiusBottomRight: |-
-                                  =18
-                              RadiusTopLeft: |-
-                                  =18
-                              RadiusTopRight: |-
-                                  =18
+                                  =104
+                              OnSelect: |-
+                                  =Set(darkModeEnabled, !darkModeEnabled);
+                                  ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
+                                  IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                              PressedFill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              TabIndex: |-
+                                  =0
                               Visible: |-
                                   =LayoutRank >= 2
                               Width: |-
-                                  =78
-                            Children:
-                              - conMdThemeLight:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
-                                  Properties:
-                                    BorderColor: |-
-                                        =If(!darkModeEnabled, C.'border-default', RGBA(0, 0, 0, 0))
-                                    BorderThickness: |-
-                                        =1
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    Fill: |-
-                                        =If(!darkModeEnabled, C.'bg-card', RGBA(0, 0, 0, 0))
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =32
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Center
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =0
-                                    LayoutMinWidth: |-
-                                        =36
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    RadiusBottomLeft: |-
-                                        =16
-                                    RadiusBottomRight: |-
-                                        =16
-                                    RadiusTopLeft: |-
-                                        =16
-                                    RadiusTopRight: |-
-                                        =16
-                                    Width: |-
-                                        =36
-                                  Children:
-                                    - conMdThemeLightBtn:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =If(!darkModeEnabled, "Light theme (selected)", "Switch to light theme")
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          Appearance: |-
-                                              =ButtonAppearance.Outline
-                                          BorderColor: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =If(!darkModeEnabled, C.'state-warn-fg', C.'text-muted')
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Normal
-                                          Height: |-
-                                              =32
-                                          Layout: |-
-                                              =ButtonLayout.TextOnly
-                                          LayoutMinWidth: |-
-                                              =36
-                                          OnSelect: |-
-                                              =If(darkModeEnabled,
-                                              Set(darkModeEnabled, !darkModeEnabled);
-                                              ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
-                                              IfError(SaveData(colAppPrefs, "prefs"), Blank())
-                                              )
-                                          RadiusBottomLeft: |-
-                                              =16
-                                          RadiusBottomRight: |-
-                                              =16
-                                          RadiusTopLeft: |-
-                                              =16
-                                          RadiusTopRight: |-
-                                              =16
-                                          Size: |-
-                                              =18
-                                          Text: |-
-                                              =UniChar(9788)
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =36
-                              - conMdThemeDark:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
-                                  Properties:
-                                    BorderColor: |-
-                                        =If(darkModeEnabled, C.'border-default', RGBA(0, 0, 0, 0))
-                                    BorderThickness: |-
-                                        =1
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    Fill: |-
-                                        =If(darkModeEnabled, C.'bg-card', RGBA(0, 0, 0, 0))
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =32
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Center
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =0
-                                    LayoutMinWidth: |-
-                                        =36
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    RadiusBottomLeft: |-
-                                        =16
-                                    RadiusBottomRight: |-
-                                        =16
-                                    RadiusTopLeft: |-
-                                        =16
-                                    RadiusTopRight: |-
-                                        =16
-                                    Width: |-
-                                        =36
-                                  Children:
-                                    - conMdThemeDarkBtn:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =If(darkModeEnabled, "Dark theme (selected)", "Switch to dark theme")
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          Appearance: |-
-                                              =ButtonAppearance.Outline
-                                          BorderColor: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =If(darkModeEnabled, C.'color-brand-primary', C.'text-muted')
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Normal
-                                          Height: |-
-                                              =32
-                                          Layout: |-
-                                              =ButtonLayout.TextOnly
-                                          LayoutMinWidth: |-
-                                              =36
-                                          OnSelect: |-
-                                              =If(!darkModeEnabled,
-                                              Set(darkModeEnabled, !darkModeEnabled);
-                                              ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
-                                              IfError(SaveData(colAppPrefs, "prefs"), Blank())
-                                              )
-                                          RadiusBottomLeft: |-
-                                              =16
-                                          RadiusBottomRight: |-
-                                              =16
-                                          RadiusTopLeft: |-
-                                              =16
-                                          RadiusTopRight: |-
-                                              =16
-                                          Size: |-
-                                              =18
-                                          Text: |-
-                                              =UniChar(9790)
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =36
+                                  =104
                   - conMdHeaderRule:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -2675,658 +2492,550 @@ Screens:
                                   =1
                             Children:
                               - conMdRow:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
+                                  Control: Rectangle
                                   Properties:
+                                    BorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
                                     BorderStyle: |-
                                         =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
+                                    BorderThickness: |-
+                                        =0
                                     Fill: |-
                                         =C.'bg-card'
-                                    FillPortions: |-
-                                        =0
                                     Height: |-
                                         =(46) - 2
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Center
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =10
-                                    LayoutMinWidth: |-
-                                        =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
                                     Width: |-
-                                        =(((((App.Width)) - 24 - 16 - 18) - 18 - 18) - 2 * 2 - 18 - 40)
-                                  Children:
-                                    - txtMdRowDomain:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Switch(
-                                                  ThisItem.Domain.Value,
-                                                  "FunctionalLocation", "Functional location",
-                                                  "Equipment", "Equipment",
-                                                  "MeasuringPoint", "Measuring point",
-                                                  "Material", "Material",
-                                                  "MaintenancePlan", "Maintenance plan",
-                                                  "?"
-                                              )
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-on-domain'
-                                          Fill: |-
-                                              =Switch(
-                                                  ThisItem.Domain.Value,
-                                                  "FunctionalLocation", C.'domain-fl',
-                                                  "Equipment", C.'domain-eq',
-                                                  "MeasuringPoint", C.'domain-mp',
-                                                  "Material", C.'domain-mat',
-                                                  "MaintenancePlan", C.'domain-vhp',
-                                                  C.'text-muted'
-                                              )
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =20
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =6
-                                          PaddingRight: |-
-                                              =6
-                                          PaddingTop: |-
-                                              =0
-                                          RadiusBottomLeft: |-
-                                              =4
-                                          RadiusBottomRight: |-
-                                              =4
-                                          RadiusTopLeft: |-
-                                              =4
-                                          RadiusTopRight: |-
-                                              =4
-                                          Size: |-
-                                              =10
-                                          Text: |-
-                                              =Switch(
-                                                  ThisItem.Domain.Value,
-                                                  "FunctionalLocation", "Functional location",
-                                                  "Equipment", "Equipment",
-                                                  "MeasuringPoint", "Measuring point",
-                                                  "Material", "Material",
-                                                  "MaintenancePlan", "Maintenance plan",
-                                                  "?"
-                                              )
-                                          Width: |-
-                                              =124
-                                          Wrap: |-
-                                              =false
-                                    - conMdRowMain:
-                                        Control: GroupContainer
-                                        Variant: AutoLayout
-                                        Properties:
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          DropShadow: |-
-                                              =DropShadow.None
-                                          FillPortions: |-
-                                              =0
-                                          Height: |-
-                                              =39
-                                          LayoutAlignItems: |-
-                                              =LayoutAlignItems.Stretch
-                                          LayoutDirection: |-
-                                              =LayoutDirection.Vertical
-                                          LayoutGap: |-
-                                              =2
-                                          LayoutMinWidth: |-
-                                              =0
-                                          LayoutOverflowX: |-
-                                              =LayoutOverflow.Hide
-                                          LayoutOverflowY: |-
-                                              =LayoutOverflow.Hide
-                                          Width: |-
-                                              =((App.Width - 64) - 36 - 4 - 18 - 40 - 580)
-                                        Children:
-                                          - txtMdRowNo:
-                                              Control: ModernText
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    =ThisItem.RequestNo
-                                                BorderStyle: |-
-                                                    =BorderStyle.None
-                                                BorderThickness: |-
-                                                    =0
-                                                Color: |-
-                                                    =C.'text-muted'
-                                                Fill: |-
-                                                    =RGBA(0, 0, 0, 0)
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                Height: |-
-                                                    =17
-                                                PaddingBottom: |-
-                                                    =0
-                                                PaddingLeft: |-
-                                                    =0
-                                                PaddingRight: |-
-                                                    =0
-                                                PaddingTop: |-
-                                                    =0
-                                                Size: |-
-                                                    =11
-                                                Text: |-
-                                                    =ThisItem.RequestNo
-                                                Wrap: |-
-                                                    =false
-                                          - txtMdRowText:
-                                              Control: ModernText
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    =ThisItem.ShortText
-                                                BorderStyle: |-
-                                                    =BorderStyle.None
-                                                BorderThickness: |-
-                                                    =0
-                                                Color: |-
-                                                    =C.'text-primary'
-                                                Fill: |-
-                                                    =RGBA(0, 0, 0, 0)
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                Height: |-
-                                                    =20
-                                                PaddingBottom: |-
-                                                    =0
-                                                PaddingLeft: |-
-                                                    =0
-                                                PaddingRight: |-
-                                                    =0
-                                                PaddingTop: |-
-                                                    =0
-                                                Size: |-
-                                                    =13
-                                                Text: |-
-                                                    =ThisItem.ShortText
-                                                Wrap: |-
-                                                    =false
-                                    - txtMdRowPlant:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.Plant
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =36
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =12
-                                          Text: |-
-                                              =ThisItem.Plant
-                                          Width: |-
-                                              =62
-                                          Wrap: |-
-                                              =false
-                                    - conMdRowStat:
-                                        Control: GroupContainer
-                                        Variant: AutoLayout
-                                        Properties:
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          DropShadow: |-
-                                              =DropShadow.None
-                                          FillPortions: |-
-                                              =0
-                                          Height: |-
-                                              =27
-                                          LayoutAlignItems: |-
-                                              =LayoutAlignItems.Start
-                                          LayoutDirection: |-
-                                              =LayoutDirection.Vertical
-                                          LayoutGap: |-
-                                              =5
-                                          LayoutMinWidth: |-
-                                              =0
-                                          LayoutOverflowX: |-
-                                              =LayoutOverflow.Hide
-                                          LayoutOverflowY: |-
-                                              =LayoutOverflow.Hide
-                                          Width: |-
-                                              =176
-                                        Children:
-                                          - txtMdRowStatus:
-                                              Control: ModernText
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    =Switch(
-                                                        ThisItem.Status.Value,
-                                                        "Kladde", "Draft",
-                                                        "Indsendt", "Submitted",
-                                                        "UnderBehandling", "In progress",
-                                                        "AfventerInfo", "Awaiting info",
-                                                        "KlarTilSAP", "Ready for SAP",
-                                                        "OprettetISAP", "Created in SAP",
-                                                        "Afvist", "Rejected",
-                                                        "Annulleret", "Cancelled",
-                                                        "Unknown"
-                                                    )
-                                                Align: |-
-                                                    =Align.Center
-                                                BorderStyle: |-
-                                                    =BorderStyle.None
-                                                BorderThickness: |-
-                                                    =0
-                                                Color: |-
-                                                    =Switch(
-                                                        ThisItem.Status.Value,
-                                                        "Kladde", C.'state-neutral-fg',
-                                                        "Indsendt", C.'state-info-fg',
-                                                        "UnderBehandling", C.'state-info-fg',
-                                                        "AfventerInfo", C.'state-warn-fg',
-                                                        "KlarTilSAP", C.'state-ok-fg',
-                                                        "OprettetISAP", C.'state-ok-fg',
-                                                        "Afvist", C.'state-error-fg',
-                                                        "Annulleret", C.'state-neutral-fg',
-                                                        C.'text-muted'
-                                                    )
-                                                Fill: |-
-                                                    =Switch(
-                                                        ThisItem.Status.Value,
-                                                        "Kladde", C.'state-neutral-bg',
-                                                        "Indsendt", C.'state-info-bg',
-                                                        "UnderBehandling", C.'state-info-bg',
-                                                        "AfventerInfo", C.'state-warn-bg',
-                                                        "KlarTilSAP", C.'state-ok-bg',
-                                                        "OprettetISAP", C.'state-ok-bg',
-                                                        "Afvist", C.'state-error-bg',
-                                                        "Annulleret", C.'state-neutral-bg',
-                                                        C.'state-neutral-bg'
-                                                    )
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                FontWeight: |-
-                                                    =FontWeight.Semibold
-                                                Height: |-
-                                                    =18
-                                                PaddingBottom: |-
-                                                    =0
-                                                PaddingLeft: |-
-                                                    =8
-                                                PaddingRight: |-
-                                                    =8
-                                                PaddingTop: |-
-                                                    =0
-                                                RadiusBottomLeft: |-
-                                                    =9
-                                                RadiusBottomRight: |-
-                                                    =9
-                                                RadiusTopLeft: |-
-                                                    =9
-                                                RadiusTopRight: |-
-                                                    =9
-                                                Size: |-
-                                                    =11
-                                                Text: |-
-                                                    =Switch(
-                                                        ThisItem.Status.Value,
-                                                        "Kladde", "Draft",
-                                                        "Indsendt", "Submitted",
-                                                        "UnderBehandling", "In progress",
-                                                        "AfventerInfo", "Awaiting info",
-                                                        "KlarTilSAP", "Ready for SAP",
-                                                        "OprettetISAP", "Created in SAP",
-                                                        "Afvist", "Rejected",
-                                                        "Annulleret", "Cancelled",
-                                                        "Unknown"
-                                                    )
-                                                Width: |-
-                                                    =120
-                                                Wrap: |-
-                                                    =false
-                                          - conMdRowSteps:
-                                              Control: GroupContainer
-                                              Variant: AutoLayout
-                                              Properties:
-                                                BorderStyle: |-
-                                                    =BorderStyle.None
-                                                DropShadow: |-
-                                                    =DropShadow.None
-                                                FillPortions: |-
-                                                    =0
-                                                Height: |-
-                                                    =4
-                                                LayoutAlignItems: |-
-                                                    =LayoutAlignItems.Stretch
-                                                LayoutDirection: |-
-                                                    =LayoutDirection.Horizontal
-                                                LayoutGap: |-
-                                                    =3
-                                                LayoutMinWidth: |-
-                                                    =0
-                                                LayoutOverflowX: |-
-                                                    =LayoutOverflow.Hide
-                                                LayoutOverflowY: |-
-                                                    =LayoutOverflow.Hide
-                                                Width: |-
-                                                    =112
-                                              Children:
-                                                - conMdStep1:
-                                                    Control: GroupContainer
-                                                    Variant: AutoLayout
-                                                    Properties:
-                                                      BorderStyle: |-
-                                                          =BorderStyle.None
-                                                      DropShadow: |-
-                                                          =DropShadow.None
-                                                      Fill: |-
-                                                          =If(ThisItem.StatusStep >= 1, Switch(
-                                                              ThisItem.Status.Value,
-                                                              "Kladde", C.'state-neutral-fg',
-                                                              "Indsendt", C.'state-info-fg',
-                                                              "UnderBehandling", C.'state-info-fg',
-                                                              "AfventerInfo", C.'state-warn-fg',
-                                                              "KlarTilSAP", C.'state-ok-fg',
-                                                              "OprettetISAP", C.'state-ok-fg',
-                                                              "Afvist", C.'state-error-fg',
-                                                              "Annulleret", C.'state-neutral-fg',
-                                                              C.'text-muted'
-                                                          ), C.'border-subtle')
-                                                      FillPortions: |-
-                                                          =0
-                                                      Height: |-
-                                                          =4
-                                                      LayoutAlignItems: |-
-                                                          =LayoutAlignItems.Stretch
-                                                      LayoutDirection: |-
-                                                          =LayoutDirection.Horizontal
-                                                      LayoutGap: |-
-                                                          =8
-                                                      LayoutMinWidth: |-
-                                                          =0
-                                                      LayoutOverflowX: |-
-                                                          =LayoutOverflow.Hide
-                                                      LayoutOverflowY: |-
-                                                          =LayoutOverflow.Hide
-                                                      Width: |-
-                                                          =20
-                                                - conMdStep2:
-                                                    Control: GroupContainer
-                                                    Variant: AutoLayout
-                                                    Properties:
-                                                      BorderStyle: |-
-                                                          =BorderStyle.None
-                                                      DropShadow: |-
-                                                          =DropShadow.None
-                                                      Fill: |-
-                                                          =If(ThisItem.StatusStep >= 2, Switch(
-                                                              ThisItem.Status.Value,
-                                                              "Kladde", C.'state-neutral-fg',
-                                                              "Indsendt", C.'state-info-fg',
-                                                              "UnderBehandling", C.'state-info-fg',
-                                                              "AfventerInfo", C.'state-warn-fg',
-                                                              "KlarTilSAP", C.'state-ok-fg',
-                                                              "OprettetISAP", C.'state-ok-fg',
-                                                              "Afvist", C.'state-error-fg',
-                                                              "Annulleret", C.'state-neutral-fg',
-                                                              C.'text-muted'
-                                                          ), C.'border-subtle')
-                                                      FillPortions: |-
-                                                          =0
-                                                      Height: |-
-                                                          =4
-                                                      LayoutAlignItems: |-
-                                                          =LayoutAlignItems.Stretch
-                                                      LayoutDirection: |-
-                                                          =LayoutDirection.Horizontal
-                                                      LayoutGap: |-
-                                                          =8
-                                                      LayoutMinWidth: |-
-                                                          =0
-                                                      LayoutOverflowX: |-
-                                                          =LayoutOverflow.Hide
-                                                      LayoutOverflowY: |-
-                                                          =LayoutOverflow.Hide
-                                                      Width: |-
-                                                          =20
-                                                - conMdStep3:
-                                                    Control: GroupContainer
-                                                    Variant: AutoLayout
-                                                    Properties:
-                                                      BorderStyle: |-
-                                                          =BorderStyle.None
-                                                      DropShadow: |-
-                                                          =DropShadow.None
-                                                      Fill: |-
-                                                          =If(ThisItem.StatusStep >= 3, Switch(
-                                                              ThisItem.Status.Value,
-                                                              "Kladde", C.'state-neutral-fg',
-                                                              "Indsendt", C.'state-info-fg',
-                                                              "UnderBehandling", C.'state-info-fg',
-                                                              "AfventerInfo", C.'state-warn-fg',
-                                                              "KlarTilSAP", C.'state-ok-fg',
-                                                              "OprettetISAP", C.'state-ok-fg',
-                                                              "Afvist", C.'state-error-fg',
-                                                              "Annulleret", C.'state-neutral-fg',
-                                                              C.'text-muted'
-                                                          ), C.'border-subtle')
-                                                      FillPortions: |-
-                                                          =0
-                                                      Height: |-
-                                                          =4
-                                                      LayoutAlignItems: |-
-                                                          =LayoutAlignItems.Stretch
-                                                      LayoutDirection: |-
-                                                          =LayoutDirection.Horizontal
-                                                      LayoutGap: |-
-                                                          =8
-                                                      LayoutMinWidth: |-
-                                                          =0
-                                                      LayoutOverflowX: |-
-                                                          =LayoutOverflow.Hide
-                                                      LayoutOverflowY: |-
-                                                          =LayoutOverflow.Hide
-                                                      Width: |-
-                                                          =20
-                                                - conMdStep4:
-                                                    Control: GroupContainer
-                                                    Variant: AutoLayout
-                                                    Properties:
-                                                      BorderStyle: |-
-                                                          =BorderStyle.None
-                                                      DropShadow: |-
-                                                          =DropShadow.None
-                                                      Fill: |-
-                                                          =If(ThisItem.StatusStep >= 4, Switch(
-                                                              ThisItem.Status.Value,
-                                                              "Kladde", C.'state-neutral-fg',
-                                                              "Indsendt", C.'state-info-fg',
-                                                              "UnderBehandling", C.'state-info-fg',
-                                                              "AfventerInfo", C.'state-warn-fg',
-                                                              "KlarTilSAP", C.'state-ok-fg',
-                                                              "OprettetISAP", C.'state-ok-fg',
-                                                              "Afvist", C.'state-error-fg',
-                                                              "Annulleret", C.'state-neutral-fg',
-                                                              C.'text-muted'
-                                                          ), C.'border-subtle')
-                                                      FillPortions: |-
-                                                          =0
-                                                      Height: |-
-                                                          =4
-                                                      LayoutAlignItems: |-
-                                                          =LayoutAlignItems.Stretch
-                                                      LayoutDirection: |-
-                                                          =LayoutDirection.Horizontal
-                                                      LayoutGap: |-
-                                                          =8
-                                                      LayoutMinWidth: |-
-                                                          =0
-                                                      LayoutOverflowX: |-
-                                                          =LayoutOverflow.Hide
-                                                      LayoutOverflowY: |-
-                                                          =LayoutOverflow.Hide
-                                                      Width: |-
-                                                          =20
-                                                - conMdStep5:
-                                                    Control: GroupContainer
-                                                    Variant: AutoLayout
-                                                    Properties:
-                                                      BorderStyle: |-
-                                                          =BorderStyle.None
-                                                      DropShadow: |-
-                                                          =DropShadow.None
-                                                      Fill: |-
-                                                          =If(ThisItem.StatusStep >= 5, Switch(
-                                                              ThisItem.Status.Value,
-                                                              "Kladde", C.'state-neutral-fg',
-                                                              "Indsendt", C.'state-info-fg',
-                                                              "UnderBehandling", C.'state-info-fg',
-                                                              "AfventerInfo", C.'state-warn-fg',
-                                                              "KlarTilSAP", C.'state-ok-fg',
-                                                              "OprettetISAP", C.'state-ok-fg',
-                                                              "Afvist", C.'state-error-fg',
-                                                              "Annulleret", C.'state-neutral-fg',
-                                                              C.'text-muted'
-                                                          ), C.'border-subtle')
-                                                      FillPortions: |-
-                                                          =0
-                                                      Height: |-
-                                                          =4
-                                                      LayoutAlignItems: |-
-                                                          =LayoutAlignItems.Stretch
-                                                      LayoutDirection: |-
-                                                          =LayoutDirection.Horizontal
-                                                      LayoutGap: |-
-                                                          =8
-                                                      LayoutMinWidth: |-
-                                                          =0
-                                                      LayoutOverflowX: |-
-                                                          =LayoutOverflow.Hide
-                                                      LayoutOverflowY: |-
-                                                          =LayoutOverflow.Hide
-                                                      Width: |-
-                                                          =20
-                                    - txtMdRowWhen:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =With(
-                                                  { d: DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days) },
-                                                  If(d <= 0, "Today", If(d = 1, "Yesterday", Text(d) & " days ago"))
-                                              )
-                                          Align: |-
-                                              =Align.Right
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =36
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =11
-                                          Text: |-
-                                              =With(
-                                                  { d: DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days) },
-                                                  If(d <= 0, "Today", If(d = 1, "Yesterday", Text(d) & " days ago"))
-                                              )
-                                          Width: |-
-                                              =92
-                                          Wrap: |-
-                                              =false
-                                    - btnMdRowOpen:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Open " & ThisItem.RequestNo & " in the domain app"
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          Appearance: |-
-                                              =ButtonAppearance.Outline
-                                          BorderColor: |-
-                                              =C.'border-default'
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =30
-                                          Layout: |-
-                                              =ButtonLayout.TextOnly
-                                          OnSelect: |-
-                                              =If(
-                                                  IsBlank(ThisItem.AppUrl),
-                                                  Notify("This request has no app URL.", NotificationType.Error),
-                                                  Launch(
-                                                      ThisItem.AppUrl & If(Find("?", ThisItem.AppUrl) > 0, "&", "?") &
-                                                          "reqid=" & ThisItem.RequestGuid & "&theme=" & If(darkModeEnabled, "dark", "light"),
-                                                      { },
-                                                      LaunchTarget.Replace
-                                                  )
-                                              )
-                                          RadiusBottomLeft: |-
-                                              =10
-                                          RadiusBottomRight: |-
-                                              =10
-                                          RadiusTopLeft: |-
-                                              =10
-                                          RadiusTopRight: |-
-                                              =10
-                                          Size: |-
-                                              =14
-                                          Text: |-
-                                              ="Open"
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =76
+                                        =((((App.Width)) - 24 - 16 - 18) - 18 - 18) - 2 * 2 - 18 - 40
+                                    X: |-
+                                        =0
+                                    Y: |-
+                                        =0
+                              - txtMdRowDomain:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =Switch(
+                                            ThisItem.Domain.Value,
+                                            "FunctionalLocation", "Functional location",
+                                            "Equipment", "Equipment",
+                                            "MeasuringPoint", "Measuring point",
+                                            "Material", "Material",
+                                            "MaintenancePlan", "Maintenance plan",
+                                            "?"
+                                        )
+                                    Align: |-
+                                        =Align.Center
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-on-domain'
+                                    Fill: |-
+                                        =Switch(
+                                            ThisItem.Domain.Value,
+                                            "FunctionalLocation", C.'domain-fl',
+                                            "Equipment", C.'domain-eq',
+                                            "MeasuringPoint", C.'domain-mp',
+                                            "Material", C.'domain-mat',
+                                            "MaintenancePlan", C.'domain-vhp',
+                                            C.'text-muted'
+                                        )
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =20
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =6
+                                    PaddingRight: |-
+                                        =6
+                                    PaddingTop: |-
+                                        =0
+                                    RadiusBottomLeft: |-
+                                        =4
+                                    RadiusBottomRight: |-
+                                        =4
+                                    RadiusTopLeft: |-
+                                        =4
+                                    RadiusTopRight: |-
+                                        =4
+                                    Size: |-
+                                        =10
+                                    Text: |-
+                                        =Switch(
+                                            ThisItem.Domain.Value,
+                                            "FunctionalLocation", "Functional location",
+                                            "Equipment", "Equipment",
+                                            "MeasuringPoint", "Measuring point",
+                                            "Material", "Material",
+                                            "MaintenancePlan", "Maintenance plan",
+                                            "?"
+                                        )
+                                    Width: |-
+                                        =124
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 0 + 0
+                                    Y: |-
+                                        =0 + 0 + ((((46) - 2) - 0 - 0) - (20)) / 2
+                              - txtMdRowNo:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =ThisItem.RequestNo
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =17
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =11
+                                    Text: |-
+                                        =ThisItem.RequestNo
+                                    Width: |-
+                                        =(((App.Width - 64) - 36 - 4 - 18 - 40 - 580)) - 0 - 0
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 0 + 0 + (124) + 10 + 0
+                                    Y: |-
+                                        =0 + 0 + ((((46) - 2) - 0 - 0) - (39)) / 2 + 0 + 0
+                              - txtMdRowText:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =ThisItem.ShortText
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =20
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        =ThisItem.ShortText
+                                    Width: |-
+                                        =(((App.Width - 64) - 36 - 4 - 18 - 40 - 580)) - 0 - 0
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 0 + 0 + (124) + 10 + 0
+                                    Y: |-
+                                        =0 + 0 + ((((46) - 2) - 0 - 0) - (39)) / 2 + 0 + 0 + (17) + 2
+                              - txtMdRowPlant:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =ThisItem.Plant
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =36
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =12
+                                    Text: |-
+                                        =ThisItem.Plant
+                                    Width: |-
+                                        =62
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 0 + 0 + (124) + 10 + (((App.Width - 64) - 36 - 4 - 18 - 40 - 580)) + 10
+                                    Y: |-
+                                        =0 + 0 + ((((46) - 2) - 0 - 0) - (36)) / 2
+                              - txtMdRowStatus:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =Switch(
+                                            ThisItem.Status.Value,
+                                            "Kladde", "Draft",
+                                            "Indsendt", "Submitted",
+                                            "UnderBehandling", "In progress",
+                                            "AfventerInfo", "Awaiting info",
+                                            "KlarTilSAP", "Ready for SAP",
+                                            "OprettetISAP", "Created in SAP",
+                                            "Afvist", "Rejected",
+                                            "Annulleret", "Cancelled",
+                                            "Unknown"
+                                        )
+                                    Align: |-
+                                        =Align.Center
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =Switch(
+                                            ThisItem.Status.Value,
+                                            "Kladde", C.'state-neutral-fg',
+                                            "Indsendt", C.'state-info-fg',
+                                            "UnderBehandling", C.'state-info-fg',
+                                            "AfventerInfo", C.'state-warn-fg',
+                                            "KlarTilSAP", C.'state-ok-fg',
+                                            "OprettetISAP", C.'state-ok-fg',
+                                            "Afvist", C.'state-error-fg',
+                                            "Annulleret", C.'state-neutral-fg',
+                                            C.'text-muted'
+                                        )
+                                    Fill: |-
+                                        =Switch(
+                                            ThisItem.Status.Value,
+                                            "Kladde", C.'state-neutral-bg',
+                                            "Indsendt", C.'state-info-bg',
+                                            "UnderBehandling", C.'state-info-bg',
+                                            "AfventerInfo", C.'state-warn-bg',
+                                            "KlarTilSAP", C.'state-ok-bg',
+                                            "OprettetISAP", C.'state-ok-bg',
+                                            "Afvist", C.'state-error-bg',
+                                            "Annulleret", C.'state-neutral-bg',
+                                            C.'state-neutral-bg'
+                                        )
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =18
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =8
+                                    PaddingRight: |-
+                                        =8
+                                    PaddingTop: |-
+                                        =0
+                                    RadiusBottomLeft: |-
+                                        =9
+                                    RadiusBottomRight: |-
+                                        =9
+                                    RadiusTopLeft: |-
+                                        =9
+                                    RadiusTopRight: |-
+                                        =9
+                                    Size: |-
+                                        =11
+                                    Text: |-
+                                        =Switch(
+                                            ThisItem.Status.Value,
+                                            "Kladde", "Draft",
+                                            "Indsendt", "Submitted",
+                                            "UnderBehandling", "In progress",
+                                            "AfventerInfo", "Awaiting info",
+                                            "KlarTilSAP", "Ready for SAP",
+                                            "OprettetISAP", "Created in SAP",
+                                            "Afvist", "Rejected",
+                                            "Annulleret", "Cancelled",
+                                            "Unknown"
+                                        )
+                                    Width: |-
+                                        =120
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 0 + 0 + (124) + 10 + (((App.Width - 64) - 36 - 4 - 18 - 40 - 580)) + 10 + (62) + 10 + 0
+                                    Y: |-
+                                        =0 + 0 + ((((46) - 2) - 0 - 0) - (27)) / 2 + 0 + 0
+                              - conMdStep1:
+                                  Control: Rectangle
+                                  Properties:
+                                    BorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Fill: |-
+                                        =If(ThisItem.StatusStep >= 1, Switch(
+                                            ThisItem.Status.Value,
+                                            "Kladde", C.'state-neutral-fg',
+                                            "Indsendt", C.'state-info-fg',
+                                            "UnderBehandling", C.'state-info-fg',
+                                            "AfventerInfo", C.'state-warn-fg',
+                                            "KlarTilSAP", C.'state-ok-fg',
+                                            "OprettetISAP", C.'state-ok-fg',
+                                            "Afvist", C.'state-error-fg',
+                                            "Annulleret", C.'state-neutral-fg',
+                                            C.'text-muted'
+                                        ), C.'border-subtle')
+                                    Height: |-
+                                        =(4) - 0 - 0
+                                    Width: |-
+                                        =20
+                                    X: |-
+                                        =0 + 0 + 0 + (124) + 10 + (((App.Width - 64) - 36 - 4 - 18 - 40 - 580)) + 10 + (62) + 10 + 0 + 0 + 0
+                                    Y: |-
+                                        =0 + 0 + ((((46) - 2) - 0 - 0) - (27)) / 2 + 0 + 0 + (18) + 5 + 0
+                              - conMdStep2:
+                                  Control: Rectangle
+                                  Properties:
+                                    BorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Fill: |-
+                                        =If(ThisItem.StatusStep >= 2, Switch(
+                                            ThisItem.Status.Value,
+                                            "Kladde", C.'state-neutral-fg',
+                                            "Indsendt", C.'state-info-fg',
+                                            "UnderBehandling", C.'state-info-fg',
+                                            "AfventerInfo", C.'state-warn-fg',
+                                            "KlarTilSAP", C.'state-ok-fg',
+                                            "OprettetISAP", C.'state-ok-fg',
+                                            "Afvist", C.'state-error-fg',
+                                            "Annulleret", C.'state-neutral-fg',
+                                            C.'text-muted'
+                                        ), C.'border-subtle')
+                                    Height: |-
+                                        =(4) - 0 - 0
+                                    Width: |-
+                                        =20
+                                    X: |-
+                                        =0 + 0 + 0 + (124) + 10 + (((App.Width - 64) - 36 - 4 - 18 - 40 - 580)) + 10 + (62) + 10 + 0 + 0 + 0 + (20) + 3
+                                    Y: |-
+                                        =0 + 0 + ((((46) - 2) - 0 - 0) - (27)) / 2 + 0 + 0 + (18) + 5 + 0
+                              - conMdStep3:
+                                  Control: Rectangle
+                                  Properties:
+                                    BorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Fill: |-
+                                        =If(ThisItem.StatusStep >= 3, Switch(
+                                            ThisItem.Status.Value,
+                                            "Kladde", C.'state-neutral-fg',
+                                            "Indsendt", C.'state-info-fg',
+                                            "UnderBehandling", C.'state-info-fg',
+                                            "AfventerInfo", C.'state-warn-fg',
+                                            "KlarTilSAP", C.'state-ok-fg',
+                                            "OprettetISAP", C.'state-ok-fg',
+                                            "Afvist", C.'state-error-fg',
+                                            "Annulleret", C.'state-neutral-fg',
+                                            C.'text-muted'
+                                        ), C.'border-subtle')
+                                    Height: |-
+                                        =(4) - 0 - 0
+                                    Width: |-
+                                        =20
+                                    X: |-
+                                        =0 + 0 + 0 + (124) + 10 + (((App.Width - 64) - 36 - 4 - 18 - 40 - 580)) + 10 + (62) + 10 + 0 + 0 + 0 + (20) + 3 + (20) + 3
+                                    Y: |-
+                                        =0 + 0 + ((((46) - 2) - 0 - 0) - (27)) / 2 + 0 + 0 + (18) + 5 + 0
+                              - conMdStep4:
+                                  Control: Rectangle
+                                  Properties:
+                                    BorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Fill: |-
+                                        =If(ThisItem.StatusStep >= 4, Switch(
+                                            ThisItem.Status.Value,
+                                            "Kladde", C.'state-neutral-fg',
+                                            "Indsendt", C.'state-info-fg',
+                                            "UnderBehandling", C.'state-info-fg',
+                                            "AfventerInfo", C.'state-warn-fg',
+                                            "KlarTilSAP", C.'state-ok-fg',
+                                            "OprettetISAP", C.'state-ok-fg',
+                                            "Afvist", C.'state-error-fg',
+                                            "Annulleret", C.'state-neutral-fg',
+                                            C.'text-muted'
+                                        ), C.'border-subtle')
+                                    Height: |-
+                                        =(4) - 0 - 0
+                                    Width: |-
+                                        =20
+                                    X: |-
+                                        =0 + 0 + 0 + (124) + 10 + (((App.Width - 64) - 36 - 4 - 18 - 40 - 580)) + 10 + (62) + 10 + 0 + 0 + 0 + (20) + 3 + (20) + 3 + (20) + 3
+                                    Y: |-
+                                        =0 + 0 + ((((46) - 2) - 0 - 0) - (27)) / 2 + 0 + 0 + (18) + 5 + 0
+                              - conMdStep5:
+                                  Control: Rectangle
+                                  Properties:
+                                    BorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Fill: |-
+                                        =If(ThisItem.StatusStep >= 5, Switch(
+                                            ThisItem.Status.Value,
+                                            "Kladde", C.'state-neutral-fg',
+                                            "Indsendt", C.'state-info-fg',
+                                            "UnderBehandling", C.'state-info-fg',
+                                            "AfventerInfo", C.'state-warn-fg',
+                                            "KlarTilSAP", C.'state-ok-fg',
+                                            "OprettetISAP", C.'state-ok-fg',
+                                            "Afvist", C.'state-error-fg',
+                                            "Annulleret", C.'state-neutral-fg',
+                                            C.'text-muted'
+                                        ), C.'border-subtle')
+                                    Height: |-
+                                        =(4) - 0 - 0
+                                    Width: |-
+                                        =20
+                                    X: |-
+                                        =0 + 0 + 0 + (124) + 10 + (((App.Width - 64) - 36 - 4 - 18 - 40 - 580)) + 10 + (62) + 10 + 0 + 0 + 0 + (20) + 3 + (20) + 3 + (20) + 3 + (20) + 3
+                                    Y: |-
+                                        =0 + 0 + ((((46) - 2) - 0 - 0) - (27)) / 2 + 0 + 0 + (18) + 5 + 0
+                              - txtMdRowWhen:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =With(
+                                            { d: DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days) },
+                                            If(d <= 0, "Today", If(d = 1, "Yesterday", Text(d) & " days ago"))
+                                        )
+                                    Align: |-
+                                        =Align.Right
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =36
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =11
+                                    Text: |-
+                                        =With(
+                                            { d: DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days) },
+                                            If(d <= 0, "Today", If(d = 1, "Yesterday", Text(d) & " days ago"))
+                                        )
+                                    Width: |-
+                                        =92
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 0 + 0 + (124) + 10 + (((App.Width - 64) - 36 - 4 - 18 - 40 - 580)) + 10 + (62) + 10 + (176) + 10
+                                    Y: |-
+                                        =0 + 0 + ((((46) - 2) - 0 - 0) - (36)) / 2
+                              - btnMdRowOpen:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Open " & ThisItem.RequestNo & " in the domain app"
+                                    Align: |-
+                                        =Align.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =30
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    OnSelect: |-
+                                        =If(
+                                            IsBlank(ThisItem.AppUrl),
+                                            Notify("This request has no app URL.", NotificationType.Error),
+                                            Launch(
+                                                ThisItem.AppUrl & If(Find("?", ThisItem.AppUrl) > 0, "&", "?") &
+                                                    "reqid=" & ThisItem.RequestGuid & "&theme=" & If(darkModeEnabled, "dark", "light"),
+                                                { },
+                                                LaunchTarget.Replace
+                                            )
+                                        )
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="Open"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =76
+                                    X: |-
+                                        =0 + 0 + 0 + (124) + 10 + (((App.Width - 64) - 36 - 4 - 18 - 40 - 580)) + 10 + (62) + 10 + (176) + 10 + (92) + 10
+                                    Y: |-
+                                        =0 + 0 + ((((46) - 2) - 0 - 0) - (30)) / 2
                         - txtMdEmpty:
                             Control: ModernText
                             Properties:

@@ -176,7 +176,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Width: |-
-                                  =Max(0, ((((App.Width)) - 24 - 34)) - (If(LayoutRank >= 2, (110) + 10, 0)) - (If(LayoutRank >= 2, (150) + 10, 0)) - ((78) + 10) - ((140) + 10) - 2)
+                                  =Max(0, ((((App.Width)) - 24 - 34)) - (If(LayoutRank >= 2, (110) + 10, 0)) - (If(LayoutRank >= 2, (150) + 10, 0)) - ((104) + 10) - ((140) + 10) - 2)
                             Children:
                               - txtDomTitle:
                                   Control: ModernText
@@ -334,229 +334,46 @@ Screens:
                                   =150
                               Wrap: |-
                                   =false
-                        - conDomTheme:
-                            Control: GroupContainer
-                            Variant: AutoLayout
+                        - imgDomTheme:
+                            Control: Image
                             Properties:
+                              AccessibleLabel: |-
+                                  =If(darkModeEnabled, "Dark theme is on - switch to light theme", "Light theme is on - switch to dark theme")
                               AlignInContainer: |-
                                   =AlignInContainer.Center
                               BorderStyle: |-
                                   =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              Fill: |-
-                                  =C.'state-neutral-bg'
-                              FillPortions: |-
+                              BorderThickness: |-
                                   =0
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              FocusedBorderColor: |-
+                                  =C.'color-brand-primary'
+                              FocusedBorderThickness: |-
+                                  =2
                               Height: |-
                                   =36
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Center
-                              LayoutDirection: |-
-                                  =LayoutDirection.Horizontal
-                              LayoutGap: |-
-                                  =2
+                              HoverFill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Image: |-
+                                  ="data:image/svg+xml;utf8," & EncodeUrl(If(darkModeEnabled,
+                                      "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='36' viewBox='0 0 104 36'><rect x='1' y='1' width='102' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='18' cy='18' r='14' fill='" & C.'hex-text-primary' & "'/><path d='M21 11 A7 7 0 1 0 25 21 A5.5 5.5 0 1 1 21 11 Z' fill='" & C.'hex-bg-app' & "'/><text x='90' y='22' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='12' font-weight='700' letter-spacing='0.5' fill='" & C.'hex-text-primary' & "'>DARK</text></svg>",
+                                      "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='36' viewBox='0 0 104 36'><rect x='1' y='1' width='102' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='86' cy='18' r='14' fill='" & C.'hex-bg-surface' & "'/><circle cx='86' cy='18' r='4' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8'/><line x1='92.5' y1='18.0' x2='95.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='90.6' y1='22.6' x2='92.4' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='86.0' y1='24.5' x2='86.0' y2='27.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='81.4' y1='22.6' x2='79.6' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='79.5' y1='18.0' x2='77.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='81.4' y1='13.4' x2='79.6' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='86.0' y1='11.5' x2='86.0' y2='9.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='90.6' y1='13.4' x2='92.4' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><text x='14' y='22' text-anchor='start' font-family='Segoe UI, sans-serif' font-size='12' font-weight='700' letter-spacing='0.5' fill='" & C.'hex-text-primary' & "'>LIGHT</text></svg>"
+                                  ))
+                              ImagePosition: |-
+                                  =ImagePosition.Fit
                               LayoutMinWidth: |-
-                                  =78
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              PaddingBottom: |-
-                                  =2
-                              PaddingLeft: |-
-                                  =2
-                              PaddingRight: |-
-                                  =2
-                              PaddingTop: |-
-                                  =2
-                              RadiusBottomLeft: |-
-                                  =18
-                              RadiusBottomRight: |-
-                                  =18
-                              RadiusTopLeft: |-
-                                  =18
-                              RadiusTopRight: |-
-                                  =18
+                                  =104
+                              OnSelect: |-
+                                  =Set(darkModeEnabled, !darkModeEnabled);
+                                  ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
+                                  IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                              PressedFill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              TabIndex: |-
+                                  =0
                               Width: |-
-                                  =78
-                            Children:
-                              - conDomThemeLight:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
-                                  Properties:
-                                    BorderColor: |-
-                                        =If(!darkModeEnabled, C.'border-default', RGBA(0, 0, 0, 0))
-                                    BorderThickness: |-
-                                        =1
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    Fill: |-
-                                        =If(!darkModeEnabled, C.'bg-card', RGBA(0, 0, 0, 0))
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =32
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Center
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =0
-                                    LayoutMinWidth: |-
-                                        =36
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    RadiusBottomLeft: |-
-                                        =16
-                                    RadiusBottomRight: |-
-                                        =16
-                                    RadiusTopLeft: |-
-                                        =16
-                                    RadiusTopRight: |-
-                                        =16
-                                    Width: |-
-                                        =36
-                                  Children:
-                                    - conDomThemeLightBtn:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =If(!darkModeEnabled, "Light theme (selected)", "Switch to light theme")
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          Appearance: |-
-                                              =ButtonAppearance.Outline
-                                          BorderColor: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =If(!darkModeEnabled, C.'state-warn-fg', C.'text-muted')
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Normal
-                                          Height: |-
-                                              =32
-                                          Layout: |-
-                                              =ButtonLayout.TextOnly
-                                          LayoutMinWidth: |-
-                                              =36
-                                          OnSelect: |-
-                                              =If(darkModeEnabled,
-                                              Set(darkModeEnabled, !darkModeEnabled);
-                                              ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
-                                              IfError(SaveData(colAppPrefs, "prefs"), Blank())
-                                              )
-                                          RadiusBottomLeft: |-
-                                              =16
-                                          RadiusBottomRight: |-
-                                              =16
-                                          RadiusTopLeft: |-
-                                              =16
-                                          RadiusTopRight: |-
-                                              =16
-                                          Size: |-
-                                              =18
-                                          Text: |-
-                                              =UniChar(9788)
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =36
-                              - conDomThemeDark:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
-                                  Properties:
-                                    BorderColor: |-
-                                        =If(darkModeEnabled, C.'border-default', RGBA(0, 0, 0, 0))
-                                    BorderThickness: |-
-                                        =1
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    Fill: |-
-                                        =If(darkModeEnabled, C.'bg-card', RGBA(0, 0, 0, 0))
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =32
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Center
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =0
-                                    LayoutMinWidth: |-
-                                        =36
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    RadiusBottomLeft: |-
-                                        =16
-                                    RadiusBottomRight: |-
-                                        =16
-                                    RadiusTopLeft: |-
-                                        =16
-                                    RadiusTopRight: |-
-                                        =16
-                                    Width: |-
-                                        =36
-                                  Children:
-                                    - conDomThemeDarkBtn:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =If(darkModeEnabled, "Dark theme (selected)", "Switch to dark theme")
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          Appearance: |-
-                                              =ButtonAppearance.Outline
-                                          BorderColor: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =If(darkModeEnabled, C.'color-brand-primary', C.'text-muted')
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Normal
-                                          Height: |-
-                                              =32
-                                          Layout: |-
-                                              =ButtonLayout.TextOnly
-                                          LayoutMinWidth: |-
-                                              =36
-                                          OnSelect: |-
-                                              =If(!darkModeEnabled,
-                                              Set(darkModeEnabled, !darkModeEnabled);
-                                              ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
-                                              IfError(SaveData(colAppPrefs, "prefs"), Blank())
-                                              )
-                                          RadiusBottomLeft: |-
-                                              =16
-                                          RadiusBottomRight: |-
-                                              =16
-                                          RadiusTopLeft: |-
-                                              =16
-                                          RadiusTopRight: |-
-                                              =16
-                                          Size: |-
-                                              =18
-                                          Text: |-
-                                              =UniChar(9790)
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =36
+                                  =104
                         - btnDomBack:
                             Control: ModernButton
                             Properties:
@@ -4513,9 +4330,9 @@ Screens:
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0
+                                        =0 + 0 + 0
                                     Y: |-
-                                        =11
+                                        =0 + 0 + ((((44) - 2) - 0 - 0) - (21)) / 2
                               - txtDomRow0:
                                   Control: ModernText
                                   Properties:
@@ -4552,9 +4369,9 @@ Screens:
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =(Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10
+                                        =0 + 0 + 0 + (Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10
                                     Y: |-
-                                        =12
+                                        =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                               - txtDomRow1:
                                   Control: ModernText
                                   Properties:
@@ -4591,9 +4408,9 @@ Screens:
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =(Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0)
+                                        =0 + 0 + 0 + (Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0)
                                     Y: |-
-                                        =12
+                                        =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                               - txtDomRow2:
                                   Control: ModernText
                                   Properties:
@@ -4630,9 +4447,9 @@ Screens:
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =(Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (140) + 10, 0)
+                                        =0 + 0 + 0 + (Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (140) + 10, 0)
                                     Y: |-
-                                        =12
+                                        =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                               - txtDomRowStatus:
                                   Control: ModernText
                                   Properties:
@@ -4679,9 +4496,9 @@ Screens:
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =(Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (140) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0)
+                                        =0 + 0 + 0 + (Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (140) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0)
                                     Y: |-
-                                        =11
+                                        =0 + 0 + ((((44) - 2) - 0 - 0) - (22)) / 2
                               - txtDomRowFiles:
                                   Control: ModernText
                                   Properties:
@@ -4718,9 +4535,9 @@ Screens:
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =(Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (140) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10
+                                        =0 + 0 + 0 + (Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (140) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10
                                     Y: |-
-                                        =12
+                                        =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                               - btnDomRowOpen:
                                   Control: ModernButton
                                   Properties:
@@ -4785,9 +4602,9 @@ Screens:
                                     Width: |-
                                         =60
                                     X: |-
-                                        =(Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (140) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (40) + 10, 0)
+                                        =0 + 0 + 0 + (Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (140) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (40) + 10, 0) + 0 + 0
                                     Y: |-
-                                        =7
+                                        =0 + 0 + ((((44) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                               - btnDomRowDetails:
                                   Control: ModernButton
                                   Properties:
@@ -4830,9 +4647,9 @@ Screens:
                                     Width: |-
                                         =72
                                     X: |-
-                                        =(Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (140) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (40) + 10, 0) + (60) + 4
+                                        =0 + 0 + 0 + (Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (140) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (40) + 10, 0) + 0 + 0 + (60) + 4
                                     Y: |-
-                                        =7
+                                        =0 + 0 + ((((44) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                               - btnDomRowDocs:
                                   Control: ModernButton
                                   Properties:
@@ -4912,9 +4729,9 @@ Screens:
                                     Width: |-
                                         =64
                                     X: |-
-                                        =(Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (140) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (40) + 10, 0) + (60) + 4 + (72) + 4
+                                        =0 + 0 + 0 + (Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (140) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (40) + 10, 0) + 0 + 0 + (60) + 4 + (72) + 4
                                     Y: |-
-                                        =7
+                                        =0 + 0 + ((((44) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                               - btnDomRowCopy:
                                   Control: ModernButton
                                   Properties:
@@ -4982,9 +4799,9 @@ Screens:
                                     Width: |-
                                         =64
                                     X: |-
-                                        =(Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (140) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (40) + 10, 0) + (60) + 4 + (72) + 4 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (64) + 4, 0)
+                                        =0 + 0 + 0 + (Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (140) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (40) + 10, 0) + 0 + 0 + (60) + 4 + (72) + 4 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (64) + 4, 0)
                                     Y: |-
-                                        =7
+                                        =0 + 0 + ((((44) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                               - btnDomRowDelete:
                                   Control: ModernButton
                                   Properties:
@@ -5090,9 +4907,9 @@ Screens:
                                     Width: |-
                                         =72
                                     X: |-
-                                        =(Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (140) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (40) + 10, 0) + (60) + 4 + (72) + 4 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (64) + 4, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (64) + 4, 0)
+                                        =0 + 0 + 0 + (Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (140) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (40) + 10, 0) + 0 + 0 + (60) + 4 + (72) + 4 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (64) + 4, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (64) + 4, 0)
                                     Y: |-
-                                        =7
+                                        =0 + 0 + ((((44) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                         - txtDomNoRows:
                             Control: ModernText
                             Properties:
@@ -8397,134 +8214,109 @@ Screens:
                   WrapCount: |-
                       =1
                 Children:
-                  - conDomAttRow:
-                      Control: GroupContainer
-                      Variant: AutoLayout
+                  - chkDomAttSel:
+                      Control: ModernCheckbox
                       Properties:
+                        AccessibleLabel: |-
+                            ="Select document"
+                        Default: |-
+                            =ThisItem.Selected
+                        Height: |-
+                            =24
+                        Label: |-
+                            =""
+                        OnCheck: |-
+                            =Patch(colDomAttachments, ThisItem, { Selected: true })
+                        OnUncheck: |-
+                            =Patch(colDomAttachments, ThisItem, { Selected: false })
+                        Width: |-
+                            =30
+                        X: |-
+                            =0 + 0 + 0
+                        Y: |-
+                            =0 + 0 + ((((32) - 2) - 0 - 0) - (24)) / 2
+                  - txtDomAttName:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            =ThisItem.FileName
                         BorderStyle: |-
                             =BorderStyle.None
-                        DropShadow: |-
-                            =DropShadow.None
-                        FillPortions: |-
+                        BorderThickness: |-
                             =0
+                        Color: |-
+                            =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Font: |-
+                            =Font.'Segoe UI'
                         Height: |-
-                            =(32) - 2
-                        LayoutAlignItems: |-
-                            =LayoutAlignItems.Center
-                        LayoutDirection: |-
-                            =LayoutDirection.Horizontal
-                        LayoutGap: |-
-                            =10
-                        LayoutMinWidth: |-
+                            =28
+                        PaddingBottom: |-
                             =0
-                        LayoutOverflowX: |-
-                            =LayoutOverflow.Hide
-                        LayoutOverflowY: |-
-                            =LayoutOverflow.Hide
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =13
+                        Text: |-
+                            =ThisItem.FileName
                         Width: |-
-                            =(((Min(760, App.Width - 32)) - 18 - 18) - 2 * 2 - 18 - 40)
-                      Children:
-                        - chkDomAttSel:
-                            Control: ModernCheckbox
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Select document"
-                              Default: |-
-                                  =ThisItem.Selected
-                              Height: |-
-                                  =24
-                              Label: |-
-                                  =""
-                              LayoutMinWidth: |-
-                                  =30
-                              OnCheck: |-
-                                  =Patch(colDomAttachments, ThisItem, { Selected: true })
-                              OnUncheck: |-
-                                  =Patch(colDomAttachments, ThisItem, { Selected: false })
-                              Width: |-
-                                  =30
-                        - txtDomAttName:
-                            Control: ModernText
-                            Properties:
-                              AccessibleLabel: |-
-                                  =ThisItem.FileName
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Color: |-
-                                  =C.'text-primary'
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              FillPortions: |-
-                                  =0
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              Height: |-
-                                  =28
-                              LayoutMinWidth: |-
-                                  =0
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
-                              Size: |-
-                                  =13
-                              Text: |-
-                                  =ThisItem.FileName
-                              Width: |-
-                                  =Max(0, ((((Min(760, App.Width - 32)) - 18 - 18) - 2 * 2 - 18 - 40)) - ((30) + 10) - ((80) + 10) - 2)
-                              Wrap: |-
-                                  =false
-                        - btnDomAttOpen:
-                            Control: ModernButton
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Open"
-                              Align: |-
-                                  =Align.Center
-                              AlignInContainer: |-
-                                  =AlignInContainer.Center
-                              Appearance: |-
-                                  =ButtonAppearance.Outline
-                              BorderColor: |-
-                                  =C.'border-default'
-                              BorderThickness: |-
-                                  =1
-                              Color: |-
-                                  =C.'text-primary'
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              FontWeight: |-
-                                  =FontWeight.Semibold
-                              Height: |-
-                                  =30
-                              Layout: |-
-                                  =ButtonLayout.TextOnly
-                              LayoutMinWidth: |-
-                                  =80
-                              OnSelect: |-
-                                  =Launch(ThisItem.FileUrl, { }, LaunchTarget.New)
-                              RadiusBottomLeft: |-
-                                  =10
-                              RadiusBottomRight: |-
-                                  =10
-                              RadiusTopLeft: |-
-                                  =10
-                              RadiusTopRight: |-
-                                  =10
-                              Size: |-
-                                  =14
-                              Text: |-
-                                  ="Open"
-                              VerticalAlign: |-
-                                  =VerticalAlign.Middle
-                              Width: |-
-                                  =80
+                            =Max(0, ((((Min(760, App.Width - 32)) - 18 - 18) - 2 * 2 - 18 - 40)) - ((30) + 10) - ((80) + 10) - 2)
+                        Wrap: |-
+                            =false
+                        X: |-
+                            =0 + 0 + 0 + (30) + 10
+                        Y: |-
+                            =0 + 0 + ((((32) - 2) - 0 - 0) - (28)) / 2
+                  - btnDomAttOpen:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Open"
+                        Align: |-
+                            =Align.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-default'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =30
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Launch(ThisItem.FileUrl, { }, LaunchTarget.New)
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =14
+                        Text: |-
+                            ="Open"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =80
+                        X: |-
+                            =0 + 0 + 0 + (30) + 10 + (Max(0, ((((Min(760, App.Width - 32)) - 18 - 18) - 2 * 2 - 18 - 40)) - ((30) + 10) - ((80) + 10) - 2)) + 10
+                        Y: |-
+                            =0 + 0 + ((((32) - 2) - 0 - 0) - (30)) / 2
             - txtDomAttEmpty:
                 Control: ModernText
                 Properties:

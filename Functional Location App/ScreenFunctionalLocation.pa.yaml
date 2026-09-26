@@ -178,7 +178,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Width: |-
-                                  =Max(0, ((((App.Width)) - 24 - 34)) - (If(LayoutRank >= 3, (220) + 10, 0)) - ((100) + 10) - ((120) + 10) - ((78) + 10) - ((120) + 10) - 2)
+                                  =Max(0, ((((App.Width)) - 24 - 34)) - (If(LayoutRank >= 3, (220) + 10, 0)) - ((100) + 10) - ((120) + 10) - ((104) + 10) - ((120) + 10) - 2)
                             Children:
                               - txtFlTitle:
                                   Control: ModernText
@@ -676,229 +676,46 @@ Screens:
                                   =VerticalAlign.Middle
                               Width: |-
                                   =120
-                        - conFlTheme:
-                            Control: GroupContainer
-                            Variant: AutoLayout
+                        - imgFlTheme:
+                            Control: Image
                             Properties:
+                              AccessibleLabel: |-
+                                  =If(darkModeEnabled, "Dark theme is on - switch to light theme", "Light theme is on - switch to dark theme")
                               AlignInContainer: |-
                                   =AlignInContainer.Center
                               BorderStyle: |-
                                   =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              Fill: |-
-                                  =C.'state-neutral-bg'
-                              FillPortions: |-
+                              BorderThickness: |-
                                   =0
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              FocusedBorderColor: |-
+                                  =C.'color-brand-primary'
+                              FocusedBorderThickness: |-
+                                  =2
                               Height: |-
                                   =36
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Center
-                              LayoutDirection: |-
-                                  =LayoutDirection.Horizontal
-                              LayoutGap: |-
-                                  =2
+                              HoverFill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Image: |-
+                                  ="data:image/svg+xml;utf8," & EncodeUrl(If(darkModeEnabled,
+                                      "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='36' viewBox='0 0 104 36'><rect x='1' y='1' width='102' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='18' cy='18' r='14' fill='" & C.'hex-text-primary' & "'/><path d='M21 11 A7 7 0 1 0 25 21 A5.5 5.5 0 1 1 21 11 Z' fill='" & C.'hex-bg-app' & "'/><text x='90' y='22' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='12' font-weight='700' letter-spacing='0.5' fill='" & C.'hex-text-primary' & "'>DARK</text></svg>",
+                                      "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='36' viewBox='0 0 104 36'><rect x='1' y='1' width='102' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='86' cy='18' r='14' fill='" & C.'hex-bg-surface' & "'/><circle cx='86' cy='18' r='4' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8'/><line x1='92.5' y1='18.0' x2='95.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='90.6' y1='22.6' x2='92.4' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='86.0' y1='24.5' x2='86.0' y2='27.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='81.4' y1='22.6' x2='79.6' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='79.5' y1='18.0' x2='77.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='81.4' y1='13.4' x2='79.6' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='86.0' y1='11.5' x2='86.0' y2='9.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='90.6' y1='13.4' x2='92.4' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><text x='14' y='22' text-anchor='start' font-family='Segoe UI, sans-serif' font-size='12' font-weight='700' letter-spacing='0.5' fill='" & C.'hex-text-primary' & "'>LIGHT</text></svg>"
+                                  ))
+                              ImagePosition: |-
+                                  =ImagePosition.Fit
                               LayoutMinWidth: |-
-                                  =78
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              PaddingBottom: |-
-                                  =2
-                              PaddingLeft: |-
-                                  =2
-                              PaddingRight: |-
-                                  =2
-                              PaddingTop: |-
-                                  =2
-                              RadiusBottomLeft: |-
-                                  =18
-                              RadiusBottomRight: |-
-                                  =18
-                              RadiusTopLeft: |-
-                                  =18
-                              RadiusTopRight: |-
-                                  =18
+                                  =104
+                              OnSelect: |-
+                                  =Set(darkModeEnabled, !darkModeEnabled);
+                                  ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
+                                  IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                              PressedFill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              TabIndex: |-
+                                  =0
                               Width: |-
-                                  =78
-                            Children:
-                              - conFlThemeLight:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
-                                  Properties:
-                                    BorderColor: |-
-                                        =If(!darkModeEnabled, C.'border-default', RGBA(0, 0, 0, 0))
-                                    BorderThickness: |-
-                                        =1
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    Fill: |-
-                                        =If(!darkModeEnabled, C.'bg-card', RGBA(0, 0, 0, 0))
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =32
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Center
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =0
-                                    LayoutMinWidth: |-
-                                        =36
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    RadiusBottomLeft: |-
-                                        =16
-                                    RadiusBottomRight: |-
-                                        =16
-                                    RadiusTopLeft: |-
-                                        =16
-                                    RadiusTopRight: |-
-                                        =16
-                                    Width: |-
-                                        =36
-                                  Children:
-                                    - conFlThemeLightBtn:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =If(!darkModeEnabled, "Light theme (selected)", "Switch to light theme")
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          Appearance: |-
-                                              =ButtonAppearance.Outline
-                                          BorderColor: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =If(!darkModeEnabled, C.'state-warn-fg', C.'text-muted')
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Normal
-                                          Height: |-
-                                              =32
-                                          Layout: |-
-                                              =ButtonLayout.TextOnly
-                                          LayoutMinWidth: |-
-                                              =36
-                                          OnSelect: |-
-                                              =If(darkModeEnabled,
-                                              Set(darkModeEnabled, !darkModeEnabled);
-                                              ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
-                                              IfError(SaveData(colAppPrefs, "prefs"), Blank())
-                                              )
-                                          RadiusBottomLeft: |-
-                                              =16
-                                          RadiusBottomRight: |-
-                                              =16
-                                          RadiusTopLeft: |-
-                                              =16
-                                          RadiusTopRight: |-
-                                              =16
-                                          Size: |-
-                                              =18
-                                          Text: |-
-                                              =UniChar(9788)
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =36
-                              - conFlThemeDark:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
-                                  Properties:
-                                    BorderColor: |-
-                                        =If(darkModeEnabled, C.'border-default', RGBA(0, 0, 0, 0))
-                                    BorderThickness: |-
-                                        =1
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    Fill: |-
-                                        =If(darkModeEnabled, C.'bg-card', RGBA(0, 0, 0, 0))
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =32
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Center
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =0
-                                    LayoutMinWidth: |-
-                                        =36
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    RadiusBottomLeft: |-
-                                        =16
-                                    RadiusBottomRight: |-
-                                        =16
-                                    RadiusTopLeft: |-
-                                        =16
-                                    RadiusTopRight: |-
-                                        =16
-                                    Width: |-
-                                        =36
-                                  Children:
-                                    - conFlThemeDarkBtn:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =If(darkModeEnabled, "Dark theme (selected)", "Switch to dark theme")
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          Appearance: |-
-                                              =ButtonAppearance.Outline
-                                          BorderColor: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =If(darkModeEnabled, C.'color-brand-primary', C.'text-muted')
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Normal
-                                          Height: |-
-                                              =32
-                                          Layout: |-
-                                              =ButtonLayout.TextOnly
-                                          LayoutMinWidth: |-
-                                              =36
-                                          OnSelect: |-
-                                              =If(!darkModeEnabled,
-                                              Set(darkModeEnabled, !darkModeEnabled);
-                                              ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
-                                              IfError(SaveData(colAppPrefs, "prefs"), Blank())
-                                              )
-                                          RadiusBottomLeft: |-
-                                              =16
-                                          RadiusBottomRight: |-
-                                              =16
-                                          RadiusTopLeft: |-
-                                              =16
-                                          RadiusTopRight: |-
-                                              =16
-                                          Size: |-
-                                              =18
-                                          Text: |-
-                                              =UniChar(9790)
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =36
+                                  =104
                         - btnFlBack:
                             Control: ModernButton
                             Properties:
@@ -1493,516 +1310,498 @@ Screens:
                               WrapCount: |-
                                   =1
                             Children:
-                              - conFlRow:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
+                              - txtFlRowNo:
+                                  Control: ModernText
                                   Properties:
+                                    AccessibleLabel: |-
+                                        =Text(CountRows(Filter(colFlRows, RowNo <= ThisItem.RowNo)))
                                     BorderStyle: |-
                                         =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    FillPortions: |-
+                                    BorderThickness: |-
                                         =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
                                     Height: |-
-                                        =(44) - 2
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Center
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =8
-                                    LayoutJustifyContent: |-
-                                        =LayoutJustifyContent.Start
-                                    LayoutMinWidth: |-
+                                        =20
+                                    PaddingBottom: |-
                                         =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        =Text(CountRows(Filter(colFlRows, RowNo <= ThisItem.RowNo)))
                                     Width: |-
-                                        =(((((App.Width)) - 24 - 16 - 18) - 18 - 18) - 2 * 2 - 18 - 40)
-                                  Children:
-                                    - txtFlRowNo:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Text(CountRows(Filter(colFlRows, RowNo <= ThisItem.RowNo)))
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          LayoutMinWidth: |-
-                                              =28
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              =Text(CountRows(Filter(colFlRows, RowNo <= ThisItem.RowNo)))
-                                          Width: |-
-                                              =28
-                                          Wrap: |-
-                                              =false
-                                    - inpFlRowFl:
-                                        Control: ModernTextInput
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Functional Location"
-                                          BorderColor: |-
-                                              =If((ThisItem.Status <> "draft" && CountRows(Filter(colFlIssues, RowGuid = ThisItem.RowGuid && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg))) > 0), C.'border-error', ThisItem.Status <> "draft", C.'border-ok', C.'border-default')
-                                          BorderStyle: |-
-                                              =BorderStyle.Solid
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Default: |-
-                                              =ThisItem.FL
-                                          DisplayMode: |-
-                                              =If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)
-                                          Fill: |-
-                                              =If(If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =36
-                                          LayoutMinWidth: |-
-                                              =160
-                                          MaxLength: |-
-                                              =40
-                                          OnChange: |-
-                                              =Patch(colFlRows, LookUp(colFlRows, RowGuid = ThisItem.RowGuid), { FL: Upper(Trim(Substitute(Substitute(Substitute(Self.Text, Char(160), " "), Char(13), ""), Char(10), ""))) });
-                                              Set(varFlStale, true);
-                                              Select(btnFlVerify)
-                                          Placeholder: |-
-                                              =""
-                                          RadiusBottomLeft: |-
-                                              =10
-                                          RadiusBottomRight: |-
-                                              =10
-                                          RadiusTopLeft: |-
-                                              =10
-                                          RadiusTopRight: |-
-                                              =10
-                                          Size: |-
-                                              =14
-                                          ValidationState: |-
-                                              =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
-                                          Width: |-
-                                              =160
-                                    - inpFlRowDesc:
-                                        Control: ModernTextInput
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Description"
-                                          BorderColor: |-
-                                              =If((ThisItem.Status <> "draft" && CountRows(Filter(colFlIssues, RowGuid = ThisItem.RowGuid && Sev = "Error" && ("Description" exactin Msg))) > 0), C.'border-error', ThisItem.Status <> "draft" && !IsBlank(ThisItem.Description), C.'border-ok', C.'border-default')
-                                          BorderStyle: |-
-                                              =BorderStyle.Solid
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Default: |-
-                                              =ThisItem.Description
-                                          DisplayMode: |-
-                                              =If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)
-                                          Fill: |-
-                                              =If(If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =36
-                                          LayoutMinWidth: |-
-                                              =140
-                                          MaxLength: |-
-                                              =40
-                                          OnChange: |-
-                                              =Patch(colFlRows, LookUp(colFlRows, RowGuid = ThisItem.RowGuid), { Description: Trim(Self.Text) });
-                                              Set(varFlStale, true);
-                                              Select(btnFlVerify)
-                                          Placeholder: |-
-                                              =""
-                                          RadiusBottomLeft: |-
-                                              =10
-                                          RadiusBottomRight: |-
-                                              =10
-                                          RadiusTopLeft: |-
-                                              =10
-                                          RadiusTopRight: |-
-                                              =10
-                                          Size: |-
-                                              =14
-                                          ValidationState: |-
-                                              =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
-                                          Width: |-
-                                              =140
-                                    - txtFlRowKks:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =If(IsBlank(ThisItem.KksType), "-", ThisItem.KksType)
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          LayoutMinWidth: |-
-                                              =64
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              =If(IsBlank(ThisItem.KksType), "-", ThisItem.KksType)
-                                          Visible: |-
-                                              =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 612 + 160
-                                          Width: |-
-                                              =64
-                                          Wrap: |-
-                                              =false
-                                    - txtFlRowCls:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =If(IsBlank(ThisItem.AssignedClass), "-", ThisItem.AssignedClass)
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =20
-                                          LayoutMinWidth: |-
-                                              =96
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              =If(IsBlank(ThisItem.AssignedClass), "-", ThisItem.AssignedClass)
-                                          Visible: |-
-                                              =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 612 + 160
-                                          Width: |-
-                                              =96
-                                          Wrap: |-
-                                              =false
-                                    - conFlRowVal:
-                                        Control: GroupContainer
-                                        Variant: AutoLayout
-                                        Properties:
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          DropShadow: |-
-                                              =DropShadow.None
-                                          FillPortions: |-
-                                              =0
-                                          Height: |-
-                                              =30
-                                          LayoutAlignItems: |-
-                                              =LayoutAlignItems.Center
-                                          LayoutDirection: |-
-                                              =LayoutDirection.Horizontal
-                                          LayoutGap: |-
-                                              =6
-                                          LayoutMinWidth: |-
-                                              =0
-                                          LayoutOverflowX: |-
-                                              =LayoutOverflow.Hide
-                                          LayoutOverflowY: |-
-                                              =LayoutOverflow.Hide
-                                          Width: |-
-                                              =Max(120, (((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 612 + 160, 612, 436))
-                                        Children:
-                                          - txtFlRowIssue:
-                                              Control: ModernText
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    =Switch(ThisItem.Status, "draft", "Draft", "valid", "Valid", "warning", "Warning" & If(IsBlank(ThisItem.FirstWarning), "", " - " & ThisItem.FirstWarning), If(IsBlank(ThisItem.FirstIssue), "Invalid", ThisItem.FirstIssue))
-                                                BorderStyle: |-
-                                                    =BorderStyle.None
-                                                BorderThickness: |-
-                                                    =0
-                                                Color: |-
-                                                    =Switch(ThisItem.Status, "invalid", C.'state-error-fg', "warning", C.'state-warn-fg', "valid", C.'state-ok-fg', C.'text-muted')
-                                                Fill: |-
-                                                    =RGBA(0, 0, 0, 0)
-                                                FillPortions: |-
-                                                    =0
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                Height: |-
-                                                    =20
-                                                LayoutMinWidth: |-
-                                                    =0
-                                                PaddingBottom: |-
-                                                    =0
-                                                PaddingLeft: |-
-                                                    =0
-                                                PaddingRight: |-
-                                                    =0
-                                                PaddingTop: |-
-                                                    =0
-                                                Size: |-
-                                                    =13
-                                                Text: |-
-                                                    =Switch(ThisItem.Status, "draft", "Draft", "valid", "Valid", "warning", "Warning" & If(IsBlank(ThisItem.FirstWarning), "", " - " & ThisItem.FirstWarning), If(IsBlank(ThisItem.FirstIssue), "Invalid", ThisItem.FirstIssue))
-                                                Width: |-
-                                                    =Max(0, ((Max(120, (((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 612 + 160, 612, 436)))) - (If(!IsBlank(With(
-                                                        {
-                                                            i: If(ThisItem.Status = "invalid", ThisItem.FirstIssue, ThisItem.FirstWarning),
-                                                            h0: If(Len(ThisItem.FL) >= 3, Left(ThisItem.FL, 3), ""),
-                                                            h7: If(Len(ThisItem.FL) >= 9, Mid(ThisItem.FL, 7, 3), ""),
-                                                            h12: If(Len(ThisItem.FL) >= 13, Mid(ThisItem.FL, 12, 2), ""),
-                                                            h17: If(Len(ThisItem.FL) >= 18, Mid(ThisItem.FL, 17, 2), ""),
-                                                            h18: If(Len(ThisItem.FL) >= 19, Mid(ThisItem.FL, 18, 2), "")
-                                                        },
-                                                        Switch(
-                                                            i,
-                                                            "Function key invalid.", "Function key is FL position 7-9 (" & Coalesce(h7, "missing") & "). It must exist in FunctionKeyDict lookup.",
-                                                            "Plant key invalid.", "Plant key is FL position 1-3 (" & Coalesce(h0, "missing") & "). It must exist in Plant lookup.",
-                                                            "Component key invalid.", "Component key is FL position 18-19 (" & Coalesce(h18, "missing") & "). No class mapping was found for this key.",
-                                                            "Equipment key invalid.", "Equipment/Aggregate key is FL position 12-13 (" & Coalesce(h12, "missing") & "). No aggregate mapping was found.",
-                                                            "UF/UE requires U function key.", "For aggregate " & Coalesce(h12, "missing") & ", function key (position 7-9) must start with U. Current value: " & Coalesce(h7, "missing") & ".",
-                                                            "KKS invalid.", "Functional Location does not match the allowed KKS patterns.",
-                                                            "Class not determined.", "KKS structure is valid, but no class rule matched component/aggregate/fallback mapping.",
-                                                            If(
-                                                                StartsWith(i, "BR18 key17 invalid for ") && Left(i, 23) = "BR18 key17 invalid for ",
-                                                                "BR18 check failed: for aggregate " & Coalesce(h12, "missing") & ", key17 (position 17-18) value " & Coalesce(h17, "missing") & " is not allowed.",
-                                                                StartsWith(i, "BR18 rules missing for ") && Left(i, 23) = "BR18 rules missing for ",
-                                                                "No BR18 rule set is loaded for aggregate key " & Coalesce(h12, "missing") & ".",
-                                                                ""
-                                                            )
-                                                        )
-                                                    )), (30) + 6, 0)) - 2)
-                                                Wrap: |-
-                                                    =false
-                                          - btnFlRowHint:
-                                              Control: ModernButton
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    ="What does this message mean?"
-                                                Align: |-
-                                                    =Align.Center
-                                                AlignInContainer: |-
-                                                    =AlignInContainer.Center
-                                                Appearance: |-
-                                                    =ButtonAppearance.Outline
-                                                BorderColor: |-
-                                                    =C.'border-default'
-                                                BorderThickness: |-
-                                                    =1
-                                                Color: |-
-                                                    =C.'text-primary'
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                FontWeight: |-
-                                                    =FontWeight.Semibold
-                                                Height: |-
-                                                    =30
-                                                Layout: |-
-                                                    =ButtonLayout.TextOnly
-                                                OnSelect: |-
-                                                    =Notify(With(
-                                                        {
-                                                            i: If(ThisItem.Status = "invalid", ThisItem.FirstIssue, ThisItem.FirstWarning),
-                                                            h0: If(Len(ThisItem.FL) >= 3, Left(ThisItem.FL, 3), ""),
-                                                            h7: If(Len(ThisItem.FL) >= 9, Mid(ThisItem.FL, 7, 3), ""),
-                                                            h12: If(Len(ThisItem.FL) >= 13, Mid(ThisItem.FL, 12, 2), ""),
-                                                            h17: If(Len(ThisItem.FL) >= 18, Mid(ThisItem.FL, 17, 2), ""),
-                                                            h18: If(Len(ThisItem.FL) >= 19, Mid(ThisItem.FL, 18, 2), "")
-                                                        },
-                                                        Switch(
-                                                            i,
-                                                            "Function key invalid.", "Function key is FL position 7-9 (" & Coalesce(h7, "missing") & "). It must exist in FunctionKeyDict lookup.",
-                                                            "Plant key invalid.", "Plant key is FL position 1-3 (" & Coalesce(h0, "missing") & "). It must exist in Plant lookup.",
-                                                            "Component key invalid.", "Component key is FL position 18-19 (" & Coalesce(h18, "missing") & "). No class mapping was found for this key.",
-                                                            "Equipment key invalid.", "Equipment/Aggregate key is FL position 12-13 (" & Coalesce(h12, "missing") & "). No aggregate mapping was found.",
-                                                            "UF/UE requires U function key.", "For aggregate " & Coalesce(h12, "missing") & ", function key (position 7-9) must start with U. Current value: " & Coalesce(h7, "missing") & ".",
-                                                            "KKS invalid.", "Functional Location does not match the allowed KKS patterns.",
-                                                            "Class not determined.", "KKS structure is valid, but no class rule matched component/aggregate/fallback mapping.",
-                                                            If(
-                                                                StartsWith(i, "BR18 key17 invalid for ") && Left(i, 23) = "BR18 key17 invalid for ",
-                                                                "BR18 check failed: for aggregate " & Coalesce(h12, "missing") & ", key17 (position 17-18) value " & Coalesce(h17, "missing") & " is not allowed.",
-                                                                StartsWith(i, "BR18 rules missing for ") && Left(i, 23) = "BR18 rules missing for ",
-                                                                "No BR18 rule set is loaded for aggregate key " & Coalesce(h12, "missing") & ".",
-                                                                ""
-                                                            )
-                                                        )
-                                                    ), NotificationType.Information)
-                                                RadiusBottomLeft: |-
-                                                    =10
-                                                RadiusBottomRight: |-
-                                                    =10
-                                                RadiusTopLeft: |-
-                                                    =10
-                                                RadiusTopRight: |-
-                                                    =10
-                                                Size: |-
-                                                    =14
-                                                Text: |-
-                                                    ="?"
-                                                Tooltip: |-
-                                                    =With(
-                                                        {
-                                                            i: If(ThisItem.Status = "invalid", ThisItem.FirstIssue, ThisItem.FirstWarning),
-                                                            h0: If(Len(ThisItem.FL) >= 3, Left(ThisItem.FL, 3), ""),
-                                                            h7: If(Len(ThisItem.FL) >= 9, Mid(ThisItem.FL, 7, 3), ""),
-                                                            h12: If(Len(ThisItem.FL) >= 13, Mid(ThisItem.FL, 12, 2), ""),
-                                                            h17: If(Len(ThisItem.FL) >= 18, Mid(ThisItem.FL, 17, 2), ""),
-                                                            h18: If(Len(ThisItem.FL) >= 19, Mid(ThisItem.FL, 18, 2), "")
-                                                        },
-                                                        Switch(
-                                                            i,
-                                                            "Function key invalid.", "Function key is FL position 7-9 (" & Coalesce(h7, "missing") & "). It must exist in FunctionKeyDict lookup.",
-                                                            "Plant key invalid.", "Plant key is FL position 1-3 (" & Coalesce(h0, "missing") & "). It must exist in Plant lookup.",
-                                                            "Component key invalid.", "Component key is FL position 18-19 (" & Coalesce(h18, "missing") & "). No class mapping was found for this key.",
-                                                            "Equipment key invalid.", "Equipment/Aggregate key is FL position 12-13 (" & Coalesce(h12, "missing") & "). No aggregate mapping was found.",
-                                                            "UF/UE requires U function key.", "For aggregate " & Coalesce(h12, "missing") & ", function key (position 7-9) must start with U. Current value: " & Coalesce(h7, "missing") & ".",
-                                                            "KKS invalid.", "Functional Location does not match the allowed KKS patterns.",
-                                                            "Class not determined.", "KKS structure is valid, but no class rule matched component/aggregate/fallback mapping.",
-                                                            If(
-                                                                StartsWith(i, "BR18 key17 invalid for ") && Left(i, 23) = "BR18 key17 invalid for ",
-                                                                "BR18 check failed: for aggregate " & Coalesce(h12, "missing") & ", key17 (position 17-18) value " & Coalesce(h17, "missing") & " is not allowed.",
-                                                                StartsWith(i, "BR18 rules missing for ") && Left(i, 23) = "BR18 rules missing for ",
-                                                                "No BR18 rule set is loaded for aggregate key " & Coalesce(h12, "missing") & ".",
-                                                                ""
-                                                            )
-                                                        )
-                                                    )
-                                                VerticalAlign: |-
-                                                    =VerticalAlign.Middle
-                                                Visible: |-
-                                                    =!IsBlank(With(
-                                                        {
-                                                            i: If(ThisItem.Status = "invalid", ThisItem.FirstIssue, ThisItem.FirstWarning),
-                                                            h0: If(Len(ThisItem.FL) >= 3, Left(ThisItem.FL, 3), ""),
-                                                            h7: If(Len(ThisItem.FL) >= 9, Mid(ThisItem.FL, 7, 3), ""),
-                                                            h12: If(Len(ThisItem.FL) >= 13, Mid(ThisItem.FL, 12, 2), ""),
-                                                            h17: If(Len(ThisItem.FL) >= 18, Mid(ThisItem.FL, 17, 2), ""),
-                                                            h18: If(Len(ThisItem.FL) >= 19, Mid(ThisItem.FL, 18, 2), "")
-                                                        },
-                                                        Switch(
-                                                            i,
-                                                            "Function key invalid.", "Function key is FL position 7-9 (" & Coalesce(h7, "missing") & "). It must exist in FunctionKeyDict lookup.",
-                                                            "Plant key invalid.", "Plant key is FL position 1-3 (" & Coalesce(h0, "missing") & "). It must exist in Plant lookup.",
-                                                            "Component key invalid.", "Component key is FL position 18-19 (" & Coalesce(h18, "missing") & "). No class mapping was found for this key.",
-                                                            "Equipment key invalid.", "Equipment/Aggregate key is FL position 12-13 (" & Coalesce(h12, "missing") & "). No aggregate mapping was found.",
-                                                            "UF/UE requires U function key.", "For aggregate " & Coalesce(h12, "missing") & ", function key (position 7-9) must start with U. Current value: " & Coalesce(h7, "missing") & ".",
-                                                            "KKS invalid.", "Functional Location does not match the allowed KKS patterns.",
-                                                            "Class not determined.", "KKS structure is valid, but no class rule matched component/aggregate/fallback mapping.",
-                                                            If(
-                                                                StartsWith(i, "BR18 key17 invalid for ") && Left(i, 23) = "BR18 key17 invalid for ",
-                                                                "BR18 check failed: for aggregate " & Coalesce(h12, "missing") & ", key17 (position 17-18) value " & Coalesce(h17, "missing") & " is not allowed.",
-                                                                StartsWith(i, "BR18 rules missing for ") && Left(i, 23) = "BR18 rules missing for ",
-                                                                "No BR18 rule set is loaded for aggregate key " & Coalesce(h12, "missing") & ".",
-                                                                ""
-                                                            )
-                                                        )
-                                                    ))
-                                                Width: |-
-                                                    =30
-                                    - btnFlRowDelete:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Delete"
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          Appearance: |-
-                                              =ButtonAppearance.Outline
-                                          BorderColor: |-
-                                              =C.'border-error'
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =C.'state-error-fg'
-                                          DisplayMode: |-
-                                              =If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =30
-                                          Layout: |-
-                                              =ButtonLayout.TextOnly
-                                          LayoutMinWidth: |-
-                                              =76
-                                          OnSelect: |-
-                                              =Remove(colFlRows, LookUp(colFlRows, RowGuid = ThisItem.RowGuid));
-                                              RemoveIf(colFlVals, RowGuid = ThisItem.RowGuid);
-                                              RemoveIf(colFlIssues, RowGuid = ThisItem.RowGuid);
-                                              If(CountRows(colFlRows) = 0, Collect(colFlRows, { RowGuid: Text(GUID()), RowNo: varFlNextRowNo, SpId: 0, FL: "", Description: "", KksType: "", AssignedClass: "", Status: "draft", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0 });
-                                              Set(varFlNextRowNo, varFlNextRowNo + 1));
-                                              ClearCollect(
-                                                  colFlTabs,
-                                                  { Key: "ALL", Label: "ALL (" & CountRows(Filter(colFlRows, Status <> "draft" && !IsBlank(AssignedClass))) & ")" },
-                                                  ForAll(
-                                                      Sort(Distinct(Filter(colFlRows, Status <> "draft" && !IsBlank(AssignedClass)), AssignedClass), Value) As K,
-                                                      { Key: K.Value, Label: K.Value & " (" & CountRows(Filter(Filter(colFlRows, Status <> "draft" && !IsBlank(AssignedClass)), AssignedClass = K.Value)) & ")" }
-                                                  )
-                                              );
-                                              If(varFlTab <> "ALL" && IsBlank(LookUp(colFlTabs, Key = varFlTab)), Set(varFlTab, "ALL"));
-                                              Set(varFlStale, true)
-                                          RadiusBottomLeft: |-
-                                              =10
-                                          RadiusBottomRight: |-
-                                              =10
-                                          RadiusTopLeft: |-
-                                              =10
-                                          RadiusTopRight: |-
-                                              =10
-                                          Size: |-
-                                              =14
-                                          Text: |-
-                                              ="Delete"
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =76
+                                        =28
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 0 + 0
+                                    Y: |-
+                                        =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
+                              - inpFlRowFl:
+                                  Control: ModernTextInput
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Functional Location"
+                                    BorderColor: |-
+                                        =If((ThisItem.Status <> "draft" && CountRows(Filter(colFlIssues, RowGuid = ThisItem.RowGuid && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg))) > 0), C.'border-error', ThisItem.Status <> "draft", C.'border-ok', C.'border-default')
+                                    BorderStyle: |-
+                                        =BorderStyle.Solid
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Default: |-
+                                        =ThisItem.FL
+                                    DisplayMode: |-
+                                        =If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)
+                                    Fill: |-
+                                        =If(If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =36
+                                    MaxLength: |-
+                                        =40
+                                    OnChange: |-
+                                        =Patch(colFlRows, LookUp(colFlRows, RowGuid = ThisItem.RowGuid), { FL: Upper(Trim(Substitute(Substitute(Substitute(Self.Text, Char(160), " "), Char(13), ""), Char(10), ""))) });
+                                        Set(varFlStale, true);
+                                        Select(btnFlVerify)
+                                    Placeholder: |-
+                                        =""
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    ValidationState: |-
+                                        =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                                    Width: |-
+                                        =160
+                                    X: |-
+                                        =0 + 0 + 0 + (28) + 8
+                                    Y: |-
+                                        =0 + 0 + ((((44) - 2) - 0 - 0) - (36)) / 2
+                              - inpFlRowDesc:
+                                  Control: ModernTextInput
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Description"
+                                    BorderColor: |-
+                                        =If((ThisItem.Status <> "draft" && CountRows(Filter(colFlIssues, RowGuid = ThisItem.RowGuid && Sev = "Error" && ("Description" exactin Msg))) > 0), C.'border-error', ThisItem.Status <> "draft" && !IsBlank(ThisItem.Description), C.'border-ok', C.'border-default')
+                                    BorderStyle: |-
+                                        =BorderStyle.Solid
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Default: |-
+                                        =ThisItem.Description
+                                    DisplayMode: |-
+                                        =If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)
+                                    Fill: |-
+                                        =If(If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =36
+                                    MaxLength: |-
+                                        =40
+                                    OnChange: |-
+                                        =Patch(colFlRows, LookUp(colFlRows, RowGuid = ThisItem.RowGuid), { Description: Trim(Self.Text) });
+                                        Set(varFlStale, true);
+                                        Select(btnFlVerify)
+                                    Placeholder: |-
+                                        =""
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    ValidationState: |-
+                                        =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                                    Width: |-
+                                        =140
+                                    X: |-
+                                        =0 + 0 + 0 + (28) + 8 + (160) + 8
+                                    Y: |-
+                                        =0 + 0 + ((((44) - 2) - 0 - 0) - (36)) / 2
+                              - txtFlRowKks:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =If(IsBlank(ThisItem.KksType), "-", ThisItem.KksType)
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =20
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        =If(IsBlank(ThisItem.KksType), "-", ThisItem.KksType)
+                                    Visible: |-
+                                        =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 612 + 160
+                                    Width: |-
+                                        =64
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 0 + 0 + (28) + 8 + (160) + 8 + (140) + 8
+                                    Y: |-
+                                        =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
+                              - txtFlRowCls:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =If(IsBlank(ThisItem.AssignedClass), "-", ThisItem.AssignedClass)
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =20
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        =If(IsBlank(ThisItem.AssignedClass), "-", ThisItem.AssignedClass)
+                                    Visible: |-
+                                        =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 612 + 160
+                                    Width: |-
+                                        =96
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 0 + 0 + (28) + 8 + (160) + 8 + (140) + 8 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 612 + 160, (64) + 8, 0)
+                                    Y: |-
+                                        =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
+                              - txtFlRowIssue:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =Switch(ThisItem.Status, "draft", "Draft", "valid", "Valid", "warning", "Warning" & If(IsBlank(ThisItem.FirstWarning), "", " - " & ThisItem.FirstWarning), If(IsBlank(ThisItem.FirstIssue), "Invalid", ThisItem.FirstIssue))
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =Switch(ThisItem.Status, "invalid", C.'state-error-fg', "warning", C.'state-warn-fg', "valid", C.'state-ok-fg', C.'text-muted')
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =20
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        =Switch(ThisItem.Status, "draft", "Draft", "valid", "Valid", "warning", "Warning" & If(IsBlank(ThisItem.FirstWarning), "", " - " & ThisItem.FirstWarning), If(IsBlank(ThisItem.FirstIssue), "Invalid", ThisItem.FirstIssue))
+                                    Width: |-
+                                        =Max(0, ((Max(120, (((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 612 + 160, 612, 436)))) - (If(!IsBlank(With(
+                                            {
+                                                i: If(ThisItem.Status = "invalid", ThisItem.FirstIssue, ThisItem.FirstWarning),
+                                                h0: If(Len(ThisItem.FL) >= 3, Left(ThisItem.FL, 3), ""),
+                                                h7: If(Len(ThisItem.FL) >= 9, Mid(ThisItem.FL, 7, 3), ""),
+                                                h12: If(Len(ThisItem.FL) >= 13, Mid(ThisItem.FL, 12, 2), ""),
+                                                h17: If(Len(ThisItem.FL) >= 18, Mid(ThisItem.FL, 17, 2), ""),
+                                                h18: If(Len(ThisItem.FL) >= 19, Mid(ThisItem.FL, 18, 2), "")
+                                            },
+                                            Switch(
+                                                i,
+                                                "Function key invalid.", "Function key is FL position 7-9 (" & Coalesce(h7, "missing") & "). It must exist in FunctionKeyDict lookup.",
+                                                "Plant key invalid.", "Plant key is FL position 1-3 (" & Coalesce(h0, "missing") & "). It must exist in Plant lookup.",
+                                                "Component key invalid.", "Component key is FL position 18-19 (" & Coalesce(h18, "missing") & "). No class mapping was found for this key.",
+                                                "Equipment key invalid.", "Equipment/Aggregate key is FL position 12-13 (" & Coalesce(h12, "missing") & "). No aggregate mapping was found.",
+                                                "UF/UE requires U function key.", "For aggregate " & Coalesce(h12, "missing") & ", function key (position 7-9) must start with U. Current value: " & Coalesce(h7, "missing") & ".",
+                                                "KKS invalid.", "Functional Location does not match the allowed KKS patterns.",
+                                                "Class not determined.", "KKS structure is valid, but no class rule matched component/aggregate/fallback mapping.",
+                                                If(
+                                                    StartsWith(i, "BR18 key17 invalid for ") && Left(i, 23) = "BR18 key17 invalid for ",
+                                                    "BR18 check failed: for aggregate " & Coalesce(h12, "missing") & ", key17 (position 17-18) value " & Coalesce(h17, "missing") & " is not allowed.",
+                                                    StartsWith(i, "BR18 rules missing for ") && Left(i, 23) = "BR18 rules missing for ",
+                                                    "No BR18 rule set is loaded for aggregate key " & Coalesce(h12, "missing") & ".",
+                                                    ""
+                                                )
+                                            )
+                                        )), (30) + 6, 0)) - 2)
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 0 + 0 + (28) + 8 + (160) + 8 + (140) + 8 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 612 + 160, (64) + 8, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 612 + 160, (96) + 8, 0) + 0 + 0
+                                    Y: |-
+                                        =0 + 0 + ((((44) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (20)) / 2
+                              - btnFlRowHint:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="What does this message mean?"
+                                    Align: |-
+                                        =Align.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =30
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    OnSelect: |-
+                                        =Notify(With(
+                                            {
+                                                i: If(ThisItem.Status = "invalid", ThisItem.FirstIssue, ThisItem.FirstWarning),
+                                                h0: If(Len(ThisItem.FL) >= 3, Left(ThisItem.FL, 3), ""),
+                                                h7: If(Len(ThisItem.FL) >= 9, Mid(ThisItem.FL, 7, 3), ""),
+                                                h12: If(Len(ThisItem.FL) >= 13, Mid(ThisItem.FL, 12, 2), ""),
+                                                h17: If(Len(ThisItem.FL) >= 18, Mid(ThisItem.FL, 17, 2), ""),
+                                                h18: If(Len(ThisItem.FL) >= 19, Mid(ThisItem.FL, 18, 2), "")
+                                            },
+                                            Switch(
+                                                i,
+                                                "Function key invalid.", "Function key is FL position 7-9 (" & Coalesce(h7, "missing") & "). It must exist in FunctionKeyDict lookup.",
+                                                "Plant key invalid.", "Plant key is FL position 1-3 (" & Coalesce(h0, "missing") & "). It must exist in Plant lookup.",
+                                                "Component key invalid.", "Component key is FL position 18-19 (" & Coalesce(h18, "missing") & "). No class mapping was found for this key.",
+                                                "Equipment key invalid.", "Equipment/Aggregate key is FL position 12-13 (" & Coalesce(h12, "missing") & "). No aggregate mapping was found.",
+                                                "UF/UE requires U function key.", "For aggregate " & Coalesce(h12, "missing") & ", function key (position 7-9) must start with U. Current value: " & Coalesce(h7, "missing") & ".",
+                                                "KKS invalid.", "Functional Location does not match the allowed KKS patterns.",
+                                                "Class not determined.", "KKS structure is valid, but no class rule matched component/aggregate/fallback mapping.",
+                                                If(
+                                                    StartsWith(i, "BR18 key17 invalid for ") && Left(i, 23) = "BR18 key17 invalid for ",
+                                                    "BR18 check failed: for aggregate " & Coalesce(h12, "missing") & ", key17 (position 17-18) value " & Coalesce(h17, "missing") & " is not allowed.",
+                                                    StartsWith(i, "BR18 rules missing for ") && Left(i, 23) = "BR18 rules missing for ",
+                                                    "No BR18 rule set is loaded for aggregate key " & Coalesce(h12, "missing") & ".",
+                                                    ""
+                                                )
+                                            )
+                                        ), NotificationType.Information)
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="?"
+                                    Tooltip: |-
+                                        =With(
+                                            {
+                                                i: If(ThisItem.Status = "invalid", ThisItem.FirstIssue, ThisItem.FirstWarning),
+                                                h0: If(Len(ThisItem.FL) >= 3, Left(ThisItem.FL, 3), ""),
+                                                h7: If(Len(ThisItem.FL) >= 9, Mid(ThisItem.FL, 7, 3), ""),
+                                                h12: If(Len(ThisItem.FL) >= 13, Mid(ThisItem.FL, 12, 2), ""),
+                                                h17: If(Len(ThisItem.FL) >= 18, Mid(ThisItem.FL, 17, 2), ""),
+                                                h18: If(Len(ThisItem.FL) >= 19, Mid(ThisItem.FL, 18, 2), "")
+                                            },
+                                            Switch(
+                                                i,
+                                                "Function key invalid.", "Function key is FL position 7-9 (" & Coalesce(h7, "missing") & "). It must exist in FunctionKeyDict lookup.",
+                                                "Plant key invalid.", "Plant key is FL position 1-3 (" & Coalesce(h0, "missing") & "). It must exist in Plant lookup.",
+                                                "Component key invalid.", "Component key is FL position 18-19 (" & Coalesce(h18, "missing") & "). No class mapping was found for this key.",
+                                                "Equipment key invalid.", "Equipment/Aggregate key is FL position 12-13 (" & Coalesce(h12, "missing") & "). No aggregate mapping was found.",
+                                                "UF/UE requires U function key.", "For aggregate " & Coalesce(h12, "missing") & ", function key (position 7-9) must start with U. Current value: " & Coalesce(h7, "missing") & ".",
+                                                "KKS invalid.", "Functional Location does not match the allowed KKS patterns.",
+                                                "Class not determined.", "KKS structure is valid, but no class rule matched component/aggregate/fallback mapping.",
+                                                If(
+                                                    StartsWith(i, "BR18 key17 invalid for ") && Left(i, 23) = "BR18 key17 invalid for ",
+                                                    "BR18 check failed: for aggregate " & Coalesce(h12, "missing") & ", key17 (position 17-18) value " & Coalesce(h17, "missing") & " is not allowed.",
+                                                    StartsWith(i, "BR18 rules missing for ") && Left(i, 23) = "BR18 rules missing for ",
+                                                    "No BR18 rule set is loaded for aggregate key " & Coalesce(h12, "missing") & ".",
+                                                    ""
+                                                )
+                                            )
+                                        )
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Visible: |-
+                                        =!IsBlank(With(
+                                            {
+                                                i: If(ThisItem.Status = "invalid", ThisItem.FirstIssue, ThisItem.FirstWarning),
+                                                h0: If(Len(ThisItem.FL) >= 3, Left(ThisItem.FL, 3), ""),
+                                                h7: If(Len(ThisItem.FL) >= 9, Mid(ThisItem.FL, 7, 3), ""),
+                                                h12: If(Len(ThisItem.FL) >= 13, Mid(ThisItem.FL, 12, 2), ""),
+                                                h17: If(Len(ThisItem.FL) >= 18, Mid(ThisItem.FL, 17, 2), ""),
+                                                h18: If(Len(ThisItem.FL) >= 19, Mid(ThisItem.FL, 18, 2), "")
+                                            },
+                                            Switch(
+                                                i,
+                                                "Function key invalid.", "Function key is FL position 7-9 (" & Coalesce(h7, "missing") & "). It must exist in FunctionKeyDict lookup.",
+                                                "Plant key invalid.", "Plant key is FL position 1-3 (" & Coalesce(h0, "missing") & "). It must exist in Plant lookup.",
+                                                "Component key invalid.", "Component key is FL position 18-19 (" & Coalesce(h18, "missing") & "). No class mapping was found for this key.",
+                                                "Equipment key invalid.", "Equipment/Aggregate key is FL position 12-13 (" & Coalesce(h12, "missing") & "). No aggregate mapping was found.",
+                                                "UF/UE requires U function key.", "For aggregate " & Coalesce(h12, "missing") & ", function key (position 7-9) must start with U. Current value: " & Coalesce(h7, "missing") & ".",
+                                                "KKS invalid.", "Functional Location does not match the allowed KKS patterns.",
+                                                "Class not determined.", "KKS structure is valid, but no class rule matched component/aggregate/fallback mapping.",
+                                                If(
+                                                    StartsWith(i, "BR18 key17 invalid for ") && Left(i, 23) = "BR18 key17 invalid for ",
+                                                    "BR18 check failed: for aggregate " & Coalesce(h12, "missing") & ", key17 (position 17-18) value " & Coalesce(h17, "missing") & " is not allowed.",
+                                                    StartsWith(i, "BR18 rules missing for ") && Left(i, 23) = "BR18 rules missing for ",
+                                                    "No BR18 rule set is loaded for aggregate key " & Coalesce(h12, "missing") & ".",
+                                                    ""
+                                                )
+                                            )
+                                        ))
+                                    Width: |-
+                                        =30
+                                    X: |-
+                                        =0 + 0 + 0 + (28) + 8 + (160) + 8 + (140) + 8 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 612 + 160, (64) + 8, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 612 + 160, (96) + 8, 0) + 0 + 0 + (Max(0, ((Max(120, (((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 612 + 160, 612, 436)))) - (If(!IsBlank(With(
+                                            {
+                                                i: If(ThisItem.Status = "invalid", ThisItem.FirstIssue, ThisItem.FirstWarning),
+                                                h0: If(Len(ThisItem.FL) >= 3, Left(ThisItem.FL, 3), ""),
+                                                h7: If(Len(ThisItem.FL) >= 9, Mid(ThisItem.FL, 7, 3), ""),
+                                                h12: If(Len(ThisItem.FL) >= 13, Mid(ThisItem.FL, 12, 2), ""),
+                                                h17: If(Len(ThisItem.FL) >= 18, Mid(ThisItem.FL, 17, 2), ""),
+                                                h18: If(Len(ThisItem.FL) >= 19, Mid(ThisItem.FL, 18, 2), "")
+                                            },
+                                            Switch(
+                                                i,
+                                                "Function key invalid.", "Function key is FL position 7-9 (" & Coalesce(h7, "missing") & "). It must exist in FunctionKeyDict lookup.",
+                                                "Plant key invalid.", "Plant key is FL position 1-3 (" & Coalesce(h0, "missing") & "). It must exist in Plant lookup.",
+                                                "Component key invalid.", "Component key is FL position 18-19 (" & Coalesce(h18, "missing") & "). No class mapping was found for this key.",
+                                                "Equipment key invalid.", "Equipment/Aggregate key is FL position 12-13 (" & Coalesce(h12, "missing") & "). No aggregate mapping was found.",
+                                                "UF/UE requires U function key.", "For aggregate " & Coalesce(h12, "missing") & ", function key (position 7-9) must start with U. Current value: " & Coalesce(h7, "missing") & ".",
+                                                "KKS invalid.", "Functional Location does not match the allowed KKS patterns.",
+                                                "Class not determined.", "KKS structure is valid, but no class rule matched component/aggregate/fallback mapping.",
+                                                If(
+                                                    StartsWith(i, "BR18 key17 invalid for ") && Left(i, 23) = "BR18 key17 invalid for ",
+                                                    "BR18 check failed: for aggregate " & Coalesce(h12, "missing") & ", key17 (position 17-18) value " & Coalesce(h17, "missing") & " is not allowed.",
+                                                    StartsWith(i, "BR18 rules missing for ") && Left(i, 23) = "BR18 rules missing for ",
+                                                    "No BR18 rule set is loaded for aggregate key " & Coalesce(h12, "missing") & ".",
+                                                    ""
+                                                )
+                                            )
+                                        )), (30) + 6, 0)) - 2)) + 6
+                                    Y: |-
+                                        =0 + 0 + ((((44) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
+                              - btnFlRowDelete:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Delete"
+                                    Align: |-
+                                        =Align.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-error'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'state-error-fg'
+                                    DisplayMode: |-
+                                        =If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =30
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    OnSelect: |-
+                                        =Remove(colFlRows, LookUp(colFlRows, RowGuid = ThisItem.RowGuid));
+                                        RemoveIf(colFlVals, RowGuid = ThisItem.RowGuid);
+                                        RemoveIf(colFlIssues, RowGuid = ThisItem.RowGuid);
+                                        If(CountRows(colFlRows) = 0, Collect(colFlRows, { RowGuid: Text(GUID()), RowNo: varFlNextRowNo, SpId: 0, FL: "", Description: "", KksType: "", AssignedClass: "", Status: "draft", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0 });
+                                        Set(varFlNextRowNo, varFlNextRowNo + 1));
+                                        ClearCollect(
+                                            colFlTabs,
+                                            { Key: "ALL", Label: "ALL (" & CountRows(Filter(colFlRows, Status <> "draft" && !IsBlank(AssignedClass))) & ")" },
+                                            ForAll(
+                                                Sort(Distinct(Filter(colFlRows, Status <> "draft" && !IsBlank(AssignedClass)), AssignedClass), Value) As K,
+                                                { Key: K.Value, Label: K.Value & " (" & CountRows(Filter(Filter(colFlRows, Status <> "draft" && !IsBlank(AssignedClass)), AssignedClass = K.Value)) & ")" }
+                                            )
+                                        );
+                                        If(varFlTab <> "ALL" && IsBlank(LookUp(colFlTabs, Key = varFlTab)), Set(varFlTab, "ALL"));
+                                        Set(varFlStale, true)
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="Delete"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =76
+                                    X: |-
+                                        =0 + 0 + 0 + (28) + 8 + (160) + 8 + (140) + 8 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 612 + 160, (64) + 8, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 612 + 160, (96) + 8, 0) + (Max(120, (((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 612 + 160, 612, 436))) + 8
+                                    Y: |-
+                                        =0 + 0 + ((((44) - 2) - 0 - 0) - (30)) / 2
                         - txtFlInfo:
                             Control: ModernText
                             Properties:
@@ -2555,320 +2354,305 @@ Screens:
                               WrapCount: |-
                                   =1
                             Children:
-                              - conFlCRow:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
+                              - txtFlCNo:
+                                  Control: ModernText
                                   Properties:
+                                    AccessibleLabel: |-
+                                        =Text(ThisItem.Pos)
                                     BorderStyle: |-
                                         =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    FillPortions: |-
+                                    BorderThickness: |-
                                         =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
                                     Height: |-
-                                        =(44) - 2
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Center
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =8
-                                    LayoutJustifyContent: |-
-                                        =LayoutJustifyContent.Start
-                                    LayoutMinWidth: |-
+                                        =20
+                                    PaddingBottom: |-
                                         =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        =Text(ThisItem.Pos)
                                     Width: |-
-                                        =(((((App.Width)) - 24 - 16 - 18) - 18 - 18) - 2 * 2 - 18 - 40)
-                                  Children:
-                                    - txtFlCNo:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Text(ThisItem.Pos)
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          LayoutMinWidth: |-
-                                              =28
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              =Text(ThisItem.Pos)
-                                          Width: |-
-                                              =28
-                                          Wrap: |-
-                                              =false
-                                    - inpFlCFl:
-                                        Control: ModernTextInput
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Functional Location"
-                                          BorderColor: |-
-                                              =If((ThisItem.Status <> "draft" && CountRows(Filter(colFlIssues, RowGuid = ThisItem.RowGuid && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg))) > 0), C.'border-error', true, C.'border-ok', C.'border-default')
-                                          BorderStyle: |-
-                                              =BorderStyle.Solid
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Default: |-
-                                              =ThisItem.FL
-                                          DisplayMode: |-
-                                              =If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)
-                                          Fill: |-
-                                              =If(If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =36
-                                          LayoutMinWidth: |-
-                                              =160
-                                          MaxLength: |-
-                                              =40
-                                          OnChange: |-
-                                              =Patch(colFlRows, LookUp(colFlRows, RowGuid = ThisItem.RowGuid), { FL: Upper(Trim(Substitute(Substitute(Substitute(Self.Text, Char(160), " "), Char(13), ""), Char(10), ""))) });
-                                              Set(varFlStale, true);
-                                              Select(btnFlVerify)
-                                          Placeholder: |-
-                                              =""
-                                          RadiusBottomLeft: |-
-                                              =10
-                                          RadiusBottomRight: |-
-                                              =10
-                                          RadiusTopLeft: |-
-                                              =10
-                                          RadiusTopRight: |-
-                                              =10
-                                          Size: |-
-                                              =14
-                                          ValidationState: |-
-                                              =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
-                                          Width: |-
-                                              =160
-                                    - inpFlCDesc:
-                                        Control: ModernTextInput
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Description"
-                                          BorderColor: |-
-                                              =If((ThisItem.Status <> "draft" && CountRows(Filter(colFlIssues, RowGuid = ThisItem.RowGuid && Sev = "Error" && ("Description" exactin Msg))) > 0), C.'border-error', !IsBlank(ThisItem.Description), C.'border-ok', C.'border-default')
-                                          BorderStyle: |-
-                                              =BorderStyle.Solid
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Default: |-
-                                              =ThisItem.Description
-                                          DisplayMode: |-
-                                              =If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)
-                                          Fill: |-
-                                              =If(If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =36
-                                          LayoutMinWidth: |-
-                                              =140
-                                          MaxLength: |-
-                                              =40
-                                          OnChange: |-
-                                              =Patch(colFlRows, LookUp(colFlRows, RowGuid = ThisItem.RowGuid), { Description: Trim(Self.Text) });
-                                              Set(varFlStale, true);
-                                              Select(btnFlVerify)
-                                          Placeholder: |-
-                                              =""
-                                          RadiusBottomLeft: |-
-                                              =10
-                                          RadiusBottomRight: |-
-                                              =10
-                                          RadiusTopLeft: |-
-                                              =10
-                                          RadiusTopRight: |-
-                                              =10
-                                          Size: |-
-                                              =14
-                                          ValidationState: |-
-                                              =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
-                                          Width: |-
-                                              =140
-                                    - txtFlCStr:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.KksType
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          LayoutMinWidth: |-
-                                              =76
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              =ThisItem.KksType
-                                          Visible: |-
-                                              =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 620 + 160
-                                          Width: |-
-                                              =76
-                                          Wrap: |-
-                                              =false
-                                    - txtFlCCls:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.AssignedClass
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =20
-                                          LayoutMinWidth: |-
-                                              =96
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              =ThisItem.AssignedClass
-                                          Visible: |-
-                                              =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 620 + 160
-                                          Width: |-
-                                              =96
-                                          Wrap: |-
-                                              =false
-                                    - txtFlCInfo:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Coalesce(ThisItem.FirstIssue, ThisItem.FirstWarning, "")
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =Switch(ThisItem.Status, "invalid", C.'state-error-fg', "warning", C.'state-warn-fg', "valid", C.'state-ok-fg', C.'text-muted')
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              =Coalesce(ThisItem.FirstIssue, ThisItem.FirstWarning, "")
-                                          Width: |-
-                                              =Max(120, (((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 620 + 160, 620, 432))
-                                          Wrap: |-
-                                              =false
-                                    - btnFlCOpen:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Open"
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          Appearance: |-
-                                              =ButtonAppearance.Outline
-                                          BorderColor: |-
-                                              =C.'border-default'
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =30
-                                          Layout: |-
-                                              =ButtonLayout.TextOnly
-                                          LayoutMinWidth: |-
-                                              =72
-                                          OnSelect: |-
-                                              =Set(varFlDetailRow, ThisItem.RowGuid);
-                                              Set(varFlDetailClass, Coalesce(ThisItem.AssignedClass, "NO CLASS"));
-                                              Set(varFlShowEmpty, false)
-                                          RadiusBottomLeft: |-
-                                              =10
-                                          RadiusBottomRight: |-
-                                              =10
-                                          RadiusTopLeft: |-
-                                              =10
-                                          RadiusTopRight: |-
-                                              =10
-                                          Size: |-
-                                              =14
-                                          Text: |-
-                                              ="Open"
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =72
+                                        =28
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 0 + 0
+                                    Y: |-
+                                        =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
+                              - inpFlCFl:
+                                  Control: ModernTextInput
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Functional Location"
+                                    BorderColor: |-
+                                        =If((ThisItem.Status <> "draft" && CountRows(Filter(colFlIssues, RowGuid = ThisItem.RowGuid && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg))) > 0), C.'border-error', true, C.'border-ok', C.'border-default')
+                                    BorderStyle: |-
+                                        =BorderStyle.Solid
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Default: |-
+                                        =ThisItem.FL
+                                    DisplayMode: |-
+                                        =If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)
+                                    Fill: |-
+                                        =If(If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =36
+                                    MaxLength: |-
+                                        =40
+                                    OnChange: |-
+                                        =Patch(colFlRows, LookUp(colFlRows, RowGuid = ThisItem.RowGuid), { FL: Upper(Trim(Substitute(Substitute(Substitute(Self.Text, Char(160), " "), Char(13), ""), Char(10), ""))) });
+                                        Set(varFlStale, true);
+                                        Select(btnFlVerify)
+                                    Placeholder: |-
+                                        =""
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    ValidationState: |-
+                                        =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                                    Width: |-
+                                        =160
+                                    X: |-
+                                        =0 + 0 + 0 + (28) + 8
+                                    Y: |-
+                                        =0 + 0 + ((((44) - 2) - 0 - 0) - (36)) / 2
+                              - inpFlCDesc:
+                                  Control: ModernTextInput
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Description"
+                                    BorderColor: |-
+                                        =If((ThisItem.Status <> "draft" && CountRows(Filter(colFlIssues, RowGuid = ThisItem.RowGuid && Sev = "Error" && ("Description" exactin Msg))) > 0), C.'border-error', !IsBlank(ThisItem.Description), C.'border-ok', C.'border-default')
+                                    BorderStyle: |-
+                                        =BorderStyle.Solid
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Default: |-
+                                        =ThisItem.Description
+                                    DisplayMode: |-
+                                        =If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)
+                                    Fill: |-
+                                        =If(If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =36
+                                    MaxLength: |-
+                                        =40
+                                    OnChange: |-
+                                        =Patch(colFlRows, LookUp(colFlRows, RowGuid = ThisItem.RowGuid), { Description: Trim(Self.Text) });
+                                        Set(varFlStale, true);
+                                        Select(btnFlVerify)
+                                    Placeholder: |-
+                                        =""
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    ValidationState: |-
+                                        =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                                    Width: |-
+                                        =140
+                                    X: |-
+                                        =0 + 0 + 0 + (28) + 8 + (160) + 8
+                                    Y: |-
+                                        =0 + 0 + ((((44) - 2) - 0 - 0) - (36)) / 2
+                              - txtFlCStr:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =ThisItem.KksType
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =20
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        =ThisItem.KksType
+                                    Visible: |-
+                                        =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 620 + 160
+                                    Width: |-
+                                        =76
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 0 + 0 + (28) + 8 + (160) + 8 + (140) + 8
+                                    Y: |-
+                                        =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
+                              - txtFlCCls:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =ThisItem.AssignedClass
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =20
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        =ThisItem.AssignedClass
+                                    Visible: |-
+                                        =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 620 + 160
+                                    Width: |-
+                                        =96
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 0 + 0 + (28) + 8 + (160) + 8 + (140) + 8 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 620 + 160, (76) + 8, 0)
+                                    Y: |-
+                                        =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
+                              - txtFlCInfo:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =Coalesce(ThisItem.FirstIssue, ThisItem.FirstWarning, "")
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =Switch(ThisItem.Status, "invalid", C.'state-error-fg', "warning", C.'state-warn-fg', "valid", C.'state-ok-fg', C.'text-muted')
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =20
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        =Coalesce(ThisItem.FirstIssue, ThisItem.FirstWarning, "")
+                                    Width: |-
+                                        =Max(120, (((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 620 + 160, 620, 432))
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 0 + 0 + (28) + 8 + (160) + 8 + (140) + 8 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 620 + 160, (76) + 8, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 620 + 160, (96) + 8, 0)
+                                    Y: |-
+                                        =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
+                              - btnFlCOpen:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Open"
+                                    Align: |-
+                                        =Align.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =30
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    OnSelect: |-
+                                        =Set(varFlDetailRow, ThisItem.RowGuid);
+                                        Set(varFlDetailClass, Coalesce(ThisItem.AssignedClass, "NO CLASS"));
+                                        Set(varFlShowEmpty, false)
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="Open"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =72
+                                    X: |-
+                                        =0 + 0 + 0 + (28) + 8 + (160) + 8 + (140) + 8 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 620 + 160, (76) + 8, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 620 + 160, (96) + 8, 0) + (Max(120, (((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 620 + 160, 620, 432))) + 8
+                                    Y: |-
+                                        =0 + 0 + ((((44) - 2) - 0 - 0) - (30)) / 2
                         - txtFlNoClassRows:
                             Control: ModernText
                             Properties:
@@ -4263,305 +4047,263 @@ Screens:
                   WrapCount: |-
                       =1
                 Children:
-                  - conFlDetRow:
-                      Control: GroupContainer
-                      Variant: AutoLayout
+                  - txtFlDetCol:
+                      Control: ModernText
                       Properties:
+                        AccessibleLabel: |-
+                            =ThisItem.Column
                         BorderStyle: |-
                             =BorderStyle.None
-                        DropShadow: |-
-                            =DropShadow.None
-                        FillPortions: |-
+                        BorderThickness: |-
                             =0
+                        Color: |-
+                            =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
                         Height: |-
-                            =(44) - 2
-                        LayoutAlignItems: |-
-                            =LayoutAlignItems.Center
-                        LayoutDirection: |-
-                            =LayoutDirection.Horizontal
-                        LayoutGap: |-
-                            =8
-                        LayoutJustifyContent: |-
-                            =LayoutJustifyContent.Start
-                        LayoutMinWidth: |-
+                            =20
+                        PaddingBottom: |-
                             =0
-                        LayoutOverflowX: |-
-                            =LayoutOverflow.Hide
-                        LayoutOverflowY: |-
-                            =LayoutOverflow.Hide
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =13
+                        Text: |-
+                            =ThisItem.Column
                         Width: |-
-                            =(((Min(900, App.Width - 32)) - 18 - 18) - 2 * 2 - 18 - 40)
-                      Children:
-                        - txtFlDetCol:
-                            Control: ModernText
-                            Properties:
-                              AccessibleLabel: |-
-                                  =ThisItem.Column
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Color: |-
-                                  =C.'text-primary'
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              FontWeight: |-
-                                  =FontWeight.Semibold
-                              Height: |-
-                                  =20
-                              LayoutMinWidth: |-
-                                  =200
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
-                              Size: |-
-                                  =13
-                              Text: |-
-                                  =ThisItem.Column
-                              Width: |-
-                                  =200
-                              Wrap: |-
-                                  =false
-                        - conFlDetEd:
-                            Control: GroupContainer
-                            Variant: AutoLayout
-                            Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              FillPortions: |-
-                                  =0
-                              Height: |-
-                                  =0 + If(ThisItem.Editable && IsBlank(ThisItem.List), 0 + (36), 0) + If(ThisItem.Editable && !IsBlank(ThisItem.List), 0 + (36), 0) + If(!ThisItem.Editable, 0 + (36), 0)
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
-                              LayoutDirection: |-
-                                  =LayoutDirection.Vertical
-                              LayoutGap: |-
-                                  =0
-                              LayoutMinWidth: |-
-                                  =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              Width: |-
-                                  =(((Min(900, App.Width - 32)) - 36) - 4 - 18 - 40) - 200 - 220 - 2 * 8 - 2
-                            Children:
-                              - inpFlDetVal:
-                                  Control: ModernTextInput
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =ThisItem.Column
-                                    BorderColor: |-
-                                        =If(!IsBlank(ThisItem.Issue), C.'border-error', !IsBlank(ThisItem.Value), C.'border-ok', C.'border-default')
-                                    BorderStyle: |-
-                                        =BorderStyle.Solid
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =C.'text-primary'
-                                    Default: |-
-                                        =ThisItem.Value
-                                    DisplayMode: |-
-                                        =If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)
-                                    Fill: |-
-                                        =If(If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =36
-                                    LayoutMinWidth: |-
-                                        =0
-                                    MaxLength: |-
-                                        =If(ThisItem.MaxLen > 0, ThisItem.MaxLen, 4000)
-                                    OnChange: |-
-                                        =With(
-                                            { f: ThisItem.Field, nv: Trim(Self.Text) },
-                                            Switch(
-                                                f,
-                                                "FUNCTIONAL LOCATION",
-                                                Patch(colFlRows, LookUp(colFlRows, RowGuid = varFlDetailRow), { FL: Upper(Trim(Substitute(Substitute(Substitute(nv, Char(160), " "), Char(13), ""), Char(10), ""))) }),
-                                                "DESCRIPTION",
-                                                Patch(colFlRows, LookUp(colFlRows, RowGuid = varFlDetailRow), { Description: nv }),
-                                                RemoveIf(colFlVals, RowGuid = varFlDetailRow && Field = f);
-                                                If(!IsBlank(nv), Collect(colFlVals, { RowGuid: varFlDetailRow, Field: f, Value: nv }))
-                                            )
-                                        );
-                                        Set(varFlStale, true);
-                                        Select(btnFlVerify)
-                                    Placeholder: |-
-                                        =""
-                                    RadiusBottomLeft: |-
-                                        =10
-                                    RadiusBottomRight: |-
-                                        =10
-                                    RadiusTopLeft: |-
-                                        =10
-                                    RadiusTopRight: |-
-                                        =10
-                                    Size: |-
-                                        =14
-                                    ValidationState: |-
-                                        =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
-                                    Visible: |-
-                                        =ThisItem.Editable && IsBlank(ThisItem.List)
-                                    Width: |-
-                                        =Parent.Width
-                              - drpFlDetVal:
-                                  Control: ModernDropdown
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =ThisItem.Column
-                                    Appearance: |-
-                                        =Appearance.Outline
-                                    BorderColor: |-
-                                        =If(!IsBlank(ThisItem.Issue), C.'border-error', !IsBlank(ThisItem.Value), C.'border-ok', C.'border-default')
-                                    BorderStyle: |-
-                                        =BorderStyle.Solid
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =C.'text-primary'
-                                    Default: |-
-                                        =LookUp(Ungroup(
-                                            Table(
-                                                { G: Table({ Value: "" }) },
-                                                { G: Filter(Table({ Value: ThisItem.Value }), !IsBlank(Value) &&
-                                                            !(Upper(Value) in With({ lid: ThisItem.List }, Filter(nfFlLists, List = lid)).UValue)) },
-                                                { G: ForAll(Sort(With({ lid: ThisItem.List }, Filter(nfFlLists, List = lid)), Ord) As O, { Value: O.Value }) }
-                                            ),
-                                            G
-                                        ), Upper(Value) = Upper(ThisItem.Value))
-                                    DisplayMode: |-
-                                        =If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)
-                                    Fill: |-
-                                        =If(If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =36
-                                    ItemDisplayText: |-
-                                        =ThisItem.Value
-                                    Items: |-
-                                        =Ungroup(
-                                            Table(
-                                                { G: Table({ Value: "" }) },
-                                                { G: Filter(Table({ Value: ThisItem.Value }), !IsBlank(Value) &&
-                                                            !(Upper(Value) in With({ lid: ThisItem.List }, Filter(nfFlLists, List = lid)).UValue)) },
-                                                { G: ForAll(Sort(With({ lid: ThisItem.List }, Filter(nfFlLists, List = lid)), Ord) As O, { Value: O.Value }) }
-                                            ),
-                                            G
-                                        )
-                                    LayoutMinWidth: |-
-                                        =0
-                                    OnChange: |-
-                                        =With(
-                                            { f: ThisItem.Field, nv: Trim(Coalesce(Self.Selected.Value, "")) },
-                                            Switch(
-                                                f,
-                                                "FUNCTIONAL LOCATION",
-                                                Patch(colFlRows, LookUp(colFlRows, RowGuid = varFlDetailRow), { FL: Upper(Trim(Substitute(Substitute(Substitute(nv, Char(160), " "), Char(13), ""), Char(10), ""))) }),
-                                                "DESCRIPTION",
-                                                Patch(colFlRows, LookUp(colFlRows, RowGuid = varFlDetailRow), { Description: nv }),
-                                                RemoveIf(colFlVals, RowGuid = varFlDetailRow && Field = f);
-                                                If(!IsBlank(nv), Collect(colFlVals, { RowGuid: varFlDetailRow, Field: f, Value: nv }))
-                                            )
-                                        );
-                                        Set(varFlStale, true);
-                                        Select(btnFlVerify)
-                                    RadiusBottomLeft: |-
-                                        =10
-                                    RadiusBottomRight: |-
-                                        =10
-                                    RadiusTopLeft: |-
-                                        =10
-                                    RadiusTopRight: |-
-                                        =10
-                                    Size: |-
-                                        =14
-                                    ValidationState: |-
-                                        =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
-                                    Visible: |-
-                                        =ThisItem.Editable && !IsBlank(ThisItem.List)
-                                    Width: |-
-                                        =Parent.Width
-                              - txtFlDetRo:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =ThisItem.Value
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-primary'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =36
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =13
-                                    Text: |-
-                                        =ThisItem.Value
-                                    Visible: |-
-                                        =!ThisItem.Editable
-                                    Wrap: |-
-                                        =false
-                        - txtFlDetIssue:
-                            Control: ModernText
-                            Properties:
-                              AccessibleLabel: |-
-                                  =ThisItem.Issue
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Color: |-
-                                  =C.'state-error-fg'
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              Height: |-
-                                  =20
-                              LayoutMinWidth: |-
-                                  =220
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
-                              Size: |-
-                                  =12
-                              Text: |-
-                                  =ThisItem.Issue
-                              Width: |-
-                                  =220
-                              Wrap: |-
-                                  =false
+                            =200
+                        Wrap: |-
+                            =false
+                        X: |-
+                            =0 + 0 + 0
+                        Y: |-
+                            =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
+                  - inpFlDetVal:
+                      Control: ModernTextInput
+                      Properties:
+                        AccessibleLabel: |-
+                            =ThisItem.Column
+                        BorderColor: |-
+                            =If(!IsBlank(ThisItem.Issue), C.'border-error', !IsBlank(ThisItem.Value), C.'border-ok', C.'border-default')
+                        BorderStyle: |-
+                            =BorderStyle.Solid
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Default: |-
+                            =ThisItem.Value
+                        DisplayMode: |-
+                            =If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)
+                        Fill: |-
+                            =If(If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                        Font: |-
+                            =Font.'Segoe UI'
+                        Height: |-
+                            =36
+                        MaxLength: |-
+                            =If(ThisItem.MaxLen > 0, ThisItem.MaxLen, 4000)
+                        OnChange: |-
+                            =With(
+                                { f: ThisItem.Field, nv: Trim(Self.Text) },
+                                Switch(
+                                    f,
+                                    "FUNCTIONAL LOCATION",
+                                    Patch(colFlRows, LookUp(colFlRows, RowGuid = varFlDetailRow), { FL: Upper(Trim(Substitute(Substitute(Substitute(nv, Char(160), " "), Char(13), ""), Char(10), ""))) }),
+                                    "DESCRIPTION",
+                                    Patch(colFlRows, LookUp(colFlRows, RowGuid = varFlDetailRow), { Description: nv }),
+                                    RemoveIf(colFlVals, RowGuid = varFlDetailRow && Field = f);
+                                    If(!IsBlank(nv), Collect(colFlVals, { RowGuid: varFlDetailRow, Field: f, Value: nv }))
+                                )
+                            );
+                            Set(varFlStale, true);
+                            Select(btnFlVerify)
+                        Placeholder: |-
+                            =""
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =14
+                        ValidationState: |-
+                            =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                        Visible: |-
+                            =ThisItem.Editable && IsBlank(ThisItem.List)
+                        Width: |-
+                            =((((Min(900, App.Width - 32)) - 36) - 4 - 18 - 40) - 200 - 220 - 2 * 8 - 2) - 0 - 0
+                        X: |-
+                            =0 + 0 + 0 + (200) + 8 + 0
+                        Y: |-
+                            =0 + 0 + ((((44) - 2) - 0 - 0) - (0 + If(ThisItem.Editable && IsBlank(ThisItem.List), 0 + (36), 0) + If(ThisItem.Editable && !IsBlank(ThisItem.List), 0 + (36), 0) + If(!ThisItem.Editable, 0 + (36), 0))) / 2 + 0 + 0
+                  - drpFlDetVal:
+                      Control: ModernDropdown
+                      Properties:
+                        AccessibleLabel: |-
+                            =ThisItem.Column
+                        Appearance: |-
+                            =Appearance.Outline
+                        BorderColor: |-
+                            =If(!IsBlank(ThisItem.Issue), C.'border-error', !IsBlank(ThisItem.Value), C.'border-ok', C.'border-default')
+                        BorderStyle: |-
+                            =BorderStyle.Solid
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Default: |-
+                            =LookUp(Ungroup(
+                                Table(
+                                    { G: Table({ Value: "" }) },
+                                    { G: Filter(Table({ Value: ThisItem.Value }), !IsBlank(Value) &&
+                                                !(Upper(Value) in With({ lid: ThisItem.List }, Filter(nfFlLists, List = lid)).UValue)) },
+                                    { G: ForAll(Sort(With({ lid: ThisItem.List }, Filter(nfFlLists, List = lid)), Ord) As O, { Value: O.Value }) }
+                                ),
+                                G
+                            ), Upper(Value) = Upper(ThisItem.Value))
+                        DisplayMode: |-
+                            =If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)
+                        Fill: |-
+                            =If(If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                        Font: |-
+                            =Font.'Segoe UI'
+                        Height: |-
+                            =36
+                        ItemDisplayText: |-
+                            =ThisItem.Value
+                        Items: |-
+                            =Ungroup(
+                                Table(
+                                    { G: Table({ Value: "" }) },
+                                    { G: Filter(Table({ Value: ThisItem.Value }), !IsBlank(Value) &&
+                                                !(Upper(Value) in With({ lid: ThisItem.List }, Filter(nfFlLists, List = lid)).UValue)) },
+                                    { G: ForAll(Sort(With({ lid: ThisItem.List }, Filter(nfFlLists, List = lid)), Ord) As O, { Value: O.Value }) }
+                                ),
+                                G
+                            )
+                        OnChange: |-
+                            =With(
+                                { f: ThisItem.Field, nv: Trim(Coalesce(Self.Selected.Value, "")) },
+                                Switch(
+                                    f,
+                                    "FUNCTIONAL LOCATION",
+                                    Patch(colFlRows, LookUp(colFlRows, RowGuid = varFlDetailRow), { FL: Upper(Trim(Substitute(Substitute(Substitute(nv, Char(160), " "), Char(13), ""), Char(10), ""))) }),
+                                    "DESCRIPTION",
+                                    Patch(colFlRows, LookUp(colFlRows, RowGuid = varFlDetailRow), { Description: nv }),
+                                    RemoveIf(colFlVals, RowGuid = varFlDetailRow && Field = f);
+                                    If(!IsBlank(nv), Collect(colFlVals, { RowGuid: varFlDetailRow, Field: f, Value: nv }))
+                                )
+                            );
+                            Set(varFlStale, true);
+                            Select(btnFlVerify)
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =14
+                        ValidationState: |-
+                            =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
+                        Visible: |-
+                            =ThisItem.Editable && !IsBlank(ThisItem.List)
+                        Width: |-
+                            =((((Min(900, App.Width - 32)) - 36) - 4 - 18 - 40) - 200 - 220 - 2 * 8 - 2) - 0 - 0
+                        X: |-
+                            =0 + 0 + 0 + (200) + 8 + 0
+                        Y: |-
+                            =0 + 0 + ((((44) - 2) - 0 - 0) - (0 + If(ThisItem.Editable && IsBlank(ThisItem.List), 0 + (36), 0) + If(ThisItem.Editable && !IsBlank(ThisItem.List), 0 + (36), 0) + If(!ThisItem.Editable, 0 + (36), 0))) / 2 + 0 + 0 + If(ThisItem.Editable && IsBlank(ThisItem.List), (36) + 0, 0)
+                  - txtFlDetRo:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            =ThisItem.Value
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        Height: |-
+                            =36
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =13
+                        Text: |-
+                            =ThisItem.Value
+                        Visible: |-
+                            =!ThisItem.Editable
+                        Width: |-
+                            =((((Min(900, App.Width - 32)) - 36) - 4 - 18 - 40) - 200 - 220 - 2 * 8 - 2) - 0 - 0
+                        Wrap: |-
+                            =false
+                        X: |-
+                            =0 + 0 + 0 + (200) + 8 + 0
+                        Y: |-
+                            =0 + 0 + ((((44) - 2) - 0 - 0) - (0 + If(ThisItem.Editable && IsBlank(ThisItem.List), 0 + (36), 0) + If(ThisItem.Editable && !IsBlank(ThisItem.List), 0 + (36), 0) + If(!ThisItem.Editable, 0 + (36), 0))) / 2 + 0 + 0 + If(ThisItem.Editable && IsBlank(ThisItem.List), (36) + 0, 0) + If(ThisItem.Editable && !IsBlank(ThisItem.List), (36) + 0, 0)
+                  - txtFlDetIssue:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            =ThisItem.Issue
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'state-error-fg'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        Height: |-
+                            =20
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =12
+                        Text: |-
+                            =ThisItem.Issue
+                        Width: |-
+                            =220
+                        Wrap: |-
+                            =false
+                        X: |-
+                            =0 + 0 + 0 + (200) + 8 + ((((Min(900, App.Width - 32)) - 36) - 4 - 18 - 40) - 200 - 220 - 2 * 8 - 2) + 8
+                        Y: |-
+                            =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
             - txtFlDetNone:
                 Control: ModernText
                 Properties:

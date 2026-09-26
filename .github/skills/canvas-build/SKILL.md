@@ -142,6 +142,11 @@ alle tre er nu spærret af byggeriet. Hele forklaringen står i
    **budget for cellerne**, og det skal være en nedre grænse:
    `GALLERY_RESERVE` trækkes fra, når bredden stammer fra en
    `Parent.Width`-kæde. Regel 26 måler cellerne mod budgettet.
+9b. **Ingen containere i et galleri.** `gen_screen.flatten_galleries()`
+   folder dem ud til celler med X/Y, når skærmen skrives — Studio ejer
+   bredden på et galleris øverste container og gav den 320 px ved
+   `--clean`. Skriv rækken som en container i builderen som før; regel
+   26c stopper byggeriet, hvis en container når ud i YAML'en.
 10. **Equipment og Material: Details og Documents er popups** med hver sin
    række (`varDomDetailsId`, `varDomDocsId`). Rækken har fem knapper:
    Edit, Details, Docs, Copy, Delete.
