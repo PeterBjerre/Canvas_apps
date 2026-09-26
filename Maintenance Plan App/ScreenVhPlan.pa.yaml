@@ -4709,6 +4709,8 @@ Screens:
                                   Properties:
                                     AccessibleLabel: |-
                                         ="VH-plan items"
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Start
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     Fill: |-
@@ -4730,39 +4732,88 @@ Screens:
                                     TabIndex: |-
                                         =0
                                     TemplatePadding: |-
-                                        =6
+                                        =0
                                     TemplateSize: |-
-                                        =88
+                                        =94
                                     Width: |-
-                                        =Parent.Width
+                                        =(If(LayoutRank < 3, (App.Width - 64), 360)) - 36
                                     WrapCount: |-
                                         =1
                                   Children:
                                     - conVhpItemCard:
-                                        Control: Rectangle
+                                        Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
                                               =""
-                                          BorderColor: |-
-                                              =If(ThisItem.ItemId = varVhpActiveItemId, C.'state-info-fg', C.'border-default')
                                           BorderStyle: |-
-                                              =BorderStyle.Solid
+                                              =BorderStyle.None
                                           BorderThickness: |-
-                                              =1
+                                              =0
                                           Fill: |-
-                                              =If(ThisItem.ItemId = varVhpActiveItemId, C.'state-info-bg', C.'bg-card')
+                                              =If(ThisItem.ItemId = varVhpActiveItemId, C.'state-info-fg', C.'border-default')
                                           Height: |-
-                                              =(88) - 2
-                                          OnSelect: |-
-                                              =false
-                                          TabIndex: |-
-                                              =-1
+                                              =(94) - 6
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          RadiusBottomLeft: |-
+                                              =10
+                                          RadiusBottomRight: |-
+                                              =10
+                                          RadiusTopLeft: |-
+                                              =10
+                                          RadiusTopRight: |-
+                                              =10
+                                          Text: |-
+                                              =""
                                           Width: |-
-                                              =((If(LayoutRank < 3, (App.Width - 64), 360)) - 18 - 18) - 2 * 6 - 0 - 40
+                                              =((If(LayoutRank < 3, (App.Width - 64), 360)) - 36) - 2 * 0 - 0
                                           X: |-
                                               =0
                                           Y: |-
                                               =0
+                                    - conVhpItemCardFill:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =""
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Fill: |-
+                                              =If(ThisItem.ItemId = varVhpActiveItemId, C.'state-info-bg', C.'bg-card')
+                                          Height: |-
+                                              =((94) - 6) - 2 * 1
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          RadiusBottomLeft: |-
+                                              =Max(0, 10 - 1)
+                                          RadiusBottomRight: |-
+                                              =Max(0, 10 - 1)
+                                          RadiusTopLeft: |-
+                                              =Max(0, 10 - 1)
+                                          RadiusTopRight: |-
+                                              =Max(0, 10 - 1)
+                                          Text: |-
+                                              =""
+                                          Width: |-
+                                              =(((If(LayoutRank < 3, (App.Width - 64), 360)) - 36) - 2 * 0 - 0) - 2 * 1
+                                          X: |-
+                                              =0 + 1
+                                          Y: |-
+                                              =0 + 1
                                     - txtVhpItemCardTitle:
                                         Control: ModernText
                                         Properties:
@@ -4795,13 +4846,13 @@ Screens:
                                           Text: |-
                                               =If(IsBlank(ThisItem.ShortText), "Item " & Text(ThisItem.ItemId), ThisItem.ShortText)
                                           Width: |-
-                                              =(Max(0, ((((If(LayoutRank < 3, (App.Width - 64), 360)) - 18 - 18) - 2 * 6 - 0 - 40) - 12 - 12) - ((70) + 10) - 2)) - 0 - 0
+                                              =(Max(0, ((((If(LayoutRank < 3, (App.Width - 64), 360)) - 36) - 2 * 0 - 0) - 12 - 12) - ((70) + 10) - 2)) - 0 - 0
                                           Wrap: |-
                                               =false
                                           X: |-
                                               =0 + 12 + 0 + 0
                                           Y: |-
-                                              =0 + 10 + ((((88) - 2) - 10 - 10) - (61)) / 2 + 0 + 0
+                                              =0 + 10 + ((((94) - 6) - 10 - 10) - (61)) / 2 + 0 + 0
                                     - txtVhpItemCardFl:
                                         Control: ModernText
                                         Properties:
@@ -4832,13 +4883,13 @@ Screens:
                                           Text: |-
                                               ="FL: " & If(IsBlank(ThisItem.FunctionalLocation), "No FL", ThisItem.FunctionalLocation)
                                           Width: |-
-                                              =(Max(0, ((((If(LayoutRank < 3, (App.Width - 64), 360)) - 18 - 18) - 2 * 6 - 0 - 40) - 12 - 12) - ((70) + 10) - 2)) - 0 - 0
+                                              =(Max(0, ((((If(LayoutRank < 3, (App.Width - 64), 360)) - 36) - 2 * 0 - 0) - 12 - 12) - ((70) + 10) - 2)) - 0 - 0
                                           Wrap: |-
                                               =false
                                           X: |-
                                               =0 + 12 + 0 + 0
                                           Y: |-
-                                              =0 + 10 + ((((88) - 2) - 10 - 10) - (61)) / 2 + 0 + 0 + (21) + 2
+                                              =0 + 10 + ((((94) - 6) - 10 - 10) - (61)) / 2 + 0 + 0 + (21) + 2
                                     - txtVhpItemCardTasklist:
                                         Control: ModernText
                                         Properties:
@@ -4869,13 +4920,13 @@ Screens:
                                           Text: |-
                                               =If(IsBlank(ThisItem.TasklistName), "No tasklist", ThisItem.TasklistName) & " | Ops: " & Text(CountRows(Filter(colVhpOperations, ItemId = ThisItem.ItemId)))
                                           Width: |-
-                                              =(Max(0, ((((If(LayoutRank < 3, (App.Width - 64), 360)) - 18 - 18) - 2 * 6 - 0 - 40) - 12 - 12) - ((70) + 10) - 2)) - 0 - 0
+                                              =(Max(0, ((((If(LayoutRank < 3, (App.Width - 64), 360)) - 36) - 2 * 0 - 0) - 12 - 12) - ((70) + 10) - 2)) - 0 - 0
                                           Wrap: |-
                                               =false
                                           X: |-
                                               =0 + 12 + 0 + 0
                                           Y: |-
-                                              =0 + 10 + ((((88) - 2) - 10 - 10) - (61)) / 2 + 0 + 0 + (21) + 2 + (18) + 2
+                                              =0 + 10 + ((((94) - 6) - 10 - 10) - (61)) / 2 + 0 + 0 + (21) + 2 + (18) + 2
                                     - txtVhpItemCardStatus:
                                         Control: ModernText
                                         Properties:
@@ -4922,9 +4973,9 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 12 + 0 + (Max(0, ((((If(LayoutRank < 3, (App.Width - 64), 360)) - 18 - 18) - 2 * 6 - 0 - 40) - 12 - 12) - ((70) + 10) - 2)) + 10 + 0 + (((70) - 0 - 0) - (66)) / 2
+                                              =0 + 12 + 0 + (Max(0, ((((If(LayoutRank < 3, (App.Width - 64), 360)) - 36) - 2 * 0 - 0) - 12 - 12) - ((70) + 10) - 2)) + 10 + 0 + (((70) - 0 - 0) - (66)) / 2
                                           Y: |-
-                                              =0 + 10 + ((((88) - 2) - 10 - 10) - (58)) / 2 + 0 + 0
+                                              =0 + 10 + ((((94) - 6) - 10 - 10) - (58)) / 2 + 0 + 0
                                     - btnVhpItemOpen:
                                         Control: ModernButton
                                         Properties:
@@ -4983,9 +5034,9 @@ Screens:
                                           Width: |-
                                               =70
                                           X: |-
-                                              =0 + 12 + 0 + (Max(0, ((((If(LayoutRank < 3, (App.Width - 64), 360)) - 18 - 18) - 2 * 6 - 0 - 40) - 12 - 12) - ((70) + 10) - 2)) + 10 + 0 + (((70) - 0 - 0) - (70)) / 2
+                                              =0 + 12 + 0 + (Max(0, ((((If(LayoutRank < 3, (App.Width - 64), 360)) - 36) - 2 * 0 - 0) - 12 - 12) - ((70) + 10) - 2)) + 10 + 0 + (((70) - 0 - 0) - (70)) / 2
                                           Y: |-
-                                              =0 + 10 + ((((88) - 2) - 10 - 10) - (58)) / 2 + 0 + 0 + (22) + 6
+                                              =0 + 10 + ((((94) - 6) - 10 - 10) - (58)) / 2 + 0 + 0 + (22) + 6
                               - txtVhpItemsEmpty:
                                   Control: ModernText
                                   Properties:
