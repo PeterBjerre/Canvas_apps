@@ -360,11 +360,18 @@ def build_vhplan():
     to_plan = button("btnVhtToPlan", '"Plan and items"',
                      f"Navigate({s1}, ScreenTransition.None)", width=150, height=36,
                      accessible='"Back to the plan and its items"')
+    # ItemDisplayText maa kun vaere et felt: Studio afviser fx Coalesce dér
+    # (issue #51). Teksten regnes derfor i Items, og Default slaar op i den
+    # SAMME tabel, saa recorden har samme kolonner som listen.
+    choices = ("ForAll(\n"
+               "    Sort(colVhpItems, ItemId) As I,\n"
+               '    { ItemId: I.ItemId, Label: "Item " & I.ItemId & " - " &\n'
+               '        If(IsBlank(I.ShortText), "no short text", I.ShortText) }\n'
+               ")")
     pick = dropdown(
-        "drpVhtActiveItem", "Sort(colVhpItems, ItemId)",
-        "LookUp(colVhpItems, ItemId = varVhpActiveItemId)",
-        item_display=('"Item " & Text(ThisItem.ItemId) & " - " & '
-                      'Coalesce(ThisItem.ShortText, "no short text")'),
+        "drpVhtActiveItem", choices,
+        f"LookUp({choices}, ItemId = varVhpActiveItemId)",
+        item_display="ThisItem.Label",
         value_field="ItemId", label='"Active item"')
     pick.props["OnChange"] = (
         "If(\n"
