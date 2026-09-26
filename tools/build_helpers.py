@@ -287,7 +287,7 @@ def _theme_svg(dark, compact=False):
     return '"' + "".join(parts) + '"'
 
 
-def theme_button(name="imgThemeToggle", compact=None):
+def theme_button(name="imgThemeToggle", compact=False):
     """Skiftet mellem lyst og moerkt tema - ET billede, man trykker paa.
 
         ( LIGHT  (sol) )     lyst tema
@@ -319,18 +319,15 @@ def theme_button(name="imgThemeToggle", compact=None):
     Handlingen staar i tools/design_tokens.py - baade Set() og SaveData,
     saa valget ogsaa er der i morgen.
 
-    compact: Power Fx-udtryk. Er det sandt, er kontrollen kun knoppen
-    (THEME_TOGGLE_H i kvadrat) - den lukkede sidebar i tools/side_nav.py."""
+    compact: True = kun knoppen (THEME_TOGGLE_H i kvadrat) - den lukkede
+    sidebar i tools/side_nav.py. Bredden er et fast tal, ikke en formel."""
     img = (f'"data:image/svg+xml;utf8," & EncodeUrl(If({DARK_VAR},\n'
            f'    {_theme_svg(True)},\n    {_theme_svg(False)}\n))')
     width = str(THEME_TOGGLE_W)
-    if compact is not None:
-        img = (f'"data:image/svg+xml;utf8," & EncodeUrl(If(\n'
-               f'    {compact} && {DARK_VAR}, {_theme_svg(True, True)},\n'
-               f'    {compact}, {_theme_svg(False, True)},\n'
-               f'    {DARK_VAR}, {_theme_svg(True)},\n'
-               f'    {_theme_svg(False)}\n))')
-        width = f"If({compact}, {THEME_TOGGLE_H}, {THEME_TOGGLE_W})"
+    if compact:
+        img = (f'"data:image/svg+xml;utf8," & EncodeUrl(If({DARK_VAR},\n'
+               f'    {_theme_svg(True, True)},\n    {_theme_svg(False, True)}\n))')
+        width = str(THEME_TOGGLE_H)
     t = TRANSPARENT
     props = {
         "AccessibleLabel": (f'If({DARK_VAR}, "Dark theme is on - switch to light theme", '
@@ -387,25 +384,22 @@ def _help_svg(on, compact=False):
             + "</svg>" + '"')
 
 
-def help_toggle(name, on, action, compact=None):
+def help_toggle(name, on, action, compact=False):
     """Hjaelp til/fra - samme slags kontakt som temaknappen (theme_button).
 
     on:      Power Fx-udtryk, der er sandt, naar hjaelpen vises.
     action:  OnSelect, der vender den.
-    compact: Power Fx-udtryk; sandt = kun knoppen (den lukkede sidebar).
+    compact: True = kun knoppen (den lukkede sidebar).
 
     Et Image med en SVG af de grunde, theme_button beskriver: en moderne
     knap tegner Fluent-temaets form, ikke vores."""
     img = (f'"data:image/svg+xml;utf8," & EncodeUrl(If({on},\n'
            f'    {_help_svg(True)},\n    {_help_svg(False)}\n))')
     width = str(THEME_TOGGLE_W)
-    if compact is not None:
-        img = (f'"data:image/svg+xml;utf8," & EncodeUrl(If(\n'
-               f'    {compact} && {on}, {_help_svg(True, True)},\n'
-               f'    {compact}, {_help_svg(False, True)},\n'
-               f'    {on}, {_help_svg(True)},\n'
-               f'    {_help_svg(False)}\n))')
-        width = f"If({compact}, {THEME_TOGGLE_H}, {THEME_TOGGLE_W})"
+    if compact:
+        img = (f'"data:image/svg+xml;utf8," & EncodeUrl(If({on},\n'
+               f'    {_help_svg(True, True)},\n    {_help_svg(False, True)}\n))')
+        width = str(THEME_TOGGLE_H)
     t = TRANSPARENT
     props = {
         "AccessibleLabel": (f'If({on}, "Help is shown - hide help", '

@@ -3536,37 +3536,6 @@ Screens:
                                   ="Save draft puts the request on the landing page as Draft - it can still be edited. Submit freezes a JSON snapshot and locks the rows."
                               Wrap: |-
                                   =false
-      - imgFlNavScrim:
-          Control: Image
-          Properties:
-            AccessibleLabel: |-
-                ="Close menu"
-            BorderStyle: |-
-                =BorderStyle.None
-            BorderThickness: |-
-                =0
-            Fill: |-
-                =RGBA(0, 0, 0, 0)
-            Height: |-
-                =App.Height
-            HoverFill: |-
-                =RGBA(0, 0, 0, 0)
-            Image: |-
-                =""
-            OnSelect: |-
-                =Set(gblNavOpen, false)
-            PressedFill: |-
-                =RGBA(0, 0, 0, 0)
-            TabIndex: |-
-                =-1
-            Visible: |-
-                =gblNavOpen
-            Width: |-
-                =App.Width
-            X: |-
-                =0
-            Y: |-
-                =0
       - conFlNav:
           Control: GroupContainer
           Variant: AutoLayout
@@ -3576,7 +3545,7 @@ Screens:
             BorderThickness: |-
                 =1
             DropShadow: |-
-                =If(gblNavOpen, DropShadow.Bold, DropShadow.None)
+                =DropShadow.None
             Fill: |-
                 =C.'bg-surface'
             FillPortions: |-
@@ -3606,7 +3575,7 @@ Screens:
             PaddingTop: |-
                 =13
             Width: |-
-                =If(gblNavOpen, 232, 56) + 1
+                =57
             X: |-
                 =-1
             Y: |-
@@ -3637,7 +3606,7 @@ Screens:
                   LayoutOverflowY: |-
                       =LayoutOverflow.Hide
                   Width: |-
-                      =If(gblNavOpen, 232, 56)
+                      =56
                 Children:
                   - imgFlNavBrand:
                       Control: Image
@@ -3659,10 +3628,7 @@ Screens:
                         HoverFill: |-
                             =RGBA(0, 0, 0, 0)
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl(If(gblNavOpen,
-                                "<svg xmlns='http://www.w3.org/2000/svg' width='232' height='44' viewBox='0 0 232 44'><rect x='15' y='9' width='26' height='26' rx='7' fill='" & C.'hex-color-brand-primary' & "'/><text x='28' y='26' text-anchor='middle' font-family='Consolas, monospace' font-size='11' font-weight='700' fill='" & C.'hex-text-on-primary' & "'>BS</text><text x='56' y='28' font-family='Segoe UI, sans-serif' font-size='16' font-weight='600' fill='" & C.'hex-text-primary' & "'>BIO SAP</text></svg>",
-                                "<svg xmlns='http://www.w3.org/2000/svg' width='56' height='44' viewBox='0 0 56 44'><rect x='15' y='9' width='26' height='26' rx='7' fill='" & C.'hex-color-brand-primary' & "'/><text x='28' y='26' text-anchor='middle' font-family='Consolas, monospace' font-size='11' font-weight='700' fill='" & C.'hex-text-on-primary' & "'>BS</text></svg>"
-                            ))
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='44' viewBox='0 0 56 44'><rect x='15' y='9' width='26' height='26' rx='7' fill='" & C.'hex-color-brand-primary' & "'/><text x='28' y='26' text-anchor='middle' font-family='Consolas, monospace' font-size='11' font-weight='700' fill='" & C.'hex-text-on-primary' & "'>BS</text></svg>")
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
@@ -3672,12 +3638,12 @@ Screens:
                         TabIndex: |-
                             =0
                         Width: |-
-                            =If(gblNavOpen, 232, 56)
+                            =56
                   - imgFlNavToggle:
                       Control: Image
                       Properties:
                         AccessibleLabel: |-
-                            =If(gblNavOpen, "Collapse menu", "Expand menu")
+                            ="Expand menu"
                         BorderStyle: |-
                             =BorderStyle.None
                         BorderThickness: |-
@@ -3693,22 +3659,19 @@ Screens:
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl(If(gblNavOpen,
-                                "<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M18 6l-6 6 6 6 M12 6l-6 6 6 6'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Collapse</text></svg>",
-                                "<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l6 6-6 6 M12 6l6 6-6 6'/></g></svg>"
-                            ))
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l6 6-6 6 M12 6l6 6-6 6'/></g></svg>")
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
-                            =Set(gblNavOpen, !gblNavOpen)
+                            =Set(gblNavOpen, true)
                         PressedFill: |-
                             =C.'bg-muted'
                         TabIndex: |-
                             =0
                         Tooltip: |-
-                            =If(gblNavOpen, "", "Expand menu")
+                            ="Expand menu"
                         Width: |-
-                            =If(gblNavOpen, 232, 56)
+                            =56
                   - imgFlNavHub:
                       Control: Image
                       Properties:
@@ -3729,10 +3692,7 @@ Screens:
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl(If(gblNavOpen,
-                                "<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5 12 3l9 7.5M5.5 9.5V20h13V9.5'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Masterdata Hub</text></svg>",
-                                "<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5 12 3l9 7.5M5.5 9.5V20h13V9.5'/></g></svg>"
-                            ))
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5 12 3l9 7.5M5.5 9.5V20h13V9.5'/></g></svg>")
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
@@ -3742,9 +3702,9 @@ Screens:
                         TabIndex: |-
                             =0
                         Tooltip: |-
-                            =If(gblNavOpen, "", "Masterdata Hub")
+                            ="Masterdata Hub"
                         Width: |-
-                            =If(gblNavOpen, 232, 56)
+                            =56
                   - imgFlNavFunctionallocation:
                       Control: Image
                       Properties:
@@ -3765,10 +3725,7 @@ Screens:
                         HoverFill: |-
                             =RGBA(0, 0, 0, 0)
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl(If(gblNavOpen,
-                                "<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><rect x='8' y='0' width='216' height='40' rx='8' fill='" & C.'hex-state-info-bg' & "'/><rect x='0' y='10' width='3' height='20' rx='1.5' fill='" & C.'hex-color-brand-primary' & "'/><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z M12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-state-info-fg' & "'>Functional Location</text></svg>",
-                                "<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><rect x='8' y='0' width='40' height='40' rx='8' fill='" & C.'hex-state-info-bg' & "'/><rect x='0' y='10' width='3' height='20' rx='1.5' fill='" & C.'hex-color-brand-primary' & "'/><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z M12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z'/></g></svg>"
-                            ))
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><rect x='8' y='0' width='40' height='40' rx='8' fill='" & C.'hex-state-info-bg' & "'/><rect x='0' y='10' width='3' height='20' rx='1.5' fill='" & C.'hex-color-brand-primary' & "'/><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z M12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z'/></g></svg>")
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
@@ -3778,9 +3735,9 @@ Screens:
                         TabIndex: |-
                             =0
                         Tooltip: |-
-                            =If(gblNavOpen, "", "Functional Location")
+                            ="Functional Location"
                         Width: |-
-                            =If(gblNavOpen, 232, 56)
+                            =56
                   - imgFlNavVhplan:
                       Control: Image
                       Properties:
@@ -3801,10 +3758,7 @@ Screens:
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl(If(gblNavOpen,
-                                "<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M4 6.5h16M4 12h16M4 17.5h10 M17.5 16.5l1.6 1.6 3-3.2'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>VH-plan</text></svg>",
-                                "<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M4 6.5h16M4 12h16M4 17.5h10 M17.5 16.5l1.6 1.6 3-3.2'/></g></svg>"
-                            ))
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M4 6.5h16M4 12h16M4 17.5h10 M17.5 16.5l1.6 1.6 3-3.2'/></g></svg>")
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
@@ -3814,9 +3768,9 @@ Screens:
                         TabIndex: |-
                             =0
                         Tooltip: |-
-                            =If(gblNavOpen, "", "VH-plan")
+                            ="VH-plan"
                         Width: |-
-                            =If(gblNavOpen, 232, 56)
+                            =56
                   - imgFlNavMaterial:
                       Control: Image
                       Properties:
@@ -3837,10 +3791,7 @@ Screens:
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl(If(gblNavOpen,
-                                "<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 21 8v8l-9 5-9-5V8l9-5Z M3 8l9 5 9-5 M12 13v8'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Materials</text></svg>",
-                                "<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 21 8v8l-9 5-9-5V8l9-5Z M3 8l9 5 9-5 M12 13v8'/></g></svg>"
-                            ))
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 21 8v8l-9 5-9-5V8l9-5Z M3 8l9 5 9-5 M12 13v8'/></g></svg>")
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
@@ -3850,9 +3801,9 @@ Screens:
                         TabIndex: |-
                             =0
                         Tooltip: |-
-                            =If(gblNavOpen, "", "Materials")
+                            ="Materials"
                         Width: |-
-                            =If(gblNavOpen, 232, 56)
+                            =56
                   - imgFlNavEquipment:
                       Control: Image
                       Properties:
@@ -3873,10 +3824,7 @@ Screens:
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl(If(gblNavOpen,
-                                "<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M7 7h10v10H7z M4.5 10.5h2.5M4.5 13.5h2.5M17 10.5h2.5M17 13.5h2.5M10.5 4.5V7M13.5 4.5V7M10.5 17v2.5M13.5 17v2.5'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Equipments</text></svg>",
-                                "<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M7 7h10v10H7z M4.5 10.5h2.5M4.5 13.5h2.5M17 10.5h2.5M17 13.5h2.5M10.5 4.5V7M13.5 4.5V7M10.5 17v2.5M13.5 17v2.5'/></g></svg>"
-                            ))
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M7 7h10v10H7z M4.5 10.5h2.5M4.5 13.5h2.5M17 10.5h2.5M17 13.5h2.5M10.5 4.5V7M13.5 4.5V7M10.5 17v2.5M13.5 17v2.5'/></g></svg>")
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
@@ -3886,9 +3834,9 @@ Screens:
                         TabIndex: |-
                             =0
                         Tooltip: |-
-                            =If(gblNavOpen, "", "Equipments")
+                            ="Equipments"
                         Width: |-
-                            =If(gblNavOpen, 232, 56)
+                            =56
             - conFlNavFoot:
                 Control: GroupContainer
                 Variant: AutoLayout
@@ -3922,7 +3870,7 @@ Screens:
                   PaddingTop: |-
                       =0
                   Width: |-
-                      =If(gblNavOpen, 232, 56)
+                      =56
                 Children:
                   - conFlNavRule:
                       Control: GroupContainer
@@ -3951,7 +3899,7 @@ Screens:
                         LayoutOverflowY: |-
                             =LayoutOverflow.Hide
                         Width: |-
-                            =If(gblNavOpen, 212, 36)
+                            =36
                   - imgFlTheme:
                       Control: Image
                       Properties:
@@ -3972,11 +3920,9 @@ Screens:
                         HoverFill: |-
                             =RGBA(0, 0, 0, 0)
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl(If(
-                                !gblNavOpen && darkModeEnabled, "<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'><rect x='1' y='1' width='34' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='18' cy='18' r='14' fill='" & C.'hex-text-primary' & "'/><path d='M21 11 A7 7 0 1 0 25 21 A5.5 5.5 0 1 1 21 11 Z' fill='" & C.'hex-bg-app' & "'/></svg>",
-                                !gblNavOpen, "<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'><rect x='1' y='1' width='34' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='18' cy='18' r='14' fill='" & C.'hex-bg-surface' & "'/><circle cx='18' cy='18' r='4' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8'/><line x1='24.5' y1='18.0' x2='27.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='22.6' y1='22.6' x2='24.4' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='18.0' y1='24.5' x2='18.0' y2='27.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='13.4' y1='22.6' x2='11.6' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='11.5' y1='18.0' x2='9.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='13.4' y1='13.4' x2='11.6' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='18.0' y1='11.5' x2='18.0' y2='9.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='22.6' y1='13.4' x2='24.4' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/></svg>",
-                                darkModeEnabled, "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='36' viewBox='0 0 104 36'><rect x='1' y='1' width='102' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='18' cy='18' r='14' fill='" & C.'hex-text-primary' & "'/><path d='M21 11 A7 7 0 1 0 25 21 A5.5 5.5 0 1 1 21 11 Z' fill='" & C.'hex-bg-app' & "'/><text x='90' y='22' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='12' font-weight='700' letter-spacing='0.5' fill='" & C.'hex-text-primary' & "'>DARK</text></svg>",
-                                "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='36' viewBox='0 0 104 36'><rect x='1' y='1' width='102' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='86' cy='18' r='14' fill='" & C.'hex-bg-surface' & "'/><circle cx='86' cy='18' r='4' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8'/><line x1='92.5' y1='18.0' x2='95.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='90.6' y1='22.6' x2='92.4' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='86.0' y1='24.5' x2='86.0' y2='27.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='81.4' y1='22.6' x2='79.6' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='79.5' y1='18.0' x2='77.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='81.4' y1='13.4' x2='79.6' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='86.0' y1='11.5' x2='86.0' y2='9.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='90.6' y1='13.4' x2='92.4' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><text x='14' y='22' text-anchor='start' font-family='Segoe UI, sans-serif' font-size='12' font-weight='700' letter-spacing='0.5' fill='" & C.'hex-text-primary' & "'>LIGHT</text></svg>"
+                            ="data:image/svg+xml;utf8," & EncodeUrl(If(darkModeEnabled,
+                                "<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'><rect x='1' y='1' width='34' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='18' cy='18' r='14' fill='" & C.'hex-text-primary' & "'/><path d='M21 11 A7 7 0 1 0 25 21 A5.5 5.5 0 1 1 21 11 Z' fill='" & C.'hex-bg-app' & "'/></svg>",
+                                "<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'><rect x='1' y='1' width='34' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='18' cy='18' r='14' fill='" & C.'hex-bg-surface' & "'/><circle cx='18' cy='18' r='4' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8'/><line x1='24.5' y1='18.0' x2='27.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='22.6' y1='22.6' x2='24.4' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='18.0' y1='24.5' x2='18.0' y2='27.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='13.4' y1='22.6' x2='11.6' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='11.5' y1='18.0' x2='9.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='13.4' y1='13.4' x2='11.6' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='18.0' y1='11.5' x2='18.0' y2='9.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='22.6' y1='13.4' x2='24.4' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/></svg>"
                             ))
                         ImagePosition: |-
                             =ImagePosition.Fit
@@ -3989,7 +3935,7 @@ Screens:
                         TabIndex: |-
                             =0
                         Width: |-
-                            =If(!gblNavOpen, 36, 104)
+                            =36
       - conFlBackdrop:
           Control: GroupContainer
           Variant: AutoLayout
@@ -4972,3 +4918,424 @@ Screens:
                       ="Select all and copy - the app cannot save a file."
                   Wrap: |-
                       =false
+      - imgFlNavScrim:
+          Control: Image
+          Properties:
+            AccessibleLabel: |-
+                ="Close menu"
+            BorderStyle: |-
+                =BorderStyle.None
+            BorderThickness: |-
+                =0
+            Fill: |-
+                =RGBA(0, 0, 0, 0)
+            Height: |-
+                =App.Height
+            HoverFill: |-
+                =RGBA(0, 0, 0, 0)
+            Image: |-
+                =""
+            OnSelect: |-
+                =Set(gblNavOpen, false)
+            PressedFill: |-
+                =RGBA(0, 0, 0, 0)
+            TabIndex: |-
+                =-1
+            Visible: |-
+                =gblNavOpen
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - conFlNavOpen:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'border-subtle'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.Bold
+            Fill: |-
+                =C.'bg-surface'
+            FillPortions: |-
+                =0
+            Height: |-
+                =App.Height + 2
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Start
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =12
+            LayoutJustifyContent: |-
+                =LayoutJustifyContent.SpaceBetween
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =15
+            PaddingLeft: |-
+                =0
+            PaddingRight: |-
+                =0
+            PaddingTop: |-
+                =13
+            Visible: |-
+                =gblNavOpen
+            Width: |-
+                =233
+            X: |-
+                =-1
+            Y: |-
+                =-1
+          Children:
+            - conFlNavTopOpen:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =296
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Start
+                  LayoutDirection: |-
+                      =LayoutDirection.Vertical
+                  LayoutGap: |-
+                      =2
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =232
+                Children:
+                  - imgFlNavBrandOpen:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="BIO SAP - Masterdata Hub"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =44
+                        HoverFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='44' viewBox='0 0 232 44'><rect x='15' y='9' width='26' height='26' rx='7' fill='" & C.'hex-color-brand-primary' & "'/><text x='28' y='26' text-anchor='middle' font-family='Consolas, monospace' font-size='11' font-weight='700' fill='" & C.'hex-text-on-primary' & "'>BS</text><text x='56' y='28' font-family='Segoe UI, sans-serif' font-size='16' font-weight='600' fill='" & C.'hex-text-primary' & "'>BIO SAP</text></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false); Launch("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/f387047d-86af-4d6a-8370-afcf35939436" & "?theme=" & If(darkModeEnabled, "dark", "light"), { }, LaunchTarget.Replace)
+                        PressedFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =232
+                  - imgFlNavToggleOpen:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Collapse menu"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =40
+                        HoverFill: |-
+                            =C.'bg-muted'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M18 6l-6 6 6 6 M12 6l-6 6 6 6'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Collapse</text></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false)
+                        PressedFill: |-
+                            =C.'bg-muted'
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =232
+                  - imgFlNavHubOpen:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Masterdata Hub"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =40
+                        HoverFill: |-
+                            =C.'bg-muted'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5 12 3l9 7.5M5.5 9.5V20h13V9.5'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Masterdata Hub</text></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false); Launch("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/f387047d-86af-4d6a-8370-afcf35939436" & "?theme=" & If(darkModeEnabled, "dark", "light"), { }, LaunchTarget.Replace)
+                        PressedFill: |-
+                            =C.'bg-muted'
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =232
+                  - imgFlNavFunctionallocationOpen:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Functional Location (current app)"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =40
+                        HoverFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><rect x='8' y='0' width='216' height='40' rx='8' fill='" & C.'hex-state-info-bg' & "'/><rect x='0' y='10' width='3' height='20' rx='1.5' fill='" & C.'hex-color-brand-primary' & "'/><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z M12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-state-info-fg' & "'>Functional Location</text></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false)
+                        PressedFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =232
+                  - imgFlNavVhplanOpen:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="VH-plan"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =40
+                        HoverFill: |-
+                            =C.'bg-muted'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M4 6.5h16M4 12h16M4 17.5h10 M17.5 16.5l1.6 1.6 3-3.2'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>VH-plan</text></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false); Launch("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/11fa8d90-868a-45a4-ba23-28f2cf0671a2" & "?theme=" & If(darkModeEnabled, "dark", "light"), { }, LaunchTarget.Replace)
+                        PressedFill: |-
+                            =C.'bg-muted'
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =232
+                  - imgFlNavMaterialOpen:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Materials"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =40
+                        HoverFill: |-
+                            =C.'bg-muted'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 21 8v8l-9 5-9-5V8l9-5Z M3 8l9 5 9-5 M12 13v8'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Materials</text></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false); Launch("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/d7762919-c716-4bd0-9abd-24bab436221f" & "?theme=" & If(darkModeEnabled, "dark", "light"), { }, LaunchTarget.Replace)
+                        PressedFill: |-
+                            =C.'bg-muted'
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =232
+                  - imgFlNavEquipmentOpen:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Equipments"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =40
+                        HoverFill: |-
+                            =C.'bg-muted'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M7 7h10v10H7z M4.5 10.5h2.5M4.5 13.5h2.5M17 10.5h2.5M17 13.5h2.5M10.5 4.5V7M13.5 4.5V7M10.5 17v2.5M13.5 17v2.5'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Equipments</text></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false); Launch("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/24bf3bbc-601f-480d-a8fe-7cd3180906d1" & "?theme=" & If(darkModeEnabled, "dark", "light"), { }, LaunchTarget.Replace)
+                        PressedFill: |-
+                            =C.'bg-muted'
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =232
+            - conFlNavFootOpen:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =47
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Start
+                  LayoutDirection: |-
+                      =LayoutDirection.Vertical
+                  LayoutGap: |-
+                      =10
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =10
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Width: |-
+                      =232
+                Children:
+                  - conFlNavRuleOpen:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        Fill: |-
+                            =C.'border-subtle'
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =1
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Stretch
+                        LayoutDirection: |-
+                            =LayoutDirection.Horizontal
+                        LayoutGap: |-
+                            =8
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        Width: |-
+                            =212
+                  - imgFlThemeOpen:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            =If(darkModeEnabled, "Dark theme is on - switch to light theme", "Light theme is on - switch to dark theme")
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =36
+                        HoverFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl(If(darkModeEnabled,
+                                "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='36' viewBox='0 0 104 36'><rect x='1' y='1' width='102' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='18' cy='18' r='14' fill='" & C.'hex-text-primary' & "'/><path d='M21 11 A7 7 0 1 0 25 21 A5.5 5.5 0 1 1 21 11 Z' fill='" & C.'hex-bg-app' & "'/><text x='90' y='22' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='12' font-weight='700' letter-spacing='0.5' fill='" & C.'hex-text-primary' & "'>DARK</text></svg>",
+                                "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='36' viewBox='0 0 104 36'><rect x='1' y='1' width='102' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='86' cy='18' r='14' fill='" & C.'hex-bg-surface' & "'/><circle cx='86' cy='18' r='4' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8'/><line x1='92.5' y1='18.0' x2='95.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='90.6' y1='22.6' x2='92.4' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='86.0' y1='24.5' x2='86.0' y2='27.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='81.4' y1='22.6' x2='79.6' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='79.5' y1='18.0' x2='77.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='81.4' y1='13.4' x2='79.6' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='86.0' y1='11.5' x2='86.0' y2='9.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='90.6' y1='13.4' x2='92.4' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><text x='14' y='22' text-anchor='start' font-family='Segoe UI, sans-serif' font-size='12' font-weight='700' letter-spacing='0.5' fill='" & C.'hex-text-primary' & "'>LIGHT</text></svg>"
+                            ))
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(darkModeEnabled, !darkModeEnabled);
+                            ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
+                            IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                        PressedFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =104

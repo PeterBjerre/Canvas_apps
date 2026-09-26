@@ -21,7 +21,9 @@ def build_screen():
     # RAMMEN: bjaelken i en header, der ikke scroller, og resten i en
     # krop, der goer. Se build_helpers.app_frame.
     root = app_frame("Md", build_bar(), [build_tiles(), build_filters(), build_list()])
-    return render_screen("ScreenMdHub", {"Fill": C_APP_BG}, [root, *side_nav("Md", "hub")])
+    # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
+    rail, overlay = side_nav("Md", "hub")
+    return render_screen("ScreenMdHub", {"Fill": C_APP_BG}, [root, rail, *overlay])
 
 
 def main():

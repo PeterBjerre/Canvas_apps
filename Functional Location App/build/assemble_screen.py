@@ -47,9 +47,11 @@ def build_screen():
     root = app_frame("Fl", P.build_bar(),
                      [P.build_rows(), P.build_classes(), P.build_structure(),
                       P.build_submit()])
+    # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
+    rail, overlay = side_nav("Fl", "functionallocation")
     return render_screen(cfg.SCREEN, {"Fill": C_APP_BG, "OnVisible": on_visible()},
-                         [root, *side_nav("Fl", "functionallocation"),
-                          P.build_backdrop(), P.build_detail(), P.build_export()])
+                         [root, rail, P.build_backdrop(), P.build_detail(), P.build_export(),
+                          *overlay])
 
 
 def main():
