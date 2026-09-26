@@ -382,40 +382,33 @@ Screens:
                                   =78
                             Children:
                               - conDomThemeLight:
-                                  Control: ModernButton
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =If(!darkModeEnabled, "Light theme (selected)", "Switch to light theme")
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    Appearance: |-
-                                        =If(!darkModeEnabled, ButtonAppearance.Primary, ButtonAppearance.Outline)
-                                    BasePaletteColor: |-
-                                        =C.'bg-card'
                                     BorderColor: |-
-                                        =RGBA(0, 0, 0, 0)
+                                        =If(!darkModeEnabled, C.'border-default', RGBA(0, 0, 0, 0))
                                     BorderThickness: |-
+                                        =1
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    Fill: |-
+                                        =If(!darkModeEnabled, C.'bg-card', RGBA(0, 0, 0, 0))
+                                    FillPortions: |-
                                         =0
-                                    Color: |-
-                                        =If(!darkModeEnabled, C.'state-warn-fg', C.'text-muted')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
                                     Height: |-
                                         =32
-                                    Layout: |-
-                                        =ButtonLayout.TextOnly
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Center
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Horizontal
+                                    LayoutGap: |-
+                                        =0
                                     LayoutMinWidth: |-
                                         =36
-                                    OnSelect: |-
-                                        =If(darkModeEnabled,
-                                        Set(darkModeEnabled, !darkModeEnabled);
-                                        ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
-                                        IfError(SaveData(colAppPrefs, "prefs"), Blank())
-                                        )
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     RadiusBottomLeft: |-
                                         =16
                                     RadiusBottomRight: |-
@@ -424,49 +417,86 @@ Screens:
                                         =16
                                     RadiusTopRight: |-
                                         =16
-                                    Size: |-
-                                        =16
-                                    Text: |-
-                                        =UniChar(9728)
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
                                     Width: |-
                                         =36
+                                  Children:
+                                    - conDomThemeLightBtn:
+                                        Control: ModernButton
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =If(!darkModeEnabled, "Light theme (selected)", "Switch to light theme")
+                                          Align: |-
+                                              =Align.Center
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          Appearance: |-
+                                              =ButtonAppearance.Outline
+                                          BorderColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =If(!darkModeEnabled, C.'state-warn-fg', C.'text-muted')
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Normal
+                                          Height: |-
+                                              =32
+                                          Layout: |-
+                                              =ButtonLayout.TextOnly
+                                          LayoutMinWidth: |-
+                                              =36
+                                          OnSelect: |-
+                                              =If(darkModeEnabled,
+                                              Set(darkModeEnabled, !darkModeEnabled);
+                                              ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
+                                              IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                                              )
+                                          RadiusBottomLeft: |-
+                                              =16
+                                          RadiusBottomRight: |-
+                                              =16
+                                          RadiusTopLeft: |-
+                                              =16
+                                          RadiusTopRight: |-
+                                              =16
+                                          Size: |-
+                                              =18
+                                          Text: |-
+                                              =UniChar(9788)
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Width: |-
+                                              =36
                               - conDomThemeDark:
-                                  Control: ModernButton
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =If(darkModeEnabled, "Dark theme (selected)", "Switch to dark theme")
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    Appearance: |-
-                                        =If(darkModeEnabled, ButtonAppearance.Primary, ButtonAppearance.Outline)
-                                    BasePaletteColor: |-
-                                        =C.'bg-card'
                                     BorderColor: |-
-                                        =RGBA(0, 0, 0, 0)
+                                        =If(darkModeEnabled, C.'border-default', RGBA(0, 0, 0, 0))
                                     BorderThickness: |-
+                                        =1
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    Fill: |-
+                                        =If(darkModeEnabled, C.'bg-card', RGBA(0, 0, 0, 0))
+                                    FillPortions: |-
                                         =0
-                                    Color: |-
-                                        =If(darkModeEnabled, C.'color-brand-primary', C.'text-muted')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
                                     Height: |-
                                         =32
-                                    Layout: |-
-                                        =ButtonLayout.TextOnly
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Center
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Horizontal
+                                    LayoutGap: |-
+                                        =0
                                     LayoutMinWidth: |-
                                         =36
-                                    OnSelect: |-
-                                        =If(!darkModeEnabled,
-                                        Set(darkModeEnabled, !darkModeEnabled);
-                                        ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
-                                        IfError(SaveData(colAppPrefs, "prefs"), Blank())
-                                        )
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     RadiusBottomLeft: |-
                                         =16
                                     RadiusBottomRight: |-
@@ -475,14 +505,58 @@ Screens:
                                         =16
                                     RadiusTopRight: |-
                                         =16
-                                    Size: |-
-                                        =16
-                                    Text: |-
-                                        =UniChar(9790)
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
                                     Width: |-
                                         =36
+                                  Children:
+                                    - conDomThemeDarkBtn:
+                                        Control: ModernButton
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =If(darkModeEnabled, "Dark theme (selected)", "Switch to dark theme")
+                                          Align: |-
+                                              =Align.Center
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          Appearance: |-
+                                              =ButtonAppearance.Outline
+                                          BorderColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =If(darkModeEnabled, C.'color-brand-primary', C.'text-muted')
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Normal
+                                          Height: |-
+                                              =32
+                                          Layout: |-
+                                              =ButtonLayout.TextOnly
+                                          LayoutMinWidth: |-
+                                              =36
+                                          OnSelect: |-
+                                              =If(!darkModeEnabled,
+                                              Set(darkModeEnabled, !darkModeEnabled);
+                                              ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
+                                              IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                                              )
+                                          RadiusBottomLeft: |-
+                                              =16
+                                          RadiusBottomRight: |-
+                                              =16
+                                          RadiusTopLeft: |-
+                                              =16
+                                          RadiusTopRight: |-
+                                              =16
+                                          Size: |-
+                                              =18
+                                          Text: |-
+                                              =UniChar(9790)
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Width: |-
+                                              =36
                         - btnDomBack:
                             Control: ModernButton
                             Properties:
@@ -4405,656 +4479,620 @@ Screens:
                               WrapCount: |-
                                   =1
                             Children:
-                              - conDomRow:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
+                              - txtDomRowText:
+                                  Control: ModernText
                                   Properties:
+                                    AccessibleLabel: |-
+                                        =If(IsBlank(Trim(ThisItem.Description)), "(no text)", ThisItem.Description)
                                     BorderStyle: |-
                                         =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    FillPortions: |-
+                                    BorderThickness: |-
                                         =0
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
                                     Height: |-
-                                        =(44) - 2
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Center
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =10
-                                    LayoutJustifyContent: |-
-                                        =LayoutJustifyContent.Start
-                                    LayoutMinWidth: |-
+                                        =21
+                                    PaddingBottom: |-
                                         =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        =If(IsBlank(Trim(ThisItem.Description)), "(no text)", ThisItem.Description)
                                     Width: |-
-                                        =(((((App.Width)) - 24 - 16 - 18) - 18 - 18) - 2 * 2 - 18 - 40)
-                                  Children:
-                                    - txtDomRowText:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =If(IsBlank(Trim(ThisItem.Description)), "(no text)", ThisItem.Description)
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =21
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =14
-                                          Text: |-
-                                              =If(IsBlank(Trim(ThisItem.Description)), "(no text)", ThisItem.Description)
-                                          Width: |-
-                                              =Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)
-                                          Wrap: |-
-                                              =false
-                                    - txtDomRow0:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.EquipmentNumber
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          LayoutMinWidth: |-
-                                              =110
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              =ThisItem.EquipmentNumber
-                                          Visible: |-
-                                              =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150
-                                          Width: |-
-                                              =110
-                                          Wrap: |-
-                                              =false
-                                    - txtDomRow1:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.FunctionalLocation
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          LayoutMinWidth: |-
-                                              =140
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              =ThisItem.FunctionalLocation
-                                          Visible: |-
-                                              =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150
-                                          Width: |-
-                                              =140
-                                          Wrap: |-
-                                              =false
-                                    - txtDomRow2:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.Plant
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          LayoutMinWidth: |-
-                                              =55
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              =ThisItem.Plant
-                                          Visible: |-
-                                              =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150
-                                          Width: |-
-                                              =55
-                                          Wrap: |-
-                                              =false
-                                    - txtDomRowStatus:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.Status
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =C.'state-neutral-bg'
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =22
-                                          LayoutMinWidth: |-
-                                              =75
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =10
-                                          PaddingTop: |-
-                                              =0
-                                          RadiusBottomLeft: |-
-                                              =12
-                                          RadiusBottomRight: |-
-                                              =12
-                                          RadiusTopLeft: |-
-                                              =12
-                                          RadiusTopRight: |-
-                                              =12
-                                          Size: |-
-                                              =11
-                                          Text: |-
-                                              =ThisItem.Status
-                                          Width: |-
-                                              =75
-                                          Wrap: |-
-                                              =false
-                                    - txtDomRowFiles:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Text(ThisItem.FileCount)
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          LayoutMinWidth: |-
-                                              =40
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              =Text(ThisItem.FileCount)
-                                          Visible: |-
-                                              =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150
-                                          Width: |-
-                                              =40
-                                          Wrap: |-
-                                              =false
-                                    - conDomRowActions:
-                                        Control: GroupContainer
-                                        Variant: AutoLayout
-                                        Properties:
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          DropShadow: |-
-                                              =DropShadow.None
-                                          FillPortions: |-
-                                              =0
-                                          Height: |-
-                                              =30
-                                          LayoutAlignItems: |-
-                                              =LayoutAlignItems.Center
-                                          LayoutDirection: |-
-                                              =LayoutDirection.Horizontal
-                                          LayoutGap: |-
-                                              =4
-                                          LayoutMinWidth: |-
-                                              =0
-                                          LayoutOverflowX: |-
-                                              =LayoutOverflow.Hide
-                                          LayoutOverflowY: |-
-                                              =LayoutOverflow.Hide
-                                          Width: |-
-                                              =If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 348, 212)
-                                        Children:
-                                          - btnDomRowOpen:
-                                              Control: ModernButton
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    ="Edit"
-                                                Align: |-
-                                                    =Align.Center
-                                                AlignInContainer: |-
-                                                    =AlignInContainer.Center
-                                                Appearance: |-
-                                                    =ButtonAppearance.Outline
-                                                BorderColor: |-
-                                                    =C.'border-default'
-                                                BorderThickness: |-
-                                                    =1
-                                                Color: |-
-                                                    =C.'text-primary'
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                FontWeight: |-
-                                                    =FontWeight.Semibold
-                                                Height: |-
-                                                    =30
-                                                Layout: |-
-                                                    =ButtonLayout.TextOnly
-                                                OnSelect: |-
-                                                    =Set(varDomActiveRowId, ThisItem.RowId);
-                                                    Set(varDomRowStatus, ThisItem.Status);
-                                                    Set(varDomValidated, false);
-                                                    Set(varDomFText, ThisItem.Description);
-                                                    Set(varDomFPlant, ThisItem.Plant);
-                                                    Set(varDomFRequestType, ThisItem.RequestType);
-                                                    Set(varDomFEquipmentNumber, ThisItem.EquipmentNumber);
-                                                    Set(varDomFEquipmentCategory, ThisItem.EquipmentCategory);
-                                                    Set(varDomFManufacturer, ThisItem.Manufacturer);
-                                                    Set(varDomFTypeDesignation, ThisItem.TypeDesignation);
-                                                    Set(varDomFSerialNumber, ThisItem.SerialNumber);
-                                                    Set(varDomFFunctionalLocation, ThisItem.FunctionalLocation);
-                                                    Set(varDomFFunctionalLocation1, ThisItem.FunctionalLocation1);
-                                                    Set(varDomFFunctionalLocation2, ThisItem.FunctionalLocation2);
-                                                    Set(varDomFClassData, ThisItem.ClassData);
-                                                    Set(varDomFRoomCoordinates, ThisItem.RoomCoordinates);
-                                                    Set(varDomFPlacement, ThisItem.Placement);
-                                                    Set(varDomFWarrantyStart, ThisItem.WarrantyStart);
-                                                    Set(varDomFWarrantyEnd, ThisItem.WarrantyEnd);
-                                                    If(
-                                                        !IsBlank(ThisItem.FunctionalLocation) && IsBlank(LookUp(colDomFl, Code = ThisItem.FunctionalLocation)),
-                                                        Collect(colDomFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation, Maintainable: true, Level: "" })
-                                                    )
-                                                RadiusBottomLeft: |-
-                                                    =10
-                                                RadiusBottomRight: |-
-                                                    =10
-                                                RadiusTopLeft: |-
-                                                    =10
-                                                RadiusTopRight: |-
-                                                    =10
-                                                Size: |-
-                                                    =13
-                                                Text: |-
-                                                    ="Edit"
-                                                VerticalAlign: |-
-                                                    =VerticalAlign.Middle
-                                                Width: |-
-                                                    =60
-                                          - btnDomRowDetails:
-                                              Control: ModernButton
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    ="Details"
-                                                Align: |-
-                                                    =Align.Center
-                                                AlignInContainer: |-
-                                                    =AlignInContainer.Center
-                                                Appearance: |-
-                                                    =ButtonAppearance.Outline
-                                                BorderColor: |-
-                                                    =C.'border-default'
-                                                BorderThickness: |-
-                                                    =1
-                                                Color: |-
-                                                    =C.'text-primary'
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                FontWeight: |-
-                                                    =FontWeight.Semibold
-                                                Height: |-
-                                                    =30
-                                                Layout: |-
-                                                    =ButtonLayout.TextOnly
-                                                OnSelect: |-
-                                                    =Set(varDomDetailsId, ThisItem.RowId)
-                                                RadiusBottomLeft: |-
-                                                    =10
-                                                RadiusBottomRight: |-
-                                                    =10
-                                                RadiusTopLeft: |-
-                                                    =10
-                                                RadiusTopRight: |-
-                                                    =10
-                                                Size: |-
-                                                    =13
-                                                Text: |-
-                                                    ="Details"
-                                                VerticalAlign: |-
-                                                    =VerticalAlign.Middle
-                                                Width: |-
-                                                    =72
-                                          - btnDomRowDocs:
-                                              Control: ModernButton
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    ="Docs"
-                                                Align: |-
-                                                    =Align.Center
-                                                AlignInContainer: |-
-                                                    =AlignInContainer.Center
-                                                Appearance: |-
-                                                    =ButtonAppearance.Outline
-                                                BorderColor: |-
-                                                    =C.'border-default'
-                                                BorderThickness: |-
-                                                    =1
-                                                Color: |-
-                                                    =C.'text-primary'
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                FontWeight: |-
-                                                    =FontWeight.Semibold
-                                                Height: |-
-                                                    =30
-                                                Layout: |-
-                                                    =ButtonLayout.TextOnly
-                                                OnSelect: |-
-                                                    =Set(varDomDocsId, ThisItem.RowId);
-                                                    If(
-                                                        ThisItem.FileCount > 0 &&
-                                                        CountRows(Filter(colDomAttachments, RowId = ThisItem.RowId)) = 0,
-                                                        Set(
-                                                            varDomAttJson,
-                                                            'BioSap-GetSubmittedAttachments'.Run("TaskListDocuments/" & LookUp(colDomRows, RowId = varDomDocsId).ItemKey).files
-                                                        );
-                                                        RemoveIf(colDomAttachments, RowId = varDomDocsId);
-                                                        Collect(
-                                                            colDomAttachments,
-                                                            ForAll(
-                                                                ParseJSON(Coalesce(varDomAttJson, "[]")) As J,
-                                                                {
-                                                                    RowId: varDomDocsId,
-                                                                    FileName: Text(J.Name),
-                                                                    FileUrl: Text(J.Link),
-                                                                    Identifier: Text(J.Identifier),
-                                                                    Selected: false
-                                                                }
-                                                            )
-                                                        );
-                                                        With(
-                                                            { n: CountRows(Filter(colDomAttachments, RowId = varDomDocsId)) },
-                                                            Patch(
-                                                                EquipmentItems,
-                                                                LookUp(EquipmentItems, ID = varDomDocsId),
-                                                                { FileCount: n }
-                                                            );
-                                                            UpdateIf(
-                                                                colDomRows,
-                                                                RowId = varDomDocsId,
-                                                                { FileCount: n }
-                                                            )
-                                                        )
-                                                    )
-                                                RadiusBottomLeft: |-
-                                                    =10
-                                                RadiusBottomRight: |-
-                                                    =10
-                                                RadiusTopLeft: |-
-                                                    =10
-                                                RadiusTopRight: |-
-                                                    =10
-                                                Size: |-
-                                                    =13
-                                                Text: |-
-                                                    ="Docs"
-                                                VerticalAlign: |-
-                                                    =VerticalAlign.Middle
-                                                Visible: |-
-                                                    =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150
-                                                Width: |-
-                                                    =64
-                                          - btnDomRowCopy:
-                                              Control: ModernButton
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    ="Copy"
-                                                Align: |-
-                                                    =Align.Center
-                                                AlignInContainer: |-
-                                                    =AlignInContainer.Center
-                                                Appearance: |-
-                                                    =ButtonAppearance.Outline
-                                                BorderColor: |-
-                                                    =C.'border-default'
-                                                BorderThickness: |-
-                                                    =1
-                                                Color: |-
-                                                    =C.'text-primary'
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                FontWeight: |-
-                                                    =FontWeight.Semibold
-                                                Height: |-
-                                                    =30
-                                                Layout: |-
-                                                    =ButtonLayout.TextOnly
-                                                OnSelect: |-
-                                                    =Set(varDomActiveRowId, Blank());
-                                                    Set(varDomRowStatus, "draft");
-                                                    Set(varDomValidated, false);
-                                                    Set(varDomFText, ThisItem.Description);
-                                                    Set(varDomFPlant, ThisItem.Plant);
-                                                    Set(varDomFRequestType, ThisItem.RequestType);
-                                                    Set(varDomFEquipmentNumber, ThisItem.EquipmentNumber);
-                                                    Set(varDomFEquipmentCategory, ThisItem.EquipmentCategory);
-                                                    Set(varDomFManufacturer, ThisItem.Manufacturer);
-                                                    Set(varDomFTypeDesignation, ThisItem.TypeDesignation);
-                                                    Set(varDomFSerialNumber, ThisItem.SerialNumber);
-                                                    Set(varDomFFunctionalLocation, ThisItem.FunctionalLocation);
-                                                    Set(varDomFFunctionalLocation1, ThisItem.FunctionalLocation1);
-                                                    Set(varDomFFunctionalLocation2, ThisItem.FunctionalLocation2);
-                                                    Set(varDomFClassData, ThisItem.ClassData);
-                                                    Set(varDomFRoomCoordinates, ThisItem.RoomCoordinates);
-                                                    Set(varDomFPlacement, ThisItem.Placement);
-                                                    Set(varDomFWarrantyStart, ThisItem.WarrantyStart);
-                                                    Set(varDomFWarrantyEnd, ThisItem.WarrantyEnd);
-                                                    If(
-                                                        !IsBlank(ThisItem.FunctionalLocation) && IsBlank(LookUp(colDomFl, Code = ThisItem.FunctionalLocation)),
-                                                        Collect(colDomFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation, Maintainable: true, Level: "" })
-                                                    );
-                                                    Set(varDomInfo, "Copied to a new row - not saved yet. Documents were not copied.")
-                                                RadiusBottomLeft: |-
-                                                    =10
-                                                RadiusBottomRight: |-
-                                                    =10
-                                                RadiusTopLeft: |-
-                                                    =10
-                                                RadiusTopRight: |-
-                                                    =10
-                                                Size: |-
-                                                    =13
-                                                Text: |-
-                                                    ="Copy"
-                                                VerticalAlign: |-
-                                                    =VerticalAlign.Middle
-                                                Visible: |-
-                                                    =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150
-                                                Width: |-
-                                                    =64
-                                          - btnDomRowDelete:
-                                              Control: ModernButton
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    ="Delete"
-                                                Align: |-
-                                                    =Align.Center
-                                                AlignInContainer: |-
-                                                    =AlignInContainer.Center
-                                                Appearance: |-
-                                                    =ButtonAppearance.Outline
-                                                BorderColor: |-
-                                                    =C.'border-error'
-                                                BorderThickness: |-
-                                                    =1
-                                                Color: |-
-                                                    =C.'state-error-fg'
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                FontWeight: |-
-                                                    =FontWeight.Semibold
-                                                Height: |-
-                                                    =30
-                                                Layout: |-
-                                                    =ButtonLayout.TextOnly
-                                                OnSelect: |-
-                                                    =Remove(EquipmentItems, LookUp(EquipmentItems, ID = ThisItem.RowId));
-                                                    RemoveIf(colDomAttachments, RowId = ThisItem.RowId);
-                                                    If(varDomDetailsId = ThisItem.RowId, Set(varDomDetailsId, Blank()));
-                                                    If(varDomDocsId = ThisItem.RowId, Set(varDomDocsId, Blank()));
-                                                    
-                                                    // Var det den aabne raekke, skal formularen ogsaa ryddes - ellers
-                                                    // staar der felter fra noget, der ikke findes.
-                                                    If(
-                                                        varDomActiveRowId = ThisItem.RowId,
-                                                        Set(varDomActiveRowId, Blank());
-                                                        Set(varDomRowStatus, "valid");
-                                                        Set(varDomValidated, false);
-                                                        Set(varDomFText, "");
-                                                        Set(varDomFPlant, "");
-                                                        Set(varDomFRequestType, "");
-                                                        Set(varDomFEquipmentNumber, "");
-                                                        Set(varDomFEquipmentCategory, "");
-                                                        Set(varDomFManufacturer, "");
-                                                        Set(varDomFTypeDesignation, "");
-                                                        Set(varDomFSerialNumber, "");
-                                                        Set(varDomFFunctionalLocation, "");
-                                                        Set(varDomFFunctionalLocation1, "");
-                                                        Set(varDomFFunctionalLocation2, "");
-                                                        Set(varDomFClassData, "");
-                                                        Set(varDomFRoomCoordinates, "");
-                                                        Set(varDomFPlacement, "");
-                                                        Set(varDomFWarrantyStart, Blank());
-                                                        Set(varDomFWarrantyEnd, Blank());
-                                                        Set(varDomFlMsg, "");
-                                                        Set(varDomFlQuery, "");
-                                                        Reset(txtDomFlQuery);
-                                                        Set(varDomInfo, "New row - fill in and save.")
-                                                    );
-                                                    
-                                                    ClearCollect(
-                                                        colDomRows,
-                                                        ForAll(
-                                                            Filter(EquipmentItems, RequesterEmail = varDomMe) As R,
-                                                            {
-                                                                RowId: R.ID,
-                                                                ItemKey: Coalesce(R.ItemKey, ""),
-                                                                RequestNo: Coalesce(R.RequestNo, ""),
-                                                                Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                                FileCount: Coalesce(R.FileCount, 0),
-                                                                Description: Coalesce(R.Description, ""),
-                                                                Plant: Coalesce(R.Plant, ""),
-                                                                RequestType: Coalesce(R.RequestType, ""),
-                                                                EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
-                                                                EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
-                                                                Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                                TypeDesignation: Coalesce(R.TypeDesignation, ""),
-                                                                SerialNumber: Coalesce(R.SerialNumber, ""),
-                                                                FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                                FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
-                                                                FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
-                                                                ClassData: Coalesce(R.ClassData, ""),
-                                                                RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
-                                                                Placement: Coalesce(R.Placement, ""),
-                                                                WarrantyStart: R.WarrantyStart,
-                                                                WarrantyEnd: R.WarrantyEnd
-                                                            }
-                                                        )
-                                                    );
-                                                    Set(varDomInfo, "Row deleted. The documents remain in the library.")
-                                                RadiusBottomLeft: |-
-                                                    =10
-                                                RadiusBottomRight: |-
-                                                    =10
-                                                RadiusTopLeft: |-
-                                                    =10
-                                                RadiusTopRight: |-
-                                                    =10
-                                                Size: |-
-                                                    =13
-                                                Text: |-
-                                                    ="Delete"
-                                                VerticalAlign: |-
-                                                    =VerticalAlign.Middle
-                                                Width: |-
-                                                    =72
+                                        =Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0
+                                    Y: |-
+                                        =11
+                              - txtDomRow0:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =ThisItem.EquipmentNumber
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =20
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        =ThisItem.EquipmentNumber
+                                    Visible: |-
+                                        =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150
+                                    Width: |-
+                                        =110
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =(Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10
+                                    Y: |-
+                                        =12
+                              - txtDomRow1:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =ThisItem.FunctionalLocation
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =20
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        =ThisItem.FunctionalLocation
+                                    Visible: |-
+                                        =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150
+                                    Width: |-
+                                        =140
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =(Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0)
+                                    Y: |-
+                                        =12
+                              - txtDomRow2:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =ThisItem.Plant
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =20
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        =ThisItem.Plant
+                                    Visible: |-
+                                        =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150
+                                    Width: |-
+                                        =55
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =(Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (140) + 10, 0)
+                                    Y: |-
+                                        =12
+                              - txtDomRowStatus:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =ThisItem.Status
+                                    Align: |-
+                                        =Align.Center
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =C.'state-neutral-bg'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =22
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =10
+                                    PaddingRight: |-
+                                        =10
+                                    PaddingTop: |-
+                                        =0
+                                    RadiusBottomLeft: |-
+                                        =12
+                                    RadiusBottomRight: |-
+                                        =12
+                                    RadiusTopLeft: |-
+                                        =12
+                                    RadiusTopRight: |-
+                                        =12
+                                    Size: |-
+                                        =11
+                                    Text: |-
+                                        =ThisItem.Status
+                                    Width: |-
+                                        =75
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =(Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (140) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0)
+                                    Y: |-
+                                        =11
+                              - txtDomRowFiles:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =Text(ThisItem.FileCount)
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =20
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        =Text(ThisItem.FileCount)
+                                    Visible: |-
+                                        =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150
+                                    Width: |-
+                                        =40
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =(Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (140) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10
+                                    Y: |-
+                                        =12
+                              - btnDomRowOpen:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Edit"
+                                    Align: |-
+                                        =Align.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =30
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    OnSelect: |-
+                                        =Set(varDomActiveRowId, ThisItem.RowId);
+                                        Set(varDomRowStatus, ThisItem.Status);
+                                        Set(varDomValidated, false);
+                                        Set(varDomFText, ThisItem.Description);
+                                        Set(varDomFPlant, ThisItem.Plant);
+                                        Set(varDomFRequestType, ThisItem.RequestType);
+                                        Set(varDomFEquipmentNumber, ThisItem.EquipmentNumber);
+                                        Set(varDomFEquipmentCategory, ThisItem.EquipmentCategory);
+                                        Set(varDomFManufacturer, ThisItem.Manufacturer);
+                                        Set(varDomFTypeDesignation, ThisItem.TypeDesignation);
+                                        Set(varDomFSerialNumber, ThisItem.SerialNumber);
+                                        Set(varDomFFunctionalLocation, ThisItem.FunctionalLocation);
+                                        Set(varDomFFunctionalLocation1, ThisItem.FunctionalLocation1);
+                                        Set(varDomFFunctionalLocation2, ThisItem.FunctionalLocation2);
+                                        Set(varDomFClassData, ThisItem.ClassData);
+                                        Set(varDomFRoomCoordinates, ThisItem.RoomCoordinates);
+                                        Set(varDomFPlacement, ThisItem.Placement);
+                                        Set(varDomFWarrantyStart, ThisItem.WarrantyStart);
+                                        Set(varDomFWarrantyEnd, ThisItem.WarrantyEnd);
+                                        If(
+                                            !IsBlank(ThisItem.FunctionalLocation) && IsBlank(LookUp(colDomFl, Code = ThisItem.FunctionalLocation)),
+                                            Collect(colDomFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation, Maintainable: true, Level: "" })
+                                        )
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        ="Edit"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =60
+                                    X: |-
+                                        =(Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (140) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (40) + 10, 0)
+                                    Y: |-
+                                        =7
+                              - btnDomRowDetails:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Details"
+                                    Align: |-
+                                        =Align.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =30
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    OnSelect: |-
+                                        =Set(varDomDetailsId, ThisItem.RowId)
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        ="Details"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =72
+                                    X: |-
+                                        =(Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (140) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (40) + 10, 0) + (60) + 4
+                                    Y: |-
+                                        =7
+                              - btnDomRowDocs:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Docs"
+                                    Align: |-
+                                        =Align.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =30
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    OnSelect: |-
+                                        =Set(varDomDocsId, ThisItem.RowId);
+                                        If(
+                                            ThisItem.FileCount > 0 &&
+                                            CountRows(Filter(colDomAttachments, RowId = ThisItem.RowId)) = 0,
+                                            Set(
+                                                varDomAttJson,
+                                                'BioSap-GetSubmittedAttachments'.Run("TaskListDocuments/" & LookUp(colDomRows, RowId = varDomDocsId).ItemKey).files
+                                            );
+                                            RemoveIf(colDomAttachments, RowId = varDomDocsId);
+                                            Collect(
+                                                colDomAttachments,
+                                                ForAll(
+                                                    ParseJSON(Coalesce(varDomAttJson, "[]")) As J,
+                                                    {
+                                                        RowId: varDomDocsId,
+                                                        FileName: Text(J.Name),
+                                                        FileUrl: Text(J.Link),
+                                                        Identifier: Text(J.Identifier),
+                                                        Selected: false
+                                                    }
+                                                )
+                                            );
+                                            With(
+                                                { n: CountRows(Filter(colDomAttachments, RowId = varDomDocsId)) },
+                                                Patch(
+                                                    EquipmentItems,
+                                                    LookUp(EquipmentItems, ID = varDomDocsId),
+                                                    { FileCount: n }
+                                                );
+                                                UpdateIf(
+                                                    colDomRows,
+                                                    RowId = varDomDocsId,
+                                                    { FileCount: n }
+                                                )
+                                            )
+                                        )
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        ="Docs"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Visible: |-
+                                        =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150
+                                    Width: |-
+                                        =64
+                                    X: |-
+                                        =(Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (140) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (40) + 10, 0) + (60) + 4 + (72) + 4
+                                    Y: |-
+                                        =7
+                              - btnDomRowCopy:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Copy"
+                                    Align: |-
+                                        =Align.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =30
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    OnSelect: |-
+                                        =Set(varDomActiveRowId, Blank());
+                                        Set(varDomRowStatus, "draft");
+                                        Set(varDomValidated, false);
+                                        Set(varDomFText, ThisItem.Description);
+                                        Set(varDomFPlant, ThisItem.Plant);
+                                        Set(varDomFRequestType, ThisItem.RequestType);
+                                        Set(varDomFEquipmentNumber, ThisItem.EquipmentNumber);
+                                        Set(varDomFEquipmentCategory, ThisItem.EquipmentCategory);
+                                        Set(varDomFManufacturer, ThisItem.Manufacturer);
+                                        Set(varDomFTypeDesignation, ThisItem.TypeDesignation);
+                                        Set(varDomFSerialNumber, ThisItem.SerialNumber);
+                                        Set(varDomFFunctionalLocation, ThisItem.FunctionalLocation);
+                                        Set(varDomFFunctionalLocation1, ThisItem.FunctionalLocation1);
+                                        Set(varDomFFunctionalLocation2, ThisItem.FunctionalLocation2);
+                                        Set(varDomFClassData, ThisItem.ClassData);
+                                        Set(varDomFRoomCoordinates, ThisItem.RoomCoordinates);
+                                        Set(varDomFPlacement, ThisItem.Placement);
+                                        Set(varDomFWarrantyStart, ThisItem.WarrantyStart);
+                                        Set(varDomFWarrantyEnd, ThisItem.WarrantyEnd);
+                                        If(
+                                            !IsBlank(ThisItem.FunctionalLocation) && IsBlank(LookUp(colDomFl, Code = ThisItem.FunctionalLocation)),
+                                            Collect(colDomFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation, Maintainable: true, Level: "" })
+                                        );
+                                        Set(varDomInfo, "Copied to a new row - not saved yet. Documents were not copied.")
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        ="Copy"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Visible: |-
+                                        =(((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150
+                                    Width: |-
+                                        =64
+                                    X: |-
+                                        =(Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (140) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (40) + 10, 0) + (60) + 4 + (72) + 4 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (64) + 4, 0)
+                                    Y: |-
+                                        =7
+                              - btnDomRowDelete:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Delete"
+                                    Align: |-
+                                        =Align.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-error'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'state-error-fg'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =30
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    OnSelect: |-
+                                        =Remove(EquipmentItems, LookUp(EquipmentItems, ID = ThisItem.RowId));
+                                        RemoveIf(colDomAttachments, RowId = ThisItem.RowId);
+                                        If(varDomDetailsId = ThisItem.RowId, Set(varDomDetailsId, Blank()));
+                                        If(varDomDocsId = ThisItem.RowId, Set(varDomDocsId, Blank()));
+                                        
+                                        // Var det den aabne raekke, skal formularen ogsaa ryddes - ellers
+                                        // staar der felter fra noget, der ikke findes.
+                                        If(
+                                            varDomActiveRowId = ThisItem.RowId,
+                                            Set(varDomActiveRowId, Blank());
+                                            Set(varDomRowStatus, "valid");
+                                            Set(varDomValidated, false);
+                                            Set(varDomFText, "");
+                                            Set(varDomFPlant, "");
+                                            Set(varDomFRequestType, "");
+                                            Set(varDomFEquipmentNumber, "");
+                                            Set(varDomFEquipmentCategory, "");
+                                            Set(varDomFManufacturer, "");
+                                            Set(varDomFTypeDesignation, "");
+                                            Set(varDomFSerialNumber, "");
+                                            Set(varDomFFunctionalLocation, "");
+                                            Set(varDomFFunctionalLocation1, "");
+                                            Set(varDomFFunctionalLocation2, "");
+                                            Set(varDomFClassData, "");
+                                            Set(varDomFRoomCoordinates, "");
+                                            Set(varDomFPlacement, "");
+                                            Set(varDomFWarrantyStart, Blank());
+                                            Set(varDomFWarrantyEnd, Blank());
+                                            Set(varDomFlMsg, "");
+                                            Set(varDomFlQuery, "");
+                                            Reset(txtDomFlQuery);
+                                            Set(varDomInfo, "New row - fill in and save.")
+                                        );
+                                        
+                                        ClearCollect(
+                                            colDomRows,
+                                            ForAll(
+                                                Filter(EquipmentItems, RequesterEmail = varDomMe) As R,
+                                                {
+                                                    RowId: R.ID,
+                                                    ItemKey: Coalesce(R.ItemKey, ""),
+                                                    RequestNo: Coalesce(R.RequestNo, ""),
+                                                    Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                    FileCount: Coalesce(R.FileCount, 0),
+                                                    Description: Coalesce(R.Description, ""),
+                                                    Plant: Coalesce(R.Plant, ""),
+                                                    RequestType: Coalesce(R.RequestType, ""),
+                                                    EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
+                                                    EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                    Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                    TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                    SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                    FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                    FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
+                                                    FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
+                                                    ClassData: Coalesce(R.ClassData, ""),
+                                                    RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                    Placement: Coalesce(R.Placement, ""),
+                                                    WarrantyStart: R.WarrantyStart,
+                                                    WarrantyEnd: R.WarrantyEnd
+                                                }
+                                            )
+                                        );
+                                        Set(varDomInfo, "Row deleted. The documents remain in the library.")
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        ="Delete"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =72
+                                    X: |-
+                                        =(Max(Min((((App.Width - 64) - 36 - 4 - 18 - 40)) - If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, 828, If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, 493, 307)), 460), 150)) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (110) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (140) + 10, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 828 + 150, (55) + 10, 0) + (75) + 10 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (40) + 10, 0) + (60) + 4 + (72) + 4 + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (64) + 4, 0) + If((((App.Width - 64) - 36 - 4 - 18 - 40)) >= 493 + 150, (64) + 4, 0)
+                                    Y: |-
+                                        =7
                         - txtDomNoRows:
                             Control: ModernText
                             Properties:

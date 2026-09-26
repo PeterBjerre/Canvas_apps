@@ -724,40 +724,33 @@ Screens:
                                   =78
                             Children:
                               - conFlThemeLight:
-                                  Control: ModernButton
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =If(!darkModeEnabled, "Light theme (selected)", "Switch to light theme")
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    Appearance: |-
-                                        =If(!darkModeEnabled, ButtonAppearance.Primary, ButtonAppearance.Outline)
-                                    BasePaletteColor: |-
-                                        =C.'bg-card'
                                     BorderColor: |-
-                                        =RGBA(0, 0, 0, 0)
+                                        =If(!darkModeEnabled, C.'border-default', RGBA(0, 0, 0, 0))
                                     BorderThickness: |-
+                                        =1
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    Fill: |-
+                                        =If(!darkModeEnabled, C.'bg-card', RGBA(0, 0, 0, 0))
+                                    FillPortions: |-
                                         =0
-                                    Color: |-
-                                        =If(!darkModeEnabled, C.'state-warn-fg', C.'text-muted')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
                                     Height: |-
                                         =32
-                                    Layout: |-
-                                        =ButtonLayout.TextOnly
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Center
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Horizontal
+                                    LayoutGap: |-
+                                        =0
                                     LayoutMinWidth: |-
                                         =36
-                                    OnSelect: |-
-                                        =If(darkModeEnabled,
-                                        Set(darkModeEnabled, !darkModeEnabled);
-                                        ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
-                                        IfError(SaveData(colAppPrefs, "prefs"), Blank())
-                                        )
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     RadiusBottomLeft: |-
                                         =16
                                     RadiusBottomRight: |-
@@ -766,49 +759,86 @@ Screens:
                                         =16
                                     RadiusTopRight: |-
                                         =16
-                                    Size: |-
-                                        =16
-                                    Text: |-
-                                        =UniChar(9728)
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
                                     Width: |-
                                         =36
+                                  Children:
+                                    - conFlThemeLightBtn:
+                                        Control: ModernButton
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =If(!darkModeEnabled, "Light theme (selected)", "Switch to light theme")
+                                          Align: |-
+                                              =Align.Center
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          Appearance: |-
+                                              =ButtonAppearance.Outline
+                                          BorderColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =If(!darkModeEnabled, C.'state-warn-fg', C.'text-muted')
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Normal
+                                          Height: |-
+                                              =32
+                                          Layout: |-
+                                              =ButtonLayout.TextOnly
+                                          LayoutMinWidth: |-
+                                              =36
+                                          OnSelect: |-
+                                              =If(darkModeEnabled,
+                                              Set(darkModeEnabled, !darkModeEnabled);
+                                              ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
+                                              IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                                              )
+                                          RadiusBottomLeft: |-
+                                              =16
+                                          RadiusBottomRight: |-
+                                              =16
+                                          RadiusTopLeft: |-
+                                              =16
+                                          RadiusTopRight: |-
+                                              =16
+                                          Size: |-
+                                              =18
+                                          Text: |-
+                                              =UniChar(9788)
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Width: |-
+                                              =36
                               - conFlThemeDark:
-                                  Control: ModernButton
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =If(darkModeEnabled, "Dark theme (selected)", "Switch to dark theme")
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    Appearance: |-
-                                        =If(darkModeEnabled, ButtonAppearance.Primary, ButtonAppearance.Outline)
-                                    BasePaletteColor: |-
-                                        =C.'bg-card'
                                     BorderColor: |-
-                                        =RGBA(0, 0, 0, 0)
+                                        =If(darkModeEnabled, C.'border-default', RGBA(0, 0, 0, 0))
                                     BorderThickness: |-
+                                        =1
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    Fill: |-
+                                        =If(darkModeEnabled, C.'bg-card', RGBA(0, 0, 0, 0))
+                                    FillPortions: |-
                                         =0
-                                    Color: |-
-                                        =If(darkModeEnabled, C.'color-brand-primary', C.'text-muted')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
                                     Height: |-
                                         =32
-                                    Layout: |-
-                                        =ButtonLayout.TextOnly
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Center
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Horizontal
+                                    LayoutGap: |-
+                                        =0
                                     LayoutMinWidth: |-
                                         =36
-                                    OnSelect: |-
-                                        =If(!darkModeEnabled,
-                                        Set(darkModeEnabled, !darkModeEnabled);
-                                        ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
-                                        IfError(SaveData(colAppPrefs, "prefs"), Blank())
-                                        )
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     RadiusBottomLeft: |-
                                         =16
                                     RadiusBottomRight: |-
@@ -817,14 +847,58 @@ Screens:
                                         =16
                                     RadiusTopRight: |-
                                         =16
-                                    Size: |-
-                                        =16
-                                    Text: |-
-                                        =UniChar(9790)
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
                                     Width: |-
                                         =36
+                                  Children:
+                                    - conFlThemeDarkBtn:
+                                        Control: ModernButton
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =If(darkModeEnabled, "Dark theme (selected)", "Switch to dark theme")
+                                          Align: |-
+                                              =Align.Center
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          Appearance: |-
+                                              =ButtonAppearance.Outline
+                                          BorderColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =If(darkModeEnabled, C.'color-brand-primary', C.'text-muted')
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Normal
+                                          Height: |-
+                                              =32
+                                          Layout: |-
+                                              =ButtonLayout.TextOnly
+                                          LayoutMinWidth: |-
+                                              =36
+                                          OnSelect: |-
+                                              =If(!darkModeEnabled,
+                                              Set(darkModeEnabled, !darkModeEnabled);
+                                              ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
+                                              IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                                              )
+                                          RadiusBottomLeft: |-
+                                              =16
+                                          RadiusBottomRight: |-
+                                              =16
+                                          RadiusTopLeft: |-
+                                              =16
+                                          RadiusTopRight: |-
+                                              =16
+                                          Size: |-
+                                              =18
+                                          Text: |-
+                                              =UniChar(9790)
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Width: |-
+                                              =36
                         - btnFlBack:
                             Control: ModernButton
                             Properties:
