@@ -10,6 +10,12 @@ Canvas apps og indmeldingsflow til SAP masterdata. **Fem apps:**
 | **Materials** | [`Material App/`](Material%20App) | Indmelding af reservedele |
 | **Functional Location** | [`Functional Location App/`](Functional%20Location%20App) | Functional Locations (SPOOL): KKS-syntaks, klasse og spool-felter pr. klasse. Reglerne er HTML-sidens (`html/functional-location.html` + JS) - se [`docs/31`](docs/31-functional-location-regler.md) |
 
+> **Til test: [`BIO SAP App/`](BIO%20SAP%20App)** er de fem apps som skærme i
+> **én** app. Sidebaren navigerer mellem skærme i stedet for at starte en ny
+> app, og VH-planen er delt i to skærme. Den bygges af de fem appers egne
+> byggere, så de fem apps er uændrede, indtil den samlede er testet og
+> godkendt. Se [`BIO SAP App/README.md`](BIO%20SAP%20App/README.md).
+
 > **Equipments og Materials deler byggeklodser, men er to apps.** De var
 > engang den samme app med to konfigurationsfiler; nu skal de kunne to
 > forskellige ting. Delene — bar, formular, dokumentrude, rækketabel,
@@ -21,7 +27,7 @@ Alle `.pa.yaml`-skærme er **genereret** af Python-builderne i den enkelte
 apps `build/`-mappe. Byg alle fire og efterregn layoutet med:
 
 ```bash
-python3 tools/build_all.py       # alle fem
+python3 tools/build_all.py       # alle fem + den samlede app
 python3 tools/build_all.py --app equipment
 ```
 

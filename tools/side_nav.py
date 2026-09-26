@@ -58,6 +58,12 @@ NAVIGATION
 Launch(url, {}, LaunchTarget.Replace) med temaet i URL'en - samme regel
 som "To the hub" havde (se SKILL.md, "Navigation mellem apps"). En app
 uden app-id i tools/canvas_apps.json kommer ikke med.
+
+I DEN SAMLEDE APP (BIO SAP App/) er modulerne skaerme, ikke apps. Dens
+bygger saetter SCREENS, og saa bliver hvert punkt Navigate() til en
+skaerm i stedet for Launch() af en anden app - ingen kold start, og det,
+man var i gang med, ligger der stadig, naar man kommer tilbage. Uden
+SCREENS (de fem enkelte apps) er intet aendret.
 """
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -91,6 +97,10 @@ ITEMS = [
      "M7 7h10v10H7z M4.5 10.5h2.5M4.5 13.5h2.5M17 10.5h2.5M17 13.5h2.5"
      "M10.5 4.5V7M13.5 4.5V7M10.5 17v2.5M13.5 17v2.5"),
 ]
+
+# DEN SAMLEDE APP: {noegle: skaermnavn}. None = de fem enkelte apps, hvor
+# et punkt er Launch() af en anden app. Saettes af BIO SAP App/build.
+SCREENS = None
 
 ICON_EXPAND = "M6 6l6 6-6 6 M12 6l6 6-6 6"
 ICON_COLLAPSE = "M18 6l-6 6 6 6 M12 6l-6 6 6 6"
@@ -175,6 +185,8 @@ def _image(name, svg, width, height, onselect, label, tooltip=None, hover=True):
 
 
 def _launch(key):
+    if SCREENS is not None:
+        return f"{CLOSE}; Navigate({SCREENS[key]}, ScreenTransition.None)"
     url = env.play_url(key)
     return f'{CLOSE}; Launch("{url}" & {theme_query("?")}, {{ }}, LaunchTarget.Replace)'
 
@@ -201,7 +213,7 @@ def _column(p, suffix, w, current, is_open, help_on, help_action):
                         tooltip='"Expand menu"')
     items = []
     for key, label, icon in ITEMS:
-        if not env.app_id(key):
+        if (key not in SCREENS) if SCREENS is not None else not env.app_id(key):
             continue
         cur = key == current
         items.append(_image(

@@ -1259,6 +1259,19 @@ def main():
     if os.path.exists(app_path):
         defined = set(re.findall(r"^\s*=?(col[A-Z]\w*)\s*=", app, re.M))
         defined |= set(re.findall(r"ClearCollect\(\s*(col\w+)", app))
+        # ALLE APPENS SKAERME TAELLER OGSAA MED SOM DEFINITION.
+        #
+        # I en app med een skaerm er det det samme som foer. Den samlede
+        # app (BIO SAP App/) erklaerer derimod hvert domaenes samlinger i
+        # domaeneskaermens OnVisible, saa de foerst koster noget, naar
+        # skaermen aabnes - og VH-planens anden skaerm bruger samlinger,
+        # som den foerste erklaerer. For Power Fx er en samling defineret af
+        # en ClearCollect hvor som helst i appen.
+        app_dir = os.path.dirname(app_path)
+        for fn in sorted(os.listdir(app_dir)):
+            if fn.startswith("Screen") and fn.endswith(".pa.yaml"):
+                txt = open(os.path.join(app_dir, fn), encoding="utf-8").read()
+                defined |= set(re.findall(r"ClearCollect\(\s*(col\w+)", txt))
         # SKAERMENS EGNE EGENSKABER TAELLER MED.
         #
         # Her stod foer kun all_nodes, altsaa kontrollerne. Men skaermens

@@ -31,6 +31,18 @@ from layout_tokens import if_below, SCROLLBAR_W, GALLERY_RESERVE
 THEME_Q = theme_query("?")      # flisen sender ingen andre parametre
 THEME_Q_AMP = theme_query("&")  # "Open" sender allerede ?reqid=
 
+# DEN SAMLEDE APP (BIO SAP App/) genbruger hubben som sin startskaerm. Dér
+# er domaenerne skaerme, ikke apps, saa "New request" og "Open" er
+# Navigate() i stedet for Launch(). Dens bygger saetter de to:
+#
+#   NEW_ACTION(d) -> OnSelect for flisens "New request", eller None, naar
+#                    domaenet ikke har en skaerm ("Coming soon").
+#   OPEN_ACTION   -> OnSelect for raekkens "Open".
+#
+# None (de fem enkelte apps) = Launch som hidtil.
+NEW_ACTION = None
+OPEN_ACTION = None
+
 # ---------------------------------------------------------------------------
 # Afgraensningen. Begge grene er delegerbare hver for sig:
 #   Mine  - afgraenset af brugeren, altid en haandterbar maengde
@@ -157,17 +169,23 @@ def build_tiles():
                          f'If(gblDomain = "{d["key"]}", "Show all", "Filter")',
                          f'Set(gblDomain, If(gblDomain = "{d["key"]}", "", "{d["key"]}"))',
                          width=bw, height=30)
-        if d["url"]:
+        if NEW_ACTION is not None:
+            new_action = NEW_ACTION(d)
+            ready = new_action is not None
+        else:
+            new_action = None
+            ready = bool(d["url"])
+        if new_action is None and ready:
             # Temaet sendes MED i URL'en. SaveData er isoleret pr. app-id,
             # saa uden det ville satellitten aabne i sit eget gamle tema -
             # og brugeren ville se appen skifte farve, fordi han klikkede.
             new_action = (f'Launch("{d["url"]}" & {THEME_Q}, {{ }}, {APP_TARGET})')
-        else:
+        elif new_action is None:
             new_action = ('Notify("This app has not been built yet.", NotificationType.Warning)')
         bNew = button(f"btnMdTileNew{n}",
-                      '"New request"' if d["url"] else '"Coming soon"',
-                      new_action, primary=bool(d["url"]), width=bw, height=30,
-                      display_mode="DisplayMode.Edit" if d["url"] else "DisplayMode.Disabled")
+                      '"New request"' if ready else '"Coming soon"',
+                      new_action, primary=ready, width=bw, height=30,
+                      display_mode="DisplayMode.Edit" if ready else "DisplayMode.Disabled")
         btns = group(f"conMdTileBtns{n}", [bFilter, bNew], direction="Horizontal", gap=6,
                      height=30, align_items="Center")
 
@@ -291,17 +309,18 @@ def build_list():
                      size=11, color=C_MUTED, height=36, width=COLS[4][1], align="Right",
                      wrap="false")
 
-    open_btn = button("btnMdRowOpen", '"Open"',
-                      ("If(\n"
-                       "    IsBlank(ThisItem.AppUrl),\n"
-                       '    Notify("This request has no app URL.", NotificationType.Error),\n'
-                       "    Launch(\n"
-                       '        ThisItem.AppUrl & If(Find("?", ThisItem.AppUrl) > 0, "&", "?") &\n'
-                       f'            "reqid=" & ThisItem.RequestGuid & {THEME_Q_AMP},\n'
-                       "        { },\n"
-                       f"        {APP_TARGET}\n"
-                       "    )\n"
-                       ")"),
+    open_action = OPEN_ACTION or (
+        "If(\n"
+        "    IsBlank(ThisItem.AppUrl),\n"
+        '    Notify("This request has no app URL.", NotificationType.Error),\n'
+        "    Launch(\n"
+        '        ThisItem.AppUrl & If(Find("?", ThisItem.AppUrl) > 0, "&", "?") &\n'
+        f'            "reqid=" & ThisItem.RequestGuid & {THEME_Q_AMP},\n'
+        "        { },\n"
+        f"        {APP_TARGET}\n"
+        "    )\n"
+        ")")
+    open_btn = button("btnMdRowOpen", '"Open"', open_action,
                       width=COLS[5][1], height=30,
                       accessible=f'"Open " & ThisItem.{COL_NO} & " in the domain app"')
 
