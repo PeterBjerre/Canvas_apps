@@ -937,6 +937,15 @@ def label_row(name, label_text, required=False, width="Parent.Width", cell_w=Non
     cell_w er cellens bredde, naar den kendes. Labelen maa aldrig blive
     bredere end cellen minus stjernen - saa klipper den hellere, end den
     skubber stjernen ud af raekken."""
+    # KUN EN RAEKKE, NAAR DER ER EN STJERNE
+    #
+    # Uden stjerne var raekken en container med eet barn - en kontrol pr.
+    # felt, der intet gjorde. Equipment-skaermen ramte App checkerens
+    # graense (kompleksitet 302 af 300, issue #37), og det var de
+    # kontroller, der kunne undvaeres uden at noget ser anderledes ud.
+    if not required:
+        return text_ctrl(f"{name}Lbl", f"\"{label_text}\"", size=13, weight="Semibold",
+                         height=20, width=width, wrap="false")
     lbl_w = text_px(label_text, 13)
     if cell_w is not None:
         lbl_w = "Min(%d, (%s) - 13)" % (lbl_w, cell_w)

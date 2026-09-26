@@ -457,7 +457,11 @@ def _app_without_onstart(src, dst):
     import yaml
     doc = yaml.safe_load(open(src, encoding="utf-8"))
     props = doc["App"]["Properties"]
-    props.pop("OnStart", None)
+    # darkModeEnabled SKAL stadig saettes: App.Formulas' C laeser den, og
+    # uden OnStart kendte den tomme skaerm den ikke - to compile-fejl
+    # (issue #37). Typen er boolsk, og det kan en enkelt Set() fortaelle.
+    from design_tokens import DARK_VAR
+    props["OnStart"] = "=Set(%s, false)" % DARK_VAR
     lines = ["App:", "  Properties:"]
     for k, v in props.items():
         lines.append("    %s: |-" % k)
