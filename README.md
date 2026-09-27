@@ -12,7 +12,7 @@ Canvas apps og indmeldingsflow til SAP masterdata. **Fem apps:**
 
 > **Til test: [`BIO SAP App/`](BIO%20SAP%20App)** er de fem apps som skærme i
 > **én** app. Sidebaren navigerer mellem skærme i stedet for at starte en ny
-> app, og VH-planen er delt i to skærme. Den bygges af de fem appers egne
+> app, og en ventespinner viser, når et domæne indlæses. Den bygges af de fem appers egne
 > byggere, så de fem apps er uændrede, indtil den samlede er testet og
 > godkendt. Se [`BIO SAP App/README.md`](BIO%20SAP%20App/README.md).
 
