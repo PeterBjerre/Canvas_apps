@@ -300,7 +300,7 @@ nævner kontrollen.
 | `sp_config.py` | **Datakilde-kontrakten**: hvilke SharePoint-lister og kolonner appen læser. Ret HER, ikke i formlerne |
 | `gen_screen.py` | Kontroltræ-DSL, stylingkonstanter, **højde-algebra** (`stack_height`, `row_height`) |
 | `build_helpers.py` | Byggeklodser: `card`, `group`, `field_cell`, `button_row`, inputs, `combobox` |
-| `build_hero.py` | Topbjælken (**Validate**, **Export JSON**, hub, tema) og hero-kortet med procesindikatoren |
+| `build_hero.py` | Topbjælken med trinindikatoren (seks trin som cirkler med flueben) og **Validate**, som står i trin 5 (Dispatch and Control) |
 | `build_plan_header.py` | Planhoved, plantype, strategivalg, `section_header` |
 | `build_items.py` | Items-skinne, Item Editor, FL-felt, objektliste |
 | `build_flsearch.py` | **Flow-kontrakten for FL-søgning** — outputnavn og feltnavne ligger kun her |
