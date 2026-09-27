@@ -22,7 +22,8 @@ det, der SKAL vaere anderledes i een app:
   opstart        hvert domaenes OnStart flyttes til dets skaerms OnVisible
                  og koeres FOERST, naar skaermen aabnes. App.OnStart har
                  kun temaet og hubbens fire variabler.
-  VH-plan        to skaerme: plan og items / task list og resten.
+  indlaesning    en ventespinner, mens et domaene klargoeres (loading_overlay
+                 i build_screens.py), og skaermens egen LoadingSpinner.
 
 Stopper en af de fem apps med at se ud, som denne fil forventer, stopper
 byggeriet med en besked - den glider ikke tavst fra dem.
@@ -67,12 +68,6 @@ DOMAINS = [
 ]
 BY_KEY = {d["key"]: d for d in DOMAINS}
 
-# VH-planens anden skaerm: task list, operationer, pakker, materialer,
-# dokumenter, dispatch og gem. Praefikset er Vht, saa dens ramme,
-# sidebar og topbjaelke ikke kolliderer med den foerste skaerms.
-VH_TASKS_SCREEN = "ScreenVhTasks"
-VH_TASKS_TAG = "Vht"
-
 # side_nav.SCREENS og StartScreen.
 SCREENS = {d["key"]: d["screen"] for d in DOMAINS}
 
@@ -95,6 +90,11 @@ def opened_var(tag):
     """Det, skaermen sidst blev klargjort til. Er want det samme, roeres
     intet: man kommer tilbage til det, man forlod."""
     return f"var{tag}Opened"
+
+
+def loading_var(tag):
+    """Sand, mens skaermen klargoeres - saa laenge staar ventespinneren."""
+    return f"var{tag}Loading"
 
 
 def reqid_var(tag):
