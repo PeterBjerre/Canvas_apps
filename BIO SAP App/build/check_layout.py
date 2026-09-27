@@ -2,7 +2,7 @@
 """Layout-tjekket (tools/check_layout.py) paa hver af den samlede apps skaerme.
 
 De andre apps har een skaerm, og deres indgang finder den selv. Her er der
-seks, saa hver tjekkes for sig - i sin egen proces, som naar den tjekkes
+fem, saa hver tjekkes for sig - i sin egen proces, som naar den tjekkes
 alene. Tjekket laeser App.pa.yaml ved siden af skaermen, altsaa den
 samlede apps."""
 import os

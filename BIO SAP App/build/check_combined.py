@@ -33,7 +33,7 @@ SHARED = {"gblNavOpen", "colAppPrefs", "darkModeEnabled", cb.NEW_SEQ}
 # Hubbens egne - de har aldrig haft et praefiks.
 HUB_OWN = {"gblMe", "gblView", "gblDomain", "gblStatusMode"}
 
-TAGS = sorted({d["tag"] for d in cb.DOMAINS} | {cb.VH_TASKS_TAG}, key=len, reverse=True)
+TAGS = sorted({d["tag"] for d in cb.DOMAINS}, key=len, reverse=True)
 TAGGED = re.compile(r"\b(?:var|col|gbl)(%s)(?=[A-Z0-9_])\w*" % "|".join(TAGS))
 UNTAGGED = re.compile(r"\b(?:var|col|gbl)[A-Z]\w*")
 WANT = re.compile(r"\bgbl(%s)Want\b" % "|".join(TAGS))
@@ -71,14 +71,12 @@ def domain_of(screen):
     for d in cb.DOMAINS:
         if d["screen"] == screen:
             return d
-    if screen == cb.VH_TASKS_SCREEN:
-        return cb.BY_KEY["vhplan"]
     raise SystemExit("Ukendt skaerm %s - hoerer den til et domaene i combined.DOMAINS?" % screen)
 
 
 def main():
     scr = screens()
-    expected = set(cb.SCREENS.values()) | {cb.VH_TASKS_SCREEN}
+    expected = set(cb.SCREENS.values())
     problems = []
     if set(scr) != expected:
         problems.append("skaermene er %s, forventet %s" % (sorted(scr), sorted(expected)))
@@ -106,7 +104,7 @@ def main():
     # 3. variabler og samlinger hoerer til eet domaene
     for s, body in scr.items():
         d = domain_of(s)
-        own = {d["tag"]} | ({cb.VH_TASKS_TAG} if d["key"] == "vhplan" else set())
+        own = {d["tag"]}
         bad = set()
         for f in formulas(body):
             for m in TAGGED.finditer(f):
@@ -133,7 +131,7 @@ def main():
         if "Launch(\"https://apps.powerapps.com" in text:
             problems.append("[4] %s starter en anden app med Launch()" % s)
         n = text.count('Param("reqid")')
-        want = 0 if s in (cb.SCREENS["hub"], cb.VH_TASKS_SCREEN) else 1
+        want = 0 if s == cb.SCREENS["hub"] else 1
         if n != want:
             problems.append('[5] %s laeser Param("reqid") %d gang(e), forventet %d'
                             % (s, n, want))

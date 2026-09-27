@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Bygger den samlede apps seks skaerme af de fem appers egne byggere.
+Bygger den samlede apps fem skaerme af de fem appers egne byggere.
 
-    python3 build_screens.py            # alle seks
-    python3 build_screens.py vhplan     # kun VH-planens to
+    python3 build_screens.py            # alle fem
+    python3 build_screens.py vhplan     # kun VH-planen
 
 HVER APP I SIN EGEN PROCES
 --------------------------
@@ -19,9 +19,8 @@ build_screen(). Kun render_screen() byttes ud, saa skaermens navn og
 OnVisible kan saettes - og sidebaren og hubben faar deres Navigate-kroge
 (side_nav.SCREENS, build_hub.NEW_ACTION/OPEN_ACTION).
 
-Undtagelsen er VH-planen, som her er TO skaerme (se build_vhplan). Dens
-komposition staar derfor her, og check_vhplan_split() stopper byggeriet,
-hvis VH-plan-appen faar en kontrol, som ingen af de to skaerme har.
+Oveni faar hver domaeneskaerm en ventespinner (loading_overlay), mens den
+klargoeres, og alle skaerme faar Power Apps' egen LoadingSpinner.
 """
 import importlib.util
 import os
@@ -48,6 +47,20 @@ def _load(domain, module_file):
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
+
+
+def _walk(c):
+    yield c
+    for k in c.children:
+        yield from _walk(k)
+
+
+def _subst_props(roots, fn):
+    for r in roots:
+        for c in _walk(r):
+            for k, v in list(c.props.items()):
+                if isinstance(v, str):
+                    c.props[k] = fn(v)
 
 
 def _navigation():
@@ -105,6 +118,7 @@ def open_block(domain, init):
         f"    {{ wantKey: {want} }},\n"
         "    If(\n"
         f"        wantKey <> Coalesce({cb.opened_var(t)}, \"\"),\n"
+        f"        Set({cb.loading_var(t)}, true);\n"
         f"        Set({cb.opened_var(t)}, wantKey);\n"
         f"        Set(\n"
         f"            {cb.reqid_var(t)},\n"
@@ -115,6 +129,75 @@ def open_block(domain, init):
         "    )\n"
         ")"
     )
+
+
+def done(domain):
+    """Sidste linje i domaeneskaermens OnVisible: klargoeringen er faerdig,
+    spinneren forsvinder."""
+    return (";\n\n// Klar - ventespinneren forsvinder.\n"
+            f"Set({cb.loading_var(domain['tag'])}, false)")
+
+
+def screen_props(props):
+    """Power Apps' egen spinner, mens skaermens kontroller tegnes - ogsaa
+    ved opstart. Den daekker IKKE datahentningen i OnVisible; det goer
+    loading_overlay."""
+    from gen_screen import C_PRIMARY
+    props = dict(props)
+    props["LoadingSpinner"] = "LoadingSpinner.Data"
+    props["LoadingSpinnerColor"] = C_PRIMARY
+    return props
+
+
+def loading_overlay(domain, label):
+    """Ventespinneren, mens et domaene klargoeres.
+
+    Den staar oven paa ALT - ogsaa sidebaren - og daekker skaermen med
+    sloerets farve, saa ingen naar at trykke paa en formular, der er ved at
+    blive fyldt. Synlig, saa laenge var<X>Loading er sand: open_block saetter
+    den foerst, done() nulstiller den sidst i OnVisible. Imens venter
+    OnVisible paa SharePoint, og saa laenge tegnes skaermen med spinneren.
+
+    Et Image med en SVG, af samme grund som sidebaren og temaknappen: den
+    tegner praecis det, der staar, i temaets farver. Hjulet drejer med
+    SVG's egen animation (animateTransform)."""
+    from gen_screen import Ctrl, C_OVERLAY
+    from design_tokens import ref_hex
+    hx = lambda n: '" & %s & "' % ref_hex(n)
+    w, h, cx, cy = 300, 140, 150, 52
+    svg = ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{h}' "
+           f"viewBox='0 0 {w} {h}'>"
+           f"<rect x='1' y='1' width='{w - 2}' height='{h - 2}' rx='14' "
+           f"fill='{hx('bg-surface')}' stroke='{hx('border-default')}'/>"
+           f"<circle cx='{cx}' cy='{cy}' r='18' fill='none' stroke-width='4' "
+           f"stroke='{hx('state-neutral-bg')}'/>"
+           f"<path d='M{cx} {cy - 18} a18 18 0 0 1 18 18' fill='none' stroke-width='4' "
+           f"stroke-linecap='round' stroke='{hx('color-brand-primary')}'>"
+           f"<animateTransform attributeName='transform' type='rotate' "
+           f"from='0 {cx} {cy}' to='360 {cx} {cy}' dur='0.9s' repeatCount='indefinite'/>"
+           f"</path>"
+           f"<text x='{cx}' y='{cy + 46}' text-anchor='middle' "
+           f"font-family='Segoe UI, sans-serif' font-size='15' font-weight='600' "
+           f"fill='{hx('text-primary')}'>Loading {label}...</text>"
+           f"<text x='{cx}' y='{cy + 68}' text-anchor='middle' "
+           f"font-family='Segoe UI, sans-serif' font-size='12' "
+           f"fill='{hx('text-muted')}'>Just a moment</text>"
+           "</svg>" + '"')
+    var = cb.loading_var(domain["tag"])
+    return Ctrl(f"img{domain['tag']}Loading", "Image", props={
+        "AccessibleLabel": f'"Loading {label}, please wait"',
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        "Fill": C_OVERLAY,
+        "Height": "App.Height",
+        "Image": f'"data:image/svg+xml;utf8," & EncodeUrl({svg})',
+        "ImagePosition": "ImagePosition.Center",
+        "TabIndex": "-1",
+        "Visible": var,
+        "Width": "App.Width",
+        "X": "0",
+        "Y": "0",
+    }, h="App.Height", vis=var)
 
 
 def _write(screen_name, text, domain=None):
@@ -185,7 +268,8 @@ def build_hub():
     from gen_screen import render_screen
     if seen["props"].get("OnVisible"):
         raise SystemExit("Masterdata Hub har faaet en OnVisible - byg den ind her.")
-    _write(d["screen"], render_screen(d["screen"], seen["props"], seen["children"]))
+    _write(d["screen"], render_screen(d["screen"], screen_props(seen["props"]),
+                                      seen["children"]))
 
 
 # ---------------------------------------------------------------------------
@@ -207,9 +291,11 @@ def build_functionallocation():
     # hubben beder om en ny eller en anden anmodning.
     init = cb.with_reqid(cb.domain_onstart(d), d)
     seen["props"]["OnVisible"] = (open_block(d, init) + ";\n\n"
-                                  + cb.with_reqid(own, d))
+                                  + cb.with_reqid(own, d) + done(d))
+    seen["children"].append(loading_overlay(d, "Functional Location"))
     from gen_screen import render_screen
-    _write(d["screen"], render_screen(d["screen"], seen["props"], seen["children"]))
+    _write(d["screen"], render_screen(d["screen"], screen_props(seen["props"]),
+                                      seen["children"]))
 
 
 # ---------------------------------------------------------------------------
@@ -237,7 +323,7 @@ def build_domain_app(key):
     # resten, naar skaermen skrives (_write).
     init = cb.domain_onstart(d) + ";\n" + dp.clear_form_fx()
     seen["props"]["OnVisible"] = (open_block(d, init) + ";\n\n"
-                                  + me + dp.refresh_rows_fx())
+                                  + me + dp.refresh_rows_fx() + done(d))
     # Felternes kontroller hedder inp<Kolonne>, con<Kolonne> og
     # con<Kolonne>Lbl - uden Dom. Manufacturer er et felt i begge domaener,
     # saa ogsaa de skal have domaenets praefiks. De faar Dom her, og _write
@@ -257,196 +343,41 @@ def build_domain_app(key):
         _subst_props(seen["children"], lambda v: pat.sub(lambda m: plain[m.group(1)], v))
         seen["props"] = {k: pat.sub(lambda m: plain[m.group(1)], v)
                          for k, v in seen["props"].items()}
+    # Efter omdoebningen - spinneren har allerede domaenets eget praefiks.
+    seen["children"].append(loading_overlay(
+        d, {"equipment": "Equipments", "material": "Materials"}[key]))
     from gen_screen import render_screen
-    _write(d["screen"], render_screen(d["screen"], seen["props"], seen["children"]), d)
+    _write(d["screen"], render_screen(d["screen"], screen_props(seen["props"]),
+                                      seen["children"]), d)
 
 
 # ---------------------------------------------------------------------------
-# VH-planen: to skaerme
+# VH-planen
 # ---------------------------------------------------------------------------
-def _walk(c):
-    yield c
-    for k in c.children:
-        yield from _walk(k)
-
-
-def _subst_props(roots, fn):
-    for r in roots:
-        for c in _walk(r):
-            for k, v in list(c.props.items()):
-                if isinstance(v, str):
-                    c.props[k] = fn(v)
-
-
 def build_vhplan():
-    """Skaerm 1 (ScreenVhPlan): Plan og Items - trin 1 og 2.
-    Skaerm 2 (ScreenVhTasks): det aktive items task list, operationer,
-    pakker, materialer og dokumenter, samt dispatch - trin 3 til 5.
-    Gem-kortet (trin 6) staar paa begge, saa en kladde kan gemmes fra
-    begge skaerme.
+    """VH-planen som EEN skaerm, som i appen selv.
 
-    SNITTET GAAR VED ITEMET. Alt paa skaerm 2 handler om det aktive item,
-    og det vaelges paa skaerm 1 - eller i vaelgeren oeverst paa skaerm 2.
-
-    DEN ENE REFERENCE PAA TVAERS
-    ----------------------------
-    Naar et andet item aabnes, nulstiller Items-kortet alle editorens
-    felter - OGSAA task list-vaelgeren, som nu staar paa skaerm 2. En
-    kontrol paa en anden skaerm kan ikke nulstilles derfra, saa den
-    nulstilles i stedet, naar skaerm 2 vises. Dens OnChange skriver kun,
-    naar valget er et andet end itemets eget, saa nulstillingen er en ren
-    nulhandling. Omvendt: skifter man item paa skaerm 2, nulstilles
-    editoren paa skaerm 1, naar den vises igen (varVhpEditorStale)."""
+    I VH-plan-appen er en ny plan en ny app, saa editorens felter staar
+    altid paa deres Default. Her kan "New request" eller "Open" komme, mens
+    en anden plan er aaben - editoren nulstilles derfor efter klargoeringen,
+    med det samme, som Items-kortets "Open" goer."""
     d = cb.BY_KEY["vhplan"]
     _navigation()
-    build = os.path.join(cb.ROOT, d["folder"], "build")
-    sys.path.insert(0, build)
-    from gen_screen import render_screen, C_APP_BG
-    from build_helpers import app_frame, button, card, field_cell, dropdown
-    from side_nav import side_nav
-    import build_hero
-    from build_hero import HELP_ON, HELP_ACTION
-    from build_plan_header import build_plan_header, section_header
-    import build_items
-    from build_items import build_items_section
-    from build_tasklist import (build_tasklist_section, build_dispatch_section,
-                                build_email_fab, OPS_CW)
-    from build_modal import (build_tasklist_picker_modal, build_longtext_modal,
-                             build_modal_backdrop)
-    from build_save import build_save_section
-    from layout_tokens import fits, TWO_COL_MIN
-
-    s1, s2 = d["screen"], cb.VH_TASKS_SCREEN
-    reset_tl = "; Reset(drpVhpItemTasklist)"
-    if reset_tl not in build_items.RESET_EDITOR_CONTROLS:
-        raise SystemExit("VH-plan: Items-kortet nulstiller ikke laengere "
-                         "drpVhpItemTasklist som forventet - ret build_vhplan().")
-
-    def top_bar(nav):
-        """VH-planens egen topbjaelke med een knap mere: til den anden skaerm."""
-        orig = build_hero._actions
-        build_hero._actions = lambda: orig() + [nav]
-        try:
-            return build_hero.build_top_bar()
-        finally:
-            build_hero._actions = orig
-
-    # --- skaerm 1 -----------------------------------------------------------
-    to_tasks = button("btnVhpToTasks", '"Task list"', f"Navigate({s2}, ScreenTransition.None)",
-                      primary=True, width=120, height=36,
-                      accessible='"Go to task list, operations and dispatch for the active item"')
-    sec1 = [build_plan_header(), build_items_section(), build_save_section()]
-    root1 = app_frame("Vhp", top_bar(to_tasks), sec1, body_gap=20)
-    rail1, overlay1 = side_nav("Vhp", "vhplan", HELP_ON, HELP_ACTION)
-    kids1 = [root1, rail1, *overlay1]
-    _subst_props(kids1, lambda v: v.replace(reset_tl, ""))
-
-    # I VH-plan-appen er en ny plan en ny app, saa editorens felter staar
-    # altid paa deres Default. Her kan "New request" komme, mens en anden
-    # plan er aaben - editoren nulstilles derfor ogsaa efter klargoeringen.
-    init = (cb.with_reqid(cb.domain_onstart(d), d)
-            + ";\nSet(varVhpEditorStale, true)")
-    stale = ("// Skiftede man item paa skaerm 2, viser editoren her stadig det\n"
-             "// gamle. Kontrollerne kan kun nulstilles fra deres egen skaerm.\n"
-             "If(\n"
-             "    varVhpEditorStale,\n"
-             "    Set(varVhpEditorStale, false);\n"
-             "    " + build_items.SEED_FL_PICKER.replace("\n", "\n    ") + ";\n"
-             "    " + build_items.RESET_EDITOR_CONTROLS.replace(reset_tl, "") + "\n"
-             ")")
-    props1 = {"Fill": C_APP_BG, "OnVisible": open_block(d, init) + ";\n\n" + stale}
-
-    # --- skaerm 2 -----------------------------------------------------------
-    to_plan = button("btnVhtToPlan", '"Plan and items"',
-                     f"Navigate({s1}, ScreenTransition.None)", width=150, height=36,
-                     accessible='"Back to the plan and its items"')
-    pick = dropdown(
-        "drpVhtActiveItem", "Sort(colVhpItems, ItemId)",
-        "LookUp(colVhpItems, ItemId = varVhpActiveItemId)",
-        item_display=('"Item " & Text(ThisItem.ItemId) & " - " & '
-                      'Coalesce(ThisItem.ShortText, "no short text")'),
-        value_field="ItemId", label='"Active item"')
-    pick.props["OnChange"] = (
-        "If(\n"
-        "    !IsBlank(Self.Selected.ItemId) && Self.Selected.ItemId <> varVhpActiveItemId,\n"
-        "    Set(varVhpActiveItemId, Self.Selected.ItemId);\n"
-        "    Set(varVhpItemValidated, false);\n"
-        '    Set(varVhpFlMeta, "");\n'
-        "    Set(varVhpEditorStale, true);\n"
-        "    Reset(drpVhpItemTasklist)\n"
-        ")")
-    item_card = card("conVhtItemCard", [
-        section_header("conVhtItemHead", "Active item",
-                       "Everything below belongs to this item. Items are added on the plan screen.",
-                       "Step 2"),
-        field_cell("conVhtCellItem", "Item", pick,
-                   width=fits(OPS_CW, TWO_COL_MIN, OPS_CW, "360"), container_w=OPS_CW,
-                   fill_portions_formula="0"),
-    ])
-    sec2 = [item_card, build_tasklist_section(), build_dispatch_section(), build_save_section()]
-    root2 = app_frame(cb.VH_TASKS_TAG, top_bar(to_plan), sec2, body_gap=20, body_pad_b=100)
-    rail2, overlay2 = side_nav(cb.VH_TASKS_TAG, "vhplan", HELP_ON, HELP_ACTION)
-    kids2 = [root2, rail2, build_modal_backdrop(), build_tasklist_picker_modal(),
-             build_longtext_modal(), build_email_fab(), *overlay2]
-    # Sidebarens VH-plan-punkt er markeret paa begge skaerme og lukker kun
-    # menuen, naar man staar i appen, det peger paa. Paa skaerm 2 skal det
-    # foere tilbage til skaerm 1.
-    here = [c for r in kids2 for c in _walk(r)
-            if c.name in ("img%sNavVhplan" % cb.VH_TASKS_TAG,
-                          "img%sNavVhplanOpen" % cb.VH_TASKS_TAG)]
-    if len(here) != 2:
-        raise SystemExit("VH-plan: fandt ikke sidebarens VH-plan-punkt paa skaerm 2.")
-    for c in here:
-        c.props["OnSelect"] = f"Set(gblNavOpen, false); Navigate({s1}, ScreenTransition.None)"
-    props2 = {"Fill": C_APP_BG,
-              "OnVisible": ("// Task list-vaelgeren skal vise det AKTIVE items liste - det\n"
-                            "// kan vaere skiftet paa skaerm 1. Se build_vhplan().\n"
-                            "Reset(drpVhpItemTasklist)")}
-
-    # Topbjaelken og gem-kortet staar paa begge skaerme. Paa skaerm 2 faar
-    # de Vht i stedet for Vhp i navnet - et kontrolnavn er unikt i hele appen.
-    names1 = {c.name for r in kids1 for c in _walk(r)}
-    dup = sorted({c.name for r in kids2 for c in _walk(r)} & names1)
-    new = {n: n.replace("Vhp", cb.VH_TASKS_TAG, 1) for n in dup}
-    bad = [n for n in dup if "Vhp" not in n or new[n] in names1]
-    if bad:
-        raise SystemExit("VH-plan: kan ikke give disse et unikt navn paa skaerm 2:\n  "
-                         + "\n  ".join(bad))
-    if dup:
-        pat = re.compile(r"\b(%s)\b" % "|".join(re.escape(n) for n in dup))
-        for r in kids2:
-            for c in _walk(r):
-                c.name = new.get(c.name, c.name)
-        _subst_props(kids2, lambda v: pat.sub(lambda m: new[m.group(1)], v))
-
-    check_vhplan_split(kids1, kids2, set(new.values()))
-    _write(s1, render_screen(s1, props1, kids1))
-    _write(s2, render_screen(s2, props2, kids2))
-
-
-def check_vhplan_split(kids1, kids2, copies):
-    """Har de to skaerme tilsammen hver kontrol, VH-plan-appen har?
-
-    Faar VH-plan en ny sektion eller en ny popup i sin assemble_screen.py,
-    kommer den ikke automatisk med her - kompositionen er to skaerme og
-    staar derfor i build_vhplan(). Uden det tjek ville den bare mangle."""
-    d = cb.BY_KEY["vhplan"]
     asm = _load(d, "assemble_screen.py")
     seen = _capture(asm)
     asm.build_screen()
-    alone = {c.name for r in seen["children"] for c in _walk(r)}
-    both = {c.name for r in kids1 + kids2 for c in _walk(r)}
-    # Sidebaren og rammen paa skaerm 2 hedder Vht; det gaelder ogsaa dem, der
-    # ikke er kopier, fordi side_nav og app_frame navngiver efter praefikset.
-    missing = sorted(n for n in alone - both
-                     if n.replace("Vhp", cb.VH_TASKS_TAG, 1) not in both)
-    if missing:
-        raise SystemExit(
-            "VH-plan har kontroller, som ingen af den samlede apps to VH-skaerme "
-            "har:\n  " + "\n  ".join(missing[:30]) +
-            "\n\nEr der kommet en ny sektion eller popup i Maintenance Plan App/"
-            "build/assemble_screen.py? Saa skal den ogsaa placeres i\n"
-            "BIO SAP App/build/build_screens.py, build_vhplan().")
+    if seen["props"].get("OnVisible"):
+        raise SystemExit("VH-plan har faaet en OnVisible - byg den ind i build_vhplan().")
+    import build_items
+    init = (cb.with_reqid(cb.domain_onstart(d), d) + ";\n"
+            "// Editoren skal vise den plan, der lige er klargjort.\n"
+            + build_items.SEED_FL_PICKER + ";\n"
+            + build_items.RESET_EDITOR_CONTROLS)
+    seen["props"]["OnVisible"] = open_block(d, init) + done(d)
+    seen["children"].append(loading_overlay(d, "VH-plan"))
+    from gen_screen import render_screen
+    _write(d["screen"], render_screen(d["screen"], screen_props(seen["props"]),
+                                      seen["children"]))
 
 
 # ---------------------------------------------------------------------------

@@ -18,12 +18,13 @@ Baggrunden for beslutningen står i
 | Skærm | Indhold | Kontroller |
 |---|---|---|
 | `ScreenMdHub` | Hubben. Startskærm | 106 |
-| `ScreenFunctionalLocation` | Functional Location | 114 |
-| `ScreenVhPlan` | VH-plan **1/2**: plan og items (trin 1–2) + gem | 239 |
-| `ScreenVhTasks` | VH-plan **2/2**: det aktive items task list, operationer, pakker, materialer, dokumenter, dispatch (trin 3–5) + gem | 210 |
-| `ScreenEquipment` | Equipments | 208 |
-| `ScreenMaterial` | Materials | 229 |
-| | **I alt** | **1.106** |
+| `ScreenFunctionalLocation` | Functional Location | 115 |
+| `ScreenVhPlan` | VH-plan | 384 |
+| `ScreenEquipment` | Equipments | 209 |
+| `ScreenMaterial` | Materials | 230 |
+| | **I alt** | **1.044** |
+
+Hver domæneskærm har én kontrol mere end i den enkelte app: ventespinneren.
 
 Tallene skrives af `build/check_combined.py` ved hvert build.
 
@@ -36,8 +37,8 @@ Tallene skrives af `build/check_combined.py` ved hvert build.
   domæne havde som selvstændig app, kører i skærmens `OnVisible` første gang,
   skærmen vises. Kommer man tilbage, sker der ingenting.
 - **Forsinket indlæsning** (standard i Studio): en skærms kontroller oprettes
-  først, når man går til den. Derfor er VH-planen delt i to. Hver af de to
-  halvdele er omtrent på størrelse med de andre skærme.
+  først, når man går til den. VH-planen er én skærm som i dag. Den blev
+  prøvet delt i to, men det er droppet.
 - **De navngivne formler** (opslagslister, FL-regler) evalueres dovent. Et
   domæne, man ikke åbner, koster ingenting.
 
@@ -58,9 +59,12 @@ med det, den sidst blev klargjort til (`var<X>Opened`). Er det det samme, sker
 der ingenting. Er det noget andet, kører domænets egen opstart. Se
 `build/build_screens.py`, `open_block()`.
 
-**VH-planens to skærme.** Knappen *Task list* i topbjælken fører til skærm 2,
-og *Plan and items* fører tilbage. Øverst på skærm 2 kan man skifte aktivt
-item uden at gå tilbage. Gem-kortet står på begge skærme.
+**Ventespinner.** Mens et domæne klargøres (første besøg, *New request*,
+*Open* eller et dyblink), ligger et slør over skærmen med et roterende hjul og
+"Loading VH-plan..." (osv.). Det forsvinder, når dataene er hentet, og
+imens kan man ikke trykke på en formular, der er ved at blive fyldt. Alle
+skærme har desuden Power Apps' egen `LoadingSpinner`, mens kontrollerne
+tegnes, også ved opstart. Se `build/build_screens.py`, `loading_overlay()`.
 
 ## Dyblinks
 
@@ -109,7 +113,9 @@ item uden at gå tilbage. Gem-kortet står på begge skærme.
    ```
 
    `--clean` første gang, så hele træet bygges på én gang. Den tomme apps
-   `Screen1` kan slettes i Studio bagefter.
+   `Screen1` kan slettes i Studio bagefter. Det samme gælder `ScreenVhTasks`, hvis appen
+   blev deployet, mens VH-planen var delt i to: deploy fjerner ikke en
+   skærm, der ikke længere findes i repoet.
 
 ## Testplan
 
@@ -117,8 +123,8 @@ item uden at gå tilbage. Gem-kortet står på begge skærme.
 2. Sidebar → VH-plan → udfyld planhovedet → sidebar → Equipments →
    sidebar → VH-plan. Planhovedet skal stå, som man forlod det.
 3. Hub → *New request* på VH-plan, mens en plan er åben: en ny, tom plan.
-4. Hub → *Open* på en gemt VH-plan: planen, dens items og operationer
-   indlæses. Skift til skærm 2 med *Task list*, og skift item i vælgeren øverst.
+4. Hub → *Open* på en gemt VH-plan: ventespinneren vises, og planen, dens
+   items og operationer indlæses.
 5. Equipments og Materials: udfyld formularen i den ene, skift til den anden
    og tilbage. Formularerne må ikke blande sig.
 6. Dyblink: `?domain=vhplan&reqid=<guid>` åbner direkte i planen.
@@ -136,7 +142,7 @@ python3 tools/build_all.py --app biosap # kun den samlede
 |---|---|
 | `build/combined.py` | Domænerne, omdøbningen og indlæsningen af de fem appers `App.pa.yaml` |
 | `build/generate_app.py` | → `../App.pa.yaml`: formlerne flettet, slank OnStart, StartScreen |
-| `build/build_screens.py` | → de seks skærme. Hver app i sin egen proces |
+| `build/build_screens.py` | → de fem skærme. Hver app i sin egen proces |
 | `build/check_combined.py` | Unikke navne i hele appen, ingen referencer på tværs af skærme, ingen delte variabler |
 | `build/check_layout.py` | `tools/check_layout.py` på hver skærm |
 
@@ -144,4 +150,4 @@ python3 tools/build_all.py --app biosap # kun den samlede
 byggere. Kun navigationen, navnene og opstarten ændres. Retter du noget i et
 domæne, så ret det i domænets egen app. Byggeriet stopper med en besked, hvis
 en af de fem apps ændrer sig, så den samlede app ikke længere passer, fx en
-ny sektion i VH-planen eller en anden OnStart.
+anden OnStart eller OnVisible.
