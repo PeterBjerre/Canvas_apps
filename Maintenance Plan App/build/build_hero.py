@@ -1,26 +1,26 @@
 # -*- coding: utf-8 -*-
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gen_screen import (Ctrl, C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED,
-                        C_PRIMARY, C_WHITE, C_NEUTRAL_BG, C_INFO_FG, SHELL_W)
-from build_helpers import text_ctrl, group, button, top_bar
-from layout_tokens import at_least
+from gen_screen import Ctrl, SHELL_W
+from build_helpers import button, top_bar
+from design_tokens import ref_hex
 
 # Topbjaelken er ALT, der er tilbage af hero-kortet.
 #
 # Heroen var et kort oeverst i kroppen med beskrivelse, procestrin,
 # statuslinje, "* Required" og "Show field help". Det er forenklet:
 #
-#   procestrin        -> under titlen i topbjaelken (i stedet for undertitlen)
+#   procestrin        -> trinindikatoren under titlen (stepper)
 #   Show field help   -> EEN Help-kontakt i sidebaren. Den slaar baade
 #   + de fire ? Help     feltforklaringerne og sektionernes hjaelpepaneler
 #                        til og fra (varVhpShowHints).
 #   * Required        -> Plan Header-kortet, ved siden af Step 1
 #   beskrivelse       -> slettet
 #   statuslinje       -> slettet (txtVhpRuntimeInfo)
-BW = {"btnVhpValidate": 110, "btnVhpExport": 130}
-BAR_GAP = 10
-NARROW_HIDE = ("btnVhpExport",)
+#
+# Validate staar i Dispatch and Control-kortet (trin 5), hvor rapporten
+# staar - se build_tasklist.build_dispatch_section. Export JSON og "Send as
+# email" er fjernet: planen sendes videre ved at gemme og indsende den.
 
 # EEN hjaelpekontakt. Foer var der fem: "Show field help" i heroen og en
 # "? Help" i hver af de fire sektioner. De slaar nu alle det samme til.
@@ -29,19 +29,11 @@ NARROW_HIDE = ("btnVhpExport",)
 HELP_ON = "IfError(varVhpShowHints, false)"
 HELP_ACTION = f"Set(varVhpShowHints, !{HELP_ON})"
 
-# De fem procestrin. Staar paa een linje under titlen, naar der er plads -
-# ellers staar undertitlen der i stedet. Aldrig to linjer: bjaelken har en
-# fast hoejde.
-CHIP_W, CHIP_GAP, N_CHIPS = 118, 8, 5
-CHIPS_W = N_CHIPS * CHIP_W + (N_CHIPS - 1) * CHIP_GAP      # 622
 
-
-def _actions():
-    # ------------------------------------------------------------------
-    # Validering. Reglerne er de samme som i oplaegget (docs/01) - S1, S3,
-    # S4 og S5 gaelder kun strategiplaner.
-    # ------------------------------------------------------------------
-    btnValidate = button(
+def validate_button():
+    """Validering. Reglerne er de samme som i oplaegget (docs/01) - S1, S3,
+    S4 og S5 gaelder kun strategiplaner."""
+    return button(
         "btnVhpValidate", "\"Validate\"",
         (
             "Set(varVhpPlanValidated, true);\n"
@@ -157,120 +149,94 @@ def _actions():
             "    If(IsBlank(varVhpLastValidationErrors), \" No validation issues.\", \" See validation report.\")\n"
             ")"
         ),
-        primary=True, width=BW["btnVhpValidate"], height=36)
+        primary=True, width=110, height=36)
 
-    btnExport = button(
-        "btnVhpExport", "\"Export JSON\"",
-        (
-            "Set(\n"
-            "    varVhpExportJson,\n"
-            "    JSON(\n"
-            "        {\n"
-            "            plant: varVhpPlan.Plant,\n"
-            "            planType: varVhpPlan.PlanType,\n"
-            "            strategy: varVhpPlan.Strategy,\n"
-            "            planText: varVhpPlan.PlanText,\n"
-            "            cycle: varVhpPlan.Cycle,\n"
-            "            unit: varVhpPlan.Unit,\n"
-            "            packages:\n"
-            "                ForAll(\n"
-            "                    Sort(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy), PackageNo),\n"
-            "                    { packageNo: PackageNo, shortCode: ShortCode, cycleLength: CycleLength,\n"
-            "                      cycleUnit: CycleUnit, hierarchy: Hierarchy }\n"
-            "                ),\n"
-            "            items:\n"
-            "                ForAll(\n"
-            "                    Sort(colVhpItems, ItemId) As I,\n"
-            "                    {\n"
-            "                        itemId: I.ItemId, shortText: I.ShortText,\n"
-            "                        functionalLocation: I.FunctionalLocation,\n"
-            "                        mainWorkCenter: I.MainWorkCenter, activityType: I.ActivityType,\n"
-            "                        tasklistKey: I.TasklistKey, status: I.Status,\n"
-            "                        operations:\n"
-            "                            ForAll(\n"
-            "                                Sort(Filter(colVhpOperations, ItemId = I.ItemId), Value(OperationNo)) As OP,\n"
-            "                                {\n"
-            "                                    operationNo: OP.OperationNo,\n"
-            "                                    shortText: OP.OperationShortText,\n"
-            "                                    work: OP.WorkHours, duration: OP.DurationHours,\n"
-            "                                    mainWorkCenter: OP.MainWorkCenter, vendor: OP.Vendor,\n"
-            "                                    packages:\n"
-            "                                        ForAll(\n"
-            "                                            Sort(\n"
-            "                                                Filter(\n"
-            "                                                    colVhpStrategyPackages As P,\n"
-            "                                                    P.StrategyKey = varVhpPlan.Strategy &&\n"
-            "                                                    \";\" & Text(P.PackageNo) & \";\" in Coalesce(OP.PackagesKey, \";\")\n"
-            "                                                ),\n"
-            "                                                PackageNo\n"
-            "                                            ),\n"
-            "                                            { packageNo: PackageNo }\n"
-            "                                        )\n"
-            "                                }\n"
-            "                            )\n"
-            "                    }\n"
-            "                )\n"
-            "        },\n"
-            "        JSONFormat.IndentFour\n"
-            "    )\n"
-            ");\n"
-            "Set(varVhpRuntimeInfo, \"JSON exported: \" & Text(CountRows(colVhpItems)) & \" item(s), \" & Text(Len(varVhpExportJson)) & \" characters.\")"
-        ),
-        primary=False, width=BW["btnVhpExport"], height=36)
-
-    # Help, tema og vejen til hubben staar i sidebaren - se HELP_ON og
-    # tools/side_nav.py.
-    return [btnValidate, btnExport]
+# ---------------------------------------------------------------------------
+# Trinindikatoren
+# ---------------------------------------------------------------------------
+# Seks trin - de samme som kortenes Step-maerker. Et trin er NAAET, naar
+# betingelsen er sand, og FAERDIGT, naar det naeste er naaet (det sidste:
+# naar planen er gemt). Betingelserne er procestrinenes fra foer.
+STEPS = [
+    ('"Plan"', "true"),
+    ('"Item"', "varVhpPlanCommitted"),
+    ('"Task list"', "varVhpPlanCommitted && CountRows(colVhpItems) > 0"),
+    ('If(varVhpPlan.PlanType = "Strategy", "Packages", "Operations")',
+     "varVhpPlanCommitted && !IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId, TasklistKey))"),
+    ('"Dispatch"', "varVhpPlanCommitted && CountRows(colVhpOperations) > 0"),
+    ('"Save"', "varVhpPlanCommitted && CountRows(colVhpOperations) > 0 && "
+               "IfError(varVhpPlanValidated, false) && IsBlank(varVhpLastValidationErrors)"),
+]
+SAVED = "!IsBlank(varVhpPlanKey)"
+STEP_W, STEP_H, R = 120, 60, 13
 
 
-def _steps():
-    step_defs = [
-        ("txtVhpStep1", "\"1. Plan\"", "true"),
-        ("txtVhpStep2", "\"2. Item\"", "varVhpPlanCommitted"),
-        ("txtVhpStep3", "\"3. Tasklist\"", "varVhpPlanCommitted && CountRows(colVhpItems) > 0"),
-        ("txtVhpStep4",
-         "If(varVhpPlan.PlanType = \"Strategy\", \"4. Packages\", \"4. Operations\")",
-         "varVhpPlanCommitted && !IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId, TasklistKey))"),
-        ("txtVhpStep5", "\"5. Dispatch\"",
-         "varVhpPlanCommitted && CountRows(colVhpOperations) > 0"),
-    ]
-    steps = []
-    for nm, lbl, active_formula in step_defs:
-        steps.append(text_ctrl(
-            nm, lbl, size=12, weight="Semibold", height=26, width=CHIP_W, wrap="false",
-            accessible=lbl,
-            extra={
-                "Align": "Align.Center",
-                "AlignInContainer": "AlignInContainer.Center",
-                "Color": f"If({active_formula}, {C_WHITE}, {C_MUTED})",
-                "Fill": f"If({active_formula}, {C_PRIMARY}, {C_NEUTRAL_BG})",
-                "PaddingLeft": "8", "PaddingRight": "8",
-                "RadiusBottomLeft": "14", "RadiusBottomRight": "14",
-                "RadiusTopLeft": "14", "RadiusTopRight": "14",
-            }))
-    return steps
+def _hx(name):
+    """En farvetoken midt i en SVG-streng."""
+    return '" & %s & "' % ref_hex(name)
+
+
+def stepper():
+    """Trinene som en raekke cirkler med en streg imellem:
+
+        (v)-----(v)-----(3)-----(4)       faerdigt: groen med flueben
+                         ^                 aktuelt:  ring om nummeret
+                                           endnu ikke: graa
+
+    EET Image med en SVG, af samme grund som sidebaren og temaknappen: den
+    tegner praecis det, der staar, i temaets farver. Tilstanden regnes i
+    Power Fx, saa billedet skifter, mens man arbejder."""
+    n = len(STEPS)
+    w = n * STEP_W
+    cy = R + 4
+    ok, grey = ref_hex("state-ok-fg"), ref_hex("text-muted")
+    line, text = ref_hex("border-default"), ref_hex("text-primary")
+    surface = _hx("bg-surface")
+    font = "font-family='Segoe UI, sans-serif' text-anchor='middle'"
+    reached = ["(%s)" % c for _l, c in STEPS]
+    done = reached[1:] + ["(%s)" % SAVED]
+    fx = ['"<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'%d\' height=\'%d\' '
+          'viewBox=\'0 0 %d %d\'>"' % (w, STEP_H, w, STEP_H)]
+    for i in range(n - 1):
+        x1 = STEP_W * i + STEP_W // 2 + R + 4
+        x2 = STEP_W * (i + 1) + STEP_W // 2 - R - 4
+        fx.append('"<line x1=\'%d\' y1=\'%d\' x2=\'%d\' y2=\'%d\' stroke-width=\'3\' '
+                  'stroke=\'" & If(%s, %s, %s) & "\'/>"' % (x1, cy, x2, cy, done[i], ok, line))
+    for i, (label, _c) in enumerate(STEPS):
+        cx = STEP_W * i + STEP_W // 2
+        okc = _hx("state-ok-fg")
+        check = (f"<circle cx='{cx}' cy='{cy}' r='{R}' fill='{okc}'/>"
+                 f"<path d='M{cx - 5} {cy} l3.5 3.5 l6.5 -7' fill='none' stroke='{surface}' "
+                 f"stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/>")
+        current = (f"<circle cx='{cx}' cy='{cy}' r='{R + 3}' fill='none' stroke='{okc}' "
+                   f"stroke-width='2'/>"
+                   f"<circle cx='{cx}' cy='{cy}' r='{R - 1}' fill='{surface}' stroke='{okc}' "
+                   f"stroke-width='2'/>"
+                   f"<text x='{cx}' y='{cy + 5}' {font} font-size='13' font-weight='700' "
+                   f"fill='{okc}'>{i + 1}</text>")
+        later = (f"<circle cx='{cx}' cy='{cy}' r='{R}' fill='{_hx('text-muted')}'/>"
+                 f"<text x='{cx}' y='{cy + 5}' {font} font-size='13' font-weight='700' "
+                 f"fill='{surface}'>{i + 1}</text>")
+        fx.append('If(%s, "%s", %s, "%s", "%s")' % (done[i], check, reached[i], current, later))
+        fx.append('"<text x=\'%d\' y=\'%d\' %s font-size=\'12\' font-weight=\'600\' '
+                  'fill=\'" & If(%s, %s, %s) & "\'>" & %s & "</text>"'
+                  % (cx, STEP_H - 6, font, reached[i], text, grey, label))
+    fx.append('"</svg>"')
+    img = '"data:image/svg+xml;utf8," & EncodeUrl(\n    ' + " &\n    ".join(fx) + "\n)"
+    return Ctrl("imgVhpSteps", "Image", props={
+        "AccessibleLabel": '"Progress through the six steps of the maintenance plan"',
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        "Height": str(STEP_H),
+        "Image": img,
+        "ImagePosition": "ImagePosition.Fit",
+        "TabIndex": "-1",
+        "Width": f"Min({w}, {SHELL_W} - 2)",
+    }, h=STEP_H)
 
 
 def build_top_bar():
     """VH-planens topbjaelke - den samme som i de tre andre apps
-    (build_helpers.top_bar), men med procestrinene under titlen."""
-    actions = _actions()
-    # Pladsen til venstre for knapperne - samme regnestykke som
-    # gen_screen._resolve_grow, med de knapper, der er synlige.
-    terms = []
-    for a in actions:
-        t = f"{a.props['Width']} + {BAR_GAP}"
-        terms.append(f"If({at_least('Tablet')}, {t}, 0)" if a.name in NARROW_HIDE else t)
-    room = f"({SHELL_W} - " + " - ".join(f"({t})" for t in terms) + " - 2)"
-    chips_fit = f"{room} >= {CHIPS_W}"
-
-    strip = group("conVhpProcessStrip", _steps(), direction="Horizontal", gap=CHIP_GAP,
-                  height=26, width=CHIPS_W, align_items="Center", visible=chips_fit)
-    fallback = text_ctrl("txtVhpSub", '"Maintenance plans for SAP PM"', size=13, color=C_MUTED,
-                         height=26, wrap="false", visible=f"!({chips_fit})")
-    sub = group("conVhpBarSub", [strip, fallback], direction="Horizontal", gap=0, height=26)
-    return top_bar("Vhp", '"VH-plan"', None, actions, gap=BAR_GAP,
-                   narrow_hide=NARROW_HIDE, sub=[sub])
-
-
-
+    (build_helpers.top_bar), men med trinindikatoren under titlen og uden
+    knapper: Validate staar i trin 5, og Help og tema i sidebaren."""
+    return top_bar("Vhp", '"VH-plan"', None, [], sub=[stepper()])

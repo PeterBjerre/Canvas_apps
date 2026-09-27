@@ -81,7 +81,6 @@ Set(varVhpNextItemId, 1);
 Set(varVhpRuntimeInfo, "");
 Set(varVhpFlMeta, "");
 Set(varVhpLastValidationErrors, "");
-Set(varVhpExportJson, "");
 Set(varVhpTasklistPickerOpen, false);
 
 // Get-flowet svarer med en STRENG, der skal gennem ParseJSON.

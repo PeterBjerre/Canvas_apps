@@ -50,7 +50,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =25 + (0 + (Max((61), (36), (36))) * 1 + 0)
+                      =25 + (0 + ((95)) * 1 + 0)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -85,7 +85,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =0 + (Max((61), (36), (36))) * 1 + 0
+                            =0 + ((95)) * 1 + 0
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Center
                         LayoutDirection: |-
@@ -112,7 +112,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =61
+                                  =95
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -126,7 +126,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Width: |-
-                                  =Max(0, (((((App.Width - 56))) - 24 - 34)) - ((110) + 10) - (If(LayoutRank >= 2, (130) + 10, 0)) - 2)
+                                  =Max(0, (((((App.Width - 56))) - 24 - 34)) - 2)
                             Children:
                               - txtVhpTitle:
                                   Control: ModernText
@@ -161,565 +161,45 @@ Screens:
                                         ="VH-plan"
                                     Wrap: |-
                                         =false
-                              - conVhpBarSub:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
+                              - imgVhpSteps:
+                                  Control: Image
                                   Properties:
+                                    AccessibleLabel: |-
+                                        ="Progress through the six steps of the maintenance plan"
                                     BorderStyle: |-
                                         =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    FillPortions: |-
+                                    BorderThickness: |-
                                         =0
                                     Height: |-
-                                        =26
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Stretch
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =0
-                                    LayoutMinWidth: |-
-                                        =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
+                                        =60
+                                    Image: |-
+                                        ="data:image/svg+xml;utf8," & EncodeUrl(
+                                            "<svg xmlns='http://www.w3.org/2000/svg' width='720' height='60' viewBox='0 0 720 60'>" &
+                                            "<line x1='77' y1='17' x2='163' y2='17' stroke-width='3' stroke='" & If((varVhpPlanCommitted), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
+                                            "<line x1='197' y1='17' x2='283' y2='17' stroke-width='3' stroke='" & If((varVhpPlanCommitted && CountRows(colVhpItems) > 0), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
+                                            "<line x1='317' y1='17' x2='403' y2='17' stroke-width='3' stroke='" & If((varVhpPlanCommitted && !IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId, TasklistKey))), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
+                                            "<line x1='437' y1='17' x2='523' y2='17' stroke-width='3' stroke='" & If((varVhpPlanCommitted && CountRows(colVhpOperations) > 0), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
+                                            "<line x1='557' y1='17' x2='643' y2='17' stroke-width='3' stroke='" & If((varVhpPlanCommitted && CountRows(colVhpOperations) > 0 && IfError(varVhpPlanValidated, false) && IsBlank(varVhpLastValidationErrors)), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
+                                            If((varVhpPlanCommitted), "<circle cx='60' cy='17' r='13' fill='" & C.'hex-state-ok-fg' & "'/><path d='M55 17 l3.5 3.5 l6.5 -7' fill='none' stroke='" & C.'hex-bg-surface' & "' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/>", (true), "<circle cx='60' cy='17' r='16' fill='none' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='2'/><circle cx='60' cy='17' r='12' fill='" & C.'hex-bg-surface' & "' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='2'/><text x='60' y='22' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-state-ok-fg' & "'>1</text>", "<circle cx='60' cy='17' r='13' fill='" & C.'hex-text-muted' & "'/><text x='60' y='22' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-bg-surface' & "'>1</text>") &
+                                            "<text x='60' y='54' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='12' font-weight='600' fill='" & If((true), C.'hex-text-primary', C.'hex-text-muted') & "'>" & "Plan" & "</text>" &
+                                            If((varVhpPlanCommitted && CountRows(colVhpItems) > 0), "<circle cx='180' cy='17' r='13' fill='" & C.'hex-state-ok-fg' & "'/><path d='M175 17 l3.5 3.5 l6.5 -7' fill='none' stroke='" & C.'hex-bg-surface' & "' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/>", (varVhpPlanCommitted), "<circle cx='180' cy='17' r='16' fill='none' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='2'/><circle cx='180' cy='17' r='12' fill='" & C.'hex-bg-surface' & "' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='2'/><text x='180' y='22' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-state-ok-fg' & "'>2</text>", "<circle cx='180' cy='17' r='13' fill='" & C.'hex-text-muted' & "'/><text x='180' y='22' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-bg-surface' & "'>2</text>") &
+                                            "<text x='180' y='54' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='12' font-weight='600' fill='" & If((varVhpPlanCommitted), C.'hex-text-primary', C.'hex-text-muted') & "'>" & "Item" & "</text>" &
+                                            If((varVhpPlanCommitted && !IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId, TasklistKey))), "<circle cx='300' cy='17' r='13' fill='" & C.'hex-state-ok-fg' & "'/><path d='M295 17 l3.5 3.5 l6.5 -7' fill='none' stroke='" & C.'hex-bg-surface' & "' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/>", (varVhpPlanCommitted && CountRows(colVhpItems) > 0), "<circle cx='300' cy='17' r='16' fill='none' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='2'/><circle cx='300' cy='17' r='12' fill='" & C.'hex-bg-surface' & "' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='2'/><text x='300' y='22' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-state-ok-fg' & "'>3</text>", "<circle cx='300' cy='17' r='13' fill='" & C.'hex-text-muted' & "'/><text x='300' y='22' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-bg-surface' & "'>3</text>") &
+                                            "<text x='300' y='54' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='12' font-weight='600' fill='" & If((varVhpPlanCommitted && CountRows(colVhpItems) > 0), C.'hex-text-primary', C.'hex-text-muted') & "'>" & "Task list" & "</text>" &
+                                            If((varVhpPlanCommitted && CountRows(colVhpOperations) > 0), "<circle cx='420' cy='17' r='13' fill='" & C.'hex-state-ok-fg' & "'/><path d='M415 17 l3.5 3.5 l6.5 -7' fill='none' stroke='" & C.'hex-bg-surface' & "' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/>", (varVhpPlanCommitted && !IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId, TasklistKey))), "<circle cx='420' cy='17' r='16' fill='none' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='2'/><circle cx='420' cy='17' r='12' fill='" & C.'hex-bg-surface' & "' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='2'/><text x='420' y='22' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-state-ok-fg' & "'>4</text>", "<circle cx='420' cy='17' r='13' fill='" & C.'hex-text-muted' & "'/><text x='420' y='22' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-bg-surface' & "'>4</text>") &
+                                            "<text x='420' y='54' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='12' font-weight='600' fill='" & If((varVhpPlanCommitted && !IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId, TasklistKey))), C.'hex-text-primary', C.'hex-text-muted') & "'>" & If(varVhpPlan.PlanType = "Strategy", "Packages", "Operations") & "</text>" &
+                                            If((varVhpPlanCommitted && CountRows(colVhpOperations) > 0 && IfError(varVhpPlanValidated, false) && IsBlank(varVhpLastValidationErrors)), "<circle cx='540' cy='17' r='13' fill='" & C.'hex-state-ok-fg' & "'/><path d='M535 17 l3.5 3.5 l6.5 -7' fill='none' stroke='" & C.'hex-bg-surface' & "' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/>", (varVhpPlanCommitted && CountRows(colVhpOperations) > 0), "<circle cx='540' cy='17' r='16' fill='none' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='2'/><circle cx='540' cy='17' r='12' fill='" & C.'hex-bg-surface' & "' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='2'/><text x='540' y='22' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-state-ok-fg' & "'>5</text>", "<circle cx='540' cy='17' r='13' fill='" & C.'hex-text-muted' & "'/><text x='540' y='22' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-bg-surface' & "'>5</text>") &
+                                            "<text x='540' y='54' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='12' font-weight='600' fill='" & If((varVhpPlanCommitted && CountRows(colVhpOperations) > 0), C.'hex-text-primary', C.'hex-text-muted') & "'>" & "Dispatch" & "</text>" &
+                                            If((!IsBlank(varVhpPlanKey)), "<circle cx='660' cy='17' r='13' fill='" & C.'hex-state-ok-fg' & "'/><path d='M655 17 l3.5 3.5 l6.5 -7' fill='none' stroke='" & C.'hex-bg-surface' & "' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/>", (varVhpPlanCommitted && CountRows(colVhpOperations) > 0 && IfError(varVhpPlanValidated, false) && IsBlank(varVhpLastValidationErrors)), "<circle cx='660' cy='17' r='16' fill='none' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='2'/><circle cx='660' cy='17' r='12' fill='" & C.'hex-bg-surface' & "' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='2'/><text x='660' y='22' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-state-ok-fg' & "'>6</text>", "<circle cx='660' cy='17' r='13' fill='" & C.'hex-text-muted' & "'/><text x='660' y='22' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-bg-surface' & "'>6</text>") &
+                                            "<text x='660' y='54' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='12' font-weight='600' fill='" & If((varVhpPlanCommitted && CountRows(colVhpOperations) > 0 && IfError(varVhpPlanValidated, false) && IsBlank(varVhpLastValidationErrors)), C.'hex-text-primary', C.'hex-text-muted') & "'>" & "Save" & "</text>" &
+                                            "</svg>"
+                                        )
+                                    ImagePosition: |-
+                                        =ImagePosition.Fit
+                                    TabIndex: |-
+                                        =-1
                                     Width: |-
-                                        =Parent.Width
-                                  Children:
-                                    - conVhpProcessStrip:
-                                        Control: GroupContainer
-                                        Variant: AutoLayout
-                                        Properties:
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          DropShadow: |-
-                                              =DropShadow.None
-                                          FillPortions: |-
-                                              =0
-                                          Height: |-
-                                              =26
-                                          LayoutAlignItems: |-
-                                              =LayoutAlignItems.Center
-                                          LayoutDirection: |-
-                                              =LayoutDirection.Horizontal
-                                          LayoutGap: |-
-                                              =8
-                                          LayoutMinWidth: |-
-                                              =0
-                                          LayoutOverflowX: |-
-                                              =LayoutOverflow.Hide
-                                          LayoutOverflowY: |-
-                                              =LayoutOverflow.Hide
-                                          Visible: |-
-                                              =((App.Width - 120) - (110 + 10) - (If(LayoutRank >= 2, 130 + 10, 0)) - 2) >= 622
-                                          Width: |-
-                                              =622
-                                        Children:
-                                          - txtVhpStep1:
-                                              Control: ModernText
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    ="1. Plan"
-                                                Align: |-
-                                                    =Align.Center
-                                                AlignInContainer: |-
-                                                    =AlignInContainer.Center
-                                                BorderStyle: |-
-                                                    =BorderStyle.None
-                                                BorderThickness: |-
-                                                    =0
-                                                Color: |-
-                                                    =If(true, C.'text-on-primary', C.'text-muted')
-                                                Fill: |-
-                                                    =If(true, C.'color-brand-primary', C.'state-neutral-bg')
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                FontWeight: |-
-                                                    =FontWeight.Semibold
-                                                Height: |-
-                                                    =26
-                                                PaddingBottom: |-
-                                                    =0
-                                                PaddingLeft: |-
-                                                    =8
-                                                PaddingRight: |-
-                                                    =8
-                                                PaddingTop: |-
-                                                    =0
-                                                RadiusBottomLeft: |-
-                                                    =14
-                                                RadiusBottomRight: |-
-                                                    =14
-                                                RadiusTopLeft: |-
-                                                    =14
-                                                RadiusTopRight: |-
-                                                    =14
-                                                Size: |-
-                                                    =12
-                                                Text: |-
-                                                    ="1. Plan"
-                                                Width: |-
-                                                    =118
-                                                Wrap: |-
-                                                    =false
-                                          - txtVhpStep2:
-                                              Control: ModernText
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    ="2. Item"
-                                                Align: |-
-                                                    =Align.Center
-                                                AlignInContainer: |-
-                                                    =AlignInContainer.Center
-                                                BorderStyle: |-
-                                                    =BorderStyle.None
-                                                BorderThickness: |-
-                                                    =0
-                                                Color: |-
-                                                    =If(varVhpPlanCommitted, C.'text-on-primary', C.'text-muted')
-                                                Fill: |-
-                                                    =If(varVhpPlanCommitted, C.'color-brand-primary', C.'state-neutral-bg')
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                FontWeight: |-
-                                                    =FontWeight.Semibold
-                                                Height: |-
-                                                    =26
-                                                PaddingBottom: |-
-                                                    =0
-                                                PaddingLeft: |-
-                                                    =8
-                                                PaddingRight: |-
-                                                    =8
-                                                PaddingTop: |-
-                                                    =0
-                                                RadiusBottomLeft: |-
-                                                    =14
-                                                RadiusBottomRight: |-
-                                                    =14
-                                                RadiusTopLeft: |-
-                                                    =14
-                                                RadiusTopRight: |-
-                                                    =14
-                                                Size: |-
-                                                    =12
-                                                Text: |-
-                                                    ="2. Item"
-                                                Width: |-
-                                                    =118
-                                                Wrap: |-
-                                                    =false
-                                          - txtVhpStep3:
-                                              Control: ModernText
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    ="3. Tasklist"
-                                                Align: |-
-                                                    =Align.Center
-                                                AlignInContainer: |-
-                                                    =AlignInContainer.Center
-                                                BorderStyle: |-
-                                                    =BorderStyle.None
-                                                BorderThickness: |-
-                                                    =0
-                                                Color: |-
-                                                    =If(varVhpPlanCommitted && CountRows(colVhpItems) > 0, C.'text-on-primary', C.'text-muted')
-                                                Fill: |-
-                                                    =If(varVhpPlanCommitted && CountRows(colVhpItems) > 0, C.'color-brand-primary', C.'state-neutral-bg')
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                FontWeight: |-
-                                                    =FontWeight.Semibold
-                                                Height: |-
-                                                    =26
-                                                PaddingBottom: |-
-                                                    =0
-                                                PaddingLeft: |-
-                                                    =8
-                                                PaddingRight: |-
-                                                    =8
-                                                PaddingTop: |-
-                                                    =0
-                                                RadiusBottomLeft: |-
-                                                    =14
-                                                RadiusBottomRight: |-
-                                                    =14
-                                                RadiusTopLeft: |-
-                                                    =14
-                                                RadiusTopRight: |-
-                                                    =14
-                                                Size: |-
-                                                    =12
-                                                Text: |-
-                                                    ="3. Tasklist"
-                                                Width: |-
-                                                    =118
-                                                Wrap: |-
-                                                    =false
-                                          - txtVhpStep4:
-                                              Control: ModernText
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    =If(varVhpPlan.PlanType = "Strategy", "4. Packages", "4. Operations")
-                                                Align: |-
-                                                    =Align.Center
-                                                AlignInContainer: |-
-                                                    =AlignInContainer.Center
-                                                BorderStyle: |-
-                                                    =BorderStyle.None
-                                                BorderThickness: |-
-                                                    =0
-                                                Color: |-
-                                                    =If(varVhpPlanCommitted && !IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId, TasklistKey)), C.'text-on-primary', C.'text-muted')
-                                                Fill: |-
-                                                    =If(varVhpPlanCommitted && !IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId, TasklistKey)), C.'color-brand-primary', C.'state-neutral-bg')
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                FontWeight: |-
-                                                    =FontWeight.Semibold
-                                                Height: |-
-                                                    =26
-                                                PaddingBottom: |-
-                                                    =0
-                                                PaddingLeft: |-
-                                                    =8
-                                                PaddingRight: |-
-                                                    =8
-                                                PaddingTop: |-
-                                                    =0
-                                                RadiusBottomLeft: |-
-                                                    =14
-                                                RadiusBottomRight: |-
-                                                    =14
-                                                RadiusTopLeft: |-
-                                                    =14
-                                                RadiusTopRight: |-
-                                                    =14
-                                                Size: |-
-                                                    =12
-                                                Text: |-
-                                                    =If(varVhpPlan.PlanType = "Strategy", "4. Packages", "4. Operations")
-                                                Width: |-
-                                                    =118
-                                                Wrap: |-
-                                                    =false
-                                          - txtVhpStep5:
-                                              Control: ModernText
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    ="5. Dispatch"
-                                                Align: |-
-                                                    =Align.Center
-                                                AlignInContainer: |-
-                                                    =AlignInContainer.Center
-                                                BorderStyle: |-
-                                                    =BorderStyle.None
-                                                BorderThickness: |-
-                                                    =0
-                                                Color: |-
-                                                    =If(varVhpPlanCommitted && CountRows(colVhpOperations) > 0, C.'text-on-primary', C.'text-muted')
-                                                Fill: |-
-                                                    =If(varVhpPlanCommitted && CountRows(colVhpOperations) > 0, C.'color-brand-primary', C.'state-neutral-bg')
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                FontWeight: |-
-                                                    =FontWeight.Semibold
-                                                Height: |-
-                                                    =26
-                                                PaddingBottom: |-
-                                                    =0
-                                                PaddingLeft: |-
-                                                    =8
-                                                PaddingRight: |-
-                                                    =8
-                                                PaddingTop: |-
-                                                    =0
-                                                RadiusBottomLeft: |-
-                                                    =14
-                                                RadiusBottomRight: |-
-                                                    =14
-                                                RadiusTopLeft: |-
-                                                    =14
-                                                RadiusTopRight: |-
-                                                    =14
-                                                Size: |-
-                                                    =12
-                                                Text: |-
-                                                    ="5. Dispatch"
-                                                Width: |-
-                                                    =118
-                                                Wrap: |-
-                                                    =false
-                                    - txtVhpSub:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Maintenance plans for SAP PM"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =26
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              ="Maintenance plans for SAP PM"
-                                          Visible: |-
-                                              =!(((App.Width - 120) - (110 + 10) - (If(LayoutRank >= 2, 130 + 10, 0)) - 2) >= 622)
-                                          Wrap: |-
-                                              =false
-                        - btnVhpValidate:
-                            Control: ModernButton
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Validate"
-                              Align: |-
-                                  =Align.Center
-                              AlignInContainer: |-
-                                  =AlignInContainer.Center
-                              BasePaletteColor: |-
-                                  =C.'color-brand-primary'
-                              Color: |-
-                                  =C.'text-on-primary'
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              FontWeight: |-
-                                  =FontWeight.Semibold
-                              Height: |-
-                                  =36
-                              Layout: |-
-                                  =ButtonLayout.TextOnly
-                              LayoutMinWidth: |-
-                                  =110
-                              OnSelect: |-
-                                  =Set(varVhpPlanValidated, true);
-                                  Set(varVhpItemValidated, true);
-                                  With(
-                                      { isStrat: varVhpPlan.PlanType = "Strategy" },
-                                      With(
-                                          {
-                                              itemErr:
-                                                  Concat(
-                                                      Filter(
-                                                          colVhpItems,
-                                                          IsBlank(ShortText) || IsBlank(MainWorkCenter) || IsBlank(ActivityType) || IsBlank(FunctionalLocation)
-                                                      ),
-                                                      "Item " & Text(ItemId) & " (" & Coalesce(ShortText, "no short text") & "): missing required fields.",
-                                                      Char(10)
-                                                  ),
-                                              s1:
-                                                  If(isStrat && IsBlank(varVhpPlan.Strategy),
-                                                      "S1: A strategy must be chosen on a strategy plan.", ""),
-                                              s3:
-                                                  If(isStrat,
-                                                      Concat(
-                                                          Filter(colVhpItems, IsBlank(TasklistKey)),
-                                                          "S3: Item " & Text(ItemId) & " has no task list - the package allocation belongs to the task list.",
-                                                          Char(10)
-                                                      ), ""),
-                                              s4:
-                                                  If(isStrat,
-                                                      Concat(
-                                                          Filter(colVhpOperations, Len(Coalesce(PackagesKey, ";")) <= 1),
-                                                          "S4: Item " & Text(ItemId) & " operation " & OperationNo &
-                                                          " has no package and would never be carried out.",
-                                                          Char(10)
-                                                      ), ""),
-                                              s5:
-                                                  If(isStrat,
-                                                      Concat(
-                                                          Filter(
-                                                              colVhpStrategyPackages As P,
-                                                              P.StrategyKey = varVhpPlan.Strategy &&
-                                                              CountRows(Filter(colVhpOperations, ";" & Text(P.PackageNo) & ";" in Coalesce(PackagesKey, ";"))) = 0
-                                                          ),
-                                                          "S5: Package " & ShortCode & " (" & Text(CycleLength) & " " & CycleUnit &
-                                                          ") has no operations - the plan would call an empty order.",
-                                                          Char(10)
-                                                      ), "")
-                                  ,
-                                              r1:
-                                                  If(
-                                                      !IsBlank(varVhpPlan.Plant) && !IsBlank(varVhpPlan.PlanText) &&
-                                                          !StartsWith(Upper(varVhpPlan.PlanText), Upper(varVhpPlan.Plant)),
-                                                      "R1: Plan Text should start with the plant code " & varVhpPlan.Plant &
-                                                          " - otherwise the plan cannot be found without searching by plant.", ""),
-                                              r2:
-                                                  With(
-                                                      { n: CountRows(Filter(colVhpItems, StartsWith(ActivityType, "110") || StartsWith(ActivityType, "115"))) },
-                                                      If(
-                                                          n > 0 && IsBlank(varVhpPlan.SortField),
-                                                          "R2: Sort Field is required: " & Text(n) &
-                                                              " item(s) have activity type 110 or 115.", "")),
-                                              r4:
-                                                  With(
-                                                      { n: CountRows(Filter(colVhpItems, !IsBlank(Revision))) },
-                                                      If(
-                                                          n > 0 && (varVhpPlan.FirstCallDay <> 1 || varVhpPlan.FirstCallMonth <> 1),
-                                                          "R4: " & Text(n) & " item(s) are marked as outage work. " &
-                                                              "First call must be 01/01, otherwise the task misses the outage.", "")),
-                                              r5:
-                                                  With(
-                                                      { m: LookUp(colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon) },
-                                                      If(
-                                                          !IsBlank(varVhpPlan.CallHorizon) && m.SchedPeriod < 2,
-                                                          "R5: Scheduling period must be at least 2 years because of " &
-                                                              "the cost simulation in the BI report.", ""))
-                                          },
-                                          Set(
-                                              varVhpLastValidationErrors,
-                                              Concat(
-                                                  Filter(
-                                                      Table(
-                                                          { t: itemErr }, { t: s1 }, { t: s3 }, { t: s4 }, { t: s5 },
-                                                          { t: r1 }, { t: r2 }, { t: r4 }, { t: r5 }
-                                                      ),
-                                                      !IsBlank(t)
-                                                  ),
-                                                  t, Char(10)
-                                              )
-                                          )
-                                      )
-                                  );
-                                  Set(
-                                      varVhpRuntimeInfo,
-                                      "Validated: " & Text(CountRows(colVhpItems)) & " item(s), " &
-                                      Text(CountRows(colVhpOperations)) & " operation line(s), " &
-                                      Text(CountRows(Filter(colVhpItems, Status = "invalid"))) & " invalid item(s)." &
-                                      If(IsBlank(varVhpLastValidationErrors), " No validation issues.", " See validation report.")
-                                  )
-                              RadiusBottomLeft: |-
-                                  =10
-                              RadiusBottomRight: |-
-                                  =10
-                              RadiusTopLeft: |-
-                                  =10
-                              RadiusTopRight: |-
-                                  =10
-                              Size: |-
-                                  =14
-                              Text: |-
-                                  ="Validate"
-                              VerticalAlign: |-
-                                  =VerticalAlign.Middle
-                              Width: |-
-                                  =110
-                        - btnVhpExport:
-                            Control: ModernButton
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Export JSON"
-                              Align: |-
-                                  =Align.Center
-                              AlignInContainer: |-
-                                  =AlignInContainer.Center
-                              Appearance: |-
-                                  =ButtonAppearance.Outline
-                              BorderColor: |-
-                                  =C.'border-default'
-                              BorderThickness: |-
-                                  =1
-                              Color: |-
-                                  =C.'text-primary'
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              FontWeight: |-
-                                  =FontWeight.Semibold
-                              Height: |-
-                                  =36
-                              Layout: |-
-                                  =ButtonLayout.TextOnly
-                              LayoutMinWidth: |-
-                                  =130
-                              OnSelect: |-
-                                  =Set(
-                                      varVhpExportJson,
-                                      JSON(
-                                          {
-                                              plant: varVhpPlan.Plant,
-                                              planType: varVhpPlan.PlanType,
-                                              strategy: varVhpPlan.Strategy,
-                                              planText: varVhpPlan.PlanText,
-                                              cycle: varVhpPlan.Cycle,
-                                              unit: varVhpPlan.Unit,
-                                              packages:
-                                                  ForAll(
-                                                      Sort(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy), PackageNo),
-                                                      { packageNo: PackageNo, shortCode: ShortCode, cycleLength: CycleLength,
-                                                        cycleUnit: CycleUnit, hierarchy: Hierarchy }
-                                                  ),
-                                              items:
-                                                  ForAll(
-                                                      Sort(colVhpItems, ItemId) As I,
-                                                      {
-                                                          itemId: I.ItemId, shortText: I.ShortText,
-                                                          functionalLocation: I.FunctionalLocation,
-                                                          mainWorkCenter: I.MainWorkCenter, activityType: I.ActivityType,
-                                                          tasklistKey: I.TasklistKey, status: I.Status,
-                                                          operations:
-                                                              ForAll(
-                                                                  Sort(Filter(colVhpOperations, ItemId = I.ItemId), Value(OperationNo)) As OP,
-                                                                  {
-                                                                      operationNo: OP.OperationNo,
-                                                                      shortText: OP.OperationShortText,
-                                                                      work: OP.WorkHours, duration: OP.DurationHours,
-                                                                      mainWorkCenter: OP.MainWorkCenter, vendor: OP.Vendor,
-                                                                      packages:
-                                                                          ForAll(
-                                                                              Sort(
-                                                                                  Filter(
-                                                                                      colVhpStrategyPackages As P,
-                                                                                      P.StrategyKey = varVhpPlan.Strategy &&
-                                                                                      ";" & Text(P.PackageNo) & ";" in Coalesce(OP.PackagesKey, ";")
-                                                                                  ),
-                                                                                  PackageNo
-                                                                              ),
-                                                                              { packageNo: PackageNo }
-                                                                          )
-                                                                  }
-                                                              )
-                                                      }
-                                                  )
-                                          },
-                                          JSONFormat.IndentFour
-                                      )
-                                  );
-                                  Set(varVhpRuntimeInfo, "JSON exported: " & Text(CountRows(colVhpItems)) & " item(s), " & Text(Len(varVhpExportJson)) & " characters.")
-                              RadiusBottomLeft: |-
-                                  =10
-                              RadiusBottomRight: |-
-                                  =10
-                              RadiusTopLeft: |-
-                                  =10
-                              RadiusTopRight: |-
-                                  =10
-                              Size: |-
-                                  =14
-                              Text: |-
-                                  ="Export JSON"
-                              VerticalAlign: |-
-                                  =VerticalAlign.Middle
-                              Visible: |-
-                                  =LayoutRank >= 2
-                              Width: |-
-                                  =130
+                                        =Min(720, (App.Width - 120) - 2)
                   - conVhpHeaderRule:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -761,7 +241,7 @@ Screens:
                   FillPortions: |-
                       =1
                   Height: |-
-                      =Parent.Height - (25 + (0 + (Max((61), (36), (36))) * 1 + 0))
+                      =Parent.Height - (25 + (0 + ((95)) * 1 + 0))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -775,7 +255,7 @@ Screens:
                   LayoutOverflowY: |-
                       =LayoutOverflow.Scroll
                   PaddingBottom: |-
-                      =100
+                      =40
                   PaddingLeft: |-
                       =24
                   PaddingRight: |-
@@ -12076,7 +11556,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =94 + (0 + (Max((51), (22))) * 1 + 0) + If(IfError(varVhpPlanValidated, false), 10 + (60), 0)
+                            =140 + (0 + (Max((51), (22))) * 1 + 0) + If(IfError(varVhpPlanValidated, false), 10 + (60), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -12199,7 +11679,7 @@ Screens:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Validation status before reporting via an email draft."
+                                              ="Validate the plan before it is saved and submitted."
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -12223,7 +11703,7 @@ Screens:
                                           Size: |-
                                               =13
                                           Text: |-
-                                              ="Validation status before reporting via an email draft."
+                                              ="Validate the plan before it is saved and submitted."
                                           Wrap: |-
                                               =false
                               - conVhpDispatchHeadBadge:
@@ -12338,7 +11818,7 @@ Screens:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  ="Tasklist operations are linked to each item and included in the mail draft summary."
+                                  ="Validate checks the plan, its items and their operations against the rules."
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -12362,9 +11842,170 @@ Screens:
                               Size: |-
                                   =12
                               Text: |-
-                                  ="Tasklist operations are linked to each item and included in the mail draft summary."
+                                  ="Validate checks the plan, its items and their operations against the rules."
                               Wrap: |-
                                   =true
+                        - conVhpDispatchActions:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =36
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Center
+                              LayoutDirection: |-
+                                  =LayoutDirection.Horizontal
+                              LayoutGap: |-
+                                  =8
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              Width: |-
+                                  =Parent.Width
+                            Children:
+                              - btnVhpValidate:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Validate"
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    BasePaletteColor: |-
+                                        =C.'color-brand-primary'
+                                    Color: |-
+                                        =C.'text-on-primary'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =36
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    OnSelect: |-
+                                        =Set(varVhpPlanValidated, true);
+                                        Set(varVhpItemValidated, true);
+                                        With(
+                                            { isStrat: varVhpPlan.PlanType = "Strategy" },
+                                            With(
+                                                {
+                                                    itemErr:
+                                                        Concat(
+                                                            Filter(
+                                                                colVhpItems,
+                                                                IsBlank(ShortText) || IsBlank(MainWorkCenter) || IsBlank(ActivityType) || IsBlank(FunctionalLocation)
+                                                            ),
+                                                            "Item " & Text(ItemId) & " (" & Coalesce(ShortText, "no short text") & "): missing required fields.",
+                                                            Char(10)
+                                                        ),
+                                                    s1:
+                                                        If(isStrat && IsBlank(varVhpPlan.Strategy),
+                                                            "S1: A strategy must be chosen on a strategy plan.", ""),
+                                                    s3:
+                                                        If(isStrat,
+                                                            Concat(
+                                                                Filter(colVhpItems, IsBlank(TasklistKey)),
+                                                                "S3: Item " & Text(ItemId) & " has no task list - the package allocation belongs to the task list.",
+                                                                Char(10)
+                                                            ), ""),
+                                                    s4:
+                                                        If(isStrat,
+                                                            Concat(
+                                                                Filter(colVhpOperations, Len(Coalesce(PackagesKey, ";")) <= 1),
+                                                                "S4: Item " & Text(ItemId) & " operation " & OperationNo &
+                                                                " has no package and would never be carried out.",
+                                                                Char(10)
+                                                            ), ""),
+                                                    s5:
+                                                        If(isStrat,
+                                                            Concat(
+                                                                Filter(
+                                                                    colVhpStrategyPackages As P,
+                                                                    P.StrategyKey = varVhpPlan.Strategy &&
+                                                                    CountRows(Filter(colVhpOperations, ";" & Text(P.PackageNo) & ";" in Coalesce(PackagesKey, ";"))) = 0
+                                                                ),
+                                                                "S5: Package " & ShortCode & " (" & Text(CycleLength) & " " & CycleUnit &
+                                                                ") has no operations - the plan would call an empty order.",
+                                                                Char(10)
+                                                            ), "")
+                                        ,
+                                                    r1:
+                                                        If(
+                                                            !IsBlank(varVhpPlan.Plant) && !IsBlank(varVhpPlan.PlanText) &&
+                                                                !StartsWith(Upper(varVhpPlan.PlanText), Upper(varVhpPlan.Plant)),
+                                                            "R1: Plan Text should start with the plant code " & varVhpPlan.Plant &
+                                                                " - otherwise the plan cannot be found without searching by plant.", ""),
+                                                    r2:
+                                                        With(
+                                                            { n: CountRows(Filter(colVhpItems, StartsWith(ActivityType, "110") || StartsWith(ActivityType, "115"))) },
+                                                            If(
+                                                                n > 0 && IsBlank(varVhpPlan.SortField),
+                                                                "R2: Sort Field is required: " & Text(n) &
+                                                                    " item(s) have activity type 110 or 115.", "")),
+                                                    r4:
+                                                        With(
+                                                            { n: CountRows(Filter(colVhpItems, !IsBlank(Revision))) },
+                                                            If(
+                                                                n > 0 && (varVhpPlan.FirstCallDay <> 1 || varVhpPlan.FirstCallMonth <> 1),
+                                                                "R4: " & Text(n) & " item(s) are marked as outage work. " &
+                                                                    "First call must be 01/01, otherwise the task misses the outage.", "")),
+                                                    r5:
+                                                        With(
+                                                            { m: LookUp(colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon) },
+                                                            If(
+                                                                !IsBlank(varVhpPlan.CallHorizon) && m.SchedPeriod < 2,
+                                                                "R5: Scheduling period must be at least 2 years because of " &
+                                                                    "the cost simulation in the BI report.", ""))
+                                                },
+                                                Set(
+                                                    varVhpLastValidationErrors,
+                                                    Concat(
+                                                        Filter(
+                                                            Table(
+                                                                { t: itemErr }, { t: s1 }, { t: s3 }, { t: s4 }, { t: s5 },
+                                                                { t: r1 }, { t: r2 }, { t: r4 }, { t: r5 }
+                                                            ),
+                                                            !IsBlank(t)
+                                                        ),
+                                                        t, Char(10)
+                                                    )
+                                                )
+                                            )
+                                        );
+                                        Set(
+                                            varVhpRuntimeInfo,
+                                            "Validated: " & Text(CountRows(colVhpItems)) & " item(s), " &
+                                            Text(CountRows(colVhpOperations)) & " operation line(s), " &
+                                            Text(CountRows(Filter(colVhpItems, Status = "invalid"))) & " invalid item(s)." &
+                                            If(IsBlank(varVhpLastValidationErrors), " No validation issues.", " See validation report.")
+                                        )
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="Validate"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =110
                         - txtVhpValidationReport:
                             Control: ModernText
                             Properties:
@@ -15065,94 +14706,6 @@ Screens:
                             =VerticalAlign.Middle
                         Width: |-
                             =150
-      - btnVhpSendEmail:
-          Control: ModernButton
-          Properties:
-            AccessibleLabel: |-
-                ="Send as email"
-            Align: |-
-                =Align.Center
-            AlignInContainer: |-
-                =AlignInContainer.Center
-            BasePaletteColor: |-
-                =C.'color-brand-primary'
-            Color: |-
-                =C.'text-on-primary'
-            DisplayMode: |-
-                =If(varVhpPlanCommitted, DisplayMode.Edit, DisplayMode.Disabled)
-            Font: |-
-                =Font.'Segoe UI'
-            FontWeight: |-
-                =FontWeight.Semibold
-            Height: |-
-                =44
-            Layout: |-
-                =ButtonLayout.TextOnly
-            OnSelect: |-
-                =Launch(
-                    "mailto:sapvedligehold@orsted.com" &
-                    "?subject=" & EncodeUrl("VH-plan " & varVhpPlan.Plant & " " & varVhpPlan.PlanText & " (" & Text(Today(), "dd-mm-yyyy") & ")") &
-                    "&body=" & EncodeUrl(
-                        "Hej SAP vedligehold," & Char(10) & Char(10) &
-                        "Maintenance plan ready for creation in SAP:" & Char(10) &
-                        "Plant: " & varVhpPlan.Plant & Char(10) &
-                        "Plan text: " & varVhpPlan.PlanText & Char(10) &
-                        "Status: " & varVhpPlan.Status & Char(10) &
-                        "Plan type: " & If(varVhpPlan.PlanType = "Strategy", "Strategiplan (IP42)", "Single cycle (IP41)") & Char(10) &
-                        If(
-                            varVhpPlan.PlanType = "Strategy",
-                            "Strategy: " & varVhpPlan.Strategy & Char(10) &
-                            "Packages: " & Concat(Sort(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy), PackageNo), ShortCode & " (" & Text(CycleLength) & " " & CycleUnit & ")", ", ") & Char(10),
-                            "Cycle: " & Text(varVhpPlan.Cycle) & " " & varVhpPlan.Unit & Char(10)
-                        ) &
-                        "Items: " & Text(CountRows(colVhpItems)) & " (" & Text(CountRows(Filter(colVhpItems, Status = "valid"))) & " valid, " & Text(CountRows(Filter(colVhpItems, Status = "invalid"))) & " invalid)" & Char(10) &
-                        "Operations: " & Text(CountRows(colVhpOperations)) & Char(10) & Char(10) &
-                        Concat(
-                            FirstN(Sort(colVhpItems, ItemId), 15),
-                            "- " & If(IsBlank(ShortText), "Item " & Text(ItemId), ShortText) & " | FL " & Coalesce(FunctionalLocation, "-") & " | " & Upper(Status),
-                            Char(10)
-                        ) & Char(10) & Char(10) &
-                        If(
-                            varVhpPlan.PlanType = "Strategy",
-                            "Pakkeallokering pr. operation:" & Char(10) &
-                            Concat(
-                                FirstN(Sort(colVhpOperations, ItemId), 40),
-                                "  Item " & Text(ItemId) & " op " & OperationNo & ": " &
-                                With(
-                                    { k: Coalesce(PackagesKey, ";") },
-                                    If(
-                                        Len(k) <= 1, "(no package)",
-                                        Concat(Sort(Filter(colVhpStrategyPackages As P, P.StrategyKey = varVhpPlan.Strategy && ";" & Text(P.PackageNo) & ";" in k), PackageNo), ShortCode, ", ")
-                                    )
-                                ),
-                                Char(10)
-                            ) & Char(10) & Char(10),
-                            ""
-                        ) &
-                        "Sent from the VH-plan app on " & Text(Now(), "dd-mm-yyyy hh:mm")
-                    )
-                );
-                Set(varVhpRuntimeInfo, "Email draft prepared: " & Text(CountRows(colVhpItems)) & " item(s).")
-            RadiusBottomLeft: |-
-                =22
-            RadiusBottomRight: |-
-                =22
-            RadiusTopLeft: |-
-                =22
-            RadiusTopRight: |-
-                =22
-            Size: |-
-                =14
-            Text: |-
-                ="Send as email"
-            VerticalAlign: |-
-                =VerticalAlign.Middle
-            Width: |-
-                =190
-            X: |-
-                =App.Width - 210
-            Y: |-
-                =App.Height - 70
       - imgVhpNavScrim:
           Control: Image
           Properties:

@@ -7,6 +7,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQU
 from build_helpers import (flow_row, text_ctrl, group, button, button_row, text_input, number_input, dropdown,
                            label_row, field_cell, two_col_row, badge, card, pin_widths, grow)
 from build_plan_header import section_header, help_panel
+from build_hero import validate_button
 import build_help as bh
 from build_strategy import build_strategy_body, IS_STRATEGY
 import sp_config as cfg
@@ -892,7 +893,7 @@ def build_tasklist_section():
 
 def build_dispatch_section():
     header = section_header("conVhpDispatchHead", "Dispatch and Control",
-                            "Validation status before reporting via an email draft.", "Step 5")
+                            "Validate the plan before it is saved and submitted.", "Step 5")
     statusInline = text_ctrl(
         "txtVhpDispatchStatus",
         (
@@ -915,71 +916,16 @@ def build_dispatch_section():
         ), size=13, color=C_MUTED, height=20, wrap="true")
     hintInline = text_ctrl(
         "txtVhpDispatchHint",
-        "\"Tasklist operations are linked to each item and included in the mail draft summary.\"",
+        "\"Validate checks the plan, its items and their operations against the rules.\"",
         size=12, color=C_MUTED, height=18, wrap="true")
     validationReport = text_ctrl(
         "txtVhpValidationReport",
         "If(IsBlank(varVhpLastValidationErrors), \"No validation issues found.\", varVhpLastValidationErrors)",
         size=12, color=f"If(IsBlank(varVhpLastValidationErrors), {C_VALID_FG}, {C_INVALID_FG})", height=60,
         wrap="true", visible="IfError(varVhpPlanValidated, false)")
-    return card("conVhpDispatchCard", [header, statusInline, hintInline, validationReport], gap=10)
-
-
-def build_email_fab():
-    btn = button(
-        "btnVhpSendEmail", "\"Send as email\"",
-        (
-            "Launch(\n"
-            "    \"mailto:sapvedligehold@orsted.com\" &\n"
-            "    \"?subject=\" & EncodeUrl(\"VH-plan \" & varVhpPlan.Plant & \" \" & varVhpPlan.PlanText & \" (\" & Text(Today(), \"dd-mm-yyyy\") & \")\") &\n"
-            "    \"&body=\" & EncodeUrl(\n"
-            "        \"Hej SAP vedligehold,\" & Char(10) & Char(10) &\n"
-            "        \"Maintenance plan ready for creation in SAP:\" & Char(10) &\n"
-            "        \"Plant: \" & varVhpPlan.Plant & Char(10) &\n"
-            "        \"Plan text: \" & varVhpPlan.PlanText & Char(10) &\n"
-            "        \"Status: \" & varVhpPlan.Status & Char(10) &\n"
-            "        \"Plan type: \" & If(varVhpPlan.PlanType = \"Strategy\", \"Strategiplan (IP42)\", \"Single cycle (IP41)\") & Char(10) &\n"
-            "        If(\n"
-            "            varVhpPlan.PlanType = \"Strategy\",\n"
-            "            \"Strategy: \" & varVhpPlan.Strategy & Char(10) &\n"
-            "            \"Packages: \" & Concat(Sort(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy), PackageNo), ShortCode & \" (\" & Text(CycleLength) & \" \" & CycleUnit & \")\", \", \") & Char(10),\n"
-            "            \"Cycle: \" & Text(varVhpPlan.Cycle) & \" \" & varVhpPlan.Unit & Char(10)\n"
-            "        ) &\n"
-            "        \"Items: \" & Text(CountRows(colVhpItems)) & \" (\" & Text(CountRows(Filter(colVhpItems, Status = \"valid\"))) & \" valid, \" & Text(CountRows(Filter(colVhpItems, Status = \"invalid\"))) & \" invalid)\" & Char(10) &\n"
-            "        \"Operations: \" & Text(CountRows(colVhpOperations)) & Char(10) & Char(10) &\n"
-            "        Concat(\n"
-            "            FirstN(Sort(colVhpItems, ItemId), 15),\n"
-            "            \"- \" & If(IsBlank(ShortText), \"Item \" & Text(ItemId), ShortText) & \" | FL \" & Coalesce(FunctionalLocation, \"-\") & \" | \" & Upper(Status),\n"
-            "            Char(10)\n"
-            "        ) & Char(10) & Char(10) &\n"
-            "        If(\n"
-            "            varVhpPlan.PlanType = \"Strategy\",\n"
-            "            \"Pakkeallokering pr. operation:\" & Char(10) &\n"
-            "            Concat(\n"
-            "                FirstN(Sort(colVhpOperations, ItemId), 40),\n"
-            "                \"  Item \" & Text(ItemId) & \" op \" & OperationNo & \": \" &\n"
-            "                With(\n"
-            "                    { k: Coalesce(PackagesKey, \";\") },\n"
-            "                    If(\n"
-            "                        Len(k) <= 1, \"(no package)\",\n"
-            "                        Concat(Sort(Filter(colVhpStrategyPackages As P, P.StrategyKey = varVhpPlan.Strategy && \";\" & Text(P.PackageNo) & \";\" in k), PackageNo), ShortCode, \", \")\n"
-            "                    )\n"
-            "                ),\n"
-            "                Char(10)\n"
-            "            ) & Char(10) & Char(10),\n"
-            "            \"\"\n"
-            "        ) &\n"
-            "        \"Sent from the VH-plan app on \" & Text(Now(), \"dd-mm-yyyy hh:mm\")\n"
-            "    )\n"
-            ");\n"
-            "Set(varVhpRuntimeInfo, \"Email draft prepared: \" & Text(CountRows(colVhpItems)) & \" item(s).\")"
-        ),
-        primary=True, width=190, height=44,
-        display_mode="If(varVhpPlanCommitted, DisplayMode.Edit, DisplayMode.Disabled)")
-    btn.props["X"] = "App.Width - 210"
-    btn.props["Y"] = "App.Height - 70"
-    btn.props["RadiusBottomLeft"] = "22"
-    btn.props["RadiusBottomRight"] = "22"
-    btn.props["RadiusTopLeft"] = "22"
-    btn.props["RadiusTopRight"] = "22"
-    return btn
+    # Validate stod foer i topbjaelken. Her staar den ved siden af det, den
+    # svarer med: status og valideringsrapporten.
+    actions = group("conVhpDispatchActions", [validate_button()], direction="Horizontal",
+                    gap=8, height=36, align_items="Center")
+    return card("conVhpDispatchCard",
+                [header, statusInline, hintInline, actions, validationReport], gap=10)
