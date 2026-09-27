@@ -219,8 +219,8 @@ byggere og følger reglerne her, bare som skærme i stedet for apps:
   startskærm.
 - **Et domæne betales først, når det åbnes.** Domænets opstart kører i dets
   skærms `OnVisible` og kun ved første besøg, *New request* eller *Open*.
-- **VH-planen er delt i to skærme**, så forsinket indlæsning kun bygger den
-  halvdel, man står i.
+- **En ventespinner**, mens et domæne klargøres, så man kan se, at appen
+  arbejder. VH-planen blev også prøvet delt i to skærme, men det er droppet.
 
 Satellitterne bliver, indtil den samlede app er testet. Beslutningen tages på
 testen og på målingerne i §9, ikke på fornemmelsen.
