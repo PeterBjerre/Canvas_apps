@@ -1363,6 +1363,9 @@ def main():
         "GroupContainer": ("Tooltip",),
         "HtmlViewer": ("Tooltip",),
         "ModernDatePicker": ("SelectedDate", "DateTimeZone"),
+        # Den klassiske knap har ingen AccessibleLabel - skaermlaeseren
+        # laeser Text. Kostede et deploy (issue #57).
+        "Classic/Button": ("AccessibleLabel",),
     }
     for p_, name, body in all_nodes:
         bad = UNSUPPORTED.get((body.get("Control") or "").strip())
