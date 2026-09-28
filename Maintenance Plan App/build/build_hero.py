@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gen_screen import Ctrl, SHELL_W
+from gen_screen import Ctrl, SHELL_W, C_PRIMARY, C_CARD_BORDER
 from build_helpers import button, top_bar, group, fit_button_width
 from layout_tokens import if_below
 from design_tokens import ref_hex
@@ -72,17 +72,35 @@ ITEM_DIRTY = (
 IS_STRAT = 'varVhpPlan.PlanType = "Strategy"'
 
 # (label, faerdig, klik)
+#
+# KLIK = FREMHAEV, IKKE SETFOCUS (issue #59). SetFocus kan ikke naa en
+# kontrol i en container, og alt paa skaermen staar i containere - compile
+# afviste alle fem. Canvas apps kan heller ikke scrolle en container fra en
+# formel. Et klik saetter derfor varVhpFocusStep, og sektionen, trinnet
+# hoerer til, faar en tyk kant i primaerfarven (focus_border nedenfor).
+# Tasklist- og Operations-trinnet vaelger ogsaa den rigtige fane.
 STEPS = [
-    ('"Plan"', "VhpStepPlanDone", "SetFocus(btnVhpPlanSave)"),
-    ('"Item"', f"VhpStepItemDone && !({ITEM_DIRTY})", "SetFocus(btnVhpAddItem)"),
+    ('"Plan"', "VhpStepPlanDone", "Set(varVhpFocusStep, 1)"),
+    ('"Item"', f"VhpStepItemDone && !({ITEM_DIRTY})", "Set(varVhpFocusStep, 2)"),
     ('"Task list"', "VhpStepTasklistDone",
-     'Set(varVhpOpsTab, "ops");\nSetFocus(btnVhpTabOps)'),
+     'Set(varVhpOpsTab, "ops");\nSet(varVhpFocusStep, 3)'),
     (f'If({IS_STRAT}, "Packages", "Operations")', "VhpStepOpsDone",
-     f'If(\n    {IS_STRAT},\n    Set(varVhpOpsTab, "pkg"); SetFocus(btnVhpTabPkg),\n'
-     f'    Set(varVhpOpsTab, "ops"); SetFocus(btnVhpTabOps)\n)'),
+     f'Set(varVhpOpsTab, If({IS_STRAT}, "pkg", "ops"));\nSet(varVhpFocusStep, 4)'),
     ('"Save"', f"VhpStepSaveDone && varVhpPlanLocked && !({ITEM_DIRTY})",
-     "SetFocus(btnVhpSaveDraft)"),
+     "Set(varVhpFocusStep, 5)"),
 ]
+
+
+def focus_border(ctrl, steps, normal):
+    """Kanten paa en sektion, der hoerer til trinene i steps: tyk og i
+    primaerfarven, naar et af dem er klikket i progressbaren."""
+    on = " || ".join(f"varVhpFocusStep = {n}" for n in steps)
+    on = f"IfError({on}, false)"
+    ctrl.props["BorderColor"] = f"If({on}, {C_PRIMARY}, {normal})"
+    ctrl.props["BorderThickness"] = f"If({on}, 2, 1)"
+    return ctrl
+
+
 STEP_W, STEP_H, R = 120, 60, 13
 
 # Submit er aktiv, naar planen kan indsendes - og intet i Item Editoren
@@ -182,6 +200,7 @@ def build_top_bar():
         "    IsBlank(varVhpPlanKey), \"Not saved yet. Save as draft so you can come back to it.\",\n"
         "    \"Saved as \" & varVhpPlanKey & \". The next save overwrites items and operations on the same plan.\"\n"
         ")")
+    focus_border(btnDraft, (5,), C_CARD_BORDER)
     btnSubmit.props["Width"] = str(sub_w)
     btnSubmit.props["Tooltip"] = _submit_tooltip()
     btnSubmit.props["AlignInContainer"] = "AlignInContainer.Center"
