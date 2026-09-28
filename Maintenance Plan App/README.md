@@ -31,7 +31,7 @@ python3 check_layout.py           # verificerer layoutet
 |---|---|
 | `gen_screen.py` | Kontroltræ-DSL, stylingkonstanter, **højde-algebra** |
 | `build_helpers.py` | Genbrugelige kontroller: kort, felter, knapper, rækker |
-| `build_hero.py` | Topbjaelken: procestrin, Help, Validate og Export JSON |
+| `build_hero.py` | Topbjaelken med trinindikatoren (seks trin), og Validate-knappen, som staar i trin 5 |
 | `build_plan_header.py` | Planhoved inkl. plantype og strategivalg |
 | `build_items.py` | Items-skinne og Item Editor |
 | `build_tasklist.py` | Tasklist, operationstabel, dispatch, mailknap |
