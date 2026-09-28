@@ -8,7 +8,8 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQU
 from layout_tokens import if_below
 from build_helpers import (text_ctrl, group, button, button_row, text_input, number_input, dropdown,
                            label_row, field_cell, row_n, col_width, badge, card, combobox, poll_timer,
-                           TWO_COL_MIN, HINTS_ON, grow, fit_button_width, column_grid)
+                           TWO_COL_MIN, HINTS_ON, grow, fit_button_width, column_grid,
+                           ICON_SAVE, ICON_W)
 from build_plan_header import section_header, help_panel
 import build_help as bh
 from build_helpers import HINTS_ON as bh_hints
@@ -134,8 +135,8 @@ FL_DOTS_VAR = "varVhpFlDots"
 RESET_EDITOR_CONTROLS = (
     "Reset(drpVhpItemFL); Reset(txtVhpFlQuery); "
     "Reset(txtVhpItemShortText); "
-    "Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(drpVhpItemRevision); "
-    "Reset(txtVhpItemInitials); Reset(txtVhpItemLongText); "
+    "Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(tglVhpItemRevision); "
+    "Reset(txtVhpItemInitials); "
     "Reset(drpVhpItemTasklist)"
 )
 
@@ -538,9 +539,31 @@ def build_item_editor():
     txtShort = text_input("txtVhpItemShortText",
                           "LookUp(colVhpItems, ItemId = varVhpActiveItemId).ShortText", max_length=40,
                           required_formula=REQ_ITEM, display_mode=DM_ITEM)
-    drpRevision = dropdown("drpVhpItemRevision", "colVhpRevisionOptions",
-                           "LookUp(colVhpRevisionOptions, Value = LookUp(colVhpItems, ItemId = varVhpActiveItemId).Revision)",
-                           display_mode=DM_ITEM)
+    # REVISION ER EN TOGGLE (issue #54). SharePoint-kolonnen RevisionMark
+    # har eet valg - "REV - General Revision Mark" - saa et felt med en
+    # liste var et ja/nej i forklaedning. Taendt = det ene valg, slukket =
+    # tomt; vaerdien, der gemmes, er den samme som foer.
+    #
+    # Classic/Toggle, fordi den moderne toggle ikke er brugt i dette miljoe;
+    # den klassiske staar i den gamle VH-plan-app og kompilerer. Den har
+    # ingen AccessibleLabel (samme fejl som Classic/Button, issue #57) -
+    # Tooltip bruges i stedet.
+    tglRevision = Ctrl("tglVhpItemRevision", "Classic/Toggle", props={
+        "Color": C_TITLE,
+        "Default": "!IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Revision)",
+        "DisplayMode": DM_ITEM,
+        "FalseFill": C_MUTED,
+        "FalseText": '"No"',
+        "Font": FONT,
+        "HandleFill": C_WHITE,
+        "Height": "36",
+        "Size": "13",
+        "Tooltip": '"Revision: outage work (" & First(colVhpRevisionOptions).Value & ")"',
+        "TrueFill": C_PRIMARY,
+        "TrueText": '"Yes - outage work"',
+        "Width": "220",
+    }, h=36)
+    tglRevision.props["AlignInContainer"] = "AlignInContainer.Start"
     # "Orsted Responsible" er fjernet (issue #54) - Initials er nok.
     # Kolonnen OrstedResponsible paa itemet bliver staaende: Save skriver
     # stadig indsenderen som ansvarlig i SharePoint (build_save.py), og en
@@ -548,12 +571,27 @@ def build_item_editor():
     txtInitials = text_input("txtVhpItemInitials",
                              "LookUp(colVhpItems, ItemId = varVhpActiveItemId).Initials", max_length=12,
                              display_mode=DM_ITEM)
-    # Lang tekst fylder EEN kolonne, ikke hele formularens bredde. Den er
-    # flerlinjet og tre linjer hoej, saa der stadig er plads til en laengere
-    # tekst.
-    txtLongText = text_input("txtVhpItemLongText",
-                             "LookUp(colVhpItems, ItemId = varVhpActiveItemId).LongText",
-                             height=96, display_mode=DM_ITEM, ttype="Multiline")
+    # LANG TEKST ER EN POPUP (issue #54) - som paa operationerne. Feltet
+    # viser begyndelsen af teksten; skrivningen sker i popup'en
+    # (build_modal.build_longtext_modal), der gemmer direkte paa itemet.
+    LT = "LookUp(colVhpItems, ItemId = varVhpActiveItemId).LongText"
+    btnLongText = button(
+        "btnVhpItemLongText",
+        (f"If(\n"
+         f"    IsBlank(Trim(Coalesce({LT}, \"\"))),\n"
+         f"    \"Add text...\",\n"
+         f"    Left({LT}, 40) & If(Len({LT}) > 40, \"...\")\n"
+         f")"),
+        ("Set(varVhpLongTextTarget, \"item\");\n"
+         "Set(varVhpLongTextItemId, varVhpActiveItemId);\n"
+         f"Set(varVhpLongTextDraft, Coalesce({LT}, \"\"));\n"
+         "Reset(txtVhpLongTextBox);\n"
+         "Set(varVhpLongTextOpen, true)"),
+        height=36, display_mode=DM_ITEM,
+        accessible="\"Edit long text for item \" & Text(varVhpActiveItemId)")
+    btnLongText.props["Width"] = "Parent.Width"
+    btnLongText.props["AlignInContainer"] = "AlignInContainer.Stretch"
+    btnLongText.props["Align"] = "Align.Left"
 
     # KOLONNE-ORDEN (issue #54): oppefra og ned i kolonne 1, saa kolonne 2.
     #
@@ -573,9 +611,9 @@ def build_item_editor():
         [cell("conVhpCellItemShortText", "Item Short Text", txtShort, "ItemShortText", True),
          cell("conVhpCellItemMwc", "Main Work Center", drpMwc, "MainWorkCenter", True),
          cell("conVhpCellItemAct", "Maintenance Activity Type", drpAct, "ActivityType", True)],
-        [cell("conVhpCellItemRevision", "Revision", drpRevision, "Revision"),
+        [cell("conVhpCellItemRevision", "Revision", tglRevision, "Revision"),
          cell("conVhpCellItemInitials", "Initials", txtInitials, "Initials"),
-         cell("conVhpCellItemLongText", "Item Long Text", txtLongText, "ItemLongText")],
+         cell("conVhpCellItemLongText", "Item Long Text", btnLongText, "ItemLongText")],
         [flBlock],
     ], container_w=CW, row_gap=12)
 
@@ -625,9 +663,9 @@ def build_item_editor():
             "                    MainWorkCenter: drpVhpItemMainWorkCenter.Selected.Value,\n"
             "                    ActivityType: drpVhpItemActivityType.Selected.Value,\n"
             "                    ObjectList: Concat(Sort(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), Code), Code, \"; \"),\n"
-            "                    Revision: drpVhpItemRevision.Selected.Value,\n"
+            "                    Revision: If(tglVhpItemRevision.Value, First(colVhpRevisionOptions).Value, \"\"),\n"
             "                    Initials: Trim(txtVhpItemInitials.Text),\n"
-            "                    LongText: Trim(txtVhpItemLongText.Text),\n"
+
             "                    Status: \"valid\"\n"
             "                }\n"
             "            )\n"
@@ -650,7 +688,7 @@ def build_item_editor():
             "        )\n"
             "    )\n"
             ")"
-        ), primary=True, width=110,
+        ), primary=True, width=110, icon=ICON_SAVE,
         display_mode="If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)")
     # RESET (issue #54): Item Editorens usavede aendringer tilbage til det,
     # der sidst blev gemt paa itemet - eller tomt, hvis itemet aldrig er
@@ -688,7 +726,7 @@ def build_item_editor():
             f"{RESET_EDITOR_CONTROLS}"
         ), width=fit_button_width("\"Reset\""), height=36,
         display_mode="If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)")
-    btnSaveItem.props["Width"] = str(fit_button_width("\"Save\"", min_w=96))
+    btnSaveItem.props["Width"] = str(fit_button_width("\"Save\"", min_w=96) + ICON_W)
     grow(itemMeta)
     footer = group("conVhpEditorFooter", [itemMeta, btnResetItem, btnSaveItem], direction="Horizontal",
                    gap=8, height=36, align_items="Center")

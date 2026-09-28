@@ -51,7 +51,7 @@ def build_screen():
     rail, overlay = side_nav("Fl", "functionallocation")
     return render_screen(cfg.SCREEN, {"Fill": C_APP_BG, "OnVisible": on_visible()},
                          [root, rail, P.build_backdrop(), P.build_detail(), P.build_export(),
-                          *overlay])
+                          *overlay, *P.build_submit_confirm()])
 
 
 def main():

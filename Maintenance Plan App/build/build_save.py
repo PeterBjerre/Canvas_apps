@@ -68,7 +68,8 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_PRIMARY, C_WHITE,
                         C_VALID_FG, C_INVALID_FG, SHELL_W)
-from build_helpers import text_ctrl, group, button, button_row, card
+from build_helpers import (text_ctrl, group, button, button_row, card, confirm_modal,
+                           ICON_SAVE, ICON_SUBMIT)
 import sp_config as cfg
 
 # Appens play-URL. Hubben bruger den til at aabne indmeldingen igen.
@@ -584,18 +585,29 @@ DRAFT_DM = ("If(\n"
 
 def save_buttons(can_submit):
     """Save draft og Submit - de to knapper, der skriver planen i
-    SharePoint.
+    SharePoint - og Submits bekraeftelse.
 
     Sektionen "Save to SharePoint" er fjernet (issue #54); knapperne og
-    hele gemningen bag dem er de samme. De staar nu for enden af
-    progressbaren i topbjaelken (build_hero.py).
+    hele gemningen bag dem er de samme. De staar samlet i hoejre side af
+    topbjaelken (build_hero.py).
 
     can_submit er betingelsen for, at planen kan indsendes. DisplayMode er
     bundet til den, saa en graa Submit ikke kan klikkes - det er ikke kun
-    farven, der skifter."""
+    farven, der skifter.
+
+    Submit aabner en bekraeftelse; foerst "Submit" dér indsender. Mens der
+    gemmes, er varVhpSaving sand, og ventespinneren (imgVhpSaving) staar
+    oven paa skaermen - save_action saetter og nulstiller den selv.
+
+    Returnerer (Save draft, Submit, [sloer, popup])."""
     btnDraft = button("btnVhpSaveDraft", "\"Save draft\"", save_action(submit=False),
-                      display_mode=DRAFT_DM)
-    btnSubmit = button("btnVhpSubmit", "\"Submit\"", save_action(submit=True),
-                       primary=True,
+                      display_mode=DRAFT_DM, icon=ICON_SAVE)
+    btnSubmit = button("btnVhpSubmit", "\"Submit\"", "Set(varVhpConfirmSubmit, true)",
+                       primary=True, icon=ICON_SUBMIT,
                        display_mode=f"If({can_submit}, DisplayMode.Edit, DisplayMode.Disabled)")
-    return btnDraft, btnSubmit
+    confirm = confirm_modal(
+        "Vhp", "varVhpConfirmSubmit", "Submit plan?",
+        "\"The plan \" & varVhpPlan.Plant & \" \" & varVhpPlan.PlanText & "
+        "\" is saved and marked as ready for processing on the landing page.\"",
+        "Submit", save_action(submit=True), "btnVhpSubmitConfirm")
+    return btnDraft, btnSubmit, confirm
