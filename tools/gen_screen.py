@@ -685,6 +685,12 @@ def flatten_galleries(nodes, problems=None):
                     _place(k, "0", "0", w, _hv(k), None, out)
                 else:
                     out.append(k)
+            # "_OnTop": en kontrol, der skal ligge OVEN PAA en anden i
+            # raekken - fx Delete oven paa den gennemsigtige knap, der goer
+            # hele item-kortet klikbart (issue #54). I en .pa.yaml ligger
+            # det, der staar senere, oeverst, saa de flyttes sidst.
+            top = [k for k in out if k.props.pop("_OnTop", None)]
+            out = [k for k in out if k not in top] + top
             problems += _gallery_checks(c, nodes, row, out)
             c.children = out
         if c.children:

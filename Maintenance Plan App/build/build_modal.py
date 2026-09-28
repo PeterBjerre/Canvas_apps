@@ -296,7 +296,7 @@ def build_modal_backdrop():
         "Fill": C_OVERLAY,
         "Height": "App.Height",
         "LayoutDirection": "LayoutDirection.Vertical",
-        "Visible": "varVhpTasklistPickerOpen || varVhpLongTextOpen",
+        "Visible": "varVhpTasklistPickerOpen || varVhpLongTextOpen || varVhpObjListOpen",
         "Width": "App.Width",
         "X": "0",
         "Y": "0",

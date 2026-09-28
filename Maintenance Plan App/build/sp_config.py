@@ -370,6 +370,9 @@ WORKING_COLLECTIONS = [
      {"Code": '""', "Description": '""', "Display": '""',
       "Maintainable": "false", "Level": '""'}),
     ("colVhpItemObjects", {"ItemId": 0, "Code": '""', "Description": '""'}),
+    # Kladden i Object List-popup'en. Foerst "Use selected" skriver den i
+    # colVhpItemObjects; lukkes popup'en, er intet aendret.
+    ("colVhpObjDraft", {"Code": '""', "Description": '""'}),
     ("colVhpPickerSelected", {"OperationNo": '""'}),
     # Materialer til arbejdsplanen. Description og Unit staar tomme, indtil
     # materialeopslaget mod SAP er paa plads - felterne findes allerede, saa
