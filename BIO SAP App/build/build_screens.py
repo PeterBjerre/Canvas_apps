@@ -152,8 +152,8 @@ def screen_props(props):
 def loading_overlay(domain, label):
     """Ventespinneren, mens et domaene klargoeres.
 
-    Den staar oven paa ALT - ogsaa sidebaren - og daekker skaermen med
-    sloerets farve, saa ingen naar at trykke paa en formular, der er ved at
+    Kun et drejende hjul midt paa skaermen - ingen tekst. Det staar oven paa
+    ALT - ogsaa sidebaren - og daekker skaermen med sloerets farve, saa ingen naar at trykke paa en formular, der er ved at
     blive fyldt. Synlig, saa laenge var<X>Loading er sand: open_block saetter
     den foerst, done() nulstiller den sidst i OnVisible. Imens venter
     OnVisible paa SharePoint, og saa laenge tegnes skaermen med spinneren.
@@ -164,24 +164,18 @@ def loading_overlay(domain, label):
     from gen_screen import Ctrl, C_OVERLAY
     from design_tokens import ref_hex
     hx = lambda n: '" & %s & "' % ref_hex(n)
-    w, h, cx, cy = 300, 140, 150, 52
+    # Kun hjulet - ingen tekstboks.
+    w = h = 64
+    c = w // 2
     svg = ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{h}' "
            f"viewBox='0 0 {w} {h}'>"
-           f"<rect x='1' y='1' width='{w - 2}' height='{h - 2}' rx='14' "
-           f"fill='{hx('bg-surface')}' stroke='{hx('border-default')}'/>"
-           f"<circle cx='{cx}' cy='{cy}' r='18' fill='none' stroke-width='4' "
+           f"<circle cx='{c}' cy='{c}' r='22' fill='none' stroke-width='6' "
            f"stroke='{hx('state-neutral-bg')}'/>"
-           f"<path d='M{cx} {cy - 18} a18 18 0 0 1 18 18' fill='none' stroke-width='4' "
+           f"<path d='M{c} {c - 22} a22 22 0 0 1 22 22' fill='none' stroke-width='6' "
            f"stroke-linecap='round' stroke='{hx('color-brand-primary')}'>"
            f"<animateTransform attributeName='transform' type='rotate' "
-           f"from='0 {cx} {cy}' to='360 {cx} {cy}' dur='0.9s' repeatCount='indefinite'/>"
+           f"from='0 {c} {c}' to='360 {c} {c}' dur='0.9s' repeatCount='indefinite'/>"
            f"</path>"
-           f"<text x='{cx}' y='{cy + 46}' text-anchor='middle' "
-           f"font-family='Segoe UI, sans-serif' font-size='15' font-weight='600' "
-           f"fill='{hx('text-primary')}'>Loading {label}...</text>"
-           f"<text x='{cx}' y='{cy + 68}' text-anchor='middle' "
-           f"font-family='Segoe UI, sans-serif' font-size='12' "
-           f"fill='{hx('text-muted')}'>Just a moment</text>"
            "</svg>" + '"')
     var = cb.loading_var(domain["tag"])
     return Ctrl(f"img{domain['tag']}Loading", "Image", props={

@@ -60,8 +60,8 @@ der ingenting. Er det noget andet, kører domænets egen opstart. Se
 `build/build_screens.py`, `open_block()`.
 
 **Ventespinner.** Mens et domæne klargøres (første besøg, *New request*,
-*Open* eller et dyblink), ligger et slør over skærmen med et roterende hjul og
-"Loading VH-plan..." (osv.). Det forsvinder, når dataene er hentet, og
+*Open* eller et dyblink), ligger et slør over skærmen med et roterende hjul
+midt på, uden tekst. Det forsvinder, når dataene er hentet, og
 imens kan man ikke trykke på en formular, der er ved at blive fyldt. Alle
 skærme har desuden Power Apps' egen `LoadingSpinner`, mens kontrollerne
 tegnes, også ved opstart. Se `build/build_screens.py`, `loading_overlay()`.

@@ -498,7 +498,10 @@ HTML_TOKENS = ("text-primary", "text-muted",
                "state-info-fg", "state-info-bg",
                # Sidebaren (tools/side_nav.py): logoet og markeringen af
                # den app, man staar i.
-               "color-brand-primary", "text-on-primary")
+               "color-brand-primary", "text-on-primary",
+               # VH-planens trinindikator (build_hero.stepper): et faerdigt
+               # trin er groent med et flueben.
+               "state-ok-fg")
 
 
 def _hex(rgba):

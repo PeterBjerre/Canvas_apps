@@ -23,7 +23,7 @@ from build_hero import build_top_bar, HELP_ON, HELP_ACTION
 from side_nav import side_nav
 from build_plan_header import build_plan_header
 from build_items import build_items_section
-from build_tasklist import build_tasklist_section, build_dispatch_section, build_email_fab
+from build_tasklist import build_tasklist_section, build_dispatch_section
 from build_modal import (build_tasklist_picker_modal, build_longtext_modal,
                          build_modal_backdrop)
 from build_save import build_save_section
@@ -42,17 +42,14 @@ def build_screen():
 
     # RAMMEN: topbjaelken i en header, der ikke scroller, og sektionerne
     # direkte i en krop, der goer. Se build_helpers.app_frame.
-    #
-    # Bundpolstringen giver plads til den svaevende "Send as email"-knap,
-    # saa det sidste kort ikke ligger under den.
-    root = app_frame("Vhp", build_top_bar(), sections, body_gap=20, body_pad_b=100)
+    root = app_frame("Vhp", build_top_bar(), sections, body_gap=20)
 
     # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
     rail, overlay = side_nav("Vhp", "vhplan", HELP_ON, HELP_ACTION)
     return render_screen("ScreenVhPlan", {"Fill": C_APP_BG},
                          [root, rail,
                           build_modal_backdrop(), build_tasklist_picker_modal(),
-                          build_longtext_modal(), build_email_fab(), *overlay])
+                          build_longtext_modal(), *overlay])
 
 
 def main():
