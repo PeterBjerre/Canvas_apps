@@ -15,14 +15,14 @@ filter, og flisernes tal taelles paa det samme, allerede afgraensede saet.
 """
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_PRIMARY, C_WHITE,
-                        C_ON_DOMAIN,
-                        C_INFO_FG, C_INFO_BG, C_NEUTRAL_BG, C_DIVIDER, C_TRANSPARENT,
-                        C_APP_BG, FONT, SHELL_W)
-from build_helpers import text_ctrl, group, button, card, flow_row, top_bar
-from hub_config import LIST, COL_NO, DOMAINS, STATUS, APP_TARGET
-from design_tokens import theme_query
-from layout_tokens import if_below, SCROLLBAR_W, GALLERY_RESERVE
+from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_PRIMARY,
+                        C_MUTED_BG, C_MODAL_BG, C_DIVIDER, C_TRANSPARENT, FONT, SHELL_W)
+from build_helpers import (text_ctrl, group, button, card, flow_row, top_bar,
+                           fit_button_width, ICON_W)
+from hub_config import LIST, COL_NO, DOMAINS, STATUS, STATUS_ICON, APP_TARGET
+from design_tokens import theme_query, ref_hex
+from layout_tokens import (if_below, SCROLLBAR_W, GALLERY_RESERVE, PAGE_PAD_R,
+                           HEADER_PAD_T)
 
 # Hubben aabner satellitterne. Temaet skal med i URL'en, fordi
 # SaveData-lageret er isoleret pr. app-id: uden den ville en moerk hub
@@ -32,16 +32,98 @@ THEME_Q = theme_query("?")      # flisen sender ingen andre parametre
 THEME_Q_AMP = theme_query("&")  # "Open" sender allerede ?reqid=
 
 # DEN SAMLEDE APP (BIO SAP App/) genbruger hubben som sin startskaerm. Dér
-# er domaenerne skaerme, ikke apps, saa "New request" og "Open" er
-# Navigate() i stedet for Launch(). Dens bygger saetter de to:
+# er domaenerne skaerme, ikke apps, saa "New" og "Open" er Navigate() i
+# stedet for Launch(). Dens bygger saetter de to:
 #
-#   NEW_ACTION(d) -> OnSelect for flisens "New request", eller None, naar
-#                    domaenet ikke har en skaerm ("Coming soon").
+#   NEW_ACTION(d) -> OnSelect for flisens "New" og menupunktet under
+#                    "New request", eller None, naar domaenet ikke har en
+#                    skaerm ("Coming soon").
 #   OPEN_ACTION   -> OnSelect for raekkens "Open".
 #
 # None (de fem enkelte apps) = Launch som hidtil.
 NEW_ACTION = None
 OPEN_ACTION = None
+
+# "New request"-menuen i bjaelken. Blank ved start = lukket.
+MENU_OPEN = "IfError(gblNewMenu, false)"
+MENU_CLOSE = "Set(gblNewMenu, false)"
+
+
+def _new_action(d):
+    """(OnSelect, klar) for et domaenes "New". Samme regel til flisen og
+    menuen, saa de ikke kan vaere uenige om, hvad der er "Coming soon"."""
+    if NEW_ACTION is not None:
+        act = NEW_ACTION(d)
+        if act is not None:
+            return act, True
+        return 'Notify("This app has not been built yet.", NotificationType.Warning)', False
+    if d["url"]:
+        # Temaet sendes MED i URL'en. SaveData er isoleret pr. app-id,
+        # saa uden det ville satellitten aabne i sit eget gamle tema.
+        return f'Launch("{d["url"]}" & {THEME_Q}, {{ }}, {APP_TARGET})', True
+    return 'Notify("This app has not been built yet.", NotificationType.Warning)', False
+
+
+# ---------------------------------------------------------------------------
+# SVG - ikonerne (issue: nyt design). Samme form som sidebaren
+# (tools/side_nav.py): EET Image med en SVG, farverne er tokens, saa de
+# skifter tema med alt andet. SVG'en bruger kun enkelte anfoerselstegn,
+# saa den kan staa i en Power Fx-streng.
+# ---------------------------------------------------------------------------
+SVG_FONT = "font-family='Segoe UI, sans-serif'"
+
+
+def _hx(token):
+    return '" & %s & "' % ref_hex(token)
+
+
+def _svg_uri(svg_expr):
+    return f'"data:image/svg+xml;utf8," & EncodeUrl({svg_expr})'
+
+
+def _glyph(path, color, x=0, y=0, size=24, width=1.8):
+    s = size / 24
+    return (f"<g transform='translate({x:g} {y:g}) scale({s:g})' fill='none' "
+            f"stroke='{color}' stroke-width='{width}' stroke-linecap='round' "
+            f"stroke-linejoin='round'><path d='{path}'/></g>")
+
+
+def _icon_svg(path, color, size=24):
+    return ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{size}' height='{size}' "
+            f"viewBox='0 0 {size} {size}'>" + _glyph(path, color, size=size) + "</svg>" + '"')
+
+
+def _image(name, image, width, height, onselect=None, label='""', hover=None):
+    """Et billede. Uden onselect er det pynt: ingen tab stop, tom etiket."""
+    props = {
+        "AccessibleLabel": label,
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        "Fill": C_TRANSPARENT,
+        "Height": str(height),
+        "Image": image,
+        "ImagePosition": "ImagePosition.Fit",
+        "Width": str(width),
+    }
+    if onselect:
+        props.update({
+            "FocusedBorderColor": C_PRIMARY,
+            "FocusedBorderThickness": "2",
+            "HoverFill": hover or C_TRANSPARENT,
+            "PressedFill": hover or C_TRANSPARENT,
+            "OnSelect": onselect,
+            "TabIndex": "0",
+        })
+    else:
+        props.update({"OnSelect": "false", "TabIndex": "-1"})
+    return Ctrl(name, "Image", props=props, h=height)
+
+
+def _domain_switch(field, fallback):
+    return ("Switch(\n    ThisItem.Domain.Value,\n    " +
+            ",\n    ".join(f'"{d["key"]}", {field(d)}' for d in DOMAINS) +
+            f",\n    {fallback}\n)")
+
 
 # ---------------------------------------------------------------------------
 # Afgraensningen. Begge grene er delegerbare hver for sig:
@@ -59,27 +141,28 @@ SCOPE = (
 )
 
 # Tabellens kolonner. EEN kilde til bredderne, saa overskriften og raekken
-# ikke kan komme til at staa forskudt.
-# DOMAIN er bredere end den danske DOMAENE, fordi etiketterne er det:
-# "Functional location" fylder mere end "Funktionsplads". Resten af
-# bredden ligger i INDMELDING/REQUEST, som regnes af de faste.
-COLS = [("DOMAIN", 124), ("REQUEST", 0), ("PLANT", 62), ("STATUS", 176),
-        ("LAST", 92), ("", 76)]
-GAP = 10
-FIXED = sum(w for _, w in COLS) + GAP * (len(COLS) - 1)
-# Bruges BAADE i listehovedet og i galleriets raekke. Ingen af de to
-# steder er forelderen selve galleriet - kun et galleris DIREKTE barn
-# kender Parent.TemplateWidth, og raekkens indhold ligger et niveau
-# dybere. Begge foraeldre er lige saa brede som skabelonen, saa
-# Parent.Width giver det samme tal og virker begge steder.
-#
-# REGNET AF DEN BREDDE, LISTEN HAR - ikke af Parent.Width, som er
-# raekkens Width-EGENSKAB og hverken traekker kortets padding, galleriets
-# TemplatePadding eller dets scrollbar fra.
+# ikke kan komme til at staa forskudt. Resten af bredden ligger i REQUEST,
+# som regnes af de faste.
+COLS = [("DOMAIN", 190), ("REQUEST", 0), ("PLANT", 80), ("STATUS", 160),
+        ("LAST", 110), ("ACTIONS", 104)]
+GAP = 12
+ROW_PAD = 12
+FIXED = sum(w for _, w in COLS) + GAP * (len(COLS) - 1) + 2 * ROW_PAD
+# Bruges BAADE i listehovedet og i galleriets raekke. REGNET AF DEN BREDDE,
+# LISTEN HAR - ikke af Parent.Width, som er raekkens Width-EGENSKAB og
+# hverken traekker kortets padding, galleriets TemplatePadding eller dets
+# scrollbar fra.
 MAIN_W = f"({SHELL_W} - 36 - 4 - {SCROLLBAR_W} - {GALLERY_RESERVE} - {FIXED})"
 
-ROW_H = 46
+ROW_H = 52
 GAL_ROWS = 9
+
+ICON_CHEVRON = "M9 6l6 6-6 6"
+
+# Hvert statusikon skal have en status - og omvendt.
+if set(STATUS_ICON) != {s[0] for s in STATUS}:
+    raise SystemExit("hub_config: STATUS_ICON og STATUS har ikke de samme noegler: %s"
+                     % sorted(set(STATUS_ICON) ^ {s[0] for s in STATUS}))
 
 
 def _switch(field_index, fallback, quote=False):
@@ -87,9 +170,7 @@ def _switch(field_index, fallback, quote=False):
 
     quote=True naar feltet er TEKST. Farvefelterne er Power Fx-udtryk
     ("RGBA(...)") og skal staa uden anfoerselstegn, men etiketten er en
-    streng - uden dem blev "In progress" til to identifiers, og Switch'en
-    kunne ikke oversaettes. Den fejl kunne ikke ses i appen, fordi hubben
-    endnu ikke er oprettet i Studio."""
+    streng - uden dem blev "In progress" til to identifiers."""
     parts = [f'"{s[0]}", ' + (f'"{s[field_index]}"' if quote else f'{s[field_index]}')
              for s in STATUS]
     return "Switch(\n    ThisItem.Status.Value,\n    " + ",\n    ".join(parts) + \
@@ -99,141 +180,199 @@ def _switch(field_index, fallback, quote=False):
 # ---------------------------------------------------------------------------
 # Toplinje
 # ---------------------------------------------------------------------------
-def _seg(name, label, value):
-    b = button(name, f'"{label}"',
-               f'Set(gblView, "{value}"); Set(gblDomain, "")', width=168, height=34)
-    b.props["Appearance"] = f'If(gblView = "{value}", ButtonAppearance.Primary, ButtonAppearance.Outline)'
-    b.props["BasePaletteColor"] = C_PRIMARY
-    b.props["Color"] = f'If(gblView = "{value}", {C_WHITE}, {C_TITLE})'
-    b.props["BorderColor"] = C_CARD_BORDER
-    b.props["BorderThickness"] = "1"
+def _selected_style(b, selected, color=C_PRIMARY, idle_color=C_TITLE):
+    """Valgt = kanten (og teksten) i farven, 2 px. Ikke valgt = den
+    almindelige graa kant. Samme regel som flisernes."""
+    b.props["Appearance"] = "ButtonAppearance.Outline"
+    b.props["BorderColor"] = f"If({selected}, {color}, {C_CARD_BORDER})"
+    b.props["BorderThickness"] = f"If({selected}, 2, 1)"
+    b.props["Color"] = f"If({selected}, {color}, {idle_color})"
     return b
 
 
 def build_bar():
-    """Toplinjen - build_helpers.top_bar(), den samme i alle fire apps.
+    """Toplinjen - build_helpers.top_bar(), den samme i alle apps.
 
-    Her stod fire boern i een wrap-raekke, hvis bredder var regnet til at
-    fylde SHELL_W paa pixlen ("who"-teksten tog resten). Med scrollbaren
-    var der 17 px mindre, raekken ombroed, og hoejden havde kun plads til
-    een linje: temaknappen og visningsvalget forsvandt. Paa en smal skaerm
-    blev det tre linjer, hvor hoejden regnede med to.
-
-    Nu staar hvem-teksten som undertitel, og top_bar() regner resten."""
-    seg = group("conMdSeg", [_seg("btnMdViewMine", "My requests", "mine"),
-                             _seg("btnMdViewQueue", "Queue", "queue")],
-                direction="Horizontal", gap=0, height=34, align_items="Center", width=336)
-    # Temaknappen staar i sidebaren, som i de andre apps - se
-    # tools/side_nav.py.
-    return top_bar("Md", '"Masterdata"',
+    "My requests" er en kontakt: slaaet til viser listen og fliserne dine
+    egne indmeldinger, slaaet fra afdelingens koe. "New request" aabner en
+    menu med de fem domaener (build_new_menu)."""
+    mine = button("btnMdViewMine", '"My requests"',
+                  'Set(gblView, If(gblView = "mine", "queue", "mine")); Set(gblDomain, "")',
+                  width=fit_button_width('"My requests"') + ICON_W, height=36, icon="Person",
+                  accessible='If(gblView = "mine", "Showing my requests - show the queue", '
+                             '"Showing the queue - show my requests")')
+    _selected_style(mine, 'gblView = "mine"')
+    new = button("btnMdNewRequest", '"New request"', f"Set(gblNewMenu, !{MENU_OPEN})",
+                 primary=True, width=fit_button_width('"New request"') + ICON_W, height=36,
+                 icon="Add")
+    return top_bar("Md", '"Masterdatahub"',
                    '"SAP requests - " & If(gblView = "mine", gblMe, "queue, whole department")',
-                   [seg])
+                   [mine, new])
+
+
+MENU_W = 290
+MENU_ITEM_H = 40
+
+
+def _menu_item_svg(d, ready):
+    fg = _hx("text-primary") if ready else _hx("text-muted")
+    body = _glyph(d["icon"], _hx(d["token"]) if ready else _hx("text-muted"), x=14, y=9,
+                  size=22)
+    body += (f"<text x='48' y='{MENU_ITEM_H // 2 + 5}' {SVG_FONT} font-size='14' "
+             f"font-weight='600' fill='{fg}'>{d['name']}</text>")
+    if not ready:
+        body += (f"<text x='{MENU_W - 16 - 14}' y='{MENU_ITEM_H // 2 + 4}' text-anchor='end' "
+                 f"{SVG_FONT} font-size='11' fill='{_hx('text-muted')}'>Coming soon</text>")
+    w = MENU_W - 16
+    return ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' "
+            f"height='{MENU_ITEM_H}' viewBox='0 0 {w} {MENU_ITEM_H}'>" + body + "</svg>" + '"')
+
+
+def build_new_menu():
+    """"New request"-menuen: [sloer, menu]. Staar paa skaermen EFTER
+    rammen, saa den ligger oven paa listen - se assemble_hub."""
+    scrim = Ctrl("imgMdNewScrim", "Image", props={
+        "AccessibleLabel": '"Close menu"',
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        "Fill": C_TRANSPARENT, "HoverFill": C_TRANSPARENT, "PressedFill": C_TRANSPARENT,
+        "Height": "App.Height",
+        "Image": '""',
+        "OnSelect": MENU_CLOSE,
+        "TabIndex": "-1",
+        "Visible": MENU_OPEN,
+        "Width": "App.Width",
+        "X": "0",
+        "Y": "0",
+    }, h="App.Height", vis=MENU_OPEN)
+    items = []
+    for d in DOMAINS:
+        act, ready = _new_action(d)
+        items.append(_image(f"imgMdNew{d['short']}", _svg_uri(_menu_item_svg(d, ready)),
+                            MENU_W - 16, MENU_ITEM_H, onselect=f"{MENU_CLOSE};\n{act}",
+                            label=f'"New {d["name"].lower()} request"' if ready
+                            else f'"{d["name"]} - coming soon"',
+                            hover=C_MUTED_BG if ready else None))
+    menu = group("conMdNewMenu", items, direction="Vertical", gap=2, width=MENU_W,
+                 fill=C_MODAL_BG, border_color=C_CARD_BORDER, radius=12, pad=8,
+                 drop_shadow="Bold", visible=MENU_OPEN, align_items="Start")
+    menu.props["X"] = f"App.Width - Self.Width - {PAGE_PAD_R + SCROLLBAR_W}"
+    # Lige under bjaelken: dens padding + titel og undertitel (30 + 2 + 20).
+    menu.props["Y"] = str(HEADER_PAD_T + 52 + 6)
+    return [scrim, menu]
 
 
 # ---------------------------------------------------------------------------
-# Domaenefliser
+# Domaenefliser - HELE flisen er filterknappen
 # ---------------------------------------------------------------------------
 # Fem fliser eller to. Det er en beslutning om, hvor stor skaermen er -
-# altsaa et viewport-braekpunkt, ikke en udregning paa indholdet. Stod foer
-# som SHELL_W < 940, hvilket er App.Width < 1004: et af fire naesten ens
-# tal. Se tools/layout_tokens.py.
+# altsaa et viewport-braekpunkt, ikke en udregning paa indholdet. Se
+# tools/layout_tokens.py.
 #
-# Under "Tablet" (telefon) EEN pr. raekke: to fliser paa 170 px gav to
-# knapper paa 70 px, og "New request" kan ikke staa paa 70 px.
+# Under "Tablet" (telefon) EEN pr. raekke.
 TILE_W = if_below("Tablet", SHELL_W,
-                  if_below("Desktop", f"({SHELL_W} - 10) / 2", f"({SHELL_W} - 40) / 5"))
+                  if_below("Desktop", f"({SHELL_W} - 12) / 2", f"({SHELL_W} - 48) / 5"))
 TILE_LINES = if_below("Tablet", "5", if_below("Desktop", "3", "1"))
+TILE_GAP = 12
+TILE_FACE_H = 156
+
+
+def _tile_face(d, count_expr):
+    """Flisens forside som EEN SVG: ikonet i en tonet cirkel, navnet,
+    tallet og teksten under. Bredden er billedets egen (Self.Width), saa
+    indholdet staar til venstre og intet skaleres.
+
+    Et billede har OnSelect - det har en tekst ikke. Derfor er forsiden et
+    billede: saa er hele flisen (paa naer "New") filterknappen."""
+    c = _hx(d["token"])
+    w = '" & Self.Width & "'
+    h = TILE_FACE_H
+    return ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{h}' "
+            f"viewBox='0 0 {w} {h}'>"
+            f"<circle cx='40' cy='40' r='24' fill='{c}' fill-opacity='0.12'/>"
+            + _glyph(d["icon"], c, x=28, y=28) +
+            f"<text x='16' y='92' {SVG_FONT} font-size='15' font-weight='600' "
+            f"fill='{_hx('text-primary')}'>{d['name']}</text>"
+            f"<text x='16' y='126' {SVG_FONT} font-size='28' font-weight='600' "
+            f"fill='{_hx('text-primary')}'>\" & {count_expr} & \"</text>"
+            f"<text x='16' y='146' {SVG_FONT} font-size='12' "
+            f"fill='{_hx('text-muted')}'>\" & "
+            'If(gblView = "mine", "open with me", "open in the queue")'
+            " & \"</text></svg>" + '"')
 
 
 def build_tiles():
     tiles = []
     for d in DOMAINS:
         n = d["short"]
-        stripe = group(f"conMdStripe{n}", [], height=4, width=34, fill=d["color"],
-                       direction="Horizontal")
-        name = text_ctrl(f"txtMdTileName{n}", f'"{d["name"]}"', size=14, weight="Semibold",
-                         height=20, wrap="false")
-
+        sel = f'gblDomain = "{d["key"]}"'
         # Tallet taelles paa det samme afgraensede saet som galleriet bruger -
         # ikke som et selvstaendigt opslag mod hele listen.
-        count = text_ctrl(
-            f"txtMdTileCount{n}",
-            f'Text(CountRows(Filter({SCOPE}, Domain.Value = "{d["key"]}", IsOpen = true)))',
-            size=26, weight="Semibold", height=32, wrap="false")
-        lbl = text_ctrl(f"txtMdTileLbl{n}",
-                        'If(gblView = "mine", "open with me", "open in the queue")',
-                        size=11, color=C_MUTED, height=16, wrap="false")
+        count = f'Text(CountRows(Filter({SCOPE}, Domain.Value = "{d["key"]}", IsOpen = true)))'
 
-        bw = f"(({TILE_W}) - 24 - 6) / 2"
-        bFilter = button(f"btnMdTileFilter{n}",
-                         f'If(gblDomain = "{d["key"]}", "Show all", "Filter")',
-                         f'Set(gblDomain, If(gblDomain = "{d["key"]}", "", "{d["key"]}"))',
-                         width=bw, height=30)
-        if NEW_ACTION is not None:
-            new_action = NEW_ACTION(d)
-            ready = new_action is not None
-        else:
-            new_action = None
-            ready = bool(d["url"])
-        if new_action is None and ready:
-            # Temaet sendes MED i URL'en. SaveData er isoleret pr. app-id,
-            # saa uden det ville satellitten aabne i sit eget gamle tema -
-            # og brugeren ville se appen skifte farve, fordi han klikkede.
-            new_action = (f'Launch("{d["url"]}" & {THEME_Q}, {{ }}, {APP_TARGET})')
-        elif new_action is None:
-            new_action = ('Notify("This app has not been built yet.", NotificationType.Warning)')
-        bNew = button(f"btnMdTileNew{n}",
-                      '"New request"' if ready else '"Coming soon"',
-                      new_action, primary=ready, width=bw, height=30,
+        stripe = group(f"conMdStripe{n}", [], height=4, fill=d["color"],
+                       direction="Horizontal")
+        face = _image(f"imgMdTile{n}", _svg_uri(_tile_face(d, count)), "Parent.Width",
+                      TILE_FACE_H,
+                      onselect=f'Set(gblDomain, If({sel}, "", "{d["key"]}"))',
+                      # Uden tallet: det ville vaere endnu en forespoergsel.
+                      label=f'If({sel}, "Show all domains", "Show only {d["name"].lower()}")')
+
+        act, ready = _new_action(d)
+        label = '"New"' if ready else '"Coming soon"'
+        bNew = button(f"btnMdTileNew{n}", label, act,
+                      width=fit_button_width(label) + (ICON_W if ready else 0), height=32,
+                      icon="Add" if ready else None,
+                      accessible=f'"New {d["name"].lower()} request"' if ready else label,
                       display_mode="DisplayMode.Edit" if ready else "DisplayMode.Disabled")
-        btns = group(f"conMdTileBtns{n}", [bFilter, bNew], direction="Horizontal", gap=6,
-                     height=30, align_items="Center")
+        if ready:
+            bNew.props["Color"] = d["color"]
+        btns = group(f"conMdTileBtns{n}", [bNew], direction="Horizontal", gap=6,
+                     pad=(0, 16, 16, 16), align_items="Center")
 
+        # VALGT = kanten i domaenets farve, 2 px. Stregen foroven har
+        # farven hele tiden; kanten kun naar flisen filtrerer listen.
         tiles.append(group(
-            f"conMdTile{n}", [stripe, name, count, lbl, btns], direction="Vertical", gap=6,
-            fill=C_CARD_BG, radius=10, pad=(12, 12, 12, 12), width=TILE_W,
-            border_color=f'If(gblDomain = "{d["key"]}", {d["color"]}, {C_CARD_BORDER})',
-            border_thickness=1))
+            f"conMdTile{n}", [stripe, face, btns], direction="Vertical", gap=0,
+            fill=C_CARD_BG, radius=12, width=TILE_W,
+            border_color=f"If({sel}, {d['color']}, {C_CARD_BORDER})",
+            border_thickness=f"If({sel}, 2, 1)"))
 
     tile_h = tiles[0].h
-    return group("conMdTiles", tiles, direction="Horizontal", gap=10, wrap="true",
+    return group("conMdTiles", tiles, direction="Horizontal", gap=TILE_GAP, wrap="true",
                  # SAMME braekpunkt som TILE_W. Var de uenige, ville beholderen
-                  # have hoejde til een raekke fliser, mens fliserne selv stod i
-                  # tre - og de to nederste raekker blev klippet af.
-                  height=f"{TILE_LINES} * ({tile_h}) + ({TILE_LINES} - 1) * 10")
+                 # have hoejde til een raekke fliser, mens fliserne selv stod i
+                 # tre - og de to nederste raekker blev klippet af.
+                 height=f"{TILE_LINES} * ({tile_h}) + ({TILE_LINES} - 1) * {TILE_GAP}")
 
 
 # ---------------------------------------------------------------------------
 # Filtre
 # ---------------------------------------------------------------------------
-def _chip(name, label, value):
-    b = button(name, f'"{label}"', f'Set(gblStatusMode, "{value}")', width=104, height=32)
-    b.props["Appearance"] = f'If(gblStatusMode = "{value}", ButtonAppearance.Primary, ButtonAppearance.Outline)'
-    b.props["BasePaletteColor"] = C_INFO_FG
-    b.props["Color"] = f'If(gblStatusMode = "{value}", {C_WHITE}, {C_MUTED})'
-    b.props["BorderColor"] = C_CARD_BORDER
-    b.props["BorderThickness"] = "1"
-    return b
+def _chip(name, label, value, icon):
+    b = button(name, f'"{label}"', f'Set(gblStatusMode, "{value}")',
+               width=fit_button_width(f'"{label}"') + ICON_W, height=36, icon=icon)
+    return _selected_style(b, f'gblStatusMode = "{value}"', idle_color=C_MUTED)
 
 
 def build_filters():
     search = Ctrl("txtMdSearch", "ModernTextInput", props={
         "AccessibleLabel": '"Search number, text or plant"',
         "BorderColor": C_CARD_BORDER, "BorderStyle": "BorderStyle.Solid", "BorderThickness": "1",
-        "Color": C_TITLE, "Default": '""', "Fill": C_WHITE, "Font": FONT, "Height": "32",
-        "LayoutMinWidth": "0", "Placeholder": '"Search number, text or plant"',
-        "RadiusBottomLeft": "8", "RadiusBottomRight": "8", "RadiusTopLeft": "8", "RadiusTopRight": "8",
+        "Color": C_TITLE, "Default": '""', "Fill": C_CARD_BG, "Font": FONT, "Height": "36",
+        "LayoutMinWidth": "0", "Placeholder": '"Search number, text or plant..."',
+        "RadiusBottomLeft": "10", "RadiusBottomRight": "10",
+        "RadiusTopLeft": "10", "RadiusTopRight": "10",
         "Size": "13", "Type": "TextInputType.Search",
         "Width": "0",   # flow_row: resten af linjen, mindst 180
-    }, h=32)
-    count = text_ctrl("txtMdCount",
-                      f'Text(CountRows({SCOPE})) & " requests in this view"',
-                      size=12, color=C_MUTED, height=32, align="Right", width=200, wrap="false")
-    kids = [search, _chip("btnMdStOpen", "Open", "open"),
-            _chip("btnMdStDone", "Closed", "done"),
-            _chip("btnMdStAll", "All", "all"), count]
+    }, h=36)
+    count = text_ctrl("txtMdCount", f'Text(CountRows({SCOPE})) & " requests"',
+                      size=12, color=C_MUTED, height=36, align="Right", width=110, wrap="false")
+    kids = [search, _chip("btnMdStOpen", "Open", "open", "MailInbox"),
+            _chip("btnMdStDone", "Closed", "done", "CheckmarkCircle"),
+            _chip("btnMdStAll", "All", "all", "TextBulletListLtr"), count]
     # Enten een linje, eller et felt pr. linje - se build_helpers.flow_row.
-    return flow_row("conMdFilters", kids, SHELL_W, gap=8, flex=search, flex_min=180)
+    return flow_row("conMdFilters", kids, SHELL_W, gap=10, flex=search, flex_min=180)
 
 
 # ---------------------------------------------------------------------------
@@ -256,60 +395,8 @@ ITEMS = (
 )
 
 
-def build_list():
-    head = group("conMdListHead",
-                 [text_ctrl(f"txtMdH{i}", f'"{t}"', size=10, weight="Semibold", color=C_MUTED,
-                            height=20, wrap="false",
-                            width=(MAIN_W if w == 0 else w))
-                  for i, (t, w) in enumerate(COLS)],
-                 direction="Horizontal", gap=GAP, height=20, align_items="Center")
-
-    badge = text_ctrl("txtMdRowDomain",
-                      "Switch(\n    ThisItem.Domain.Value,\n    " +
-                      ",\n    ".join(f'"{d["key"]}", "{d["name"]}"' for d in DOMAINS) +
-                      ',\n    "?"\n)',
-                      size=10, weight="Semibold", height=20, width=COLS[0][1], wrap="false",
-                      align="Center",
-                      extra={"Color": C_ON_DOMAIN,
-                             "Fill": "Switch(\n    ThisItem.Domain.Value,\n    " +
-                                     ",\n    ".join(f'"{d["key"]}", {d["color"]}' for d in DOMAINS) +
-                                     f',\n    {C_MUTED}\n)',
-                             "AlignInContainer": "AlignInContainer.Center",
-                             "PaddingLeft": "6", "PaddingRight": "6",
-                             "RadiusBottomLeft": "4", "RadiusBottomRight": "4",
-                             "RadiusTopLeft": "4", "RadiusTopRight": "4"})
-
-    no = text_ctrl("txtMdRowNo", f"ThisItem.{COL_NO}", size=11, color=C_MUTED, height=16, wrap="false")
-    txt = text_ctrl("txtMdRowText", "ThisItem.ShortText", size=13, height=18, wrap="false")
-    main = group("conMdRowMain", [no, txt], direction="Vertical", gap=2, width=MAIN_W,
-                 align_items="Stretch")
-
-    plant = text_ctrl("txtMdRowPlant", "ThisItem.Plant", size=12, color=C_MUTED, height=36,
-                      width=COLS[2][1], wrap="false")
-
-    pill = text_ctrl("txtMdRowStatus", _switch(1, '"Unknown"', quote=True), size=11, weight="Semibold",
-                     height=18, width=120, wrap="false", align="Center",
-                     extra={"Color": _switch(3, C_MUTED), "Fill": _switch(4, C_NEUTRAL_BG),
-                            "PaddingLeft": "8", "PaddingRight": "8",
-                            "RadiusBottomLeft": "9", "RadiusBottomRight": "9",
-                            "RadiusTopLeft": "9", "RadiusTopRight": "9"})
-    steps = group("conMdRowSteps",
-                  [group(f"conMdStep{i}", [], height=4, width=20, direction="Horizontal",
-                         fill=f"If(ThisItem.StatusStep >= {i}, {_switch(3, C_MUTED)}, {C_DIVIDER})")
-                   for i in range(1, 6)],
-                  direction="Horizontal", gap=3, height=4, width=112)
-    stat = group("conMdRowStat", [pill, steps], direction="Vertical", gap=5, width=COLS[3][1],
-                 align_items="Start")
-
-    when = text_ctrl("txtMdRowWhen",
-                     'With(\n'
-                     '    { d: DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days) },\n'
-                     '    If(d <= 0, "Today", If(d = 1, "Yesterday", Text(d) & " days ago"))\n'
-                     ')',
-                     size=11, color=C_MUTED, height=36, width=COLS[4][1], align="Right",
-                     wrap="false")
-
-    open_action = OPEN_ACTION or (
+def _open_action():
+    return OPEN_ACTION or (
         "If(\n"
         "    IsBlank(ThisItem.AppUrl),\n"
         '    Notify("This request has no app URL.", NotificationType.Error),\n'
@@ -320,30 +407,86 @@ def build_list():
         f"        {APP_TARGET}\n"
         "    )\n"
         ")")
-    open_btn = button("btnMdRowOpen", '"Open"', open_action,
-                      width=COLS[5][1], height=30,
+
+
+def build_list():
+    head = group("conMdListHead",
+                 [text_ctrl(f"txtMdH{i}", f'"{t}"', size=10, weight="Semibold", color=C_MUTED,
+                            height=20, wrap="false",
+                            width=(MAIN_W if w == 0 else w))
+                  for i, (t, w) in enumerate(COLS)],
+                 direction="Horizontal", gap=GAP, height=20, align_items="Center",
+                 pad=(0, ROW_PAD, 0, ROW_PAD))
+
+    # DOMAIN: ikonet i domaenets farve og navnet.
+    dom_icon = _image("imgMdRowDomain",
+                      _svg_uri(_domain_switch(lambda d: _icon_svg(d["icon"], _hx(d["token"])),
+                                              '""')),
+                      24, 24)
+    dom_name = text_ctrl("txtMdRowDomain",
+                         _domain_switch(lambda d: f'"{d["name"]}"', '"?"'),
+                         size=13, height=20, width=COLS[0][1] - 24 - 12, wrap="false")
+    dom = group("conMdRowDom", [dom_icon, dom_name], direction="Horizontal", gap=12,
+                width=COLS[0][1], align_items="Center")
+
+    no = text_ctrl("txtMdRowNo", f"ThisItem.{COL_NO}", size=13, height=20, wrap="false")
+    txt = text_ctrl("txtMdRowText", "ThisItem.ShortText", size=12, color=C_MUTED, height=18,
+                    wrap="false")
+    main = group("conMdRowMain", [no, txt], direction="Vertical", gap=0, width=MAIN_W,
+                 align_items="Stretch")
+
+    plant = text_ctrl("txtMdRowPlant", "ThisItem.Plant", size=13, height=20,
+                      width=COLS[2][1], wrap="false")
+
+    st_icon = _image("imgMdRowStatus", _svg_uri(
+        "Switch(\n    ThisItem.Status.Value,\n    " +
+        ",\n    ".join(f'"{k}", {_icon_svg(path, _hx(tok))}'
+                       for k, (path, tok) in STATUS_ICON.items()) +
+        f',\n    {_icon_svg(STATUS_ICON["Kladde"][0], _hx("state-neutral-fg"))}\n)'),
+        22, 22)
+    st_lbl = text_ctrl("txtMdRowStatus", _switch(1, '"Unknown"', quote=True), size=13,
+                       height=20, width=COLS[3][1] - 22 - 10, wrap="false")
+    stat = group("conMdRowStat", [st_icon, st_lbl], direction="Horizontal", gap=10,
+                 width=COLS[3][1], align_items="Center")
+
+    when = text_ctrl("txtMdRowWhen",
+                     'With(\n'
+                     '    { d: DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days) },\n'
+                     '    If(d <= 0, "Today", If(d = 1, "Yesterday", Text(d) & " days ago"))\n'
+                     ')',
+                     size=12, color=C_MUTED, height=20, width=COLS[4][1], wrap="false")
+
+    act = _open_action()
+    open_btn = button("btnMdRowOpen", '"Open"', act, width=64, height=30,
                       accessible=f'"Open " & ThisItem.{COL_NO} & " in the domain app"')
+    open_btn.props["Size"] = "13"
+    chevron = _image("imgMdRowGo", _svg_uri(_icon_svg(ICON_CHEVRON, _hx("text-muted"))),
+                     24, 24, onselect=act,
+                     label=f'"Open " & ThisItem.{COL_NO}')
+    actions = group("conMdRowActions", [open_btn, chevron], direction="Horizontal", gap=16,
+                    width=COLS[5][1], align_items="Center")
 
-    row = group("conMdRow", [badge, main, plant, stat, when, open_btn],
-                direction="Horizontal", gap=GAP, height="Parent.TemplateHeight - 2",
-                align_items="Center", width="Parent.TemplateWidth", fill=C_CARD_BG)
+    row = group("conMdRow", [dom, main, plant, stat, when, actions],
+                direction="Horizontal", gap=GAP, height="Parent.TemplateHeight - 1",
+                align_items="Center", width="Parent.TemplateWidth", fill=C_CARD_BG,
+                pad=(0, ROW_PAD, 0, ROW_PAD))
 
+    # Stregen mellem raekkerne er galleriets fyld, der ses i den 1 px, som
+    # raekken er lavere end skabelonen.
     gal = Ctrl("galMdRequests", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Requests"',
-        "BorderStyle": "BorderStyle.None", "Fill": C_CARD_BORDER, "FillPortions": "0",
-        "Height": str(GAL_ROWS * (ROW_H + 2)),
+        "BorderStyle": "BorderStyle.None", "Fill": C_DIVIDER, "FillPortions": "0",
+        "Height": str(GAL_ROWS * ROW_H),
         "Items": ITEMS, "LayoutMinWidth": "0", "LoadingSpinner": "LoadingSpinner.Controls",
         "Selectable": "false", "ShowScrollbar": "true", "TabIndex": "0",
-        "TemplatePadding": "2", "TemplateSize": str(ROW_H),
+        "TemplatePadding": "0", "TemplateSize": str(ROW_H),
         "Width": "Parent.Width", "WrapCount": "1",
-    }, children=[row], h=GAL_ROWS * (ROW_H + 2))
+    }, children=[row], h=GAL_ROWS * ROW_H)
 
     empty = text_ctrl("txtMdEmpty", '"No requests match the filters."', size=13,
                       color=C_MUTED, height=24, wrap="true",
                       # GALLERIETS egne raekker - ikke en ny forespoergsel.
-                      # Her stod hele ITEMS igen: et Filter mod SharePoint
-                      # inde i en synlighed, og dermed inde i kortets
-                      # HOEJDE. En hoejde maa ikke kunne fejle paa netvaerket.
+                      # En hoejde maa ikke kunne fejle paa netvaerket.
                       visible="IsEmpty(galMdRequests.AllItems)")
 
     return card("conMdListCard", [head, gal, empty], gap=8)
