@@ -329,8 +329,12 @@ def build_items_rail():
     # og dens hover-flade kommer fra Fluent-temaet og ville daekke teksten.
     # Den klassiske tegner PRAECIS det, den faar: intet fyld, og en kant i
     # primaerfarven, naar musen er over kortet eller det har fokus.
+    #
+    # Classic/Button har INGEN AccessibleLabel - compile afviste den (issue
+    # #57). Skaermlaeseren laeser knappens Text, saa teksten STAAR der, men
+    # i en gennemsigtig farve: den kan hoeres, ikke ses. Kortets egne
+    # tekster ligger under og er det, man ser.
     btnOpen = Ctrl("btnVhpItemOpen", "Classic/Button", props={
-        "AccessibleLabel": "\"Open item \" & Text(ThisItem.ItemId) & \" \" & ThisItem.ShortText",
         "BorderColor": C_TRANSPARENT,
         "BorderStyle": "BorderStyle.Solid",
         "BorderThickness": "2",
@@ -355,7 +359,7 @@ def build_items_rail():
         "RadiusBottomLeft": "10", "RadiusBottomRight": "10",
         "RadiusTopLeft": "10", "RadiusTopRight": "10",
         "TabIndex": "0",
-        "Text": "\"\"",
+        "Text": "\"Open item \" & Text(ThisItem.ItemId) & \" \" & ThisItem.ShortText",
         "Width": "Parent.TemplateWidth",
         "X": "0",
         "Y": "0",
