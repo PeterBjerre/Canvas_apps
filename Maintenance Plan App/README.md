@@ -31,13 +31,14 @@ python3 check_layout.py           # verificerer layoutet
 |---|---|
 | `gen_screen.py` | Kontroltræ-DSL, stylingkonstanter, **højde-algebra** |
 | `build_helpers.py` | Genbrugelige kontroller: kort, felter, knapper, rækker |
-| `build_hero.py` | Topbjaelken med trinindikatoren (seks trin), og Validate-knappen, som staar i trin 5 |
+| `build_hero.py` | Topbjaelken med progressbaren (fem klikbare trin + Submit) og Save draft |
+| `build_status.py` | Trinenes status, valideringen og Submit-betingelsen som navngivne formler |
 | `build_plan_header.py` | Planhoved inkl. plantype og strategivalg |
 | `build_items.py` | Items-skinne og Item Editor |
-| `build_tasklist.py` | Tasklist, operationstabel, dispatch, mailknap |
+| `build_tasklist.py` | Tasklist, operationstabel, materialer, dokumenter |
 | `build_strategy.py` | **Pakkematricen** |
 | `build_flsearch.py` | **Flow-kontrakten for FL-søgning — den ligger kun her** |
-| `build_modal.py` | Tasklist-picker |
+| `build_modal.py` | Tasklist-picker, lang tekst (Object List-popup'en bygges i `build_items.py`) |
 | `check_layout.py` | Efterregner layoutet — se nedenfor |
 
 ## Højdemodellen — og hvorfor Items-delen var i stykker
@@ -122,8 +123,8 @@ Nyt i appen:
   fleste strategiplaner følger.
 - **PAKKER**-kolonne i operationstabellen, så allokeringen kan læses samme sted
   som operationslinjen.
-- Validering **S1, S3, S4, S5** på Validate-knappen, og pakkerne med i både
-  mailkladden og JSON-eksporten.
+- Validering **S1, S3, S4, S5** i `VhpValidationErrors` (build_status.py):
+  Submit er grå, indtil reglerne er opfyldt.
 
 ## Functional Location-søgning via Power Automate
 

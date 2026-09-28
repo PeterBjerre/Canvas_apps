@@ -1030,6 +1030,35 @@ def text_px(text, size=14, semibold=True):
     return int(-(-w // 1))
 
 
+# Segoe UI's egne tegnbredder (regular, i em), til labelen foran en stjerne.
+#
+# text_px() ovenfor er et skoen med vilje for bredt - fint til en knap, der
+# alligevel har 16 px luft i hver side. Foran en paakraevet-stjerne blev det
+# til "Plan Type        *": skoennet ramte 15 px for bredt, og stjernen stod
+# langt fra sin tekst (issue #54). Tabellen her er fontens egne maal, saa
+# afstanden bliver de 3 px, label_row beder om, plus en lille sikkerhed.
+_SEGOE = {
+    " ": .274, "a": .537, "b": .599, "c": .478, "d": .599, "e": .54, "f": .326,
+    "g": .599, "h": .577, "i": .24, "j": .24, "k": .505, "l": .24, "m": .874,
+    "n": .577, "o": .595, "p": .599, "q": .599, "r": .354, "s": .438, "t": .35,
+    "u": .577, "v": .496, "w": .736, "x": .478, "y": .496, "z": .455,
+    "A": .653, "B": .576, "C": .627, "D": .706, "E": .506, "F": .482, "G": .694,
+    "H": .729, "I": .273, "J": .361, "K": .589, "L": .468, "M": .897, "N": .748,
+    "O": .748, "P": .553, "Q": .748, "R": .599, "S": .527, "T": .523, "U": .692,
+    "V": .637, "W": .948, "X": .608, "Y": .569, "Z": .566,
+    "(": .3, ")": .3, "/": .38, "-": .38, ".": .24, ",": .24, ":": .24,
+}
+# Semibold er ca. 4 % bredere end regular; 3 % oven i er sikkerheden mod at
+# klippe det sidste bogstav.
+_SEGOE_SEMIBOLD = 1.04 * 1.03
+
+
+def label_px(text, size=13):
+    """Bredden af en Semibold-label foran en stjerne, i pixels (op)."""
+    em = sum(_SEGOE.get(ch, .58 if ch.isdigit() else .6) for ch in text)
+    return int(-(-(em * size * _SEGOE_SEMIBOLD) // 1))
+
+
 def fit_button_width(text, size=14, min_w=72):
     """Knapbredden til en tekst: teksten + 2 x 16 px luft.
 
@@ -1060,7 +1089,7 @@ def label_row(name, label_text, required=False, width="Parent.Width", cell_w=Non
     if not required:
         return text_ctrl(f"{name}Lbl", f"\"{label_text}\"", size=13, weight="Semibold",
                          height=20, width=width, wrap="false")
-    lbl_w = text_px(label_text, 13)
+    lbl_w = label_px(label_text, 13)
     if cell_w is not None:
         lbl_w = "Min(%d, (%s) - 13)" % (lbl_w, cell_w)
     kids = [text_ctrl(f"{name}Lbl", f"\"{label_text}\"", size=13, weight="Semibold", height=20,
@@ -1148,6 +1177,24 @@ def row_n(name, cells, container_w=SHELL_W, gap=20):
     return group(name, cells, direction="Horizontal", gap=gap, height=h, wrap="true")
 
 
+def column_grid(name, columns, container_w=SHELL_W, gap=20, row_gap=12):
+    """Felter i KOLONNE-orden (issue #54): oppefra og ned i kolonne 1, saa
+    kolonne 2, og saa videre - ikke raekke for raekke.
+
+    columns er en liste af kolonner, hver en liste af celler bygget med
+    field_cell(..., width=column_width(...), fill_portions_formula="0").
+    Hver kolonne er en lodret gruppe; kolonnerne staar side om side i en
+    row_n, der stabler dem under braekpunktet - og saa kommer de stadig i
+    kolonne-orden, fordi det er kolonnerne, der stables, ikke raekkerne.
+
+    Tab-raekkefoelgen foelger traeet, og traeet er nu kolonne-orden."""
+    w = col_width(container_w, len(columns), gap)
+    cols = [group(f"{name}Col{i + 1}", cells, direction="Vertical", gap=row_gap,
+                  width=w, align_items="Stretch", align_in_container="Start")
+            for i, cells in enumerate(columns)]
+    return row_n(name, cols, container_w=container_w, gap=gap)
+
+
 def two_col_row(name, cell_a, cell_b, container_w=SHELL_W):
     """To felter side om side - stablet under braekpunktet. Item Editor-kortet
     er ca. 380 px smallere end skaermen, saa App.Width som maalestok fik
@@ -1165,9 +1212,12 @@ def badge(name, text, size=11, width=64):
                             "RadiusTopLeft": "12", "RadiusTopRight": "12"})
 
 
-def card(name, children, gap=14, visible=None):
+def card(name, children, gap=14, visible=None, pad_y=18):
     """Sektionskort i appens standardstil. Padding taelles automatisk med i
-    hoejden - det var den fejl der gjorde hvert eneste kort 36 px for lavt."""
+    hoejden - det var den fejl der gjorde hvert eneste kort 36 px for lavt.
+
+    pad_y er kun top og bund. Siderne er altid 18: indholdsbredden regnes
+    overalt som SHELL_W - 36."""
     return group(name, children, direction="Vertical", gap=gap,
                  fill=C_CARD_BG, border_color=C_CARD_BORDER, radius=14,
-                 pad=(18, 18, 18, 18), visible=visible)
+                 pad=(pad_y, 18, pad_y, 18), visible=visible)
