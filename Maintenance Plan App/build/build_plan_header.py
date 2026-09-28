@@ -6,7 +6,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQU
 import build_help as bh
 from build_helpers import (text_ctrl, group, button, text_input, number_input, dropdown, label_row,
                            field_cell, row_n, col_width, badge, card, grow,
-                           column_grid, text_px, fit_button_width)
+                           column_grid, text_px, fit_button_width, ICON_W)
 
 DM_PLAN = "If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)"
 REQ_PLAN = "varVhpPlanValidated"
@@ -66,10 +66,16 @@ def section_header(name, title, step_label, extra_right=(), extra_left=()):
     if step_label:
         right.append(badge(f"{name}Badge", f"\"{step_label}\"", width=64))
 
-    left = grow(group(f"{name}Left", [t] + list(extra_left), direction="Horizontal",
-                      gap=12, align_items="Center"))
-    return group(f"{name}", [left] + right, direction="Horizontal", gap=12,
-                 align_items="Center")
+    # FLAD RAEKKE (issue #54 - titlerne manglede i Studio). Titlen staar
+    # DIREKTE i overskriftens raekke, ikke i en indlejret gruppe, og en tom
+    # gruppe tager resten af bredden. Da titlen flyttede fra en lodret til
+    # en vandret indlejret gruppe, lagde Studio den ikke rigtigt om - det er
+    # netop den flytning mellem foraeldre, deploy advarer om. Uden en
+    # indlejret titelgruppe er der intet at flytte forkert.
+    gap = group(f"{name}Gap", [], direction="Horizontal", height=0)
+    grow(gap)
+    return group(f"{name}", [t] + list(extra_left) + [gap] + right, direction="Horizontal",
+                 gap=12, align_items="Center")
 
 
 # Hoejden paa EET afsnit i hjaelpepanelet.
@@ -330,7 +336,8 @@ def build_plan_header():
             "    )\n"
             ")"
         ),
-        primary=True, width=140, height=36)
+        primary=True, width=140, height=36,
+        icon="If(varVhpPlanLocked, \"Edit\", \"Save\")")
 
     # RESET (issue #54): de usavede aendringer i planhovedet tilbage til
     # den senest gemte plan - eller startvaerdierne, hvis planen aldrig er
@@ -344,7 +351,7 @@ def build_plan_header():
         "If(varVhpPlanCommitted, Set(varVhpPlanLocked, true))",
         width=fit_button_width("\"Reset\""), height=36,
         display_mode="If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)")
-    btnSave.props["Width"] = str(fit_button_width("\"Save\"", min_w=96))
+    btnSave.props["Width"] = str(fit_button_width("\"Save\"", min_w=96) + ICON_W)
 
     footer = group("conVhpPlanFooter", [footerInfo, btnReset, btnSave], direction="Horizontal",
                    gap=8, height=40, align_items="Center")

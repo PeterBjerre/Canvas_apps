@@ -55,7 +55,14 @@ from layout_tokens import below, if_below, fits
 from build_helpers import (text_ctrl, group, button, text_input,
                            date_picker, fit_button_row, fit_button_width,
                            number_input, themed_dropdown, card, field_cell, row_n,
-                           col_width, pin_widths, badge, top_bar, grow)
+                           col_width, pin_widths, badge, top_bar, grow,
+                           busy_overlay, with_busy, confirm_modal, ICON_SAVE,
+                           ICON_SUBMIT, ICON_W)
+
+# Mens en gemning koerer, staar ventespinneren oven paa skaermen (issue #54).
+SAVING_VAR = "varDomSaving"
+# Bekraeftelsen foer Submit.
+CONFIRM_VAR = "varDomConfirmSubmit"
 from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE
 import domain_config as cfg
 import attflows
@@ -448,10 +455,11 @@ def build_form():
     # SharePoint, saa helt tom kan en raekke ikke vaere. Alt andet maa
     # mangle. "Save" kraever ogsaa vaerket, og det er DEN status, Indsend
     # tager med.
-    draft = button("btnDomSaveDraft", '"Save draft"', save_row_fx("draft"),
-                   width=150, display_mode=DM_ROW)
-    save = button("btnDomSave", '"Save"', save_row_fx("valid"), primary=True,
-                  width=130, display_mode=DM_ROW)
+    draft = button("btnDomSaveDraft", '"Save draft"',
+                   with_busy(SAVING_VAR, save_row_fx("draft")),
+                   width=150 + ICON_W, display_mode=DM_ROW, icon=ICON_SAVE)
+    save = button("btnDomSave", '"Save"', with_busy(SAVING_VAR, save_row_fx("valid")),
+                  primary=True, width=130, display_mode=DM_ROW, icon=ICON_SAVE)
     new = button("btnDomNew", '"New row"', clear_form_fx(), width=130)
     delete = button("btnDomDelete", '"Delete row"', delete_row_fx(),
                     danger=True, width=150, display_mode=DM_SEL)
@@ -1295,10 +1303,14 @@ def send_fx(submit):
 
 def build_submit():
     draft = button(
-        "btnDomSendDraft", '"Save as draft"', send_fx(False), width=180,
+        "btnDomSendDraft", '"Save as draft"', with_busy(SAVING_VAR, send_fx(False)),
+        width=180 + ICON_W, icon=ICON_SAVE,
         display_mode=f'If(CountRows({SENDABLE}) = 0, DisplayMode.Disabled, DisplayMode.Edit)')
+    # Submit spoerger foerst (build_submit_confirm); indsendelsen koerer i
+    # popup'ens Submit.
     submit = button(
-        "btnDomSubmit", '"Submit"', send_fx(True), primary=True, width=150,
+        "btnDomSubmit", '"Submit"', f"Set({CONFIRM_VAR}, true)", primary=True,
+        width=150, icon=ICON_SUBMIT,
         display_mode=f'If(CountRows({VALID}) = 0, DisplayMode.Disabled, DisplayMode.Edit)')
     # "Hent forfra" stod BEGGE steder - her og paa dokumentruden - og
     # betoed to forskellige ting. Nu siger navnet hvad der hentes.
@@ -1324,3 +1336,15 @@ def build_submit():
                  fit_button_row("conDomSubmitRow", [draft, submit, reload_],
                                 f"({SHELL_W} - 36)"),
                  note])
+
+
+def build_submit_confirm():
+    """Bekraeftelsen foer Submit og ventespinneren (issue #54).
+
+    [sloer, popup, spinner] - skal staa SIDST i skaermens boern, saa de
+    ligger oven paa alt andet."""
+    return confirm_modal(
+        "Dom", CONFIRM_VAR, "Submit request?",
+        '"The valid rows are sent to the landing page as Submitted and locked."',
+        "Submit", with_busy(SAVING_VAR, send_fx(True)), "btnDomSubmitConfirm") + [
+        busy_overlay("imgDomSaving", SAVING_VAR)]

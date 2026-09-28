@@ -17,7 +17,7 @@ from gen_screen import (
     C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED,
     C_PRIMARY, C_PRIMARY2, C_WHITE, C_TRANSPARENT, C_INPUT_BG, C_DISABLED_BG,
     C_DIVIDER, C_VALID_FG, C_VALID_BG, C_INVALID_FG, C_INVALID_BG,
-    C_BORDER_OK, C_BORDER_ERROR, C_PRIMARY_SOFT,
+    C_BORDER_OK, C_BORDER_ERROR, C_PRIMARY_SOFT, C_OVERLAY, C_MODAL_BG,
     C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, C_WARN_FG, FONT,
     SHELL_W, EDITOR_W, RAIL_W, SPLIT_GAP, OUT_DIR,
 )
@@ -179,9 +179,17 @@ def group(name, children, direction="Vertical", gap=8, height=None, width="Paren
                 h=height, vis=visible)
 
 
+# Ikonerne paa gem- og indsend-knapperne i hele BIO SAP (issue #54). Navnene
+# er Fluent-ikonernes; ModernButton.Icon tager dem direkte.
+ICON_SAVE = "Save"
+ICON_SUBMIT = "Send"
+# Ikon + mellemrum foran teksten - laegges til knappens tekstbredde.
+ICON_W = 24
+
+
 def button(name, text, onselect, primary=False, danger=False, width=140, height=36,
            display_mode=None, base_color=None, layout_min_width=None, visible=None,
-           accessible=None):
+           accessible=None, icon=None):
     props = {
         "AccessibleLabel": accessible if accessible else text,
         "Align": "Align.Center",
@@ -228,7 +236,97 @@ def button(name, text, onselect, primary=False, danger=False, width=140, height=
         props["LayoutMinWidth"] = str(layout_min_width)
     if visible is not None:
         props["Visible"] = visible
+    # Ikon foran teksten. icon er et Fluent-ikonnavn ("Save") eller et
+    # Power Fx-udtryk, der giver et.
+    if icon:
+        props["Icon"] = icon if icon.startswith(("If(", '"')) else f'"{icon}"'
+        props["Layout"] = "ButtonLayout.IconBefore"
     return Ctrl(name, "ModernButton", props=props, h=height, vis=visible)
+
+
+def busy_overlay(name, busy_var, label="Saving, please wait"):
+    """Ventespinneren, MENS der gemmes (issue #54).
+
+    Samme hjul som den samlede apps indlaesningsspinner: et drejende SVG-hjul
+    midt paa skaermen, oven paa alt, i sloerets farve - saa ingen naar at
+    trykke paa noget, mens gemningen koerer. Synlig, saa laenge busy_var er
+    sand; gemmeknappen saetter den foer, og nulstiller den efter, kaldet til
+    SharePoint.
+
+    Staar SIDST i skaermens boern: det, der staar senere, ligger oeverst."""
+    hx = lambda n: '" & %s & "' % ref_hex_expr(n)
+    w = h = 64
+    c = w // 2
+    svg = ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{h}' "
+           f"viewBox='0 0 {w} {h}'>"
+           f"<circle cx='{c}' cy='{c}' r='22' fill='none' stroke-width='6' "
+           f"stroke='{hx('state-neutral-bg')}'/>"
+           f"<path d='M{c} {c - 22} a22 22 0 0 1 22 22' fill='none' stroke-width='6' "
+           f"stroke-linecap='round' stroke='{hx('color-brand-primary')}'>"
+           f"<animateTransform attributeName='transform' type='rotate' "
+           f"from='0 {c} {c}' to='360 {c} {c}' dur='0.9s' repeatCount='indefinite'/>"
+           f"</path>"
+           "</svg>" + '"')
+    vis = f"IfError({busy_var}, false)"
+    return Ctrl(name, "Image", props={
+        "AccessibleLabel": f'"{label}"',
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        "Fill": C_OVERLAY,
+        "Height": "App.Height",
+        "Image": f'"data:image/svg+xml;utf8," & EncodeUrl({svg})',
+        "ImagePosition": "ImagePosition.Center",
+        "TabIndex": "-1",
+        "Visible": vis,
+        "Width": "App.Width",
+        "X": "0",
+        "Y": "0",
+    }, h="App.Height", vis=vis)
+
+
+def with_busy(busy_var, fx):
+    """fx med ventespinneren taendt, mens den koerer."""
+    return f"Set({busy_var}, true);\n{fx};\nSet({busy_var}, false)"
+
+
+def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
+                  confirm_name, icon=ICON_SUBMIT):
+    """Bekraeftelsen foer Submit (issue #54) - [sloer, popup].
+
+    Samme konstruktion som appernes andre popupper: en centreret container
+    med sloer bag, titel, en linje tekst og to knapper. Submit-knappen
+    aabner den (Set(open_var, true)); foerst "Submit" HER koerer
+    indsendelsen. Cancel lukker uden at goere noget."""
+    vis = f"IfError({open_var}, false)"
+    backdrop = Ctrl(f"con{prefix}ConfirmBackdrop", "GroupContainer", variant="AutoLayout", props={
+        "BorderStyle": "BorderStyle.None",
+        "DropShadow": "DropShadow.None",
+        "Fill": C_OVERLAY,
+        "Height": "App.Height",
+        "LayoutDirection": "LayoutDirection.Vertical",
+        "Visible": vis,
+        "Width": "App.Width",
+        "X": "0",
+        "Y": "0",
+    }, children=[], vis=vis)
+    t = text_ctrl(f"txt{prefix}ConfirmTitle", f'"{title}"', size=17, weight="Semibold",
+                  height=26, wrap="false")
+    msg = text_ctrl(f"txt{prefix}ConfirmText", message, size=13, color=C_MUTED,
+                    height=40, wrap="true")
+    cancel = button(f"btn{prefix}ConfirmCancel", '"Cancel"', f"Set({open_var}, false)",
+                    width=fit_button_width('"Cancel"'), height=36)
+    ok = button(confirm_name, f'"{confirm_text}"',
+                f"Set({open_var}, false);\n{confirm_fx}", primary=True,
+                width=fit_button_width(f'"{confirm_text}"') + ICON_W, height=36, icon=icon)
+    footer = group(f"con{prefix}ConfirmFooter", [cancel, ok], direction="Horizontal", gap=8,
+                   height=36, justify="End", align_items="Center")
+    modal = group(f"con{prefix}ConfirmModal", [t, msg, footer], direction="Vertical", gap=12,
+                  fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=16,
+                  pad=(18, 18, 18, 18), width="Min(460, App.Width - 40)",
+                  drop_shadow="ExtraBold", visible=vis)
+    modal.props["X"] = "(App.Width - Self.Width) / 2"
+    modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
+    return [backdrop, modal]
 
 
 # Temaskiftets maal. Eksporteret, saa en app, der regner sin bjaelke selv

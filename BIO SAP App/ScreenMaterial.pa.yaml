@@ -3315,12 +3315,15 @@ Screens:
                                         =FontWeight.Semibold
                                     Height: |-
                                         =36
+                                    Icon: |-
+                                        ="Save"
                                     Layout: |-
-                                        =ButtonLayout.TextOnly
+                                        =ButtonLayout.IconBefore
                                     LayoutMinWidth: |-
                                         =If((((App.Width - 120) - 36)) >= (111) + (72) + (91) + (111) + 24, 111, 0)
                                     OnSelect: |-
-                                        =Set(varMatValidated, true);
+                                        =Set(varMatSaving, true);
+                                        Set(varMatValidated, true);
                                         If(
                                             IsBlank(Trim(Coalesce(varMatFText, ""))),
                                             Notify("Material description is required - also on a draft.", NotificationType.Warning),
@@ -3413,7 +3416,8 @@ Screens:
                                             Set(varMatInfo, "Save failed: " & FirstError.Message);
                                             Notify("Save failed: " & FirstError.Message, NotificationType.Error)
                                             )
-                                        )
+                                        );
+                                        Set(varMatSaving, false)
                                     RadiusBottomLeft: |-
                                         =10
                                     RadiusBottomRight: |-
@@ -3451,12 +3455,15 @@ Screens:
                                         =FontWeight.Semibold
                                     Height: |-
                                         =36
+                                    Icon: |-
+                                        ="Save"
                                     Layout: |-
-                                        =ButtonLayout.TextOnly
+                                        =ButtonLayout.IconBefore
                                     LayoutMinWidth: |-
                                         =If((((App.Width - 120) - 36)) >= (111) + (72) + (91) + (111) + 24, 72, 0)
                                     OnSelect: |-
-                                        =Set(varMatValidated, true);
+                                        =Set(varMatSaving, true);
+                                        Set(varMatValidated, true);
                                         If(
                                             IsBlank(Trim(Coalesce(varMatFText, ""))) || IsBlank(varMatFPlant),
                                             Notify("Material description and Plant are required.", NotificationType.Warning),
@@ -3549,7 +3556,8 @@ Screens:
                                             Set(varMatInfo, "Save failed: " & FirstError.Message);
                                             Notify("Save failed: " & FirstError.Message, NotificationType.Error)
                                             )
-                                        )
+                                        );
+                                        Set(varMatSaving, false)
                                     RadiusBottomLeft: |-
                                         =10
                                     RadiusBottomRight: |-
@@ -5131,12 +5139,15 @@ Screens:
                                         =FontWeight.Semibold
                                     Height: |-
                                         =36
+                                    Icon: |-
+                                        ="Save"
                                     Layout: |-
-                                        =ButtonLayout.TextOnly
+                                        =ButtonLayout.IconBefore
                                     LayoutMinWidth: |-
                                         =If((((App.Width - 120) - 36)) >= (134) + (82) + (124) + 16, 134, 0)
                                     OnSelect: |-
-                                        =If(
+                                        =Set(varMatSaving, true);
+                                        If(
                                             CountRows(Filter(colMatRows, Status <> "submitted")) = 0,
                                             Notify("There are no rows to save.", NotificationType.Warning),
                                         
@@ -5227,7 +5238,8 @@ Screens:
                                                 Set(varMatInfo, "It failed: " & FirstError.Message);
                                                 Notify("It failed: " & FirstError.Message, NotificationType.Error)
                                             )
-                                        )
+                                        );
+                                        Set(varMatSaving, false)
                                     RadiusBottomLeft: |-
                                         =10
                                     RadiusBottomRight: |-
@@ -5265,105 +5277,14 @@ Screens:
                                         =FontWeight.Semibold
                                     Height: |-
                                         =36
+                                    Icon: |-
+                                        ="Send"
                                     Layout: |-
-                                        =ButtonLayout.TextOnly
+                                        =ButtonLayout.IconBefore
                                     LayoutMinWidth: |-
                                         =If((((App.Width - 120) - 36)) >= (134) + (82) + (124) + 16, 82, 0)
                                     OnSelect: |-
-                                        =If(
-                                            CountRows(Filter(colMatRows, Status = "valid")) = 0,
-                                            Notify("There are no completed rows to submit.", NotificationType.Warning),
-                                        
-                                            IfError(
-                                                If(
-                                                    IsBlank(varMatRequestGuid),
-                                                    Set(varMatRequestGuid, Text(GUID()))
-                                                );
-                                                Set(
-                                                    varMatIdx,
-                                                    Patch(
-                                                        MD_RequestIndex,
-                                                        Coalesce(
-                                                            LookUp(MD_RequestIndex, RequestGuid = varMatRequestGuid),
-                                                            Defaults(MD_RequestIndex)
-                                                        ),
-                                                        {
-                                                            RequestNo: Coalesce(varMatRequestNo, varMatRequestGuid),
-                                                            Domain: { Value: "Material" },
-                                                            Status: { Value: "Indsendt" },
-                                                            StatusStep: 2,
-                                                            IsOpen: true,
-                                                            RequesterEmail: varMatMe,
-                                                            RequesterName: User().FullName,
-                                                            ShortText: "Materials: " & CountRows(Filter(colMatRows, Status = "valid")) & " row(s)",
-                                                            Plant: First(Filter(colMatRows, Status = "valid")).Plant,
-                                                            ItemCount: CountRows(Filter(colMatRows, Status = "valid")),
-                                                            RequestGuid: varMatRequestGuid,
-                                                            AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/d7762919-c716-4bd0-9abd-24bab436221f?reqid=" & varMatRequestGuid,
-                                                            LastActionOn: Now(),
-                                                            LastActionBy: varMatMe
-                                                        }
-                                                    )
-                                                );
-                                        
-                                                // Foerste gang bliver indeksraekkens eget ID til nummeret
-                                                If(
-                                                    IsBlank(varMatRequestNo),
-                                                    Set(varMatRequestNo, "MAT-" & Text(varMatIdx.ID, "000000"));
-                                                    Patch(MD_RequestIndex, varMatIdx, { RequestNo: varMatRequestNo })
-                                                );
-                                        
-                                                Patch(
-                                                    MaterialItems,
-                                                    ForAll(Filter(colMatRows, Status = "valid") As X, { ID: X.RowId }),
-                                                    ForAll(
-                                                        Filter(colMatRows, Status = "valid"),
-                                                        {
-                                                            RequestNo: varMatRequestNo,
-                                                            RequestGuid: varMatRequestGuid,
-                                                            RowStatus: { Value: "submitted" },
-                                                            SubmittedOn: Now()
-                                                        }
-                                                    )
-                                                );
-                                        
-                                                ClearCollect(
-                                                    colMatRows,
-                                                    ForAll(
-                                                        Filter(MaterialItems, RequesterEmail = varMatMe) As R,
-                                                        {
-                                                            RowId: R.ID,
-                                                            ItemKey: Coalesce(R.ItemKey, ""),
-                                                            RequestNo: Coalesce(R.RequestNo, ""),
-                                                            Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                            FileCount: Coalesce(R.FileCount, 0),
-                                                            MaterialDescription: Coalesce(R.MaterialDescription, ""),
-                                                            Plant: Coalesce(R.Plant, ""),
-                                                            FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                            Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                            ModelNumber: Coalesce(R.ModelNumber, ""),
-                                                            ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
-                                                            Supplier: Coalesce(R.Supplier, ""),
-                                                            SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
-                                                            DeliveringTime: R.DeliveringTime,
-                                                            Price: R.Price,
-                                                            PriceUnit: Coalesce(R.PriceUnit, ""),
-                                                            StockUnit: Coalesce(R.StockUnit, ""),
-                                                            RecommendedStock: R.RecommendedStock,
-                                                            StrategicPart: Coalesce(R.StrategicPart, ""),
-                                                            WearPart: Coalesce(R.WearPart, ""),
-                                                            LongText: Coalesce(R.LongText, "")
-                                                        }
-                                                    )
-                                                );
-                                        
-                                                Set(varMatInfo, "Submitted: " & varMatRequestNo);
-                                                Notify("Submitted as " & varMatRequestNo & " - see it on the landing page.", NotificationType.Success),
-                                        
-                                                Set(varMatInfo, "It failed: " & FirstError.Message);
-                                                Notify("It failed: " & FirstError.Message, NotificationType.Error)
-                                            )
-                                        )
+                                        =Set(varMatConfirmSubmit, true)
                                     RadiusBottomLeft: |-
                                         =10
                                     RadiusBottomRight: |-
@@ -9229,6 +9150,381 @@ Screens:
                             =0
                         Width: |-
                             =104
+      - conMatConfirmBackdrop:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderStyle: |-
+                =BorderStyle.None
+            DropShadow: |-
+                =DropShadow.None
+            Fill: |-
+                =C.'overlay'
+            Height: |-
+                =App.Height
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            Visible: |-
+                =IfError(varMatConfirmSubmit, false)
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - conMatConfirmModal:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'color-brand-primary-soft'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.ExtraBold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =162
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Stretch
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =12
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =18
+            PaddingLeft: |-
+                =18
+            PaddingRight: |-
+                =18
+            PaddingTop: |-
+                =18
+            RadiusBottomLeft: |-
+                =16
+            RadiusBottomRight: |-
+                =16
+            RadiusTopLeft: |-
+                =16
+            RadiusTopRight: |-
+                =16
+            Visible: |-
+                =IfError(varMatConfirmSubmit, false)
+            Width: |-
+                =Min(460, App.Width - 40)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =Max(20, (App.Height - Self.Height) / 3)
+          Children:
+            - txtMatConfirmTitle:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      ="Submit request?"
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-primary'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  FontWeight: |-
+                      =FontWeight.Semibold
+                  Height: |-
+                      =26
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =17
+                  Text: |-
+                      ="Submit request?"
+                  Wrap: |-
+                      =false
+            - txtMatConfirmText:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      ="The valid rows are sent to the landing page as Submitted and locked."
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =40
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =13
+                  Text: |-
+                      ="The valid rows are sent to the landing page as Submitted and locked."
+                  Wrap: |-
+                      =true
+            - conMatConfirmFooter:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =36
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =8
+                  LayoutJustifyContent: |-
+                      =LayoutJustifyContent.End
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - btnMatConfirmCancel:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Cancel"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-default'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varMatConfirmSubmit, false)
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =14
+                        Text: |-
+                            ="Cancel"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =86
+                  - btnMatSubmitConfirm:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Submit"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
+                        Color: |-
+                            =C.'text-on-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Icon: |-
+                            ="Send"
+                        Layout: |-
+                            =ButtonLayout.IconBefore
+                        OnSelect: |-
+                            =Set(varMatConfirmSubmit, false);
+                            Set(varMatSaving, true);
+                            If(
+                                CountRows(Filter(colMatRows, Status = "valid")) = 0,
+                                Notify("There are no completed rows to submit.", NotificationType.Warning),
+                            
+                                IfError(
+                                    If(
+                                        IsBlank(varMatRequestGuid),
+                                        Set(varMatRequestGuid, Text(GUID()))
+                                    );
+                                    Set(
+                                        varMatIdx,
+                                        Patch(
+                                            MD_RequestIndex,
+                                            Coalesce(
+                                                LookUp(MD_RequestIndex, RequestGuid = varMatRequestGuid),
+                                                Defaults(MD_RequestIndex)
+                                            ),
+                                            {
+                                                RequestNo: Coalesce(varMatRequestNo, varMatRequestGuid),
+                                                Domain: { Value: "Material" },
+                                                Status: { Value: "Indsendt" },
+                                                StatusStep: 2,
+                                                IsOpen: true,
+                                                RequesterEmail: varMatMe,
+                                                RequesterName: User().FullName,
+                                                ShortText: "Materials: " & CountRows(Filter(colMatRows, Status = "valid")) & " row(s)",
+                                                Plant: First(Filter(colMatRows, Status = "valid")).Plant,
+                                                ItemCount: CountRows(Filter(colMatRows, Status = "valid")),
+                                                RequestGuid: varMatRequestGuid,
+                                                AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/d7762919-c716-4bd0-9abd-24bab436221f?reqid=" & varMatRequestGuid,
+                                                LastActionOn: Now(),
+                                                LastActionBy: varMatMe
+                                            }
+                                        )
+                                    );
+                            
+                                    // Foerste gang bliver indeksraekkens eget ID til nummeret
+                                    If(
+                                        IsBlank(varMatRequestNo),
+                                        Set(varMatRequestNo, "MAT-" & Text(varMatIdx.ID, "000000"));
+                                        Patch(MD_RequestIndex, varMatIdx, { RequestNo: varMatRequestNo })
+                                    );
+                            
+                                    Patch(
+                                        MaterialItems,
+                                        ForAll(Filter(colMatRows, Status = "valid") As X, { ID: X.RowId }),
+                                        ForAll(
+                                            Filter(colMatRows, Status = "valid"),
+                                            {
+                                                RequestNo: varMatRequestNo,
+                                                RequestGuid: varMatRequestGuid,
+                                                RowStatus: { Value: "submitted" },
+                                                SubmittedOn: Now()
+                                            }
+                                        )
+                                    );
+                            
+                                    ClearCollect(
+                                        colMatRows,
+                                        ForAll(
+                                            Filter(MaterialItems, RequesterEmail = varMatMe) As R,
+                                            {
+                                                RowId: R.ID,
+                                                ItemKey: Coalesce(R.ItemKey, ""),
+                                                RequestNo: Coalesce(R.RequestNo, ""),
+                                                Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                FileCount: Coalesce(R.FileCount, 0),
+                                                MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                                Plant: Coalesce(R.Plant, ""),
+                                                FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                ModelNumber: Coalesce(R.ModelNumber, ""),
+                                                ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                                Supplier: Coalesce(R.Supplier, ""),
+                                                SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                                DeliveringTime: R.DeliveringTime,
+                                                Price: R.Price,
+                                                PriceUnit: Coalesce(R.PriceUnit, ""),
+                                                StockUnit: Coalesce(R.StockUnit, ""),
+                                                RecommendedStock: R.RecommendedStock,
+                                                StrategicPart: Coalesce(R.StrategicPart, ""),
+                                                WearPart: Coalesce(R.WearPart, ""),
+                                                LongText: Coalesce(R.LongText, "")
+                                            }
+                                        )
+                                    );
+                            
+                                    Set(varMatInfo, "Submitted: " & varMatRequestNo);
+                                    Notify("Submitted as " & varMatRequestNo & " - see it on the landing page.", NotificationType.Success),
+                            
+                                    Set(varMatInfo, "It failed: " & FirstError.Message);
+                                    Notify("It failed: " & FirstError.Message, NotificationType.Error)
+                                )
+                            );
+                            Set(varMatSaving, false)
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =14
+                        Text: |-
+                            ="Submit"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =106
+      - imgMatSaving:
+          Control: Image
+          Properties:
+            AccessibleLabel: |-
+                ="Saving, please wait"
+            BorderStyle: |-
+                =BorderStyle.None
+            BorderThickness: |-
+                =0
+            Fill: |-
+                =C.'overlay'
+            Height: |-
+                =App.Height
+            Image: |-
+                ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><circle cx='32' cy='32' r='22' fill='none' stroke-width='6' stroke='" & C.'hex-state-neutral-bg' & "'/><path d='M32 10 a22 22 0 0 1 22 22' fill='none' stroke-width='6' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'><animateTransform attributeName='transform' type='rotate' from='0 32 32' to='360 32 32' dur='0.9s' repeatCount='indefinite'/></path></svg>")
+            ImagePosition: |-
+                =ImagePosition.Center
+            TabIndex: |-
+                =-1
+            Visible: |-
+                =IfError(varMatSaving, false)
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
       - imgMatLoading:
           Control: Image
           Properties:
