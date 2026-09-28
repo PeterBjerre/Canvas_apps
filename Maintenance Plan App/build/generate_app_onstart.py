@@ -89,6 +89,8 @@ Set(varVhpPrevPlant, "");
 Set(varVhpFlBusy, false);
 Set(varVhpFlDots, 0);
 Set(varVhpObjListOpen, false);
+// Trinet, der sidst er klikket i progressbaren - dets sektion har en tyk kant.
+Set(varVhpFocusStep, 0);
 Set(varVhpTasklistPickerOpen, false);
 
 // Get-flowet svarer med en STRENG, der skal gennem ParseJSON.

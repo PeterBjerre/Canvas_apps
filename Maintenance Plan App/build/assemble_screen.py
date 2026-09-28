@@ -19,7 +19,8 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import Ctrl, render_screen, C_APP_BG, OUT_DIR
 from build_helpers import app_frame
-from build_hero import build_top_bar, HELP_ON, HELP_ACTION
+from build_hero import build_top_bar, HELP_ON, HELP_ACTION, focus_border
+from gen_screen import C_CARD_BORDER
 from side_nav import side_nav
 from build_plan_header import build_plan_header
 from build_items import build_items_section, build_object_list_modal
@@ -29,12 +30,16 @@ from build_modal import (build_tasklist_picker_modal, build_longtext_modal,
 
 
 def build_screen():
+    # Sektionen, et klik i progressbaren peger paa, faar en tyk kant.
+    items = build_items_section()
+    for card in items.children:
+        focus_border(card, (2,), C_CARD_BORDER)
     sections = [
-        build_plan_header(),
-        build_items_section(),
+        focus_border(build_plan_header(), (1,), C_CARD_BORDER),
+        items,
         # Pakkematricen er nu en fane i Tasklist-sektionen, ikke et kort
         # for sig. Se build_tasklist._tab_bar.
-        build_tasklist_section(),
+        focus_border(build_tasklist_section(), (3, 4), C_CARD_BORDER),
         # Dispatch and Control og Save to SharePoint er fjernet (issue #54).
         # Save draft og Submit staar for enden af progressbaren i
         # topbjaelken (build_hero.py), og reglerne bag Validate er de
