@@ -2,8 +2,9 @@
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import Ctrl, SHELL_W, C_PRIMARY, C_CARD_BORDER
-from build_helpers import button, top_bar, group, fit_button_width
-from layout_tokens import if_below
+from build_helpers import (button, group, fit_button_width, text_ctrl, text_px, grow,
+                           ICON_W)
+from layout_tokens import if_below, at_least
 from design_tokens import ref_hex
 
 # Topbjaelken er ALT, der er tilbage af hero-kortet.
@@ -61,10 +62,9 @@ ITEM_DIRTY = (
     "        Trim(txtVhpItemShortText.Text & \"\") <> Trim(it.ShortText & \"\") ||\n"
     "        (drpVhpItemMainWorkCenter.Selected.Value & \"\") <> (it.MainWorkCenter & \"\") ||\n"
     "        (drpVhpItemActivityType.Selected.Value & \"\") <> (it.ActivityType & \"\") ||\n"
-    "        (drpVhpItemRevision.Selected.Value & \"\") <> (it.Revision & \"\") ||\n"
+    "        tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||\n"
     "        (drpVhpItemFL.Selected.Code & \"\") <> (it.FunctionalLocation & \"\") ||\n"
-    "        Trim(txtVhpItemInitials.Text & \"\") <> Trim(it.Initials & \"\") ||\n"
-    "        Trim(txtVhpItemLongText.Text & \"\") <> Trim(it.LongText & \"\")\n"
+    "        Trim(txtVhpItemInitials.Text & \"\") <> Trim(it.Initials & \"\")\n"
     "    )\n"
     ")"
 )
@@ -185,30 +185,57 @@ def _submit_tooltip():
             f"    \"Not ready to submit: \" &\n    {reasons}\n)")
 
 
+# Save draft og Submit - bredderne bruges baade af knapperne og af
+# bjaelkens to sider, saa progressbaren staar i midten.
+SAVE_W = fit_button_width('"Save draft"') + ICON_W
+SUB_W = fit_button_width('"Submit"', min_w=96) + ICON_W
+TITLE_W = text_px("VH-plan", 22) + 4
+# Hoejre side: begge knapper; under Tablet kun Submit (Save draft skjules).
+RIGHT_W = if_below("Tablet", str(SUB_W), str(SAVE_W + 8 + SUB_W))
+# Venstre side er lige saa bred som hoejre, saa trinene staar midt i
+# bjaelken. Under Tablet er der ikke plads til at spilde - saa kun titlen.
+LEFT_W = if_below("Tablet", str(TITLE_W), str(SAVE_W + 8 + SUB_W))
+
+# Bjaelkens elementer - samme opbevaring som assemble_screen skal bruge.
+CONFIRM = []
+
+
 def build_top_bar():
-    """VH-planens topbjaelke - den samme som i de tre andre apps
-    (build_helpers.top_bar), med progressbaren under titlen og Save draft
-    til hoejre. Help og tema staar i sidebaren."""
+    """VH-planens topbjaelke (issue #54):
+
+        VH-plan        (1)--(2)--(3)--(4)--(5)        [Save draft][Submit]
+
+    Titlen til venstre, progressbaren CENTRERET, og Save draft og Submit
+    samlet til hoejre. Venstre og hoejre side er lige brede, saa midten er
+    bjaelkens midte. Help og tema staar i sidebaren."""
     from build_save import save_buttons
-    btnDraft, btnSubmit = save_buttons(CAN_SUBMIT)
-    save_w = fit_button_width('"Save draft"')
-    sub_w = fit_button_width('"Submit"', min_w=96)
-    btnDraft.props["Width"] = str(save_w)
+    btnDraft, btnSubmit, confirm = save_buttons(CAN_SUBMIT)
+    CONFIRM[:] = confirm
+    btnDraft.props["Width"] = str(SAVE_W)
     btnDraft.props["Tooltip"] = (
         "If(\n"
         "    varVhpSaving, \"Saving ...\",\n"
         "    IsBlank(varVhpPlanKey), \"Not saved yet. Save as draft so you can come back to it.\",\n"
         "    \"Saved as \" & varVhpPlanKey & \". The next save overwrites items and operations on the same plan.\"\n"
         ")")
+    btnDraft.vis = at_least("Tablet")
     focus_border(btnDraft, (5,), C_CARD_BORDER)
-    btnSubmit.props["Width"] = str(sub_w)
+    btnSubmit.props["Width"] = str(SUB_W)
     btnSubmit.props["Tooltip"] = _submit_tooltip()
-    btnSubmit.props["AlignInContainer"] = "AlignInContainer.Center"
-    btnSubmit.props["LayoutMinWidth"] = str(sub_w)
+    for b in (btnDraft, btnSubmit):
+        b.props["LayoutMinWidth"] = b.props["Width"]
+    right = group("conVhpBarRight", [btnDraft, btnSubmit], direction="Horizontal", gap=8,
+                  width=RIGHT_W, justify="End", align_items="Center", height=36)
+    right.props["LayoutMinWidth"] = RIGHT_W
+
+    title = text_ctrl("txtVhpTitle", '"VH-plan"', size=22, weight="Semibold",
+                      height=33, width=TITLE_W, wrap="false")
+    left = group("conVhpBarLeft", [title], direction="Horizontal", width=LEFT_W,
+                 align_items="Center")
+    left.props["LayoutMinWidth"] = LEFT_W
 
     n = len(STEPS)
-    avail = if_below("Tablet", f"{SHELL_W} - {sub_w} - 12",
-                     f"{SHELL_W} - {save_w} - 10 - {sub_w} - 12")
+    avail = f"{SHELL_W} - ({LEFT_W}) - ({RIGHT_W}) - 24"
     step_w = f"Min({STEP_W}, ({avail}) / {n})"
     done = ["d%d" % (i + 1) for i in range(n)]
     imgs = []
@@ -217,10 +244,7 @@ def build_top_bar():
         current = f"(!{done[i]} && {before})"
         prev = done[i - 1] if i else "false"
         imgs.append(_step_image(i, label, done[i], prev, current, action, step_w))
-    gap = group("conVhpStepsGap", [], direction="Horizontal", width=8, height=0)
-    steps = group("conVhpSteps", imgs + [gap, btnSubmit], direction="Horizontal", gap=0,
-                  height=STEP_H, align_items="Center",
-                  width=f"{n} * ({step_w}) + 8 + {sub_w}")
-    # Paa en smal skaerm er der kun plads til progressbaren og Submit.
-    return top_bar("Vhp", '"VH-plan"', None, [btnDraft], sub=[steps],
-                   narrow_hide=("btnVhpSaveDraft",))
+    steps = grow(group("conVhpSteps", imgs, direction="Horizontal", gap=0, height=STEP_H,
+                       justify="Center", align_items="Center"))
+    return group("conVhpBar", [left, steps, right], direction="Horizontal", gap=12,
+                 align_items="Center")

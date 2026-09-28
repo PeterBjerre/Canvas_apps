@@ -19,12 +19,13 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import Ctrl, render_screen, C_APP_BG, OUT_DIR
 from build_helpers import app_frame
-from build_hero import build_top_bar, HELP_ON, HELP_ACTION, focus_border
+from build_hero import build_top_bar, HELP_ON, HELP_ACTION, focus_border, CONFIRM
+from build_helpers import busy_overlay
 from gen_screen import C_CARD_BORDER
 from side_nav import side_nav
 from build_plan_header import build_plan_header
 from build_items import build_items_section, build_object_list_modal
-from build_tasklist import build_tasklist_section
+from build_tasklist import build_tasklist_section, build_ops_modals
 from build_modal import (build_tasklist_picker_modal, build_longtext_modal,
                          build_modal_backdrop)
 
@@ -55,7 +56,10 @@ def build_screen():
     return render_screen("ScreenVhPlan", {"Fill": C_APP_BG},
                          [root, rail,
                           build_modal_backdrop(), build_tasklist_picker_modal(),
-                          build_longtext_modal(), build_object_list_modal(), *overlay])
+                          build_longtext_modal(), build_object_list_modal(),
+                          *build_ops_modals(), *CONFIRM, *overlay,
+                          # Ventespinneren, mens der gemmes - oeverst af alt.
+                          busy_overlay("imgVhpSaving", "varVhpSaving")])
 
 
 def main():

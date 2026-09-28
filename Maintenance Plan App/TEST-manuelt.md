@@ -225,3 +225,22 @@ kom en fejlbesked. Det er nok til at finde fejlen i koden.
 13. **Save draft** → trin 5 grønt. Ret noget → trin 5 ikke grønt længere.
 14. Alt ovenfor i både lys og mørk tilstand. App checker: ingen fejl.
 
+### Runde 2 (issue #54, opfølgning)
+
+15. **Topbjælken**: "VH-plan" til venstre, progressbaren i midten, *Save
+    draft* og *Submit* samlet til højre — med gem- og send-ikon.
+16. **Sektionstitlerne** ("Plan Header", "Items", "Item Editor", "Tasklist and
+    Operations") vises. Deploy med `--clean` — overskriftens kontroller er flyttet.
+17. **Submit** i alle apps (VH-plan, Equipment, Material, Functional Location)
+    åbner en bekræftelse. *Cancel* gør intet; *Submit* indsender.
+18. **Gem** i alle apps: mens SharePoint svarer, dækker en drejende
+    ventespinner skærmen (Save draft, Save, Save as draft, Submit).
+19. **Revision** er en toggle (*Yes - outage work* / *No*). Tændt gemmes som
+    `REV - General Revision Mark`, slukket som tom — som før.
+20. **Item Long Text** er en knap med tekstens begyndelse; den åbner samme
+    popup som operationernes lange tekst.
+21. **Operationer**: hver linje har *Materials (n)* og *Docs (n)*. Materials
+    viser kun linjens materialer; en ny linje får operationens nummer. Docs
+    viser itemets dokumenter; *This operation* kobler til/fra, og en fil
+    uploadet herfra kobles til operationen. Fanerne Materials og Attachments er væk.
+

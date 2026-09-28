@@ -33,6 +33,7 @@ from side_nav import side_nav
 import domain_config as cfg
 from domain_parts import (build_bar, build_form, build_attachments,
                           build_rows, build_details, build_submit, build_backdrop,
+                          build_submit_confirm,
                           refresh_rows_fx, clear_form_fx)
 
 
@@ -59,7 +60,9 @@ def build_screen():
     return render_screen(cfg.SCREEN,
                          {"Fill": C_APP_BG, "OnVisible": on_visible()},
                          [root, rail, build_backdrop(), build_details(), build_attachments(),
-                          *overlay])
+                          *overlay,
+                          # Bekraeftelsen foer Submit og ventespinneren - oeverst.
+                          *build_submit_confirm()])
 
 
 def main():

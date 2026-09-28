@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED, C_PRIMARY, C_WHITE, \
     C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, C_TRANSPARENT, C_DIVIDER, \
     C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY, FONT
-from build_helpers import text_ctrl, group, button, text_input, grow
+from build_helpers import text_ctrl, group, button, text_input, grow, ICON_SAVE
 from design_tokens import ref_hex
 
 MUT_HEX = ref_hex("text-muted")
@@ -245,7 +245,8 @@ LT_TARGET = "ItemId = varVhpLongTextItemId && OperationNo = varVhpLongTextOpNo"
 
 def build_longtext_modal():
     title = text_ctrl("txtVhpLongTextTitle",
-                      '"Long text - operation " & varVhpLongTextOpNo',
+                      'If(varVhpLongTextTarget = "item", "Long text - item " & Text(varVhpLongTextItemId), '
+                      '"Long text - operation " & varVhpLongTextOpNo)',
                       size=17, weight="Semibold", height=24, wrap="false")
     btnCancel = button("btnVhpLongTextCancel", '"Cancel"',
                        "Set(varVhpLongTextOpen, false)", width=90, height=32)
@@ -268,14 +269,20 @@ def build_longtext_modal():
     btnSave = button(
         "btnVhpLongTextSave", '"Save text"',
         (
-            "UpdateIf(\n"
-            "    colVhpOperations,\n"
-            f"    {LT_TARGET},\n"
-            "    { LongText: txtVhpLongTextBox.Text }\n"
+            # Samme popup til itemets lange tekst (issue #54) - maalet er
+            # varVhpLongTextTarget.
+            "If(\n"
+            "    varVhpLongTextTarget = \"item\",\n"
+            "    UpdateIf(colVhpItems, ItemId = varVhpLongTextItemId,\n"
+            "             { LongText: Trim(txtVhpLongTextBox.Text) }),\n"
+            "    UpdateIf(\n"
+            "        colVhpOperations,\n"
+            f"        {LT_TARGET},\n"
+            "        { LongText: txtVhpLongTextBox.Text }\n"
+            "    )\n"
             ");\n"
-            "Set(varVhpRuntimeInfo, \"Long text saved on operation \" & varVhpLongTextOpNo & \".\");\n"
             "Set(varVhpLongTextOpen, false)"
-        ), primary=True, width=150, height=36)
+        ), primary=True, width=150, height=36, icon=ICON_SAVE)
     footer = group("conVhpLongTextFooter", [btnSave], direction="Horizontal", gap=10,
                    height=36, justify="End", align_items="Center")
 
@@ -296,7 +303,8 @@ def build_modal_backdrop():
         "Fill": C_OVERLAY,
         "Height": "App.Height",
         "LayoutDirection": "LayoutDirection.Vertical",
-        "Visible": "varVhpTasklistPickerOpen || varVhpLongTextOpen || varVhpObjListOpen",
+        "Visible": ("varVhpTasklistPickerOpen || varVhpLongTextOpen || varVhpObjListOpen || "
+                    "!IsBlank(varVhpMatOpNo) || !IsBlank(varVhpAttOpNo)"),
         "Width": "App.Width",
         "X": "0",
         "Y": "0",

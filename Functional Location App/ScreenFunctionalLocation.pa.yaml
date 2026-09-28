@@ -2947,12 +2947,15 @@ Screens:
                                         =FontWeight.Semibold
                                     Height: |-
                                         =36
+                                    Icon: |-
+                                        ="Save"
                                     Layout: |-
-                                        =ButtonLayout.TextOnly
+                                        =ButtonLayout.IconBefore
                                     LayoutMinWidth: |-
                                         =0
                                     OnSelect: |-
-                                        =Clear(colFlSaveErrors);
+                                        =Set(varFlSaving, true);
+                                        Clear(colFlSaveErrors);
                                         If(IsBlank(varFlRequestGuid), Set(varFlRequestGuid, Text(GUID())));
                                         
                                         // 1. Hovedet. RequestNo er obligatorisk (Title) - GUID'en staar der, til
@@ -3136,7 +3139,8 @@ Screens:
                                             Notify("Saved as " & varFlRequestNo & " - see it on the landing page.", NotificationType.Success),
                                             Set(varFlInfo, "Saving failed (" & First(colFlSaveErrors).Where & "): " & First(colFlSaveErrors).Msg);
                                             Notify(CountRows(colFlSaveErrors) & " step(s) failed. What was saved is kept - try again.", NotificationType.Error)
-                                        )
+                                        );
+                                        Set(varFlSaving, false)
                                     RadiusBottomLeft: |-
                                         =10
                                     RadiusBottomRight: |-
@@ -3174,263 +3178,14 @@ Screens:
                                         =FontWeight.Semibold
                                     Height: |-
                                         =36
+                                    Icon: |-
+                                        ="Send"
                                     Layout: |-
-                                        =ButtonLayout.TextOnly
+                                        =ButtonLayout.IconBefore
                                     LayoutMinWidth: |-
                                         =0
                                     OnSelect: |-
-                                        =If(
-                                            !(!varFlStale && CountRows(Filter(colFlRows, Status = "invalid")) = 0 && CountRows(Filter(colFlRows, Status = "valid" || Status = "warning")) > 0 && varFlStatus <> "Indsendt"),
-                                            Notify(If(varFlStatus = "Indsendt", "Request " & varFlRequestNo & " is submitted and locked.",
-                                           varFlStale, "Press Verify before you submit - something changed since the last check.",
-                                           CountRows(Filter(colFlRows, Status = "invalid")) > 0, "Submit is blocked: " & CountRows(Filter(colFlRows, Status = "invalid")) & " row(s) have errors.",
-                                           CountRows(Filter(colFlRows, Status = "valid" || Status = "warning")) = 0, "There are no rows ready for SAP.",
-                                           "Ready to submit " & CountRows(Filter(colFlRows, Status = "valid" || Status = "warning")) & " row(s)."), NotificationType.Warning),
-                                        
-                                            Clear(colFlSaveErrors);
-                                            If(IsBlank(varFlRequestGuid), Set(varFlRequestGuid, Text(GUID())));
-                                            
-                                            // 1. Hovedet. RequestNo er obligatorisk (Title) - GUID'en staar der, til
-                                            //    nummeret kan dannes af listens eget ID.
-                                            IfError(
-                                                Set(
-                                                    varFlReq,
-                                                    Patch(
-                                                        FunctionalLocationRequests,
-                                                        Coalesce(
-                                                            LookUp(FunctionalLocationRequests, RequestGuid = varFlRequestGuid),
-                                                            Defaults(FunctionalLocationRequests)
-                                                        ),
-                                                        {
-                                                            RequestNo: Coalesce(varFlRequestNo, varFlRequestGuid),
-                                                            RequestGuid: varFlRequestGuid,
-                                                            RequesterEmail: varFlMe,
-                                                            RequesterName: User().FullName
-                                                        }
-                                                    )
-                                                );
-                                                true,
-                                                Collect(colFlSaveErrors, { Where: "Header", Msg: FirstError.Message });
-                                                false
-                                            );
-                                            If(
-                                                IsBlank(varFlRequestNo) && !IsBlank(varFlReq.ID),
-                                                Set(varFlRequestNo, "FL-" & Text(varFlReq.ID, "000000"));
-                                                IfError(
-                                                    Patch(FunctionalLocationRequests, varFlReq, { RequestNo: varFlRequestNo });
-                                                    true,
-                                                    Collect(colFlSaveErrors, { Where: "Request number", Msg: FirstError.Message });
-                                                    false
-                                                )
-                                            );
-                                            
-                                            If(
-                                                CountRows(colFlSaveErrors) = 0,
-                                            
-                                                // 2. Hvilke raekker findes allerede? Paa RowGuid - klientnoeglen.
-                                                ClearCollect(
-                                                    colFlSp,
-                                                    ForAll(Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) As I, { RowGuid: I.RowGuid, ID: I.ID })
-                                                );
-                                                // IfError kraever, at vaerdien og fallbacken har SAMME type. Patch af
-                                                // een raekke giver en record, Collect en tabel - og compile svarer
-                                                // "Invalid argument type (Table). Expecting a Record value instead"
-                                                // (issue #32, tre runder). Derfor slutter BEGGE grene af hver IfError
-                                                // i gemmet i en skalar: '; true' og '; false'.
-                                                IfError(
-                                                    Collect(FunctionalLocationItems, ForAll(Filter(colFlRows, Status <> "draft" && !(RowGuid in colFlSp.RowGuid)) As R, {
-                                                            RowGuid: R.RowGuid,
-                                                            RequestGuid: varFlRequestGuid,
-                                                            RequestId: varFlReq.ID,
-                                                            RowNo: R.RowNo,
-                                                            FunctionalLocation: R.FL,
-                                                            Description: R.Description,
-                                                            KksType: R.KksType,
-                                                            AssignedClass: R.AssignedClass,
-                                                            RowStatus: { Value: R.Status },
-                                                            FirstIssue: Left(Coalesce(R.FirstIssue, R.FirstWarning, ""), 255),
-                                                            IssueCount: R.IssueCount,
-                                                            TrmAssignment: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "TRM ASSIGNMENT").Value, ""),
-                                                            AbcIndic: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "ABC INDIC.").Value, ""),
-                                                            SafetyCriticalEquipment: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "SAFETY CRITICAL EQUIPMENT").Value, ""),
-                                                            RequesterEmail: varFlMe,
-                                                            SpoolValuesJson: JSON(
-                                                                ForAll(Sort(Filter(colFlVals, RowGuid = R.RowGuid), Field) As V,
-                                                                       { field: V.Field, value: V.Value }),
-                                                                JSONFormat.Compact
-                                                            )
-                                                        }));
-                                                    true,
-                                                    Collect(colFlSaveErrors, { Where: "New rows", Msg: FirstError.Message });
-                                                    false
-                                                );
-                                                IfError(
-                                                    With(
-                                                        { ex: Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) },
-                                                        Patch(FunctionalLocationItems, ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, LookUp(ex, RowGuid = R.RowGuid)),
-                                                              ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, {
-                                                            RowGuid: R.RowGuid,
-                                                            RequestGuid: varFlRequestGuid,
-                                                            RequestId: varFlReq.ID,
-                                                            RowNo: R.RowNo,
-                                                            FunctionalLocation: R.FL,
-                                                            Description: R.Description,
-                                                            KksType: R.KksType,
-                                                            AssignedClass: R.AssignedClass,
-                                                            RowStatus: { Value: R.Status },
-                                                            FirstIssue: Left(Coalesce(R.FirstIssue, R.FirstWarning, ""), 255),
-                                                            IssueCount: R.IssueCount,
-                                                            TrmAssignment: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "TRM ASSIGNMENT").Value, ""),
-                                                            AbcIndic: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "ABC INDIC.").Value, ""),
-                                                            SafetyCriticalEquipment: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "SAFETY CRITICAL EQUIPMENT").Value, ""),
-                                                            RequesterEmail: varFlMe,
-                                                            SpoolValuesJson: JSON(
-                                                                ForAll(Sort(Filter(colFlVals, RowGuid = R.RowGuid), Field) As V,
-                                                                       { field: V.Field, value: V.Value }),
-                                                                JSONFormat.Compact
-                                                            )
-                                                        }))
-                                                    );
-                                                    true,
-                                                    Collect(colFlSaveErrors, { Where: "Rows", Msg: FirstError.Message });
-                                                    false
-                                                );
-                                            
-                                                // 3. Raekker, der ikke laengere er i appen.
-                                                IfError(
-                                                    With(
-                                                        { ex: Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) },
-                                                        Remove(FunctionalLocationItems, Filter(ex, !(RowGuid in Filter(colFlRows, Status <> "draft").RowGuid)))
-                                                    );
-                                                    true,
-                                                    Collect(colFlSaveErrors, { Where: "Deleted rows", Msg: FirstError.Message });
-                                                    false
-                                                );
-                                            
-                                                // 4. Landingssiden.
-                                                IfError(
-                                                Set(
-                                                    varFlIdx,
-                                                    Patch(
-                                                        MD_RequestIndex,
-                                                        Coalesce(
-                                                            LookUp(MD_RequestIndex, RequestGuid = varFlRequestGuid),
-                                                            Defaults(MD_RequestIndex)
-                                                        ),
-                                                        {
-                                                            RequestNo: varFlRequestNo,
-                                                            Domain: { Value: "FunctionalLocation" },
-                                                            Status: { Value: "Kladde" },
-                                                            StatusStep: 1,
-                                                            IsOpen: true,
-                                                            RequesterEmail: varFlMe,
-                                                            RequesterName: User().FullName,
-                                                            ShortText: "Functional Location - Spool: " & CountRows(Filter(colFlRows, Status <> "draft")) & " row(s)",
-                                                            Plant: Coalesce(Left(First(Sort(Filter(colFlRows, Status <> "draft"), RowNo)).FL, 3), ""),
-                                                            ItemCount: CountRows(Filter(colFlRows, Status <> "draft")),
-                                                            RequestGuid: varFlRequestGuid,
-                                                            SourceItemId: varFlReq.ID,
-                                                            AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/8a6fabf2-e3a3-4f36-8ff6-94c7d33d9575?reqid=" & varFlRequestGuid,
-                                                            LastActionOn: Now(),
-                                                            LastActionBy: varFlMe
-                                                        }
-                                                    )
-                                                );
-                                                    true,
-                                                    Collect(colFlSaveErrors, { Where: "Landing page", Msg: FirstError.Message });
-                                                    false
-                                                );
-                                            
-                                                // 5. Status SIDST - og kun naar alt andet lykkedes.
-                                                If(
-                                                    CountRows(colFlSaveErrors) = 0,
-                                                    IfError(
-                                                        Patch(
-                                                            FunctionalLocationRequests, varFlReq,
-                                                            {
-                                                                Status: { Value: "Kladde" },
-                                                                RowCount: CountRows(Filter(colFlRows, Status <> "draft")),
-                                                                ReadyCount: CountRows(Filter(colFlRows, Status = "valid" || Status = "warning")),
-                                                                IssueCount: CountRows(Filter(colFlRows, Status = "invalid")),
-                                                                WarningCount: CountRows(Filter(colFlRows, Status = "warning")),
-                                                                IndexItemId: varFlIdx.ID
-                                                            }
-                                                        );
-                                                        true,
-                                                        Collect(colFlSaveErrors, { Where: "Status", Msg: FirstError.Message });
-                                                        false
-                                                    )
-                                                )
-                                            );
-                                            
-                                            // Een samlet tilbagemelding - aldrig een Notify pr. raekke.
-                                            If(
-                                                CountRows(colFlSaveErrors) = 0,
-                                                Set(varFlStatus, "Kladde");
-                                                Set(varFlInfo, "Saved as " & varFlRequestNo & ".");
-                                                Notify("Saved as " & varFlRequestNo & " - see it on the landing page.", NotificationType.Success),
-                                                Set(varFlInfo, "Saving failed (" & First(colFlSaveErrors).Where & "): " & First(colFlSaveErrors).Msg);
-                                                Notify(CountRows(colFlSaveErrors) & " step(s) failed. What was saved is kept - try again.", NotificationType.Error)
-                                            );
-                                        
-                                            If(
-                                                CountRows(colFlSaveErrors) = 0,
-                                                Set(varFlPayload, JSON(
-                                                    {
-                                                        schemaVersion: "1.0",
-                                                        requestGuid: varFlRequestGuid,
-                                                        requestNo: varFlRequestNo,
-                                                        submittedBy: varFlMe,
-                                                        submittedOn: Text(Now(), DateTimeFormat.UTC),
-                                                        generatedAt: Text(Now(), DateTimeFormat.UTC),
-                                                        source: "functional-location-canvas-app",
-                                                        rows: ForAll(
-                                                            Sort(Filter(colFlRows, Status <> "draft"), RowNo) As R,
-                                                            {
-                                                                rowNo: R.RowNo,
-                                                                functionalLocation: R.FL,
-                                                                description: R.Description,
-                                                                kksType: R.KksType,
-                                                                assignedClass: R.AssignedClass,
-                                                                status: R.Status,
-                                                                blockingIssues: ForAll(Sort(Filter(colFlIssues, RowGuid = R.RowGuid && Sev = "Error"), Ord) As M, { message: M.Msg }),
-                                                                warnings: ForAll(Sort(Filter(colFlIssues, RowGuid = R.RowGuid && Sev = "Warning"), Ord) As M, { message: M.Msg }),
-                                                                spoolValues: ForAll(Sort(Filter(colFlVals, RowGuid = R.RowGuid), Field) As V, { field: V.Field, value: V.Value })
-                                                            }
-                                                        ),
-                                                        classBuckets: ForAll(
-                                                            Filter(colFlTabs, Key <> "ALL") As K,
-                                                            {
-                                                                className: K.Key,
-                                                                functionalLocations: ForAll(Sort(Filter(Filter(colFlRows, Status <> "draft" && !IsBlank(AssignedClass)), AssignedClass = K.Key), FL) As B, { functionalLocation: B.FL })
-                                                            }
-                                                        ),
-                                                        ruleMeta: {
-                                                            componentCount: CountRows(nfFlComponent),
-                                                            aggregateCount: CountRows(nfFlAggregate),
-                                                            functionKeyCount: nfFlFunctionKeyCount,
-                                                            ruleSource: "html/app-functional-location.js + html/fl-rule-engine.js"
-                                                        }
-                                                    },
-                                                    JSONFormat.Compact
-                                                ));
-                                                // PayloadJson er en Note-kolonne - samme loft som i 04-submit-patch.fx.
-                                                If(
-                                                    Len(varFlPayload) > 60000,
-                                                    Notify("The request is too large to submit in one piece. Split it into more requests.", NotificationType.Error),
-                                                    IfError(
-                                                        Patch(FunctionalLocationRequests, varFlReq,
-                                                              { Status: { Value: "Indsendt" }, PayloadJson: varFlPayload, SubmittedOn: Now() });
-                                                        Patch(MD_RequestIndex, varFlIdx, { Status: { Value: "Indsendt" }, StatusStep: 2, LastActionOn: Now() });
-                                                        Set(varFlStatus, "Indsendt");
-                                                        Set(varFlInfo, "Submitted as " & varFlRequestNo & ".");
-                                                        Notify("Submitted as " & varFlRequestNo & ".", NotificationType.Success),
-                                                        Set(varFlInfo, "Submit failed: " & FirstError.Message);
-                                                        Notify("Submit failed: " & FirstError.Message, NotificationType.Error)
-                                                    )
-                                                )
-                                            )
-                                        )
+                                        =Set(varFlConfirmSubmit, true)
                                     RadiusBottomLeft: |-
                                         =10
                                     RadiusBottomRight: |-
@@ -5339,3 +5094,536 @@ Screens:
                             =0
                         Width: |-
                             =104
+      - conFlConfirmBackdrop:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderStyle: |-
+                =BorderStyle.None
+            DropShadow: |-
+                =DropShadow.None
+            Fill: |-
+                =C.'overlay'
+            Height: |-
+                =App.Height
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            Visible: |-
+                =IfError(varFlConfirmSubmit, false)
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - conFlConfirmModal:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'color-brand-primary-soft'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.ExtraBold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =162
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Stretch
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =12
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =18
+            PaddingLeft: |-
+                =18
+            PaddingRight: |-
+                =18
+            PaddingTop: |-
+                =18
+            RadiusBottomLeft: |-
+                =16
+            RadiusBottomRight: |-
+                =16
+            RadiusTopLeft: |-
+                =16
+            RadiusTopRight: |-
+                =16
+            Visible: |-
+                =IfError(varFlConfirmSubmit, false)
+            Width: |-
+                =Min(460, App.Width - 40)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =Max(20, (App.Height - Self.Height) / 3)
+          Children:
+            - txtFlConfirmTitle:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      ="Submit request?"
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-primary'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  FontWeight: |-
+                      =FontWeight.Semibold
+                  Height: |-
+                      =26
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =17
+                  Text: |-
+                      ="Submit request?"
+                  Wrap: |-
+                      =false
+            - txtFlConfirmText:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      ="A JSON snapshot is frozen and the rows are locked."
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =40
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =13
+                  Text: |-
+                      ="A JSON snapshot is frozen and the rows are locked."
+                  Wrap: |-
+                      =true
+            - conFlConfirmFooter:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =36
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =8
+                  LayoutJustifyContent: |-
+                      =LayoutJustifyContent.End
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - btnFlConfirmCancel:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Cancel"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-default'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varFlConfirmSubmit, false)
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =14
+                        Text: |-
+                            ="Cancel"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =86
+                  - btnFlSubmitConfirm:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Submit"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
+                        Color: |-
+                            =C.'text-on-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Icon: |-
+                            ="Send"
+                        Layout: |-
+                            =ButtonLayout.IconBefore
+                        OnSelect: |-
+                            =Set(varFlConfirmSubmit, false);
+                            Set(varFlSaving, true);
+                            If(
+                                !(!varFlStale && CountRows(Filter(colFlRows, Status = "invalid")) = 0 && CountRows(Filter(colFlRows, Status = "valid" || Status = "warning")) > 0 && varFlStatus <> "Indsendt"),
+                                Notify(If(varFlStatus = "Indsendt", "Request " & varFlRequestNo & " is submitted and locked.",
+                               varFlStale, "Press Verify before you submit - something changed since the last check.",
+                               CountRows(Filter(colFlRows, Status = "invalid")) > 0, "Submit is blocked: " & CountRows(Filter(colFlRows, Status = "invalid")) & " row(s) have errors.",
+                               CountRows(Filter(colFlRows, Status = "valid" || Status = "warning")) = 0, "There are no rows ready for SAP.",
+                               "Ready to submit " & CountRows(Filter(colFlRows, Status = "valid" || Status = "warning")) & " row(s)."), NotificationType.Warning),
+                            
+                                Clear(colFlSaveErrors);
+                                If(IsBlank(varFlRequestGuid), Set(varFlRequestGuid, Text(GUID())));
+                                
+                                // 1. Hovedet. RequestNo er obligatorisk (Title) - GUID'en staar der, til
+                                //    nummeret kan dannes af listens eget ID.
+                                IfError(
+                                    Set(
+                                        varFlReq,
+                                        Patch(
+                                            FunctionalLocationRequests,
+                                            Coalesce(
+                                                LookUp(FunctionalLocationRequests, RequestGuid = varFlRequestGuid),
+                                                Defaults(FunctionalLocationRequests)
+                                            ),
+                                            {
+                                                RequestNo: Coalesce(varFlRequestNo, varFlRequestGuid),
+                                                RequestGuid: varFlRequestGuid,
+                                                RequesterEmail: varFlMe,
+                                                RequesterName: User().FullName
+                                            }
+                                        )
+                                    );
+                                    true,
+                                    Collect(colFlSaveErrors, { Where: "Header", Msg: FirstError.Message });
+                                    false
+                                );
+                                If(
+                                    IsBlank(varFlRequestNo) && !IsBlank(varFlReq.ID),
+                                    Set(varFlRequestNo, "FL-" & Text(varFlReq.ID, "000000"));
+                                    IfError(
+                                        Patch(FunctionalLocationRequests, varFlReq, { RequestNo: varFlRequestNo });
+                                        true,
+                                        Collect(colFlSaveErrors, { Where: "Request number", Msg: FirstError.Message });
+                                        false
+                                    )
+                                );
+                                
+                                If(
+                                    CountRows(colFlSaveErrors) = 0,
+                                
+                                    // 2. Hvilke raekker findes allerede? Paa RowGuid - klientnoeglen.
+                                    ClearCollect(
+                                        colFlSp,
+                                        ForAll(Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) As I, { RowGuid: I.RowGuid, ID: I.ID })
+                                    );
+                                    // IfError kraever, at vaerdien og fallbacken har SAMME type. Patch af
+                                    // een raekke giver en record, Collect en tabel - og compile svarer
+                                    // "Invalid argument type (Table). Expecting a Record value instead"
+                                    // (issue #32, tre runder). Derfor slutter BEGGE grene af hver IfError
+                                    // i gemmet i en skalar: '; true' og '; false'.
+                                    IfError(
+                                        Collect(FunctionalLocationItems, ForAll(Filter(colFlRows, Status <> "draft" && !(RowGuid in colFlSp.RowGuid)) As R, {
+                                                RowGuid: R.RowGuid,
+                                                RequestGuid: varFlRequestGuid,
+                                                RequestId: varFlReq.ID,
+                                                RowNo: R.RowNo,
+                                                FunctionalLocation: R.FL,
+                                                Description: R.Description,
+                                                KksType: R.KksType,
+                                                AssignedClass: R.AssignedClass,
+                                                RowStatus: { Value: R.Status },
+                                                FirstIssue: Left(Coalesce(R.FirstIssue, R.FirstWarning, ""), 255),
+                                                IssueCount: R.IssueCount,
+                                                TrmAssignment: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "TRM ASSIGNMENT").Value, ""),
+                                                AbcIndic: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "ABC INDIC.").Value, ""),
+                                                SafetyCriticalEquipment: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "SAFETY CRITICAL EQUIPMENT").Value, ""),
+                                                RequesterEmail: varFlMe,
+                                                SpoolValuesJson: JSON(
+                                                    ForAll(Sort(Filter(colFlVals, RowGuid = R.RowGuid), Field) As V,
+                                                           { field: V.Field, value: V.Value }),
+                                                    JSONFormat.Compact
+                                                )
+                                            }));
+                                        true,
+                                        Collect(colFlSaveErrors, { Where: "New rows", Msg: FirstError.Message });
+                                        false
+                                    );
+                                    IfError(
+                                        With(
+                                            { ex: Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) },
+                                            Patch(FunctionalLocationItems, ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, LookUp(ex, RowGuid = R.RowGuid)),
+                                                  ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, {
+                                                RowGuid: R.RowGuid,
+                                                RequestGuid: varFlRequestGuid,
+                                                RequestId: varFlReq.ID,
+                                                RowNo: R.RowNo,
+                                                FunctionalLocation: R.FL,
+                                                Description: R.Description,
+                                                KksType: R.KksType,
+                                                AssignedClass: R.AssignedClass,
+                                                RowStatus: { Value: R.Status },
+                                                FirstIssue: Left(Coalesce(R.FirstIssue, R.FirstWarning, ""), 255),
+                                                IssueCount: R.IssueCount,
+                                                TrmAssignment: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "TRM ASSIGNMENT").Value, ""),
+                                                AbcIndic: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "ABC INDIC.").Value, ""),
+                                                SafetyCriticalEquipment: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "SAFETY CRITICAL EQUIPMENT").Value, ""),
+                                                RequesterEmail: varFlMe,
+                                                SpoolValuesJson: JSON(
+                                                    ForAll(Sort(Filter(colFlVals, RowGuid = R.RowGuid), Field) As V,
+                                                           { field: V.Field, value: V.Value }),
+                                                    JSONFormat.Compact
+                                                )
+                                            }))
+                                        );
+                                        true,
+                                        Collect(colFlSaveErrors, { Where: "Rows", Msg: FirstError.Message });
+                                        false
+                                    );
+                                
+                                    // 3. Raekker, der ikke laengere er i appen.
+                                    IfError(
+                                        With(
+                                            { ex: Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) },
+                                            Remove(FunctionalLocationItems, Filter(ex, !(RowGuid in Filter(colFlRows, Status <> "draft").RowGuid)))
+                                        );
+                                        true,
+                                        Collect(colFlSaveErrors, { Where: "Deleted rows", Msg: FirstError.Message });
+                                        false
+                                    );
+                                
+                                    // 4. Landingssiden.
+                                    IfError(
+                                    Set(
+                                        varFlIdx,
+                                        Patch(
+                                            MD_RequestIndex,
+                                            Coalesce(
+                                                LookUp(MD_RequestIndex, RequestGuid = varFlRequestGuid),
+                                                Defaults(MD_RequestIndex)
+                                            ),
+                                            {
+                                                RequestNo: varFlRequestNo,
+                                                Domain: { Value: "FunctionalLocation" },
+                                                Status: { Value: "Kladde" },
+                                                StatusStep: 1,
+                                                IsOpen: true,
+                                                RequesterEmail: varFlMe,
+                                                RequesterName: User().FullName,
+                                                ShortText: "Functional Location - Spool: " & CountRows(Filter(colFlRows, Status <> "draft")) & " row(s)",
+                                                Plant: Coalesce(Left(First(Sort(Filter(colFlRows, Status <> "draft"), RowNo)).FL, 3), ""),
+                                                ItemCount: CountRows(Filter(colFlRows, Status <> "draft")),
+                                                RequestGuid: varFlRequestGuid,
+                                                SourceItemId: varFlReq.ID,
+                                                AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/8a6fabf2-e3a3-4f36-8ff6-94c7d33d9575?reqid=" & varFlRequestGuid,
+                                                LastActionOn: Now(),
+                                                LastActionBy: varFlMe
+                                            }
+                                        )
+                                    );
+                                        true,
+                                        Collect(colFlSaveErrors, { Where: "Landing page", Msg: FirstError.Message });
+                                        false
+                                    );
+                                
+                                    // 5. Status SIDST - og kun naar alt andet lykkedes.
+                                    If(
+                                        CountRows(colFlSaveErrors) = 0,
+                                        IfError(
+                                            Patch(
+                                                FunctionalLocationRequests, varFlReq,
+                                                {
+                                                    Status: { Value: "Kladde" },
+                                                    RowCount: CountRows(Filter(colFlRows, Status <> "draft")),
+                                                    ReadyCount: CountRows(Filter(colFlRows, Status = "valid" || Status = "warning")),
+                                                    IssueCount: CountRows(Filter(colFlRows, Status = "invalid")),
+                                                    WarningCount: CountRows(Filter(colFlRows, Status = "warning")),
+                                                    IndexItemId: varFlIdx.ID
+                                                }
+                                            );
+                                            true,
+                                            Collect(colFlSaveErrors, { Where: "Status", Msg: FirstError.Message });
+                                            false
+                                        )
+                                    )
+                                );
+                                
+                                // Een samlet tilbagemelding - aldrig een Notify pr. raekke.
+                                If(
+                                    CountRows(colFlSaveErrors) = 0,
+                                    Set(varFlStatus, "Kladde");
+                                    Set(varFlInfo, "Saved as " & varFlRequestNo & ".");
+                                    Notify("Saved as " & varFlRequestNo & " - see it on the landing page.", NotificationType.Success),
+                                    Set(varFlInfo, "Saving failed (" & First(colFlSaveErrors).Where & "): " & First(colFlSaveErrors).Msg);
+                                    Notify(CountRows(colFlSaveErrors) & " step(s) failed. What was saved is kept - try again.", NotificationType.Error)
+                                );
+                            
+                                If(
+                                    CountRows(colFlSaveErrors) = 0,
+                                    Set(varFlPayload, JSON(
+                                        {
+                                            schemaVersion: "1.0",
+                                            requestGuid: varFlRequestGuid,
+                                            requestNo: varFlRequestNo,
+                                            submittedBy: varFlMe,
+                                            submittedOn: Text(Now(), DateTimeFormat.UTC),
+                                            generatedAt: Text(Now(), DateTimeFormat.UTC),
+                                            source: "functional-location-canvas-app",
+                                            rows: ForAll(
+                                                Sort(Filter(colFlRows, Status <> "draft"), RowNo) As R,
+                                                {
+                                                    rowNo: R.RowNo,
+                                                    functionalLocation: R.FL,
+                                                    description: R.Description,
+                                                    kksType: R.KksType,
+                                                    assignedClass: R.AssignedClass,
+                                                    status: R.Status,
+                                                    blockingIssues: ForAll(Sort(Filter(colFlIssues, RowGuid = R.RowGuid && Sev = "Error"), Ord) As M, { message: M.Msg }),
+                                                    warnings: ForAll(Sort(Filter(colFlIssues, RowGuid = R.RowGuid && Sev = "Warning"), Ord) As M, { message: M.Msg }),
+                                                    spoolValues: ForAll(Sort(Filter(colFlVals, RowGuid = R.RowGuid), Field) As V, { field: V.Field, value: V.Value })
+                                                }
+                                            ),
+                                            classBuckets: ForAll(
+                                                Filter(colFlTabs, Key <> "ALL") As K,
+                                                {
+                                                    className: K.Key,
+                                                    functionalLocations: ForAll(Sort(Filter(Filter(colFlRows, Status <> "draft" && !IsBlank(AssignedClass)), AssignedClass = K.Key), FL) As B, { functionalLocation: B.FL })
+                                                }
+                                            ),
+                                            ruleMeta: {
+                                                componentCount: CountRows(nfFlComponent),
+                                                aggregateCount: CountRows(nfFlAggregate),
+                                                functionKeyCount: nfFlFunctionKeyCount,
+                                                ruleSource: "html/app-functional-location.js + html/fl-rule-engine.js"
+                                            }
+                                        },
+                                        JSONFormat.Compact
+                                    ));
+                                    // PayloadJson er en Note-kolonne - samme loft som i 04-submit-patch.fx.
+                                    If(
+                                        Len(varFlPayload) > 60000,
+                                        Notify("The request is too large to submit in one piece. Split it into more requests.", NotificationType.Error),
+                                        IfError(
+                                            Patch(FunctionalLocationRequests, varFlReq,
+                                                  { Status: { Value: "Indsendt" }, PayloadJson: varFlPayload, SubmittedOn: Now() });
+                                            Patch(MD_RequestIndex, varFlIdx, { Status: { Value: "Indsendt" }, StatusStep: 2, LastActionOn: Now() });
+                                            Set(varFlStatus, "Indsendt");
+                                            Set(varFlInfo, "Submitted as " & varFlRequestNo & ".");
+                                            Notify("Submitted as " & varFlRequestNo & ".", NotificationType.Success),
+                                            Set(varFlInfo, "Submit failed: " & FirstError.Message);
+                                            Notify("Submit failed: " & FirstError.Message, NotificationType.Error)
+                                        )
+                                    )
+                                )
+                            );
+                            Set(varFlSaving, false)
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =14
+                        Text: |-
+                            ="Submit"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =106
+      - imgFlSaving:
+          Control: Image
+          Properties:
+            AccessibleLabel: |-
+                ="Saving, please wait"
+            BorderStyle: |-
+                =BorderStyle.None
+            BorderThickness: |-
+                =0
+            Fill: |-
+                =C.'overlay'
+            Height: |-
+                =App.Height
+            Image: |-
+                ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><circle cx='32' cy='32' r='22' fill='none' stroke-width='6' stroke='" & C.'hex-state-neutral-bg' & "'/><path d='M32 10 a22 22 0 0 1 22 22' fill='none' stroke-width='6' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'><animateTransform attributeName='transform' type='rotate' from='0 32 32' to='360 32 32' dur='0.9s' repeatCount='indefinite'/></path></svg>")
+            ImagePosition: |-
+                =ImagePosition.Center
+            TabIndex: |-
+                =-1
+            Visible: |-
+                =IfError(varFlSaving, false)
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0

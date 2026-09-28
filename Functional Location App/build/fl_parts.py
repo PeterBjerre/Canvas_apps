@@ -30,7 +30,9 @@ from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED, C_WHITE,
 from design_tokens import ref_hex
 from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE, at_least
 from build_helpers import (text_ctrl, group, button, text_input, dropdown, card,
-                           pin_widths, top_bar, grow, button_row, badge)
+                           pin_widths, top_bar, grow, button_row, badge,
+                           busy_overlay, with_busy, confirm_modal, ICON_SAVE, ICON_SUBMIT,
+                           ICON_W)
 
 # Indsendt = laast (FL69).
 DM_EDIT = 'If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)'
@@ -568,10 +570,13 @@ Set(varFlInfo, "Ready.")"""
 
 def build_submit():
     state = text_ctrl("txtFlSubmitState", S.SUBMIT_WHY, size=13, height=20, wrap="false")
-    save = button("btnFlSaveDraft", '"Save draft"', S.save_fx(), width=150,
+    save = button("btnFlSaveDraft", '"Save draft"', with_busy("varFlSaving", S.save_fx()),
+                  width=150 + ICON_W, icon=ICON_SAVE,
                   display_mode=(f'If(varFlStatus = "Indsendt" || CountRows({S.LIVE}) = 0, '
                                 f'DisplayMode.Disabled, DisplayMode.Edit)'))
-    submit = button("btnFlSubmit", '"Submit"', S.submit_fx(), primary=True, width=150,
+    # Submit spoerger foerst (build_submit_confirm, issue #54).
+    submit = button("btnFlSubmit", '"Submit"', "Set(varFlConfirmSubmit, true)", primary=True,
+                    width=150, icon=ICON_SUBMIT,
                     display_mode=S.SUBMIT_DM)
     new = button("btnFlNew", '"New request"', NEW_FX, width=150)
     note = text_ctrl(
@@ -629,3 +634,13 @@ def build_backdrop():
         "X": "0",
         "Y": "0",
     }, children=[], vis=vis)
+
+
+def build_submit_confirm():
+    """Bekraeftelsen foer Submit og ventespinneren (issue #54).
+    [sloer, popup, spinner] - SIDST i skaermens boern."""
+    return confirm_modal(
+        "Fl", "varFlConfirmSubmit", "Submit request?",
+        '"A JSON snapshot is frozen and the rows are locked."',
+        "Submit", with_busy("varFlSaving", S.submit_fx()), "btnFlSubmitConfirm") + [
+        busy_overlay("imgFlSaving", "varFlSaving")]
