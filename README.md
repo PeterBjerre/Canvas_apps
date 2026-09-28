@@ -73,7 +73,7 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 | [`docs/05-implementeringsplan.md`](docs/05-implementeringsplan.md) | Faser, risici, hvad der kan skæres væk |
 | [`docs/06-excel-gui-scripting.md`](docs/06-excel-gui-scripting.md) | **Den valgte vej til SAP:** Excel + GUI Scripting |
 | [`docs/07-landingsside.md`](docs/07-landingsside.md) | Landingsside for alle fem masterdata-domæner: hub vs. monolit, indekslisten, performanceregler |
-| [`docs/32-godkendelsesflow.md`](docs/32-godkendelsesflow.md) | **Oplæg:** godkendelsesflow for nye VH-planer — systemgodkendelse via Power BI, omkostning over 300.000 kr., kvalitet pr. værk; statusmodel, kolonner, flows |
+| [`docs/32-godkendelsesflow.md`](docs/32-godkendelsesflow.md) | **Oplæg:** godkendelsesflow for nye VH-planer — system- og omkostningsgodkendelse pr. item (Power BI + System Manager-liste, 300.000 kr.), kvalitet pr. værk; statusmodel, kolonner, flows |
 
 ## Kode og artefakter
 
