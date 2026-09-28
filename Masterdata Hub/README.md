@@ -11,13 +11,27 @@ Beslutningen bag (hub vs. én samlet app) står i
 
 | | |
 |---|---|
-| Kontroller | **83** (VH-plan-appen: 281) |
+| Kontroller | **95** (VH-plan-appen: 376) |
 | Datakilder | **1** — `MD_RequestIndex` |
 | `ClearCollect` i `App.OnStart` | **0** |
 | `App.pa.yaml` | 12 linjer |
 
 Det er ikke tilfældigt. Landingssiden er det sted, hvor alle kommer forbi
 hver dag, så den er bygget efter de ni performanceregler i dokumentet.
+
+## Designet
+
+Efter `image.png`, med to afvigelser:
+
+- **Hele flisen er filterknappen.** Der er ingen "Filter"-knap. Flisens
+  forside (ikon, navn, tal) er ét SVG-billede med `OnSelect`, så et klik
+  hvor som helst på den — undtagen "New" — filtrerer listen på domænet.
+  Et klik mere viser alle igen.
+- **Valgt = farvet kant.** Den valgte flise får kanten i domænets farve
+  (2 px). Samme regel gælder "My requests" og Open / Closed / All: valgt
+  er kanten og teksten i accentfarven.
+
+"New request" i bjælken åbner en menu med de fem domæner.
 
 ## Filer
 

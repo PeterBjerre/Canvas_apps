@@ -501,7 +501,11 @@ HTML_TOKENS = ("text-primary", "text-muted",
                "color-brand-primary", "text-on-primary",
                # VH-planens trinindikator (build_hero.stepper): et faerdigt
                # trin er groent med et flueben.
-               "state-ok-fg")
+               "state-ok-fg",
+               # Hubbens fliser og liste (Masterdata Hub/build/build_hub.py):
+               # domaeneikonerne og statusikonerne er SVG'er i de samme farver.
+               "domain-fl", "domain-eq", "domain-mp", "domain-mat", "domain-vhp",
+               "state-error-fg", "state-neutral-fg")
 
 
 def _hex(rgba):
