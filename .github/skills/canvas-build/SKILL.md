@@ -300,15 +300,16 @@ nævner kontrollen.
 | `sp_config.py` | **Datakilde-kontrakten**: hvilke SharePoint-lister og kolonner appen læser. Ret HER, ikke i formlerne |
 | `gen_screen.py` | Kontroltræ-DSL, stylingkonstanter, **højde-algebra** (`stack_height`, `row_height`) |
 | `build_helpers.py` | Byggeklodser: `card`, `group`, `field_cell`, `button_row`, inputs, `combobox` |
-| `build_hero.py` | Topbjælken med trinindikatoren (seks trin som cirkler med flueben) og **Validate**, som står i trin 5 (Dispatch and Control) |
+| `build_hero.py` | Topbjælken med progressbaren: fem klikbare trin (Plan, Item, Task list, Operations/Packages, Save) og **Submit** til sidst, plus **Save draft** |
+| `build_status.py` | **Trinenes status og valideringen** som navngivne formler (`VhpStep*Done`, `VhpValidationErrors`, `VhpCanSubmit`, `VhpStateJson`) — reglerne fra den tidligere Validate-knap |
 | `build_plan_header.py` | Planhoved, plantype, strategivalg, `section_header` |
-| `build_items.py` | Items-skinne, Item Editor, FL-felt, objektliste |
+| `build_items.py` | Items-skinne (klikbare kort med Delete), Item Editor, FL-felt, Object List-popup'en |
 | `build_flsearch.py` | **Flow-kontrakten for FL-søgning** — outputnavn og feltnavne ligger kun her |
 | `build_attflows.py` | **Flow-kontrakten for dokumenter** — de tre attachment-flows, mappenavnet og de to former af `text` |
-| `build_tasklist.py` | Tasklist, operationstabel, dispatch, mailknap |
+| `build_tasklist.py` | Tasklist, operationstabel, materialer, dokumenter |
 | `build_strategy.py` | Pakkematricen (strategiplaner) |
 | `build_modal.py` | Tasklist-picker |
-| `build_save.py` | **Gemning i SharePoint** — de fire lister, nøglerne, og hvad der bevidst ikke udfyldes |
+| `build_save.py` | **Gemning i SharePoint** (Save draft / Submit) — de fire lister, nøglerne, og hvad der bevidst ikke udfyldes |
 | `build_load.py` | **Indlæsning af en gemt plan** — dyblinket fra hubben (`?reqid=`), og hvilke felter der kan læses tilbage |
 | `assemble_screen.py` | Samler skærmen → `../ScreenVhPlan.pa.yaml` |
 | `generate_app_onstart.py` | `App.Formulas` + `App.OnStart` → `../App.pa.yaml` |
@@ -476,7 +477,7 @@ gør farven meningsløs; grøn skal betyde "dette krav er opfyldt", ikke "du
 har tastet noget".
 
 **Rød betyder "jeg har tjekket".** VH-plan gater på `varVhpPlanValidated`
-(Validér-knappen), Equipment og Material på `varDomValidated`, som sættes
+(Save i Plan Header og i Item Editor), Equipment og Material på `varDomValidated`, som sættes
 når brugeren trykker Gem eller Indsend. Ingen app viser rødt, før brugeren
 har bedt om et tjek — "rød fra første sekund" lærer brugeren at se bort fra
 rødt.

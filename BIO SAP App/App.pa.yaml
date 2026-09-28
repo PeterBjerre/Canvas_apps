@@ -2045,6 +2045,126 @@ App:
       // Appens eget begreb, ikke et SAP-felt.
       colVhpPlanTypeOptions = Table({ Key: "SingleCycle", Value: "Single cycle plan (IP41)" }, { Key: "Strategy", Value: "Strategiplan (IP42)" });
 
+      // De items, der gemmes: har en kort tekst eller en funktionsplads.
+      VhpSaveableItems = Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation));
+
+      // Reglerne fra den tidligere Validate-knap. Tom = ingen fejl.
+      VhpValidationErrors = With(
+          { isStrat: varVhpPlan.PlanType = "Strategy" },
+          With(
+              {
+                  itemErr:
+                      Concat(
+                          Filter(
+                              VhpSaveableItems,
+                              IsBlank(ShortText) || IsBlank(MainWorkCenter) || IsBlank(ActivityType) || IsBlank(FunctionalLocation)
+                          ),
+                          "Item " & Text(ItemId) & " (" & Coalesce(ShortText, "no short text") & "): missing required fields.",
+                          Char(10)
+                      ),
+                  s1:
+                      If(isStrat && IsBlank(varVhpPlan.Strategy),
+                          "S1: A strategy must be chosen on a strategy plan.", ""),
+                  s3:
+                      If(isStrat,
+                          Concat(
+                              Filter(VhpSaveableItems, IsBlank(TasklistKey)),
+                              "S3: Item " & Text(ItemId) & " has no task list - the package allocation belongs to the task list.",
+                              Char(10)
+                          ), ""),
+                  s4:
+                      If(isStrat,
+                          Concat(
+                              Filter(colVhpOperations, Len(Coalesce(PackagesKey, ";")) <= 1),
+                              "S4: Item " & Text(ItemId) & " operation " & OperationNo &
+                              " has no package and would never be carried out.",
+                              Char(10)
+                          ), ""),
+                  s5:
+                      If(isStrat,
+                          Concat(
+                              Filter(
+                                  colVhpStrategyPackages As P,
+                                  P.StrategyKey = varVhpPlan.Strategy &&
+                                  CountRows(Filter(colVhpOperations, ";" & Text(P.PackageNo) & ";" in Coalesce(PackagesKey, ";"))) = 0
+                              ),
+                              "S5: Package " & ShortCode & " (" & Text(CycleLength) & " " & CycleUnit &
+                              ") has no operations - the plan would call an empty order.",
+                              Char(10)
+                          ), ""),
+                  r1:
+                      If(
+                          !IsBlank(varVhpPlan.Plant) && !IsBlank(varVhpPlan.PlanText) &&
+                              !StartsWith(Upper(varVhpPlan.PlanText), Upper(varVhpPlan.Plant)),
+                          "R1: Plan Text should start with the plant code " & varVhpPlan.Plant &
+                              " - otherwise the plan cannot be found without searching by plant.", ""),
+                  r2:
+                      With(
+                          { n: CountRows(Filter(VhpSaveableItems, StartsWith(ActivityType, "110") || StartsWith(ActivityType, "115"))) },
+                          If(
+                              n > 0 && IsBlank(varVhpPlan.SortField),
+                              "R2: Sort Field is required: " & Text(n) &
+                                  " item(s) have activity type 110 or 115.", "")),
+                  r4:
+                      With(
+                          { n: CountRows(Filter(VhpSaveableItems, !IsBlank(Revision))) },
+                          If(
+                              n > 0 && (varVhpPlan.FirstCallDay <> 1 || varVhpPlan.FirstCallMonth <> 1),
+                              "R4: " & Text(n) & " item(s) are marked as outage work. " &
+                                  "First call must be 01/01, otherwise the task misses the outage.", "")),
+                  r5:
+                      With(
+                          { m: LookUp(colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon) },
+                          If(
+                              !IsBlank(varVhpPlan.CallHorizon) && m.SchedPeriod < 2,
+                              "R5: Scheduling period must be at least 2 years because of " &
+                                  "the cost simulation in the BI report.", ""))
+              },
+              Concat(
+                  Filter(
+                      Table(
+                          { t: itemErr }, { t: s1 }, { t: s3 }, { t: s4 }, { t: s5 },
+                          { t: r1 }, { t: r2 }, { t: r4 }, { t: r5 }
+                      ),
+                      !IsBlank(t)
+                  ),
+                  t, Char(10)
+              )
+          )
+      );
+
+      // Trin 1: planhovedet er gemt og laast.
+      VhpStepPlanDone = varVhpPlanCommitted && varVhpPlanLocked;
+
+      // Trin 2: alle items er gemt som valid.
+      VhpStepItemDone = CountRows(VhpSaveableItems) > 0 && CountRows(Filter(VhpSaveableItems, Status <> "valid")) = 0;
+
+      // Trin 3: alle items har en tasklist.
+      VhpStepTasklistDone = CountRows(VhpSaveableItems) > 0 && CountRows(Filter(VhpSaveableItems, IsBlank(TasklistKey))) = 0;
+
+      // Trin 4: alle items har operationer - og paa en strategiplan en pakke pr. operation.
+      VhpStepOpsDone = CountRows(VhpSaveableItems) > 0 &&
+          CountRows(Filter(VhpSaveableItems, !(ItemId in colVhpOperations.ItemId))) = 0 &&
+          (varVhpPlan.PlanType <> "Strategy" || CountRows(Filter(colVhpOperations, Len(Coalesce(PackagesKey, ";")) <= 1)) = 0);
+
+      // Planen, som den ville blive gemt. Sammenlignes med varVhpSavedJson.
+      VhpStateJson = JSON(
+          {
+              Plan: varVhpPlan,
+              Items: VhpSaveableItems,
+              Ops: DropColumns(colVhpOperations, Selected),
+              Objs: colVhpItemObjects,
+              Mats: DropColumns(colVhpMaterials, Selected)
+          }
+      );
+
+      // Trin 5: planen staar i SharePoint, og intet er aendret siden.
+      VhpStepSaveDone = !IsBlank(varVhpPlanKey) && varVhpSavedJson = VhpStateJson;
+
+      // Submit er aktiv, naar trin 1-4 er faerdige, og reglerne ingen fejl finder.
+      VhpCanSubmit = !varVhpSaving && VhpStepPlanDone && VhpStepItemDone && VhpStepTasklistDone &&
+          VhpStepOpsDone && IsBlank(VhpValidationErrors);
+
       // Vaerkerne. Eneste opslagsliste appen laeser, og den laeses foerst,
       // naar dropdownen aabnes.
       colEqPlants = Sort(ForAll(PlantList As R, { Value: R.Title }), Value);

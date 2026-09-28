@@ -5,7 +5,8 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQU
                         C_WHITE, C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, FONT, SHELL_W)
 import build_help as bh
 from build_helpers import (text_ctrl, group, button, text_input, number_input, dropdown, label_row,
-                           field_cell, row_n, col_width, badge, card, grow)
+                           field_cell, row_n, col_width, badge, card, grow,
+                           column_grid, text_px, fit_button_width)
 
 DM_PLAN = "If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)"
 REQ_PLAN = "varVhpPlanValidated"
@@ -51,20 +52,22 @@ def required_legend():
                  align_items="Center", width=83)
 
 
-def section_header(name, title, desc, step_label, extra_right=()):
-    """Sektionsoverskrift: titel og beskrivelse til venstre, evt. ekstra
-    kontroller og et trin-badge til hoejre."""
-    t = text_ctrl(f"{name}Title", f"\"{title}\"", size=19, weight="Semibold", height=26, wrap="false")
-    d = text_ctrl(f"{name}Desc", f"\"{desc}\"", size=13, color=C_MUTED, height=20, wrap="false")
+def section_header(name, title, step_label, extra_right=(), extra_left=()):
+    """Sektionsoverskrift: titlen til venstre (evt. med noget lige efter
+    den, fx "* Required"), og et trin-badge til hoejre.
+
+    Beskrivelsen under titlen er fjernet (issue #54). Den gentog blot det,
+    sektionen viser, og kostede en linje paa hvert kort."""
+    t = text_ctrl(f"{name}Title", f"\"{title}\"", size=19, weight="Semibold", height=29,
+                  width=text_px(title, 19), wrap="false")
+    t.props["LayoutMinWidth"] = t.props["Width"]
 
     right = list(extra_right)
     if step_label:
         right.append(badge(f"{name}Badge", f"\"{step_label}\"", width=64))
 
-    # Hoejden REGNES af titlen og beskrivelsen - her stod 48, og da
-    # teksterne fik deres rigtige linjehoejde (build_helpers.TEXT_LINE),
-    # var indholdet 51.
-    left = grow(group(f"{name}Left", [t, d], direction="Vertical", gap=2))
+    left = grow(group(f"{name}Left", [t] + list(extra_left), direction="Horizontal",
+                      gap=12, align_items="Center"))
     return group(f"{name}", [left] + right, direction="Horizontal", gap=12,
                  align_items="Center")
 
@@ -129,19 +132,25 @@ def help_panel(name, section):
                  visible=f"IfError({v}, false)")
 
 
+# Alle planhovedets kontroller - Reset-knappen nulstiller dem, og de har
+# alle varVhpPlan som Default. Reset() giver derfor den senest gemte plan
+# tilbage, eller appens startvaerdier, hvis planen aldrig er gemt.
+PLAN_CONTROLS = ("drpVhpPlanType", "drpVhpStrategy", "drpVhpPlant", "drpVhpStatus",
+                 "txtVhpPlanText", "drpVhpSortField", "numVhpCycle", "drpVhpUnit",
+                 "drpVhpCallHorizon", "txtVhpSchedInd", "txtVhpStatutorySortField",
+                 "numVhpFirstCallDay", "numVhpFirstCallMonth", "numVhpFirstCallYear")
+
+
 def build_plan_header():
-    header = section_header("conVhpPlanHead", "Plan Header",
-                            "Master data and scheduling parameters for the maintenance plan.", "Step 1",
-                            extra_right=[required_legend()])
+    # "* Required" staar lige efter titlen i venstre side. I hoejre side,
+    # mellem titlen og trin-badget, blev den klippet (issue #54).
+    header = section_header("conVhpPlanHead", "Plan Header", "Step 1",
+                            extra_left=[required_legend()])
     helpPanel = help_panel("conVhpPlanHelp", "plan")
 
-    lockState = text_ctrl(
-        "txtVhpPlanLockState",
-        "If(varVhpPlanLocked, \"Plan locked: \" & varVhpPlan.Plant & \" \" & varVhpPlan.PlanText & \" (\" & varVhpPlan.Status & \"). Click Edit to make changes.\", \"Plan is open for editing.\")",
-        size=13, color=f"If(varVhpPlanLocked, {C_INFO_FG}, {C_MUTED})", height=28, wrap="true",
-        extra={"Fill": f"If(varVhpPlanLocked, {C_INFO_BG}, {C_NEUTRAL_BG})", "PaddingLeft": "10",
-               "PaddingRight": "10", "PaddingTop": "4", "PaddingBottom": "4",
-               "RadiusBottomLeft": "8", "RadiusBottomRight": "8", "RadiusTopLeft": "8", "RadiusTopRight": "8"})
+    # Statusbanneret ("Plan is open for editing" / "Plan locked ...") er
+    # fjernet (issue #54). At planen er laast, ses paa de graa felter og paa
+    # knappen, der hedder Edit i stedet for Save.
 
     drpPlant = dropdown("drpVhpPlant", "colVhpPlantCodes", "LookUp(colVhpPlantCodes, Value = varVhpPlan.Plant)",
                         item_display="ThisItem.Value", required_formula=REQ_PLAN, display_mode=DM_PLAN)
@@ -184,60 +193,46 @@ def build_plan_header():
     txtStatutorySortField = text_input("txtVhpStatutorySortField", "varVhpPlan.StatutorySortField",
                                        display_mode=DM_PLAN)
 
-    # Fire kolonner i stedet for to. Rakkefoelgen af felter er uaendret -
-    # de er bare grupperet 4 ad gangen i stedet for 2 ad gangen.
+    # KOLONNE-ORDEN (issue #54). Felterne udfyldes oppefra og ned i hver
+    # kolonne, foer naeste kolonne begynder - Plan Type, Maintenance
+    # Strategy og Plant staar under hinanden i kolonne 1. Foer stod de fire
+    # og fire paa raekker.
     CW = PLAN_CW
     PLAN_COLS = 4
-    row0 = row_n("conVhpPlanRow0", [
-        field_cell("conVhpCellPlanType", "Plan Type", drpPlanType, required=True,
-                  container_w=CW, cols=PLAN_COLS,
-                  hint_text=bh.hint("PlanType")),
-        field_cell("conVhpCellStrategy", "Maintenance Strategy", drpStrategy,
-                  container_w=CW, cols=PLAN_COLS,
-                  hint_text=bh.hint("Strategy")),
-        field_cell("conVhpCellPlant", "Plant", drpPlant, required=True, container_w=CW, cols=PLAN_COLS,
-                  hint_text=bh.hint("Plant")),
-        field_cell("conVhpCellStatus", "Status", drpStatus, required=True, container_w=CW, cols=PLAN_COLS,
-                  hint_text=bh.hint("Status")),
-    ], container_w=CW)
-    row1 = row_n("conVhpPlanRow1", [
-        field_cell("conVhpCellPlanText", "Plan Text", txtPlanText, required=True, container_w=CW,
-                  cols=PLAN_COLS, hint_text=bh.hint("PlanText")),
-        field_cell("conVhpCellSortField", "Sort Field", drpSortField, container_w=CW, cols=PLAN_COLS,
-                  hint_text=bh.hint("SortField")),
-        field_cell("conVhpCellCycle", "Cycle", numCycle, required=True, container_w=CW, cols=PLAN_COLS,
-                  hint_text=bh.hint("Cycle")),
-        field_cell("conVhpCellUnit", "Unit", drpUnit, required=True, container_w=CW, cols=PLAN_COLS,
-                  hint_text=bh.hint("Unit")),
-    ], container_w=CW)
-    # Dag, maaned og aar er EEN dato, ikke tre felter. De staar derfor i
-    # samme celle, paa samme raekke, og fylder tilsammen den sidste af de
-    # fire kolonner. Det frigiver samtidig hele row3, som kun indeholdt de
-    # to overskydende felter og to tomme pladsholdere.
     FC_CELL = col_width(CW, PLAN_COLS)
+
+    def cell(name, label, ctrl, hint, required=False):
+        return field_cell(name, label, ctrl, required=required, width=FC_CELL,
+                          container_w=CW, fill_portions_formula="0",
+                          hint_text=bh.hint(hint))
+
+    # Dag, maaned og aar er EEN dato, ikke tre felter. De staar derfor i
+    # samme celle, paa samme raekke.
     FC_GAP = 8
     FC_W = f"(({FC_CELL} - {2 * FC_GAP}) / 3)"
-    for ctrl, w in ((numFirstCallDay, FC_W), (numFirstCallMonth, FC_W), (numFirstCallYear, FC_W)):
-        ctrl.props["Width"] = w
+    for ctrl in (numFirstCallDay, numFirstCallMonth, numFirstCallYear):
+        ctrl.props["Width"] = FC_W
     firstCallRow = group("conVhpFirstCallRow",
                          [numFirstCallDay, numFirstCallMonth, numFirstCallYear],
                          direction="Horizontal", gap=FC_GAP, height=36,
                          align_items="Center", width="Parent.Width")
 
-    row2 = row_n("conVhpPlanRow2", [
-        field_cell("conVhpCellCallHorizon", "Call Horizon", drpCallHorizon, container_w=CW,
-                  cols=PLAN_COLS, hint_text=bh.hint("CallHorizon")),
-        field_cell("conVhpCellSchedInd", "Scheduling Indicator", txtSchedInd, container_w=CW,
-                  cols=PLAN_COLS, hint_text=bh.hint("SchedInd")),
-        field_cell("conVhpCellStatutorySortField", "Statutory Sort Field", txtStatutorySortField,
-                  container_w=CW, cols=PLAN_COLS, hint_text=bh.hint("StatutorySortField")),
-        field_cell("conVhpCellFirstCall", "First Call  (dd / mm / yyyy)", firstCallRow,
-                  required=True, container_w=CW, cols=PLAN_COLS,
-                  hint_text=bh.hint("FirstCall")),
-    ], container_w=CW)
-
-    grid = group("conVhpPlanGrid", [row0, row1, row2],
-                 direction="Vertical", gap=16)
+    grid = column_grid("conVhpPlanGrid", [
+        [cell("conVhpCellPlanType", "Plan Type", drpPlanType, "PlanType", True),
+         cell("conVhpCellStrategy", "Maintenance Strategy", drpStrategy, "Strategy"),
+         cell("conVhpCellPlant", "Plant", drpPlant, "Plant", True)],
+        [cell("conVhpCellStatus", "Status", drpStatus, "Status", True),
+         cell("conVhpCellPlanText", "Plan Text", txtPlanText, "PlanText", True),
+         cell("conVhpCellSortField", "Sort Field", drpSortField, "SortField")],
+        [cell("conVhpCellCycle", "Cycle", numCycle, "Cycle", True),
+         cell("conVhpCellUnit", "Unit", drpUnit, "Unit", True),
+         cell("conVhpCellCallHorizon", "Call Horizon", drpCallHorizon, "CallHorizon")],
+        [cell("conVhpCellSchedInd", "Scheduling Indicator", txtSchedInd, "SchedInd"),
+         cell("conVhpCellStatutorySortField", "Statutory Sort Field",
+              txtStatutorySortField, "StatutorySortField"),
+         cell("conVhpCellFirstCall", "First Call (dd / mm / yyyy)", firstCallRow,
+              "FirstCall", True)],
+    ], container_w=CW, row_gap=10)
 
     planMeta = text_ctrl(
         "txtVhpPlanMeta",
@@ -286,6 +281,8 @@ def build_plan_header():
             "            IsBlank(numVhpFirstCallYear.Value) || numVhpFirstCallYear.Value < 2020 || numVhpFirstCallYear.Value > 2100,\n"
             "            Set(varVhpRuntimeInfo, \"Plan contains issues. Fix plan fields before creating items.\"),\n"
             "\n"
+            # Vaerket FOER gemningen - se plantskiftet nedenfor.
+            "            Set(varVhpPrevPlant, varVhpPlan.Plant);\n"
             "            Set(\n"
             "                varVhpPlan,\n"
             "                {\n"
@@ -308,6 +305,22 @@ def build_plan_header():
             "            Set(varVhpPlanCommitted, true);\n"
             "            Set(varVhpPlanLocked, true);\n"
             "            Set(varVhpPlanCreatedAt, Now());\n"
+            # PLANT ER FAELLES KONTEKST (issue #54). Arbejdscentre, tasklister
+            # og FL-soegningen laeser varVhpPlan.Plant. Skifter vaerket, viser
+            # de afhaengige felter kun det, der passer til det nye vaerk -
+            # Reset henter deres Default, som slaar op i den FILTREREDE
+            # liste, saa et ugyldigt valg bliver tomt. Gemte items roeres
+            # ikke: de bliver roede, naar de gemmes igen, i stedet for at
+            # blive slettet uden at nogen har bekraeftet det.
+            "            If(\n"
+            "                !IsBlank(varVhpPrevPlant) && Upper(varVhpPrevPlant) <> Upper(drpVhpPlant.Selected.Value),\n"
+            "                Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemTasklist); Reset(txtVhpFlQuery);\n"
+            "                Notify(\n"
+            "                    \"Plant changed to \" & drpVhpPlant.Selected.Value &\n"
+            "                        \". Check work centre, task list and functional location on existing items.\",\n"
+            "                    NotificationType.Warning\n"
+            "                )\n"
+            "            );\n"
             "            Set(\n"
             "                varVhpRuntimeInfo,\n"
             "                \"Plan saved and locked: \" & drpVhpPlant.Selected.Value & \" \" & Trim(txtVhpPlanText.Text) &\n"
@@ -319,7 +332,22 @@ def build_plan_header():
         ),
         primary=True, width=140, height=36)
 
-    footer = group("conVhpPlanFooter", [footerInfo, btnSave], direction="Horizontal", gap=16, height=40,
-                   align_items="Center")
+    # RESET (issue #54): de usavede aendringer i planhovedet tilbage til
+    # den senest gemte plan - eller startvaerdierne, hvis planen aldrig er
+    # gemt. Alle felterne har varVhpPlan som Default, saa Reset() ER
+    # "senest gemt". Var planen gemt, laases den igen: den matcher nu det
+    # gemte, og trinnet er faerdigt igen.
+    btnReset = button(
+        "btnVhpPlanReset", "\"Reset\"",
+        "; ".join(f"Reset({c})" for c in PLAN_CONTROLS) + ";\n"
+        "Set(varVhpPlanValidated, false);\n"
+        "If(varVhpPlanCommitted, Set(varVhpPlanLocked, true))",
+        width=fit_button_width("\"Reset\""), height=36,
+        display_mode="If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)")
+    btnSave.props["Width"] = str(fit_button_width("\"Save\"", min_w=96))
 
-    return card("conVhpPlanCard", [header, helpPanel, lockState, grid, footer])
+    footer = group("conVhpPlanFooter", [footerInfo, btnReset, btnSave], direction="Horizontal",
+                   gap=8, height=40, align_items="Center")
+
+    # Kompakt (issue #54): 10 px mellem titel, felter og fod i stedet for 14.
+    return card("conVhpPlanCard", [header, helpPanel, grid, footer], gap=10, pad_y=12)

@@ -5,9 +5,9 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQU
                         C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, C_VALID_FG, C_INVALID_FG,
                         C_DIVIDER, C_TRANSPARENT, C_INPUT_BG, FONT, SHELL_W)
 from build_helpers import (flow_row, text_ctrl, group, button, button_row, text_input, number_input, dropdown,
-                           label_row, field_cell, two_col_row, badge, card, pin_widths, grow)
+                           label_row, field_cell, two_col_row, badge, card, pin_widths, grow,
+                           fit_button_width, fit_button_row)
 from build_plan_header import section_header, help_panel
-from build_hero import validate_button
 import build_help as bh
 from build_strategy import build_strategy_body, IS_STRATEGY
 import sp_config as cfg
@@ -563,40 +563,64 @@ def _attachments_pane():
                  direction="Vertical", gap=12, width="Parent.Width")
 
 
+# Tasklisterne til det valgte vaerk - Plant i Plan Header er den faelles
+# kontekst (issue #54). Upper paa begge sider, saa store og smaa bogstaver
+# ikke skjuler en gyldig liste.
+TL_ITEMS = "Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))"
+OPS_SELECTED = "Filter(colVhpOperations, ItemId = varVhpActiveItemId, Selected = true)"
+
+
 def build_tasklist_section():
-    header = section_header("conVhpOpsHead", "Tasklist and Operations",
-                            "Link a task list to the active item and add operation lines.", "Step 3")
+    header = section_header("conVhpOpsHead", "Tasklist and Operations", "Step 3")
     helpPanel = help_panel("conVhpOpsHelp", "ops")
 
+    # Default slaar op i den FILTREREDE liste: en tasklist fra et andet
+    # vaerk vises som tom, naar vaerket er skiftet, i stedet for som et
+    # gyldigt valg.
     drpTasklist = dropdown(
-        "drpVhpItemTasklist", "Filter(colVhpTasklists, Plant = varVhpPlan.Plant)",
-        "LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey)",
+        "drpVhpItemTasklist", TL_ITEMS,
+        f"LookUp({TL_ITEMS}, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey)",
         item_display="ThisItem.Name", display_mode=DM_ITEM, value_field="Key")
-    # Valget ER handlingen. Der laa foer en "Apply tasklist"-knap ved siden
-    # af, som skrev det valgte paa itemet - et ekstra klik for at bekraefte
-    # noget, brugeren lige havde besluttet.
+    # Valget ER stadig handlingen - OnChange skriver listen paa itemet. Apply
+    # Tasklist nedenfor goer det samme, for den, der leder efter en knap.
     #
     # Betingelsen er ikke pynt. Skift af item koerer Reset(drpVhpItemTasklist)
-    # (build_items.py), og en Reset kan udloese OnChange. Uden
+    # (build_items.py), og en Reset kan udloese OnChange. Det goer et
+    # skift af vaerk ogsaa - og saa er Selected TOM, fordi itemets liste
+    # hoerer til det gamle vaerk. !IsBlank(Self.Selected.Key) sikrer, at et
+    # vaerksskift aldrig sletter itemets gemte tasklist. Uden
     # sammenligningen ville det skrive den FORRIGE liste paa det NYE item.
     # Efter en Reset er Selected lig med itemets egen vaerdi, saa
     # betingelsen er falsk og OnChange en ren nulhandling.
+    APPLY_TL = (
+        "UpdateIf(\n"
+        "    colVhpItems, ItemId = varVhpActiveItemId,\n"
+        "    { TasklistKey: drpVhpItemTasklist.Selected.Key, TasklistName: drpVhpItemTasklist.Selected.Name }\n"
+        ");\n"
+        "Set(varVhpRuntimeInfo, \"Tasklist \" & drpVhpItemTasklist.Selected.Key & \" selected for this item.\")")
     drpTasklist.props["OnChange"] = (
         "If(\n"
-        "    !IsBlank(varVhpActiveItemId) &&\n"
+        "    !IsBlank(varVhpActiveItemId) && !IsBlank(Self.Selected.Key) &&\n"
         "        Self.Selected.Key <> LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey,\n"
-        "    UpdateIf(\n"
-        "        colVhpItems, ItemId = varVhpActiveItemId,\n"
-        "        { TasklistKey: Self.Selected.Key, TasklistName: Self.Selected.Name }\n"
-        "    );\n"
-        "    Set(varVhpRuntimeInfo, \"Tasklist \" & Self.Selected.Key & \" selected for this item.\")\n"
+        + APPLY_TL.replace("\n", "\n    ").join(["    ", "\n"]) +
         ")")
+    # Tasklist-feltet har en fast, begraenset bredde og staar til venstre.
+    TL_W = fits(OPS_CW, TWO_COL_MIN, OPS_CW, "360")
     tasklistCell = field_cell("conVhpCellTasklist", "Tasklist For Active Item", drpTasklist, required=True,
-                              width=fits(OPS_CW, TWO_COL_MIN, OPS_CW, "360"), container_w=OPS_CW,
-                              fill_portions_formula="0")
+                              width=TL_W, container_w=OPS_CW, fill_portions_formula="0")
+
+    btnApply = button(
+        "btnVhpApplyTasklist", "\"Apply Tasklist\"",
+        "If(\n"
+        "    IsBlank(varVhpActiveItemId) || IsBlank(drpVhpItemTasklist.Selected.Key),\n"
+        "    Set(varVhpRuntimeInfo, \"Select an item and a tasklist first.\"),\n"
+        "    " + APPLY_TL.replace("\n", "\n    ") + "\n"
+        ")",
+        display_mode=("If(IsBlank(varVhpActiveItemId) || IsBlank(drpVhpItemTasklist.Selected.Key), "
+                      "DisplayMode.Disabled, DisplayMode.Edit)"))
 
     btnAddLines = button(
-        "btnVhpAddTasklistLines", "\"Add lines from tasklist\"",
+        "btnVhpAddTasklistLines", "\"Add Lines from Tasklist\"",
         (
             "If(\n"
             "    IsBlank(varVhpActiveItemId),\n"
@@ -612,7 +636,7 @@ def build_tasklist_section():
         ), primary=True, display_mode=DM_ITEM)
 
     btnAddOp = button(
-        "btnVhpAddOperation", "\"Add operation\"",
+        "btnVhpAddOperation", "\"Add Manual Operation\"",
         (
             "If(\n"
             "    IsBlank(varVhpActiveItemId),\n"
@@ -642,26 +666,41 @@ def build_tasklist_section():
             ")"
         ), display_mode=DM_ITEM)
 
+    # Kun aktiv, naar der er en markeret linje at fjerne - samme betingelse
+    # som knappen selv tjekker.
     btnRemoveOp = button(
-        "btnVhpRemoveOperation", "\"Remove operation\"",
+        "btnVhpRemoveOperation", "\"Remove Selected Operation\"",
         (
             "If(\n"
             "    IsBlank(varVhpActiveItemId),\n"
             "    Set(varVhpRuntimeInfo, \"Select an item first.\"),\n"
             "    If(\n"
-            "        CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId, Selected = true)) = 0,\n"
+            f"        CountRows({OPS_SELECTED}) = 0,\n"
             "        Set(varVhpRuntimeInfo, \"Select one or more operation lines to remove (Sel column).\"),\n"
             "        RemoveIf(colVhpOperations, ItemId = varVhpActiveItemId, Selected = true);\n"
             "        Set(varVhpRuntimeInfo, \"Removed selected operation line(s).\")\n"
             "    )\n"
             ")"
-        ), danger=True, display_mode=DM_ITEM)
+        ), danger=True,
+        display_mode=(f"If(IsBlank(varVhpActiveItemId) || CountRows({OPS_SELECTED}) = 0, "
+                      "DisplayMode.Disabled, DisplayMode.Edit)"))
 
-    # Knapperne laa foer paa samme linje som tasklist-dropdownen i en raekke
-    # med fast hoejde 62 - dropdownen blev klippet helt vaek. Nu har de hver
-    # sin linje, og knapperne deler bredden, saa de aldrig ombryder.
-    actionRow = button_row("conVhpOpsActionRow", [btnAddLines, btnAddOp, btnRemoveOp], OPS_CW)
-    toolbar = group("conVhpOpsToolbar", [tasklistCell, actionRow], direction="Vertical", gap=12)
+    # KNAPGRUPPEN (issue #54): samlet, hver knap saa bred som sin tekst, og
+    # hoejrejusteret paa samme raekke som tasklist-feltet. Der er ikke plads
+    # nok, staar gruppen samlet paa linjen under; er der heller ikke plads
+    # dér, staar knapperne under hinanden (fit_button_row -> flow_row -
+    # aldrig et halvt ombrud, der klipper en knap).
+    btns = [btnApply, btnAddLines, btnAddOp, btnRemoveOp]
+    actionGroup = fit_button_row("conVhpOpsActionRow", btns, OPS_CW, gap=8)
+    GROUP_W = sum(int(b.props["Width"]) for b in btns) + 8 * (len(btns) - 1)
+    actionGroup.props["Width"] = f"If({OPS_CW} >= {GROUP_W}, {GROUP_W}, {OPS_CW})"
+    actionGroup.props["AlignInContainer"] = "AlignInContainer.End"
+
+    # Den fleksible luft i midten: dropdown til venstre, knapperne til
+    # hoejre. flow_row giver den resten af linjen (build_helpers.grow).
+    spacer = group("conVhpOpsToolbarGap", [], direction="Horizontal", height=0)
+    toolbar = flow_row("conVhpOpsToolbar", [tasklistCell, spacer, actionGroup], OPS_CW,
+                       gap=16, flex=spacer)
 
     tasklistMeta = text_ctrl(
         "txtVhpTasklistMeta",
@@ -889,43 +928,3 @@ def build_tasklist_section():
     return card("conVhpOpsCard",
                 [header, helpPanel, _tab_bar(),
                  opsPane, pkgPane, matPane, attPane])
-
-
-def build_dispatch_section():
-    header = section_header("conVhpDispatchHead", "Dispatch and Control",
-                            "Validate the plan before it is saved and submitted.", "Step 5")
-    statusInline = text_ctrl(
-        "txtVhpDispatchStatus",
-        (
-            "IfError(\n"
-            "    If(\n"
-            "        !varVhpPlanCommitted, \"Create the plan, then add items and operations.\",\n"
-            "        Text(CountRows(colVhpItems)) & \" item(s), \" &\n"
-            "        Text(CountRows(Filter(colVhpItems, Status = \"valid\"))) & \" valid, \" &\n"
-            "        Text(CountRows(Filter(colVhpItems, Status = \"invalid\"))) & \" invalid, \" &\n"
-            "        Text(CountRows(colVhpOperations)) & \" operation line(s) in total.\" &\n"
-            "        If(\n"
-            "            varVhpPlan.PlanType = \"Strategy\",\n"
-            "            \" Strategy \" & varVhpPlan.Strategy & \" with \" &\n"
-            "            Text(CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy))) & \" packages.\",\n"
-            "            \"\"\n"
-            "        )\n"
-            "    ),\n"
-            "    \"Create the plan, then add items and operations.\"\n"
-            ")"
-        ), size=13, color=C_MUTED, height=20, wrap="true")
-    hintInline = text_ctrl(
-        "txtVhpDispatchHint",
-        "\"Validate checks the plan, its items and their operations against the rules.\"",
-        size=12, color=C_MUTED, height=18, wrap="true")
-    validationReport = text_ctrl(
-        "txtVhpValidationReport",
-        "If(IsBlank(varVhpLastValidationErrors), \"No validation issues found.\", varVhpLastValidationErrors)",
-        size=12, color=f"If(IsBlank(varVhpLastValidationErrors), {C_VALID_FG}, {C_INVALID_FG})", height=60,
-        wrap="true", visible="IfError(varVhpPlanValidated, false)")
-    # Validate stod foer i topbjaelken. Her staar den ved siden af det, den
-    # svarer med: status og valideringsrapporten.
-    actions = group("conVhpDispatchActions", [validate_button()], direction="Horizontal",
-                    gap=8, height=36, align_items="Center")
-    return card("conVhpDispatchCard",
-                [header, statusInline, hintInline, actions, validationReport], gap=10)

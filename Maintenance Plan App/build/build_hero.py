@@ -2,7 +2,8 @@
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import Ctrl, SHELL_W
-from build_helpers import button, top_bar
+from build_helpers import button, top_bar, group, fit_button_width
+from layout_tokens import if_below
 from design_tokens import ref_hex
 
 # Topbjaelken er ALT, der er tilbage af hero-kortet.
@@ -14,13 +15,14 @@ from design_tokens import ref_hex
 #   Show field help   -> EEN Help-kontakt i sidebaren. Den slaar baade
 #   + de fire ? Help     feltforklaringerne og sektionernes hjaelpepaneler
 #                        til og fra (varVhpShowHints).
-#   * Required        -> Plan Header-kortet, ved siden af Step 1
+#   * Required        -> Plan Header-kortet, lige efter titlen
 #   beskrivelse       -> slettet
 #   statuslinje       -> slettet (txtVhpRuntimeInfo)
 #
-# Validate staar i Dispatch and Control-kortet (trin 5), hvor rapporten
-# staar - se build_tasklist.build_dispatch_section. Export JSON og "Send as
-# email" er fjernet: planen sendes videre ved at gemme og indsende den.
+# Validate og Dispatch and Control er fjernet (issue #54). Reglerne er de
+# samme og ligger i VhpValidationErrors (build_status.py); Submit er graa,
+# indtil de er opfyldt. Save draft og Submit staar her i bjaelken, for
+# enden af progressbaren.
 
 # EEN hjaelpekontakt. Foer var der fem: "Show field help" i heroen og en
 # "? Help" i hver af de fire sektioner. De slaar nu alle det samme til.
@@ -30,145 +32,66 @@ HELP_ON = "IfError(varVhpShowHints, false)"
 HELP_ACTION = f"Set(varVhpShowHints, !{HELP_ON})"
 
 
-def validate_button():
-    """Validering. Reglerne er de samme som i oplaegget (docs/01) - S1, S3,
-    S4 og S5 gaelder kun strategiplaner."""
-    return button(
-        "btnVhpValidate", "\"Validate\"",
-        (
-            "Set(varVhpPlanValidated, true);\n"
-            "Set(varVhpItemValidated, true);\n"
-            "With(\n"
-            "    { isStrat: varVhpPlan.PlanType = \"Strategy\" },\n"
-            "    With(\n"
-            "        {\n"
-            "            itemErr:\n"
-            "                Concat(\n"
-            "                    Filter(\n"
-            "                        colVhpItems,\n"
-            "                        IsBlank(ShortText) || IsBlank(MainWorkCenter) || IsBlank(ActivityType) || IsBlank(FunctionalLocation)\n"
-            "                    ),\n"
-            "                    \"Item \" & Text(ItemId) & \" (\" & Coalesce(ShortText, \"no short text\") & \"): missing required fields.\",\n"
-            "                    Char(10)\n"
-            "                ),\n"
-            "            s1:\n"
-            "                If(isStrat && IsBlank(varVhpPlan.Strategy),\n"
-            "                    \"S1: A strategy must be chosen on a strategy plan.\", \"\"),\n"
-            "            s3:\n"
-            "                If(isStrat,\n"
-            "                    Concat(\n"
-            "                        Filter(colVhpItems, IsBlank(TasklistKey)),\n"
-            "                        \"S3: Item \" & Text(ItemId) & \" has no task list - the package allocation belongs to the task list.\",\n"
-            "                        Char(10)\n"
-            "                    ), \"\"),\n"
-            "            s4:\n"
-            "                If(isStrat,\n"
-            "                    Concat(\n"
-            "                        Filter(colVhpOperations, Len(Coalesce(PackagesKey, \";\")) <= 1),\n"
-            "                        \"S4: Item \" & Text(ItemId) & \" operation \" & OperationNo &\n"
-            "                        \" has no package and would never be carried out.\",\n"
-            "                        Char(10)\n"
-            "                    ), \"\"),\n"
-            "            s5:\n"
-            "                If(isStrat,\n"
-            "                    Concat(\n"
-            "                        Filter(\n"
-            "                            colVhpStrategyPackages As P,\n"
-            "                            P.StrategyKey = varVhpPlan.Strategy &&\n"
-            "                            CountRows(Filter(colVhpOperations, \";\" & Text(P.PackageNo) & \";\" in Coalesce(PackagesKey, \";\"))) = 0\n"
-            "                        ),\n"
-            "                        \"S5: Package \" & ShortCode & \" (\" & Text(CycleLength) & \" \" & CycleUnit &\n"
-            "                        \") has no operations - the plan would call an empty order.\",\n"
-            "                        Char(10)\n"
-            "                    ), \"\")\n"
-            ",\n"
-            # --- Regler fra BIO_SAP_Fields.xlsx og "Den gode VH-plan" -------
-            # R1: overskriften skal starte med vaerkskoden, saa planen kan
-            # findes naar man ikke kan soege paa vaerk eller funktionsplads.
-            "            r1:\n"
-            "                If(\n"
-            "                    !IsBlank(varVhpPlan.Plant) && !IsBlank(varVhpPlan.PlanText) &&\n"
-            "                        !StartsWith(Upper(varVhpPlan.PlanText), Upper(varVhpPlan.Plant)),\n"
-            "                    \"R1: Plan Text should start with the plant code \" & varVhpPlan.Plant &\n"
-            "                        \" - otherwise the plan cannot be found without searching by plant.\", \"\"),\n"
-            # R2: sort field bruges kun ved lovpligtige eftersyn - men SKAL
-            # udfyldes, saa snart et item er et.
-            "            r2:\n"
-            "                With(\n"
-            "                    { n: CountRows(Filter(colVhpItems, StartsWith(ActivityType, \"110\") || StartsWith(ActivityType, \"115\"))) },\n"
-            "                    If(\n"
-            "                        n > 0 && IsBlank(varVhpPlan.SortField),\n"
-            "                        \"R2: Sort Field is required: \" & Text(n) &\n"
-            "                            \" item(s) have activity type 110 or 115.\", \"\")),\n"
-            # R3 er FJERNET. Den blokerede indsendelse, hvis et item med
-            # activity type 110/115 ikke havde *SUP som arbejdscenter.
-            # Peter har bekraeftet, at det ikke er rigtigt: lovpligtige
-            # eftersyn sendes ikke altid til *SUP. Reglen blokerede altsaa
-            # folk paa noget, der ikke er en regel, og den slags er vaerre
-            # end ingen validering - den laerer folk at ignorere panelet.
-            # Nummereringen R1, R2, R4, R5 staar urOErt, saa den fejl der
-            # var, kan genkendes i docs/14 og i TEST-manuelt.md.
-            # R4: revisionsopgaver kaldes 1/1, ellers rammer de ikke revisionen.
-            "            r4:\n"
-            "                With(\n"
-            "                    { n: CountRows(Filter(colVhpItems, !IsBlank(Revision))) },\n"
-            "                    If(\n"
-            "                        n > 0 && (varVhpPlan.FirstCallDay <> 1 || varVhpPlan.FirstCallMonth <> 1),\n"
-            "                        \"R4: \" & Text(n) & \" item(s) are marked as outage work. \" &\n"
-            "                            \"First call must be 01/01, otherwise the task misses the outage.\", \"\")),\n"
-            # R5: under 2 aars scheduling period virker den oekonomiske
-            # simulering i BI-rapporten ikke.
-            "            r5:\n"
-            "                With(\n"
-            "                    { m: LookUp(colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon) },\n"
-            "                    If(\n"
-            "                        !IsBlank(varVhpPlan.CallHorizon) && m.SchedPeriod < 2,\n"
-            "                        \"R5: Scheduling period must be at least 2 years because of \" &\n"
-            "                            \"the cost simulation in the BI report.\", \"\"))\n"
-            "        },\n"
-            "        Set(\n"
-            "            varVhpLastValidationErrors,\n"
-            "            Concat(\n"
-            "                Filter(\n"
-            "                    Table(\n"
-            "                        { t: itemErr }, { t: s1 }, { t: s3 }, { t: s4 }, { t: s5 },\n"
-            "                        { t: r1 }, { t: r2 }, { t: r4 }, { t: r5 }\n"
-            "                    ),\n"
-            "                    !IsBlank(t)\n"
-            "                ),\n"
-            "                t, Char(10)\n"
-            "            )\n"
-            "        )\n"
-            "    )\n"
-            ");\n"
-            "Set(\n"
-            "    varVhpRuntimeInfo,\n"
-            "    \"Validated: \" & Text(CountRows(colVhpItems)) & \" item(s), \" &\n"
-            "    Text(CountRows(colVhpOperations)) & \" operation line(s), \" &\n"
-            "    Text(CountRows(Filter(colVhpItems, Status = \"invalid\"))) & \" invalid item(s).\" &\n"
-            "    If(IsBlank(varVhpLastValidationErrors), \" No validation issues.\", \" See validation report.\")\n"
-            ")"
-        ),
-        primary=True, width=110, height=36)
+# ---------------------------------------------------------------------------
+# Progressbaren
+# ---------------------------------------------------------------------------
+# Fem trin og Submit (issue #54):
+#
+#   (1)---(2)---(3)---(4)---(5)  [ Submit ]
+#   Plan  Item  Task  Ops   Save
+#
+# Dispatch er fjernet - Dispatch and Control-sektionen findes ikke laengere.
+#
+# Hvert trin er sit EGET billede og kan klikkes: det flytter fokus til
+# sektionen (SetFocus paa en knap i den, saa skaermen scroller derhen - der
+# findes ingen "scroll til" i canvas apps). Tasklist- og Operations-trinnet
+# vaelger ogsaa den rigtige fane.
+#
+# GROENT = faerdigt OG gemt. Betingelserne er navngivne formler
+# (build_status.py), saa de regnes om, hver gang data aendres. Items har een
+# betingelse mere, som kun skaermen kan se: usavede aendringer i Item
+# Editoren (ITEM_DIRTY). Aktuelt trin = det foerste, der ikke er faerdigt.
 
-# ---------------------------------------------------------------------------
-# Trinindikatoren
-# ---------------------------------------------------------------------------
-# Seks trin - de samme som kortenes Step-maerker. Et trin er NAAET, naar
-# betingelsen er sand, og FAERDIGT, naar det naeste er naaet (det sidste:
-# naar planen er gemt). Betingelserne er procestrinenes fra foer.
+# Item Editoren er aendret siden sidste Save. "& \"\"" goer blank til tom
+# tekst paa begge sider, saa et tomt felt og en tom kolonne er ens.
+ITEM_DIRTY = (
+    "With(\n"
+    "    { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },\n"
+    "    !IsBlank(varVhpActiveItemId) && (\n"
+    "        Trim(txtVhpItemShortText.Text & \"\") <> Trim(it.ShortText & \"\") ||\n"
+    "        (drpVhpItemMainWorkCenter.Selected.Value & \"\") <> (it.MainWorkCenter & \"\") ||\n"
+    "        (drpVhpItemActivityType.Selected.Value & \"\") <> (it.ActivityType & \"\") ||\n"
+    "        (drpVhpItemRevision.Selected.Value & \"\") <> (it.Revision & \"\") ||\n"
+    "        (drpVhpItemFL.Selected.Code & \"\") <> (it.FunctionalLocation & \"\") ||\n"
+    "        Trim(txtVhpItemInitials.Text & \"\") <> Trim(it.Initials & \"\") ||\n"
+    "        Trim(txtVhpItemLongText.Text & \"\") <> Trim(it.LongText & \"\")\n"
+    "    )\n"
+    ")"
+)
+
+IS_STRAT = 'varVhpPlan.PlanType = "Strategy"'
+
+# (label, faerdig, klik)
 STEPS = [
-    ('"Plan"', "true"),
-    ('"Item"', "varVhpPlanCommitted"),
-    ('"Task list"', "varVhpPlanCommitted && CountRows(colVhpItems) > 0"),
-    ('If(varVhpPlan.PlanType = "Strategy", "Packages", "Operations")',
-     "varVhpPlanCommitted && !IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId, TasklistKey))"),
-    ('"Dispatch"', "varVhpPlanCommitted && CountRows(colVhpOperations) > 0"),
-    ('"Save"', "varVhpPlanCommitted && CountRows(colVhpOperations) > 0 && "
-               "IfError(varVhpPlanValidated, false) && IsBlank(varVhpLastValidationErrors)"),
+    ('"Plan"', "VhpStepPlanDone", "SetFocus(btnVhpPlanSave)"),
+    ('"Item"', f"VhpStepItemDone && !({ITEM_DIRTY})", "SetFocus(btnVhpAddItem)"),
+    ('"Task list"', "VhpStepTasklistDone",
+     'Set(varVhpOpsTab, "ops");\nSetFocus(btnVhpTabOps)'),
+    (f'If({IS_STRAT}, "Packages", "Operations")', "VhpStepOpsDone",
+     f'If(\n    {IS_STRAT},\n    Set(varVhpOpsTab, "pkg"); SetFocus(btnVhpTabPkg),\n'
+     f'    Set(varVhpOpsTab, "ops"); SetFocus(btnVhpTabOps)\n)'),
+    ('"Save"', f"VhpStepSaveDone && varVhpPlanLocked && !({ITEM_DIRTY})",
+     "SetFocus(btnVhpSaveDraft)"),
 ]
-SAVED = "!IsBlank(varVhpPlanKey)"
 STEP_W, STEP_H, R = 120, 60, 13
+
+# Submit er aktiv, naar planen kan indsendes - og intet i Item Editoren
+# venter paa at blive gemt.
+CAN_SUBMIT = f"VhpCanSubmit && !({ITEM_DIRTY})"
+
+
+# { d1: ..., d5: ... } - trinenes status, som hvert billede laeser.
+_STATE = "{ " + ",\n      ".join("d%d: %s" % (i + 1, d) for i, (_l, d, _a) in enumerate(STEPS)) + " }"
 
 
 def _hx(name):
@@ -176,67 +99,109 @@ def _hx(name):
     return '" & %s & "' % ref_hex(name)
 
 
-def stepper():
-    """Trinene som en raekke cirkler med en streg imellem:
+def _step_image(i, label, done, prev_done, current, action, width):
+    """Eet trin: cirklen, dets navn og de to halve streger ud til naboerne.
 
-        (v)-----(v)-----(3)-----(4)       faerdigt: groen med flueben
-                         ^                 aktuelt:  ring om nummeret
-                                           endnu ikke: graa
-
-    EET Image med en SVG, af samme grund som sidebaren og temaknappen: den
-    tegner praecis det, der staar, i temaets farver. Tilstanden regnes i
-    Power Fx, saa billedet skifter, mens man arbejder."""
+    Stregen til venstre er groen, naar det FORRIGE trin er faerdigt, stregen
+    til hoejre, naar DETTE er. Saa moedes de to halvdele midt imellem i
+    samme farve, som da trinene var eet billede."""
     n = len(STEPS)
-    w = n * STEP_W
-    cy = R + 4
+    cx, cy = STEP_W // 2, R + 4
     ok, grey = ref_hex("state-ok-fg"), ref_hex("text-muted")
     line, text = ref_hex("border-default"), ref_hex("text-primary")
     surface = _hx("bg-surface")
+    okc = _hx("state-ok-fg")
     font = "font-family='Segoe UI, sans-serif' text-anchor='middle'"
-    reached = ["(%s)" % c for _l, c in STEPS]
-    done = reached[1:] + ["(%s)" % SAVED]
     fx = ['"<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'%d\' height=\'%d\' '
-          'viewBox=\'0 0 %d %d\'>"' % (w, STEP_H, w, STEP_H)]
-    for i in range(n - 1):
-        x1 = STEP_W * i + STEP_W // 2 + R + 4
-        x2 = STEP_W * (i + 1) + STEP_W // 2 - R - 4
+          'viewBox=\'0 0 %d %d\'>"' % (STEP_W, STEP_H, STEP_W, STEP_H)]
+    if i > 0:
+        fx.append('"<line x1=\'0\' y1=\'%d\' x2=\'%d\' y2=\'%d\' stroke-width=\'3\' '
+                  'stroke=\'" & If(%s, %s, %s) & "\'/>"' % (cy, cx - R - 4, cy, prev_done, ok, line))
+    if i < n - 1:
         fx.append('"<line x1=\'%d\' y1=\'%d\' x2=\'%d\' y2=\'%d\' stroke-width=\'3\' '
-                  'stroke=\'" & If(%s, %s, %s) & "\'/>"' % (x1, cy, x2, cy, done[i], ok, line))
-    for i, (label, _c) in enumerate(STEPS):
-        cx = STEP_W * i + STEP_W // 2
-        okc = _hx("state-ok-fg")
-        check = (f"<circle cx='{cx}' cy='{cy}' r='{R}' fill='{okc}'/>"
-                 f"<path d='M{cx - 5} {cy} l3.5 3.5 l6.5 -7' fill='none' stroke='{surface}' "
-                 f"stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/>")
-        current = (f"<circle cx='{cx}' cy='{cy}' r='{R + 3}' fill='none' stroke='{okc}' "
-                   f"stroke-width='2'/>"
-                   f"<circle cx='{cx}' cy='{cy}' r='{R - 1}' fill='{surface}' stroke='{okc}' "
-                   f"stroke-width='2'/>"
-                   f"<text x='{cx}' y='{cy + 5}' {font} font-size='13' font-weight='700' "
-                   f"fill='{okc}'>{i + 1}</text>")
-        later = (f"<circle cx='{cx}' cy='{cy}' r='{R}' fill='{_hx('text-muted')}'/>"
-                 f"<text x='{cx}' y='{cy + 5}' {font} font-size='13' font-weight='700' "
-                 f"fill='{surface}'>{i + 1}</text>")
-        fx.append('If(%s, "%s", %s, "%s", "%s")' % (done[i], check, reached[i], current, later))
-        fx.append('"<text x=\'%d\' y=\'%d\' %s font-size=\'12\' font-weight=\'600\' '
-                  'fill=\'" & If(%s, %s, %s) & "\'>" & %s & "</text>"'
-                  % (cx, STEP_H - 6, font, reached[i], text, grey, label))
+                  'stroke=\'" & If(%s, %s, %s) & "\'/>"' % (cx + R + 4, cy, STEP_W, cy, done, ok, line))
+    check = (f"<circle cx='{cx}' cy='{cy}' r='{R}' fill='{okc}'/>"
+             f"<path d='M{cx - 5} {cy} l3.5 3.5 l6.5 -7' fill='none' stroke='{surface}' "
+             f"stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/>")
+    cur = (f"<circle cx='{cx}' cy='{cy}' r='{R + 3}' fill='none' stroke='{okc}' "
+           f"stroke-width='2'/>"
+           f"<circle cx='{cx}' cy='{cy}' r='{R - 1}' fill='{surface}' stroke='{okc}' "
+           f"stroke-width='2'/>"
+           f"<text x='{cx}' y='{cy + 5}' {font} font-size='13' font-weight='700' "
+           f"fill='{okc}'>{i + 1}</text>")
+    later = (f"<circle cx='{cx}' cy='{cy}' r='{R}' fill='{_hx('text-muted')}'/>"
+             f"<text x='{cx}' y='{cy + 5}' {font} font-size='13' font-weight='700' "
+             f"fill='{surface}'>{i + 1}</text>")
+    fx.append('If(%s, "%s", %s, "%s", "%s")' % (done, check, current, cur, later))
+    fx.append('"<text x=\'%d\' y=\'%d\' %s font-size=\'12\' font-weight=\'600\' '
+              'fill=\'" & If(%s || %s, %s, %s) & "\'>" & %s & "</text>"'
+              % (cx, STEP_H - 6, font, done, current, text, grey, label))
     fx.append('"</svg>"')
     img = '"data:image/svg+xml;utf8," & EncodeUrl(\n    ' + " &\n    ".join(fx) + "\n)"
-    return Ctrl("imgVhpSteps", "Image", props={
-        "AccessibleLabel": '"Progress through the six steps of the maintenance plan"',
+    state = f'If({done}, "done", {current}, "current step", "not done")'
+    # Trinenes status regnes EEN gang pr. billede (With), ikke een gang pr.
+    # sted, SVG'en bruger den.
+    wrap = "With(\n    %s,\n    %s\n)"
+    return Ctrl(f"imgVhpStep{i + 1}", "Image", props={
+        "AccessibleLabel": wrap % (_STATE, f'"Go to step {i + 1}, " & {label} & " - " & {state}'),
         "BorderStyle": "BorderStyle.None",
         "BorderThickness": "0",
         "Height": str(STEP_H),
-        "Image": img,
+        "Image": wrap % (_STATE, img),
         "ImagePosition": "ImagePosition.Fit",
-        "TabIndex": "-1",
-        "Width": f"Min({w}, {SHELL_W} - 2)",
+        "OnSelect": action,
+        "TabIndex": "0",
+        "Width": width,
     }, h=STEP_H)
+
+
+def _submit_tooltip():
+    reasons = " &\n    ".join([
+        'If(!VhpStepPlanDone, "Save the plan header. ", "")',
+        f'If(!VhpStepItemDone || ({ITEM_DIRTY}), "Save every item. ", "")',
+        'If(!VhpStepTasklistDone, "Give every item a task list. ", "")',
+        'If(!VhpStepOpsDone, "Give every item operations. ", "")',
+        'If(IsBlank(VhpValidationErrors), "", Char(10) & VhpValidationErrors)',
+    ])
+    return (f"If(\n    {CAN_SUBMIT},\n    \"Submit the plan for processing.\",\n"
+            f"    \"Not ready to submit: \" &\n    {reasons}\n)")
 
 
 def build_top_bar():
     """VH-planens topbjaelke - den samme som i de tre andre apps
-    (build_helpers.top_bar), men med trinindikatoren under titlen og uden
-    knapper: Validate staar i trin 5, og Help og tema i sidebaren."""
-    return top_bar("Vhp", '"VH-plan"', None, [], sub=[stepper()])
+    (build_helpers.top_bar), med progressbaren under titlen og Save draft
+    til hoejre. Help og tema staar i sidebaren."""
+    from build_save import save_buttons
+    btnDraft, btnSubmit = save_buttons(CAN_SUBMIT)
+    save_w = fit_button_width('"Save draft"')
+    sub_w = fit_button_width('"Submit"', min_w=96)
+    btnDraft.props["Width"] = str(save_w)
+    btnDraft.props["Tooltip"] = (
+        "If(\n"
+        "    varVhpSaving, \"Saving ...\",\n"
+        "    IsBlank(varVhpPlanKey), \"Not saved yet. Save as draft so you can come back to it.\",\n"
+        "    \"Saved as \" & varVhpPlanKey & \". The next save overwrites items and operations on the same plan.\"\n"
+        ")")
+    btnSubmit.props["Width"] = str(sub_w)
+    btnSubmit.props["Tooltip"] = _submit_tooltip()
+    btnSubmit.props["AlignInContainer"] = "AlignInContainer.Center"
+    btnSubmit.props["LayoutMinWidth"] = str(sub_w)
+
+    n = len(STEPS)
+    avail = if_below("Tablet", f"{SHELL_W} - {sub_w} - 12",
+                     f"{SHELL_W} - {save_w} - 10 - {sub_w} - 12")
+    step_w = f"Min({STEP_W}, ({avail}) / {n})"
+    done = ["d%d" % (i + 1) for i in range(n)]
+    imgs = []
+    for i, (label, _d, action) in enumerate(STEPS):
+        before = " && ".join(done[:i]) or "true"
+        current = f"(!{done[i]} && {before})"
+        prev = done[i - 1] if i else "false"
+        imgs.append(_step_image(i, label, done[i], prev, current, action, step_w))
+    gap = group("conVhpStepsGap", [], direction="Horizontal", width=8, height=0)
+    steps = group("conVhpSteps", imgs + [gap, btnSubmit], direction="Horizontal", gap=0,
+                  height=STEP_H, align_items="Center",
+                  width=f"{n} * ({step_w}) + 8 + {sub_w}")
+    # Paa en smal skaerm er der kun plads til progressbaren og Submit.
+    return top_bar("Vhp", '"VH-plan"', None, [btnDraft], sub=[steps],
+                   narrow_hide=("btnVhpSaveDraft",))
