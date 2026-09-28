@@ -1375,6 +1375,32 @@ def main():
             problems.append(f"[10] {name}: {body['Control']} kender ikke "
                             f"egenskaben '{key}' - compile vil fejle")
 
+    # --- 10b. SetFocus kan ikke naa ind i en container -------------------
+    #
+    # "The specified control cannot be focused" - SetFocus virker ikke paa
+    # en kontrol i en Container, et Gallery eller en komponent. I VH-plan
+    # staar alt i containere (rammen er een). Progressbarens trin kaldte
+    # SetFocus paa knapper i sektionerne, og compile afviste alle fem
+    # (issue #59).
+    node_by_name = {nn: (pp, bb) for pp, nn, bb in all_nodes}
+    body_by_path = {pp: bb for pp, _nn, bb in all_nodes}
+    for p_, name, body in all_nodes:
+        for key, val in (body.get("Properties") or {}).items():
+            for target in re.findall(r"\bSetFocus\(\s*([A-Za-z_][A-Za-z0-9_]*)", str(val)):
+                if target not in node_by_name:
+                    continue
+                tpath = node_by_name[target][0]
+                parts = tpath.strip("/").split("/")
+                for i in range(1, len(parts)):
+                    anc = body_by_path.get("/" + "/".join(parts[:i])) or {}
+                    ctl = (anc.get("Control") or "").split("@")[0]
+                    if ctl in ("GroupContainer", "Gallery"):
+                        problems.append(
+                            f"[10b] {name}.{key}: SetFocus({target}) - {target} staar i "
+                            f"{ctl} '{parts[i - 1]}', og SetFocus kan ikke naa ind i "
+                            f"en container eller et galleri. Compile vil fejle")
+                        break
+
     # --- 31. Kolonnenavne er navne, ikke strenge -------------------------
     #
     # GroupBy, Ungroup, DropColumns, ShowColumns, AddColumns og

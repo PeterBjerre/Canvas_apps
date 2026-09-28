@@ -217,7 +217,9 @@ kom en fejlbesked. Det er nok til at finde fejlen i koden.
 10. **Trin bliver grønne**: Save i Plan Header → trin 1 grønt. Gem et item →
     trin 2. Ret et felt i Item Editoren uden at gemme → trin 2 er ikke
     længere grønt. **Reset** → feltet er tilbage, trin 2 grønt igen.
-11. Klik på et trin → siden flytter fokus til sektionen.
+11. Klik på et trin → sektionen, det hører til, får en tyk blå kant (Task list
+    og Operations vælger også fanen). Siden scroller ikke selv - det kan canvas
+    apps ikke, og SetFocus kan ikke nå ind i en container (issue #59).
 12. Når trin 1–4 er grønne og reglerne (S1–S5, R1–R5) er opfyldt, bliver
     **Submit blå**. Hold musen over en grå Submit: tooltip siger hvad der mangler.
 13. **Save draft** → trin 5 grønt. Ret noget → trin 5 ikke grønt længere.
