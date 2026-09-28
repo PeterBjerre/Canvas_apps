@@ -14,7 +14,7 @@ sys.path.insert(0, HERE)
 from gen_screen import render_screen, C_APP_BG, OUT_DIR
 from build_helpers import app_frame
 from side_nav import side_nav
-from build_hub import build_bar, build_tiles, build_filters, build_list
+from build_hub import build_bar, build_tiles, build_filters, build_list, build_new_menu
 
 
 def build_screen():
@@ -23,7 +23,10 @@ def build_screen():
     root = app_frame("Md", build_bar(), [build_tiles(), build_filters(), build_list()])
     # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
     rail, overlay = side_nav("Md", "hub")
-    return render_screen("ScreenMdHub", {"Fill": C_APP_BG}, [root, rail, *overlay])
+    # "New request"-menuen ligger oven paa rammen, men under den aabne
+    # sidebar.
+    return render_screen("ScreenMdHub", {"Fill": C_APP_BG},
+                         [root, rail, *build_new_menu(), *overlay])
 
 
 def main():
