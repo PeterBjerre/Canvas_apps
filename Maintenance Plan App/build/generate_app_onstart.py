@@ -16,6 +16,7 @@ import os
 import sys
 import sp_config as cfg
 import build_load
+import build_status
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT_DIR = os.path.join(HERE, "..")
@@ -80,7 +81,14 @@ Set(varVhpActiveItemId, 1);
 Set(varVhpNextItemId, 1);
 Set(varVhpRuntimeInfo, "");
 Set(varVhpFlMeta, "");
-Set(varVhpLastValidationErrors, "");
+// Trinene og Submit regnes af navngivne formler (build_status.py).
+// varVhpSavedJson er planen, som den stod ved sidste gemning i SharePoint.
+Set(varVhpSavedJson, "");
+Set(varVhpPrevPlant, "");
+// FL-soegningens ventetilstand og Object List-popup'en.
+Set(varVhpFlBusy, false);
+Set(varVhpFlDots, 0);
+Set(varVhpObjListOpen, false);
 Set(varVhpTasklistPickerOpen, false);
 
 // Get-flowet svarer med en STRENG, der skal gennem ParseJSON.
@@ -153,7 +161,7 @@ def build_onstart():
 def build_formulas():
     """App.Formulas. Hver formel afsluttes med semikolon - ogsaa den sidste."""
     out = [tok.formula(), "", lay.formula(), ""]
-    for name, expr, why in cfg.named_formulas():
+    for name, expr, why in cfg.named_formulas() + build_status.formulas():
         if why:
             out.append(f"// {why}")
         out.append(f"{name} = {expr};")
@@ -187,7 +195,7 @@ def main():
               encoding="utf-8", newline="\n") as f:
         f.write(content)
 
-    n_fx = len(cfg.named_formulas())
+    n_fx = len(cfg.named_formulas()) + len(build_status.formulas())
     print(f"App.pa.yaml skrevet. {content.count(chr(10)) + 1} linjer, "
           f"{n_fx} navngivne formler, "
           f"{len(cfg.WORKING_COLLECTIONS)} arbejdssamlinger, 0 datahentninger i OnStart.")

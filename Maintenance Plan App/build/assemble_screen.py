@@ -22,11 +22,10 @@ from build_helpers import app_frame
 from build_hero import build_top_bar, HELP_ON, HELP_ACTION
 from side_nav import side_nav
 from build_plan_header import build_plan_header
-from build_items import build_items_section
-from build_tasklist import build_tasklist_section, build_dispatch_section
+from build_items import build_items_section, build_object_list_modal
+from build_tasklist import build_tasklist_section
 from build_modal import (build_tasklist_picker_modal, build_longtext_modal,
                          build_modal_backdrop)
-from build_save import build_save_section
 
 
 def build_screen():
@@ -36,8 +35,10 @@ def build_screen():
         # Pakkematricen er nu en fane i Tasklist-sektionen, ikke et kort
         # for sig. Se build_tasklist._tab_bar.
         build_tasklist_section(),
-        build_dispatch_section(),
-        build_save_section(),
+        # Dispatch and Control og Save to SharePoint er fjernet (issue #54).
+        # Save draft og Submit staar for enden af progressbaren i
+        # topbjaelken (build_hero.py), og reglerne bag Validate er de
+        # navngivne formler i build_status.py.
     ]
 
     # RAMMEN: topbjaelken i en header, der ikke scroller, og sektionerne
@@ -49,7 +50,7 @@ def build_screen():
     return render_screen("ScreenVhPlan", {"Fill": C_APP_BG},
                          [root, rail,
                           build_modal_backdrop(), build_tasklist_picker_modal(),
-                          build_longtext_modal(), *overlay])
+                          build_longtext_modal(), build_object_list_modal(), *overlay])
 
 
 def main():

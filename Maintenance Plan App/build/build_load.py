@@ -213,6 +213,9 @@ def load_block():
         "                Set(varVhpPlanKey, pl.PlanID);\n"
         "                Set(varVhpRequestGuid, idx.RequestGuid);\n"
         "                Set(varVhpPlanCommitted, true);\n"
+        # Laast som efter Save i Plan Header: den indlaeste plan ER den
+        # gemte, og trin 1 er faerdigt. Edit laaser op (issue #54).
+        "                Set(varVhpPlanLocked, true);\n"
         "\n"
         "                // --- de fem hentninger, PAA EEN GANG -------------\n"
         "                //\n"
@@ -272,7 +275,10 @@ def load_block():
         "                    \"Opened \" & idx.RequestNo & \" - \" &\n"
         "                        Text(CountRows(colVhpItems)) & \" item(s), \" &\n"
         "                        Text(CountRows(colVhpOperations)) & \" operation line(s).\"\n"
-        "                )"
+        "                );\n"
+        "                // Den indlaeste plan ER den gemte - Save-trinnet er groent,\n"
+        "                // til noget aendres.\n"
+        "                Set(varVhpSavedJson, VhpStateJson)"
     )
 
     return (

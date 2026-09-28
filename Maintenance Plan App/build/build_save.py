@@ -69,7 +69,6 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_PRIMARY, C_WHITE,
                         C_VALID_FG, C_INVALID_FG, SHELL_W)
 from build_helpers import text_ctrl, group, button, button_row, card
-from build_plan_header import section_header
 import sp_config as cfg
 
 # Appens play-URL. Hubben bruger den til at aabne indmeldingen igen.
@@ -549,6 +548,9 @@ def save_action(submit=False):
         f"                            {index_fields}\n"
         "                        );\n"
         "\n"
+        # Det, der nu staar i SharePoint. Save-trinnet er groent, saa
+        # laenge planen er den samme - se VhpStateJson i sp_config.py.
+        "                        Set(varVhpSavedJson, VhpStateJson);\n"
         "                        Set(varVhpSaving, false);\n"
         "                        Set(\n"
         "                            varVhpRuntimeInfo,\n"
@@ -570,48 +572,30 @@ def save_action(submit=False):
     )
 
 
-def build_save_section():
-    header = section_header("conVhpSaveHead", "Save to SharePoint",
-                            "The plan, its items and operations are written to the lists, "
-                            "and the request appears on the landing page.", "Step 6")
+# Save draft kan bruges, saa snart der er noget at gemme. Samme maal som
+# selve gemningen: et tomt item taeller ikke med, saa knappen bliver ikke
+# aktiv af det item, appen selv aabnede med.
+DRAFT_DM = ("If(\n"
+            f"    varVhpSaving || !varVhpPlanCommitted || {SAVEABLE_COUNT} = 0,\n"
+            "    DisplayMode.Disabled,\n"
+            "    DisplayMode.Edit\n"
+            ")")
 
-    state = text_ctrl(
-        "txtVhpSaveState",
-        (
-            "If(\n"
-            "    varVhpSaving, \"Gemmer ...\",\n"
-            "    IsBlank(varVhpPlanKey),\n"
-            "        \"Not saved yet. Save as draft so you can come back to it.\",\n"
-            "    \"Saved as \" & varVhpPlanKey & \". The next save overwrites items and \" &\n"
-            "        \"operations on the same plan.\"\n"
-            ")"
-        ),
-        size=13, height=20, wrap="true",
-        color=f"If(IsBlank(varVhpPlanKey), {C_MUTED}, {C_VALID_FG})")
 
-    # Samme maal som selve gemningen: et tomt item taeller ikke med, saa
-    # knappen bliver ikke aktiv af det item, appen selv aabnede med.
-    DM = ("If(\n"
-          f"    varVhpSaving || !varVhpPlanCommitted || {SAVEABLE_COUNT} = 0,\n"
-          "    DisplayMode.Disabled,\n"
-          "    DisplayMode.Edit\n"
-          ")")
+def save_buttons(can_submit):
+    """Save draft og Submit - de to knapper, der skriver planen i
+    SharePoint.
 
+    Sektionen "Save to SharePoint" er fjernet (issue #54); knapperne og
+    hele gemningen bag dem er de samme. De staar nu for enden af
+    progressbaren i topbjaelken (build_hero.py).
+
+    can_submit er betingelsen for, at planen kan indsendes. DisplayMode er
+    bundet til den, saa en graa Submit ikke kan klikkes - det er ikke kun
+    farven, der skifter."""
     btnDraft = button("btnVhpSaveDraft", "\"Save draft\"", save_action(submit=False),
-                      display_mode=DM)
+                      display_mode=DRAFT_DM)
     btnSubmit = button("btnVhpSubmit", "\"Submit\"", save_action(submit=True),
-                       primary=True, display_mode=DM)
-    # Kortet har 18 px polstring i hver side.
-    CARD_W = f"({SHELL_W} - 36)"
-    row = button_row("conVhpSaveActions", [btnDraft, btnSubmit], container_w=CARD_W)
-
-    hint = text_ctrl(
-        "txtVhpSaveHint",
-        (
-            "\"Draft = saved but not sent on. Submit marks it as \" &\n"
-            "\"ready for processing on the landing page. The key (the MP number) \" &\n"
-            "\"is assigned by SharePoint and cannot collide with anyone else's.\""
-        ),
-        size=12, color=C_MUTED, height=32, wrap="true")
-
-    return card("conVhpSaveCard", [header, state, row, hint], gap=10)
+                       primary=True,
+                       display_mode=f"If({can_submit}, DisplayMode.Edit, DisplayMode.Disabled)")
+    return btnDraft, btnSubmit

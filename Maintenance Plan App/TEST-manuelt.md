@@ -10,8 +10,8 @@ Der er **fem ting** at se efter. Tag dem i rækkefølge — de bygger på hinand
 
 | Hvor | Hvad du skal se |
 |---|---|
-| **Item Editor** | Functional Location og Object List står **oven på hinanden i højre kolonne**. De øvrige felter i to kolonner til venstre |
-| **Plan Header** | **First Call** dag, måned og år på **én række** i den sidste af de fire kolonner, med label `First Call (dd / mm / åååå)` |
+| **Item Editor** | Tre kolonner i **kolonne-orden**: Item Short Text, Main Work Center, Activity Type · Revision, Initials, Item Long Text · Functional Location med **Object List**-knappen lige under |
+| **Plan Header** | Kolonne-orden: Plan Type, Maintenance Strategy og Plant under hinanden i kolonne 1. **First Call** dag, måned og år på **én række** nederst i kolonne 4 |
 
 Træk vinduet ned til ca. 900 px bredde. Intet må blive klippet.
 
@@ -182,3 +182,44 @@ testplan i systemet. Rækkefølgen: `TaskListMain`, `MaintenanceItems`,
 
 Noter **hvilket punkt**, hvad du gjorde, og hvad der stod — ordret hvis der
 kom en fejlbesked. Det er nok til at finde fejlen i koden.
+
+---
+
+## Issue #54 — progressbar, Submit, Reset, Object List-popup
+
+1. **Ny plan.** Progressbaren viser fem trin (Plan, Item, Task list,
+   Operations, Save) og en **grå Submit**-knap. Ingen *Dispatch*. Ingen
+   "Plan is open for editing"-linje, ingen Dispatch and Control, ingen Save to
+   SharePoint-sektion.
+2. **Kolonne-orden** i Plan Header og Item Editor. Tab går oppefra og ned.
+3. **Required-teksten** står lige efter "Plan Header" og er hel. Stjernerne
+   står lige efter labelteksten (`Plan Type *`).
+4. Vælg **Plant = ASV**, Save. Items-kortet viser `Plant: ASV`; Main Work
+   Center viser kun ASV-centre; søgefeltet under Functional Location starter
+   med `ASV`; Tasklist-dropdownen viser kun ASV-lister.
+5. Edit, skift Plant, Save. En advarsel siger, at vaerket er skiftet; et
+   arbejdscenter/en tasklist fra det gamle vaerk står nu tomt. Intet item er slettet.
+6. **Search**: knappen viser `.` `..` `...` og er grå under søgningen, også
+   hvis søgningen fejler. Dropdownen viser bagefter `Select result (n)` —
+   aldrig en tom linje — eller `No results found`.
+7. **Object List**: knappen står under FL-dropdownen og åbner en centreret
+   popup med sløret baggrund. Kryds et par objekter og tryk **Cancel** →
+   intet ændret. Kryds igen og tryk **Use selected** → valget står under
+   knappen.
+8. **Item-kort**: klik hvor som helst på kortet → itemet åbnes (kanten bliver
+   blå ved hover, og det aktive kort har en tyk kant). **Delete** på et kort
+   sletter kortet uden at åbne det.
+9. **Tasklist and Operations**: dropdownen til venstre; *Apply Tasklist · Add
+   Lines from Tasklist · Add Manual Operation · Remove Selected Operation*
+   samlet til højre i tekstbredde; tabellen i fuld bredde nedenunder. Træk
+   vinduet smalt: knapgruppen flytter samlet ned under dropdownen.
+   *Remove Selected Operation* er grå, til en linje er krydset af.
+10. **Trin bliver grønne**: Save i Plan Header → trin 1 grønt. Gem et item →
+    trin 2. Ret et felt i Item Editoren uden at gemme → trin 2 er ikke
+    længere grønt. **Reset** → feltet er tilbage, trin 2 grønt igen.
+11. Klik på et trin → siden flytter fokus til sektionen.
+12. Når trin 1–4 er grønne og reglerne (S1–S5, R1–R5) er opfyldt, bliver
+    **Submit blå**. Hold musen over en grå Submit: tooltip siger hvad der mangler.
+13. **Save draft** → trin 5 grønt. Ret noget → trin 5 ikke grønt længere.
+14. Alt ovenfor i både lys og mørk tilstand. App checker: ingen fejl.
+
