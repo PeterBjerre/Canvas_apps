@@ -231,3 +231,27 @@ i Python.
 
 **Skal efterprøves i Studio:** Classic/DropDown er ny i disse to apps, og
 Enter-søgningen bygger på, at et Multiline-felt lægger `Char(10)` i `Text`.
+
+## Materials: formularen og listen efter materials.png (issue #67)
+
+Materials har nu sin **egen** formular og liste i
+`Material App/build/material_parts.py`. Equipment bruger stadig de fælles
+dele i `tools/domain_parts.py`, uændret.
+
+| Del | Hvad |
+|---|---|
+| Formularen | Ingen sektionsoverskrifter. Et gitter med fire kolonner på desktop, to på tablet og én på mobil (målt på kortets bredde med `fits`). Rækkefølgen er `FORM_ORDER`, og byggeriet stopper, hvis et felt i `SECTIONS` mangler i den |
+| No BOM Item | Knap i formularens hoved. Til: funktionspladsen ryddes og deaktiveres, stjernen forsvinder, og Save row kræver den ikke. Kolonnen er `MaterialItems.NoBomItem` (Boolean) |
+| Documentation | Antal dokumenter på den åbne række og en **Documents**-knap, der åbner den eksisterende dokumentpopup. Popuppen åbner kun ved klik |
+| Knapperne | Så brede som deres tekst (`fit_button_width` + ikon) og låst med `LayoutMinWidth`, så teksten aldrig klippes |
+| Listen | Søgning, status- og værksfilter, **Compact/All columns** (`varDomAllCols`), statusmærke, Details og Docs, Edit/Copy/Delete. Indsend står under tabellen til højre |
+
+**Compact og All columns er ét galleri.** Kolonnerne står i forskellig
+rækkefølge i de to visninger, så cellerne er *pladser*: hver plads viser
+én kolonne i Compact og en (evt. anden) i All columns. Ingen celle findes
+to gange. All columns (og Compact på en tablet) scroller vandret.
+
+**Før deploy:** kør `Provision-EqMatLists.ps1 -Domain Material`, så
+`NoBomItem` findes i listen, og fjern + tilføj `MaterialItems` som
+datakilde i Studio (Studio cacher skemaet). Brug `deploy --clean`:
+formularens og listens kontroller har fået nye forældre.

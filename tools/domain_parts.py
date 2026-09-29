@@ -206,6 +206,20 @@ def _input_for(col, kind, choices):
         items = "[" + ", ".join(f'"{x}"' for x in choices) + "]"
         return themed_dropdown(name, items, v, display_mode=DM_ROW,
                                onchange=f"Set({v}, Self.Selected.Value)")
+    if kind == "bool":
+        # Ja/nej. Samme ModernCheckbox som dokumentlisten bruger - den er
+        # bevist i dette miljoe. En app kan ogsaa vise feltet paa sin egen
+        # maade (Materials: No BOM Item er en knap i formularens hoved).
+        return Ctrl(name, "ModernCheckbox", props={
+            "AccessibleLabel": f'"{name}"',
+            "Default": v,
+            "DisplayMode": DM_ROW,
+            "Height": "36",
+            "Label": '""',
+            "OnCheck": f"Set({v}, true)",
+            "OnUncheck": f"Set({v}, false)",
+            "Width": "Parent.Width",
+        }, h=36)
     c = text_input(name, v, max_length=255, display_mode=DM_ROW,
                    onchange=f"Set({v}, Self.Text)")
     return c
@@ -266,8 +280,24 @@ def _timer(name, start, duration, repeat, on_start=None, on_end=None):
     return Ctrl(name, "Timer", props=props, h=1, vis="false")
 
 
-def build_fl_cells(cell_w):
+def build_fl_cells(cell_w, lock=None, required_formula="false"):
     """Functional Location - TO celler i formularens gitter.
+
+    lock: et udtryk, der - naar det er sandt - deaktiverer soegningen og
+    dropdownen (Materials' No BOM Item). required_formula: hvornaar
+    dropdownens kant maa vaere roed. Uden de to er felterne som foer."""
+    search_wrap, drop = build_fl_controls(cell_w, lock, required_formula)
+    search = field_cell("conDomFlSearch", "Search functional location", search_wrap,
+                        width=cell_w, fill_portions_formula="0")
+    select = field_cell("conDomFlSelect", "Functional location", drop,
+                        width=cell_w, fill_portions_formula="0")
+    return [search, select]
+
+
+def build_fl_controls(cell_w, lock=None, required_formula="false"):
+    """Soegningen (tekstfelt + knap + de to timere) og dropdownen - uden
+    celler om. build_fl_cells() laegger dem i hver sin celle; en app kan
+    ogsaa stable dem i EEN celle (Materials).
 
         [ Search functional location ][ Functional location ]
         [ tekstfelt          Search  ][ dropdown           ]
@@ -296,10 +326,11 @@ def build_fl_cells(cell_w):
     med tre prikker, der bevaeger sig (. .. ...; tmrDomFlDots). Foer skete
     der intet synligt, fra man trykkede, til svaret kom. Knappen har samme
     bredde i begge tilstande, saa soegefeltet ikke hopper."""
-    busy_dm = f"If({FL_BUSY_VAR}, DisplayMode.Disabled, {DM_ROW})"
+    dm = DM_ROW if lock is None else f"If({lock}, DisplayMode.Disabled, {DM_ROW})"
+    busy_dm = f"If({FL_BUSY_VAR}, DisplayMode.Disabled, {dm})"
     q = text_input("txtDomFlQuery", FL_QUERY_VAR,
                    placeholder='"e.g. SSV10 KAB10"',
-                   display_mode=DM_ROW, ttype="Multiline",
+                   display_mode=dm, ttype="Multiline",
                    label=f'"Search functional location - at least {fl.MIN_SEARCH_LEN} characters, then Enter"')
     grow(q)
     btn = button("btnDomFlSearch",
@@ -323,10 +354,8 @@ def build_fl_cells(cell_w):
     dots = _timer("tmrDomFlDots", FL_BUSY_VAR, 400, True,
                   on_end=f"Set({FL_DOTS_VAR}, Mod({FL_DOTS_VAR} + 1, 3))")
 
-    search = field_cell("conDomFlSearch", "Search functional location",
-                        group("conDomFlSearchWrap", [row, enter, dots],
-                              direction="Vertical", gap=0, width=cell_w),
-                        width=cell_w, fill_portions_formula="0")
+    search = group("conDomFlSearchWrap", [row, enter, dots],
+                   direction="Vertical", gap=0, width=cell_w)
 
     # ITEMS HAR EN KOLONNE, DER HEDDER Value (issue #37)
     #
@@ -339,12 +368,11 @@ def build_fl_cells(cell_w):
     drop = themed_dropdown("drpDomFl",
                            "ForAll(colDomFl As F, { Value: F.Display, Code: F.Code })",
                            f"LookUp(colDomFl, Code = {_var(cfg.FL_FIELD)}).Display",
-                           value_col="Value", display_mode=DM_ROW,
+                           value_col="Value", display_mode=dm,
+                           required_formula=required_formula,
                            label='"Functional location"',
                            onchange=f"Set({_var(cfg.FL_FIELD)}, Self.Selected.Code)")
-    select = field_cell("conDomFlSelect", "Functional location", drop,
-                        width=cell_w, fill_portions_formula="0")
-    return [search, select]
+    return search, drop
 
 
 def build_fl_msg():
@@ -473,7 +501,7 @@ def build_form():
 # ---------------------------------------------------------------------------
 # Adfaerden
 # ---------------------------------------------------------------------------
-BLANK = {"num": "Blank()", "date": "Blank()"}
+BLANK = {"num": "Blank()", "date": "Blank()", "bool": "false"}
 
 
 def _blank(kind):
@@ -484,6 +512,8 @@ def _patch_value(col, kind):
     v = _var(col)
     if kind in ("text", "long", "choice"):
         return f"Trim(Coalesce({v}, \"\"))"
+    if kind == "bool":
+        return f"Coalesce({v}, false)"
     return v
 
 
@@ -509,6 +539,8 @@ def refresh_rows_fx(indent=0):
     for col, _lab, kind, _ch in FIELDS:
         if kind in ("text", "long", "choice"):
             v = f'Coalesce(R.{col}, "")'
+        elif kind == "bool":
+            v = f"Coalesce(R.{col}, false)"
         elif kind == "num":
             v = f"R.{col}"
         else:
@@ -643,8 +675,12 @@ def build_backdrop():
                 }, children=[], vis="!IsBlank(varDomDetailsId) || !IsBlank(varDomDocsId)")
 
 
-def save_row_fx(status="valid"):
+def save_row_fx(status="valid", required=()):
     """Gem raekken i SharePoint - som kladde eller som faerdig.
+
+    required: appens EKSTRA krav til en faerdig raekke, som par af
+    (betingelse der betyder "mangler", besked). Kladden tjekker dem ikke.
+    Materials kraever funktionspladsen - undtagen paa en No BOM-raekke.
 
     En KLADDE kraever kun beskrivelsen. Listens Title er obligatorisk, saa
     helt tom kan raekken ikke vaere, men alt andet maa mangle - det er
@@ -675,6 +711,12 @@ def save_row_fx(status="valid"):
                  "IsBlank(varDomFPlant)")
         msg = "%s and %s are required." % (cfg.TEXT_LABEL, cfg.PLANT_LABEL)
         done = "Saved as "
+    # Hvert ekstra krav er sin egen gren i den samme If - og faar sin egen
+    # besked, saa brugeren ser HVAD der mangler.
+    extra = ""
+    if status != "draft":
+        for cond, text in required:
+            extra += f'    {cond},\n    Notify("{text}", NotificationType.Warning),\n'
 
     return (
         # "Jeg har tjekket" - herfra maa kanterne vaere roede.
@@ -682,6 +724,7 @@ def save_row_fx(status="valid"):
         "If(\n"
         f"    {guard},\n"
         f'    Notify("{msg}", NotificationType.Warning),\n'
+        + extra +
         "\n"
         "    IfError(\n"
         "    Set(\n"
@@ -976,15 +1019,20 @@ def _detail_row(i, label, value):
                  height=DETAIL_ROW_H, align_items="Center")
 
 
-def build_details():
-    """Alle raekkens felter, med frem og tilbage mellem raekkerne."""
+def build_details(scope=None):
+    """Alle raekkens felter, med frem og tilbage mellem raekkerne.
+
+    scope: det filter, listen viser. Standard er SCOPE herunder; en app med
+    sin egen liste (Materials' vaerksfilter) giver sit eget, saa frem og
+    tilbage foelger det, brugeren ser."""
+    scope = SCOPE if scope is None else scope
     # Raekken, ruden viser. Den slaas op HVER gang - saa er den altid den,
     # der staar i samlingen, ogsaa efter en Gem.
     row = f"LookUp(colDomRows, RowId = varDomDetailsId)"
     # Positionen i den SORTEREDE og FILTREREDE liste, saa frem/tilbage
     # foelger det, brugeren faktisk ser. Power Fx har ingen IndexOf, men
     # i en faldende sortering er positionen antallet af raekker foran.
-    order = f"Sort({SCOPE}, RowId, SortOrder.Descending)"
+    order = f"Sort({scope}, RowId, SortOrder.Descending)"
     pos = f"CountRows(Filter({order}, RowId > varDomDetailsId)) + 1"
 
     key = text_ctrl("txtDomDetKey",
@@ -1029,8 +1077,12 @@ def build_details():
             _detail_row(2, "Status", f'Coalesce({row}.Status, "-")'),
             _detail_row(3, "Documents", f'Text(Coalesce({row}.FileCount, 0))')]
     for n, (col, label, kind, _ch) in enumerate(FIELDS, start=len(rows)):
-        v = (f'If(IsBlank({row}.{col}), "-", Text({row}.{col}))'
-             if kind in ("num", "date") else f'Coalesce({row}.{col}, "-")')
+        if kind == "bool":
+            v = f'If({row}.{col}, "Yes", "No")'
+        elif kind in ("num", "date"):
+            v = f'If(IsBlank({row}.{col}), "-", Text({row}.{col}))'
+        else:
+            v = f'Coalesce({row}.{col}, "-")'
         rows.append(_detail_row(n, label, v))
 
     # FELTLISTEN SCROLLER, POPUPPEN GOER IKKE. Equipment har nitten felter;
