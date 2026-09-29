@@ -150,9 +150,11 @@ alle tre er nu spærret af byggeriet. Hele forklaringen står i
    26c stopper byggeriet, hvis en container når ud i YAML'en.
 10. **Equipment og Material: Details og Documents er popups** med hver sin
    række (`varDomDetailsId`, `varDomDocsId`). Rækken har fem knapper:
-   Edit, Details, Docs, Copy, Delete. Materials har sin egen formular og
-   liste (`Material App/build/material_parts.py`, issue #67): Compact/All
-   columns, et værksfilter, No BOM Item og en Documents-knap i formularen.
+   Details, Docs, Edit, Copy, Delete. Formularen og listen er HTML-projektets
+   (issue #67/#68): et gitter med 4/2/1 kolonner, Compact/All columns, et
+   værksfilter og en Documents-knap i formularen. Byggeklodserne står i
+   `tools/domain_parts.py`; hvilke felter og kolonner er appens egne
+   (`material_parts.py` / `equipment_parts.py`).
 
 ### Sidebaren
 
@@ -224,8 +226,8 @@ Hver `build/`-mappe indeholder nu kun det, der er appens eget:
 |---|---|
 | VH-plan | `sp_config.py` + de ni `build_*.py`, der bygger dens skærm |
 | Masterdata Hub | `hub_config.py`, `build_hub.py` |
-| Equipments | **kun `domain_config.py`** + de to indgange |
-| Materials | `domain_config.py`, `material_parts.py` (formularen og listen) + de to indgange |
+| Equipments | `domain_config.py`, `equipment_parts.py` (felternes rækkefølge og listens kolonner) + de to indgange |
+| Materials | `domain_config.py`, `material_parts.py` (felternes rækkefølge, No BOM Item og listens kolonner) + de to indgange |
 
 > **To fælder, begge ramt under flytningen — og begge nu spærret:**
 >

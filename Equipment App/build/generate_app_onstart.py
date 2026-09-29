@@ -100,6 +100,8 @@ Set(varDomFlQuery, "");
 Set(varDomFlBusy, false);
 Set(varDomFlDots, 0);
 Set(varDomInfo, "");
+// Listen: false = Compact, true = All columns (issue #68).
+Set(varDomAllCols, false);
 
 // Er formularen blevet tjekket? Styrer om en kraevet feltkant maa vaere
 // roed. false ved opstart: en tom formular, ingen har roert, skal ikke

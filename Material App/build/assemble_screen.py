@@ -60,7 +60,7 @@ def build_screen():
     # staar, saa det, der skal ligge bagved, skal staa foerst.
     return render_screen(cfg.SCREEN,
                          {"Fill": C_APP_BG, "OnVisible": on_visible()},
-                         [root, rail, build_backdrop(), build_details(mp.SCOPE),
+                         [root, rail, build_backdrop(), build_details(),
                           build_attachments(),
                           *overlay,
                           # Bekraeftelsen foer Submit og ventespinneren - oeverst.
