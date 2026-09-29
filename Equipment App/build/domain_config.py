@@ -72,6 +72,9 @@ HUB_URL = env.hub_url()
 # Konstruktionen er VH-plan-appens - soegefelt, soegeknap og dropdown -
 # kopieret i build_flsearch.py. Flowet er allerede datakilde i begge apps.
 FL_FIELD = "FunctionalLocation"
+# Issue #68: soegning og valg i EEN moderne combobox med Search-knap - se
+# domain_parts.build_fl_combobox. Materials har stadig tekstfelt + dropdown.
+FL_INPUT = "combobox"
 
 # --- felterne ---------------------------------------------------------
 # (kolonne, etiket, art, valgmuligheder)
@@ -101,6 +104,10 @@ FL_FIELD = "FunctionalLocation"
 # Materials. Kolonnen LongText staar stadig i EquipmentItems: den slettes
 # ikke, saa gamle raekker beholder deres tekst, og Patch roerer den ikke,
 # fordi Patch kun skriver de felter, der staar herunder.
+#
+# SEKTIONERNE ER GRUPPERING, IKKE OVERSKRIFTER. Formularen viser dem ikke
+# laengere (issue #68); raekkefoelgen paa skaermen staar i
+# equipment_parts.COLUMNS.
 SECTIONS = [
     ("What should happen", [
         ("RequestType", "Type", "text", None),
@@ -112,11 +119,14 @@ SECTIONS = [
         ("TypeDesignation", "Type designation", "text", None),
         ("SerialNumber", "Serial number", "text", None),
     ]),
-    # Func. loc. 1, Functional location 2 og Class data er fjernet (issue
-    # #37) - ligesom Long text bliver kolonnerne staaende i SharePoint. Nu
-    # fylder FL-soegningen (to celler), rum og placering netop een raekke.
+    # Func. loc. 1, Functional location 2 og Class data blev fjernet i
+    # issue #37 og er tilbage i issue #68: de staar i eq.png og i listens
+    # All columns. Kolonnerne var aldrig slettet i SharePoint.
     ("Where it sits", [
         ("FunctionalLocation", "Functional location", "text", None),
+        ("FunctionalLocation1", "Func. loc. 1", "text", None),
+        ("FunctionalLocation2", "Functional location 2", "text", None),
+        ("ClassData", "Class data", "text", None),
         ("RoomCoordinates", "Room coordinates", "text", None),
         ("Placement", "Placement text", "text", None),
     ]),
@@ -129,11 +139,7 @@ SECTIONS = [
 # Plant staar for sig i hovedet - den er obligatorisk og filtreres paa.
 PLANT_LABEL = "Plant"
 
-# Kolonner i raekkeoversigten. Foerste er altid raekkens tekst, sidste er
-# altid antallet af dokumenter; bredden 0 betyder "tag resten".
-LIST_COLS = [("DESCRIPTION", 0), ("EQUIPMENT NO.", 110), ("FUNC. LOCATION", 140),
-             ("PLANT", 55), ("STATUS", 75), ("FILES", 40), ("", 60)]
-LIST_FIELDS = ["EquipmentNumber", "FunctionalLocation", "Plant"]
+# Listens kolonner staar i equipment_parts.SLOTS.
 
 # Felter soegefeltet kigger i. Skal vaere tekstfelter i samlingen.
 SEARCH_FIELDS = ["Description", "FunctionalLocation", "SerialNumber",
