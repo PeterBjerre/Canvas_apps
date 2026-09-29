@@ -41,7 +41,7 @@ hvem der svarede hvad og hvornår.
 | 7 | **Systemgodkendelse og omkostningsgodkendelse sker pr. item** | Én godkendelse pr. item, ikke pr. plan. Omkostningen er summen af det enkelte items operationer |
 | 8 | System Managerne står i en **SharePoint-liste** med **1. og 2. godkender** som initialer. **1. godkender godkender**. E-mailen er initialer + `@orsted.com`. Indholdet ligger i `flow/systemgodkendere.md`: systemnummer 1–16 | Power BI-modellen giver kun FL → systemnummer. Listen giver systemnummer → godkendere |
 | 9 | Alle priser i `TaskListMain` er i **DKK** | Ingen omregning |
-| 10 | Opslaget sker i **samme Power BI-model som ObjectList-flowet**, og systemnummeret er **`Plant Section Key`** | Workspace, datasæt, forbindelse og kolonne er kendt (§8) |
+| 10 | Opslaget sker i **samme Power BI-datasæt som ObjectList-flowet**, i tabellen **`'Functional Locations'`**, og systemnummeret er **`Plant Section Key`** (fx `008`) | Workspace, datasæt, forbindelse, tabel og kolonne er kendt (§8) |
 | 11 | **2. godkender bruges ved fravær** (mulighed B) | Ny kolonne `Approver1Absent` i listen (§4) |
 | 12 | Systemgodkendelsen **springes over, når itemets opretter er 1. eller 2. godkender** | §4 og §7.1 |
 | 13 | Systemnummeret er **det samme på alle værker**. Godkendere for **værk** (kvalitet) og **omkostning** står i **samme tabel** som systemerne, med værkskoden eller `COST` i nøglekolonnen | Én liste, `MD_Approver`, for alle tre trin (§6) |
@@ -367,6 +367,9 @@ Findes et FL ikke i modellen, sendes planen **retur** med forklaringen
 "FL XYZ findes ikke i systemmodellen". Et item må ikke glide igennem uden
 godkendelse.
 
+Det samme gælder, når FL'ens `Plant Key` ikke er planens værk, eller når
+systemnummeret ikke findes i `MD_Approver` (§8).
+
 ### 7.2 F2 `BioSap-VhPlan-CostApproval` – pr. item
 
 Samme trigger condition med `ApprovalStage = 'Cost'`.
@@ -449,7 +452,7 @@ og et `Update item` / HTTP-kald til sidst, der sætter
 Modellen skal kun svare på én ting: **hvilket systemnummer hører et FL
 til.** Godkenderne kommer fra `MD_Approver`.
 
-### Modellen – den samme som ObjectList-flowet bruger
+### Modellen – samme datasæt som ObjectList-flowet, tabellen `'Functional Locations'`
 
 `BioSap-Integration-ObjectList` (i `solution/BIOSAP/src/Workflows/`)
 kalder Power BI-connectorens **Run a query against a dataset**
@@ -461,15 +464,21 @@ kalder Power BI-connectorens **Run a query against a dataset**
 | Forbindelse | Connection reference `orsted_BioSapPowerBIConn` |
 | Workspace (`groupid`) | `26d062ec-3014-4cd3-9313-ced0cfe497b9` |
 | Datasæt (`datasetid`) | `fadc4a40-342b-41e3-a1ef-aa4af8bb9e09` |
-| **Systemnummer** | **`'Functional Locations'[Plant Section Key]`** |
-| FL | `'Functional Locations'[Functional Location]` |
+| **Tabel** | **`'Functional Locations'`** – ikke `'Functional Locations Man'`, som ObjectList-flowet søger i |
 
-To tabeller har FL'er. ObjectList-flowets forespørgsel går mod
-`'Functional Locations Man'`, men `[Plant Section Key]` står i flowets
-JSON-skema under `'Functional Locations'`, sammen med `[Plant Key]`,
-`[Plant Unit]` og `[Functional Location Description]`. Forespørgslen
-nedenfor bruger derfor `'Functional Locations'`. **Kør den i DAX query view
-først** og se, at kolonnen findes i den tabel, og hvordan værdierne ser ud.
+Tabellens kolonner, som de står i modellen:
+
+| Kolonne | Eksempel | Bruges til |
+|---|---|---|
+| `[Functional Location]` | `ASV06 AEA10CE000 -T01` | Opslagsnøglen |
+| `[Functional Location Description]` | `Strømtrans. måling fase 1` | Vises i godkendelsen |
+| `[Plant Key]` | `ASV` | Kontrol mod planens værk, se nedenfor |
+| **`[Plant Section Key]`** | **`008`** | **Systemnummeret** |
+| `[Plant Unit]` | `ASV06` | – |
+| `[Safety Critical Equip.]` | | – |
+
+ObjectList-flowet ændres ikke. Det er kun godkendelsesflowet, der slår op
+i `'Functional Locations'`.
 
 ### Forespørgslen
 
@@ -483,25 +492,37 @@ SELECTCOLUMNS (
     FILTER (
         'Functional Locations',
         'Functional Locations'[Functional Location]
-            IN { "SSV10 KAB10AP001", "SSV10 KAB10AP002" }
+            IN { "ASV06 AEA10CE000 -T01", "ASV06 AEA10CE000 -T02" }
     ),
     "FL", 'Functional Locations'[Functional Location],
+    "Description", 'Functional Locations'[Functional Location Description],
+    "PlantKey", 'Functional Locations'[Plant Key],
     "SystemNo", 'Functional Locations'[Plant Section Key]
 )
 ```
 
-Fire ting at vide:
+Fem ting at vide:
 
 - **Nøglerne i svaret har klammer.** Kolonnen `"SystemNo"` kommer tilbage
   som `[SystemNo]`, så i flowet hedder det `item()?['[SystemNo]']`. Uden
   `SELECTCOLUMNS` hedder den `Functional Locations[Plant Section Key]`, som
   i ObjectList-flowets skema.
-- **Systemnummeret normaliseres, før det slås op i `MD_Approver`.** Står
-  det som `07` i modellen og `7` i listen, matcher de ikke. Flowet trimmer
+- **Systemnummeret normaliseres, før det slås op i `MD_Approver`.** Modellen
+  har det som tekst med tre cifre, `008`, og listen har `8`. Flowet trimmer
   og fjerner foranstillede nuller:
-  `string(int(trim(item()?['[SystemNo]'])))`. Er værdien ikke et tal, fejler
-  `int`, og itemet sendes retur med forklaringen – i stedet for at blive
-  sendt til en forkert godkender.
+  `string(int(trim(item()?['[SystemNo]'])))` → `8`. Er værdien tom eller
+  ikke et tal, fejler `int`, og itemet sendes retur med forklaringen – i
+  stedet for at blive sendt til en forkert godkender. Et nummer, der ikke
+  findes i listen (fx `017`), sendes også retur.
+- **FL'en skal matche præcist, med mellemrum.** `ASV06 AEA10CE000 -T01` har
+  mellemrum inde i nøglen. Flowet trimmer kun i enderne og retter ikke i
+  mellemrummene, så et item skal have FL'en præcis, som den står i SAP. Det
+  er den, FL-søgningen i appen i forvejen vælger fra.
+- **Værket kontrolleres.** Er `[Plant Key]` et andet værk end planens
+  `PlantsInitial`, sendes itemet retur ("FL ASV06 … hører til ASV, planen er
+  til SSV"). Det koster ingenting, når FL'en alligevel er slået op, og det
+  fanger et FL fra det forkerte værk, før det ender hos en forkert
+  godkender.
 - **Anførselstegn i et FL skal fordobles**, før det sættes ind i
   `IN { … }`: `replace(item(), '"', '""')`. ObjectList-flowet sætter
   brugerens søgetekst direkte ind i `SEARCH("…")`; det nye flow skal ikke
@@ -573,6 +594,7 @@ have:
 | FL på system 1, operationer under 300.000 kr. | Systemgodkendelse; omkostning springes over |
 | FL på system 2, operationer over 300.000 kr. | Systemgodkendelse og omkostningsgodkendelse |
 | FL, der ikke findes i Power BI-modellen | Planen sendes retur med forklaring |
+| FL fra et andet værk end planens | Planen sendes retur med forklaring |
 | *Copy item* af et godkendt item, med samme FL | Kopien skal godkendes; originalen genbruges |
 
 Derefter samme plan indsendt af `PKBJE` selv (undtagelsen), én runde med
