@@ -150,7 +150,9 @@ alle tre er nu spærret af byggeriet. Hele forklaringen står i
    26c stopper byggeriet, hvis en container når ud i YAML'en.
 10. **Equipment og Material: Details og Documents er popups** med hver sin
    række (`varDomDetailsId`, `varDomDocsId`). Rækken har fem knapper:
-   Edit, Details, Docs, Copy, Delete.
+   Edit, Details, Docs, Copy, Delete. Materials har sin egen formular og
+   liste (`Material App/build/material_parts.py`, issue #67): Compact/All
+   columns, et værksfilter, No BOM Item og en Documents-knap i formularen.
 
 ### Sidebaren
 
@@ -222,7 +224,8 @@ Hver `build/`-mappe indeholder nu kun det, der er appens eget:
 |---|---|
 | VH-plan | `sp_config.py` + de ni `build_*.py`, der bygger dens skærm |
 | Masterdata Hub | `hub_config.py`, `build_hub.py` |
-| Equipments / Materials | **kun `domain_config.py`** + de to indgange |
+| Equipments | **kun `domain_config.py`** + de to indgange |
+| Materials | `domain_config.py`, `material_parts.py` (formularen og listen) + de to indgange |
 
 > **To fælder, begge ramt under flytningen — og begge nu spærret:**
 >

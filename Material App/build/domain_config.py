@@ -77,9 +77,19 @@ FL_FIELD = "FunctionalLocation"
 # haandbyggede app, men samlingerne colStockUnits, colPriceUnits og
 # colYesNo blev aldrig defineret. Derfor er de TEKST her og i SharePoint,
 # indtil listerne findes.
+#
+# NoBomItem er et ja/nej-felt ("bool"). Staar det til, er raekken ikke en
+# BOM-post, og funktionspladsen er hverken kraevet eller til at vaelge -
+# se material_parts.py. Den er en Boolean-kolonne i SharePoint, fordi appen
+# sender sand/falsk og ikke en etiket.
+#
+# SEKTIONERNE ER GRUPPERING, IKKE OVERSKRIFTER. Formularen viser dem ikke
+# laengere (issue #67); raekkefoelgen paa skaermen staar i
+# material_parts.FORM_ORDER.
 SECTIONS = [
     ("General", [
         ("FunctionalLocation", "Functional location", "text", None),
+        ("NoBomItem", "No BOM item", "bool", None),
     ]),
     ("Master data", [
         ("Manufacturer", "Manufacturer", "text", None),

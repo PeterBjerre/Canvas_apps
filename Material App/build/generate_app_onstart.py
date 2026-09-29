@@ -31,7 +31,8 @@ from domain_parts import FIELDS
 
 OUT_DIR = os.path.join(HERE, "..")
 
-EMPTY = {"num": "0", "date": "Blank()", "long": '""', "choice": '""', "text": '""'}
+EMPTY = {"num": "0", "date": "Blank()", "long": '""', "choice": '""', "text": '""',
+         "bool": "false"}
 
 
 def _row_schema():
@@ -100,6 +101,8 @@ Set(varDomFlQuery, "");
 Set(varDomFlBusy, false);
 Set(varDomFlDots, 0);
 Set(varDomInfo, "");
+// Listen: false = Compact, true = All columns (issue #67).
+Set(varDomAllCols, false);
 
 // Er formularen blevet tjekket? Styrer om en kraevet feltkant maa vaere
 // roed. false ved opstart: en tom formular, ingen har roert, skal ikke
