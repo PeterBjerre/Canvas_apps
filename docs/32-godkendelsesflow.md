@@ -45,6 +45,7 @@ hvem der svarede hvad og hvornår.
 | 11 | **2. godkender bruges ved fravær** (mulighed B) | Ny kolonne `Approver1Absent` i listen (§4) |
 | 12 | Systemgodkendelsen **springes over, når itemets opretter er 1. eller 2. godkender** | §4 og §7.1 |
 | 13 | Systemnummeret er **det samme på alle værker**. Godkendere for **værk** (kvalitet) og **omkostning** står i **samme tabel** som systemerne, med værkskoden eller `COST` i nøglekolonnen | Én liste, `MD_Approver`, for alle tre trin (§6) |
+| 14 | **Godkendelsen følger itemet, ikke FL'en.** Et nyt item med samme FL skal igennem processen igen | Hvert item får et `ItemGuid`, og loggen slår op på det (§6) |
 
 "Efter planen er gemt" er læst som **Submit**. Godkendelsen starter altså
 ikke ved hver *Save draft*. En kladde gemmes mange gange, og hver gang
@@ -150,16 +151,37 @@ Tekst og tal frem for Person og Lookup, af samme grund som i resten af
 datamodellen (`02-datamodel-sharepoint.md`): de kan filtreres delegerbart og
 bruges i trigger conditions.
 
-### Hvorfor godkendelserne ikke gemmes på `MaintenanceItems`
+### Godkendelsen følger itemet – `ItemGuid`
 
-Det oplagte ville være en godkendelseskolonne pr. item. Det holder ikke:
-appen **sletter og genopretter** alle items og operationer, hver gang
-planen gemmes (`build_save.py`, "ryd det gamle"). Et item får derfor nyt
-`ID` og nyt `ItemID` ved hver gem, og en kolonne på itemet ville forsvinde.
+**Det er itemet, der godkendes, ikke FL'en.** Et nyt item skal altid
+igennem processen, også når det har samme FL som et item, der allerede er
+godkendt.
 
-I stedet gemmes hver beslutning i `MD_ApprovalLog` med et **fingeraftryk**
-af det, der blev godkendt (§7.1 og §7.2). Er fingeraftrykket det samme ved
-næste indsendelse, er itemet allerede godkendt.
+Det kræver en identitet pr. item, som appen ikke har i dag. Appen **sletter
+og genopretter** alle items og operationer, hver gang planen gemmes
+(`build_save.py`, "ryd det gamle"). Itemet får derfor nyt `ID` og nyt
+`ItemID` ved hver gem, og når planen åbnes igen, bliver appens eget
+`ItemId` sat til det nye `ID` (`build_load.py`). Intet af det overlever en
+gem.
+
+Derfor får hvert item et **`ItemGuid`**:
+
+| Hvornår | `ItemGuid` |
+|---|---|
+| *Add item* | Nyt – `Text(GUID())` |
+| *Copy item* | **Nyt.** En kopi er et nyt item og skal godkendes for sig |
+| Appen åbner med det tomme startitem | Nyt |
+| Gem | Skrives på rækken i `MaintenanceItems` |
+| Planen åbnes igen | Læses tilbage fra `MaintenanceItems` |
+| Et gammelt item uden `ItemGuid` åbnes | Nyt – det har aldrig været godkendt |
+
+Så overlever identiteten, at rækken slettes og oprettes igen, og en
+godkendelse i `MD_ApprovalLog` kan knyttes til præcis det item. Et item,
+der fjernes og tilføjes igen med samme FL, har et andet `ItemGuid` og skal
+godkendes forfra.
+
+Selve afgørelsen gemmes i `MD_ApprovalLog` og ikke på `MaintenanceItems`,
+fordi rækken dér bliver erstattet ved næste gem.
 
 ### `MaintenancePlans`
 
@@ -230,8 +252,10 @@ mail til `BioSap-ErrorNotifiers`.
 | `RequestGuid` | Text Ⓘ | |
 | `PlanId` | Number Ⓘ | |
 | `Stage` | Text Ⓘ | `System`, `Cost`, `Quality`, `SapCreated` |
+| `ItemGuid` | Text Ⓘ | Itemets identitet (§6). Tom for `Quality` og `SapCreated` |
 | `ItemText` | Text | Itemets korttekst og FL, til visning |
-| `Fingerprint` | Text Ⓘ | Se §7.1 og §7.2. Tom for `Quality` |
+| `Fingerprint` | Text | Det, der blev godkendt: `SystemNo|FL` for `System`. Tom for de andre |
+| `Amount` | Number | Beløbet, der blev godkendt, for `Cost` |
 | `Decision` | Text | `Approve`, `Return`, `Skipped` |
 | `Detail` | Text | Fx systemet, beløbet eller grunden til `Skipped` |
 | `DecidedByEmail` / `DecidedOn` | Text / DateTime | |
@@ -321,9 +345,9 @@ Fælles for dem:
    systemnummer (§8). Ét kald for hele planen, ikke ét pr. item.
 3. **Én** `Get items` på `MD_Approver` (16 systemer + 8 værker + `COST` = 25 rækker – hele listen).
 4. For hvert item, parallelt:
-   - **Fingeraftryk** = `SystemNo|FL|korttekst`.
-   - Findes der i loggen en `Approve` for `Stage = System` på samme plan
-     med samme fingeraftryk → log `Skipped` med "godkendt tidligere".
+   - Findes der i loggen en `Approve` for `Stage = System` med **samme
+     `ItemGuid`** og samme `Fingerprint` (`SystemNo|FL`) → log `Skipped`
+     med "godkendt tidligere".
    - Er itemets *Created By* **1. eller 2. godkender** for systemet → log
      `Skipped` med hvem.
    - Ellers: godkendelse til 1. godkender, eller til 2. godkender, hvis
@@ -334,8 +358,10 @@ Fælles for dem:
 *Created By* sammenlignes med godkendernes adresser med `toLower` på
 begge sider.
 
-Fingeraftrykket gør, at en genindsendelse efter *Send retur* kun sender de
-items igen, der er nye eller har fået et andet FL eller en anden tekst.
+Ved genindsendelse efter *Send retur* sendes derfor kun de items igen, der
+er **nye** (nyt `ItemGuid`) eller har fået **et andet FL**. En rettet
+korttekst eller operation kræver ikke en ny systemgodkendelse. Et nyt item
+med samme FL som et godkendt item har sit eget `ItemGuid` og går igennem.
 
 Findes et FL ikke i modellen, sendes planen **retur** med forklaringen
 "FL XYZ findes ikke i systemmodellen". Et item må ikke glide igennem uden
@@ -351,10 +377,10 @@ Samme trigger condition med `ApprovalStage = 'Cost'`.
    `MaintenanceItemNo/Id` er itemets `ID`.
 3. For hvert item, parallelt:
    - Total ≤ `CostApprovalThresholdDkk` → log `Skipped` med beløbet.
-   - **Fingeraftryk** = `FL|korttekst`. Findes der i loggen en `Approve` for
-     `Stage = Cost` med samme fingeraftryk og et beløb **større end eller
-     lig med** det nye → log `Skipped` med "godkendt tidligere". Et
-     godkendt beløb gælder, så længe itemet ikke bliver dyrere.
+   - Findes der i loggen en `Approve` for `Stage = Cost` med **samme
+     `ItemGuid`** og et `Amount` **større end eller lig med** det nye →
+     log `Skipped` med "godkendt tidligere". Et godkendt beløb gælder for
+     det item, så længe det ikke bliver dyrere.
    - Ellers: godkendelse til rækken `COST` i `MD_Approver` (1. godkender,
      2. ved fravær) med itemets total, grænsen og de dyreste operationer.
 4. Alle godkendt eller sprunget over → `ApprovalStage = Quality`.
@@ -368,8 +394,8 @@ Samme trigger condition med `ApprovalStage = 'Quality'`.
 
 1. **Værn:** har hvert item efter `SubmittedOn` en `Approve`- eller
    `Skipped`-række for både `System` og `Cost` i `MD_ApprovalLog`? (En
-   godkendelse fra en tidligere indsendelse, som blev genbrugt via
-   fingeraftrykket, logges også som `Skipped` med "godkendt tidligere".)
+   godkendelse fra en tidligere indsendelse, som blev genbrugt for samme
+   `ItemGuid`, logges også som `Skipped` med "godkendt tidligere".)
    Hvis ikke → sæt `ApprovalStage = System` og stop. Så køres de to trin
    igen i stedet for at blive sprunget over.
 2. Én godkendelse til rækken i `MD_Approver`, hvis nøgle er planens værk
@@ -504,7 +530,10 @@ i `sp_config.py`, som alle andre.
 | Hvor | Ændring |
 |---|---|
 | `save_action(submit=True)` (`build_save.py`) | Skriver også `ApprovalStage: { Value: "System" }` og `SubmittedOn: Now()`, og tømmer `StageRunId`. Ved genindsendelse fra `Returned` gøres det samme |
-| `save_action` | Skriver **aldrig** `StageRunId` eller `ReturnComment` |
+| `save_action` | Skriver `ItemGuid` på hver række i `MaintenanceItems`. Skriver **aldrig** `StageRunId` eller `ReturnComment` |
+| *Add item* / *Copy item* (`build_items.py`) og startitemet (`build_load.py`, `EMPTY_ITEM_FIELDS`) | `ItemGuid: Text(GUID())` på det nye item. *Copy item* kopierer **ikke** kildens `ItemGuid` |
+| Indlæsning (`build_load.py`, `ITEM_FIELDS`) | `ItemGuid: Coalesce(IT.ItemGuid, Text(GUID()))` |
+| `colVhpItems` (`sp_config.py`, `WORKING_COLLECTIONS`) | Feltet `ItemGuid` |
 | Totalen pr. item (`conVhpOpsTotalsHtml` i `build_tasklist.py`) | Viser allerede summen for det aktive item. Nyt: en markering "Over 300.000 kr. – kræver omkostningsgodkendelse", når den er over grænsen fra `AppSettings`. Kun information; flowet regner selv |
 | Items-skinnen | Pr. item et lille mærke med systemgodkendelse og omkostningsgodkendelse, læst fra `MD_ApprovalLog` på `RequestGuid` |
 | Statusbanner i toppen | Hvor sagen er (`ApprovalStage`), hvem den ligger hos, og `ReturnComment` ved `Returned` |
@@ -522,7 +551,7 @@ Teams og mailen, der er det sted, man svarer; hubben er et overblik.
 
 | Fase | Indhold | Hvorfor i den rækkefølge |
 |---|---|---|
-| 1 | [`Provision-VHPlanApproval.ps1`](../sharepoint/provision/Provision-VHPlanApproval.ps1): nye kolonner, `Returned` i `Status`, `MD_Approver` (seedet fra `sharepoint/seed/MD_Approver.csv`), `MD_ApprovalLog`, `AppSettings`-rækken, og spærrerne på eksisterende planer. Rettigheder og miljøvariabler sættes i hånden – scriptet skriver dem ud til sidst | Alt andet afhænger af det |
+| 1 | [`Provision-VHPlanApproval.ps1`](../sharepoint/provision/Provision-VHPlanApproval.ps1): nye kolonner, `Returned` i `Status`, `ItemGuid` på `MaintenanceItems`, `MD_Approver` (seedet fra `sharepoint/seed/MD_Approver.csv`), `MD_ApprovalLog`, `AppSettings`-rækken, og spærrerne på eksisterende planer. Rettigheder og miljøvariabler sættes i hånden – scriptet skriver dem ud til sidst | Alt andet afhænger af det |
 | 2 | Find systemnummeret i Power BI-modellen, og test DAX-forespørgslen i DAX query view | F1 kan ikke bygges uden |
 | 3 | F4, og spærren på `PlanPublished` | Virker på statusværdier, appen og makroen allerede skriver. Spærren retter en fejl, der findes i dag |
 | 4 | Appen: `ApprovalStage` ved Submit, statusbanner, låsning, `Returned` | |
@@ -544,6 +573,7 @@ have:
 | FL på system 1, operationer under 300.000 kr. | Systemgodkendelse; omkostning springes over |
 | FL på system 2, operationer over 300.000 kr. | Systemgodkendelse og omkostningsgodkendelse |
 | FL, der ikke findes i Power BI-modellen | Planen sendes retur med forklaring |
+| *Copy item* af et godkendt item, med samme FL | Kopien skal godkendes; originalen genbruges |
 
 Derefter samme plan indsendt af `PKBJE` selv (undtagelsen), én runde med
 `Approver1Absent = Ja` på en række (2. godkender), og én *Send retur* for at

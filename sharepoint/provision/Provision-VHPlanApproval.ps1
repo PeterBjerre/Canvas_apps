@@ -18,6 +18,13 @@
         RequesterNotified   Yes/No - spaerre for mailen ved Published
         Status              faar valget 'Returned'
 
+    MaintenanceItems
+        ItemGuid            Text, indekseret - itemets identitet. Appen
+                            genopretter alle items ved hver gem, saa ID og
+                            ItemID skifter. ItemGuid dannes i appen, naar
+                            itemet oprettes eller kopieres, og foelger med.
+                            Godkendelser knyttes til den, ikke til FL'en.
+
     MD_Approver             alle godkendere: system 1-16, vaerk, COST
     MD_ApprovalLog          revisionsspor og hukommelse pr. item
     AppSettings             Option CostApprovalThresholdDkk = 300000
@@ -93,6 +100,7 @@ $ErrorActionPreference = 'Stop'
 if (-not $SeedPath) { $SeedPath = Join-Path $PSScriptRoot '..\seed\MD_Approver.csv' }
 
 $PLANS     = 'MaintenancePlans'
+$ITEMS     = 'MaintenanceItems'
 $APPROVER  = 'MD_Approver'
 $LOG       = 'MD_ApprovalLog'
 $SETTINGS  = 'AppSettings'
@@ -197,6 +205,16 @@ Add-Col $PLANS 'RequesterNotified' Boolean `
 Add-Choice $PLANS 'Status' $RETURNED
 
 # ---------------------------------------------------------------------------
+Write-Host "`n=== $ITEMS ===" -ForegroundColor Cyan
+# ---------------------------------------------------------------------------
+# Godkendelsen foelger ITEMET, ikke FL'en: et nyt item med samme FL skal
+# igennem processen igen. Eksisterende raekker faar ingen vaerdi her - appen
+# giver dem et nyt ItemGuid, naar planen aabnes, og de har aldrig vaeret
+# godkendt.
+Add-Col $ITEMS 'ItemGuid' Text -Indexed `
+    -Description 'Itemets identitet paa tvaers af gem. Dannes i appen ved Add/Copy item. Godkendelser i MD_ApprovalLog peger paa den.'
+
+# ---------------------------------------------------------------------------
 Write-Host "`n=== $APPROVER ===" -ForegroundColor Cyan
 # ---------------------------------------------------------------------------
 New-List $APPROVER 'Godkendere til VH-plan: systemnummer 1-16, vaerkskode (kvalitet) og COST (omkostning). Se docs/32.'
@@ -224,8 +242,10 @@ if (-not $WhatIfOnly) {
 Add-Col $LOG 'RequestGuid' Text -Indexed
 Add-Col $LOG 'PlanId' Number -Indexed -Description 'ID i MaintenancePlans.'
 Add-Col $LOG 'Stage' Text -Indexed -Description 'System, Cost, Quality eller SapCreated.'
+Add-Col $LOG 'ItemGuid' Text -Indexed -Description 'Itemets identitet (MaintenanceItems.ItemGuid). Tom for Quality og SapCreated.'
 Add-Col $LOG 'ItemText' Text -Description 'Itemets korttekst og FL, til visning.'
-Add-Col $LOG 'Fingerprint' Text -Indexed -Description 'System: SystemNo|FL|korttekst. Cost: FL|korttekst. Tom for Quality.'
+Add-Col $LOG 'Fingerprint' Text -Description 'Det, der blev godkendt. System: SystemNo|FL. Tom for de andre.'
+Add-Col $LOG 'Amount' Number -Description 'Cost: det godkendte beloeb. Genbruges kun for samme ItemGuid og kun, hvis itemet ikke er blevet dyrere.'
 Add-Col $LOG 'Decision' Text -Description 'Approve, Return eller Skipped.'
 Add-Col $LOG 'Detail' Text -Description 'Fx systemnummer, beloeb eller grunden til Skipped.'
 Add-Col $LOG 'DecidedByEmail' Text
