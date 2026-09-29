@@ -1,6 +1,6 @@
 # Godkendelsesflow for nye VH-planer
 
-> Status: **oplæg, rettet efter andet review**. Grundlaget er procesdiagrammet
+> Status: **oplæg, rettet efter tredje review**. Grundlaget er procesdiagrammet
 > *Opret ny VH-plan for eksisterende anlæg (BIO-DK)*, niveau 4, ændret
 > 17-09-2026. Beslutningerne fra reviewene står i §2. Det, der stadig er
 > åbent, står i §12. Intet her er bygget endnu.
@@ -39,8 +39,11 @@ hvem der svarede hvad og hvornår.
 | 5 | Omkostning godkendes af **én person**. Kvalitet godkendes **pr. værk** | To rækketyper i `MD_ApprovalRole` |
 | 6 | Den, der udfylder appen, **er rekvirenten**. Er det ikke System Manageren, skal **System Manageren for systemet** godkende. Systemet bestemmes af Functional Location og slås op i en **Power BI semantisk model** | Nyt første trin: systemgodkendelse. Rekvirenten er planens opretter; der kommer ikke et ekstra felt |
 | 7 | **Systemgodkendelse og omkostningsgodkendelse sker pr. item** | Én godkendelse pr. item, ikke pr. plan. Omkostningen er summen af det enkelte items operationer |
-| 8 | System Managerne står i en **SharePoint-liste** med **1. og 2. ansvarlig** som initialer. **1. ansvarlig godkender**. E-mailen er initialer + `@orsted.com` | Power BI-modellen giver kun FL → system. Listen giver system → ansvarlige |
+| 8 | System Managerne står i en **SharePoint-liste** med **1. og 2. godkender** som initialer. **1. godkender godkender**. E-mailen er initialer + `@orsted.com`. Indholdet ligger i `flow/systemgodkendere.md`: systemnummer 1–16 | Power BI-modellen giver kun FL → systemnummer. Listen giver systemnummer → godkendere |
 | 9 | Alle priser i `TaskListMain` er i **DKK** | Ingen omregning |
+| 10 | Opslaget sker i **samme Power BI-model som ObjectList-flowet** | Workspace, datasæt og forbindelse er kendt (§8) |
+| 11 | **2. godkender bruges ved fravær** (mulighed B) | Ny kolonne `Approver1Absent` i listen (§4) |
+| 12 | Systemgodkendelsen **springes over, når itemets opretter er 1. eller 2. godkender** | §4 og §7.1 |
 
 "Efter planen er gemt" er læst som **Submit**. Godkendelsen starter altså
 ikke ved hver *Save draft*. En kladde gemmes mange gange, og hver gang
@@ -52,7 +55,7 @@ skrives items og operationer forfra, så beløbet ville ændre sig under en
 ```mermaid
 flowchart TD
   D["Draft<br/>rekvirenten udfylder og gemmer"]
-  S["1. Systemgodkendelse – pr. item<br/>FL → system (Power BI)<br/>system → 1. ansvarlig (SharePoint)<br/>springes over, hvis rekvirenten er 1. ansvarlig"]
+  S["1. Systemgodkendelse – pr. item<br/>FL → systemnr. (Power BI)<br/>systemnr. → 1. godkender, 2. ved fravær (SharePoint)<br/>springes over, hvis itemets opretter er 1. eller 2. godkender"]
   C["2. Omkostning – pr. item<br/>kun items, hvis operationer<br/>tilsammen er over 300.000 kr."]
   Q["3. Kvalitetsgennemgang – hele planen<br/>lokal ASM-leder for værket"]
   RT["Returned<br/>med kommentarerne"]
@@ -83,23 +86,40 @@ beløbene findes. *Opret ny VH-plan i SAP* er en opgave hos Master Data, ikke
 en godkendelse. Den afsluttes af Excel-makroen, som allerede skriver
 `SAPNum` og `Status = Published` tilbage.
 
-## 4. 2. ansvarlig
+## 4. 1. og 2. godkender
 
-Ja, 2. ansvarlig kan få godkendelsen, når feltet er udfyldt i listen. Der er
-tre måder, og det er den første, jeg anbefaler:
+**Valgt: 2. godkender ved fravær (B).** `MD_SystemApprover` får en
+kolonne `Approver1Absent` (Ja/Nej):
 
-| Måde | Sådan virker det | Vurdering |
-|---|---|---|
-| **A. Begge får den, første svar tæller** *(anbefalet)* | Er 2. ansvarlig udfyldt, sendes godkendelsen til begge som **Approve/Reject – First to respond**. Teksten siger, at 1. ansvarlig er den primære, og at 2. ansvarlig er stedfortræder | Enkel, og en sag står aldrig stille, fordi én er på ferie. Prisen er, at 2. ansvarlig *kan* svare, selvom 1. ansvarlig er til stede |
-| B. 2. ansvarlig ved fravær | Listen får en ekstra kolonne, fx `Ansvarlig1Fraværende` (Ja/Nej). Er den Ja, går godkendelsen kun til 2. ansvarlig | Præcis, men afhænger af, at nogen husker at sætte og fjerne markeringen |
-| C. Eskalering efter X dage | Godkendelsen går til 1. ansvarlig. Er der ikke svaret efter fx 3 arbejdsdage, sendes en ny til 2. ansvarlig | **Frarådes.** Et flow kan ikke selv annullere den første godkendelse – det kan kun gøres manuelt i Power Automate. Den første bliver derfor liggende åben hos 1. ansvarlig, og svarer vedkommende på den bagefter, bliver svaret ikke brugt |
+| `Approver1Absent` | Godkendelsen går til |
+|---|---|
+| Nej (standard) | 1. godkender |
+| Ja | 2. godkender |
 
-Uanset måde kan 1. ansvarlig selv **videresende** en godkendelse til en
-anden person i Power Automate (*Approvals* → *Reassign*).
+Markeringen skal sættes og fjernes af en person. Det er prisen for, at 1.
+godkender altid er den, der godkender, når vedkommende er til stede. To
+ting afbøder det:
 
-**Hvem er rekvirent-undtagelsen?** Trinnet springes kun over, hvis
-rekvirenten er **1. ansvarlig**. Udfylder 2. ansvarlig selv appen, går
-godkendelsen til 1. ansvarlig, fordi det er 1. ansvarlig, der godkender.
+- Flowet sender også til 2. godkender, hvis 1. godkenders adresse ikke
+  findes (§6, `MD_SystemApprover`). Så står en sag ikke stille, fordi en
+  person er stoppet.
+- 1. godkender kan selv **videresende** en godkendelse, der allerede er
+  sendt, i Power Automate (*Approvals* → *Reassign*). Det dækker det
+  uplanlagte fravær, hvor ingen nåede at sætte markeringen.
+
+Eskalering efter X dage uden svar blev fravalgt. Et flow kan ikke selv
+annullere den første godkendelse – det kan kun gøres manuelt i Power
+Automate. Den ville derfor blive liggende åben hos 1. godkender, og et svar
+på den bagefter ville ikke blive brugt.
+
+**Undtagelsen:** systemgodkendelsen springes over for et item, når **den,
+der har oprettet itemet, er 1. eller 2. godkender** for itemets system.
+
+"Oprettet itemet" er `Created By` på rækken i `MaintenanceItems`. Appen
+genopretter alle items ved hver gem (§6), så det er i praksis **den, der
+sidst gemte planen før Submit** – ikke nødvendigvis den, der startede den.
+Det er forsvarligt: gemmer og indsender en System Manager en plan, har
+vedkommende set den og står inde for den.
 
 ## 5. Statusmodellen
 
@@ -147,28 +167,35 @@ næste indsendelse, er itemet allerede godkendt.
 | `SubmittedOn` | DateTime | App ved Submit | Afgrænser "denne indsendelse" i loggen, se §7.3 |
 | `StageRunId` | Text | Flow | Kørslen, der ejer trinnet lige nu. Spærre mod dobbeltkørsel, se §7 |
 | `ReturnComment` | Note | Flow | Kommentarerne ved *Send retur*, én linje pr. item. Vises i appen |
-| `RequesterNotified` | Yes/No | Flow | Spærre, så rekvirenten kun får én mail ved oprettelsen |
+| `MasterDataNotified` | Yes/No | Flow | Spærre for mailen til Master Data (§7.4). **Ikke** `InitialEmailSent`, som `NewPlanCreated` allerede bruger |
+| `RequesterNotified` | Yes/No | Flow | Spærre for mailen ved `Published` (§7.5) |
 
 `Status` får valget `Returned`.
 
-### System Manager-listen *(findes/oprettes af jer)*
+### `MD_SystemApprover` *(ny liste)* – System Managere pr. system
 
-Navnet er ikke kendt endnu; her kaldt `MD_SystemResponsible`.
+Indholdet er tabellen i `flow/systemgodkendere.md`: systemnummer 1–16 med
+1. og 2. godkender som initialer.
 
 | Kolonne | Type | Bemærkning |
 |---|---|---|
-| `System` | Text Ⓘ | Samme værdi, som Power BI-modellen returnerer for et FL |
-| `Ansvarlig1` | Text | Initialer, fx `PKBJE` |
-| `Ansvarlig2` | Text | Initialer. Må være tom |
+| `Title` → `SystemNo` | Text Ⓘ | `1` … `16`. Tekst, så den sammenlignes med modellens værdi uden typeomregning |
+| `Approver1` | Text | Initialer, fx `MAXJE` |
+| `Approver2` | Text | Initialer |
+| `Approver1Absent` | Yes/No | Ja → godkendelser går til 2. godkender (§4). Standard Nej |
 
-Flowet laver e-mailen som `toLower(concat(trim(Ansvarlig1), '@orsted.com'))`.
+Tabellen har ingen værkskolonne, så systemnummer 1 betyder det samme på
+alle værker. Er det ikke tilfældet, skal der en `Plant`-kolonne på (§12).
+
+Flowet laver e-mailen som
+`toLower(concat(trim(Approver1), '@', parameters('BioSap-EmailDomain')))`.
 
 Initialer er ikke det samme som en gyldig adresse. Hvis nogen har en anden
 alias, eller har forladt virksomheden, lander godkendelsen ingen steder.
 Flowet slår derfor adressen op med **Office 365 Users – Get user profile
-(V2)**, før godkendelsen sendes. Findes den ikke, bruges 2. ansvarlig. Findes
-ingen af dem, sendes planen retur med "System XYZ har ingen gyldig
-ansvarlig i listen", og der går en mail til listens ejer.
+(V2)**, før godkendelsen sendes. Findes den ikke, bruges 2. godkender.
+Findes ingen af dem, sendes planen retur med "System 7 har ingen gyldig
+godkender i listen", og der går en mail til `BioSap-ErrorNotifiers`.
 
 ### `MD_ApprovalRole` *(ny liste)*
 
@@ -199,22 +226,32 @@ bruger med skriveadgang til `MaintenancePlans` kan i princippet selv sætte
 `ApprovalStage = Quality`. Kvalitetsflowet tjekker derfor loggen, før det
 sender noget videre (§7.3).
 
-`Skipped` logges også, med grunden i `Detail` ("rekvirent er 1. ansvarlig",
-"184.200 kr."). Så kan man bagefter se, *hvorfor* et item ikke blev
+`Skipped` logges også, med grunden i `Detail` ("opretter er 2. godkender
+for system 7", "184.200 kr."). Så kan man bagefter se, *hvorfor* et item ikke blev
 godkendt af nogen. Appen kan vise loggen pr. item.
 
-### Parametre i `AppSettings`
+### Parametre
 
-`AppSettings` har allerede `Option`/`Value` pr. miljø.
+Grænsen skal læses af både appen og flowet, så den står i `AppSettings`,
+som allerede har `Option`/`Value` pr. miljø:
 
 | `Option` | `Value` |
 |---|---|
 | `CostApprovalThresholdDkk` | `300000` |
-| `EmailDomain` | `orsted.com` |
+
+Det, kun flowene bruger, bliver **miljøvariabler** i solution BIO SAP,
+ligesom `BioSap-SiteUrl`, `BioSap-List-MaintenancePlans` og
+`BioSap-ErrorNotifiers` i de flows, der findes i dag:
+
+| Miljøvariabel | Værdi |
+|---|---|
+| `BioSap-EmailDomain` | `orsted.com` |
+| `BioSap-List-SystemApprover`, `BioSap-List-ApprovalRole`, `BioSap-List-ApprovalLog` | Listenavnene |
+| `BioSap-PowerBI-WorkspaceId`, `BioSap-PowerBI-DatasetId` | Se §8. ObjectList-flowet har dem skrevet direkte ind; her bliver de variabler, så TEST og PROD kan pege et andet sted hen |
 
 ## 7. Flowene
 
-Tre godkendelsesflows, ét pr. trin, og to mailflows. Alle trigges af
+Tre nye godkendelsesflows, ét pr. trin, ét nyt mailflow og en rettelse af et eksisterende. Alle trigges af
 **SharePoint – When an item is created or modified** på `MaintenancePlans`.
 
 **Hvorfor ét flow pr. trin og ikke ét langt:** et flow kan højst køre 30
@@ -246,6 +283,10 @@ Fælles for dem:
   `AssignedToEmail` (§10).
 - **Ejer:** en servicekonto eller et solution-flow med connection
   references, ikke en navngiven bruger.
+- **Samme opbygning som de flows, der findes:** `Try`/`Catch`/`Finally`,
+  fejlmail til `BioSap-ErrorNotifiers` med link til kørslen, og
+  connection references (`orsted_BioSapPowerBIConn` findes allerede til
+  Power BI).
 
 ### 7.1 F1 `BioSap-VhPlan-SystemApproval` – pr. item
 
@@ -258,18 +299,22 @@ Fælles for dem:
 ```
 
 1. `Get items` på `MaintenanceItems` med `MaintenancePlanNo/Id eq <ID>`.
-2. **Én** Power BI-forespørgsel med alle planens FL'er → FL og system (§8).
-   Ét kald for hele planen, ikke ét pr. item.
-3. **Én** `Get items` på System Manager-listen for de fundne systemer.
+2. **Én** Power BI-forespørgsel med alle planens FL'er → FL og
+   systemnummer (§8). Ét kald for hele planen, ikke ét pr. item.
+3. **Én** `Get items` på `MD_SystemApprover` (16 rækker – hele listen).
 4. For hvert item, parallelt:
-   - **Fingeraftryk** = `System|FL|korttekst`.
+   - **Fingeraftryk** = `SystemNo|FL|korttekst`.
    - Findes der i loggen en `Approve` for `Stage = System` på samme plan
      med samme fingeraftryk → log `Skipped` med "godkendt tidligere".
-   - Er rekvirenten (planens *Created By*) **1. ansvarlig** for systemet →
-     log `Skipped`.
-   - Ellers: godkendelse til 1. ansvarlig (og 2. ansvarlig, efter §4).
-     Detaljerne har itemets korttekst, FL, system og operationerne.
+   - Er itemets *Created By* **1. eller 2. godkender** for systemet → log
+     `Skipped` med hvem.
+   - Ellers: godkendelse til 1. godkender, eller til 2. godkender, hvis
+     `Approver1Absent` er Ja (§4). Detaljerne har itemets korttekst, FL,
+     systemnummer og operationerne.
 5. Alle godkendt eller sprunget over → `ApprovalStage = Cost`.
+
+*Created By* sammenlignes med godkendernes adresser med `toLower` på
+begge sider.
 
 Fingeraftrykket gør, at en genindsendelse efter *Send retur* kun sender de
 items igen, der er nye eller har fået et andet FL eller en anden tekst.
@@ -312,66 +357,103 @@ Samme trigger condition med `ApprovalStage = 'Quality'`.
 2. Én godkendelse til `LokalAsmLeder` for planens værk (`PlantsInitial`).
 3. *Godkend* → `Status = Ready for creation in SAP`, `ApprovalStage = Done`.
 
-### 7.4 F4 `BioSap-VhPlan-ToMasterData`
+### 7.4 F4 `BioSap-VhPlan-ToMasterData` *(nyt)*
 
 ```
 @and(
   equals(triggerOutputs()?['body/Status/Value'], 'Ready for creation in SAP'),
-  not(equals(triggerOutputs()?['body/InitialEmailSent'], true))
+  not(equals(triggerOutputs()?['body/MasterDataNotified'], true))
 )
 ```
 
-Det er mailen fra [`17-flow-email.md`](17-flow-email.md) (*"VH-plan …
-sendt til oprettelse"*). Den flyttes fra `In Progress` til `Ready for
-creation in SAP`, går til `MasterDataSap` og sætter `InitialEmailSent =
-true`, som listen allerede har.
+Mailen fra [`17-flow-email.md`](17-flow-email.md) (*"VH-plan … sendt til
+oprettelse"*) til `MasterDataSap`. Sætter `MasterDataNotified = true`.
 
-### 7.5 F5 `BioSap-VhPlan-Created`
+Den må **ikke** bruge `InitialEmailSent`. Den kolonne ejes af det
+eksisterende flow `BioSap-EmailNotification-NewPlanCreated`, som ved
+`In Progress` sender *"Bio Sap: New Maintenance Plan Created"* til
+rekvirenten og derefter sætter `InitialEmailSent = true`. Det flow kan blive
+stående som kvittering for indsendelsen. Mailens tekst bør dog rettes til
+"sendt til godkendelse", for planen er ikke oprettet endnu på det tidspunkt.
+
+### 7.5 `BioSap-EmailNotification-PlanPublished` *(findes – rettes)*
+
+Flowet findes allerede. Det trigges af `Status = Published` og et udfyldt
+`SAPNum` og sender *"Bio Sap: Maintenance Plan Published"* til rekvirenten
+(`Author`) med den sidste redaktør på cc.
+
+**Det har ingen spærre.** Triggeren kører hvert minut, og enhver senere
+ændring af en publiceret plan opfylder betingelsen igen, så rekvirenten får
+mailen igen. Det rettes med samme mønster som `NewPlanCreated`:
 
 ```
 @and(
-  equals(triggerOutputs()?['body/Status/Value'], 'Published'),
-  not(equals(triggerOutputs()?['body/RequesterNotified'], true))
+  equals(triggerBody()?['Status/Value'], 'Published'),
+  not(empty(triggerBody()?['SAPNum'])),
+  not(equals(triggerBody()?['RequesterNotified'], true))
 )
 ```
 
-Mail til rekvirenten med `SAPNum`, `RequesterNotified = true`, log,
-indeksrækken → `OprettetISAP`, `SapObjectNo = SAPNum`, `IsOpen = false`.
+og et `Update item` / HTTP-kald til sidst, der sætter
+`RequesterNotified = true`. I samme omgang: log i `MD_ApprovalLog`
+(`Stage = SapCreated`) og indeksrækken → `OprettetISAP`,
+`SapObjectNo = SAPNum`, `IsOpen = false`.
 
 ## 8. Opslaget i Power BI
 
-Modellen skal kun svare på én ting: **hvilket system hører et FL til.** De
-ansvarlige kommer fra SharePoint-listen.
+Modellen skal kun svare på én ting: **hvilket systemnummer hører et FL
+til.** Godkenderne kommer fra `MD_SystemApprover`.
 
-Power BI-connectoren i Power Automate har handlingen **Run a query against
-a dataset**. Den sender en DAX-forespørgsel til den semantiske model via
-REST-API'et *Execute Queries* og får rækkerne tilbage som JSON.
+### Modellen – den samme som ObjectList-flowet bruger
+
+`BioSap-Integration-ObjectList` (i `solution/BIOSAP/src/Workflows/`)
+kalder Power BI-connectorens **Run a query against a dataset**
+(`ExecuteDatasetQuery`), som sender en DAX-forespørgsel via REST-API'et
+*Execute Queries* og får rækkerne tilbage som JSON i `firstTableRows`.
+
+| | |
+|---|---|
+| Forbindelse | Connection reference `orsted_BioSapPowerBIConn` |
+| Workspace (`groupid`) | `26d062ec-3014-4cd3-9313-ced0cfe497b9` |
+| Datasæt (`datasetid`) | `fadc4a40-342b-41e3-a1ef-aa4af8bb9e09` |
+| Tabel | `'Functional Locations Man'` |
+| Kolonner, flowet bruger i dag | `[Functional Location]`, `[FL Search]`, `[UserStatus]`, `[Safety Critical Equip.]` |
+| Kolonner i flowets JSON-skema | `'Functional Locations'` med `[Plant Key]`, `[Plant Section Key]`, `[Plant Unit]`, `[Functional Location Description]` |
+
+**Ingen af dem er et systemnummer.** Enten ligger det i en kolonne, som
+ObjectList-flowet ikke henter, eller det skal udledes af en af dem (fx
+`[Plant Section Key]` eller `[Plant Unit]`). Det skal afklares i modellen,
+før F1 kan bygges (§12). Nedenfor står det som `[System No]`.
 
 ### Forespørgslen
 
-Tabel- og kolonnenavne er pladsholdere, indtil modellen er kendt (§12).
-FL-listen bygges i flowet af punkt 1 i §7.1.
+FL-listen bygges i flowet af punkt 1 i §7.1. Der filtreres **ikke** på
+`UserStatus = "INO"`, som ObjectList gør: et FL skal have en godkender,
+uanset status.
 
 ```dax
 EVALUATE
 SELECTCOLUMNS (
     FILTER (
-        'FunctionalLocation',
-        'FunctionalLocation'[FunctionalLocation]
+        'Functional Locations Man',
+        'Functional Locations Man'[Functional Location]
             IN { "SSV10 KAB10AP001", "SSV10 KAB10AP002" }
     ),
-    "FL", 'FunctionalLocation'[FunctionalLocation],
-    "System", 'FunctionalLocation'[System]
+    "FL", 'Functional Locations Man'[Functional Location],
+    "SystemNo", 'Functional Locations Man'[System No]
 )
 ```
 
 Tre ting at vide:
 
-- **Nøglerne i svaret har klammer.** Kolonnen `"System"` kommer tilbage som
-  `[System]`, så i flowet hedder det `item()?['[System]']`.
+- **Nøglerne i svaret har klammer.** Kolonnen `"SystemNo"` kommer tilbage
+  som `[SystemNo]`, så i flowet hedder det `item()?['[SystemNo]']`. Uden
+  `SELECTCOLUMNS` hedder den `Functional Locations Man[System No]`, som i
+  ObjectList-flowets skema.
 - **Anførselstegn i et FL skal fordobles**, før det sættes ind i
-  `IN { … }`: `replace(item(), '"', '""')`. Ellers kan et FL ødelægge
-  forespørgslen.
+  `IN { … }`: `replace(item(), '"', '""')`. ObjectList-flowet sætter
+  brugerens søgetekst direkte ind i `SEARCH("…")`; det nye flow skal ikke
+  gentage det.
 - **Trim og versaler** på begge sider af sammenligningen, ligesom appen
   gemmer FL'er.
 
@@ -379,8 +461,7 @@ Tre ting at vide:
 
 | | |
 |---|---|
-| Tenant-indstilling | **Dataset Execute Queries REST API** (Developer settings) skal være slået til for flowets konto |
-| Rettigheder | Flowets konto skal have **Build** og **Read** på den semantiske model |
+| Tenant-indstilling og rettigheder | Er allerede på plads for `orsted_BioSapPowerBIConn`, siden ObjectList-flowet virker. Bruger F1 en anden konto, skal den have **Build** og **Read** på modellen, og **Dataset Execute Queries REST API** skal være slået til for den |
 | Grænser | 100.000 rækker og 1.000.000 værdier pr. forespørgsel. En plan har få FL'er, så det er langt fra |
 | Kapacitet | Virker på Pro, PPU og Premium/Fabric |
 | RLS | Har modellen row-level security, ser flowets konto kun sine egne rækker. Kontoen skal have adgang til alle FL'er |
@@ -415,32 +496,31 @@ Teams og mailen, der er det sted, man svarer; hubben er et overblik.
 
 | Fase | Indhold | Hvorfor i den rækkefølge |
 |---|---|---|
-| 1 | PnP-script: nye kolonner, `Returned` i `Status`, `MD_ApprovalRole`, `MD_ApprovalLog`, `AppSettings`-rækkerne | Alt andet afhænger af det |
-| 2 | Adgang til Power BI-modellen: tenant-indstilling og Build-rettighed. Test DAX-forespørgslen i DAX query view. System Manager-listen udfyldes | Den længste ventetid ligger typisk hos andre |
-| 3 | F4 og F5 | Virker på statusværdier, appen og makroen allerede skriver |
+| 1 | PnP-script: nye kolonner, `Returned` i `Status`, `MD_SystemApprover` (seedet fra `flow/systemgodkendere.md`), `MD_ApprovalRole`, `MD_ApprovalLog`, `AppSettings`-rækken, miljøvariablerne | Alt andet afhænger af det |
+| 2 | Find systemnummeret i Power BI-modellen, og test DAX-forespørgslen i DAX query view | F1 kan ikke bygges uden |
+| 3 | F4, og spærren på `PlanPublished` | Virker på statusværdier, appen og makroen allerede skriver. Spærren retter en fejl, der findes i dag |
 | 4 | Appen: `ApprovalStage` ved Submit, statusbanner, låsning, `Returned` | |
 | 5 | F2 og F3, derefter F1 | F1 afhænger af fase 2 |
 
-Test i DEV med testbrugere i hver rolle og en testplan med tre items: ét
-på et system, hvor rekvirenten er 1. ansvarlig; ét på et andet system; og
-ét med operationer for over 300.000 kr.
+Test i DEV med testbrugere i hver rolle og en testplan med fire items: ét
+på et system, hvor opretteren er 1. godkender; ét, hvor opretteren er 2.
+godkender; ét på et tredje system med `Approver1Absent = Ja`; og ét med
+operationer for over 300.000 kr.
 
 ## 12. Stadig åbent
 
-1. **Power BI-modellen** (du finder den): workspace, model, tabel og
-   kolonnenavne for FL og system. Findes alle FL-niveauer i modellen, eller
-   skal flowet matche på en del af FL'en?
-2. **System Manager-listen:** navn, og findes den allerede? Står systemet
-   med præcis samme stavning som i Power BI-modellen?
-3. **2. ansvarlig:** A, B eller C i §4? Oplægget er skrevet til A.
-4. **Rekvirent = 2. ansvarlig:** skal trinnet også springes over, når
-   rekvirenten er 2. ansvarlig? Oplægget siger nej, så 1. ansvarlig altid
-   godkender.
-5. **Datakaldt plan og servicekontrakt** (diagrammets trin 5 og 7) er ikke
+1. **Systemnummeret i Power BI-modellen.** Hvilken kolonne i
+   `'Functional Locations Man'` (eller en relateret tabel) giver
+   systemnummer 1–16 for et FL? Er det en af `[Plant Section Key]` /
+   `[Plant Unit]`, eller en kolonne ObjectList-flowet ikke henter?
+2. **Er systemnummeret det samme på alle værker?** Tabellen i
+   `flow/systemgodkendere.md` har ingen værkskolonne. Har system 7 på SSV
+   en anden System Manager end system 7 på AVV, skal listen have `Plant`.
+3. **Datakaldt plan og servicekontrakt** (diagrammets trin 5 og 7) er ikke
    med i oplægget. Skal appen have felter til dem, eller er de uden for
    appen?
-6. **Eksisterende planer** i `In Progress` uden `ApprovalStage`: skal de
+4. **Eksisterende planer** i `In Progress` uden `ApprovalStage`: skal de
    igennem forløbet, eller markeres de `Done` ved idriftsættelsen?
-7. **Omkostningsgodkenderen:** hvem er det, og hvem er stedfortræder ved
+5. **Omkostningsgodkenderen:** hvem er det, og hvem er stedfortræder ved
    ferie? Det står i `MD_ApprovalRole`, så det kan skiftes uden at røre
    flowet.
