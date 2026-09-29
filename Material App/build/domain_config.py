@@ -118,9 +118,7 @@ SECTIONS = [
 
 PLANT_LABEL = "Plant"
 
-LIST_COLS = [("MATERIAL", 0), ("MFR. PART NO.", 130), ("SUPPLIER", 120),
-             ("PLANT", 55), ("STATUS", 75), ("FILES", 40), ("", 60)]
-LIST_FIELDS = ["ManufacturerPartNo", "Supplier", "Plant"]
+# Listens kolonner staar i material_parts.SLOTS.
 
 SEARCH_FIELDS = ["MaterialDescription", "FunctionalLocation",
                  "ManufacturerPartNo", "Supplier"]
