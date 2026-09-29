@@ -326,6 +326,10 @@ function New-MaterialList {
 
     New-MdField 'MaterialItems' 'Plant'               Text -Indexed
     New-MdField 'MaterialItems' 'FunctionalLocation'  Text -Indexed
+    # "No BOM Item" (issue #67). Boolean, ikke tekst: appen sender sand/falsk
+    # fra en knap - ikke en etiket fra en dropdown. Staar den til, er
+    # FunctionalLocation tom med vilje.
+    New-MdField 'MaterialItems' 'NoBomItem'           Boolean
 
     New-MdField 'MaterialItems' 'Manufacturer'        Text
     New-MdField 'MaterialItems' 'ModelNumber'         Text

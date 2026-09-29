@@ -31,10 +31,11 @@ from gen_screen import render_screen, C_APP_BG, OUT_DIR
 from build_helpers import app_frame
 from side_nav import side_nav
 import domain_config as cfg
-from domain_parts import (build_bar, build_form, build_attachments,
-                          build_rows, build_details, build_submit, build_backdrop,
-                          build_submit_confirm,
+from domain_parts import (build_bar, build_attachments, build_details,
+                          build_backdrop, build_submit_confirm,
                           refresh_rows_fx, clear_form_fx)
+# Formularen og listen er appens egne (issue #67) - se material_parts.py.
+import material_parts as mp
 
 
 def on_visible():
@@ -46,20 +47,21 @@ def on_visible():
 
 
 def build_screen():
-    # Een spalte: formular, liste, indsend. Dokumenterne og detaljerne er
-    # popups (domain_parts), saa listen har hele bredden til sine syv
-    # kolonner og fem knapper.
+    # Een spalte: formularen og listen. Indsend staar nu under listen i
+    # samme kort, som i materials.png. Dokumenterne og detaljerne er
+    # popups (domain_parts), saa listen har hele bredden.
     #
     # RAMMEN: bjaelken i en header, der ikke scroller, og kortene direkte
     # i en krop, der goer - se build_helpers.app_frame.
-    root = app_frame("Dom", build_bar(), [build_form(), build_rows(), build_submit()])
+    root = app_frame("Dom", build_bar(), [mp.build_form(), mp.build_rows()])
     # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
     rail, overlay = side_nav("Dom", "material")
     # Sloeret FOER popupperne: kontrollerne tegnes i den raekkefoelge, de
     # staar, saa det, der skal ligge bagved, skal staa foerst.
     return render_screen(cfg.SCREEN,
                          {"Fill": C_APP_BG, "OnVisible": on_visible()},
-                         [root, rail, build_backdrop(), build_details(), build_attachments(),
+                         [root, rail, build_backdrop(), build_details(),
+                          build_attachments(),
                           *overlay,
                           # Bekraeftelsen foer Submit og ventespinneren - oeverst.
                           *build_submit_confirm()])

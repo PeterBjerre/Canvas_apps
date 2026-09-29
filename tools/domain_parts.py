@@ -46,16 +46,17 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 from gen_screen import (Ctrl, SHELL_W, FONT,
-                        C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
-                        C_PRIMARY, C_WHITE, C_TRANSPARENT, C_DIVIDER,
-                        C_NEUTRAL_BG, C_INFO_FG, C_INFO_BG,
-                        C_VALID_FG, C_VALID_BG,
+                        C_CARD_BORDER, C_TITLE, C_MUTED, C_MUTED_BG, C_REQUIRED,
+                        C_PRIMARY, C_WHITE, C_TRANSPARENT,
+                        C_NEUTRAL_BG, C_NEUTRAL_FG, C_INFO_FG, C_INFO_BG,
+                        C_VALID_FG, C_VALID_BG, C_WARN_FG, C_WARN_BG,
                         C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY)
-from layout_tokens import below, if_below, fits
+from layout_tokens import fits
 from build_helpers import (text_ctrl, group, button, text_input,
                            date_picker, fit_button_row, fit_button_width,
-                           number_input, themed_dropdown, card, field_cell, row_n,
-                           col_width, pin_widths, badge, top_bar, grow,
+                           number_input, themed_dropdown, card, field_cell,
+                           pin_widths, badge, top_bar, grow, flow_row,
+                           border_rule, input_fill, label_px, text_px,
                            busy_overlay, with_busy, confirm_modal, ICON_SAVE,
                            ICON_SUBMIT, ICON_W)
 
@@ -63,7 +64,7 @@ from build_helpers import (text_ctrl, group, button, text_input,
 SAVING_VAR = "varDomSaving"
 # Bekraeftelsen foer Submit.
 CONFIRM_VAR = "varDomConfirmSubmit"
-from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE
+from layout_tokens import SCROLLBAR_W
 import domain_config as cfg
 import attflows
 
@@ -206,12 +207,23 @@ def _input_for(col, kind, choices):
         items = "[" + ", ".join(f'"{x}"' for x in choices) + "]"
         return themed_dropdown(name, items, v, display_mode=DM_ROW,
                                onchange=f"Set({v}, Self.Selected.Value)")
+    if kind == "bool":
+        # Ja/nej. Samme ModernCheckbox som dokumentlisten bruger - den er
+        # bevist i dette miljoe. En app kan ogsaa vise feltet paa sin egen
+        # maade (Materials: No BOM Item er en knap i formularens hoved).
+        return Ctrl(name, "ModernCheckbox", props={
+            "AccessibleLabel": f'"{name}"',
+            "Default": v,
+            "DisplayMode": DM_ROW,
+            "Height": "36",
+            "Label": '""',
+            "OnCheck": f"Set({v}, true)",
+            "OnUncheck": f"Set({v}, false)",
+            "Width": "Parent.Width",
+        }, h=36)
     c = text_input(name, v, max_length=255, display_mode=DM_ROW,
                    onchange=f"Set({v}, Self.Text)")
     return c
-
-
-COLS_PER_ROW = 4
 
 
 def _plant_dropdown():
@@ -266,8 +278,32 @@ def _timer(name, start, duration, repeat, on_start=None, on_end=None):
     return Ctrl(name, "Timer", props=props, h=1, vis="false")
 
 
-def build_fl_cells(cell_w):
-    """Functional Location - TO celler i formularens gitter.
+def fl_search_button(onselect, dm=DM_ROW):
+    """Search-knappen. Mens flowet koerer, er den deaktiveret, og "Search"
+    er skiftet ud med tre prikker, der bevaeger sig (fl_dots_timer). Den
+    har samme bredde i begge tilstande, saa feltet ved siden af ikke hopper."""
+    btn = button("btnDomFlSearch",
+                 f'If({FL_BUSY_VAR}, Left("...", 1 + {FL_DOTS_VAR}), "Search")',
+                 onselect, width=fit_button_width('"Search"'),
+                 display_mode=f"If({FL_BUSY_VAR}, DisplayMode.Disabled, {dm})",
+                 accessible='"Search functional location"')
+    btn.props["LayoutMinWidth"] = btn.props["Width"]
+    return btn
+
+
+def fl_dots_timer():
+    """Prikkerne paa Search, mens flowet koerer."""
+    return _timer("tmrDomFlDots", FL_BUSY_VAR, 400, True,
+                  on_end=f"Set({FL_DOTS_VAR}, Mod({FL_DOTS_VAR} + 1, 3))")
+
+
+def build_fl_controls(cell_w, lock=None, required_formula="false"):
+    """Soegningen (tekstfelt + knap + de to timere) og dropdownen - uden
+    celler om. Materials stabler dem i EEN celle (material_parts.py).
+
+    lock: et udtryk, der - naar det er sandt - deaktiverer soegningen og
+    dropdownen (Materials' No BOM Item). required_formula: hvornaar
+    dropdownens kant maa vaere roed.
 
         [ Search functional location ][ Functional location ]
         [ tekstfelt          Search  ][ dropdown           ]
@@ -296,18 +332,14 @@ def build_fl_cells(cell_w):
     med tre prikker, der bevaeger sig (. .. ...; tmrDomFlDots). Foer skete
     der intet synligt, fra man trykkede, til svaret kom. Knappen har samme
     bredde i begge tilstande, saa soegefeltet ikke hopper."""
-    busy_dm = f"If({FL_BUSY_VAR}, DisplayMode.Disabled, {DM_ROW})"
+    dm = DM_ROW if lock is None else f"If({lock}, DisplayMode.Disabled, {DM_ROW})"
     q = text_input("txtDomFlQuery", FL_QUERY_VAR,
                    placeholder='"e.g. SSV10 KAB10"',
-                   display_mode=DM_ROW, ttype="Multiline",
+                   display_mode=dm, ttype="Multiline",
                    label=f'"Search functional location - at least {fl.MIN_SEARCH_LEN} characters, then Enter"')
     grow(q)
-    btn = button("btnDomFlSearch",
-                 f'If({FL_BUSY_VAR}, Left("...", 1 + {FL_DOTS_VAR}), "Search")',
-                 f"Set({FL_QUERY_VAR}, txtDomFlQuery.Text);\n" + _fl_search(),
-                 width=fit_button_width('"Search"'), display_mode=busy_dm,
-                 accessible='"Search functional location"')
-    btn.props["LayoutMinWidth"] = btn.props["Width"]
+    btn = fl_search_button(f"Set({FL_QUERY_VAR}, txtDomFlQuery.Text);\n" + _fl_search(),
+                           dm)
     # IKKE "conDomFlSearchRow": label_row() kalder sin egen raekke
     # <celle>Row, og cellen hedder conDomFlSearch. To kontroller med samme
     # navn afvises af compile (issue #29) - check_layout regel 0 fanger det.
@@ -320,13 +352,9 @@ def build_fl_cells(cell_w):
         on_start=(f'Set({FL_QUERY_VAR}, Substitute(Substitute(txtDomFlQuery.Text, '
                   f'Char(13), ""), Char(10), ""));\n'
                   f"Reset(txtDomFlQuery);\n" + _fl_search(FL_QUERY_VAR)))
-    dots = _timer("tmrDomFlDots", FL_BUSY_VAR, 400, True,
-                  on_end=f"Set({FL_DOTS_VAR}, Mod({FL_DOTS_VAR} + 1, 3))")
 
-    search = field_cell("conDomFlSearch", "Search functional location",
-                        group("conDomFlSearchWrap", [row, enter, dots],
-                              direction="Vertical", gap=0, width=cell_w),
-                        width=cell_w, fill_portions_formula="0")
+    search = group("conDomFlSearchWrap", [row, enter, fl_dots_timer()],
+                   direction="Vertical", gap=0, width=cell_w)
 
     # ITEMS HAR EN KOLONNE, DER HEDDER Value (issue #37)
     #
@@ -339,12 +367,79 @@ def build_fl_cells(cell_w):
     drop = themed_dropdown("drpDomFl",
                            "ForAll(colDomFl As F, { Value: F.Display, Code: F.Code })",
                            f"LookUp(colDomFl, Code = {_var(cfg.FL_FIELD)}).Display",
-                           value_col="Value", display_mode=DM_ROW,
+                           value_col="Value", display_mode=dm,
+                           required_formula=required_formula,
                            label='"Functional location"',
                            onchange=f"Set({_var(cfg.FL_FIELD)}, Self.Selected.Code)")
-    select = field_cell("conDomFlSelect", "Functional location", drop,
-                        width=cell_w, fill_portions_formula="0")
-    return [search, select]
+    return search, drop
+
+
+FL_COMBO = "cmbDomFl"
+
+
+def fl_uses_combobox():
+    """Soeger appen i EEN combobox (Equipment, issue #68) - eller i
+    tekstfelt + dropdown (Materials)? Styrer, hvad formularen nulstiller."""
+    return getattr(cfg, "FL_INPUT", "search") == "combobox"
+
+
+def build_fl_combobox(cell_w, required_formula="false"):
+    """Functional Location i EEN moderne combobox: soegefelt OG valgliste.
+
+        [ SSV13 HFC|                   v ][ Search ]
+
+    Brugeren skriver i comboboksen og trykker Search. Flowet fylder
+    colDomFl, og den SAMME combobox viser resultatet og filtrerer det
+    lokalt, mens der skrives videre - uden nye kald til flowet.
+
+    HVORFOR DEN MODERNE, NAAR build_flsearch FRARAADER EN COMBOBOX
+    ---------------------------------------------------------------
+    Det var Classic/ComboBox, der fik 819 raekker og viste nul: dens
+    indbyggede filter laa i et lag, der ikke kunne ses. ModernCombobox
+    (brugt i BIO SAP's TaskListOperations, ModernCombobox@1.1.1) filtrerer
+    paa ItemDisplayText, og Items er colDomFl uden omskrivning - samme
+    Display, som dropdownen viste. Efterproev det i Studio mod rigtige data,
+    foer den tages i brug i de andre apps (issue #63).
+
+    SOEGETEKSTEN GEMMES, MENS DER SKRIVES
+    -------------------------------------
+    SearchText er comboboksens output. Trykker man Search, mister
+    comboboksen fokus, og en Fluent-combobox kan rydde sin tekst i samme
+    oejeblik. tmrDomFlCapture laegger derfor teksten i FL_QUERY_VAR, saa
+    laenge der staar noget, og Search soeger paa den."""
+    cmb = Ctrl(FL_COMBO, "ModernCombobox", props={
+        "AccessibleLabel": (f'"Functional location - type at least {fl.MIN_SEARCH_LEN} '
+                            f'characters and select Search"'),
+        "Appearance": "Appearance.Outline",
+        "BorderColor": border_rule("IsBlank(Self.Selected.Code)", required_formula),
+        "BorderStyle": "BorderStyle.Solid",
+        "BorderThickness": "1",
+        "DefaultSelectedItems": f"Filter(colDomFl, Code = {_var(cfg.FL_FIELD)})",
+        "DisplayMode": DM_ROW,
+        "Fill": input_fill(DM_ROW),
+        "Font": FONT,
+        "Height": "36",
+        "InputTextPlaceholder": f'"At least {fl.MIN_SEARCH_LEN} characters, e.g. SSV13 HFC"',
+        "IsSearchable": "true",
+        "ItemDisplayText": "ThisItem.Display",
+        "Items": "colDomFl",
+        "LayoutMinWidth": "0",
+        "OnChange": f'Set({_var(cfg.FL_FIELD)}, Coalesce(Self.Selected.Code, ""))',
+        "SelectMultiple": "false",
+        "Size": "14",
+        "Width": "0",
+    }, h=36)
+    grow(cmb)
+    query = f"Coalesce({FL_COMBO}.SearchText, {FL_QUERY_VAR})"
+    btn = fl_search_button(_fl_search(query))
+    row = group("conDomFlInput", [cmb, btn], direction="Horizontal", gap=8,
+                height=36, align_items="Center", width=cell_w)
+    capture = _timer(
+        "tmrDomFlCapture", f"!IsBlank({FL_COMBO}.SearchText)", 300, True,
+        on_end=(f"If(!IsBlank({FL_COMBO}.SearchText), "
+                f"Set({FL_QUERY_VAR}, {FL_COMBO}.SearchText))"))
+    return group("conDomFlWrap", [row, capture, fl_dots_timer()],
+                 direction="Vertical", gap=0, width=cell_w)
 
 
 def build_fl_msg():
@@ -368,112 +463,10 @@ def _fl_known_fx(src):
             f");")
 
 
-def build_form():
-    head = group("conDomFormHead", [
-        text_ctrl("txtDomFormH", '"Row"', size=16, weight="Semibold",
-                  height=22, wrap="false"),
-        text_ctrl("txtDomFormState",
-                  ('If(\n'
-                   '    IsBlank(varDomActiveRowId),\n'
-                   '    "New row - not saved yet",\n'
-                   '    "Editing " & Coalesce(' + ACTIVE + '.ItemKey, "row " & varDomActiveRowId) &\n'
-                   '        " (" & varDomRowStatus & ")"\n'
-                   ')'),
-                  size=13, color=C_MUTED, height=20, wrap="false"),
-    ], direction="Vertical", gap=2)
-
-    # FIRE KOLONNER I TOPSEKTIONEN
-    #
-    # Teksten og vaerket hoerer til foerste sektion - ikke til en raekke for
-    # sig. Ved at laegge dem foerst i den, fyldes raekken op til fire med de
-    # to foerste af sektionens egne felter, og toppen bliver saa taet som
-    # resten af formularen.
-    cell_w = col_width(FORM_W, COLS_PER_ROW)
-    top_cells = [
-        field_cell("conDomText", cfg.TEXT_LABEL,
-                   text_input("inpDomText", "varDomFText", max_length=40,
-                              placeholder=cfg.TEXT_PLACEHOLDER,
-                              required_formula=REQUIRED, display_mode=DM_ROW,
-                              onchange="Set(varDomFText, Self.Text)"),
-                   required=True, width=cell_w, fill_portions_formula="0"),
-        field_cell("conDomPlant", cfg.PLANT_LABEL, _plant_dropdown(),
-                   required=True, width=cell_w, fill_portions_formula="0"),
-    ]
-
-    # FIRE FASTE KOLONNER
-    #
-    # Cellerne voksede foer (FillPortions) paa en bred skaerm, saa en
-    # sektion med tre felter fyldte hele raekken med tre brede felter, og
-    # ingen kolonne stod under den over sig. Nu er hver celle en
-    # fjerdedel, og en kort raekke slutter bare tidligere.
-    fl_msg = []
-
-    def flush(tag, chunk):
-        kids.append(row_n(f"conDomRow{tag}", chunk, container_w=FORM_W))
-        kids.extend(fl_msg)
-        fl_msg.clear()
-
-    kids = [head]
-    for s_i, (section, fields) in enumerate(cfg.SECTIONS):
-        kids.append(text_ctrl(f"txtDomSec{s_i}", f'"{section}"', size=13,
-                              weight="Semibold", color=C_MUTED, height=20,
-                              wrap="false"))
-        chunk = top_cells if s_i == 0 else []
-        top_cells = []
-        for f_i, (col, label, kind, choices) in enumerate(fields):
-            # FL-feltet er ikke et tekstfelt - det er en soegning og en
-            # dropdown, to celler i gitteret.
-            if col == getattr(cfg, "FL_FIELD", None):
-                fl_msg.append(build_fl_msg())
-                for c in build_fl_cells(cell_w):
-                    chunk.append(c)
-                    if len(chunk) == COLS_PER_ROW:
-                        flush(f"{s_i}_{f_i}", chunk)
-                        chunk = []
-                continue
-            wide = kind == "long"
-            cell = field_cell(f"con{col}", label, _input_for(col, kind, choices),
-                              width=None if wide else cell_w,
-                              container_w=FORM_W, cols=1,
-                              fill_portions_formula="0")
-            if wide:
-                if chunk:
-                    flush(f"{s_i}_{f_i}", chunk)
-                    chunk = []
-                kids.append(cell)
-                continue
-            chunk.append(cell)
-            if len(chunk) == COLS_PER_ROW:
-                flush(f"{s_i}_{f_i}", chunk)
-                chunk = []
-        if chunk:
-            flush(f"{s_i}_end", chunk)
-
-    # KLADDE OG FAERDIG ER TO KNAPPER
-    #
-    # En kladde kraever kun beskrivelsen - listens Title er obligatorisk i
-    # SharePoint, saa helt tom kan en raekke ikke vaere. Alt andet maa
-    # mangle. "Save" kraever ogsaa vaerket, og det er DEN status, Indsend
-    # tager med.
-    draft = button("btnDomSaveDraft", '"Save draft"',
-                   with_busy(SAVING_VAR, save_row_fx("draft")),
-                   width=150 + ICON_W, display_mode=DM_ROW, icon=ICON_SAVE)
-    save = button("btnDomSave", '"Save"', with_busy(SAVING_VAR, save_row_fx("valid")),
-                  primary=True, width=130, display_mode=DM_ROW, icon=ICON_SAVE)
-    new = button("btnDomNew", '"New row"', clear_form_fx(), width=130)
-    delete = button("btnDomDelete", '"Delete row"', delete_row_fx(),
-                    danger=True, width=150, display_mode=DM_SEL)
-    kids.append(fit_button_row("conDomFormActions",
-                               [draft, save, new, delete], FORM_W))
-    kids.append(text_ctrl("txtDomFormInfo", "varDomInfo", size=12,
-                          color=C_MUTED, height=18, wrap="false"))
-    return card("conDomFormCard", kids)
-
-
 # ---------------------------------------------------------------------------
 # Adfaerden
 # ---------------------------------------------------------------------------
-BLANK = {"num": "Blank()", "date": "Blank()"}
+BLANK = {"num": "Blank()", "date": "Blank()", "bool": "false"}
 
 
 def _blank(kind):
@@ -484,6 +477,8 @@ def _patch_value(col, kind):
     v = _var(col)
     if kind in ("text", "long", "choice"):
         return f"Trim(Coalesce({v}, \"\"))"
+    if kind == "bool":
+        return f"Coalesce({v}, false)"
     return v
 
 
@@ -509,6 +504,8 @@ def refresh_rows_fx(indent=0):
     for col, _lab, kind, _ch in FIELDS:
         if kind in ("text", "long", "choice"):
             v = f'Coalesce(R.{col}, "")'
+        elif kind == "bool":
+            v = f"Coalesce(R.{col}, false)"
         elif kind == "num":
             v = f"R.{col}"
         else:
@@ -529,7 +526,7 @@ def clear_form_fx():
         lines.append(f"Set({_var(col)}, {_blank(kind)});")
     lines.append('Set(varDomFlMsg, "");')
     lines.append(f'Set({FL_QUERY_VAR}, "");')
-    lines.append('Reset(txtDomFlQuery);')
+    lines.append(f'Reset({FL_COMBO if fl_uses_combobox() else "txtDomFlQuery"});')
     lines.append('Set(varDomInfo, "New row - fill in and save.")')
     return "\n".join(lines)
 
@@ -643,8 +640,12 @@ def build_backdrop():
                 }, children=[], vis="!IsBlank(varDomDetailsId) || !IsBlank(varDomDocsId)")
 
 
-def save_row_fx(status="valid"):
+def save_row_fx(status="valid", required=()):
     """Gem raekken i SharePoint - som kladde eller som faerdig.
+
+    required: appens EKSTRA krav til en faerdig raekke, som par af
+    (betingelse der betyder "mangler", besked). Kladden tjekker dem ikke.
+    Materials kraever funktionspladsen - undtagen paa en No BOM-raekke.
 
     En KLADDE kraever kun beskrivelsen. Listens Title er obligatorisk, saa
     helt tom kan raekken ikke vaere, men alt andet maa mangle - det er
@@ -675,6 +676,12 @@ def save_row_fx(status="valid"):
                  "IsBlank(varDomFPlant)")
         msg = "%s and %s are required." % (cfg.TEXT_LABEL, cfg.PLANT_LABEL)
         done = "Saved as "
+    # Hvert ekstra krav er sin egen gren i den samme If - og faar sin egen
+    # besked, saa brugeren ser HVAD der mangler.
+    extra = ""
+    if status != "draft":
+        for cond, text in required:
+            extra += f'    {cond},\n    Notify("{text}", NotificationType.Warning),\n'
 
     return (
         # "Jeg har tjekket" - herfra maa kanterne vaere roede.
@@ -682,6 +689,7 @@ def save_row_fx(status="valid"):
         "If(\n"
         f"    {guard},\n"
         f'    Notify("{msg}", NotificationType.Warning),\n'
+        + extra +
         "\n"
         "    IfError(\n"
         "    Set(\n"
@@ -865,88 +873,14 @@ def build_attachments():
 # ---------------------------------------------------------------------------
 # De gemte raekker
 # ---------------------------------------------------------------------------
-GAP = 10
-
-# Raekkens fire knapper. Bredden paa handlingskolonnen REGNES af dem, saa
-# en femte knap ikke kan goere tabellen bredere end kolonnen uden at
-# nogen opdager det. build_rows() efterproever tabellen mod raekken.
-# Bredder og hoejde som i den haandbyggede Materials-app, hvor knapperne
-# virkede: 30 px hoeje, 13 pt. Her stod 26 px med 14 pt, og knapperne stod
-# som tomme kanter i bunden af raekken - under den moderne knaps
-# mindstehoejde. check_layout regel 25 kraever nu mindst 30.
+# Raekkens knapper og deres bredder - som i den haandbyggede Materials-app,
+# hvor knapperne virkede: 30 px hoeje, 13 pt. Her stod 26 px med 14 pt, og
+# knapperne stod som tomme kanter i bunden af raekken - under den moderne
+# knaps mindstehoejde. check_layout regel 25 kraever nu mindst 30.
 ROW_BTN = {"btnDomRowOpen": 60, "btnDomRowDetails": 72, "btnDomRowDocs": 64,
            "btnDomRowCopy": 64, "btnDomRowDelete": 72}
 ROW_BTN_H = 30
 ROW_BTN_GAP = 4
-ACTIONS_W = sum(ROW_BTN.values()) + ROW_BTN_GAP * (len(ROW_BTN) - 1)
-# Paa en tablet er der ikke plads til fem knapper OG en laeselig
-# beskrivelse. Docs og Copy er de to, man kan undvaere: dokumenterne staar
-# ogsaa i detaljeruden, og en kopi kan laves fra den aabne raekke.
-ROW_BTN_NARROW = ("btnDomRowDocs", "btnDomRowCopy")
-ACTIONS_W_NARROW = (ACTIONS_W - sum(ROW_BTN[b] + ROW_BTN_GAP
-                                    for b in ROW_BTN_NARROW))
-
-# Sidste kolonne i LIST_COLS er handlingerne. Bredden staar som 0 i de to
-# domain_config.py og regnes HER - ellers skulle det samme tal vedligeholdes
-# to steder, og det ene ville blive glemt.
-LIST_COLS = [(n, ACTIONS_W if i == len(cfg.LIST_COLS) - 1 else w)
-             for i, (n, w) in enumerate(cfg.LIST_COLS)]
-LAST_COL = len(LIST_COLS) - 1
-FIXED = sum(w for _n, w in LIST_COLS) + GAP * (len(LIST_COLS) - 1)
-# Beskrivelseskolonnen tager RESTEN af bredden - men hoejst 460.
-#
-# Uden loftet aad den alt: paa en bred skaerm blev den over tusind pixels,
-# de oevrige kolonner blev skubbet helt ud til hoejre kant, og imellem dem
-# laa en tom flade paa halvdelen af vinduet. En tabel skal vaere saa bred
-# som sit indhold, ikke som sin beholder.
-#
-# REGNET AF DEN BREDDE, LISTEN HAR - ikke af Parent.Width.
-#
-# Her stod "Parent.Width - FIXED". Parent.Width er raekkens Width-EGENSKAB,
-# og den trak hverken kortets padding, galleriets TemplatePadding eller dets
-# scrollbar fra. Nu regnes den af HALF_W (som er regnet af SHELL_W):
-#   kortets padding 2 x 18, TemplatePadding 2 x 2, scrollbar.
-# Budgettet for raekkens celler - en NEDRE graense for den bredde,
-# galleriet giver skabelonen. GALLERY_RESERVE er luften; se RAMMEN og
-# GALLERY_RESERVE i tools/layout_tokens.py.
-ROWS_W = f"({SHELL_W} - 36 - 4 - {SCROLLBAR_W} - {GALLERY_RESERVE})"
-# De midterste kolonner (nummer, FL/leverandoer, vaerk) skjules, naar der
-# ikke er plads til dem OG en laeselig beskrivelse. Ellers blev raekken
-# bredere end listen, og knapperne i hoejre side var skubbet ud.
-MID_COLS = LIST_COLS[1:1 + len(cfg.LIST_FIELDS)]
-FIXED_SMALL = FIXED - sum(w + GAP for _n, w in MID_COLS)
-SHOW_MID = f"({ROWS_W}) >= {FIXED} + 150"
-# Paa en tablet skjules ogsaa FILES - Docs-knappen viser filerne alligevel.
-FILES_COL = LIST_COLS[-2][1] + GAP
-# Under den her graense: ingen FILES-kolonne og kun tre knapper.
-FIXED_TINY = FIXED_SMALL - FILES_COL - (ACTIONS_W - ACTIONS_W_NARROW)
-SHOW_FILES = f"({ROWS_W}) >= {FIXED_SMALL} + 150"
-ACT_W = f"If({SHOW_FILES}, {ACTIONS_W}, {ACTIONS_W_NARROW})"
-MAIN_W = (f"Max(Min(({ROWS_W}) - If({SHOW_MID}, {FIXED}, "
-          f"If({SHOW_FILES}, {FIXED_SMALL}, {FIXED_TINY})), 460), 150)")
-
-SEARCH = " || ".join(
-    f"Trim(txtDomSearch.Text) in {c}" for c in cfg.SEARCH_FIELDS)
-SCOPE = (
-    "Filter(\n"
-    "    colDomRows,\n"
-    f"    (IsBlank(Trim(txtDomSearch.Text)) || {SEARCH}),\n"
-    "    (drpDomStatusFilter.Selected.Value = \"all\" ||\n"
-    "     Status = drpDomStatusFilter.Selected.Value)\n"
-    ")"
-)
-
-
-def _head_cell(i, label, width):
-    w = MAIN_W if width == 0 else (ACT_W if i == LAST_COL else width)
-    # Handlingskolonnen har ingen synlig overskrift, men en tom tekst uden
-    # AccessibleLabel er en fejl i tilgaengelighedstjekket (issue #37).
-    acc = f'"{label}"' if label else '"Actions"'
-    return text_ctrl(f"txtDomHead{i}", f'"{label}"', size=11, color=C_MUTED,
-                     weight="Semibold", height=18, width=w, wrap="false",
-                     accessible=acc,
-                     visible=(SHOW_MID if 1 <= i <= len(cfg.LIST_FIELDS)
-                              else SHOW_FILES if i == len(LIST_COLS) - 2 else None))
 
 
 # ---------------------------------------------------------------------------
@@ -976,15 +910,19 @@ def _detail_row(i, label, value):
                  height=DETAIL_ROW_H, align_items="Center")
 
 
-def build_details():
-    """Alle raekkens felter, med frem og tilbage mellem raekkerne."""
+def build_details(scope=None):
+    """Alle raekkens felter, med frem og tilbage mellem raekkerne.
+
+    scope: det filter, listen viser (standard: LIST_SCOPE), saa frem og
+    tilbage foelger det, brugeren ser."""
+    scope = LIST_SCOPE if scope is None else scope
     # Raekken, ruden viser. Den slaas op HVER gang - saa er den altid den,
     # der staar i samlingen, ogsaa efter en Gem.
     row = f"LookUp(colDomRows, RowId = varDomDetailsId)"
     # Positionen i den SORTEREDE og FILTREREDE liste, saa frem/tilbage
     # foelger det, brugeren faktisk ser. Power Fx har ingen IndexOf, men
     # i en faldende sortering er positionen antallet af raekker foran.
-    order = f"Sort({SCOPE}, RowId, SortOrder.Descending)"
+    order = f"Sort({scope}, RowId, SortOrder.Descending)"
     pos = f"CountRows(Filter({order}, RowId > varDomDetailsId)) + 1"
 
     key = text_ctrl("txtDomDetKey",
@@ -1029,8 +967,12 @@ def build_details():
             _detail_row(2, "Status", f'Coalesce({row}.Status, "-")'),
             _detail_row(3, "Documents", f'Text(Coalesce({row}.FileCount, 0))')]
     for n, (col, label, kind, _ch) in enumerate(FIELDS, start=len(rows)):
-        v = (f'If(IsBlank({row}.{col}), "-", Text({row}.{col}))'
-             if kind in ("num", "date") else f'Coalesce({row}.{col}, "-")')
+        if kind == "bool":
+            v = f'If({row}.{col}, "Yes", "No")'
+        elif kind in ("num", "date"):
+            v = f'If(IsBlank({row}.{col}), "-", Text({row}.{col}))'
+        else:
+            v = f'Coalesce({row}.{col}, "-")'
         rows.append(_detail_row(n, label, v))
 
     # FELTLISTEN SCROLLER, POPUPPEN GOER IKKE. Equipment har nitten felter;
@@ -1048,118 +990,6 @@ def build_details():
     modal.props["X"] = MODAL_X
     modal.props["Y"] = MODAL_Y
     return modal
-
-
-def build_rows():
-    search = text_input("txtDomSearch", '""',
-                        placeholder='"Search description, functional location, number"',
-                        width="360", label="\"Search the rows\"")
-    # Samme regel som paa vaerkfeltet: Default er en RECORD fra Items.
-    # "all" er et LOKALT sentinel-ord: det betyder "filtrer ikke" og
-    # staar ingen steder i SharePoint. De tre andre ER lagrede vaerdier i
-    # colDomRows.Status og maa derfor ikke oversaettes - check_datasources
-    # efterproever dem mod udtraekket.
-    filt = '["all", "draft", "valid", "submitted"]'
-    status = themed_dropdown("drpDomStatusFilter", filt, '"all"', width="160",
-                             label="\"Filter by status\"")
-    toolbar = group("conDomToolbar", pin_widths([search, status]),
-                    direction="Horizontal", gap=12, align_items="Center")
-
-    head = group("conDomListHead",
-                 pin_widths([_head_cell(i, n, w)
-                             for i, (n, w) in enumerate(LIST_COLS)]),
-                 direction="Horizontal", gap=GAP, height=18,
-                 align_items="Center")
-
-    cells = [text_ctrl("txtDomRowText",
-                       f'If(IsBlank(Trim(ThisItem.{cfg.C_TEXT})), "(no text)", ThisItem.{cfg.C_TEXT})',
-                       size=14, height=20, width=MAIN_W, wrap="false")]
-    for i, col in enumerate(cfg.LIST_FIELDS):
-        cells.append(text_ctrl(f"txtDomRow{i}", f"ThisItem.{col}", size=13,
-                               color=C_MUTED, height=20,
-                               width=LIST_COLS[i + 1][1], wrap="false",
-                               visible=SHOW_MID))
-    # STATUS-kolonnen, ikke FILES: her stod LIST_COLS[-2] (40 px), saa hver
-    # celle efter status stod 35 px forskudt i forhold til overskriften.
-    cells.append(badge("txtDomRowStatus", "ThisItem.Status",
-                       width=LIST_COLS[-3][1]))
-    cells.append(text_ctrl("txtDomRowFiles", "Text(ThisItem.FileCount)",
-                           size=13, color=C_MUTED, height=20,
-                           width=LIST_COLS[-2][1], wrap="false",
-                           visible=SHOW_FILES))
-    # FIRE KNAPPER, IKKE EEN
-    #
-    # Den haandskrevne app havde btnMatRowEdit, btnMatRowCopy,
-    # btnMatRowDelete og btnMatRowDetails paa hver raekke. Ved
-    # konverteringen til builderen kom kun Edit med - se issue #15 og #16.
-    #
-    # Knapper og ikke kun et klik paa raekken: galleriets OnSelect virker
-    # ogsaa, men den er usynlig, og saa er det de faerreste der proever.
-    acts = [
-        button("btnDomRowOpen", '"Edit"', load_row_fx(),
-               width=ROW_BTN["btnDomRowOpen"], height=ROW_BTN_H),
-        button("btnDomRowDetails", '"Details"',
-               'Set(varDomDetailsId, ThisItem.RowId)',
-               width=ROW_BTN["btnDomRowDetails"], height=ROW_BTN_H),
-        # Dokumenterne paa DENNE raekke - uden at laese den ind i
-        # formularen foerst.
-        button("btnDomRowDocs", '"Docs"', open_docs_fx(),
-               width=ROW_BTN["btnDomRowDocs"], height=ROW_BTN_H,
-               visible=SHOW_FILES),
-        button("btnDomRowCopy", '"Copy"', copy_row_fx(),
-               width=ROW_BTN["btnDomRowCopy"], height=ROW_BTN_H,
-               visible=SHOW_FILES),
-        button("btnDomRowDelete", '"Delete"', delete_this_row_fx(),
-               danger=True, width=ROW_BTN["btnDomRowDelete"], height=ROW_BTN_H),
-    ]
-    got = [(c.name, int(c.props["Width"])) for c in acts]
-    want = list(ROW_BTN.items())
-    if got != want:
-        raise SystemExit("ROW_BTN passer ikke paa raekkens knapper:\n"
-                         "  ROW_BTN: %s\n  raekken: %s" % (want, got))
-    cells.append(group("conDomRowActions", acts, direction="Horizontal",
-                       gap=ROW_BTN_GAP, height=ROW_BTN_H, align_items="Center",
-                       width=ACT_W, align_in_container="Center"))
-    for b in acts:
-        b.props["Size"] = "13"
-
-    # Raekken er en container HER, men ikke i YAML'en: Studio ejer bredden
-    # paa et galleris oeverste container og gav den 320 px ved --clean, saa
-    # alt efter beskrivelsen forsvandt (issue #37).
-    # gen_screen.flatten_galleries folder den ud til celler med X og Y.
-    row = group("conDomRow", pin_widths(cells), direction="Horizontal", gap=GAP,
-                height="Parent.TemplateHeight - 2", align_items="Center",
-                justify="Start", width="Parent.TemplateWidth")
-
-    gal_h = f"Max(Min(CountRows({SCOPE}), {GAL_ROWS}), 1) * {ROW_H + 2}"
-    gal = Ctrl("galDomRows", "Gallery", variant="Vertical", props={
-        "AccessibleLabel": '"Saved rows"',
-        "BorderStyle": "BorderStyle.None",
-        "Fill": C_TRANSPARENT,
-        "FillPortions": "0",
-        "Height": gal_h,
-        "Items": f"Sort({SCOPE}, RowId, SortOrder.Descending)",
-        "LayoutMinWidth": "0",
-        "LoadingSpinner": "LoadingSpinner.None",
-        "OnSelect": load_row_fx(),
-        "Selectable": "true",
-        "ShowScrollbar": "true",
-        "TabIndex": "0",
-        "TemplatePadding": "2",
-        "TemplateSize": str(ROW_H),
-        "Width": "Parent.Width",
-        "WrapCount": "1",
-    }, children=[row], h=gal_h)
-
-    empty = text_ctrl("txtDomNoRows",
-                      '"No saved rows yet."',
-                      size=13, color=C_MUTED, height=22, wrap="false",
-                      visible="IfError(CountRows(colDomRows) = 0, false)")
-
-    return card("conDomRowsCard",
-                [text_ctrl("txtDomRowsH", '"Saved rows"', size=16,
-                           weight="Semibold", height=22, wrap="false"),
-                 toolbar, head, gal, empty])
 
 
 # ---------------------------------------------------------------------------
@@ -1301,43 +1131,6 @@ def send_fx(submit):
     )
 
 
-def build_submit():
-    draft = button(
-        "btnDomSendDraft", '"Save as draft"', with_busy(SAVING_VAR, send_fx(False)),
-        width=180 + ICON_W, icon=ICON_SAVE,
-        display_mode=f'If(CountRows({SENDABLE}) = 0, DisplayMode.Disabled, DisplayMode.Edit)')
-    # Submit spoerger foerst (build_submit_confirm); indsendelsen koerer i
-    # popup'ens Submit.
-    submit = button(
-        "btnDomSubmit", '"Submit"', f"Set({CONFIRM_VAR}, true)", primary=True,
-        width=150, icon=ICON_SUBMIT,
-        display_mode=f'If(CountRows({VALID}) = 0, DisplayMode.Disabled, DisplayMode.Edit)')
-    # "Hent forfra" stod BEGGE steder - her og paa dokumentruden - og
-    # betoed to forskellige ting. Nu siger navnet hvad der hentes.
-    reload_ = button("btnDomReload", '"Reload rows"',
-                     refresh_rows_fx() + ';\nSet(varDomInfo, "Reloaded.")',
-                     width=150)
-    note = text_ctrl(
-        "txtDomSubmitNote",
-        ('"Save as draft puts the request on the landing page with status Draft '
-         '- it can still be edited. Submit locks the rows and sets the status '
-         'to Submitted. Both write to the SAME row in the index."'),
-        size=12, color=C_MUTED, height=18, wrap="false")
-    state = text_ctrl(
-        "txtDomSubmitState",
-        ('If(\n'
-         '    IsBlank(varDomRequestNo),\n'
-         '    "The request has not been sent to the hub yet.",\n'
-         '    "Request " & varDomRequestNo & " is on the landing page."\n'
-         ')'),
-        size=13, height=20, wrap="false")
-    return card("conDomSubmitCard",
-                [state,
-                 fit_button_row("conDomSubmitRow", [draft, submit, reload_],
-                                f"({SHELL_W} - 36)"),
-                 note])
-
-
 def build_submit_confirm():
     """Bekraeftelsen foer Submit og ventespinneren (issue #54).
 
@@ -1348,3 +1141,570 @@ def build_submit_confirm():
         '"The valid rows are sent to the landing page as Submitted and locked."',
         "Submit", with_busy(SAVING_VAR, send_fx(True)), "btnDomSubmitConfirm") + [
         busy_overlay("imgDomSaving", SAVING_VAR)]
+
+
+# ---------------------------------------------------------------------------
+# Formularens byggeklodser (issue #67 / #68)
+#
+# Begge apps har nu HTML-projektets formular: ingen sektionsoverskrifter, et
+# gitter med fire kolonner paa desktop, to paa tablet og een paa mobil,
+# piller med vaerk og raekkestatus, og knapperne til hoejre. Selve
+# kompositionen - hvilke felter, i hvilken raekkefoelge - er appens egen
+# (material_parts.py / equipment_parts.py).
+# ---------------------------------------------------------------------------
+GRID_GAP = 20
+# Mindste cellebredde for fire og for to kolonner. Graenserne regnes af
+# dem - ikke skrevet af - saa en anden mindstebredde flytter dem selv.
+CELL_MIN_4 = 200
+CELL_MIN_2 = 220
+NEED_4 = 4 * CELL_MIN_4 + 3 * GRID_GAP
+NEED_2 = 2 * CELL_MIN_2 + GRID_GAP
+GRID_COLS = 4
+
+# Een celles bredde - maalt paa KORTETS bredde, ikke paa App.Width.
+CELL_W = fits(FORM_W, NEED_4,
+              fits(FORM_W, NEED_2, FORM_W, f"(({FORM_W}) - {GRID_GAP}) / 2"),
+              f"(({FORM_W}) - {3 * GRID_GAP}) / 4")
+
+
+def _line_h(hs):
+    """Den hoejeste af cellerne paa en linje - tal, hvis de alle er tal."""
+    if all(isinstance(h, (int, float)) for h in hs):
+        return str(max(hs))
+    return hs[0] if len(hs) == 1 else "Max(%s)" % ", ".join("(%s)" % h for h in hs)
+
+
+def _chunk_h(heights, k):
+    """Hoejden af en raekke, der ombryder til linjer a k celler."""
+    lines = [heights[i:i + k] for i in range(0, len(heights), k)]
+    return (" + ".join("(%s)" % _line_h(l) for l in lines)
+            + " + %d" % (GRID_GAP * (len(lines) - 1)))
+
+
+def grid_row(name, cells):
+    """Op til fire celler (eller kolonner), der ombryder til to og een.
+
+    Hoejden regnes for hver af de tre tilstande af cellernes egne hoejder
+    - check_layout regel 4c spiller ombrydningen og efterproever den."""
+    if len(cells) > GRID_COLS:
+        raise SystemExit(f"domain_parts.grid_row: {name} har {len(cells)} celler - "
+                         f"hoejst {GRID_COLS}")
+    hs = [c.h for c in cells]
+    h = fits(FORM_W, NEED_4,
+             fits(FORM_W, NEED_2, _chunk_h(hs, 1), _chunk_h(hs, 2)),
+             _chunk_h(hs, 4))
+    return group(name, cells, direction="Horizontal", gap=GRID_GAP, height=h, wrap="true")
+
+
+def grid_rows(prefix, cells):
+    """Celler i RAEKKE-orden: fire pr. raekke, venstre mod hoejre."""
+    return [grid_row(f"{prefix}{i // GRID_COLS}", cells[i:i + GRID_COLS])
+            for i in range(0, len(cells), GRID_COLS)]
+
+
+def grid_columns(name, columns, row_gap=14):
+    """Celler i KOLONNE-orden: oppefra og ned i kolonne 1, saa kolonne 2 ...
+    (eq.png). Paa en tablet staar kolonne 1 og 2 side om side over 3 og 4;
+    paa en telefon under hinanden - stadig i kolonne-orden."""
+    cols = [group(f"{name}Col{i + 1}", cells, direction="Vertical", gap=row_gap,
+                  width=CELL_W, align_items="Stretch", align_in_container="Start")
+            for i, cells in enumerate(columns)]
+    return grid_row(name, cols)
+
+
+def grid_cell(name, label, ctrl, required=False):
+    return field_cell(name, label, ctrl, required=required, width=CELL_W,
+                      fill_portions_formula="0")
+
+
+def field_grid_cell(col):
+    """Et felt fra SECTIONS som celle i gitteret."""
+    for c, label, kind, choices in FIELDS:
+        if c == col:
+            return grid_cell(f"con{c}", label, _input_for(c, kind, choices))
+    raise SystemExit(f"domain_parts: {col} er ikke et felt i SECTIONS")
+
+
+def text_cell():
+    """Raekkens tekst (Title) - kraevet, ogsaa paa en kladde."""
+    return grid_cell("conDomText", cfg.TEXT_LABEL,
+                     text_input("inpDomText", "varDomFText", max_length=40,
+                                placeholder=cfg.TEXT_PLACEHOLDER,
+                                required_formula=REQUIRED, display_mode=DM_ROW,
+                                onchange="Set(varDomFText, Self.Text)"),
+                     required=True)
+
+
+def plant_cell():
+    return grid_cell("conDomPlant", cfg.PLANT_LABEL, _plant_dropdown(), required=True)
+
+
+def check_form_order(order, special, not_in_grid=()):
+    """Et felt i SECTIONS, der ikke er i appens raekkefoelge, ville ellers
+    bare mangle paa skaermen - uden at noget sagde det."""
+    want = {c for c, _l, _k, _ch in FIELDS} - set(not_in_grid)
+    have = set(order) - set(special)
+    if want != have or len(order) != len(set(order)):
+        raise SystemExit("Formularens raekkefoelge passer ikke til SECTIONS:\n"
+                         f"  mangler: {sorted(want - have)}\n"
+                         f"  ukendte: {sorted(have - want)}")
+
+
+# ---------------------------------------------------------------------------
+# Knapper: saa brede som deres tekst, og aldrig klippet
+# ---------------------------------------------------------------------------
+def fit(btn, icon=False, size=14):
+    """Bredden af knappens tekst (+ ikon), laast som mindstebredde.
+
+    fit_button_width kraever en litteral: en knap, hvis tekst skifter, skal
+    have sin LAENGSTE tekst, naar den kaldes - og faa formlen bagefter."""
+    w = fit_button_width(btn.props["Text"], size=size, min_w=0) + (ICON_W if icon else 0)
+    btn.props["Width"] = str(w)
+    btn.props["LayoutMinWidth"] = str(w)
+    return btn
+
+
+def pill(btn, on):
+    """En knap, der er TIL eller FRA: udfyldt, naar den er til."""
+    for k in ("TopLeft", "TopRight", "BottomLeft", "BottomRight"):
+        btn.props["Radius" + k] = "16"
+    btn.props["Appearance"] = (f"If({on}, ButtonAppearance.Primary, "
+                               "ButtonAppearance.Outline)")
+    btn.props["BasePaletteColor"] = C_PRIMARY
+    btn.props["Color"] = f"If({on}, {C_WHITE}, {C_TITLE})"
+    btn.props["BorderColor"] = f"If({on}, {C_PRIMARY}, {C_CARD_BORDER})"
+    return btn
+
+
+def meta_pill(name, text, width):
+    return text_ctrl(name, text, size=12, color=C_MUTED, height=28, width=width,
+                     wrap="false",
+                     extra={"Fill": C_NEUTRAL_BG, "VerticalAlign": "VerticalAlign.Middle",
+                            "PaddingLeft": "10", "PaddingRight": "10",
+                            "RadiusBottomLeft": "8", "RadiusBottomRight": "8",
+                            "RadiusTopLeft": "8", "RadiusTopRight": "8"})
+
+
+# ---------------------------------------------------------------------------
+# Dokumenterne fra formularen
+# ---------------------------------------------------------------------------
+def open_active_docs_fx():
+    """Formularens Documents-knap: dokumentpopuppen for den AABNE raekke.
+
+    Samme som raekkens Docs-knap (open_docs_fx), bare med den aktive raekke
+    i stedet for ThisItem. Popuppen aabner kun her og paa Docs - aldrig af
+    sig selv: varDomDocsId er Blank fra OnStart."""
+    return (
+        "Set(varDomDocsId, varDomActiveRowId);\n"
+        "If(\n"
+        f"    Coalesce({ACTIVE}.FileCount, 0) > 0 &&\n"
+        "    CountRows(Filter(colDomAttachments, RowId = varDomActiveRowId)) = 0,\n"
+        + att.refresh_fx(4) + "\n"
+        ")"
+    )
+
+
+def docs_cell():
+    """Documentation: hvor mange dokumenter raekken har, og en knap til
+    den eksisterende dokumentpopup. Dokumenterne ligger i en mappe, der
+    hedder raekkens noegle, saa knappen virker foerst efter Save."""
+    info = grow(text_input(
+        "txtDomDocsInfo",
+        ('If(IsBlank(varDomActiveRowId), "Save the row first", '
+         f'Text(Coalesce({ACTIVE}.FileCount, 0)) & " document(s)")'),
+        display_mode="DisplayMode.View", label='"Documents on this row"'))
+    text = '"Documents"'
+    btn = button("btnDomDocs", text, open_active_docs_fx(),
+                 width=fit_button_width(text), display_mode=DM_SEL,
+                 accessible='"Open the documents for this row"')
+    btn.props["LayoutMinWidth"] = btn.props["Width"]
+    row = group("conDomDocsRow", [info, btn], direction="Horizontal", gap=8,
+                height=36, align_items="Center", width=CELL_W)
+    return grid_cell("conDomDocs", "Documentation", row)
+
+
+# ---------------------------------------------------------------------------
+# Formularens hoved og fod
+# ---------------------------------------------------------------------------
+def form_head(title_txt, right=()):
+    """Titlen, "* Required" og evt. kontroller til hoejre (No BOM Item)."""
+    title = text_ctrl("txtDomFormH", f'"{title_txt}"', size=17, weight="Semibold",
+                      height=26, width=text_px(title_txt, 17), wrap="false")
+    star = text_ctrl("txtDomFormReqStar", '"*"', size=12, color=C_REQUIRED,
+                     weight="Semibold", height=18, width=8, wrap="false",
+                     accessible='"Required"')
+    legend = text_ctrl("txtDomFormReq", '"Required"', size=12, color=C_MUTED,
+                       height=18, width=text_px("Required", 12, semibold=False),
+                       wrap="false")
+    left = group("conDomFormTitle", [title, star, legend], direction="Horizontal",
+                 gap=4, height=26, align_items="Center")
+    if not right:
+        return left
+    left_w = sum(int(c.props["Width"]) for c in (title, star, legend)) + 2 * 4
+    return flow_row("conDomFormHead", [left] + list(right), FORM_W, gap=12,
+                    flex=left, flex_min=left_w)
+
+
+def form_footer(buttons):
+    """Vaerk og raekkens tilstand som to piller til venstre, knapperne til
+    hoejre - og appens besked under dem."""
+    plant = meta_pill("txtDomFormPlant", '"Plant: " & Coalesce(varDomFPlant, "-")', 130)
+    state = meta_pill(
+        "txtDomFormState",
+        ('If(\n'
+         '    IsBlank(varDomActiveRowId),\n'
+         '    "Row status: New row - not saved yet",\n'
+         '    "Row status: " & Coalesce(' + ACTIVE + '.ItemKey, "row " & varDomActiveRowId) &\n'
+         '        " (" & varDomRowStatus & ")"\n'
+         ')'), 290)
+    meta_w = 130 + 8 + 290
+    meta = group("conDomFormMeta", [plant, state], direction="Horizontal", gap=8,
+                 height=28, align_items="Center")
+    actions = flow_row("conDomFormActions", [meta] + list(buttons), FORM_W, gap=8,
+                       flex=meta, flex_min=meta_w)
+    info = text_ctrl("txtDomFormInfo", "varDomInfo", size=12, color=C_MUTED,
+                     height=18, wrap="false")
+    return [actions, info]
+
+
+def form_buttons(save_fx, save_text, new_text):
+    """Delete row, Save draft, Save og New row/Reset form - i den orden,
+    med den primaere knap naestsidst som i HTML-projektet.
+
+    save_fx(status) er appens gem (save_row_fx med evt. egne krav)."""
+    return [
+        fit(button("btnDomDelete", '"Delete row"', delete_row_fx(),
+                   danger=True, display_mode=DM_SEL)),
+        fit(button("btnDomSaveDraft", '"Save draft"',
+                   with_busy(SAVING_VAR, save_fx("draft")),
+                   display_mode=DM_ROW, icon=ICON_SAVE), icon=True),
+        fit(button("btnDomSave", f'"{save_text}"',
+                   with_busy(SAVING_VAR, save_fx("valid")),
+                   primary=True, display_mode=DM_ROW, icon=ICON_SAVE), icon=True),
+        fit(button("btnDomNew", f'"{new_text}"', clear_form_fx())),
+    ]
+
+
+# ---------------------------------------------------------------------------
+# De gemte raekker (issue #67 / #68)
+#
+# Hoved med soegning, status- og vaerksfilter, Compact/All columns, en
+# tabel der scroller vandret, naar den er bredere end kortet, og indsend
+# under den til hoejre. Kolonnerne er appens egne (SLOTS i
+# material_parts.py / equipment_parts.py).
+#
+# EEN RAEKKE, FLERE PLADSER
+# -------------------------
+# Kolonnerne staar i forskellig raekkefoelge i de to visninger. En celle
+# kan ikke flytte sig i et galleri, men dens INDHOLD kan: hver plads viser
+# een kolonne i Compact og en (evt. anden) i All columns. Saa er der ingen
+# celle to gange, og overskriften skifter paa samme maade.
+#
+# En plads er (Compact, All). Hver af de to er (overskrift, udtryk,
+# mindstebredde) - eller None, naar pladsen er tom i den visning.
+# ---------------------------------------------------------------------------
+# Compact eller All columns. Sat i App.OnStart og ALDRIG af en genhentning,
+# saa visningen bliver staaende, naar raekkerne hentes forfra.
+ALL_COLS = "varDomAllCols"
+
+# "All plants"/"All status" er LOKALE ord: de betyder "filtrer ikke" og
+# staar ingen steder i SharePoint. De tre andre statusvaerdier ER lagrede
+# vaerdier i colDomRows.Status og maa ikke oversaettes.
+ALL_STATUS = "All status"
+ALL_PLANTS = "All plants"
+SEARCH = " || ".join(f"Trim(txtDomSearch.Text) in {c}" for c in cfg.SEARCH_FIELDS)
+LIST_SCOPE = (
+    "Filter(\n"
+    "    colDomRows,\n"
+    f"    (IsBlank(Trim(txtDomSearch.Text)) || {SEARCH}),\n"
+    f'    (drpDomStatusFilter.Selected.Value = "{ALL_STATUS}" ||\n'
+    "     Status = drpDomStatusFilter.Selected.Value),\n"
+    f'    (drpDomPlantFilter.Selected.Value = "{ALL_PLANTS}" ||\n'
+    "     Plant = drpDomPlantFilter.Selected.Value)\n"
+    ")"
+)
+PLANT_ITEMS = (
+    "Ungroup(\n"
+    f'    Table({{ Rows: Table({{ Value: "{ALL_PLANTS}" }}) }},\n'
+    "          { Rows: Sort(Distinct(Filter(colDomRows, !IsBlank(Plant)), Plant), Value) }),\n"
+    "    Rows\n"
+    ")"
+)
+
+T_GAP = 6
+HEAD_SIZE = 11
+CELL_PAD = 10
+BADGE_W = 90
+
+# Knapperne. Details og Docs staar i DETAILS-kolonnen i Compact; i All
+# columns er der ingen DETAILS-kolonne, og saa er de de foerste af
+# handlingerne - overskriften "ACTIONS" flytter hen over dem.
+DETAIL_BTNS = [("btnDomRowDetails", '"Details"'), ("btnDomRowDocs", '"Docs"')]
+ACTION_BTNS = [("btnDomRowOpen", '"Edit"'), ("btnDomRowCopy", '"Copy"'),
+               ("btnDomRowDelete", '"Delete"')]
+
+
+def _btns_w(btns):
+    """Bredderne er ROW_BTN - afproevet i Studio med 13 pt, og de klipper
+    ikke teksten. En knap uden en bredde dér stopper byggeriet."""
+    for n, _t in btns:
+        if n not in ROW_BTN:
+            raise SystemExit(f"domain_parts: {n} har ingen bredde i ROW_BTN")
+    return sum(ROW_BTN[n] for n, _t in btns) + ROW_BTN_GAP * (len(btns) - 1)
+
+
+LIST_DETAILS_W = _btns_w(DETAIL_BTNS) + CELL_PAD
+LIST_ACTIONS_W = _btns_w(ACTION_BTNS) + CELL_PAD
+# Galleriets egne 2 x 2 px skabelonpolstring og dets lodrette scrollbar.
+TABLE_AVAIL = f"(({FORM_W}) - 4 - {SCROLLBAR_W})"
+
+
+def col_w(spec):
+    """Saa bred, at overskriften aldrig klippes - og mindst spec's minimum.
+
+    label_px er Segoe UI's egne tegnbredder (build_helpers). text_px er et
+    skoen, der med vilje rammer for bredt; paa sytten overskrifter blev det
+    til flere hundrede pixels, og Compact kunne ikke staa uden scroll paa en
+    1366-skaerm. 4 px oven i er sikkerheden."""
+    if spec is None:
+        return 0
+    header, _expr, min_w = spec
+    return max(min_w, label_px(header, HEAD_SIZE) + 2 * CELL_PAD + 4)
+
+
+def num_text(col):
+    return f'If(IsBlank(ThisItem.{col}), "", Text(ThisItem.{col}))'
+
+
+def date_text(col):
+    return f'If(IsBlank(ThisItem.{col}), "", Text(ThisItem.{col}, "yyyy-mm-dd"))'
+
+
+class ListLayout:
+    """Bredderne for et saet pladser i de to visninger.
+
+    All columns har faste bredder. Compact FYLDER listens bredde: hver
+    tekstkolonne faar sin mindstebredde (mindst saa bred som overskriften)
+    plus en lige del af det, der er tilovers. Er der intet tilovers (en
+    tablet), er tabellen sine mindstebredder og scroller vandret."""
+
+    def __init__(self, slots):
+        self.slots = slots
+        self.all_ws = [col_w(a) for _c, a in slots]
+        self.all_w = (BADGE_W + sum(self.all_ws) + LIST_DETAILS_W + LIST_ACTIONS_W
+                      + T_GAP * (len(slots) + 2))
+        self.compact = [i for i, (c, _a) in enumerate(slots) if c is not None]
+        fixed = BADGE_W + LIST_DETAILS_W + LIST_ACTIONS_W + T_GAP * (len(self.compact) + 2)
+        self.compact_min = fixed + sum(col_w(slots[i][0]) for i in self.compact)
+        self.spare = (f"Max(0, ({TABLE_AVAIL}) - {self.compact_min}) / "
+                      f"{len(self.compact)}")
+        self.table_w = (f"If({ALL_COLS}, {self.all_w}, "
+                        f"Max({self.compact_min}, {TABLE_AVAIL}))")
+
+    def width(self, i):
+        c, a = self.slots[i]
+        if c is None:
+            return str(self.all_ws[i])
+        cw = f"{col_w(c)} + {self.spare}"
+        return cw if a is None else f"If({ALL_COLS}, {self.all_ws[i]}, {cw})"
+
+    def visible(self, i):
+        c, a = self.slots[i]
+        if c is None:
+            return ALL_COLS
+        if a is None:
+            return f"!{ALL_COLS}"
+        return None
+
+    def text(self, i, part):
+        """part 0 = overskriften, 1 = udtrykket."""
+        c, a = self.slots[i]
+        pick = (lambda s: f'"{s[0]}"') if part == 0 else (lambda s: s[1])
+        if c is None:
+            return pick(a)
+        if a is None:
+            return pick(c)
+        cv, av = pick(c), pick(a)
+        return cv if cv == av else f"If({ALL_COLS}, {av}, {cv})"
+
+
+def _pad(ctrl):
+    ctrl.props["PaddingLeft"] = str(CELL_PAD)
+    return ctrl
+
+
+def _head_text(name, text, width, visible=None, accessible=None):
+    return _pad(text_ctrl(name, text, size=HEAD_SIZE, color=C_MUTED, weight="Semibold",
+                          height=18, width=width, wrap="false", visible=visible,
+                          accessible=accessible))
+
+
+def _status_badge():
+    """Raekkens status som et maerke - VALID, DRAFT, SUBMITTED - i sin
+    egen farve, saa listen kan skimmes."""
+    s = "ThisItem.Status"
+    fg = (f'Switch({s}, "valid", {C_VALID_FG}, "submitted", {C_INFO_FG}, '
+          f'"draft", {C_WARN_FG}, {C_NEUTRAL_FG})')
+    bg = (f'Switch({s}, "valid", {C_VALID_BG}, "submitted", {C_INFO_BG}, '
+          f'"draft", {C_WARN_BG}, {C_NEUTRAL_BG})')
+    b = text_ctrl("txtDomRowStatus", f"Upper({s})", size=11, color=fg,
+                  weight="Semibold", height=22, width=BADGE_W - 2 * CELL_PAD,
+                  wrap="false", accessible=f'"Status: " & {s}',
+                  extra={"Fill": bg, "Align": "Align.Center",
+                         "AlignInContainer": "AlignInContainer.Center",
+                         "RadiusBottomLeft": "6", "RadiusBottomRight": "6",
+                         "RadiusTopLeft": "6", "RadiusTopRight": "6"})
+    return group("conDomRowStatus", [b], direction="Horizontal", gap=0,
+                 height=22, width=BADGE_W, align_items="Center",
+                 pad=(0, 0, 0, CELL_PAD))
+
+
+def _row_buttons(name, btns, fxs, width, danger=()):
+    out = []
+    for (bn, text), fx in zip(btns, fxs):
+        b = button(bn, text, fx, danger=bn in danger, width=ROW_BTN[bn],
+                   height=ROW_BTN_H)
+        b.props["Size"] = "13"
+        out.append(b)
+    return group(name, out, direction="Horizontal", gap=ROW_BTN_GAP, height=ROW_BTN_H,
+                 width=width, align_items="Center", pad=(0, 0, 0, CELL_PAD))
+
+
+def build_list(slots, badge_head, search_placeholder):
+    """Kortet med de gemte raekker - og indsend under tabellen.
+
+    slots: appens pladser (se ovenfor). badge_head: overskriften over
+    statusmaerket ("STATUS" / "VALIDATION")."""
+    lay_ = ListLayout(slots)
+
+    # --- hovedet: titel, soegning og de to filtre ---------------------
+    title = text_ctrl("txtDomRowsH", '"Saved Rows"', size=17, weight="Semibold",
+                      height=26, wrap="false")
+    search = text_input("txtDomSearch", '""', width="240",
+                        placeholder=f'"{search_placeholder}"',
+                        label='"Search the rows"')
+    status = themed_dropdown(
+        "drpDomStatusFilter", f'["{ALL_STATUS}", "draft", "valid", "submitted"]',
+        f'"{ALL_STATUS}"', width="170", label='"Filter by status"')
+    plant = themed_dropdown("drpDomPlantFilter", PLANT_ITEMS, f'"{ALL_PLANTS}"',
+                            width="170", label='"Filter by plant"')
+    head = flow_row("conDomRowsTop", [title, search, status, plant], FORM_W, gap=8,
+                    flex=title, flex_min=text_px("Saved Rows", 17))
+
+    # --- Compact / All columns --------------------------------------------
+    compact = pill(fit(button("btnDomViewCompact", '"Compact"',
+                              f"Set({ALL_COLS}, false)", height=32,
+                              accessible='"Compact view"'), size=13),
+                   f"!{ALL_COLS}")
+    allc = pill(fit(button("btnDomViewAll", '"All columns"',
+                           f"Set({ALL_COLS}, true)", height=32,
+                           accessible='"All columns view"'), size=13),
+                ALL_COLS)
+    for b in (compact, allc):
+        b.props["Size"] = "13"
+    views = group("conDomViewSwitch", [compact, allc], direction="Horizontal", gap=8,
+                  height=32, align_items="Center", justify="End")
+
+    # --- tabellen -----------------------------------------------------------
+    heads = [_head_text("txtDomHeadStatus", f'"{badge_head}"', BADGE_W)]
+    cells = [_status_badge()]
+    for i in range(len(slots)):
+        heads.append(_head_text(f"txtDomHead{i}", lay_.text(i, 0), lay_.width(i),
+                                visible=lay_.visible(i), accessible=lay_.text(i, 0)))
+        cells.append(_pad(text_ctrl(f"txtDomCell{i}", lay_.text(i, 1), size=13,
+                                    height=20, width=lay_.width(i), wrap="false",
+                                    visible=lay_.visible(i))))
+    heads.append(_head_text("txtDomHeadDetails",
+                            f'If({ALL_COLS}, "ACTIONS", "DETAILS")', LIST_DETAILS_W))
+    heads.append(_head_text("txtDomHeadActions", f'If({ALL_COLS}, "", "ACTIONS")',
+                            LIST_ACTIONS_W, accessible='"Actions"'))
+    cells.append(_row_buttons("conDomRowDetails", DETAIL_BTNS,
+                              ['Set(varDomDetailsId, ThisItem.RowId)', open_docs_fx()],
+                              LIST_DETAILS_W))
+    cells.append(_row_buttons("conDomRowActions", ACTION_BTNS,
+                              [load_row_fx(), copy_row_fx(), delete_this_row_fx()],
+                              LIST_ACTIONS_W, danger=("btnDomRowDelete",)))
+
+    table_w = lay_.table_w
+    list_head = group("conDomListHead", heads, direction="Horizontal", gap=T_GAP,
+                      height=34, width=table_w, align_items="Center", fill=C_MUTED_BG)
+    row = group("conDomRow", cells, direction="Horizontal", gap=T_GAP,
+                height="Parent.TemplateHeight - 2", align_items="Center",
+                justify="Start", width="Parent.TemplateWidth")
+
+    gal_h = f"Max(Min(CountRows({LIST_SCOPE}), {GAL_ROWS}), 1) * {ROW_H + 2}"
+    gal = Ctrl("galDomRows", "Gallery", variant="Vertical", props={
+        "AccessibleLabel": '"Saved rows"',
+        "BorderStyle": "BorderStyle.None",
+        "Fill": C_TRANSPARENT,
+        "FillPortions": "0",
+        "Height": gal_h,
+        "Items": f"Sort({LIST_SCOPE}, RowId, SortOrder.Descending)",
+        "LayoutMinWidth": "0",
+        "LoadingSpinner": "LoadingSpinner.None",
+        "OnSelect": load_row_fx(),
+        "Selectable": "true",
+        "ShowScrollbar": "true",
+        "TabIndex": "0",
+        "TemplatePadding": "2",
+        "TemplateSize": str(ROW_H),
+        "Width": f"({table_w}) + 4 + {SCROLLBAR_W}",
+        "WrapCount": "1",
+    }, children=[row], h=gal_h)
+
+    # Vandret scroll, naar tabellen er bredere end kortet (All columns, og
+    # Compact paa en tablet). Start, ikke Stretch - check_layout regel 14.
+    # Den vandrette scrollbar tager hoejde, saa den laegges til, naar den
+    # er der.
+    wide = f"(({table_w}) + 4 + {SCROLLBAR_W}) > ({FORM_W})"
+    table = group("conDomTableWrap", [list_head, gal], direction="Vertical", gap=0,
+                  overflow_x="Scroll", width="Parent.Width", align_items="Start")
+    table.props["Height"] = f"{table.props['Height']} + If({wide}, {SCROLLBAR_W}, 0)"
+    table.h = table.props["Height"]
+
+    empty = text_ctrl("txtDomNoRows", '"No saved rows yet."', size=13, color=C_MUTED,
+                      height=22, wrap="false",
+                      visible="IfError(CountRows(colDomRows) = 0, false)")
+
+    return card("conDomRowsCard", [head, views, table, empty] + _submit_parts())
+
+
+# ---------------------------------------------------------------------------
+# Indsend - under tabellen, til hoejre. Selve indsendelsen er send_fx.
+# ---------------------------------------------------------------------------
+def _submit_parts():
+    """Reload rows, Save as draft og Submit saved rows - med Submit yderst
+    til hoejre - og hvor indmeldingen staar."""
+    # "Hent forfra" stod BEGGE steder - her og paa dokumentruden - og
+    # betoed to forskellige ting. Nu siger navnet hvad der hentes.
+    reload_ = fit(button("btnDomReload", '"Reload rows"',
+                         refresh_rows_fx() + ';\nSet(varDomInfo, "Reloaded.")'))
+    draft = fit(button(
+        "btnDomSendDraft", '"Save as draft"', with_busy(SAVING_VAR, send_fx(False)),
+        icon=ICON_SAVE,
+        display_mode=f'If(CountRows({SENDABLE}) = 0, DisplayMode.Disabled, DisplayMode.Edit)'),
+        icon=True)
+    # Submit spoerger foerst (build_submit_confirm); indsendelsen koerer i
+    # popup'ens Submit.
+    submit = fit(button(
+        "btnDomSubmit", '"Submit saved rows"', f"Set({CONFIRM_VAR}, true)", primary=True,
+        icon=ICON_SUBMIT,
+        display_mode=f'If(CountRows({VALID}) = 0, DisplayMode.Disabled, DisplayMode.Edit)'),
+        icon=True)
+    state = text_ctrl(
+        "txtDomSubmitState",
+        ('If(\n'
+         '    IsBlank(varDomRequestNo),\n'
+         '    "The request has not been sent to the hub yet.",\n'
+         '    "Request " & varDomRequestNo & " is on the landing page."\n'
+         ')'),
+        size=13, color=C_MUTED, height=20, wrap="false")
+    row = flow_row("conDomSubmitRow", [state, reload_, draft, submit], FORM_W, gap=8,
+                   flex=state, flex_min=0)
+    note = text_ctrl(
+        "txtDomSubmitNote",
+        ('"Save as draft puts the request on the landing page with status Draft '
+         '- it can still be edited. Submit locks the rows and sets the status '
+         'to Submitted. Both write to the SAME row in the index."'),
+        size=12, color=C_MUTED, height=18, wrap="false")
+    return [row, note]

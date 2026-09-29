@@ -144,7 +144,7 @@ App:
       // naar dropdownen aabnes.
       colDomPlants = Sort(ForAll(PlantList As R, { Value: R.Title }), Value);
     OnStart: |
-      =ClearCollect(colDomRows, { RowId: 0, ItemKey: "", RequestNo: "", Status: "", FileCount: 0, MaterialDescription: "", Plant: "", FunctionalLocation: "", Manufacturer: "", ModelNumber: "", ManufacturerPartNo: "", Supplier: "", SupplierPartNo: "", DeliveringTime: 0, Price: 0, PriceUnit: "", StockUnit: "", RecommendedStock: 0, StrategicPart: "", WearPart: "", LongText: "" });
+      =ClearCollect(colDomRows, { RowId: 0, ItemKey: "", RequestNo: "", Status: "", FileCount: 0, MaterialDescription: "", Plant: "", FunctionalLocation: "", NoBomItem: false, Manufacturer: "", ModelNumber: "", ManufacturerPartNo: "", Supplier: "", SupplierPartNo: "", DeliveringTime: 0, Price: 0, PriceUnit: "", StockUnit: "", RecommendedStock: 0, StrategicPart: "", WearPart: "", LongText: "" });
       Clear(colDomRows);
 
       ClearCollect(colDomAttachments, { RowId: 0, FileName: "", FileUrl: "", Identifier: "", Selected: false });
@@ -191,6 +191,8 @@ App:
       Set(varDomFlBusy, false);
       Set(varDomFlDots, 0);
       Set(varDomInfo, "");
+      // Listen: false = Compact, true = All columns (issue #67).
+      Set(varDomAllCols, false);
 
       // Er formularen blevet tjekket? Styrer om en kraevet feltkant maa vaere
       // roed. false ved opstart: en tom formular, ingen har roert, skal ikke
