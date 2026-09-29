@@ -36,14 +36,15 @@ hvem der svarede hvad og hvornår.
 | 2 | ZEXO NIR og "dato efter 1/8" udgår | Ingen port for det i appen |
 | 3 | Omkostningen er **pr. udførelse** | Summen af én gennemførelse af tasklisten, ikke ganget med cyklusser |
 | 4 | Godkendere kan kun **sende retur**, ikke afvise endeligt | Ingen `Rejected`-status. Alle trin ender i *Godkend* eller *Send retur* |
-| 5 | Omkostning godkendes af **én person**. Kvalitet godkendes **pr. værk** | To rækketyper i `MD_ApprovalRole` |
+| 5 | Omkostning godkendes af **én person**. Kvalitet godkendes **pr. værk** | Rækkerne `COST` og værkskoderne i `MD_Approver` (§6) |
 | 6 | Den, der udfylder appen, **er rekvirenten**. Er det ikke System Manageren, skal **System Manageren for systemet** godkende. Systemet bestemmes af Functional Location og slås op i en **Power BI semantisk model** | Nyt første trin: systemgodkendelse. Rekvirenten er planens opretter; der kommer ikke et ekstra felt |
 | 7 | **Systemgodkendelse og omkostningsgodkendelse sker pr. item** | Én godkendelse pr. item, ikke pr. plan. Omkostningen er summen af det enkelte items operationer |
 | 8 | System Managerne står i en **SharePoint-liste** med **1. og 2. godkender** som initialer. **1. godkender godkender**. E-mailen er initialer + `@orsted.com`. Indholdet ligger i `flow/systemgodkendere.md`: systemnummer 1–16 | Power BI-modellen giver kun FL → systemnummer. Listen giver systemnummer → godkendere |
 | 9 | Alle priser i `TaskListMain` er i **DKK** | Ingen omregning |
-| 10 | Opslaget sker i **samme Power BI-model som ObjectList-flowet** | Workspace, datasæt og forbindelse er kendt (§8) |
+| 10 | Opslaget sker i **samme Power BI-model som ObjectList-flowet**, og systemnummeret er **`Plant Section Key`** | Workspace, datasæt, forbindelse og kolonne er kendt (§8) |
 | 11 | **2. godkender bruges ved fravær** (mulighed B) | Ny kolonne `Approver1Absent` i listen (§4) |
 | 12 | Systemgodkendelsen **springes over, når itemets opretter er 1. eller 2. godkender** | §4 og §7.1 |
+| 13 | Systemnummeret er **det samme på alle værker**. Godkendere for **værk** (kvalitet) og **omkostning** står i **samme tabel** som systemerne, med værkskoden eller `COST` i nøglekolonnen | Én liste, `MD_Approver`, for alle tre trin (§6) |
 
 "Efter planen er gemt" er læst som **Submit**. Godkendelsen starter altså
 ikke ved hver *Save draft*. En kladde gemmes mange gange, og hver gang
@@ -88,8 +89,9 @@ en godkendelse. Den afsluttes af Excel-makroen, som allerede skriver
 
 ## 4. 1. og 2. godkender
 
-**Valgt: 2. godkender ved fravær (B).** `MD_SystemApprover` får en
-kolonne `Approver1Absent` (Ja/Nej):
+**Valgt: 2. godkender ved fravær (B).** `MD_Approver` får en kolonne
+`Approver1Absent` (Ja/Nej). Det gælder alle tre trin – system, omkostning
+og kvalitet:
 
 | `Approver1Absent` | Godkendelsen går til |
 |---|---|
@@ -101,7 +103,7 @@ godkender altid er den, der godkender, når vedkommende er til stede. To
 ting afbøder det:
 
 - Flowet sender også til 2. godkender, hvis 1. godkenders adresse ikke
-  findes (§6, `MD_SystemApprover`). Så står en sag ikke stille, fordi en
+  findes (§6, `MD_Approver`). Så står en sag ikke stille, fordi en
   person er stoppet.
 - 1. godkender kan selv **videresende** en godkendelse, der allerede er
   sendt, i Power Automate (*Approvals* → *Reassign*). Det dækker det
@@ -172,20 +174,35 @@ næste indsendelse, er itemet allerede godkendt.
 
 `Status` får valget `Returned`.
 
-### `MD_SystemApprover` *(ny liste)* – System Managere pr. system
+### `MD_Approver` *(ny liste)* – alle godkendere i én tabel
 
-Indholdet er tabellen i `flow/systemgodkendere.md`: systemnummer 1–16 med
-1. og 2. godkender som initialer.
+Udgangspunktet er tabellen i `flow/systemgodkendere.md`. Kolonnen
+*Systemnummer* bliver en **nøgle**, der kan være tre ting. Hvilken slags
+række det er, ses af nøglen selv:
+
+| Nøgle | Betyder | Bruges af |
+|---|---|---|
+| `1` … `16` | Systemnummer. Samme nummer på alle værker | Systemgodkendelsen (§7.1) |
+| `ASV`, `AVV`, `HCV`, `HEV`, `KYV`, `SKV`, `SMV`, `SSV` | Værk – samme koder som `PlantsInitial` | Kvalitetsgennemgangen (§7.3) |
+| `COST` | Omkostningsgodkenderen | Omkostningsgodkendelsen (§7.2) |
 
 | Kolonne | Type | Bemærkning |
 |---|---|---|
-| `Title` → `SystemNo` | Text Ⓘ | `1` … `16`. Tekst, så den sammenlignes med modellens værdi uden typeomregning |
+| `Title` → `ApproverKey` | Text Ⓘ, unik | Nøglen ovenfor. Tekst, også for systemnumrene, så de sammenlignes med modellens værdi uden typeomregning |
 | `Approver1` | Text | Initialer, fx `MAXJE` |
 | `Approver2` | Text | Initialer |
 | `Approver1Absent` | Yes/No | Ja → godkendelser går til 2. godkender (§4). Standard Nej |
 
-Tabellen har ingen værkskolonne, så systemnummer 1 betyder det samme på
-alle værker. Er det ikke tilfældet, skal der en `Plant`-kolonne på (§12).
+Så gælder reglerne i §4 – 1. godkender, 2. ved fravær – for alle tre trin,
+og der er ét sted at vedligeholde godkendere. Systemnumre og værkskoder kan
+ikke forveksles, fordi de ene er tal og de andre bogstaver.
+
+"Enforce unique values" sættes på `ApproverKey`, så der ikke kan stå to
+rækker for samme system eller værk.
+
+Master Data står **ikke** i tabellen. Mailen til dem går til en fælles
+postkasse eller gruppe, som ikke kan skrives som initialer. Den adresse
+bliver miljøvariablen `BioSap-MasterDataEmail`.
 
 Flowet laver e-mailen som
 `toLower(concat(trim(Approver1), '@', parameters('BioSap-EmailDomain')))`.
@@ -194,17 +211,9 @@ Initialer er ikke det samme som en gyldig adresse. Hvis nogen har en anden
 alias, eller har forladt virksomheden, lander godkendelsen ingen steder.
 Flowet slår derfor adressen op med **Office 365 Users – Get user profile
 (V2)**, før godkendelsen sendes. Findes den ikke, bruges 2. godkender.
-Findes ingen af dem, sendes planen retur med "System 7 har ingen gyldig
-godkender i listen", og der går en mail til `BioSap-ErrorNotifiers`.
-
-### `MD_ApprovalRole` *(ny liste)*
-
-| Kolonne | Type | Bemærkning |
-|---|---|---|
-| `Title` → `Role` | Text Ⓘ | `CostApprover`, `LokalAsmLeder` eller `MasterDataSap` |
-| `Plant` | Text(4) Ⓘ | Tom for `CostApprover` og `MasterDataSap`. Udfyldt for `LokalAsmLeder` |
-| `ApproverEmail` | Text | Én person, eller en mailaktiveret gruppe for Master Data |
-| `IsActive` | Yes/No Ⓘ | |
+Findes ingen af dem – eller findes nøglen slet ikke i listen – sendes planen
+retur med fx "System 7 har ingen gyldig godkender i listen", og der går en
+mail til `BioSap-ErrorNotifiers`.
 
 ### `MD_ApprovalLog` *(ny liste)* – revisionsspor og hukommelse
 
@@ -246,7 +255,8 @@ ligesom `BioSap-SiteUrl`, `BioSap-List-MaintenancePlans` og
 | Miljøvariabel | Værdi |
 |---|---|
 | `BioSap-EmailDomain` | `orsted.com` |
-| `BioSap-List-SystemApprover`, `BioSap-List-ApprovalRole`, `BioSap-List-ApprovalLog` | Listenavnene |
+| `BioSap-List-Approver`, `BioSap-List-ApprovalLog` | Listenavnene |
+| `BioSap-MasterDataEmail` | Fælles postkasse eller gruppe for Master Data (§7.4) |
 | `BioSap-PowerBI-WorkspaceId`, `BioSap-PowerBI-DatasetId` | Se §8. ObjectList-flowet har dem skrevet direkte ind; her bliver de variabler, så TEST og PROD kan pege et andet sted hen |
 
 ## 7. Flowene
@@ -301,7 +311,7 @@ Fælles for dem:
 1. `Get items` på `MaintenanceItems` med `MaintenancePlanNo/Id eq <ID>`.
 2. **Én** Power BI-forespørgsel med alle planens FL'er → FL og
    systemnummer (§8). Ét kald for hele planen, ikke ét pr. item.
-3. **Én** `Get items` på `MD_SystemApprover` (16 rækker – hele listen).
+3. **Én** `Get items` på `MD_Approver` (16 systemer + 8 værker + `COST` = 25 rækker – hele listen).
 4. For hvert item, parallelt:
    - **Fingeraftryk** = `SystemNo|FL|korttekst`.
    - Findes der i loggen en `Approve` for `Stage = System` på samme plan
@@ -337,8 +347,8 @@ Samme trigger condition med `ApprovalStage = 'Cost'`.
      `Stage = Cost` med samme fingeraftryk og et beløb **større end eller
      lig med** det nye → log `Skipped` med "godkendt tidligere". Et
      godkendt beløb gælder, så længe itemet ikke bliver dyrere.
-   - Ellers: godkendelse til `CostApprover` med itemets total, grænsen og
-     de dyreste operationer.
+   - Ellers: godkendelse til rækken `COST` i `MD_Approver` (1. godkender,
+     2. ved fravær) med itemets total, grænsen og de dyreste operationer.
 4. Alle godkendt eller sprunget over → `ApprovalStage = Quality`.
 
 Beløbet regnes af flowet og ikke af appen, så det er det gemte, der
@@ -354,7 +364,8 @@ Samme trigger condition med `ApprovalStage = 'Quality'`.
    fingeraftrykket, logges også som `Skipped` med "godkendt tidligere".)
    Hvis ikke → sæt `ApprovalStage = System` og stop. Så køres de to trin
    igen i stedet for at blive sprunget over.
-2. Én godkendelse til `LokalAsmLeder` for planens værk (`PlantsInitial`).
+2. Én godkendelse til rækken i `MD_Approver`, hvis nøgle er planens værk
+   (`PlantsInitial`, fx `SSV`) – 1. godkender, 2. ved fravær.
 3. *Godkend* → `Status = Ready for creation in SAP`, `ApprovalStage = Done`.
 
 ### 7.4 F4 `BioSap-VhPlan-ToMasterData` *(nyt)*
@@ -367,7 +378,7 @@ Samme trigger condition med `ApprovalStage = 'Quality'`.
 ```
 
 Mailen fra [`17-flow-email.md`](17-flow-email.md) (*"VH-plan … sendt til
-oprettelse"*) til `MasterDataSap`. Sætter `MasterDataNotified = true`.
+oprettelse"*) til `BioSap-MasterDataEmail`. Sætter `MasterDataNotified = true`.
 
 Den må **ikke** bruge `InitialEmailSent`. Den kolonne ejes af det
 eksisterende flow `BioSap-EmailNotification-NewPlanCreated`, som ved
@@ -402,7 +413,7 @@ og et `Update item` / HTTP-kald til sidst, der sætter
 ## 8. Opslaget i Power BI
 
 Modellen skal kun svare på én ting: **hvilket systemnummer hører et FL
-til.** Godkenderne kommer fra `MD_SystemApprover`.
+til.** Godkenderne kommer fra `MD_Approver`.
 
 ### Modellen – den samme som ObjectList-flowet bruger
 
@@ -416,14 +427,15 @@ kalder Power BI-connectorens **Run a query against a dataset**
 | Forbindelse | Connection reference `orsted_BioSapPowerBIConn` |
 | Workspace (`groupid`) | `26d062ec-3014-4cd3-9313-ced0cfe497b9` |
 | Datasæt (`datasetid`) | `fadc4a40-342b-41e3-a1ef-aa4af8bb9e09` |
-| Tabel | `'Functional Locations Man'` |
-| Kolonner, flowet bruger i dag | `[Functional Location]`, `[FL Search]`, `[UserStatus]`, `[Safety Critical Equip.]` |
-| Kolonner i flowets JSON-skema | `'Functional Locations'` med `[Plant Key]`, `[Plant Section Key]`, `[Plant Unit]`, `[Functional Location Description]` |
+| **Systemnummer** | **`'Functional Locations'[Plant Section Key]`** |
+| FL | `'Functional Locations'[Functional Location]` |
 
-**Ingen af dem er et systemnummer.** Enten ligger det i en kolonne, som
-ObjectList-flowet ikke henter, eller det skal udledes af en af dem (fx
-`[Plant Section Key]` eller `[Plant Unit]`). Det skal afklares i modellen,
-før F1 kan bygges (§12). Nedenfor står det som `[System No]`.
+To tabeller har FL'er. ObjectList-flowets forespørgsel går mod
+`'Functional Locations Man'`, men `[Plant Section Key]` står i flowets
+JSON-skema under `'Functional Locations'`, sammen med `[Plant Key]`,
+`[Plant Unit]` og `[Functional Location Description]`. Forespørgslen
+nedenfor bruger derfor `'Functional Locations'`. **Kør den i DAX query view
+først** og se, at kolonnen findes i den tabel, og hvordan værdierne ser ud.
 
 ### Forespørgslen
 
@@ -435,21 +447,27 @@ uanset status.
 EVALUATE
 SELECTCOLUMNS (
     FILTER (
-        'Functional Locations Man',
-        'Functional Locations Man'[Functional Location]
+        'Functional Locations',
+        'Functional Locations'[Functional Location]
             IN { "SSV10 KAB10AP001", "SSV10 KAB10AP002" }
     ),
-    "FL", 'Functional Locations Man'[Functional Location],
-    "SystemNo", 'Functional Locations Man'[System No]
+    "FL", 'Functional Locations'[Functional Location],
+    "SystemNo", 'Functional Locations'[Plant Section Key]
 )
 ```
 
-Tre ting at vide:
+Fire ting at vide:
 
 - **Nøglerne i svaret har klammer.** Kolonnen `"SystemNo"` kommer tilbage
   som `[SystemNo]`, så i flowet hedder det `item()?['[SystemNo]']`. Uden
-  `SELECTCOLUMNS` hedder den `Functional Locations Man[System No]`, som i
-  ObjectList-flowets skema.
+  `SELECTCOLUMNS` hedder den `Functional Locations[Plant Section Key]`, som
+  i ObjectList-flowets skema.
+- **Systemnummeret normaliseres, før det slås op i `MD_Approver`.** Står
+  det som `07` i modellen og `7` i listen, matcher de ikke. Flowet trimmer
+  og fjerner foranstillede nuller:
+  `string(int(trim(item()?['[SystemNo]'])))`. Er værdien ikke et tal, fejler
+  `int`, og itemet sendes retur med forklaringen – i stedet for at blive
+  sendt til en forkert godkender.
 - **Anførselstegn i et FL skal fordobles**, før det sættes ind i
   `IN { … }`: `replace(item(), '"', '""')`. ObjectList-flowet sætter
   brugerens søgetekst direkte ind i `SEARCH("…")`; det nye flow skal ikke
@@ -496,7 +514,7 @@ Teams og mailen, der er det sted, man svarer; hubben er et overblik.
 
 | Fase | Indhold | Hvorfor i den rækkefølge |
 |---|---|---|
-| 1 | PnP-script: nye kolonner, `Returned` i `Status`, `MD_SystemApprover` (seedet fra `flow/systemgodkendere.md`), `MD_ApprovalRole`, `MD_ApprovalLog`, `AppSettings`-rækken, miljøvariablerne | Alt andet afhænger af det |
+| 1 | PnP-script: nye kolonner, `Returned` i `Status`, `MD_Approver` (seedet fra `flow/systemgodkendere.md` plus værks- og `COST`-rækker), `MD_ApprovalLog`, `AppSettings`-rækken, miljøvariablerne | Alt andet afhænger af det |
 | 2 | Find systemnummeret i Power BI-modellen, og test DAX-forespørgslen i DAX query view | F1 kan ikke bygges uden |
 | 3 | F4, og spærren på `PlanPublished` | Virker på statusværdier, appen og makroen allerede skriver. Spærren retter en fejl, der findes i dag |
 | 4 | Appen: `ApprovalStage` ved Submit, statusbanner, låsning, `Returned` | |
@@ -509,18 +527,13 @@ operationer for over 300.000 kr.
 
 ## 12. Stadig åbent
 
-1. **Systemnummeret i Power BI-modellen.** Hvilken kolonne i
-   `'Functional Locations Man'` (eller en relateret tabel) giver
-   systemnummer 1–16 for et FL? Er det en af `[Plant Section Key]` /
-   `[Plant Unit]`, eller en kolonne ObjectList-flowet ikke henter?
-2. **Er systemnummeret det samme på alle værker?** Tabellen i
-   `flow/systemgodkendere.md` har ingen værkskolonne. Har system 7 på SSV
-   en anden System Manager end system 7 på AVV, skal listen have `Plant`.
+1. **Godkendere for værker og omkostning.** `flow/systemgodkendere.md` har
+   kun systemerne. Der mangler initialer til 1. og 2. godkender for hver af
+   `ASV`, `AVV`, `HCV`, `HEV`, `KYV`, `SKV`, `SMV`, `SSV` (lokal ASM-leder)
+   og for `COST`. Bruges alle otte værker?
+2. **Master Datas postkasse** til `BioSap-MasterDataEmail`.
 3. **Datakaldt plan og servicekontrakt** (diagrammets trin 5 og 7) er ikke
    med i oplægget. Skal appen have felter til dem, eller er de uden for
    appen?
 4. **Eksisterende planer** i `In Progress` uden `ApprovalStage`: skal de
    igennem forløbet, eller markeres de `Done` ved idriftsættelsen?
-5. **Omkostningsgodkenderen:** hvem er det, og hvem er stedfortræder ved
-   ferie? Det står i `MD_ApprovalRole`, så det kan skiftes uden at røre
-   flowet.
