@@ -88,6 +88,7 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 | `powerfx/05-html-timeline.fx` | Formel, der bygger HTML-forfaldskalenderen |
 | `sharepoint/provision/Provision-VHPlanLists.ps1` | Idempotent PnP-provisionering af alle lister |
 | `sharepoint/provision/Provision-RequestIndex.ps1` | `MD_RequestIndex` — den fælles indeksliste bag landingssiden |
+| `sharepoint/provision/Provision-VHPlanApproval.ps1` | Godkendelsesflowets fase 1: kolonner på `MaintenancePlans`, `MD_Approver`, `MD_ApprovalLog`, grænsen i `AppSettings` — se `docs/32` |
 | `sharepoint/seed/*.csv` | Eksempelmasterdata: fire strategier med pakker |
 | `schema/vhplan-request.schema.json` | Kontrakten mod SAP |
 | `schema/example-strategy-request.json` | Udfyldt eksempel (kompressor, Z-MONTH) |
