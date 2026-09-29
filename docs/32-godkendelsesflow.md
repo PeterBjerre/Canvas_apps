@@ -192,6 +192,14 @@ række det er, ses af nøglen selv:
 | `Approver1` | Text | Initialer, fx `MAXJE` |
 | `Approver2` | Text | Initialer |
 | `Approver1Absent` | Yes/No | Ja → godkendelser går til 2. godkender (§4). Standard Nej |
+| `Notes` | Text | Fri tekst. Bruges ikke af flowet |
+
+**Startindhold:** [`sharepoint/seed/MD_Approver.csv`](../sharepoint/seed/MD_Approver.csv),
+25 rækker. Under test står **`PKBJE` som 1. og 2. godkender på alle
+rækker**. `Notes` har de rigtige systemgodkendere fra
+`flow/systemgodkendere.md` ("Drift: MAXJE / PEVAN"), så de kan sættes
+tilbage i listen, når flowet er testet. Værkerne og `COST` har ingen
+udpegede godkendere endnu.
 
 Så gælder reglerne i §4 – 1. godkender, 2. ved fravær – for alle tre trin,
 og der er ét sted at vedligeholde godkendere. Systemnumre og værkskoder kan
@@ -200,9 +208,9 @@ ikke forveksles, fordi de ene er tal og de andre bogstaver.
 "Enforce unique values" sættes på `ApproverKey`, så der ikke kan stå to
 rækker for samme system eller værk.
 
-Master Data står **ikke** i tabellen. Mailen til dem går til en fælles
-postkasse eller gruppe, som ikke kan skrives som initialer. Den adresse
-bliver miljøvariablen `BioSap-MasterDataEmail`.
+Master Data står **ikke** i tabellen. Mailen til dem går til teamets
+fælles postkasse, `sapvedligehold@orsted.com`, som ikke kan skrives som
+initialer. Adressen står i miljøvariablen `BioSap-MasterDataEmail`.
 
 Flowet laver e-mailen som
 `toLower(concat(trim(Approver1), '@', parameters('BioSap-EmailDomain')))`.
@@ -256,7 +264,7 @@ ligesom `BioSap-SiteUrl`, `BioSap-List-MaintenancePlans` og
 |---|---|
 | `BioSap-EmailDomain` | `orsted.com` |
 | `BioSap-List-Approver`, `BioSap-List-ApprovalLog` | Listenavnene |
-| `BioSap-MasterDataEmail` | Fælles postkasse eller gruppe for Master Data (§7.4) |
+| `BioSap-MasterDataEmail` | `sapvedligehold@orsted.com` – Master Datas fælles postkasse (§7.4) |
 | `BioSap-PowerBI-WorkspaceId`, `BioSap-PowerBI-DatasetId` | Se §8. ObjectList-flowet har dem skrevet direkte ind; her bliver de variabler, så TEST og PROD kan pege et andet sted hen |
 
 ## 7. Flowene
@@ -520,20 +528,37 @@ Teams og mailen, der er det sted, man svarer; hubben er et overblik.
 | 4 | Appen: `ApprovalStage` ved Submit, statusbanner, låsning, `Returned` | |
 | 5 | F2 og F3, derefter F1 | F1 afhænger af fase 2 |
 
-Test i DEV med testbrugere i hver rolle og en testplan med fire items: ét
-på et system, hvor opretteren er 1. godkender; ét, hvor opretteren er 2.
-godkender; ét på et tredje system med `Approver1Absent = Ja`; og ét med
-operationer for over 300.000 kr.
+### Test med `PKBJE` på alle rækker
+
+Så længe alle rækker har `PKBJE` som godkender, gælder undtagelsen i §4 for
+**alle** items, som `PKBJE` selv opretter: systemgodkendelsen springes over
+med "opretter er 1. godkender". Omkostning og kvalitet har ingen undtagelse
+og lander hos `PKBJE` som forventet.
+
+Systemgodkendelsen testes derfor ved, at **en anden bruger** gemmer og
+indsender testplanen. Så går alle tre trin til `PKBJE`. Testplanen bør
+have:
+
+| Item | Tester |
+|---|---|
+| FL på system 1, operationer under 300.000 kr. | Systemgodkendelse; omkostning springes over |
+| FL på system 2, operationer over 300.000 kr. | Systemgodkendelse og omkostningsgodkendelse |
+| FL, der ikke findes i Power BI-modellen | Planen sendes retur med forklaring |
+
+Derefter samme plan indsendt af `PKBJE` selv (undtagelsen), én runde med
+`Approver1Absent = Ja` på en række (2. godkender), og én *Send retur* for at
+se, at kun ændrede items sendes igen.
+
+Mailen til Master Data går til `sapvedligehold@orsted.com` fra første
+test. Skal teamet ikke have testmails, sættes miljøvariablen i DEV til
+`pkbje@orsted.com`.
 
 ## 12. Stadig åbent
 
-1. **Godkendere for værker og omkostning.** `flow/systemgodkendere.md` har
-   kun systemerne. Der mangler initialer til 1. og 2. godkender for hver af
-   `ASV`, `AVV`, `HCV`, `HEV`, `KYV`, `SKV`, `SMV`, `SSV` (lokal ASM-leder)
-   og for `COST`. Bruges alle otte værker?
-2. **Master Datas postkasse** til `BioSap-MasterDataEmail`.
-3. **Datakaldt plan og servicekontrakt** (diagrammets trin 5 og 7) er ikke
+1. **Godkendere i drift** for værkerne og `COST`, når testen er færdig.
+   Står i listen, så det kræver ingen ændring af flowene.
+2. **Datakaldt plan og servicekontrakt** (diagrammets trin 5 og 7) er ikke
    med i oplægget. Skal appen have felter til dem, eller er de uden for
    appen?
-4. **Eksisterende planer** i `In Progress` uden `ApprovalStage`: skal de
+3. **Eksisterende planer** i `In Progress` uden `ApprovalStage`: skal de
    igennem forløbet, eller markeres de `Done` ved idriftsættelsen?
