@@ -522,7 +522,7 @@ Teams og mailen, der er det sted, man svarer; hubben er et overblik.
 
 | Fase | Indhold | Hvorfor i den rækkefølge |
 |---|---|---|
-| 1 | PnP-script: nye kolonner, `Returned` i `Status`, `MD_Approver` (seedet fra `flow/systemgodkendere.md` plus værks- og `COST`-rækker), `MD_ApprovalLog`, `AppSettings`-rækken, miljøvariablerne | Alt andet afhænger af det |
+| 1 | [`Provision-VHPlanApproval.ps1`](../sharepoint/provision/Provision-VHPlanApproval.ps1): nye kolonner, `Returned` i `Status`, `MD_Approver` (seedet fra `sharepoint/seed/MD_Approver.csv`), `MD_ApprovalLog`, `AppSettings`-rækken, og spærrerne på eksisterende planer. Rettigheder og miljøvariabler sættes i hånden – scriptet skriver dem ud til sidst | Alt andet afhænger af det |
 | 2 | Find systemnummeret i Power BI-modellen, og test DAX-forespørgslen i DAX query view | F1 kan ikke bygges uden |
 | 3 | F4, og spærren på `PlanPublished` | Virker på statusværdier, appen og makroen allerede skriver. Spærren retter en fejl, der findes i dag |
 | 4 | Appen: `ApprovalStage` ved Submit, statusbanner, låsning, `Returned` | |
@@ -552,6 +552,28 @@ se, at kun ændrede items sendes igen.
 Mailen til Master Data går til `sapvedligehold@orsted.com` fra første
 test. Skal teamet ikke have testmails, sættes miljøvariablen i DEV til
 `pkbje@orsted.com`.
+
+### Fase 1 – sådan køres scriptet
+
+```powershell
+cd sharepoint\provision
+.\Provision-VHPlanApproval.ps1 -SiteUrl "https://orsted.sharepoint.com/teams/BioSAPDEV" -Environment DEV -WhatIfOnly
+.\Provision-VHPlanApproval.ps1 -SiteUrl "https://orsted.sharepoint.com/teams/BioSAPDEV" -Environment DEV
+```
+
+Det kan køres igen uden skade. Tre ting at vide:
+
+- **`MD_Approver` overskrives ikke.** Rækker, der findes, bliver stående,
+  så de rigtige initialer ikke erstattes af testinitialerne ved næste
+  kørsel. `-Force` sætter dem tilbage til csv'en.
+- **Spærrerne på eksisterende planer.** `RequesterNotified` sættes på
+  planer i `Published`, og `MasterDataNotified` på planer i `Ready for
+  creation in SAP` og `Published`. Ellers ville de to mailflows sende mails
+  om planer, der er afsluttet for længst, så snart de får deres spærre.
+  Opdateringen er en *SystemUpdate*: `Modified` og `Modified By` ændres
+  ikke. `-SkipBackfill` springer det over.
+- **`ApprovalStage` sættes ikke** på eksisterende planer. Planer i
+  `In Progress` i dag bliver derfor ikke sendt til godkendelse af sig selv.
 
 ## 12. Stadig åbent
 
