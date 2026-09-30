@@ -206,6 +206,7 @@ tools/check_layout.py    layout-tjekket
 tools/build_domain.py    Equipments og Materials' fælles skærm
 tools/attflows.py        flow-kontrakten for dokumenter
 tools/build_flsearch.py  flow-kontrakten for FL-søgning
+tools/fl_picker.py       FL-vælgeren: én ModernCombobox + Search (VH-plan, Eq, Mat)
 tools/design_tokens.py   alle farver
 tools/layout_tokens.py   alle breakpoints
 ```
@@ -770,7 +771,7 @@ egenskaber, builderne bevidst sætter.
    bliver gennemsigtig — og det ses kun af de brugere, der har slået mørk
    tilstand til.
 5. **Brug konstruktioner, der allerede findes i skærmen.** `ModernDropdown`,
-   `Classic/ComboBox` til søg-og-vælg, gallery med `ModernCheckbox`, vandret
+   `ModernCombobox` til søg-og-vælg (`tools/fl_picker.py`), gallery med `ModernCheckbox`, vandret
    gallery til dynamiske kolonner. Hver ubevist konstruktion i dette projekt
    har kostet en deploy-runde.
 6. **`ctrl.vis` skriver `Visible` igennem.** Sæt synlighed med `visible=` i
@@ -794,23 +795,33 @@ egenskaber, builderne bevidst sætter.
    padding der æder scrollbarens plads. Regel 4c og 23 håndhæver det — se
    `docs/30-responsivt-layout.md`.
 
-### Brug ikke `Classic/ComboBox` til søgning
+### Functional Location: én `ModernCombobox` — `tools/fl_picker.py`
 
-Den blev prøvet til FL-feltet, fordi den som den eneste eksponerer
-`SearchText` og dermed muliggør søg-mens-du-skriver. **Det virkede ikke.**
-Flowet returnerede 819 Functional Locations, beskeden sagde det — og
-dropdownen var tom. Comboboksens indbyggede søgefiltrering viste ingen af de
-rækker, den havde fået, og det lag kan ikke inspiceres udefra.
+**`Classic/ComboBox` må stadig ikke bruges til søgning.** Den fik 819
+Functional Locations fra flowet og viste nul — dens indbyggede filter lå i
+et lag, der ikke kunne ses.
 
-FL-feltet er nu **søgefelt + søgeknap + almindelig `ModernDropdown`**, hvor
-dropdownen viser præcis det, samlingen indeholder. Objektlisten er et
-**galleri med `ModernCheckbox`** — multi-select uden combobox, og samme
-konstruktion som tasklist-pickeren og pakkematricen allerede bruger.
+FL-feltet er nu **én `ModernCombobox` + Search-knap** i alle tre apps, der
+har det (VH-plan, Equipments, Materials, issue #63/#68). Det er den samme
+funktion, `fl_picker()`, og den samme flow-kontrakt, `build_flsearch.py`:
 
-Det er også mere ensartet: alle felter i Item Editor ser nu ens ud.
+- Search er deaktiveret under 7 tegn. Search kalder flowet **én** gang;
+  derefter filtrerer comboboksen svaret lokalt, uden nye kald.
+- **Enter:** comboboksen har ingen Enter-hændelse, kun `OnChange` ved et
+  valg. Derfor står en søgerække (`SEARCH_CODE`) i listen, når teksten er
+  en ny søgning — Enter vælger den, og `OnChange` søger i stedet for at
+  gemme. Den står nederst, når brugeren blot snævrer det sidste svar ind.
+- **Mens flowet kører**, er knappen skiftet ud med en boks af samme
+  størrelse med én `ModernSpinner` — ingen prikker, ingen fuldskærmsspinner.
+- En ny søgning rydder gamle resultater og valget. Fejl og nul fund giver en
+  kort `Notify`.
+- Objektlisten (VH-plan) er stadig et **galleri med `ModernCheckbox`** i en
+  popup. Knappen viser antallet (`Object List (3)`), er deaktiveret uden
+  data og viser de valgte som `Tooltip`.
 
-Mønsteret er værd at huske ud over denne app: **når data er der, men ikke
-vises, så mistænk kontrollens eget filter før dine egne formler.**
+**Efterprøv i Studio mod rigtige data**, hvis comboboksen nogensinde viser
+færre rækker end samlingen har — mistænk kontrollens eget filter før dine
+egne formler.
 
 ## Navigation mellem apps: `LaunchTarget.Replace`
 

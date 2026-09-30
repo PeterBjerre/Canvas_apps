@@ -45,10 +45,11 @@ Screens:
                   Set(varEqRowStatus, "valid");
                   Set(varEqAttJson, "");
                   Set(varEqFlMsg, "");
-                  // FL-soegningen: teksten uden Enter-linjeskift, og om flowet koerer.
+                  // FL-vaelgeren (tools/fl_picker.py): soegeteksten, den sidste soegning,
+                  // og om flowet koerer.
                   Set(varEqFlQuery, "");
+                  Set(varEqFlLast, "");
                   Set(varEqFlBusy, false);
-                  Set(varEqFlDots, 0);
                   Set(varEqInfo, "");
                   // Listen: false = Compact, true = All columns (issue #68).
                   Set(varEqAllCols, false);
@@ -78,6 +79,7 @@ Screens:
                   Set(varEqFWarrantyEnd, Blank());
                   Set(varEqFlMsg, "");
                   Set(varEqFlQuery, "");
+                  Set(varEqFlLast, "");
                   Reset(cmbEqFl);
                   Set(varEqInfo, "New row - fill in and save.")
               )
@@ -477,7 +479,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =94 + 14 + (If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62)) + 60, (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))) + 14 + (62)))) + (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 20), (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 0)) + If(!IsBlank(varEqFlMsg), 14 + (18), 0) + 14 + (If((((App.Width - 120) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 36, (28) + 8 + (36) + 8 + (36) + 8 + (36) + 8 + (36)))
+                            =94 + 14 + (If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0))) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62)) + 60, (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0))) + 14 + (62)))) + (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 20), (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0))) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 0)) + If(!IsBlank(varEqFlMsg), 14 + (18), 0) + 14 + (If((((App.Width - 120) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 36, (28) + 8 + (36) + 8 + (36) + 8 + (36) + 8 + (36)))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -650,7 +652,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62)) + 60, (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))) + 14 + (62)))) + (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 20), (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 0)
+                                  =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0))) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62)) + 60, (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0))) + 14 + (62)))) + (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 20), (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0))) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 0)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -1407,7 +1409,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))) + 14 + (62)
+                                        =0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0))) + 14 + (62)
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Stretch
                                     LayoutDirection: |-
@@ -1763,7 +1765,7 @@ Screens:
                                           FillPortions: |-
                                               =0
                                           Height: |-
-                                              =20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))
+                                              =20 + 6 + (36 + If(false, 0 + (1), 0))
                                           LayoutAlignItems: |-
                                               =LayoutAlignItems.Stretch
                                           LayoutDirection: |-
@@ -1825,7 +1827,7 @@ Screens:
                                                 FillPortions: |-
                                                     =0
                                                 Height: |-
-                                                    =36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0)
+                                                    =36 + If(false, 0 + (1), 0)
                                                 LayoutAlignItems: |-
                                                     =LayoutAlignItems.Stretch
                                                 LayoutDirection: |-
@@ -1872,7 +1874,7 @@ Screens:
                                                           Control: ModernCombobox
                                                           Properties:
                                                             AccessibleLabel: |-
-                                                                ="Functional location - type at least 7 characters and select Search"
+                                                                ="Functional location - type at least 7 characters, then Search or Enter"
                                                             Appearance: |-
                                                                 =Appearance.Outline
                                                             BorderColor: |-
@@ -1883,6 +1885,8 @@ Screens:
                                                                 =1
                                                             DefaultSelectedItems: |-
                                                                 =Filter(colEqFl, Code = varEqFFunctionalLocation)
+                                                            DelayOutput: |-
+                                                                =false
                                                             DisplayMode: |-
                                                                 =If(varEqRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                                             Fill: |-
@@ -1900,49 +1904,33 @@ Screens:
                                                             ItemDisplayText: |-
                                                                 =ThisItem.Display
                                                             Items: |-
-                                                                =colEqFl
+                                                                =With(
+                                                                    { q: Trim(Self.SearchText) },
+                                                                    With(
+                                                                        {
+                                                                            s: Table({ Code: "?search", Description: q,
+                                                                                       Display: q & "  -  press Enter to search SAP",
+                                                                                       Maintainable: true, Level: "" }),
+                                                                            ask: Len(q) >= 7 && !varEqFlBusy &&
+                                                                                 Upper(q) <> Upper(Coalesce(varEqFlLast, "")),
+                                                                            narrow: CountRows(colEqFl) > 0 && !IsBlank(varEqFlLast) &&
+                                                                                    StartsWith(Upper(q), Upper(varEqFlLast))
+                                                                        },
+                                                                        If(
+                                                                            !ask, colEqFl,
+                                                                            narrow, Ungroup(Table({ Rows: colEqFl }, { Rows: s }), Rows),
+                                                                            Ungroup(Table({ Rows: s }, { Rows: colEqFl }), Rows)
+                                                                        )
+                                                                    )
+                                                                )
                                                             LayoutMinWidth: |-
                                                                 =0
                                                             OnChange: |-
-                                                                =Set(varEqFFunctionalLocation, Coalesce(Self.Selected.Code, ""))
-                                                            SelectMultiple: |-
-                                                                =false
-                                                            Size: |-
-                                                                =14
-                                                            Width: |-
-                                                                =Max(0, ((((If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4))))) - ((86) + 8) - 2)
-                                                      - btnEqFlSearch:
-                                                          Control: ModernButton
-                                                          Properties:
-                                                            AccessibleLabel: |-
-                                                                ="Search functional location"
-                                                            Align: |-
-                                                                =Align.Center
-                                                            AlignInContainer: |-
-                                                                =AlignInContainer.Center
-                                                            Appearance: |-
-                                                                =ButtonAppearance.Outline
-                                                            BorderColor: |-
-                                                                =C.'border-default'
-                                                            BorderThickness: |-
-                                                                =1
-                                                            Color: |-
-                                                                =C.'text-primary'
-                                                            DisplayMode: |-
-                                                                =If(varEqFlBusy, DisplayMode.Disabled, If(varEqRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit))
-                                                            Font: |-
-                                                                =Font.'Segoe UI'
-                                                            FontWeight: |-
-                                                                =FontWeight.Semibold
-                                                            Height: |-
-                                                                =36
-                                                            Layout: |-
-                                                                =ButtonLayout.TextOnly
-                                                            LayoutMinWidth: |-
-                                                                =86
-                                                            OnSelect: |-
-                                                                =With(
-                                                                    { q: Trim(Coalesce(cmbEqFl.SearchText, varEqFlQuery)) },
+                                                                =If(
+                                                                    Self.Selected.Code = "?search",
+                                                                    Set(varEqFlQuery, Self.Selected.Description);
+                                                                    With(
+                                                                    { q: Trim(varEqFlQuery) },
                                                                     If(
                                                                         Len(q) < 7,
                                                                         Notify(
@@ -1951,6 +1939,9 @@ Screens:
                                                                         ),
                                                                 
                                                                         Set(varEqFlBusy, true);
+                                                                        Set(varEqFlLast, q);
+                                                                        Clear(colEqFl);
+                                                                        Set(varEqFFunctionalLocation, "");
                                                                         Set(varEqFlMsg, "Searching for " & q & " ...");
                                                                         IfError(
                                                                             Set(varEqFlRaw, 'BioSap-Integration-FunctionalLocations'.Run(q));
@@ -1972,6 +1963,10 @@ Screens:
                                                                     )
                                                                 )
                                                                             );
+                                                                            If(
+                                                                                CountRows(colEqFl) = 0,
+                                                                                Notify("No functional locations found for " & q & ".", NotificationType.Warning)
+                                                                            );
                                                                             Set(
                                                                                 varEqFlMsg,
                                                                                 With(
@@ -1989,7 +1984,108 @@ Screens:
                                                                                 )
                                                                             ),
                                                                             Clear(colEqFl);
-                                                                            Set(varEqFlMsg, "Search failed: " & FirstError.Message)
+                                                                            Set(varEqFlMsg, "Search failed: " & FirstError.Message);
+                                                                            Notify("The functional locations search failed. Try again.", NotificationType.Error)
+                                                                        );
+                                                                        Set(varEqFlBusy, false)
+                                                                    )
+                                                                );
+                                                                    Reset(cmbEqFl),
+                                                                    Set(varEqFFunctionalLocation, Coalesce(Self.Selected.Code, ""))
+                                                                )
+                                                            SelectMultiple: |-
+                                                                =false
+                                                            Size: |-
+                                                                =14
+                                                            Width: |-
+                                                                =Max(0, ((((If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4))))) - (If(!varEqFlBusy, (86) + 8, 0)) - (If(varEqFlBusy, (86) + 8, 0)) - 2)
+                                                      - btnEqFlSearch:
+                                                          Control: ModernButton
+                                                          Properties:
+                                                            AccessibleLabel: |-
+                                                                ="Search functional location"
+                                                            Align: |-
+                                                                =Align.Center
+                                                            AlignInContainer: |-
+                                                                =AlignInContainer.Center
+                                                            Appearance: |-
+                                                                =ButtonAppearance.Outline
+                                                            BorderColor: |-
+                                                                =C.'border-default'
+                                                            BorderThickness: |-
+                                                                =1
+                                                            Color: |-
+                                                                =C.'text-primary'
+                                                            DisplayMode: |-
+                                                                =If(Len(Trim(Coalesce(cmbEqFl.SearchText, varEqFlQuery))) < 7, DisplayMode.Disabled, If(varEqRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit))
+                                                            Font: |-
+                                                                =Font.'Segoe UI'
+                                                            FontWeight: |-
+                                                                =FontWeight.Semibold
+                                                            Height: |-
+                                                                =36
+                                                            Layout: |-
+                                                                =ButtonLayout.TextOnly
+                                                            LayoutMinWidth: |-
+                                                                =86
+                                                            OnSelect: |-
+                                                                =With(
+                                                                    { q: Trim(Coalesce(cmbEqFl.SearchText, varEqFlQuery)) },
+                                                                    If(
+                                                                        Len(q) < 7,
+                                                                        Notify(
+                                                                            "Type at least 7 characters before searching.",
+                                                                            NotificationType.Warning
+                                                                        ),
+                                                                
+                                                                        Set(varEqFlBusy, true);
+                                                                        Set(varEqFlLast, q);
+                                                                        Clear(colEqFl);
+                                                                        Set(varEqFFunctionalLocation, "");
+                                                                        Set(varEqFlMsg, "Searching for " & q & " ...");
+                                                                        IfError(
+                                                                            Set(varEqFlRaw, 'BioSap-Integration-FunctionalLocations'.Run(q));
+                                                                            If(
+                                                                                IsBlank(varEqFlRaw) || IsBlank(varEqFlRaw.functionallocationoutput),
+                                                                                Clear(colEqFl),
+                                                                                ClearCollect(
+                                                                    colEqFl,
+                                                                    ForAll(
+                                                                        Table(ParseJSON(varEqFlRaw.functionallocationoutput)) As R,
+                                                                        {
+                                                                            Code: Text(R.Value.functionKey),
+                                                                            Description: Text(R.Value.description),
+                                                                            Display: Text(R.Value.functionKey) & " - " & Text(R.Value.description) &
+                                                                                If(Boolean(R.Value.maintainable), "", "   (not maintainable)"),
+                                                                            Maintainable: Boolean(R.Value.maintainable),
+                                                                            Level: Text(R.Value.level)
+                                                                        }
+                                                                    )
+                                                                )
+                                                                            );
+                                                                            If(
+                                                                                CountRows(colEqFl) = 0,
+                                                                                Notify("No functional locations found for " & q & ".", NotificationType.Warning)
+                                                                            );
+                                                                            Set(
+                                                                                varEqFlMsg,
+                                                                                With(
+                                                                                    { n: CountRows(colEqFl) },
+                                                                                    If(
+                                                                                        n = 0,
+                                                                                        "No Functional Locations found for " & q & ".",
+                                                                                        Text(n) & " Functional Locations found for " & q & ". " &
+                                                                                            If(
+                                                                                                n > 50,
+                                                                                                "The list is long - type more characters to narrow it.",
+                                                                                                "Select one from the list below."
+                                                                                            )
+                                                                                    )
+                                                                                )
+                                                                            ),
+                                                                            Clear(colEqFl);
+                                                                            Set(varEqFlMsg, "Search failed: " & FirstError.Message);
+                                                                            Notify("The functional locations search failed. Try again.", NotificationType.Error)
                                                                         );
                                                                         Set(varEqFlBusy, false)
                                                                     )
@@ -2005,11 +2101,67 @@ Screens:
                                                             Size: |-
                                                                 =14
                                                             Text: |-
-                                                                =If(varEqFlBusy, Left("...", 1 + varEqFlDots), "Search")
+                                                                ="Search"
                                                             VerticalAlign: |-
                                                                 =VerticalAlign.Middle
+                                                            Visible: |-
+                                                                =!varEqFlBusy
                                                             Width: |-
                                                                 =86
+                                                      - conEqFlSearchBusy:
+                                                          Control: GroupContainer
+                                                          Variant: AutoLayout
+                                                          Properties:
+                                                            BorderColor: |-
+                                                                =C.'border-default'
+                                                            BorderThickness: |-
+                                                                =1
+                                                            DropShadow: |-
+                                                                =DropShadow.None
+                                                            Fill: |-
+                                                                =C.'input-bg-disabled'
+                                                            FillPortions: |-
+                                                                =0
+                                                            Height: |-
+                                                                =36
+                                                            LayoutAlignItems: |-
+                                                                =LayoutAlignItems.Center
+                                                            LayoutDirection: |-
+                                                                =LayoutDirection.Horizontal
+                                                            LayoutGap: |-
+                                                                =0
+                                                            LayoutJustifyContent: |-
+                                                                =LayoutJustifyContent.Center
+                                                            LayoutMinWidth: |-
+                                                                =86
+                                                            LayoutOverflowX: |-
+                                                                =LayoutOverflow.Hide
+                                                            LayoutOverflowY: |-
+                                                                =LayoutOverflow.Hide
+                                                            RadiusBottomLeft: |-
+                                                                =10
+                                                            RadiusBottomRight: |-
+                                                                =10
+                                                            RadiusTopLeft: |-
+                                                                =10
+                                                            RadiusTopRight: |-
+                                                                =10
+                                                            Visible: |-
+                                                                =varEqFlBusy
+                                                            Width: |-
+                                                                =86
+                                                          Children:
+                                                            - spnEqFlSearch:
+                                                                Control: ModernSpinner
+                                                                Properties:
+                                                                  AccessibleLabel: |-
+                                                                      ="Searching functional locations"
+                                                                  Height: |-
+                                                                      =24
+                                                                  Label: |-
+                                                                      =""
+                                                                  Width: |-
+                                                                      =24
                                                 - tmrEqFlCapture:
                                                     Control: Timer
                                                     Properties:
@@ -2027,27 +2179,6 @@ Screens:
                                                           =true
                                                       Start: |-
                                                           =!IsBlank(cmbEqFl.SearchText)
-                                                      Visible: |-
-                                                          =false
-                                                      Width: |-
-                                                          =1
-                                                - tmrEqFlDots:
-                                                    Control: Timer
-                                                    Properties:
-                                                      AutoPause: |-
-                                                          =false
-                                                      AutoStart: |-
-                                                          =false
-                                                      Duration: |-
-                                                          =400
-                                                      Height: |-
-                                                          =1
-                                                      OnTimerEnd: |-
-                                                          =Set(varEqFlDots, Mod(varEqFlDots + 1, 3))
-                                                      Repeat: |-
-                                                          =true
-                                                      Start: |-
-                                                          =varEqFlBusy
                                                       Visible: |-
                                                           =false
                                                       Width: |-
@@ -3358,6 +3489,7 @@ Screens:
                                             Set(varEqFWarrantyEnd, Blank());
                                             Set(varEqFlMsg, "");
                                             Set(varEqFlQuery, "");
+                                            Set(varEqFlLast, "");
                                             Reset(cmbEqFl);
                                             Set(varEqInfo, "Row deleted. The documents remain in the library.")
                                         )
@@ -3710,6 +3842,7 @@ Screens:
                                         Set(varEqFWarrantyEnd, Blank());
                                         Set(varEqFlMsg, "");
                                         Set(varEqFlQuery, "");
+                                        Set(varEqFlLast, "");
                                         Reset(cmbEqFl);
                                         Set(varEqInfo, "New row - fill in and save.")
                                     RadiusBottomLeft: |-
@@ -5049,7 +5182,7 @@ Screens:
                                         Set(varEqFWarrantyEnd, ThisItem.WarrantyEnd);
                                         If(
                                             !IsBlank(ThisItem.FunctionalLocation) && IsBlank(LookUp(colEqFl, Code = ThisItem.FunctionalLocation)),
-                                            Collect(colEqFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation, Maintainable: true, Level: "" })
+                                            Collect(colEqFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
                                         )
                                     Selectable: |-
                                         =true
@@ -5975,7 +6108,7 @@ Screens:
                                               Set(varEqFWarrantyEnd, ThisItem.WarrantyEnd);
                                               If(
                                                   !IsBlank(ThisItem.FunctionalLocation) && IsBlank(LookUp(colEqFl, Code = ThisItem.FunctionalLocation)),
-                                                  Collect(colEqFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation, Maintainable: true, Level: "" })
+                                                  Collect(colEqFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
                                               )
                                           RadiusBottomLeft: |-
                                               =10
@@ -6042,7 +6175,7 @@ Screens:
                                               Set(varEqFWarrantyEnd, ThisItem.WarrantyEnd);
                                               If(
                                                   !IsBlank(ThisItem.FunctionalLocation) && IsBlank(LookUp(colEqFl, Code = ThisItem.FunctionalLocation)),
-                                                  Collect(colEqFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation, Maintainable: true, Level: "" })
+                                                  Collect(colEqFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
                                               );
                                               Set(varEqInfo, "Copied to a new row - not saved yet. Documents were not copied.")
                                           RadiusBottomLeft: |-
@@ -6119,6 +6252,7 @@ Screens:
                                                   Set(varEqFWarrantyEnd, Blank());
                                                   Set(varEqFlMsg, "");
                                                   Set(varEqFlQuery, "");
+                                                  Set(varEqFlLast, "");
                                                   Reset(cmbEqFl);
                                                   Set(varEqInfo, "New row - fill in and save.")
                                               );
@@ -7390,7 +7524,7 @@ Screens:
                             Set(varEqFWarrantyEnd, LookUp(colEqRows, RowId = varEqDetailsId).WarrantyEnd);
                             If(
                                 !IsBlank(LookUp(colEqRows, RowId = varEqDetailsId).FunctionalLocation) && IsBlank(LookUp(colEqFl, Code = LookUp(colEqRows, RowId = varEqDetailsId).FunctionalLocation)),
-                                Collect(colEqFl, { Code: LookUp(colEqRows, RowId = varEqDetailsId).FunctionalLocation, Description: "", Display: LookUp(colEqRows, RowId = varEqDetailsId).FunctionalLocation, Maintainable: true, Level: "" })
+                                Collect(colEqFl, { Code: LookUp(colEqRows, RowId = varEqDetailsId).FunctionalLocation, Description: "", Display: LookUp(colEqRows, RowId = varEqDetailsId).FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
                             );
                             Set(varEqDetailsId, Blank())
                         RadiusBottomLeft: |-

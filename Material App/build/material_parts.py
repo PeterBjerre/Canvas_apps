@@ -41,11 +41,12 @@ REQUIRED = dp.REQUIRED
 # Functional Location og No BOM Item
 # ---------------------------------------------------------------------------
 def _fl_cell():
-    """Functional Location - EEN celle: soegningen over dropdownen.
+    """Functional Location - EEN celle med EEN combobox og Search
+    (fl_picker.py, issue #63).
 
     Stjernen staar kun, naar feltet er kraevet: No BOM Item slaar kravet
     fra, og saa ville en stjerne paa et deaktiveret felt lyve."""
-    search, drop = dp.build_fl_controls(
+    picker = dp.build_fl_picker(
         CELL_W, lock=NOBOM, required_formula=f"{REQUIRED} && !{NOBOM}")
     label = "Functional location"
     lbl = text_ctrl("conDomFlLbl", f'"{label}"', size=13, weight="Semibold",
@@ -56,7 +57,7 @@ def _fl_cell():
                      accessible='"Required"', visible=f"!{NOBOM}")
     head = group("conDomFlLblRow", [lbl, star], direction="Horizontal", gap=3,
                  height=20, align_items="Center")
-    return group("conDomFl", [head, search, drop], direction="Vertical", gap=6,
+    return group("conDomFl", [head, picker], direction="Vertical", gap=6,
                  width=CELL_W, align_in_container="Start")
 
 
@@ -69,8 +70,7 @@ def toggle_nobom_fx():
         f"    {NOBOM},\n"
         f'    Set({FL_VAR}, "");\n'
         f'    Set({dp.FL_QUERY_VAR}, "");\n'
-        "    Reset(txtDomFlQuery);\n"
-        "    Reset(drpDomFl);\n"
+        f"    Reset({dp.FL_COMBO});\n"
         '    Set(varDomFlMsg, "No BOM item - a functional location is not required."),\n'
         '    Set(varDomFlMsg, "")\n'
         ")"

@@ -85,9 +85,11 @@ Set(varVhpFlMeta, "");
 // varVhpSavedJson er planen, som den stod ved sidste gemning i SharePoint.
 Set(varVhpSavedJson, "");
 Set(varVhpPrevPlant, "");
-// FL-soegningens ventetilstand og Object List-popup'en.
+// FL-vaelgeren (tools/fl_picker.py): om flowet koerer, soegeteksten og
+// den sidste soegning - og Object List-popup'en.
 Set(varVhpFlBusy, false);
-Set(varVhpFlDots, 0);
+Set(varVhpFlQuery, "");
+Set(varVhpFlLast, "");
 Set(varVhpObjListOpen, false);
 // Trinet, der sidst er klikket i progressbaren - dets sektion har en tyk kant.
 Set(varVhpFocusStep, 0);

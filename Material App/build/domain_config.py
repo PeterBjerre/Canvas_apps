@@ -65,9 +65,9 @@ PLAY_URL = env.play_url("material")
 # LaunchTarget.Replace, saa det sker i den fane, brugeren staar i.
 HUB_URL = env.hub_url()
 
-# Feltet der skal have FL-SOEGNING i stedet for et tekstfelt.
-# Konstruktionen er VH-plan-appens - soegefelt, soegeknap og dropdown -
-# kopieret i build_flsearch.py. Flowet er allerede datakilde i begge apps.
+# Feltet der skal have FL-SOEGNING i stedet for et tekstfelt: EEN combobox
+# med Search-knap (tools/fl_picker.py, issue #63) - den samme i alle tre
+# apps. Flowet er allerede datakilde.
 FL_FIELD = "FunctionalLocation"
 
 # --- felterne ---------------------------------------------------------
