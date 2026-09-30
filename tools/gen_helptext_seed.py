@@ -44,7 +44,6 @@ import ast
 import csv
 import io
 import os
-import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HELP = os.path.join(ROOT, "Maintenance Plan App", "build", "build_help.py")

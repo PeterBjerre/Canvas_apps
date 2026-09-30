@@ -17,7 +17,7 @@ _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.dirname(
 
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gen_screen import Ctrl, render_screen, C_APP_BG, OUT_DIR
+from gen_screen import render_screen, C_APP_BG, OUT_DIR
 from build_helpers import app_frame
 from build_hero import build_top_bar, HELP_ON, HELP_ACTION, focus_border, CONFIRM
 from build_helpers import loading_overlay

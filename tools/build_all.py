@@ -13,7 +13,7 @@ ordret ens, FOER der bygges. Er de ikke, staar der hvilken fil det er, og
 hvilken app der har den nyeste udgave.
 """
 import argparse
-import os, re, shutil, subprocess, sys, filecmp
+import os, re, shutil, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # EN UDGAVE, IKKE FIRE KOPIER
@@ -97,35 +97,42 @@ def check_no_raw_colors():
     rgba = re.compile(r"RGBA\s*\(")
     hexc = re.compile(r"#[0-9a-fA-F]{6}\b")
     bad = []
-    for app, _ in APPS:
-        for path in sorted(glob.glob(os.path.join(ROOT, app, "build", "*.py"))):
-            rel = os.path.relpath(path, ROOT)
-            src = open(path, encoding="utf-8").read()
-            try:
-                tree = ast.parse(src)
-            except SyntaxError as e:
-                bad.append(f"{rel}: kan ikke parses ({e})")
+    # tools/ med: det meste UI-kode (domain_parts, build_helpers, side_nav,
+    # fl_picker) bor der nu. Kun design_tokens.py maa skrive en farve, og
+    # denne fil naevner RGBA( i sin egen fejlbesked.
+    own = {"design_tokens.py", "build_all.py"}
+    paths = [p for app, _ in APPS
+             for p in sorted(glob.glob(os.path.join(ROOT, app, "build", "*.py")))]
+    paths += [p for p in sorted(glob.glob(os.path.join(ROOT, "tools", "*.py")))
+              if os.path.basename(p) not in own]
+    for path in paths:
+        rel = os.path.relpath(path, ROOT)
+        src = open(path, encoding="utf-8").read()
+        try:
+            tree = ast.parse(src)
+        except SyntaxError as e:
+            bad.append(f"{rel}: kan ikke parses ({e})")
+            continue
+        docs = set()
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.Module, ast.FunctionDef,
+                                 ast.AsyncFunctionDef, ast.ClassDef)):
+                b = node.body
+                if (b and isinstance(b[0], ast.Expr)
+                        and isinstance(b[0].value, ast.Constant)
+                        and isinstance(b[0].value.value, str)):
+                    docs.add(id(b[0].value))
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Constant):
                 continue
-            docs = set()
-            for node in ast.walk(tree):
-                if isinstance(node, (ast.Module, ast.FunctionDef,
-                                     ast.AsyncFunctionDef, ast.ClassDef)):
-                    b = node.body
-                    if (b and isinstance(b[0], ast.Expr)
-                            and isinstance(b[0].value, ast.Constant)
-                            and isinstance(b[0].value.value, str)):
-                        docs.add(id(b[0].value))
-            for node in ast.walk(tree):
-                if not isinstance(node, ast.Constant):
-                    continue
-                if not isinstance(node.value, str) or id(node) in docs:
-                    continue
-                if rgba.search(node.value):
-                    bad.append(f"{rel}:{node.lineno}: RGBA(...) i en builder "
-                               f"- brug design_tokens.ref()")
-                elif hexc.search(node.value):
-                    bad.append(f"{rel}:{node.lineno}: hex-farve i en builder "
-                               f"- brug design_tokens.ref_hex()")
+            if not isinstance(node.value, str) or id(node) in docs:
+                continue
+            if rgba.search(node.value):
+                bad.append(f"{rel}:{node.lineno}: RGBA(...) i en builder "
+                           f"- brug design_tokens.ref()")
+            elif hexc.search(node.value):
+                bad.append(f"{rel}:{node.lineno}: hex-farve i en builder "
+                           f"- brug design_tokens.ref_hex()")
     return bad
 
 
@@ -273,7 +280,6 @@ def main(argv=None):
             if r.returncode:
                 print("  -> reglerne er ikke i trit. Koer: node tools/fl/harness.js plan")
                 return r.returncode
-            doc_check = True
         else:
             print("\nNB: node findes ikke - FL-reglerne er IKKE efterproevet mod html/*.js.")
         doc_check = True

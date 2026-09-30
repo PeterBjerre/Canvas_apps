@@ -25,11 +25,10 @@ INVARIANT: PackagesKey er aldrig tom - en operation uden pakker har ";".
 """
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_PRIMARY, C_WHITE,
-                        C_INFO_FG, C_INFO_BG, C_NEUTRAL_BG, C_DIVIDER, C_VALID_FG, C_INVALID_FG,
-                        C_TRANSPARENT, FONT, SHELL_W)
-from build_helpers import text_ctrl, group, button, button_row, badge, card, checkbox_theme
-from build_plan_header import section_header, help_panel
+from gen_screen import (Ctrl, C_MUTED, C_DIVIDER, C_VALID_FG, C_INVALID_FG,
+                        C_TRANSPARENT, SHELL_W)
+from build_helpers import text_ctrl, group, button, button_row, checkbox_theme
+from build_plan_header import help_panel
 
 IS_STRATEGY = "(varVhpPlan.PlanType = \"Strategy\")"
 PKGS = "Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)"

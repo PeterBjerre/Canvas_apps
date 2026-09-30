@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED, C_PRIMARY, C_WHITE,
-                        C_MODAL_BG, C_PRIMARY_SOFT,
-                        C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, C_VALID_FG, C_INVALID_FG,
-                        C_DIVIDER, C_TRANSPARENT, C_INPUT_BG, FONT, SHELL_W)
-from build_helpers import (checkbox_theme, table_surface, flow_row, text_ctrl, group, button, button_row, text_input, number_input, dropdown,
-                           label_row, field_cell, two_col_row, badge, card, pin_widths, grow,
+from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
+                        C_PRIMARY, C_WHITE, C_MODAL_BG, C_PRIMARY_SOFT,
+                        C_INVALID_FG, C_DIVIDER, C_TRANSPARENT, SHELL_W)
+from build_helpers import (checkbox_theme, table_surface, flow_row, text_ctrl,
+                           group, button, text_input, number_input, dropdown,
+                           field_cell, card, pin_widths, grow,
                            fit_button_width, fit_button_row, ICON_W)
 from build_plan_header import section_header, help_panel
 import build_help as bh

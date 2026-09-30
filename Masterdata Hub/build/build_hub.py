@@ -15,8 +15,9 @@ filter, og flisernes tal taelles paa det samme, allerede afgraensede saet.
 """
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_PRIMARY,
-                        C_MUTED_BG, C_MODAL_BG, C_DIVIDER, C_TRANSPARENT, FONT, SHELL_W)
+from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
+                        C_PRIMARY, C_MUTED_BG, C_MODAL_BG, C_DIVIDER,
+                        C_TRANSPARENT, SHELL_W)
 from build_helpers import (row_rule, row_hit, text_input, text_ctrl, group, button, card, flow_row, top_bar,
                            fit_button_width, ICON_W)
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, STATUS_ICON, APP_TARGET

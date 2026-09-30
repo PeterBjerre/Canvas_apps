@@ -79,19 +79,20 @@ LONG_RESULT = 50
 # pludselig Equipment-appens variabelnavn.
 #
 # Navnet foelger appens egen konvention (varVhp* / varDom*), saa det hoerer
-# hos KALDEREN. Nu er der ingen linje tilbage, der kan skille to apps ad.
-DEFAULT_RAW = "varDomFlRaw"
+# hos KALDEREN - og det er derfor OBLIGATORISK. Her stod en standardvaerdi
+# ("varDomFlRaw"), og en kalder, der glemte parameteren, fik stille og
+# roligt en anden apps variabel: praecis den fejl, der er beskrevet ovenfor.
 
 
-def _array_expr(_RAW=DEFAULT_RAW):
+def _array_expr(raw_var):
     """Udtrykket der giver JSON-arrayet fra flow-svaret."""
-    base = f"ParseJSON({_RAW}.{FLOW_OUTPUT})"
+    base = f"ParseJSON({raw_var}.{FLOW_OUTPUT})"
     if JSON_ARRAY_PATH:
         base = f"{base}.{JSON_ARRAY_PATH}"
     return f"Table({base})"
 
 
-def collect_results(target_collection, raw_var=DEFAULT_RAW):
+def collect_results(target_collection, *, raw_var):
     """ClearCollect af flow-svaret ind i en samling til comboboksen.
 
     Display er kode + beskrivelse i eet felt. Comboboksen soeger og viser paa
@@ -116,8 +117,8 @@ def collect_results(target_collection, raw_var=DEFAULT_RAW):
     )
 
 
-def search_action(query_ctrl, target_collection, msg_var,
-                  label="Functional Locations", raw_var=DEFAULT_RAW,
+def search_action(query_ctrl, target_collection, msg_var, *, raw_var,
+                  label="Functional Locations",
                   busy_var=None, query_expr=None, last_var=None, on_start=None,
                   on_found=None):
     """Soegningen, som den ser ud bag en SOEGEKNAP.
@@ -173,7 +174,7 @@ def search_action(query_ctrl, target_collection, msg_var,
         f"            If(\n"
         f"                IsBlank({raw_var}) || IsBlank({raw_var}.{FLOW_OUTPUT}),\n"
         f"                Clear({target_collection}),\n"
-        f"                {collect_results(target_collection, raw_var)}\n"
+        f"                {collect_results(target_collection, raw_var=raw_var)}\n"
         f"            );\n"
         f"            If(\n"
         f"                CountRows({target_collection}) = 0,\n"

@@ -59,11 +59,19 @@ try {
         $cfgPath = Join-Path $PSScriptRoot "canvas_apps.json"
         if (Test-Path $cfgPath) {
             $cfg = Get-Content $cfgPath -Raw | ConvertFrom-Json
-            $Environment = $cfg.environment_id
+            # environment_id staar pr. miljoe under 'environments' - ikke paa
+            # topniveau. Her stod $cfg.environment_id, som aldrig fandtes, saa
+            # scriptet stoppede altid uden -Environment. CANVAS_ENV vaelger
+            # miljoe som i tools/env_config.py.
+            $envName = $env:CANVAS_ENV
+            if (-not $envName) { $envName = $cfg.default_environment }
+            if ($envName -and $cfg.environments.$envName) {
+                $Environment = $cfg.environments.$envName.environment_id
+            }
         }
     }
     if (-not $Environment) {
-        throw "Intet miljoe-id. Angiv -Environment, eller saet environment_id i tools/canvas_apps.json"
+        throw "Intet miljoe-id. Angiv -Environment, eller saet environments.<navn>.environment_id i tools/canvas_apps.json"
     }
 
     # --- pac: installeret, eller hentet paa stedet med dnx ---------------

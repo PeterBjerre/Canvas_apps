@@ -45,20 +45,19 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
-from gen_screen import (Ctrl, SHELL_W, FONT,
-                        C_CARD_BORDER, C_TITLE, C_MUTED, C_MUTED_BG, C_REQUIRED,
-                        C_PRIMARY, C_WHITE, C_TRANSPARENT,
-                        C_NEUTRAL_BG, C_NEUTRAL_FG, C_INFO_FG, C_INFO_BG,
-                        C_VALID_FG, C_VALID_BG, C_WARN_FG, C_WARN_BG,
-                        C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY)
+from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED,
+                        C_MUTED_BG, C_REQUIRED, C_PRIMARY, C_WHITE,
+                        C_TRANSPARENT, C_NEUTRAL_BG, C_NEUTRAL_FG, C_INFO_FG,
+                        C_INFO_BG, C_VALID_FG, C_VALID_BG, C_WARN_FG,
+                        C_WARN_BG, C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY)
 from layout_tokens import fits
-from build_helpers import (text_ctrl, group, button, text_input, checkbox_theme,
-                           date_picker, fit_button_row, fit_button_width,
-                           number_input, themed_dropdown, card, field_cell,
-                           pin_widths, badge, top_bar, grow, flow_row,
-                           border_rule, input_fill, label_px, text_px,
-                           loading_overlay, with_busy, confirm_modal, ICON_SAVE,
-                           ICON_SUBMIT, ICON_W)
+from build_helpers import (text_ctrl, group, button, text_input,
+                           checkbox_theme, date_picker, fit_button_row,
+                           fit_button_width, number_input, themed_dropdown,
+                           card, field_cell, pin_widths, badge, top_bar, grow,
+                           flow_row, label_px, text_px, loading_overlay,
+                           with_busy, confirm_modal, ICON_SAVE, ICON_SUBMIT,
+                           ICON_W)
 
 # Mens en gemning koerer, staar ventespinneren oven paa skaermen (issue #54).
 SAVING_VAR = "varDomSaving"
@@ -71,7 +70,6 @@ import attflows
 # Flowkontrakten staar i tools/attflows.py; ruden her er dens
 # domaeneudgave - samme tre flows, egne samlingsnavne.
 att = attflows.DomainPane()
-import build_flsearch as fl
 from fl_picker import fl_picker, known_fx as fl_known_fx, reset_fx as fl_reset_fx
 
 # Raekkens felter i een flad liste - raekkefoelgen er sektionernes.
@@ -268,11 +266,11 @@ def build_fl_picker(cell_w, lock=None, required_formula="false"):
     dm = DM_ROW if lock is None else f"If({lock}, DisplayMode.Disabled, {DM_ROW})"
     v = _var(cfg.FL_FIELD)
     return fl_picker(
-        "Dom", combo=FL_COMBO, results="colDomFl", raw_var=fl.DEFAULT_RAW,
+        "Dom", combo=FL_COMBO, results="colDomFl", raw_var="varDomFlRaw",
         msg_var="varDomFlMsg", busy_var=FL_BUSY_VAR, query_var=FL_QUERY_VAR,
         last_var=FL_LAST_VAR, pick_var=v,
         default_items=f"Filter(colDomFl, Code = {v})",
-        on_clear=f'Set({v}, "")', display_mode=dm,
+        display_mode=dm,
         required_formula=required_formula, width=cell_w)
 
 
