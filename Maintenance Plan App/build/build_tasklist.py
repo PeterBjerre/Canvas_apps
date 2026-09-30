@@ -386,7 +386,7 @@ def _materials_modal():
                   direction="Vertical", gap=4, overflow_x="Scroll", width="Parent.Width",
                   align_items="Start")
 
-    return _modal("VhpMat", '"Materials - operation " & varVhpMatOpNo', "varVhpMatOpNo <> \"\"",
+    return _modal("VhpMat", '"Materials - operation " & varVhpMatOpNo', MAT_OPEN,
                   'Set(varVhpMatOpNo, "")', [actions, note, table])
 
 
@@ -536,7 +536,7 @@ def _attachments_modal():
                      'A document with no operations belongs to the whole item."',
                      size=12, color=C_MUTED, height=32, wrap="true")
 
-    return _modal("VhpAtt", '"Documents - operation " & varVhpAttOpNo', "varVhpAttOpNo <> \"\"",
+    return _modal("VhpAtt", '"Documents - operation " & varVhpAttOpNo', ATT_OPEN,
                   'Set(varVhpAttOpNo, "")', [picker, actions, note, gallery, empty])
 
 

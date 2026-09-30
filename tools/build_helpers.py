@@ -244,29 +244,50 @@ def button(name, text, onselect, primary=False, danger=False, width=140, height=
     return Ctrl(name, "ModernButton", props=props, h=height, vis=visible)
 
 
-def busy_overlay(name, busy_var, label="Saving, please wait"):
-    """Ventespinneren, MENS der gemmes (issue #54).
+def spinner_svg(size=64, stroke=6, delay=0.15):
+    """Hjulet - EEN tegning for hele repoet (issue #64).
 
-    Samme hjul som den samlede apps indlaesningsspinner: et drejende SVG-hjul
-    midt paa skaermen, oven paa alt, i sloerets farve - saa ingen naar at
-    trykke paa noget, mens gemningen koerer. Synlig, saa laenge busy_var er
-    sand; gemmeknappen saetter den foer, og nulstiller den efter, kaldet til
-    SharePoint.
+    Et drejende SVG-hjul i temaets farver: et spor i state-neutral-bg og en
+    bue i brandfarven. Udtrykket er en Power Fx-streng, der giver en
+    data-URI - klar til et Images Image-egenskab.
 
-    Staar SIDST i skaermens boern: det, der staar senere, ligger oeverst."""
+    delay: hjulet toner ind efter saa mange sekunder. En hentning, der er
+    faerdig hurtigere, viser derfor ikke et hjul, der blinker forbi - kun
+    sloeret, som alligevel skal spaerre skaermen."""
     hx = lambda n: '" & %s & "' % ref_hex_expr(n)
-    w = h = 64
-    c = w // 2
-    svg = ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{h}' "
-           f"viewBox='0 0 {w} {h}'>"
-           f"<circle cx='{c}' cy='{c}' r='22' fill='none' stroke-width='6' "
+    c = size // 2
+    r = c - stroke - 4
+    svg = ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{size}' height='{size}' "
+           f"viewBox='0 0 {size} {size}'>"
+           f"<g opacity='0'>"
+           f"<animate attributeName='opacity' from='0' to='1' begin='{delay}s' "
+           f"dur='0.2s' fill='freeze'/>"
+           f"<circle cx='{c}' cy='{c}' r='{r}' fill='none' stroke-width='{stroke}' "
            f"stroke='{hx('state-neutral-bg')}'/>"
-           f"<path d='M{c} {c - 22} a22 22 0 0 1 22 22' fill='none' stroke-width='6' "
-           f"stroke-linecap='round' stroke='{hx('color-brand-primary')}'>"
+           f"<path d='M{c} {c - r} a{r} {r} 0 0 1 {r} {r}' fill='none' "
+           f"stroke-width='{stroke}' stroke-linecap='round' "
+           f"stroke='{hx('color-brand-primary')}'>"
            f"<animateTransform attributeName='transform' type='rotate' "
            f"from='0 {c} {c}' to='360 {c} {c}' dur='0.9s' repeatCount='indefinite'/>"
-           f"</path>"
+           f"</path></g>"
            "</svg>" + '"')
+    return f'"data:image/svg+xml;utf8," & EncodeUrl({svg})'
+
+
+def loading_overlay(name, busy_var, label="Saving, please wait"):
+    """DEN ventespinner - ens i alle apps og alle skaerme (issue #54, #64).
+
+    Et drejende hjul (spinner_svg) midt paa skaermen, oven paa alt, i
+    sloerets farve - saa ingen naar at trykke paa noget, mens der hentes
+    eller gemmes. Synlig, saa laenge busy_var er sand.
+
+    Bruges til BAADE gemning (appernes Save/Submit) og indlaesning (den
+    samlede apps skaerme). Der var to kopier af den samme SVG - een her og
+    een i BIO SAP App/build/build_screens.py - og skaermene fik oveni Power
+    Apps' egen LoadingSpinner, saa der stod et hjul inden i hjulet. Nu er
+    der een.
+
+    Staar SIDST i skaermens boern: det, der staar senere, ligger oeverst."""
     vis = f"IfError({busy_var}, false)"
     return Ctrl(name, "Image", props={
         "AccessibleLabel": f'"{label}"',
@@ -274,7 +295,7 @@ def busy_overlay(name, busy_var, label="Saving, please wait"):
         "BorderThickness": "0",
         "Fill": C_OVERLAY,
         "Height": "App.Height",
-        "Image": f'"data:image/svg+xml;utf8," & EncodeUrl({svg})',
+        "Image": spinner_svg(),
         "ImagePosition": "ImagePosition.Center",
         "TabIndex": "-1",
         "Visible": vis,
@@ -705,12 +726,13 @@ def app_frame(prefix, header, body, body_gap=16, body_pad_b=None):
                  overflow_y="Scroll", fill=C_APP_BG,
                  pad=(lay.BODY_PAD_T, lay.PAGE_PAD_R, pb, lay.PAGE_PAD_L))
     # Sidebaren (tools/side_nav.py) staar til venstre. Rammen starter
-    # efter dens LUKKEDE bredde; aabnet ligger den oven paa rammen.
+    # efter dens LUKKEDE bredde; aabnet ligger den oven paa rammen. Paa
+    # mobil er skinnen skjult, og rammen starter under topbjaelken i stedet
+    # (issue #65) - udtrykkene staar i tools/layout_tokens.py.
     root = group("con%sRoot" % prefix, [head, main], direction="Vertical", gap=0,
-                 height="Parent.Height", width="Parent.Width - %d" % lay.NAV_W,
-                 fill=C_APP_BG)
-    root.props["X"] = str(lay.NAV_W)
-    root.props["Y"] = "0"
+                 height=lay.ROOT_H, width=lay.ROOT_W, fill=C_APP_BG)
+    root.props["X"] = lay.ROOT_X
+    root.props["Y"] = lay.ROOT_Y
     return root
 
 

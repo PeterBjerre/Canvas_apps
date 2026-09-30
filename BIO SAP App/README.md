@@ -62,9 +62,11 @@ der ingenting. Er det noget andet, kører domænets egen opstart. Se
 **Ventespinner.** Mens et domæne klargøres (første besøg, *New request*,
 *Open* eller et dyblink), ligger et slør over skærmen med et roterende hjul
 midt på, uden tekst. Det forsvinder, når dataene er hentet, og
-imens kan man ikke trykke på en formular, der er ved at blive fyldt. Alle
-skærme har desuden Power Apps' egen `LoadingSpinner`, mens kontrollerne
-tegnes, også ved opstart. Se `build/build_screens.py`, `loading_overlay()`.
+imens kan man ikke trykke på en formular, der er ved at blive fyldt. Hjulet
+er det samme som appernes gem-spinner — én komponent,
+`tools/build_helpers.py` `loading_overlay()` — og det toner først ind efter
+0,15 s, så en hurtig indlæsning ikke blinker. Skærmene har **ikke** Power
+Apps' egen `LoadingSpinner`: den tegnede et hjul inden i hjulet (issue #64).
 
 ## Dyblinks
 

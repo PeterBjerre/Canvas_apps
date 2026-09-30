@@ -692,7 +692,7 @@ def main():
             continue
         # Rammen staar direkte i skaermen, som ingen padding har. Regel 23
         # kraever praecis denne bredde (sidebaren til venstre).
-        if pb is None and wv == "=Parent.Width - %d" % lay.NAV_W:
+        if pb is None and wv == "=" + lay.ROOT_W:
             continue
         if wv == "=Parent.Width":
             if pb is None:
@@ -940,7 +940,8 @@ def main():
     #
     # Alle fire skaerme har den samme ramme (build_helpers.app_frame):
     #
-    #     con<X>Root     (Parent.Width - NAV_W) x Parent.Height, X = NAV_W,
+    #     con<X>Root     ROOT_W x ROOT_H paa (ROOT_X, ROOT_Y) - efter skinnen,
+    #                    eller under mobilbjaelken (layout_tokens, issue #65),
     #                    scroller IKKE
     #       con<X>Header   fast hoejde, der kun afhaenger af App.Width
     #       con<X>Body     FillPortions > 0, LayoutOverflowY = Scroll
@@ -969,13 +970,14 @@ def main():
 
         # Rammen starter efter sidebarens LUKKEDE bredde (tools/side_nav.py).
         # SHELL_W regner med den - staar rammen andetsteds, lyver SHELL_W.
-        if not (rname.endswith("Root") and _eq("Height", "=Parent.Height")
-                and _eq("Width", "=Parent.Width - %d" % lay.NAV_W)
-                and _eq("X", "=%d" % lay.NAV_W)
+        if not (rname.endswith("Root") and _eq("Height", "=" + lay.ROOT_H)
+                and _eq("Width", "=" + lay.ROOT_W)
+                and _eq("X", "=" + lay.ROOT_X)
+                and _eq("Y", "=" + lay.ROOT_Y)
                 and "Vertical" in (rprops.get("LayoutDirection") or "")):
             problems.append(f"[23] {rname}: skaermens foerste barn skal vaere "
-                            f"rammen - lodret, (Parent.Width - {lay.NAV_W}) x "
-                            f"Parent.Height, X = {lay.NAV_W}. "
+                            f"rammen - lodret, {lay.ROOT_W} x {lay.ROOT_H}, "
+                            f"X = {lay.ROOT_X}, Y = {lay.ROOT_Y}. "
                             f"Byg den med build_helpers.app_frame()")
         elif "Scroll" in (rprops.get("LayoutOverflowY") or ""):
             problems.append(f"[23a] {rname}: rammen selv maa ikke scrolle - saa "
@@ -1225,14 +1227,15 @@ def main():
     # en lodret kolonne. Begge blokke voksede til hele kolonnens hoejde.
     #
     # DEN ENE UNDTAGELSE ER RAMMENS KROP (regel 23). Rammen er skaermhoej -
-    # dens hoejde er Parent.Height, ikke regnet af boernene - og kroppen
+    # dens hoejde er ROOT_H, ikke regnet af boernene - og kroppen
     # SKAL fylde resten under headeren. Det er netop den overskydende
     # hoejde, FillPortions er til.
     for p, name, body in all_nodes:
         props = body.get("Properties") or {}
         if props.get("LayoutDirection", "").strip() != "=LayoutDirection.Vertical":
             continue
-        screen_tall = (props.get("Height") or "").strip() == "=Parent.Height"
+        # Rammen er skaermhoej minus mobilbjaelken (layout_tokens.ROOT_H).
+        screen_tall = (props.get("Height") or "").strip() == "=" + lay.ROOT_H
         for kid in (body.get("Children") or []):
             kname = list(kid.keys())[0]
             kprops = (list(kid.values())[0].get("Properties") or {})
@@ -1301,7 +1304,7 @@ def main():
     # splittets hoejde, flisernes bredde og deres beholders hoejde - og
     # intet i koden sagde det.
     #
-    # Aritmetik er i orden: SHELL_W er "(App.Width - 120)". Det er kun
+    # Aritmetik er i orden: SHELL_W er "(App.Width - 56 - 64)". Det er kun
     # SAMMENLIGNINGEN, der er en beslutning om enhedsklasse.
     bp = re.compile(r"App\.Width\s*[<>]=?\s*[0-9]")
     for props in screen_and_controls:

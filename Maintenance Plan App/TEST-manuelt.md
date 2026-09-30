@@ -19,35 +19,42 @@ Træk vinduet ned til ca. 900 px bredde. Intet må blive klippet.
 
 ## 2. Functional Location (2 minutter)
 
-Feltet er bygget helt om. Der er **ingen combobox** længere — den viste ikke
-de rækker, den fik. Nu er der et søgefelt, en **Søg**-knap og en almindelig
-dropdown, præcis som de øvrige felter.
+Feltet er **én combobox** med en **Search**-knap (issue #63) — den samme
+som i Equipments og Materials (`tools/fl_picker.py`). Der er intet separat
+søgefelt og ingen separat dropdown.
 
-1. Vælg et item. Skriv `SSV13 HFC10` i Functional Location-feltet og klik
-   **Søg**.
-   → Beskeden skal sige hvor mange der blev fundet, **og for hvilken tekst**.
-   → Dropdownen nedenunder skal nu indeholde dem. Åbn den og bekræft.
-2. Vælg en i dropdownen.
-   → Linjen under skal vise `Valgt: <kode> - <beskrivelse>`.
-   → Er den ikke vedligeholdbar i SAP, skal der stå en rød advarsel.
-3. Klik **Søg** med under 7 tegn i feltet.
-   → Der skal komme en advarsel, og flowet må ikke kaldes.
+1. Vælg et item. Skriv under 7 tegn i comboboksen.
+   → **Search** er deaktiveret, og der står ingen søgerække i listen.
+2. Skriv `SSV13 HFC10` og klik **Search**.
+   → Knappen bliver til en boks af samme størrelse med én spinner, indtil
+     svaret er der. Intet i rækken flytter sig.
+   → Comboboksen viser resultaterne.
+3. Skriv videre (fx `SSV13 HFC10AA`).
+   → Listen snævres ind **uden** et nyt kald (ingen spinner).
+4. Skriv en ny søgning (fx `SSV13 KAB10`) og tryk **Enter**.
+   → Den øverste række, *"SSV13 KAB10 - press Enter to search SAP"*, er
+     valgt, og søgningen kører — som et klik på Search. De gamle resultater
+     og det gamle valg er væk.
+5. Vælg én Functional Location. Ikke-vedligeholdbare står med
+   *(not maintainable)* bag teksten.
+6. Søg på noget, der ikke findes → en kort advarsel (*No functional
+   locations found*). Fejler flowet → en kort fejlnotifikation.
 
-**Object List** — multi-select med afkrydsning:
+**Object List** — multi-select med afkrydsning. Der står **ingen** tekst
+under knappen længere (issue #63): knappen viser antallet — *Object List
+(3)* — og de valgte ses, når musen holdes over den. Uden data er den
+deaktiveret.
 
-4. **Uden** en FL valgt: listen skal være tom, og der skal stå *"Vælg først
-   en Functional Location ovenfor."*
-   → Den må **ikke** vise hele søgeresultatet.
-5. Med en FL valgt: listen skal vise de underliggende objekter, ét pr. linje
-   med et afkrydsningsfelt. Teksten under siger hvor mange der er mulige.
-6. **Sæt flere krydser i træk.** Linjen under skal tælle med hver gang —
-   `1 valgt:`, `2 valgt:` osv. Der er ingen knap at trykke på.
-7. Fjern et kryds igen → tallet og listen følger med.
-8. Skift til et **andet item** og tilbage igen.
+7. **Uden** en FL valgt og uden valgte objekter: *Object List (0)* er
+   deaktiveret. Den må **ikke** vise hele søgeresultatet.
+8. Med en FL valgt: popup'en viser de underliggende objekter, ét pr. linje
+   med et afkrydsningsfelt. *Use selected* → knappen tæller op, fx
+   *Object List (2)*, og hover viser `Kode - beskrivelse` pr. linje.
+9. Skift til et **andet item** og tilbage igen.
    → Krydserne skal stå som du efterlod dem. Hvert item har sin egen liste.
-9. Med objekter valgt: gå tilbage og vælg en **anden** Functional Location.
-   Linjen med de valgte skal blive **rød** og advare om, at nogle af dem
-   ikke ligger under den nye FL. De ryddes **ikke** i stilhed.
+10. Med objekter valgt: vælg en **anden** Functional Location. Hover-teksten
+    advarer om, at nogle af dem ikke ligger under den nye FL. De ryddes
+    **ikke** i stilhed.
 
 ## 3. Strategidelen (1 minut)
 

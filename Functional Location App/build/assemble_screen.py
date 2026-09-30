@@ -48,9 +48,9 @@ def build_screen():
                      [P.build_rows(), P.build_classes(), P.build_structure(),
                       P.build_submit()])
     # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
-    rail, overlay = side_nav("Fl", "functionallocation")
+    nav, overlay = side_nav("Fl", "functionallocation")
     return render_screen(cfg.SCREEN, {"Fill": C_APP_BG, "OnVisible": on_visible()},
-                         [root, rail, P.build_backdrop(), P.build_detail(), P.build_export(),
+                         [root, *nav, P.build_backdrop(), P.build_detail(), P.build_export(),
                           *overlay, *P.build_submit_confirm()])
 
 

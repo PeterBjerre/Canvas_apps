@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import Ctrl, render_screen, C_APP_BG, OUT_DIR
 from build_helpers import app_frame
 from build_hero import build_top_bar, HELP_ON, HELP_ACTION, focus_border, CONFIRM
-from build_helpers import busy_overlay
+from build_helpers import loading_overlay
 from gen_screen import C_CARD_BORDER
 from side_nav import side_nav
 from build_plan_header import build_plan_header
@@ -52,14 +52,14 @@ def build_screen():
     root = app_frame("Vhp", build_top_bar(), sections, body_gap=20)
 
     # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
-    rail, overlay = side_nav("Vhp", "vhplan", HELP_ON, HELP_ACTION)
+    nav, overlay = side_nav("Vhp", "vhplan", HELP_ON, HELP_ACTION)
     return render_screen("ScreenVhPlan", {"Fill": C_APP_BG},
-                         [root, rail,
+                         [root, *nav,
                           build_modal_backdrop(), build_tasklist_picker_modal(),
                           build_longtext_modal(), build_object_list_modal(),
                           *build_ops_modals(), *CONFIRM, *overlay,
                           # Ventespinneren, mens der gemmes - oeverst af alt.
-                          busy_overlay("imgVhpSaving", "varVhpSaving")])
+                          loading_overlay("imgVhpSaving", "varVhpSaving")])
 
 
 def main():

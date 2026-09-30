@@ -3,10 +3,6 @@ Screens:
     Properties:
       Fill: |-
           =C.'bg-app'
-      LoadingSpinner: |-
-          =LoadingSpinner.Data
-      LoadingSpinnerColor: |-
-          =C.'color-brand-primary'
     Children:
       - conMdRoot:
           Control: GroupContainer
@@ -21,7 +17,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =Parent.Height
+                =Parent.Height - If(LayoutRank >= 2, 0, 52)
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -35,11 +31,11 @@ Screens:
             LayoutOverflowY: |-
                 =LayoutOverflow.Hide
             Width: |-
-                =Parent.Width - 56
+                =Parent.Width - If(LayoutRank >= 2, 56, 0)
             X: |-
-                =56
+                =If(LayoutRank >= 2, 56, 0)
             Y: |-
-                =0
+                =If(LayoutRank >= 2, 0, 52)
           Children:
             - conMdHeader:
                 Control: GroupContainer
@@ -130,7 +126,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Width: |-
-                                  =Max(0, (((((App.Width - 56))) - 24 - 34)) - ((148) + 10) - ((148) + 10) - 2)
+                                  =Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - ((148) + 10) - ((148) + 10) - 2)
                             Children:
                               - txtMdTitle:
                                   Control: ModernText
@@ -362,7 +358,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =If(LayoutRank < 2, 5, If(LayoutRank < 3, 3, 1)) * (208) + (If(LayoutRank < 2, 5, If(LayoutRank < 3, 3, 1)) - 1) * 12
+                            =4 + If(LayoutRank < 2, 5, If(LayoutRank < 3, 3, 1)) * (208) + (If(LayoutRank < 2, 5, If(LayoutRank < 3, 3, 1)) - 1) * 12 + 8
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -377,6 +373,14 @@ Screens:
                             =LayoutOverflow.Hide
                         LayoutWrap: |-
                             =true
+                        PaddingBottom: |-
+                            =8
+                        PaddingLeft: |-
+                            =12
+                        PaddingRight: |-
+                            =12
+                        PaddingTop: |-
+                            =4
                         Width: |-
                             =Parent.Width
                       Children:
@@ -389,9 +393,9 @@ Screens:
                               BorderThickness: |-
                                   =If(gblDomain = "FunctionalLocation", 2, 1)
                               DropShadow: |-
-                                  =DropShadow.None
+                                  =If(gblDomain = "FunctionalLocation", DropShadow.Light, DropShadow.None)
                               Fill: |-
-                                  =C.'bg-card'
+                                  =If(gblDomain = "FunctionalLocation", C.'domain-fl-soft', C.'bg-card')
                               FillPortions: |-
                                   =0
                               Height: |-
@@ -417,7 +421,7 @@ Screens:
                               RadiusTopRight: |-
                                   =12
                               Width: |-
-                                  =If(LayoutRank < 2, (App.Width - 120), If(LayoutRank < 3, ((App.Width - 120) - 12) / 2, ((App.Width - 120) - 48) / 5))
+                                  =If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 24), If(LayoutRank < 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 24) - 12) / 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 24) - 48) / 5))
                             Children:
                               - conMdStripeFL:
                                   Control: GroupContainer
@@ -459,15 +463,15 @@ Screens:
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
                                     FocusedBorderColor: |-
-                                        =C.'color-brand-primary'
+                                        =C.'domain-fl'
                                     FocusedBorderThickness: |-
                                         =2
                                     Height: |-
                                         =156
                                     HoverFill: |-
-                                        =RGBA(0, 0, 0, 0)
+                                        =C.'domain-fl-soft'
                                     Image: |-
-                                        ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='156' viewBox='0 0 " & Self.Width & " 156'><circle cx='40' cy='40' r='24' fill='" & C.'hex-domain-fl' & "' fill-opacity='0.12'/><g transform='translate(28 28) scale(1)' fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z M12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z'/></g><text x='16' y='92' font-family='Segoe UI, sans-serif' font-size='15' font-weight='600' fill='" & C.'hex-text-primary' & "'>Functional location</text><text x='16' y='126' font-family='Segoe UI, sans-serif' font-size='28' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(If(
+                                        ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='156' viewBox='0 0 " & Self.Width & " 156'><circle cx='40' cy='40' r='24' fill='" & C.'hex-domain-fl' & "' fill-opacity='0.12'/><g transform='translate(28 28) scale(1)' fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z M8.5 14.5v-3l2 1.2v-1.2l2 1.2V8h2.5v6.5Z M13.3 6.2c.4-.6 1.2-.6 1.6 0'/></g><text x='16' y='92' font-family='Segoe UI, sans-serif' font-size='15' font-weight='600' fill='" & C.'hex-text-primary' & "'>Functional location</text><text x='16' y='126' font-family='Segoe UI, sans-serif' font-size='28' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(If(
                                             gblView = "mine",
                                             Filter('MD_RequestIndex', RequesterEmail = gblMe),
                                             Filter('MD_RequestIndex', IsOpen = true)
@@ -477,7 +481,7 @@ Screens:
                                     OnSelect: |-
                                         =Set(gblDomain, If(gblDomain = "FunctionalLocation", "", "FunctionalLocation"))
                                     PressedFill: |-
-                                        =RGBA(0, 0, 0, 0)
+                                        =C.'domain-fl-soft'
                                     TabIndex: |-
                                         =0
                                     Width: |-
@@ -529,7 +533,7 @@ Screens:
                                           Appearance: |-
                                               =ButtonAppearance.Outline
                                           BorderColor: |-
-                                              =C.'border-default'
+                                              =C.'domain-fl'
                                           BorderThickness: |-
                                               =1
                                           Color: |-
@@ -575,9 +579,9 @@ Screens:
                               BorderThickness: |-
                                   =If(gblDomain = "Equipment", 2, 1)
                               DropShadow: |-
-                                  =DropShadow.None
+                                  =If(gblDomain = "Equipment", DropShadow.Light, DropShadow.None)
                               Fill: |-
-                                  =C.'bg-card'
+                                  =If(gblDomain = "Equipment", C.'domain-eq-soft', C.'bg-card')
                               FillPortions: |-
                                   =0
                               Height: |-
@@ -603,7 +607,7 @@ Screens:
                               RadiusTopRight: |-
                                   =12
                               Width: |-
-                                  =If(LayoutRank < 2, (App.Width - 120), If(LayoutRank < 3, ((App.Width - 120) - 12) / 2, ((App.Width - 120) - 48) / 5))
+                                  =If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 24), If(LayoutRank < 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 24) - 12) / 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 24) - 48) / 5))
                             Children:
                               - conMdStripeEQ:
                                   Control: GroupContainer
@@ -645,13 +649,13 @@ Screens:
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
                                     FocusedBorderColor: |-
-                                        =C.'color-brand-primary'
+                                        =C.'domain-eq'
                                     FocusedBorderThickness: |-
                                         =2
                                     Height: |-
                                         =156
                                     HoverFill: |-
-                                        =RGBA(0, 0, 0, 0)
+                                        =C.'domain-eq-soft'
                                     Image: |-
                                         ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='156' viewBox='0 0 " & Self.Width & " 156'><circle cx='40' cy='40' r='24' fill='" & C.'hex-domain-eq' & "' fill-opacity='0.12'/><g transform='translate(28 28) scale(1)' fill='none' stroke='" & C.'hex-domain-eq' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g><text x='16' y='92' font-family='Segoe UI, sans-serif' font-size='15' font-weight='600' fill='" & C.'hex-text-primary' & "'>Equipment</text><text x='16' y='126' font-family='Segoe UI, sans-serif' font-size='28' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(If(
                                             gblView = "mine",
@@ -663,7 +667,7 @@ Screens:
                                     OnSelect: |-
                                         =Set(gblDomain, If(gblDomain = "Equipment", "", "Equipment"))
                                     PressedFill: |-
-                                        =RGBA(0, 0, 0, 0)
+                                        =C.'domain-eq-soft'
                                     TabIndex: |-
                                         =0
                                     Width: |-
@@ -715,7 +719,7 @@ Screens:
                                           Appearance: |-
                                               =ButtonAppearance.Outline
                                           BorderColor: |-
-                                              =C.'border-default'
+                                              =C.'domain-eq'
                                           BorderThickness: |-
                                               =1
                                           Color: |-
@@ -761,9 +765,9 @@ Screens:
                               BorderThickness: |-
                                   =If(gblDomain = "MeasuringPoint", 2, 1)
                               DropShadow: |-
-                                  =DropShadow.None
+                                  =If(gblDomain = "MeasuringPoint", DropShadow.Light, DropShadow.None)
                               Fill: |-
-                                  =C.'bg-card'
+                                  =If(gblDomain = "MeasuringPoint", C.'domain-mp-soft', C.'bg-card')
                               FillPortions: |-
                                   =0
                               Height: |-
@@ -789,7 +793,7 @@ Screens:
                               RadiusTopRight: |-
                                   =12
                               Width: |-
-                                  =If(LayoutRank < 2, (App.Width - 120), If(LayoutRank < 3, ((App.Width - 120) - 12) / 2, ((App.Width - 120) - 48) / 5))
+                                  =If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 24), If(LayoutRank < 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 24) - 12) / 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 24) - 48) / 5))
                             Children:
                               - conMdStripeMP:
                                   Control: GroupContainer
@@ -831,15 +835,15 @@ Screens:
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
                                     FocusedBorderColor: |-
-                                        =C.'color-brand-primary'
+                                        =C.'domain-mp'
                                     FocusedBorderThickness: |-
                                         =2
                                     Height: |-
                                         =156
                                     HoverFill: |-
-                                        =RGBA(0, 0, 0, 0)
+                                        =C.'domain-mp-soft'
                                     Image: |-
-                                        ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='156' viewBox='0 0 " & Self.Width & " 156'><circle cx='40' cy='40' r='24' fill='" & C.'hex-domain-mp' & "' fill-opacity='0.12'/><g transform='translate(28 28) scale(1)' fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g><text x='16' y='92' font-family='Segoe UI, sans-serif' font-size='15' font-weight='600' fill='" & C.'hex-text-primary' & "'>Measuring point</text><text x='16' y='126' font-family='Segoe UI, sans-serif' font-size='28' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(If(
+                                        ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='156' viewBox='0 0 " & Self.Width & " 156'><circle cx='40' cy='40' r='24' fill='" & C.'hex-domain-mp' & "' fill-opacity='0.12'/><g transform='translate(28 28) scale(1)' fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><g transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></g><text x='16' y='92' font-family='Segoe UI, sans-serif' font-size='15' font-weight='600' fill='" & C.'hex-text-primary' & "'>Measuring point</text><text x='16' y='126' font-family='Segoe UI, sans-serif' font-size='28' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(If(
                                             gblView = "mine",
                                             Filter('MD_RequestIndex', RequesterEmail = gblMe),
                                             Filter('MD_RequestIndex', IsOpen = true)
@@ -849,7 +853,7 @@ Screens:
                                     OnSelect: |-
                                         =Set(gblDomain, If(gblDomain = "MeasuringPoint", "", "MeasuringPoint"))
                                     PressedFill: |-
-                                        =RGBA(0, 0, 0, 0)
+                                        =C.'domain-mp-soft'
                                     TabIndex: |-
                                         =0
                                     Width: |-
@@ -943,9 +947,9 @@ Screens:
                               BorderThickness: |-
                                   =If(gblDomain = "Material", 2, 1)
                               DropShadow: |-
-                                  =DropShadow.None
+                                  =If(gblDomain = "Material", DropShadow.Light, DropShadow.None)
                               Fill: |-
-                                  =C.'bg-card'
+                                  =If(gblDomain = "Material", C.'domain-mat-soft', C.'bg-card')
                               FillPortions: |-
                                   =0
                               Height: |-
@@ -971,7 +975,7 @@ Screens:
                               RadiusTopRight: |-
                                   =12
                               Width: |-
-                                  =If(LayoutRank < 2, (App.Width - 120), If(LayoutRank < 3, ((App.Width - 120) - 12) / 2, ((App.Width - 120) - 48) / 5))
+                                  =If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 24), If(LayoutRank < 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 24) - 12) / 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 24) - 48) / 5))
                             Children:
                               - conMdStripeMAT:
                                   Control: GroupContainer
@@ -1013,13 +1017,13 @@ Screens:
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
                                     FocusedBorderColor: |-
-                                        =C.'color-brand-primary'
+                                        =C.'domain-mat'
                                     FocusedBorderThickness: |-
                                         =2
                                     Height: |-
                                         =156
                                     HoverFill: |-
-                                        =RGBA(0, 0, 0, 0)
+                                        =C.'domain-mat-soft'
                                     Image: |-
                                         ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='156' viewBox='0 0 " & Self.Width & " 156'><circle cx='40' cy='40' r='24' fill='" & C.'hex-domain-mat' & "' fill-opacity='0.12'/><g transform='translate(28 28) scale(1)' fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g><text x='16' y='92' font-family='Segoe UI, sans-serif' font-size='15' font-weight='600' fill='" & C.'hex-text-primary' & "'>Material</text><text x='16' y='126' font-family='Segoe UI, sans-serif' font-size='28' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(If(
                                             gblView = "mine",
@@ -1031,7 +1035,7 @@ Screens:
                                     OnSelect: |-
                                         =Set(gblDomain, If(gblDomain = "Material", "", "Material"))
                                     PressedFill: |-
-                                        =RGBA(0, 0, 0, 0)
+                                        =C.'domain-mat-soft'
                                     TabIndex: |-
                                         =0
                                     Width: |-
@@ -1083,7 +1087,7 @@ Screens:
                                           Appearance: |-
                                               =ButtonAppearance.Outline
                                           BorderColor: |-
-                                              =C.'border-default'
+                                              =C.'domain-mat'
                                           BorderThickness: |-
                                               =1
                                           Color: |-
@@ -1129,9 +1133,9 @@ Screens:
                               BorderThickness: |-
                                   =If(gblDomain = "MaintenancePlan", 2, 1)
                               DropShadow: |-
-                                  =DropShadow.None
+                                  =If(gblDomain = "MaintenancePlan", DropShadow.Light, DropShadow.None)
                               Fill: |-
-                                  =C.'bg-card'
+                                  =If(gblDomain = "MaintenancePlan", C.'domain-vhp-soft', C.'bg-card')
                               FillPortions: |-
                                   =0
                               Height: |-
@@ -1157,7 +1161,7 @@ Screens:
                               RadiusTopRight: |-
                                   =12
                               Width: |-
-                                  =If(LayoutRank < 2, (App.Width - 120), If(LayoutRank < 3, ((App.Width - 120) - 12) / 2, ((App.Width - 120) - 48) / 5))
+                                  =If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 24), If(LayoutRank < 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 24) - 12) / 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 24) - 48) / 5))
                             Children:
                               - conMdStripeVHP:
                                   Control: GroupContainer
@@ -1199,13 +1203,13 @@ Screens:
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
                                     FocusedBorderColor: |-
-                                        =C.'color-brand-primary'
+                                        =C.'domain-vhp'
                                     FocusedBorderThickness: |-
                                         =2
                                     Height: |-
                                         =156
                                     HoverFill: |-
-                                        =RGBA(0, 0, 0, 0)
+                                        =C.'domain-vhp-soft'
                                     Image: |-
                                         ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='156' viewBox='0 0 " & Self.Width & " 156'><circle cx='40' cy='40' r='24' fill='" & C.'hex-domain-vhp' & "' fill-opacity='0.12'/><g transform='translate(28 28) scale(1)' fill='none' stroke='" & C.'hex-domain-vhp' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g><text x='16' y='92' font-family='Segoe UI, sans-serif' font-size='15' font-weight='600' fill='" & C.'hex-text-primary' & "'>Maintenance plan</text><text x='16' y='126' font-family='Segoe UI, sans-serif' font-size='28' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(If(
                                             gblView = "mine",
@@ -1217,7 +1221,7 @@ Screens:
                                     OnSelect: |-
                                         =Set(gblDomain, If(gblDomain = "MaintenancePlan", "", "MaintenancePlan"))
                                     PressedFill: |-
-                                        =RGBA(0, 0, 0, 0)
+                                        =C.'domain-vhp-soft'
                                     TabIndex: |-
                                         =0
                                     Width: |-
@@ -1269,7 +1273,7 @@ Screens:
                                           Appearance: |-
                                               =ButtonAppearance.Outline
                                           BorderColor: |-
-                                              =C.'border-default'
+                                              =C.'domain-vhp'
                                           BorderThickness: |-
                                               =1
                                           Color: |-
@@ -1317,11 +1321,11 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =If(((App.Width - 120)) >= (96) + (110) + (96) + (110) + (180) + 40, 36, (36) + 10 + (36) + 10 + (36) + 10 + (36) + 10 + (36))
+                            =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= (96) + (110) + (96) + (110) + (180) + 40, 36, (36) + 10 + (36) + 10 + (36) + 10 + (36) + 10 + (36))
                         LayoutAlignItems: |-
-                            =If(((App.Width - 120)) >= (96) + (110) + (96) + (110) + (180) + 40, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                            =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= (96) + (110) + (96) + (110) + (180) + 40, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                         LayoutDirection: |-
-                            =If(((App.Width - 120)) >= (96) + (110) + (96) + (110) + (180) + 40, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                            =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= (96) + (110) + (96) + (110) + (180) + 40, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                         LayoutGap: |-
                             =10
                         LayoutMinWidth: |-
@@ -1373,7 +1377,7 @@ Screens:
                               Type: |-
                                   =TextInputType.Search
                               Width: |-
-                                  =Max(0, (((((App.Width - 56))) - 24 - 16 - 18)) - ((96) + 10) - ((110) + 10) - ((96) + 10) - ((110) + 10) - 2)
+                                  =Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18)) - ((96) + 10) - ((110) + 10) - ((96) + 10) - ((110) + 10) - 2)
                         - btnMdStOpen:
                             Control: ModernButton
                             Properties:
@@ -1402,7 +1406,7 @@ Screens:
                               Layout: |-
                                   =ButtonLayout.IconBefore
                               LayoutMinWidth: |-
-                                  =If(((App.Width - 120)) >= (96) + (110) + (96) + (110) + (180) + 40, 96, 0)
+                                  =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= (96) + (110) + (96) + (110) + (180) + 40, 96, 0)
                               OnSelect: |-
                                   =Set(gblStatusMode, "open")
                               RadiusBottomLeft: |-
@@ -1449,7 +1453,7 @@ Screens:
                               Layout: |-
                                   =ButtonLayout.IconBefore
                               LayoutMinWidth: |-
-                                  =If(((App.Width - 120)) >= (96) + (110) + (96) + (110) + (180) + 40, 110, 0)
+                                  =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= (96) + (110) + (96) + (110) + (180) + 40, 110, 0)
                               OnSelect: |-
                                   =Set(gblStatusMode, "done")
                               RadiusBottomLeft: |-
@@ -1496,7 +1500,7 @@ Screens:
                               Layout: |-
                                   =ButtonLayout.IconBefore
                               LayoutMinWidth: |-
-                                  =If(((App.Width - 120)) >= (96) + (110) + (96) + (110) + (180) + 40, 96, 0)
+                                  =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= (96) + (110) + (96) + (110) + (180) + 40, 96, 0)
                               OnSelect: |-
                                   =Set(gblStatusMode, "all")
                               RadiusBottomLeft: |-
@@ -1539,7 +1543,7 @@ Screens:
                               Height: |-
                                   =36
                               LayoutMinWidth: |-
-                                  =If(((App.Width - 120)) >= (96) + (110) + (96) + (110) + (180) + 40, 110, 0)
+                                  =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= (96) + (110) + (96) + (110) + (180) + 40, 110, 0)
                               PaddingBottom: |-
                                   =0
                               PaddingLeft: |-
@@ -1575,7 +1579,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =532 + If(IsEmpty(galMdRequests.AllItems), 8 + (24), 0)
+                            =549 + If(gblDomain <> "", 0 + (30), 0) + If(IsEmpty(galMdRequests.AllItems), 8 + (24), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -1607,6 +1611,112 @@ Screens:
                         Width: |-
                             =Parent.Width
                       Children:
+                        - conMdActiveFilter:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =30
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Center
+                              LayoutDirection: |-
+                                  =LayoutDirection.Horizontal
+                              LayoutGap: |-
+                                  =8
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              Visible: |-
+                                  =gblDomain <> ""
+                              Width: |-
+                                  =Parent.Width
+                            Children:
+                              - btnMdActiveDomain:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Remove filter " & Switch(
+                                            gblDomain,
+                                            "FunctionalLocation", "Functional location",
+                                            "Equipment", "Equipment",
+                                            "MeasuringPoint", "Measuring point",
+                                            "Material", "Material",
+                                            "MaintenancePlan", "Maintenance plan",
+                                            ""
+                                        )
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =Switch(
+                                            gblDomain,
+                                            "FunctionalLocation", C.'domain-fl',
+                                            "Equipment", C.'domain-eq',
+                                            "MeasuringPoint", C.'domain-mp',
+                                            "Material", C.'domain-mat',
+                                            "MaintenancePlan", C.'domain-vhp',
+                                            C.'color-brand-primary'
+                                        )
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =Switch(
+                                            gblDomain,
+                                            "FunctionalLocation", C.'domain-fl',
+                                            "Equipment", C.'domain-eq',
+                                            "MeasuringPoint", C.'domain-mp',
+                                            "Material", C.'domain-mat',
+                                            "MaintenancePlan", C.'domain-vhp',
+                                            C.'color-brand-primary'
+                                        )
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =30
+                                    Icon: |-
+                                        ="Dismiss"
+                                    Layout: |-
+                                        =ButtonLayout.IconAfter
+                                    OnSelect: |-
+                                        =Set(gblDomain, "")
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        ="Filter: " & Switch(
+                                            gblDomain,
+                                            "FunctionalLocation", "Functional location",
+                                            "Equipment", "Equipment",
+                                            "MeasuringPoint", "Measuring point",
+                                            "Material", "Material",
+                                            "MaintenancePlan", "Maintenance plan",
+                                            ""
+                                        )
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =259
                         - conMdListHead:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -1709,7 +1819,7 @@ Screens:
                                     Text: |-
                                         ="REQUEST"
                                     Width: |-
-                                        =((App.Width - 120) - 36 - 4 - 18 - 40 - 728)
+                                        =((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40 - 728)
                                     Wrap: |-
                                         =false
                               - txtMdH2:
@@ -1852,6 +1962,34 @@ Screens:
                                         =104
                                     Wrap: |-
                                         =false
+                        - conMdListRule:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              Fill: |-
+                                  =C.'border-subtle'
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =1
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Stretch
+                              LayoutDirection: |-
+                                  =LayoutDirection.Horizontal
+                              LayoutGap: |-
+                                  =8
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              Width: |-
+                                  =Parent.Width
                         - galMdRequests:
                             Control: Gallery
                             Variant: Vertical
@@ -1861,7 +1999,7 @@ Screens:
                               BorderStyle: |-
                                   =BorderStyle.None
                               Fill: |-
-                                  =C.'border-subtle'
+                                  =C.'bg-card'
                               FillPortions: |-
                                   =0
                               Height: |-
@@ -1923,7 +2061,7 @@ Screens:
                                     TabIndex: |-
                                         =-1
                                     Width: |-
-                                        =(((((App.Width - 56))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40
+                                        =(((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40
                                     X: |-
                                         =0
                                     Y: |-
@@ -1944,9 +2082,9 @@ Screens:
                                     Image: |-
                                         ="data:image/svg+xml;utf8," & EncodeUrl(Switch(
                                             ThisItem.Domain.Value,
-                                            "FunctionalLocation", "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><g transform='translate(0 0) scale(1)' fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z M12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z'/></g></svg>",
+                                            "FunctionalLocation", "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><g transform='translate(0 0) scale(1)' fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z M8.5 14.5v-3l2 1.2v-1.2l2 1.2V8h2.5v6.5Z M13.3 6.2c.4-.6 1.2-.6 1.6 0'/></g></svg>",
                                             "Equipment", "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><g transform='translate(0 0) scale(1)' fill='none' stroke='" & C.'hex-domain-eq' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g></svg>",
-                                            "MeasuringPoint", "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><g transform='translate(0 0) scale(1)' fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></svg>",
+                                            "MeasuringPoint", "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><g transform='translate(0 0) scale(1)' fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><g transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></g></svg>",
                                             "Material", "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><g transform='translate(0 0) scale(1)' fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g></svg>",
                                             "MaintenancePlan", "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><g transform='translate(0 0) scale(1)' fill='none' stroke='" & C.'hex-domain-vhp' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g></svg>",
                                             ""
@@ -2046,7 +2184,7 @@ Screens:
                                     Text: |-
                                         =ThisItem.RequestNo
                                     Width: |-
-                                        =(((App.Width - 120) - 36 - 4 - 18 - 40 - 728)) - 0 - 0
+                                        =(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40 - 728)) - 0 - 0
                                     Wrap: |-
                                         =false
                                     X: |-
@@ -2083,7 +2221,7 @@ Screens:
                                     Text: |-
                                         =ThisItem.ShortText
                                     Width: |-
-                                        =(((App.Width - 120) - 36 - 4 - 18 - 40 - 728)) - 0 - 0
+                                        =(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40 - 728)) - 0 - 0
                                     Wrap: |-
                                         =false
                                     X: |-
@@ -2124,7 +2262,7 @@ Screens:
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 12 + 0 + (190) + 12 + (((App.Width - 120) - 36 - 4 - 18 - 40 - 728)) + 12
+                                        =0 + 12 + 0 + (190) + 12 + (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40 - 728)) + 12
                                     Y: |-
                                         =0 + 0 + ((((52) - 1) - 0 - 0) - (20)) / 2
                               - imgMdRowStatus:
@@ -2162,7 +2300,7 @@ Screens:
                                     Width: |-
                                         =22
                                     X: |-
-                                        =0 + 12 + 0 + (190) + 12 + (((App.Width - 120) - 36 - 4 - 18 - 40 - 728)) + 12 + (80) + 12 + 0 + 0
+                                        =0 + 12 + 0 + (190) + 12 + (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40 - 728)) + 12 + (80) + 12 + 0 + 0
                                     Y: |-
                                         =0 + 0 + ((((52) - 1) - 0 - 0) - (22)) / 2 + 0 + (((22) - 0 - 0) - (22)) / 2
                               - txtMdRowStatus:
@@ -2221,7 +2359,7 @@ Screens:
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 12 + 0 + (190) + 12 + (((App.Width - 120) - 36 - 4 - 18 - 40 - 728)) + 12 + (80) + 12 + 0 + 0 + (22) + 10
+                                        =0 + 12 + 0 + (190) + 12 + (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40 - 728)) + 12 + (80) + 12 + 0 + 0 + (22) + 10
                                     Y: |-
                                         =0 + 0 + ((((52) - 1) - 0 - 0) - (22)) / 2 + 0 + (((22) - 0 - 0) - (20)) / 2
                               - txtMdRowWhen:
@@ -2264,7 +2402,7 @@ Screens:
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 12 + 0 + (190) + 12 + (((App.Width - 120) - 36 - 4 - 18 - 40 - 728)) + 12 + (80) + 12 + (160) + 12
+                                        =0 + 12 + 0 + (190) + 12 + (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40 - 728)) + 12 + (80) + 12 + (160) + 12
                                     Y: |-
                                         =0 + 0 + ((((52) - 1) - 0 - 0) - (20)) / 2
                               - btnMdRowOpen:
@@ -2328,7 +2466,7 @@ Screens:
                                     Width: |-
                                         =64
                                     X: |-
-                                        =0 + 12 + 0 + (190) + 12 + (((App.Width - 120) - 36 - 4 - 18 - 40 - 728)) + 12 + (80) + 12 + (160) + 12 + (110) + 12 + 0 + 0
+                                        =0 + 12 + 0 + (190) + 12 + (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40 - 728)) + 12 + (80) + 12 + (160) + 12 + (110) + 12 + 0 + 0
                                     Y: |-
                                         =0 + 0 + ((((52) - 1) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                               - imgMdRowGo:
@@ -2382,9 +2520,32 @@ Screens:
                                     Width: |-
                                         =24
                                     X: |-
-                                        =0 + 12 + 0 + (190) + 12 + (((App.Width - 120) - 36 - 4 - 18 - 40 - 728)) + 12 + (80) + 12 + (160) + 12 + (110) + 12 + 0 + 0 + (64) + 16
+                                        =0 + 12 + 0 + (190) + 12 + (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40 - 728)) + 12 + (80) + 12 + (160) + 12 + (110) + 12 + 0 + 0 + (64) + 16
                                     Y: |-
                                         =0 + 0 + ((((52) - 1) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (24)) / 2
+                              - rctMdRowRule:
+                                  Control: Rectangle
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =""
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Fill: |-
+                                        =C.'border-subtle'
+                                    Height: |-
+                                        =1
+                                    OnSelect: |-
+                                        =false
+                                    TabIndex: |-
+                                        =-1
+                                    Width: |-
+                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40)
+                                    X: |-
+                                        =0
+                                    Y: |-
+                                        =51
                         - txtMdEmpty:
                             Control: ModernText
                             Properties:
@@ -2456,6 +2617,8 @@ Screens:
                 =0
             PaddingTop: |-
                 =13
+            Visible: |-
+                =LayoutRank >= 2
             Width: |-
                 =57
             X: |-
@@ -2607,7 +2770,7 @@ Screens:
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z M12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z'/></g></svg>")
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z M8.5 14.5v-3l2 1.2v-1.2l2 1.2V8h2.5v6.5Z M13.3 6.2c.4-.6 1.2-.6 1.6 0'/></g></svg>")
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
@@ -2818,6 +2981,156 @@ Screens:
                             =0
                         Width: |-
                             =36
+      - conMdMobileBar:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'border-subtle'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.None
+            Fill: |-
+                =C.'bg-surface'
+            FillPortions: |-
+                =0
+            Height: |-
+                =52
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Center
+            LayoutDirection: |-
+                =LayoutDirection.Horizontal
+            LayoutGap: |-
+                =0
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =0
+            PaddingLeft: |-
+                =0
+            PaddingRight: |-
+                =16
+            PaddingTop: |-
+                =0
+            Visible: |-
+                =!(LayoutRank >= 2)
+            Width: |-
+                =App.Width + 2
+            X: |-
+                =-1
+            Y: |-
+                =-1
+          Children:
+            - imgMdNavMenu:
+                Control: Image
+                Properties:
+                  AccessibleLabel: |-
+                      ="Open menu"
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  FocusedBorderColor: |-
+                      =C.'color-brand-primary'
+                  FocusedBorderThickness: |-
+                      =2
+                  Height: |-
+                      =40
+                  HoverFill: |-
+                      =C.'bg-muted'
+                  Image: |-
+                      ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M4 7h16M4 12h16M4 17h16'/></g></svg>")
+                  ImagePosition: |-
+                      =ImagePosition.Fit
+                  OnSelect: |-
+                      =Set(gblNavOpen, true)
+                  PressedFill: |-
+                      =C.'bg-muted'
+                  TabIndex: |-
+                      =0
+                  Tooltip: |-
+                      ="Open menu"
+                  Width: |-
+                      =56
+            - imgMdNavBrandMobile:
+                Control: Image
+                Properties:
+                  AccessibleLabel: |-
+                      ="BIO SAP - Masterdata Hub"
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  FocusedBorderColor: |-
+                      =C.'color-brand-primary'
+                  FocusedBorderThickness: |-
+                      =2
+                  Height: |-
+                      =44
+                  HoverFill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Image: |-
+                      ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='136' height='44' viewBox='0 0 136 44'><rect x='15' y='9' width='26' height='26' rx='7' fill='" & C.'hex-color-brand-primary' & "'/><text x='28' y='26' text-anchor='middle' font-family='Consolas, monospace' font-size='11' font-weight='700' fill='" & C.'hex-text-on-primary' & "'>BS</text><text x='56' y='28' font-family='Segoe UI, sans-serif' font-size='16' font-weight='600' fill='" & C.'hex-text-primary' & "'>BIO SAP</text></svg>")
+                  ImagePosition: |-
+                      =ImagePosition.Fit
+                  OnSelect: |-
+                      =Set(gblNavOpen, false)
+                  PressedFill: |-
+                      =RGBA(0, 0, 0, 0)
+                  TabIndex: |-
+                      =0
+                  Width: |-
+                      =136
+            - txtMdNavTitle:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      ="Masterdata Hub"
+                  Align: |-
+                      =Align.Right
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-primary'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  FillPortions: |-
+                      =0
+                  Font: |-
+                      =Font.'Segoe UI'
+                  FontWeight: |-
+                      =FontWeight.Semibold
+                  Height: |-
+                      =22
+                  LayoutMinWidth: |-
+                      =0
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =14
+                  Text: |-
+                      ="Masterdata Hub"
+                  Width: |-
+                      =Max(0, ((App.Width + 2) - 16) - ((56) + 0) - ((136) + 0) - 2)
+                  Wrap: |-
+                      =false
       - imgMdNewScrim:
           Control: Image
           Properties:
@@ -2922,7 +3235,7 @@ Screens:
                   HoverFill: |-
                       =C.'bg-muted'
                   Image: |-
-                      ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='274' height='40' viewBox='0 0 274 40'><g transform='translate(14 9) scale(0.916667)' fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z M12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z'/></g><text x='48' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>Functional location</text></svg>")
+                      ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='274' height='40' viewBox='0 0 274 40'><g transform='translate(14 9) scale(0.916667)' fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z M8.5 14.5v-3l2 1.2v-1.2l2 1.2V8h2.5v6.5Z M13.3 6.2c.4-.6 1.2-.6 1.6 0'/></g><text x='48' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>Functional location</text></svg>")
                   ImagePosition: |-
                       =ImagePosition.Fit
                   OnSelect: |-
@@ -2990,7 +3303,7 @@ Screens:
                   HoverFill: |-
                       =RGBA(0, 0, 0, 0)
                   Image: |-
-                      ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='274' height='40' viewBox='0 0 274 40'><g transform='translate(14 9) scale(0.916667)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g><text x='48' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Measuring point</text><text x='260' y='24' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='11' fill='" & C.'hex-text-muted' & "'>Coming soon</text></svg>")
+                      ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='274' height='40' viewBox='0 0 274 40'><g transform='translate(14 9) scale(0.916667)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><g transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></g><text x='48' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Measuring point</text><text x='260' y='24' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='11' fill='" & C.'hex-text-muted' & "'>Coming soon</text></svg>")
                   ImagePosition: |-
                       =ImagePosition.Fit
                   OnSelect: |-
@@ -3226,7 +3539,7 @@ Screens:
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M18 6l-6 6 6 6 M12 6l-6 6 6 6'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Collapse</text></svg>")
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M18 6l-6 6 6 6 M12 6l-6 6 6 6'/></g></svg>")
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
@@ -3235,8 +3548,10 @@ Screens:
                             =C.'bg-muted'
                         TabIndex: |-
                             =0
+                        Tooltip: |-
+                            ="Collapse menu"
                         Width: |-
-                            =232
+                            =56
                   - imgMdNavHubOpen:
                       Control: Image
                       Properties:
@@ -3288,7 +3603,7 @@ Screens:
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z M12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Functional Location</text></svg>")
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z M8.5 14.5v-3l2 1.2v-1.2l2 1.2V8h2.5v6.5Z M13.3 6.2c.4-.6 1.2-.6 1.6 0'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Functional Location</text></svg>")
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
