@@ -67,7 +67,7 @@ def _function_keys():
     bad = [k for k in keys if not k.isalpha()]
     if bad:
         raise SystemExit("Funktionsnoegler med andet end bogstaver: %s - separatoren "
-                         "'0' i nfFlFunctionKeys holder ikke laengere." % bad[:5])
+                         "'0' i FlFunctionKeys holder ikke laengere." % bad[:5])
     chunks, cur = [], "0"
     for k in keys:
         piece = k + "0"
@@ -79,43 +79,43 @@ def _function_keys():
     body = " &\n    ".join(_q(c) for c in chunks)
     return ("// FL12: FunctionKeyDict (lookups.generated.js), normaliseret til\n"
             "// versaler - %d noegler. Se fl_validation.fk_hit.\n"
-            "nfFlFunctionKeys =\n    %s;" % (len(keys), body))
+            "FlFunctionKeys =\n    %s;" % (len(keys), body))
 
 
 def formulas_block():
     parts = [tok.formula(), lay.formula()]
     parts.append(_table(
-        "nfFlPlan", R["plan"],
+        "colFlPlan", R["plan"],
         ["Cls", "Ord", "Rule", "Field", "Label", "Chk", "Num", "List", "Msg"],
         "Tjeklisten pr. klasse (FL30-FL53). Ord 0 = klassens TRM-flag (FL48)."))
     parts.append(_table(
-        "nfFlLists", [dict(r, UValue=r["Value"].upper()) for r in R["lists"]],
+        "colFlLists", [dict(r, UValue=r["Value"].upper()) for r in R["lists"]],
         ["List", "Ord", "Value", "UValue"],
         "Dropdown-listerne (FL31, FL35, FL37-FL47). UValue er til FL54."))
     parts.append(_table(
-        "nfFlColumns", R["columns"],
+        "colFlColumns", R["columns"],
         ["Cls", "Ord", "Column", "Field", "Editable", "List", "MaxLen"],
         "Kolonnerne pr. klasse og deres editor (FL58-FL61, FL_SPOOL_COLUMNS)."))
-    parts.append(_table("nfFlAggregate", R["aggregate"], ["Key", "Cls"],
+    parts.append(_table("colFlAggregate", R["aggregate"], ["Key", "Cls"],
                         "ClassDeterminationAggregateKey (FL17, FL18)."))
-    parts.append(_table("nfFlComponent", R["component"], ["Key", "Cls"],
+    parts.append(_table("colFlComponent", R["component"], ["Key", "Cls"],
                         "ClassDeterminationComponentKey (FL17)."))
-    parts.append(_table("nfFlBr18", R["br18"], ["Key12", "Key17", "Description"],
+    parts.append(_table("colFlBr18", R["br18"], ["Key12", "Key17", "Description"],
                         "BR18_Keys (FL13-FL15)."))
-    parts.append(_table("nfFlPlants", [{"Key": k} for k in R["plants"]], ["Key"],
+    parts.append(_table("colFlPlants", [{"Key": k} for k in R["plants"]], ["Key"],
                         "Plant (FL11)."))
-    parts.append(_table("nfFlClassHelp",
+    parts.append(_table("colFlClassHelp",
                         [{"Key": k, "Help": v} for k, v in R["classHelp"].items()],
                         ["Key", "Help"], "CLASS_HELP (FL65)."))
     trm = sorted({p["Cls"] for p in R["plan"] if p["Ord"] == 0 and p["Chk"] == "TRMSET"})
-    parts.append(_table("nfFlTrmClasses", [{"Cls": c} for c in trm], ["Cls"],
+    parts.append(_table("colFlTrmClasses", [{"Cls": c} for c in trm], ["Cls"],
                         "Klasserne med trinet TRMNEW (FL48)."))
     parts.append(_function_keys())
     parts.append("// FL12: tjekket springes over, hvis ordbogen er tom (fl-rule-engine.js:130).\n"
-                 f"nfFlHasFunctionKeys = {'true' if R['functionKeys'] else 'false'};\n"
-                 f"nfFlFunctionKeyCount = {len(R['functionKeys'])};\n"
+                 f"FlHasFunctionKeys = {'true' if R['functionKeys'] else 'false'};\n"
+                 f"FlFunctionKeyCount = {len(R['functionKeys'])};\n"
                  "// FL24: reglerne er 'indlaest', naar planen findes.\n"
-                 "nfFlRulesLoaded = CountRows(nfFlPlan) > 0;")
+                 "FlRulesLoaded = CountRows(colFlPlan) > 0;")
     return "\n\n".join(parts)
 
 
@@ -183,7 +183,7 @@ def main():
     content = app_yaml.write(OUT_DIR, formulas_block(), onstart, cfg.SCREEN)
     print("App.pa.yaml skrevet.", content.count(chr(10)) + 1, "linjer,",
           len(COLLECTIONS), "arbejdssamlinger, 0 datahentninger i OnStart,",
-          len(R["plan"]), "tjek i nfFlPlan.")
+          len(R["plan"]), "tjek i colFlPlan.")
     if not cfg.PLAY_URL:
         print("  NB: 'functionallocation' har intet app_id i tools/canvas_apps.json endnu -\n"
               "      AppUrl i MD_RequestIndex bliver tom, til id'et er sat og appen bygget igen.")

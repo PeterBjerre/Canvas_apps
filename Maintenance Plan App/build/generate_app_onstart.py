@@ -80,7 +80,9 @@ Set(varVhpItemValidated, false);
 // taeller varVhpNextItemId een op foerst) fortsaetter ved 2.
 Set(varVhpActiveItemId, 1);
 Set(varVhpNextItemId, 1);
-Set(varVhpFlMeta, "");
+Set(varVhpFlMsg, "");
+// Brugeren, som alle skrivninger stempler (REVIEW.md A10).
+Set(varVhpMe, Lower(User().Email));
 // Trinene og Submit regnes af navngivne formler (build_status.py).
 // varVhpSavedJson er planen, som den stod ved sidste gemning i SharePoint.
 Set(varVhpSavedJson, "");

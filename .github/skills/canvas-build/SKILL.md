@@ -497,6 +497,8 @@ layoutfejl bor:
     `; false` (issue #32)
 30. Et filter mod en SharePoint-liste sammenligner mod noget konstant —
    ellers kan det ikke delegeres
+16. Ingen `ModernDropdown` — brug `themed_dropdown`
+33. Navnets præfiks følger kontroltypen (tabellen under **Navngivning**)
 
 Punkt 7 fanger den klassiske: du sletter en kontrol og glemmer en
 `Reset()` på den et andet sted. Det ville ellers først vælte i compile.
@@ -510,6 +512,31 @@ når formlen er sand *i netop det testtilfælde*: `stack_height` skriver
 forælderens højde som `If(betingelse, gap + h, 0)`, så de to skal være
 enige. Kan betingelsen ikke regnes ud, tælles barnet med — hellere et fund
 for meget end en container, der klipper sit indhold.
+
+## Navngivning
+
+`<præfiks><App-infix><Navn>`, fx `btnDomSave`. Infix: `Md` (hub), `Vhp`,
+`Dom` (Equipment/Material), `Fl`. Regel 33 holder præfikset.
+
+| Kontrol | Præfiks | | Kontrol | Præfiks |
+|---|---|---|---|---|
+| GroupContainer | `con` | | Classic/DropDown | `drp` |
+| ModernText | `txt` | | ModernCombobox | `cmb` |
+| ModernTextInput | `inp` | | ModernCheckbox / Toggle | `chk` / `tgl` |
+| ModernNumberInput | `num` | | Gallery / HtmlViewer | `gal` / `htm` |
+| ModernDatePicker | `dte` | | Rectangle | `rct` |
+
+En kontrol, der er **afledt** af en anden (etiket, stjerne, hint, titel,
+baggrund), får navn af basen via `gen_screen.child_name`: cellen
+`conVhpCellPlant` giver `txtVhpCellPlantLbl` — ikke `conVhpCellPlantLbl`.
+
+| Tilstand | Navn |
+|---|---|
+| Skærm-/app-tilstand | `var<X>*` (kun `Set`) — også hubbens (`varMdView`) |
+| Delt på tværs af apps | `gbl*` (`gblNavOpen`, `gblNewSeq`, `gblFlReqId`) |
+| Samling og navngiven tabelformel | `col<X>*` (`colFlPlan`, `colVhpPlantCodes`) |
+| Navngiven skalarformel | `<X>Pascal` (`VhpCanSubmit`, `FlRulesLoaded`) |
+| Faste stammer | `…Me`, `…Saving`, `…ConfirmSubmit`, `…Validated`, `…FlMsg`, `…RequestNo`, `…RequestGuid` |
 
 ## Feltkanten har ÉN regel
 

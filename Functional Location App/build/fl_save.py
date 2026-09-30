@@ -265,9 +265,9 @@ def payload_fx():
             }}
         ),
         ruleMeta: {{
-            componentCount: CountRows(nfFlComponent),
-            aggregateCount: CountRows(nfFlAggregate),
-            functionKeyCount: nfFlFunctionKeyCount,
+            componentCount: CountRows(colFlComponent),
+            aggregateCount: CountRows(colFlAggregate),
+            functionKeyCount: FlFunctionKeyCount,
             ruleSource: "html/app-functional-location.js + html/fl-rule-engine.js"
         }}
     }},

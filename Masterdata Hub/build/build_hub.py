@@ -57,8 +57,8 @@ def use_actions(new_action, open_action):
     NEW_ACTION, OPEN_ACTION = new_action, open_action
 
 # "New request"-menuen i bjaelken. Blank ved start = lukket.
-MENU_OPEN = "IfError(gblNewMenu, false)"
-MENU_CLOSE = "Set(gblNewMenu, false)"
+MENU_OPEN = "IfError(varMdNewMenu, false)"
+MENU_CLOSE = "Set(varMdNewMenu, false)"
 
 
 def _new_action(d):
@@ -151,8 +151,8 @@ def _domain_switch(field, fallback):
 # ---------------------------------------------------------------------------
 # Afgraensningen - TO uafhaengige valg (issue #74):
 #
-#   HVIS    "My requests" (gblView)   mine / hele afdelingen
-#   HVILKE  Open / Closed / All       gblStatusMode
+#   HVIS    "My requests" (varMdView)   mine / hele afdelingen
+#   HVILKE  Open / Closed / All       varMdStatusMode
 #
 # "My requests" er et OMFANG, ikke et statusfilter; de to kombineres. Foer
 # var afdelingens visning det samme som "aabne", saa Closed og All viste
@@ -168,7 +168,7 @@ def _domain_switch(field, fallback):
 # ---------------------------------------------------------------------------
 # ET FLADT FILTER, IKKE If(...) OMKRING SEKS FILTRE
 #
-# Her stod If(gblView = "mine", If(gblStatusMode = ...)) med et Filter i
+# Her stod If(varMdView = "mine", If(varMdStatusMode = ...)) med et Filter i
 # hver gren. Om Power Apps delegerer det ydre Filter/SortByColumns GENNEM
 # en If, var aldrig efterproevet (README bad selv om at tjekke det). Et
 # enkelt Filter, hvor hver betingelse er "konstant ELLER delegerbar
@@ -179,8 +179,8 @@ def _domain_switch(field, fallback):
 SCOPE = (
     "Filter(\n"
     f"        '{LIST}',\n"
-    '        gblView <> "mine" || RequesterEmail = gblMe,\n'
-    '        gblStatusMode = "all" || IsOpen = (gblStatusMode = "open")\n'
+    '        varMdView <> "mine" || RequesterEmail = varMdMe,\n'
+    '        varMdStatusMode = "all" || IsOpen = (varMdStatusMode = "open")\n'
     "    )"
 )
 
@@ -206,20 +206,20 @@ def scope_count(pred=None):
 
 
 # Flisernes undertekst: hvad tallet taeller.
-SCOPE_WORDS = ('Switch(gblStatusMode, "open", "Open", "done", "Closed", "All") & '
-               'If(gblView = "mine", " - my requests", " - whole department")')
+SCOPE_WORDS = ('Switch(varMdStatusMode, "open", "Open", "done", "Closed", "All") & '
+               'If(varMdView = "mine", " - my requests", " - whole department")')
 
 # De seneste lukkede indmeldinger i det valgte omfang - til Closed-preview'et.
 CLOSED_LATEST = (
     "FirstN(\n"
     "    SortByColumns(\n"
-    f"        Filter('{LIST}', gblView <> \"mine\" || RequesterEmail = gblMe, IsOpen = false),\n"
+    f"        Filter('{LIST}', varMdView <> \"mine\" || RequesterEmail = varMdMe, IsOpen = false),\n"
     "        \"LastActionOn\", SortOrder.Descending\n"
     "    ),\n"
     "    5\n"
     ")"
 )
-PEEK_OPEN = "IfError(gblClosedPeek, false)"
+PEEK_OPEN = "IfError(varMdClosedPeek, false)"
 
 # Tabellens kolonner. EEN kilde til bredderne, saa overskriften og raekken
 # ikke kan komme til at staa forskudt. Resten af bredden ligger i REQUEST,
@@ -297,17 +297,17 @@ def build_bar():
     egne indmeldinger, slaaet fra afdelingens koe. "New request" aabner en
     menu med de fem domaener (build_new_menu)."""
     mine = button("btnMdViewMine", '"My requests"',
-                  'Set(gblView, If(gblView = "mine", "queue", "mine")); Set(gblDomain, "");\n'
+                  'Set(varMdView, If(varMdView = "mine", "queue", "mine")); Set(varMdDomain, "");\n'
                   + SCOPE_REFRESH,
                   width=fit_button_width('"My requests"') + ICON_W, height=36, icon="Person",
-                  accessible='If(gblView = "mine", "Showing my requests - show the queue", '
+                  accessible='If(varMdView = "mine", "Showing my requests - show the queue", '
                              '"Showing the queue - show my requests")')
-    _selected_style(mine, 'gblView = "mine"')
-    new = button("btnMdNewRequest", '"New request"', f"Set(gblNewMenu, !{MENU_OPEN})",
+    _selected_style(mine, 'varMdView = "mine"')
+    new = button("btnMdNewRequest", '"New request"', f"Set(varMdNewMenu, !{MENU_OPEN})",
                  primary=True, width=fit_button_width('"New request"') + ICON_W, height=36,
                  icon="Add")
     return top_bar("Md", '"Masterdatahub"',
-                   '"SAP requests - " & If(gblView = "mine", gblMe, "whole department")',
+                   '"SAP requests - " & If(varMdView = "mine", varMdMe, "whole department")',
                    [mine, new], icon="hub")
 
 
@@ -453,7 +453,7 @@ def build_tiles():
     tiles = []
     for d in DOMAINS:
         n = d["short"]
-        sel = f'gblDomain = "{d["key"]}"'
+        sel = f'varMdDomain = "{d["key"]}"'
         # Tallet taelles paa PRAECIS det saet, listen viser - omfang og
         # Open/Closed/All - bare afgraenset til domaenet.
         count = scope_count(f'Domain = "{d["key"]}"')
@@ -461,7 +461,7 @@ def build_tiles():
         st = _tile_state(d, sel)
         face = _image(f"imgMdTile{n}", _svg_uri(_tile_face(d, count)), "Parent.Width",
                       TILE_H,
-                      onselect=f'Set(gblDomain, If({sel}, "", "{d["key"]}"))',
+                      onselect=f'Set(varMdDomain, If({sel}, "", "{d["key"]}"))',
                       # Uden tallet: det ville vaere endnu en forespoergsel.
                       label=f'If({sel}, "Show all domains", "Show only {d["name"].lower()}")',
                       hover=st["hover"])
@@ -488,9 +488,9 @@ def build_tiles():
 # Filtre
 # ---------------------------------------------------------------------------
 def _chip(name, label, value, icon):
-    b = button(name, f'"{label}"', f'Set(gblStatusMode, "{value}");\n' + SCOPE_REFRESH,
+    b = button(name, f'"{label}"', f'Set(varMdStatusMode, "{value}");\n' + SCOPE_REFRESH,
                width=fit_button_width(f'"{label}"') + ICON_W, height=36, icon=icon)
-    return _selected_style(b, f'gblStatusMode = "{value}"', idle_color=C_MUTED)
+    return _selected_style(b, f'varMdStatusMode = "{value}"', idle_color=C_MUTED)
 
 
 SEARCH_W = 280
@@ -510,7 +510,7 @@ def build_filters():
     search = text_input("inpMdSearch", '""', placeholder='"Search number, text or plant..."',
                         width=str(SEARCH_W), ttype="Search",
                         label='"Search number, text or plant"')
-    shown = scope_count('gblDomain = "" || Domain = gblDomain')
+    shown = scope_count('varMdDomain = "" || Domain = varMdDomain')
     count = text_ctrl("txtMdCount", f'{shown} & " requests"',
                       size=12, color=C_MUTED, height=36, align="Right", width=110, wrap="false")
     closed = _chip("btnMdStDone", "Closed", "done", "CheckmarkCircle")
@@ -536,7 +536,7 @@ PEEK_ROW_H = 48
 
 
 def _peek_button():
-    b = button("btnMdClosedPeek", '""', f"Set(gblClosedPeek, !{PEEK_OPEN})",
+    b = button("btnMdClosedPeek", '""', f"Set(varMdClosedPeek, !{PEEK_OPEN})",
                width=36, height=36, icon="Info",
                accessible='"Show the latest closed requests"')
     b.props["Layout"] = "ButtonLayout.IconOnly"
@@ -547,7 +547,7 @@ def _peek_button():
 def build_closed_peek():
     """Popoveren: [sloer, kort]. Staar paa skaermen efter rammen, som
     "New request"-menuen - se assemble_hub."""
-    close = "Set(gblClosedPeek, false)"
+    close = "Set(varMdClosedPeek, false)"
     scrim = Ctrl("imgMdPeekScrim", "Image", props={
         "AccessibleLabel": '"Close preview"',
         "BorderStyle": "BorderStyle.None",
@@ -565,7 +565,7 @@ def build_closed_peek():
     title = text_ctrl("txtMdPeekTitle", '"Latest closed requests"', size=14,
                       weight="Semibold", height=22, wrap="false")
     sub = text_ctrl("txtMdPeekSub",
-                    'If(gblView = "mine", "My requests", "Whole department")',
+                    'If(varMdView = "mine", "My requests", "Whole department")',
                     size=11, color=C_MUTED, height=18, wrap="false")
 
     icon = _image("imgMdPeekDomain",
@@ -620,7 +620,7 @@ ITEMS = (
     "SortByColumns(\n"
     "    Filter(\n"
     f"        {SCOPE},\n"
-    '        gblDomain = "" || Domain.Value = gblDomain,\n'
+    '        varMdDomain = "" || Domain.Value = varMdDomain,\n'
     '        IsBlank(Trim(inpMdSearch.Text)) ||\n'
     f"            StartsWith({COL_NO}, Trim(inpMdSearch.Text)) ||\n"
     "            StartsWith(ShortText, Trim(inpMdSearch.Text)) ||\n"
@@ -788,12 +788,12 @@ def _active_filter():
     farve, saa man kan se, HVORFOR listen er kortere, og fjerne filteret
     uden at finde flisen igen. Tabellen selv forbliver neutral: farven
     staar kun her, paa flisens kant og i ikonerne."""
-    on = 'gblDomain <> ""'
-    color = _domain_switch_on("gblDomain", lambda d: d["color"], C_PRIMARY)
-    name = _domain_switch_on("gblDomain", lambda d: f'"{d["name"]}"', '""')
+    on = 'varMdDomain <> ""'
+    color = _domain_switch_on("varMdDomain", lambda d: d["color"], C_PRIMARY)
+    name = _domain_switch_on("varMdDomain", lambda d: f'"{d["name"]}"', '""')
     longest = max((d["name"] for d in DOMAINS), key=len)
     chip = button("btnMdActiveDomain", f'"Filter: " & {name}',
-                  'Set(gblDomain, "")', height=30,
+                  'Set(varMdDomain, "")', height=30,
                   width=fit_button_width(f'"Filter: {longest}"') + ICON_W,
                   icon="Dismiss",
                   accessible=f'"Remove filter " & {name}')

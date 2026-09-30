@@ -812,14 +812,14 @@ Screens:
                                                                                         Priority: { Value: "Yellow (default)" },
                                                                                         OrstedResponsible: {
                                                                                             '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
-                                                                                            Claims: "i:0#.f|membership|" & Lower(User().Email),
+                                                                                            Claims: "i:0#.f|membership|" & varVhpMe,
                                                                                             DisplayName: User().FullName,
                                                                                             Email: User().Email,
                                                                                             Department: "",
                                                                                             JobTitle: "",
                                                                                             Picture: ""
                                                                                         },
-                                                                                        OrstedResponsibleEmail: Lower(User().Email),
+                                                                                        OrstedResponsibleEmail: varVhpMe,
                                                                                         InitialOrstedResponsible: IT.Initials,
                                                                                         MaintenanceActivityType: With(
                                                                                             { a: LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType) },
@@ -1003,7 +1003,7 @@ Screens:
                                                         StatusStep: 1,
                                                         IsOpen: true,
                                                         RequestGuid: varVhpRequestGuid,
-                                                        RequesterEmail: Lower(User().Email),
+                                                        RequesterEmail: varVhpMe,
                                                         RequesterName: User().FullName,
                                                         ShortText: varVhpPlan.PlanText,
                                                         Plant: varVhpPlan.Plant,
@@ -1011,7 +1011,7 @@ Screens:
                                                         SourceItemId: planId,
                                                         AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/11fa8d90-868a-45a4-ba23-28f2cf0671a2?reqid=" & varVhpRequestGuid,
                                                         LastActionOn: Now(),
-                                                        LastActionBy: Lower(User().Email)
+                                                        LastActionBy: varVhpMe
                                                     }
                                                                 );
                                         
@@ -4566,13 +4566,13 @@ Screens:
                             )), 1) * 88) + If(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "item" && Kind = "Panel"),
                                 Ord
-                            )) = 0, 4 + (32), 0)), 0) + 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (58 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + 20, Max((0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (58 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))) + 14 + (60 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (40 + If(false, 0 + (1), 0)) + If(!IsBlank(varVhpFlMeta), 6 + (18), 0))), Max((113 + 12 + (Max(CountRows(colVhpItems), 1) * 94) + If(IfError(CountRows(colVhpItems) = 0, true), 12 + (40), 0)), (115 + If(IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
+                            )) = 0, 4 + (32), 0)), 0) + 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (58 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + 20, Max((0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (58 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))) + 14 + (60 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (40 + If(false, 0 + (1), 0)) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0))), Max((113 + 12 + (Max(CountRows(colVhpItems), 1) * 94) + If(IfError(CountRows(colVhpItems) = 0, true), 12 + (40), 0)), (115 + If(IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "item" && Kind = "Panel"),
                                 Ord
                             )), 1) * 88) + If(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "item" && Kind = "Panel"),
                                 Ord
-                            )) = 0, 4 + (32), 0)), 0) + 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (58 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + 20, Max((0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (58 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))) + 14 + (60 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (40 + If(false, 0 + (1), 0)) + If(!IsBlank(varVhpFlMeta), 6 + (18), 0)))))) + 2
+                            )) = 0, 4 + (32), 0)), 0) + 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (58 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + 20, Max((0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (58 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))) + 14 + (60 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (40 + If(false, 0 + (1), 0)) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)))))) + 2
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -4886,14 +4886,14 @@ Screens:
                                                   );
                                                   Set(varVhpActiveItemId, varVhpNextItemId);
                                                   Set(varVhpItemValidated, false);
-                                                  Set(varVhpFlMeta, "");
-                                                  Clear(colVhpFlSearch);
+                                                  Set(varVhpFlMsg, "");
+                                                  Clear(colVhpFl);
                                               With(
                                                   { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                                   If(
                                                       !IsBlank(it.FunctionalLocation),
                                                       Collect(
-                                                          colVhpFlSearch,
+                                                          colVhpFl,
                                                           { Code: it.FunctionalLocation, Description: it.FlDescription,
                                                             Display: it.FunctionalLocation & " - " & it.FlDescription,
                                                             Maintainable: true, Level: "" }
@@ -5013,13 +5013,13 @@ Screens:
                                                           )
                                                       );
                                                       Set(varVhpActiveItemId, varVhpNextItemId);
-                                                      Clear(colVhpFlSearch);
+                                                      Clear(colVhpFl);
                                               With(
                                                   { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                                   If(
                                                       !IsBlank(it.FunctionalLocation),
                                                       Collect(
-                                                          colVhpFlSearch,
+                                                          colVhpFl,
                                                           { Code: it.FunctionalLocation, Description: it.FlDescription,
                                                             Display: it.FunctionalLocation & " - " & it.FlDescription,
                                                             Maintainable: true, Level: "" }
@@ -5339,14 +5339,14 @@ Screens:
                                           OnSelect: |-
                                               =Set(varVhpActiveItemId, ThisItem.ItemId);
                                               Set(varVhpItemValidated, false);
-                                              Set(varVhpFlMeta, "");
-                                              Clear(colVhpFlSearch);
+                                              Set(varVhpFlMsg, "");
+                                              Clear(colVhpFl);
                                               With(
                                                   { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                                   If(
                                                       !IsBlank(it.FunctionalLocation),
                                                       Collect(
-                                                          colVhpFlSearch,
+                                                          colVhpFl,
                                                           { Code: it.FunctionalLocation, Description: it.FlDescription,
                                                             Display: it.FunctionalLocation & " - " & it.FlDescription,
                                                             Maintainable: true, Level: "" }
@@ -5490,7 +5490,7 @@ Screens:
                                   )), 1) * 88) + If(CountRows(Sort(
                                       Filter(colVhpHelp, Key = "item" && Kind = "Panel"),
                                       Ord
-                                  )) = 0, 4 + (32), 0)), 0) + 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (58 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + 20, Max((0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (58 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))) + 14 + (60 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (40 + If(false, 0 + (1), 0)) + If(!IsBlank(varVhpFlMeta), 6 + (18), 0))
+                                  )) = 0, 4 + (32), 0)), 0) + 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (58 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + 20, Max((0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (58 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))) + 14 + (60 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (40 + If(false, 0 + (1), 0)) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -7034,7 +7034,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =60 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (40 + If(false, 0 + (1), 0)) + If(!IsBlank(varVhpFlMeta), 6 + (18), 0)
+                                        =60 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (40 + If(false, 0 + (1), 0)) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Stretch
                                     LayoutDirection: |-
@@ -7265,7 +7265,7 @@ Screens:
                                                       Color: |-
                                                           =If((If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                                       DefaultSelectedItems: |-
-                                                          =Filter(colVhpFlSearch, Code = Coalesce(varVhpFlPick, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation))
+                                                          =Filter(colVhpFl, Code = Coalesce(varVhpFlPick, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation))
                                                       DelayOutput: |-
                                                           =false
                                                       DisplayMode: |-
@@ -7285,7 +7285,7 @@ Screens:
                                                       ItemDisplayText: |-
                                                           =ThisItem.Display
                                                       Items: |-
-                                                          =colVhpFlSearch
+                                                          =colVhpFl
                                                       LayoutMinWidth: |-
                                                           =0
                                                       OnChange: |-
@@ -7347,16 +7347,16 @@ Screens:
                                                           
                                                                   Set(varVhpFlBusy, true);
                                                                   Set(varVhpFlLast, q);
-                                                                  Clear(colVhpFlSearch);
+                                                                  Clear(colVhpFl);
                                                                   Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); RemoveIf(colVhpItemObjects, ItemId = varVhpActiveItemId); Clear(colVhpObjDraft);
-                                                                  Set(varVhpFlMeta, "Searching for " & q & " ...");
+                                                                  Set(varVhpFlMsg, "Searching for " & q & " ...");
                                                                   IfError(
                                                                       Set(varVhpFlRaw, 'BioSap-Integration-FunctionalLocations'.Run(q));
                                                                       If(
                                                                           IsBlank(varVhpFlRaw) || IsBlank(varVhpFlRaw.functionallocationoutput),
-                                                                          Clear(colVhpFlSearch),
+                                                                          Clear(colVhpFl),
                                                                           ClearCollect(
-                                                              colVhpFlSearch,
+                                                              colVhpFl,
                                                               ForAll(
                                                                   Table(ParseJSON(varVhpFlRaw.functionallocationoutput)) As R,
                                                                   {
@@ -7371,15 +7371,15 @@ Screens:
                                                           )
                                                                       );
                                                                       If(
-                                                                          CountRows(colVhpFlSearch) = 0,
+                                                                          CountRows(colVhpFl) = 0,
                                                                           Notify("No functional locations found for " & q & ".", NotificationType.Warning),
-                                                                              Set(varVhpFlPick, First(colVhpFlSearch).Code);
+                                                                              Set(varVhpFlPick, First(colVhpFl).Code);
                                                                               Reset(cmbVhpItemFL)
                                                                       );
                                                                       Set(
-                                                                          varVhpFlMeta,
+                                                                          varVhpFlMsg,
                                                                           With(
-                                                                              { n: CountRows(colVhpFlSearch) },
+                                                                              { n: CountRows(colVhpFl) },
                                                                               If(
                                                                                   n = 0,
                                                                                   "No Functional Locations found for " & q & ".",
@@ -7392,8 +7392,8 @@ Screens:
                                                                               )
                                                                           )
                                                                       ),
-                                                                      Clear(colVhpFlSearch);
-                                                                      Set(varVhpFlMeta, "Search failed: " & FirstError.Message);
+                                                                      Clear(colVhpFl);
+                                                                      Set(varVhpFlMsg, "Search failed: " & FirstError.Message);
                                                                       Notify("The functional locations search failed. Try again.", NotificationType.Error)
                                                                   );
                                                                   Set(varVhpFlBusy, false)
@@ -7504,9 +7504,9 @@ Screens:
                                           Size: |-
                                               =12
                                           Text: |-
-                                              =varVhpFlMeta
+                                              =varVhpFlMsg
                                           Visible: |-
-                                              =!IsBlank(varVhpFlMeta)
+                                              =!IsBlank(varVhpFlMsg)
                                           Wrap: |-
                                               =false
                                     - btnVhpObjList:
@@ -7528,7 +7528,7 @@ Screens:
                                               =If(CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0, C.'state-ok-fg', C.'text-primary')
                                           DisplayMode: |-
                                               =If(IsBlank(varVhpActiveItemId) || !(!IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && (CountRows(Filter(
-                                                  colVhpFlSearch,
+                                                  colVhpFl,
                                                   !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
                                               )) > 0 || CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0)), DisplayMode.Disabled, DisplayMode.Edit)
                                           Font: |-
@@ -7688,14 +7688,14 @@ Screens:
                                                   Collect(colVhpItemObjects, keep)
                                               );
                                               Set(varVhpItemValidated, false);
-                                              Set(varVhpFlMeta, "");
-                                              Clear(colVhpFlSearch);
+                                              Set(varVhpFlMsg, "");
+                                              Clear(colVhpFl);
                                               With(
                                                   { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                                   If(
                                                       !IsBlank(it.FunctionalLocation),
                                                       Collect(
-                                                          colVhpFlSearch,
+                                                          colVhpFl,
                                                           { Code: it.FunctionalLocation, Description: it.FlDescription,
                                                             Display: it.FunctionalLocation & " - " & it.FlDescription,
                                                             Maintainable: true, Level: "" }
@@ -12666,7 +12666,7 @@ Screens:
                 =0
             Height: |-
                 =464 + If(IfError(CountRows(Filter(
-                    colVhpFlSearch,
+                    colVhpFl,
                     !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
                 )) = 0, true), 12 + (32), 0)
             LayoutAlignItems: |-
@@ -12842,7 +12842,7 @@ Screens:
                       =12
                   Text: |-
                       =If(IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)), "No functional location selected.", "Sub-objects under " & Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation) & " - " & Text(CountRows(Filter(
-                          colVhpFlSearch,
+                          colVhpFl,
                           !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
                       ))) & " found.")
                   Wrap: |-
@@ -12867,7 +12867,7 @@ Screens:
                       =306
                   Items: |-
                       =Sort(Filter(
-                          colVhpFlSearch,
+                          colVhpFl,
                           !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
                       ), Code)
                   LayoutMinWidth: |-
@@ -12979,7 +12979,7 @@ Screens:
                       )
                   Visible: |-
                       =IfError(CountRows(Filter(
-                          colVhpFlSearch,
+                          colVhpFl,
                           !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
                       )) = 0, true)
                   Wrap: |-
@@ -14927,14 +14927,14 @@ Screens:
                                                                             Priority: { Value: "Yellow (default)" },
                                                                             OrstedResponsible: {
                                                                                 '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
-                                                                                Claims: "i:0#.f|membership|" & Lower(User().Email),
+                                                                                Claims: "i:0#.f|membership|" & varVhpMe,
                                                                                 DisplayName: User().FullName,
                                                                                 Email: User().Email,
                                                                                 Department: "",
                                                                                 JobTitle: "",
                                                                                 Picture: ""
                                                                             },
-                                                                            OrstedResponsibleEmail: Lower(User().Email),
+                                                                            OrstedResponsibleEmail: varVhpMe,
                                                                             InitialOrstedResponsible: IT.Initials,
                                                                             MaintenanceActivityType: With(
                                                                                 { a: LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType) },
@@ -15118,7 +15118,7 @@ Screens:
                                             StatusStep: 2,
                                             IsOpen: true,
                                             RequestGuid: varVhpRequestGuid,
-                                            RequesterEmail: Lower(User().Email),
+                                            RequesterEmail: varVhpMe,
                                             RequesterName: User().FullName,
                                             ShortText: varVhpPlan.PlanText,
                                             Plant: varVhpPlan.Plant,
@@ -15126,7 +15126,7 @@ Screens:
                                             SourceItemId: planId,
                                             AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/11fa8d90-868a-45a4-ba23-28f2cf0671a2?reqid=" & varVhpRequestGuid,
                                             LastActionOn: Now(),
-                                            LastActionBy: Lower(User().Email)
+                                            LastActionBy: varVhpMe
                                         }
                                                     );
                             

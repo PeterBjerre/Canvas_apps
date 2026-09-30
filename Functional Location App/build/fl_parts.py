@@ -397,7 +397,7 @@ def build_classes():
     tab.props["BasePaletteColor"] = C_PRIMARY
     tab.props["Color"] = f"If({sel}, {C_WHITE}, {C_TITLE})"
     # FL65: klassens hjaelpetekst (resolveClassHelpText :2353-2357).
-    tab.props["Tooltip"] = ('With({ hp: LookUp(nfFlClassHelp, Key = ThisItem.Key).Help }, '
+    tab.props["Tooltip"] = ('With({ hp: LookUp(colFlClassHelp, Key = ThisItem.Key).Help }, '
                             'If(IsBlank(hp), "", ThisItem.Key & ": " & hp))')
     tabs = Ctrl("galFlTabs", "Gallery", variant="Horizontal", props={
         "AccessibleLabel": '"Class tabs"',
@@ -492,7 +492,7 @@ DET_ITEMS = f"""With(
     {{ dr: {DR}, dc: varFlDetailClass }},
     Filter(
         ForAll(
-            Sort(Filter(nfFlColumns, Cls = dc), Ord) As K,
+            Sort(Filter(colFlColumns, Cls = dc), Ord) As K,
             {{
                 Column: K.Column, Field: K.Field, Editable: K.Editable,
                 List: K.List, MaxLen: K.MaxLen,
@@ -510,8 +510,8 @@ DD_ITEMS = """Ungroup(
     Table(
         { G: Table({ Value: "" }) },
         { G: Filter(Table({ Value: ThisItem.Value }), !IsBlank(Value) &&
-                    !(Upper(Value) in With({ lid: ThisItem.List }, Filter(nfFlLists, List = lid)).UValue)) },
-        { G: ForAll(Sort(With({ lid: ThisItem.List }, Filter(nfFlLists, List = lid)), Ord) As O, { Value: O.Value }) }
+                    !(Upper(Value) in With({ lid: ThisItem.List }, Filter(colFlLists, List = lid)).UValue)) },
+        { G: ForAll(Sort(With({ lid: ThisItem.List }, Filter(colFlLists, List = lid)), Ord) As O, { Value: O.Value }) }
     ),
     G
 )"""

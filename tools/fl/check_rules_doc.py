@@ -13,7 +13,7 @@ der er omdoebt eller slettet, er ogsaa en. Tjekket her efterproever:
   2. Hvert navn i den kolonne findes: i den fil, der staar foran det
      (fl_validation.py, fl_parts.py ...), eller i appens byggede
      .pa.yaml (kontrolnavne som btnFlVerify).
-  3. Hver regelkode, appen skriver i meddelelsestabellen (nfFlPlan og
+  3. Hver regelkode, appen skriver i meddelelsestabellen (colFlPlan og
      raekkebeskederne), har en raekke i tabellen.
   4. Hver valideringsregel har mindst to sager i testmatrixen, og hver
      UI-regel har et gyldigt og et ugyldigt eksempel.

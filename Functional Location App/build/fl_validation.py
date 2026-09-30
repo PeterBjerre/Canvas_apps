@@ -43,7 +43,7 @@ def _any_match(expr, patterns):
 # A. Funktionsnoeglerne (FL12, docs/31 PX5)
 # ---------------------------------------------------------------------------
 # De 6.441 noegler ligger i appen som EEN streng, "0ABA0ABB0...0", i den
-# navngivne formel nfFlFunctionKeys - ligesom siden har dem i
+# navngivne formel FlFunctionKeys - ligesom siden har dem i
 # lookups.generated.js. Et opslag i SharePoint pr. raekke kan ikke
 # delegeres (check_layout regel 30), og SharePoint ville saa kun lede i de
 # foerste 500-2000 raekker: en gyldig noegle laengere nede ville blive
@@ -57,7 +57,7 @@ def _any_match(expr, patterns):
 # noegle med "0" i kan aldrig findes (den ville ellers kunne matche hen over
 # to naboer i strengen).
 def fk_hit(k7):
-    return f'(!("0" in {k7}) && ("0" & {k7} & "0") exactin nfFlFunctionKeys)'
+    return f'(!("0" in {k7}) && ("0" & {k7} & "0") exactin FlFunctionKeys)'
 
 
 # ---------------------------------------------------------------------------
@@ -127,9 +127,9 @@ def calc_rows():
                     {{
                         legacy: !IsBlank(fl) && !ok && {legacy},
                         synKab: ok && (kv || ka),
-                        live: !IsBlank(fl) && !blankRow && nfFlRulesLoaded,
-                        agg: LookUp(nfFlAggregate, Key = k12),
-                        comp: LookUp(nfFlComponent, Key = k18),
+                        live: !IsBlank(fl) && !blankRow && FlRulesLoaded,
+                        agg: LookUp(colFlAggregate, Key = k12),
+                        comp: LookUp(colFlComponent, Key = k18),
                         br: k12 = "UE" || k12 = "UF"
                     }},
                     With(
@@ -148,12 +148,12 @@ def calc_rows():
                                 MDescReq: If(!blankRow && IsBlank(d), "Description required before Ready for SAP.", ""),
                                 MDescLen: If(!blankRow && Len(d) > 40, "Description > 40.", ""),
                                 MKks: If(!blankRow && !IsBlank(fl) && !ok && !legacy, "KKS invalid.", ""),
-                                MRules: If(!blankRow && !IsBlank(fl) && !nfFlRulesLoaded, "Rules data missing.", ""),
-                                MPlant: If(live && !(k0 in nfFlPlants.Key), "Plant key invalid.", ""),
-                                MFunc: If(live && nfFlHasFunctionKeys && !{fk_hit("k7")}, "Function key invalid.", ""),
+                                MRules: If(!blankRow && !IsBlank(fl) && !FlRulesLoaded, "Rules data missing.", ""),
+                                MPlant: If(live && !(k0 in colFlPlants.Key), "Plant key invalid.", ""),
+                                MFunc: If(live && FlHasFunctionKeys && !{fk_hit("k7")}, "Function key invalid.", ""),
                                 MU: If(live && br && Left(k7, 1) <> "U", "UF/UE requires U function key.", ""),
-                                MBrMiss: If(live && br && IsBlank(LookUp(nfFlBr18, Key12 = k12)), "BR18 rules missing for " & k12 & ".", ""),
-                                MBrK17: If(live && br && !IsBlank(LookUp(nfFlBr18, Key12 = k12)) && IsBlank(LookUp(nfFlBr18, Key12 = k12 && Key17 = k17)), "BR18 key17 invalid for " & k12 & ".", ""),
+                                MBrMiss: If(live && br && IsBlank(LookUp(colFlBr18, Key12 = k12)), "BR18 rules missing for " & k12 & ".", ""),
+                                MBrK17: If(live && br && !IsBlank(LookUp(colFlBr18, Key12 = k12)) && IsBlank(LookUp(colFlBr18, Key12 = k12 && Key17 = k17)), "BR18 key17 invalid for " & k12 & ".", ""),
                                 MComp: If(p18 && IsBlank(comp), "Component key invalid.", ""),
                                 MEq18: If(p18 && IsBlank(agg), "Equipment key invalid.", ""),
                                 MEq12: If(p12 && IsBlank(agg) && isMkp, "Equipment key invalid.", ""),
@@ -215,7 +215,7 @@ def _val(r, field):
 # og smaa bogstaver. Tomme stykker taeller ikke.
 def in_list_bad(v, list_id):
     return (f"CountRows(Filter(Split({v}, \"|\") As T, !IsBlank(Trim(T.Value)) && "
-            f"!(Upper(Trim(T.Value)) in Filter(nfFlLists, List = {list_id}).UValue))) > 0")
+            f"!(Upper(Trim(T.Value)) in Filter(colFlLists, List = {list_id}).UValue))) > 0")
 
 
 # FL34 / PX4: datoen som ren aritmetik. new Date(y, m-1, d) i JS giver et
@@ -267,7 +267,7 @@ def spool_issues():
             {{
                 Items: Filter(
                     ForAll(
-                        With({{ sc: R.SpoolCls }}, Filter(nfFlPlan, Cls = sc && Ord > 0)) As P,
+                        With({{ sc: R.SpoolCls }}, Filter(colFlPlan, Cls = sc && Ord > 0)) As P,
                         With(
                             {{ v: {_val('R', 'P.Field')}, lid: P.List }},
                             {{
@@ -353,7 +353,7 @@ TRM_FIELDS = '["EX-MARKING", "SAFETY CRITICAL EQUIPMENT", "FIRE CLASSIFICATION",
 TRM_SET = f"""ClearCollect(
     colFlTrm,
     ForAll(
-        Filter(colFlCalc, !IsBlankRow && SpoolCls in nfFlTrmClasses.Cls) As R,
+        Filter(colFlCalc, !IsBlankRow && SpoolCls in colFlTrmClasses.Cls) As R,
         {{
             RowGuid: R.RowGuid,
             AnyTrm: CountRows(Filter(colFlVals, RowGuid = R.RowGuid && Field in {TRM_FIELDS} && !IsBlank(Trim(Value)))) > 0,

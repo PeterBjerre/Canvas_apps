@@ -461,7 +461,7 @@ def main():
     prov_lists = provisioned_lists()
     # NAVNGIVNE FORMLER er heller ikke lister. De bruges i LookUp og Filter
     # ligesom en liste, men de er defineret i App.Formulas - fx
-    # Functional Location-appens regeltabeller (nfFlPlan ...).
+    # Functional Location-appens regeltabeller (colFlPlan ...).
     named = named_formulas()
     missing = {l for l in used - set(schema)
                if not l.startswith("col") and l not in named}

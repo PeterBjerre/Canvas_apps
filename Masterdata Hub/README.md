@@ -134,7 +134,7 @@ To udtryk skal tjekkes i Studio, fordi de afgør, om siden skalerer:
 
 1. **Galleriets `Items`.** Ét fladt `Filter` på `MD_RequestIndex`, hvor hver
    betingelse er "konstant ELLER delegerbar sammenligning"
-   (`gblView <> "mine" || RequesterEmail = gblMe`, `IsOpen = …`). Bekræft i
+   (`varMdView <> "mine" || RequesterEmail = varMdMe`, `IsOpen = …`). Bekræft i
    Studio, at der ingen delegeringsadvarsel er.
 2. **Forfiningerne** (domæne, status, fritekst) køres bevidst klientside oven
    på det allerede afgrænsede sæt. Det er korrekt, så længe en bruger har
