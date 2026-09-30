@@ -2,7 +2,7 @@
 """Samler Functional Location-skaermen -> ../ScreenFunctionalLocation.pa.yaml.
 
 APPENS EGEN KOMPOSITION. Delene staar i fl_parts.py (skaermen),
-fl_validation.py (Verify) og fl_save.py (gem/indsend). Reglerne, de
+fl_validation.py (den automatiske validering) og fl_save.py (gem/indsend). Reglerne, de
 haandhaever, staar i docs/31-functional-location-regler.md.
 
 DATAHENTNINGEN LIGGER I OnVisible, IKKE I App.OnStart - og kun dyblinket
@@ -35,22 +35,24 @@ def on_visible():
         "Set(varFlMe, Lower(User().Email));\n"
         "If(\n"
         '    !IsBlank(Param("reqid")) && varFlRequestGuid <> Param("reqid"),\n'
-        "    " + S.load_fx().replace("\n", "\n    ") + "\n"
+        "    " + S.load_fx().replace("\n", "\n    ") + ";\n"
+        "    // Beskederne gemmes ikke - de regnes igen, automatisk (issue #77).\n"
+        "    Select(btnFlVerify)\n"
         ");\n"
         "If(CountRows(colFlRows) = 0, " + P.add_row_fx().replace("\n", " ") + ")"
     )
 
 
 def build_screen():
-    # EEN spalte: Validation, Classes, strukturen og indsend. Detaljerne og
-    # eksporten er popups, med sloeret FOERST, saa det ligger bagved.
+    # EEN spalte: Validation, Classes og strukturen. Save draft, Submit og
+    # New request staar i bjaelken (issue #77). Detaljerne er en popup, med
+    # sloeret FOERST, saa det ligger bagved.
     root = app_frame("Fl", P.build_bar(),
-                     [P.build_rows(), P.build_classes(), P.build_structure(),
-                      P.build_submit()])
+                     [P.build_rows(), P.build_classes(), P.build_structure()])
     # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
     nav, overlay = side_nav("Fl", "functionallocation")
     return render_screen(cfg.SCREEN, {"Fill": C_APP_BG, "OnVisible": on_visible()},
-                         [root, *nav, P.build_backdrop(), P.build_detail(), P.build_export(),
+                         [root, *nav, P.build_backdrop(), P.build_detail(),
                           *overlay, *P.build_submit_confirm()])
 
 
