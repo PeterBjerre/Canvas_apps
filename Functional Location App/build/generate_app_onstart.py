@@ -195,9 +195,6 @@ def main():
     print("App.pa.yaml skrevet.", content.count(chr(10)) + 1, "linjer,",
           len(COLLECTIONS), "arbejdssamlinger, 0 datahentninger i OnStart,",
           len(R["plan"]), "tjek i colFlPlan.")
-    if not cfg.PLAY_URL:
-        print("  NB: 'functionallocation' har intet app_id i tools/canvas_apps.json endnu -\n"
-              "      AppUrl i MD_RequestIndex bliver tom, til id'et er sat og appen bygget igen.")
 
 
 if __name__ == "__main__":

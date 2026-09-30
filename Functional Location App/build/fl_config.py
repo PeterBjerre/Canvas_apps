@@ -43,10 +43,8 @@ L_ITEMS = "FunctionalLocationItems"
 L_KEYS = "MD_FLKey"
 L_INDEX = "MD_RequestIndex"
 
-# Play-URL'en skrives i MD_RequestIndex.AppUrl, saa hubbens "Open" lander
-# paa den rigtige anmodning. Tom, indtil appen har et app_id i
-# tools/canvas_apps.json - se docs/31, "Deploy".
-PLAY_URL = env.play_url(APP_KEY)
+# MD_RequestIndex.AppUrl peger paa den SAMLEDE app - se
+# tools/request_index.py (COMBINED_APP).
 HUB_URL = env.hub_url()
 
 # --- reglerne ------------------------------------------------------------

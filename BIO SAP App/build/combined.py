@@ -43,6 +43,7 @@ if TOOLS not in sys.path:
 
 import design_tokens as tok
 import env_config as env
+import request_index as ri
 
 # Noeglen i tools/canvas_apps.json.
 APP_KEY = "biosap"
@@ -82,7 +83,8 @@ SCREENS = {d["key"]: d["screen"] for d in DOMAINS}
 
 # Dyblink: <play-url>?domain=vhplan&reqid=<RequestGuid>. Uden domain
 # aabner appen paa hubben.
-DOMAIN_PARAM = "domain"
+# Samme navn, som indeksets AppUrl skriver (tools/request_index.py).
+DOMAIN_PARAM = ri.DOMAIN_PARAM
 
 # Taelleren bag "New request". Hvert tryk giver en ny noegle, saa ogsaa et
 # tryk nummer to paa samme flise starter forfra.
