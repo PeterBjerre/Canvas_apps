@@ -23,7 +23,7 @@ ingen undtagelse.
 `#rrggbb`. `tools/build_all.py` nægter at bygge, hvis nogen skriver en, og
 den læser syntakstræet, så en kommentar må gerne nævne en farve.
 
-Alle 31 farver står i `tools/design_tokens.py` — ét sted for alle fire
+Alle farver står i `tools/design_tokens.py` — ét sted for alle fire
 apps, i to udgaver. Builderne skriver en **tokenreference**:
 
 ```python

@@ -20,7 +20,8 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_PRIM
 from build_helpers import (text_ctrl, group, button, card, flow_row, top_bar,
                            fit_button_width, ICON_W)
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, STATUS_ICON, APP_TARGET
-from design_tokens import theme_query, ref_hex
+from design_tokens import theme_query, ref_hex, ref as _t
+from icons import MIRROR_X
 from layout_tokens import (if_below, SCROLLBAR_W, GALLERY_RESERVE, PAGE_PAD_R,
                            HEADER_PAD_T)
 
@@ -81,16 +82,27 @@ def _svg_uri(svg_expr):
     return f'"data:image/svg+xml;utf8," & EncodeUrl({svg_expr})'
 
 
-def _glyph(path, color, x=0, y=0, size=24, width=1.8):
+def _glyph(path, color, x=0, y=0, size=24, width=1.8, mirror=False):
+    """Et stregikon. mirror spejler det vandret (icons.MIRROR_X) - Measuring
+    Points lineal, saa den peger samme vej som Equipments skruenoegle."""
     s = size / 24
+    inner = f"<path d='{path}'/>"
+    if mirror:
+        inner = f"<g transform='{MIRROR_X}'>{inner}</g>"
     return (f"<g transform='translate({x:g} {y:g}) scale({s:g})' fill='none' "
             f"stroke='{color}' stroke-width='{width}' stroke-linecap='round' "
-            f"stroke-linejoin='round'><path d='{path}'/></g>")
+            f"stroke-linejoin='round'>{inner}</g>")
 
 
-def _icon_svg(path, color, size=24):
+def _dglyph(d, color, **kw):
+    """Domaenets ikon - spejlet, hvis domaenet siger det (hub_config)."""
+    return _glyph(d["icon"], color, mirror=d.get("mirror", False), **kw)
+
+
+def _icon_svg(path, color, size=24, mirror=False):
     return ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{size}' height='{size}' "
-            f"viewBox='0 0 {size} {size}'>" + _glyph(path, color, size=size) + "</svg>" + '"')
+            f"viewBox='0 0 {size} {size}'>" + _glyph(path, color, size=size, mirror=mirror)
+            + "</svg>" + '"')
 
 
 def _image(name, image, width, height, onselect=None, label='""', hover=None):
@@ -216,8 +228,8 @@ MENU_ITEM_H = 40
 
 def _menu_item_svg(d, ready):
     fg = _hx("text-primary") if ready else _hx("text-muted")
-    body = _glyph(d["icon"], _hx(d["token"]) if ready else _hx("text-muted"), x=14, y=9,
-                  size=22)
+    body = _dglyph(d, _hx(d["token"]) if ready else _hx("text-muted"), x=14, y=9,
+                   size=22)
     body += (f"<text x='48' y='{MENU_ITEM_H // 2 + 5}' {SVG_FONT} font-size='14' "
              f"font-weight='600' fill='{fg}'>{d['name']}</text>")
     if not ready:
@@ -270,11 +282,49 @@ def build_new_menu():
 # tools/layout_tokens.py.
 #
 # Under "Tablet" (telefon) EEN pr. raekke.
-TILE_W = if_below("Tablet", SHELL_W,
-                  if_below("Desktop", f"({SHELL_W} - 12) / 2", f"({SHELL_W} - 48) / 5"))
-TILE_LINES = if_below("Tablet", "5", if_below("Desktop", "3", "1"))
+#
+# LUFT OM RAEKKEN (issue #70). Fliserne fyldte beholderen paa pixlen, og
+# beholderen skjuler sit overloeb - saa en valgt flises 2 px kant og
+# skygge blev klippet, og Functional Location (den foerste) saa ud til at
+# vaere skaaret af i venstre side. Nu har raekken polstring:
+#
+#     TILE_GAP til venstre og hoejre - den samme afstand som MELLEM fliserne,
+#              saa den foerste og den sidste har samme yderkant som resten
+#     TILE_PAD_T / TILE_PAD_B foroven og forneden - plads til kant og skygge
+#
+# og TILE_W regnes af det, der er tilbage.
 TILE_GAP = 12
+TILE_PAD_T = 4
+TILE_PAD_B = 8
+TILES_CW = f"({SHELL_W} - {2 * TILE_GAP})"
+TILE_W = if_below("Tablet", TILES_CW,
+                  if_below("Desktop", f"({TILES_CW} - {TILE_GAP}) / 2",
+                           f"({TILES_CW} - {4 * TILE_GAP}) / 5"))
+TILE_LINES = if_below("Tablet", "5", if_below("Desktop", "3", "1"))
 TILE_FACE_H = 156
+
+
+def _tile_state(d, sel):
+    """Flisens tilstande - de SAMME for alle fem, kun farven er domaenets.
+
+        standard   kortets fyld, 1 px graa kant, ingen skygge
+        hover      forsiden toner svagt i domaenets bloede farve
+        trykket    samme toning
+        fokus      2 px kant i domaenets farve om forsiden (tastatur)
+        valgt      2 px kant i domaenets farve, bloed toning af hele
+                   flisen og en let skygge - ikke en kraftig baggrund
+
+    Den bloede farve (domain-*-soft) er domaenet blandet 8 % (lys) / 16 %
+    (moerk) ind i kortets baggrund, og design_tokens.CONTRAST kraever, at
+    tekst og kant kan laeses paa den i begge temaer."""
+    soft = _t(d["token"] + "-soft")
+    return {
+        "fill": f"If({sel}, {soft}, {C_CARD_BG})",
+        "border": f"If({sel}, {d['color']}, {C_CARD_BORDER})",
+        "thickness": f"If({sel}, 2, 1)",
+        "shadow": f"If({sel}, DropShadow.Light, DropShadow.None)",
+        "hover": soft,
+    }
 
 
 def _tile_face(d, count_expr):
@@ -290,7 +340,7 @@ def _tile_face(d, count_expr):
     return ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{h}' "
             f"viewBox='0 0 {w} {h}'>"
             f"<circle cx='40' cy='40' r='24' fill='{c}' fill-opacity='0.12'/>"
-            + _glyph(d["icon"], c, x=28, y=28) +
+            + _dglyph(d, c, x=28, y=28) +
             f"<text x='16' y='92' {SVG_FONT} font-size='15' font-weight='600' "
             f"fill='{_hx('text-primary')}'>{d['name']}</text>"
             f"<text x='16' y='126' {SVG_FONT} font-size='28' font-weight='600' "
@@ -310,13 +360,16 @@ def build_tiles():
         # ikke som et selvstaendigt opslag mod hele listen.
         count = f'Text(CountRows(Filter({SCOPE}, Domain.Value = "{d["key"]}", IsOpen = true)))'
 
+        st = _tile_state(d, sel)
         stripe = group(f"conMdStripe{n}", [], height=4, fill=d["color"],
                        direction="Horizontal")
         face = _image(f"imgMdTile{n}", _svg_uri(_tile_face(d, count)), "Parent.Width",
                       TILE_FACE_H,
                       onselect=f'Set(gblDomain, If({sel}, "", "{d["key"]}"))',
                       # Uden tallet: det ville vaere endnu en forespoergsel.
-                      label=f'If({sel}, "Show all domains", "Show only {d["name"].lower()}")')
+                      label=f'If({sel}, "Show all domains", "Show only {d["name"].lower()}")',
+                      hover=st["hover"])
+        face.props["FocusedBorderColor"] = d["color"]
 
         act, ready = _new_action(d)
         label = '"New"' if ready else '"Coming soon"'
@@ -326,24 +379,29 @@ def build_tiles():
                       accessible=f'"New {d["name"].lower()} request"' if ready else label,
                       display_mode="DisplayMode.Edit" if ready else "DisplayMode.Disabled")
         if ready:
+            # Knappen i domaenets farve - tekst, ikon og kant.
             bNew.props["Color"] = d["color"]
+            bNew.props["BorderColor"] = d["color"]
         btns = group(f"conMdTileBtns{n}", [bNew], direction="Horizontal", gap=6,
                      pad=(0, 16, 16, 16), align_items="Center")
 
-        # VALGT = kanten i domaenets farve, 2 px. Stregen foroven har
-        # farven hele tiden; kanten kun naar flisen filtrerer listen.
-        tiles.append(group(
+        # Stregen foroven har domaenets farve hele tiden; kant, toning og
+        # skygge kun naar flisen filtrerer listen (_tile_state).
+        tile = group(
             f"conMdTile{n}", [stripe, face, btns], direction="Vertical", gap=0,
-            fill=C_CARD_BG, radius=12, width=TILE_W,
-            border_color=f"If({sel}, {d['color']}, {C_CARD_BORDER})",
-            border_thickness=f"If({sel}, 2, 1)"))
+            fill=st["fill"], radius=12, width=TILE_W,
+            border_color=st["border"], border_thickness=st["thickness"])
+        tile.props["DropShadow"] = st["shadow"]
+        tiles.append(tile)
 
     tile_h = tiles[0].h
     return group("conMdTiles", tiles, direction="Horizontal", gap=TILE_GAP, wrap="true",
+                 pad=(TILE_PAD_T, TILE_GAP, TILE_PAD_B, TILE_GAP),
                  # SAMME braekpunkt som TILE_W. Var de uenige, ville beholderen
                  # have hoejde til een raekke fliser, mens fliserne selv stod i
                  # tre - og de to nederste raekker blev klippet af.
-                 height=f"{TILE_LINES} * ({tile_h}) + ({TILE_LINES} - 1) * {TILE_GAP}")
+                 height=(f"{TILE_PAD_T} + {TILE_LINES} * ({tile_h}) + "
+                         f"({TILE_LINES} - 1) * {TILE_GAP} + {TILE_PAD_B}"))
 
 
 # ---------------------------------------------------------------------------
@@ -420,8 +478,9 @@ def build_list():
 
     # DOMAIN: ikonet i domaenets farve og navnet.
     dom_icon = _image("imgMdRowDomain",
-                      _svg_uri(_domain_switch(lambda d: _icon_svg(d["icon"], _hx(d["token"])),
-                                              '""')),
+                      _svg_uri(_domain_switch(
+                          lambda d: _icon_svg(d["icon"], _hx(d["token"]),
+                                              mirror=d.get("mirror", False)), '""')),
                       24, 24)
     dom_name = text_ctrl("txtMdRowDomain",
                          _domain_switch(lambda d: f'"{d["name"]}"', '"?"'),
@@ -471,17 +530,29 @@ def build_list():
                 align_items="Center", width="Parent.TemplateWidth", fill=C_CARD_BG,
                 pad=(0, ROW_PAD, 0, ROW_PAD))
 
-    # Stregen mellem raekkerne er galleriets fyld, der ses i den 1 px, som
-    # raekken er lavere end skabelonen.
+    # STREGEN MELLEM RAEKKERNE ER SIN EGEN FIGUR (issue #70)
+    #
+    # Den var galleriets FYLD, der saas i den 1 px, raekken var lavere end
+    # skabelonen. Men fyldet ses ogsaa alle andre steder, galleriet ikke
+    # har en raekke: under de sidste raekker naar filteret giver faa, og
+    # ved siden af scrollbaren - et graat felt i en anden farve end
+    # tabellen. Nu er galleriet i kortets farve, og stregen er en figur
+    # nederst i hver raekke.
+    rule = Ctrl("rctMdRowRule", "Rectangle", props={
+        "AccessibleLabel": '""', "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0", "Fill": C_DIVIDER, "Height": "1",
+        "OnSelect": "false", "TabIndex": "-1",
+        "Width": "Parent.TemplateWidth", "X": "0", "Y": str(ROW_H - 1),
+    }, h=1)
     gal = Ctrl("galMdRequests", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Requests"',
-        "BorderStyle": "BorderStyle.None", "Fill": C_DIVIDER, "FillPortions": "0",
+        "BorderStyle": "BorderStyle.None", "Fill": C_CARD_BG, "FillPortions": "0",
         "Height": str(GAL_ROWS * ROW_H),
         "Items": ITEMS, "LayoutMinWidth": "0", "LoadingSpinner": "LoadingSpinner.Controls",
         "Selectable": "false", "ShowScrollbar": "true", "TabIndex": "0",
         "TemplatePadding": "0", "TemplateSize": str(ROW_H),
         "Width": "Parent.Width", "WrapCount": "1",
-    }, children=[row], h=GAL_ROWS * ROW_H)
+    }, children=[row, rule], h=GAL_ROWS * ROW_H)
 
     empty = text_ctrl("txtMdEmpty", '"No requests match the filters."', size=13,
                       color=C_MUTED, height=24, wrap="true",
@@ -489,4 +560,37 @@ def build_list():
                       # En hoejde maa ikke kunne fejle paa netvaerket.
                       visible="IsEmpty(galMdRequests.AllItems)")
 
-    return card("conMdListCard", [head, gal, empty], gap=8)
+    # Streg mellem overskriften og den foerste raekke.
+    head_rule = group("conMdListRule", [], direction="Horizontal", height=1,
+                      fill=C_DIVIDER)
+
+    return card("conMdListCard", [_active_filter(), head, head_rule, gal, empty], gap=8)
+
+
+def _active_filter():
+    """Det aktive domaenefilter over tabellen (issue #70) - i domaenets
+    farve, saa man kan se, HVORFOR listen er kortere, og fjerne filteret
+    uden at finde flisen igen. Tabellen selv forbliver neutral: farven
+    staar kun her, paa flisens kant og i ikonerne."""
+    on = 'gblDomain <> ""'
+    color = _domain_switch_on("gblDomain", lambda d: d["color"], C_PRIMARY)
+    name = _domain_switch_on("gblDomain", lambda d: f'"{d["name"]}"', '""')
+    longest = max((d["name"] for d in DOMAINS), key=len)
+    chip = button("btnMdActiveDomain", f'"Filter: " & {name}',
+                  'Set(gblDomain, "")', height=30,
+                  width=fit_button_width(f'"Filter: {longest}"') + ICON_W,
+                  icon="Dismiss",
+                  accessible=f'"Remove filter " & {name}')
+    chip.props["Icon"] = '"Dismiss"'
+    chip.props["Layout"] = "ButtonLayout.IconAfter"
+    chip.props["Color"] = color
+    chip.props["BorderColor"] = color
+    chip.props["Size"] = "13"
+    return group("conMdActiveFilter", [chip], direction="Horizontal", height=30,
+                 align_items="Center", visible=on)
+
+
+def _domain_switch_on(var, field, fallback):
+    return ("Switch(\n    %s,\n    " % var +
+            ",\n    ".join(f'"{d["key"]}", {field(d)}' for d in DOMAINS) +
+            f",\n    {fallback}\n)")
