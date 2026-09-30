@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-GEM, INDSEND, EKSPORT OG DYBLINK - efter powerfx/04-submit-patch.fx.
+GEM, INDSEND OG DYBLINK - efter powerfx/04-submit-patch.fx.
 
 SharePoint har ingen transaktioner. Hvert gem er derfor GENOPTAGELIGT i
 stedet for atomart:
@@ -26,8 +26,8 @@ stedet for atomart:
 
 Indsend er det samme gem efterfulgt af det frosne JSON-snapshot
 (schema/functional-location-request.schema.json) og status Indsendt. Det
-kan kun ske, naar Verify er koert efter sidste aendring, og ingen raekke
-har en fejl (docs/31 FL68).
+kan kun ske, naar valideringen er koert efter sidste aendring - det sker
+af sig selv (fl_parts.REVERIFY) - og ingen raekke har en fejl (docs/31 FL68).
 """
 import fl_config as cfg
 from fl_validation import BUCKETS
@@ -37,12 +37,12 @@ ERRS = 'CountRows(Filter(colFlRows, Status = "invalid"))'
 READY = 'CountRows(Filter(colFlRows, Status = "valid" || Status = "warning"))'
 WARNS = 'CountRows(Filter(colFlRows, Status = "warning"))'
 
-# FL68: Submit kun med en frisk, fejlfri Verify og mindst een klar raekke.
+# FL68: Submit kun med en frisk, fejlfri validering og mindst een klar raekke.
 SUBMIT_OK = (f'!varFlStale && {ERRS} = 0 && {READY} > 0 && '
              f'varFlStatus <> "Indsendt"')
 SUBMIT_DM = f"If({SUBMIT_OK}, DisplayMode.Edit, DisplayMode.Disabled)"
 SUBMIT_WHY = (f'If(varFlStatus = "Indsendt", "Request " & varFlRequestNo & " is submitted and locked.",\n'
-              f'   varFlStale, "Press Verify before you submit - something changed since the last check.",\n'
+              f'   varFlStale, "The rows are being checked - try again in a moment.",\n'
               f'   {ERRS} > 0, "Submit is blocked: " & {ERRS} & " row(s) have errors.",\n'
               f'   {READY} = 0, "There are no rows ready for SAP.",\n'
               f'   "Ready to submit " & {READY} & " row(s).")')
@@ -226,7 +226,7 @@ If(
 If(
     CountRows(colFlSaveErrors) = 0,
     Set(varFlStatus, "{status}");
-    Set(varFlInfo, "Saved as " & varFlRequestNo & ".");
+    Set(varFlInfo, "");
     Notify("Saved as " & varFlRequestNo & " - see it on the landing page.", NotificationType.Success),
     Set(varFlInfo, "Saving failed (" & First(colFlSaveErrors).Where & "): " & First(colFlSaveErrors).Msg);
     Notify(CountRows(colFlSaveErrors) & " step(s) failed. What was saved is kept - try again.", NotificationType.Error)
@@ -234,7 +234,7 @@ If(
 
 
 def payload_fx():
-    """Snapshottet. Formen er HTML-sidens Export JSON (generatedAt, source,
+    """Snapshottet, fryst ved Submit. Formen er HTML-sidens Export JSON (generatedAt, source,
     rows, classBuckets, ruleMeta - app-functional-location.js:2254-2276)
     plus anmodningens egne felter. Kontrakt:
     schema/functional-location-request.schema.json."""
@@ -299,7 +299,7 @@ def submit_fx():
                       {{ Status: {{ Value: "Indsendt" }}, PayloadJson: varFlPayload, SubmittedOn: Now() }});
                 Patch({cfg.L_INDEX}, varFlIdx, {{ Status: {{ Value: "Indsendt" }}, StatusStep: 2, LastActionOn: Now() }});
                 Set(varFlStatus, "Indsendt");
-                Set(varFlInfo, "Submitted as " & varFlRequestNo & ".");
+                Set(varFlInfo, "");
                 Notify("Submitted as " & varFlRequestNo & ".", NotificationType.Success),
                 Set(varFlInfo, "Submit failed: " & FirstError.Message);
                 Notify("Submit failed: " & FirstError.Message, NotificationType.Error)
@@ -307,14 +307,6 @@ def submit_fx():
         )
     )
 )"""
-
-
-def export_fx():
-    """FL64: Export JSON. En canvas app kan ikke hente en genereret fil ned,
-    saa JSON'en vises i en popup, hvor den kan kopieres (docs/31 PX10)."""
-    return (f"Set(varFlExportJson, {payload_fx()});\n"
-            "Set(varFlExportOpen, true);\n"
-            'Set(varFlInfo, "Exported JSON.")')
 
 
 def load_fx():
@@ -367,7 +359,7 @@ ClearCollect(
     )
 );
 Set(varFlNextRowNo, Max(colFlRows, RowNo) + 1);
-// Beskederne gemmes ikke - de regnes. Verify skal koeres, foer der kan
-// indsendes (FL68).
+// Beskederne gemmes ikke - de regnes. OnVisible koerer valideringen lige
+// efter (Select(btnFlVerify)), og indtil da kan der ikke indsendes (FL68).
 Set(varFlStale, true);
-Set(varFlInfo, "Loaded " & varFlRequestNo & " - press Verify to check the rows again.")"""
+Set(varFlInfo, "")"""

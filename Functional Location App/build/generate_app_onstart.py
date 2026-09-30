@@ -168,11 +168,10 @@ Set(varFlTab, "ALL");
 Set(varFlDetailRow, "");
 Set(varFlDetailClass, "");
 Set(varFlShowEmpty, false);
-// Er der aendret noget siden sidste Verify? Submit kraever false (FL68).
+// Er der aendret noget siden sidste validering? Submit kraever false (FL68).
 Set(varFlStale, false);
-Set(varFlInfo, "Ready.");
-Set(varFlExportJson, "");
-Set(varFlExportOpen, false);
+// Kun fejl ved gem/indsend - vist under Validation-tabellen (issue #77).
+Set(varFlInfo, "");
 Set(varFlPayload, "");
 Set(varFlReq, Blank());
 Set(varFlIdx, Blank())'''
