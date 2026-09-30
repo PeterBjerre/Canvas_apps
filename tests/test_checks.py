@@ -77,9 +77,9 @@ def test_layout_rule_31_string_column_name(tmp_path):
     assert rc == 1 and "[31]" in out
 
 
-def test_layout_rule_16_modern_dropdown(tmp_path):
+def test_layout_rule_16_classic_dropdown(tmp_path):
     def plant(t):
-        return t.replace("Control: Classic/DropDown", "Control: ModernDropdown", 1)
+        return t.replace("Control: ModernDropdown", "Control: Classic/DropDown", 1)
     rc, out = _layout(tmp_path, plant)
     assert rc == 1 and "[16]" in out
 

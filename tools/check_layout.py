@@ -1843,20 +1843,15 @@ def main():
                                     f"andet. Power Apps afviser at compile - "
                                     f"del det i to Concurrent efter hinanden")
 
-    # --- 16. Ingen ModernDropdown (REVIEW.md A1) ---------------------------
-    # ModernDropdown aabner sin liste som en Fluent-flyout, der farves af
-    # Fluent-temaet og ikke af kontrollens egne egenskaber. I moerk tilstand
-    # var listen lys med lys tekst. Dens Default er desuden en RECORD, hvor
-    # Classic/DropDown tager TEKSTEN - to semantikker for det samme felt.
-    # Alle dropdowns bygges derfor af build_helpers.themed_dropdown.
-    # Undtagen i dropdown-forsoeget (build_helpers.DROPDOWN_VARIANT).
-    modern_ok = os.environ.get("CANVAS_DROPDOWN", "").strip().lower() == "modern"
+    # --- 16. Ingen Classic/DropDown -----------------------------------------
+    # Alle dropdowns er ModernDropdown fra build_helpers.themed_dropdown: den
+    # har runde hjoerner (Classic har ingen Radius), og dens tekst er
+    # input-fg, der kan laeses paa Fluents lyse liste. Classic var valgt i
+    # e735d66 for moerk tilstand; det er loest med input-fg (2026-09-30).
     for p_, name, body in all_nodes:
-        if modern_ok:
-            break
-        if (body.get("Control") or "").strip().split("@")[0] == "ModernDropdown":
-            problems.append(f"[16] {name}: ModernDropdown - byg den med "
-                            f"build_helpers.themed_dropdown (Classic/DropDown)")
+        if (body.get("Control") or "").strip().split("@")[0] == "Classic/DropDown":
+            problems.append(f"[16] {name}: Classic/DropDown - byg den med "
+                            f"build_helpers.themed_dropdown (ModernDropdown)")
 
     # Her stod en regel 17: "Default laeser en variabel, men der er ingen
     # OnChange". Den er FJERNET igen. Den gav elleve fund i VH-plan-appen,

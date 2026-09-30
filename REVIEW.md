@@ -29,7 +29,7 @@ Linjenumrene i fundene nedenfor henviser til udgangspunktet (`764fbcb`).
   - Data: dyblink `?reqid=` i Eq/Mat (D18), rækkespejl sorteret og med loftadvarsel (B4), hubtællinger fra `colMdScope` (B1).
   - Fælles moduler: `request_index.py` og `messages.py` i alle fem apps (A13, A6); `domain_app.py`, én `app_yaml`-writer med `App.OnError` (C5, D26); `cfg` som parameter og import uden sideeffekter (C2, C3).
   - App-listen ét sted i `canvas_apps.json` (C6); BIO SAP med eksplicitte kroge i stedet for monkeypatch (C4).
-  - Navngivning: én dropdown, `themed_dropdown` (A1, regel 16); præfiks efter kontroltype og `child_name` (A3, A4, regel 33); `colFl*`/`Fl*`, `varVhpFlMsg`, `colVhpFl`, `varVhpMe`, `varMd*` (A5, A10). Tabellen står i SKILL.md.
+  - Navngivning: én dropdown, `themed_dropdown` (A1, regel 16). Efter A1 valgt ModernDropdown for de runde hjørner; felttekst i dark mode er mellemgrå `input-fg` (sort felt), så den kan læses i Fluents lyse liste; præfiks efter kontroltype og `child_name` (A3, A4, regel 33); `colFl*`/`Fl*`, `varVhpFlMsg`, `colVhpFl`, `varVhpMe`, `varMd*` (A5, A10). Tabellen står i SKILL.md.
   - Tokens: typeskala, radius, mål og `DATE_FMT` i `layout_tokens` (A9, A11, C8).
   - `sharepoint/provision/_Common.psm1` (E8) og indeks på VH-opslagskolonnerne (B14).
   - Udskudt fra fase 1: A16 for tasklist-vælgeren (vandret scroll) og D12 (SchedulingIndicator som JA/NEJ-dropdown, der gemmes; Statutory Sort Field fjernet).
@@ -46,7 +46,7 @@ Linjenumrene i fundene nedenfor henviser til udgangspunktet (`764fbcb`).
   - `Ungroup` i VH-planens dyblink;
   - hubbens flade filter (delegeringsadvarsler);
   - slet-bekræftelsen i Equipment/Material;
-  - Classic-dropdownene i VH-plan og FL (`Default` er nu teksten), og JA/NEJ-feltet ved gem;
+  - ModernDropdown i alle apps (`Default` slås op fra teksten) og felttekst i `input-fg` i mørk tilstand, også i dropdownens og comboboksens lyse liste; JA/NEJ-feltet ved gem;
   - DatePicker med `Format = "yyyy-mm-dd"`;
   - tasklist-vælgeren på en smal skærm (vandret scroll).
 

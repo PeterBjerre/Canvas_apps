@@ -520,7 +520,7 @@ for meget end en container, der klipper sit indhold.
 
 | Kontrol | Præfiks | | Kontrol | Præfiks |
 |---|---|---|---|---|
-| GroupContainer | `con` | | Classic/DropDown | `drp` |
+| GroupContainer | `con` | | ModernDropdown | `drp` |
 | ModernText | `txt` | | ModernCombobox | `cmb` |
 | ModernTextInput | `inp` | | ModernCheckbox / Toggle | `chk` / `tgl` |
 | ModernNumberInput | `num` | | Gallery / HtmlViewer | `gal` / `htm` |
@@ -562,22 +562,29 @@ rødt.
 
 Det hele står i `docs/28-feltfarvning.md`.
 
-## Én dropdown: `themed_dropdown` (Classic), `Default` er TEKSTEN
+## Én dropdown: `themed_dropdown` (ModernDropdown)
 
-Alle dropdowns bygges af `build_helpers.themed_dropdown` (Classic/DropDown).
-`ModernDropdown`s liste er en Fluent-flyout, der ikke følger vores tema, og
-den var ulæselig i mørk tilstand. **Regel 16** i `check_layout.py` afviser
-en `ModernDropdown`.
+Alle dropdowns bygges af `build_helpers.themed_dropdown` som `ModernDropdown`:
+den har runde hjørner, det har Classic/DropDown ikke. **Regel 16** i
+`check_layout.py` afviser en `Classic/DropDown`.
 
-`Default` er **teksten i den viste kolonne** — ikke en record:
+**Listen er altid lys.** En moderne dropdown, combobox og datovælger åbner
+en Fluent-flyout, som vi ikke kan farve. `Color` farver både feltets tekst
+og listens, så al felttekst er tokenet `input-fg`: en mellemgrå i mørk
+tilstand, der kan læses på det sorte felt og på den hvide liste (4,60 og
+4,57:1). Kontrastvagten i `design_tokens.py` holder begge par.
+
+Du giver `themed_dropdown` **teksten** i den viste kolonne. Den slår selv
+recorden op, som `ModernDropdown.Default` vil have:
 
 ```
-Default: =LookUp(colVhpUnitOptions, Value = varVhpPlan.Unit).Value
+themed_dropdown("drpVhpUnit", "colVhpUnitOptions",
+                "LookUp(colVhpUnitOptions, Value = varVhpPlan.Unit).Value")
+Default: =LookUp(colVhpUnitOptions As _dd, _dd.Value = (…))
 ```
 
 Viser listen en anden kolonne end den, der gemmes (fx `Name` over `Key`),
-så giv `value_col="Key", display_col="Name"`. `Self.Selected` er stadig hele
-recorden.
+så giv `value_col="Key", display_col="Name"`.
 
 Og husk `OnChange`. En dropdown uden den lader brugeren vælge frit, mens
 variablen står stille — formlen er gyldig, så hverken compile eller App

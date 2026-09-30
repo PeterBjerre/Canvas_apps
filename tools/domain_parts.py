@@ -239,8 +239,8 @@ def _input_for(col, kind, choices):
                           ttype="Multiline",
                           onchange=f"Set({v}, Self.Text)")
     if kind == "choice":
-        # Classic/DropDown: Default er TEKSTEN, ikke en record - se
-        # build_helpers.themed_dropdown for hvorfor den ikke er moderne.
+        # themed_dropdown tager TEKSTEN og slaar selv recorden op til
+        # ModernDropdown.Default.
         items = "[" + ", ".join(f'"{x}"' for x in choices) + "]"
         return themed_dropdown(name, items, v, display_mode=DM_ROW,
                                onchange=f"Set({v}, Self.Selected.Value)")
@@ -277,9 +277,8 @@ def _plant_dropdown():
        da Gem kraever den udfyldt, kunne der ALDRIG gemmes - en fejl,
        compile ikke kan se, fordi formlen i sig selv er gyldig.
 
-    Nu er den en Classic/DropDown (build_helpers.themed_dropdown), saa
-    listen kan ses i moerk tilstand. Den vil have TEKSTEN som Default -
-    fejl 1 ovenfor gaelder kun ModernDropdown."""
+    Nu bygges den af build_helpers.themed_dropdown, der tager TEKSTEN og
+    selv slaar recorden op til Default - fejl 1 kan ikke opstaa igen."""
     return themed_dropdown("drpDomPlant", "colDomPlants", "varDomFPlant",
                            required_formula=REQUIRED, display_mode=DM_ROW,
                            onchange="Set(varDomFPlant, Self.Selected.Value)")
