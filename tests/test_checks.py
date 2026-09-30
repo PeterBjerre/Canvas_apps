@@ -142,3 +142,26 @@ def test_every_app_folder_in_config_exists():
     import env_config
     for key, app in env_config.APPS.items():
         assert os.path.isdir(os.path.join(ROOT, app["folder"])), key
+
+
+def _ps1_list(name):
+    text = open(os.path.join(ROOT, "sharepoint", "provision", "Provision-RequestIndex.ps1"),
+                encoding="utf-8-sig").read()
+    m = re.search(r"\$" + name + r"\s*=\s*((?:'[^']*'\s*,?\s*)+)", text)
+    return re.findall(r"'([^']*)'", m.group(1))
+
+
+def test_request_index_matches_provisioning():
+    """Domaene- og statusvaerdierne, apperne skriver, er valgene i listen."""
+    import request_index as ri
+    assert list(ri.DOMAINS) == _ps1_list("DOMAINS")
+    assert [k for k, _l, _s in ri.STATUS] == _ps1_list("STATUS")
+
+
+def test_domain_configs_use_known_domains():
+    import request_index as ri
+    for app, rel in [("Equipment App", "domain_config.py"), ("Material App", "domain_config.py"),
+                     ("Functional Location App", "fl_config.py")]:
+        text = open(os.path.join(ROOT, app, "build", rel), encoding="utf-8").read()
+        dom = re.search(r'^DOMAIN\s*=\s*"(\w+)"', text, re.M).group(1)
+        assert dom in ri.DOMAINS, (app, dom)

@@ -93,8 +93,10 @@ Alt der skal ændres, står i `build/hub_config.py`:
 - **`DOMAINS`** — de fem domæner med farve, ikon og app-nøgle. Play-URL'en
   kommer fra `tools/canvas_apps.json`; har appen intet id, står den som
   "Coming soon" og kan ikke åbnes (i dag Measuring point).
-- **`STATUS`** — det fælles ordforråd med trin 1–5 og farver. Alle fem apps
-  skal bruge de samme værdier, ellers kan de ikke vises i samme oversigt.
+- **`STATUS`** — farverne pr. status. Selve ordforrådet (værdi, etiket,
+  trin) og domænenøglerne står i `tools/request_index.py`, som alle apps
+  skriver indeksrækken med; `tests/` holder det op mod
+  `Provision-RequestIndex.ps1`.
 - **`LIST`** — navnet på indekslisten.
 - **`COL_NO`** — visningsnavnet på indmeldingsnummeret (`RequestNo`). Power Fx
   binder SharePoint-kolonner på visningsnavn, så den skal matche det navn,

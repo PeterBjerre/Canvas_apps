@@ -74,6 +74,8 @@ DELETE_VAR = "varDomConfirmDelete"
 from layout_tokens import SCROLLBAR_W
 import domain_config as cfg
 import attflows
+import messages as msg
+import request_index as ri
 
 # Flowkontrakten staar i tools/attflows.py; ruden her er dens
 # domaeneudgave - samme tre flows, egne samlingsnavne.
@@ -924,8 +926,7 @@ def send_fx(submit):
     kendes bagefter; indtil da staar GUID'en der.
     """
     rows = VALID if submit else SENDABLE
-    status = "Indsendt" if submit else "Kladde"
-    step = 2 if submit else 1
+    status = ri.SUBMITTED if submit else ri.DRAFT
     # Samme tekster som i VH-plan og FL: "Saved as X" / "Submitted as X".
     # Her stod "Saved as draft", og beskeden blev "Saved as draft as EQ-..".
     label = "Submitted" if submit else "Saved"
@@ -935,6 +936,13 @@ def send_fx(submit):
     # indeksraekke tilbage til Kladde. Naeste batch er en ny anmodning.
     after = (';\n        Set(varDomRequestGuid, "");\n'
              '        Set(varDomRequestNo, "")') if submit else ""
+    # Indeksraekken er den samme i alle apps - tools/request_index.py.
+    index_rec = ri.record(
+        cfg.DOMAIN, cfg.APP_KEY, status,
+        request_no="Coalesce(varDomRequestNo, varDomRequestGuid)",
+        guid="varDomRequestGuid", me="varDomMe",
+        short_text=f'"{cfg.TITLE}: " & CountRows({rows}) & " row(s)"',
+        plant=f"First({rows}).Plant", item_count=f"CountRows({rows})")
     empty = ("There are no completed rows to submit."
              if submit else "There are no rows to save.")
 
@@ -970,30 +978,14 @@ def send_fx(submit):
         f"                    LookUp({cfg.L_INDEX}, RequestGuid = varDomRequestGuid),\n"
         f"                    Defaults({cfg.L_INDEX})\n"
         "                ),\n"
-        "                {\n"
-        "                    RequestNo: Coalesce(varDomRequestNo, varDomRequestGuid),\n"
-        f'                    Domain: {{ Value: "{cfg.DOMAIN}" }},\n'
-        f'                    Status: {{ Value: "{status}" }},\n'
-        f"                    StatusStep: {step},\n"
-        "                    IsOpen: true,\n"
-        "                    RequesterEmail: varDomMe,\n"
-        "                    RequesterName: User().FullName,\n"
-        f'                    ShortText: "{cfg.TITLE}: " & CountRows({rows}) '
-        '& " row(s)",\n'
-        f"                    Plant: First({rows}).Plant,\n"
-        f"                    ItemCount: CountRows({rows}),\n"
-        "                    RequestGuid: varDomRequestGuid,\n"
-        f'                    AppUrl: "{cfg.PLAY_URL}?reqid=" & varDomRequestGuid,\n'
-        "                    LastActionOn: Now(),\n"
-        "                    LastActionBy: varDomMe\n"
-        "                }\n"
+        f"                {index_rec}\n"
         "            )\n"
         "        );\n"
         "\n"
         "        // Foerste gang bliver indeksraekkens eget ID til nummeret\n"
         "        If(\n"
         "            IsBlank(varDomRequestNo),\n"
-        f'            Set(varDomRequestNo, "{cfg.PREFIX}-" & Text(varDomIdx.ID, "000000"));\n'
+        f'            Set(varDomRequestNo, {ri.number_expr(cfg.PREFIX, "varDomIdx.ID")});\n'
         f"            Patch({cfg.L_INDEX}, varDomIdx, {{ RequestNo: varDomRequestNo }})\n"
         "        );\n"
         "\n"
@@ -1029,12 +1021,11 @@ def send_fx(submit):
         + refresh_rows_fx(8) + ";\n"
         "\n"
         f'        Set(varDomInfo, "{label}: " & varDomRequestNo);\n'
-        f'        Notify("{label} as " & varDomRequestNo & " - see it on the '
-        'landing page.", NotificationType.Success)' + after + ',\n'
+        f"        {(msg.submitted if submit else msg.saved)('varDomRequestNo')}"
+        + after + ',\n'
         "\n"
         f'        Set(varDomInfo, "{action} failed: " & FirstError.Message);\n'
-        f'        Notify("{action} failed: " & FirstError.Message, '
-        "NotificationType.Error)\n"
+        f"        {msg.failed(action)}\n"
         "    )\n"
         ")"
     )

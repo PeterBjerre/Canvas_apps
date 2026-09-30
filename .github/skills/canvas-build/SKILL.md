@@ -417,7 +417,7 @@ Se `docs/23-eq-mat-apps.md` og `docs/24-eq-mat-persistering.md`.
 
 | Builder | Ejer |
 |---|---|
-| `hub_config.py` | **Al tilpasning**: listenavn, de fem domæner (navn, farve, app-nøgle) og statusordforrådet. App-id'er og URL'er kommer fra `tools/canvas_apps.json` |
+| `hub_config.py` | **Hubbens tilpasning**: de fem domæner (navn, farve, app-nøgle) og statusfarverne. Ordforrådet, domænenøglerne og indeksrækken står i `tools/request_index.py` (fælles for alle apps); beskederne i `tools/messages.py`. App-id'er og URL'er kommer fra `tools/canvas_apps.json` |
 | `build_hub.py` | Toplinje, domænefliser, filtre, listen |
 | `assemble_hub.py` | Samler skærmen → `../ScreenMdHub.pa.yaml` |
 | `generate_hub_onstart.py` | `App.OnStart` → `../App.pa.yaml` |
