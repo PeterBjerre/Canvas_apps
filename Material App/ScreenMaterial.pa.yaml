@@ -57,7 +57,8 @@ Screens:
           Set(varDomFLongText, "");
           Set(varDomFlMsg, "");
           Set(varDomFlQuery, "");
-          Reset(txtDomFlQuery);
+          Set(varDomFlLast, "");
+          Reset(cmbDomFl);
           Set(varDomInfo, "New row - fill in and save.")
     Children:
       - conDomRoot:
@@ -420,7 +421,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =68 + (If((((App.Width - 120) - 36)) >= (164) + (228) + 12, 32, (26) + 12 + (32))) + 14 + (If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, (62 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))) + (62) + (62) + (62) + 60, (Max((62 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))), (62))) + (Max((62), (62))) + 20), (Max((62 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))), (62), (62), (62))) + 0)) + If(!IsBlank(varDomFlMsg), 14 + (18), 0) + 14 + (If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, (62) + (62) + (62) + (62) + 60, (Max((62), (62))) + (Max((62), (62))) + 20), (Max((62), (62), (62), (62))) + 0)) + 14 + (If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, (62) + (62) + (62) + (62) + 60, (Max((62), (62))) + (Max((62), (62))) + 20), (Max((62), (62), (62), (62))) + 0)) + 14 + (If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, (62) + (62) + (62) + (62) + 60, (Max((62), (62))) + (Max((62), (62))) + 20), (Max((62), (62), (62), (62))) + 0)) + 14 + (98) + 14 + (If((((App.Width - 120) - 36)) >= (111) + (135) + (124) + (111) + (428) + 32, 36, (28) + 8 + (36) + 8 + (36) + 8 + (36) + 8 + (36)))
+                            =68 + (If((((App.Width - 120) - 36)) >= (164) + (228) + 12, 32, (26) + 12 + (32))) + 14 + (If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, (20 + 6 + (36 + If(false, 0 + (1), 0))) + (62) + (62) + (62) + 60, (Max((20 + 6 + (36 + If(false, 0 + (1), 0))), (62))) + (Max((62), (62))) + 20), (Max((20 + 6 + (36 + If(false, 0 + (1), 0))), (62), (62), (62))) + 0)) + If(!IsBlank(varDomFlMsg), 14 + (18), 0) + 14 + (If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, (62) + (62) + (62) + (62) + 60, (Max((62), (62))) + (Max((62), (62))) + 20), (Max((62), (62), (62), (62))) + 0)) + 14 + (If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, (62) + (62) + (62) + (62) + 60, (Max((62), (62))) + (Max((62), (62))) + 20), (Max((62), (62), (62), (62))) + 0)) + 14 + (If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, (62) + (62) + (62) + (62) + 60, (Max((62), (62))) + (Max((62), (62))) + 20), (Max((62), (62), (62), (62))) + 0)) + 14 + (98) + 14 + (If((((App.Width - 120) - 36)) >= (111) + (135) + (124) + (111) + (428) + 32, 36, (28) + 8 + (36) + 8 + (36) + 8 + (36) + 8 + (36)))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -646,8 +647,7 @@ Screens:
                                             varDomFNoBomItem,
                                             Set(varDomFFunctionalLocation, "");
                                             Set(varDomFlQuery, "");
-                                            Reset(txtDomFlQuery);
-                                            Reset(drpDomFl);
+                                            Reset(cmbDomFl);
                                             Set(varDomFlMsg, "No BOM item - a functional location is not required."),
                                             Set(varDomFlMsg, "")
                                         )
@@ -678,7 +678,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, (62 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))) + (62) + (62) + (62) + 60, (Max((62 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))), (62))) + (Max((62), (62))) + 20), (Max((62 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))), (62), (62), (62))) + 0)
+                                  =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, (20 + 6 + (36 + If(false, 0 + (1), 0))) + (62) + (62) + (62) + 60, (Max((20 + 6 + (36 + If(false, 0 + (1), 0))), (62))) + (Max((62), (62))) + 20), (Max((20 + 6 + (36 + If(false, 0 + (1), 0))), (62), (62), (62))) + 0)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -709,7 +709,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =62 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))
+                                        =20 + 6 + (36 + If(false, 0 + (1), 0))
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Stretch
                                     LayoutDirection: |-
@@ -824,7 +824,7 @@ Screens:
                                                     =10
                                                 Wrap: |-
                                                     =false
-                                    - conDomFlSearchWrap:
+                                    - conDomFlWrap:
                                         Control: GroupContainer
                                         Variant: AutoLayout
                                         Properties:
@@ -835,7 +835,7 @@ Screens:
                                           FillPortions: |-
                                               =0
                                           Height: |-
-                                              =36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0)
+                                              =36 + If(false, 0 + (1), 0)
                                           LayoutAlignItems: |-
                                               =LayoutAlignItems.Stretch
                                           LayoutDirection: |-
@@ -851,7 +851,7 @@ Screens:
                                           Width: |-
                                               =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
                                         Children:
-                                          - conDomFlQueryRow:
+                                          - conDomFlInput:
                                               Control: GroupContainer
                                               Variant: AutoLayout
                                               Properties:
@@ -878,21 +878,27 @@ Screens:
                                                 Width: |-
                                                     =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
                                               Children:
-                                                - txtDomFlQuery:
-                                                    Control: ModernTextInput
+                                                - cmbDomFl:
+                                                    Control: ModernCombobox
                                                     Properties:
                                                       AccessibleLabel: |-
-                                                          ="Search functional location - at least 7 characters, then Enter"
+                                                          ="Functional location - type at least 7 characters, then Search or Enter"
+                                                      Appearance: |-
+                                                          =Appearance.Outline
                                                       BorderColor: |-
-                                                          =C.'border-default'
+                                                          =If(
+                                                              varDomValidated && !varDomFNoBomItem && (IsBlank(Self.Selected.Code) || Self.Selected.Code = "?search"),
+                                                              C.'border-error',
+                                                              If((IsBlank(Self.Selected.Code) || Self.Selected.Code = "?search"), C.'border-default', C.'border-ok')
+                                                          )
                                                       BorderStyle: |-
                                                           =BorderStyle.Solid
                                                       BorderThickness: |-
                                                           =1
-                                                      Color: |-
-                                                          =C.'text-primary'
-                                                      Default: |-
-                                                          =varDomFlQuery
+                                                      DefaultSelectedItems: |-
+                                                          =Filter(colDomFl, Code = varDomFFunctionalLocation)
+                                                      DelayOutput: |-
+                                                          =false
                                                       DisplayMode: |-
                                                           =If(varDomFNoBomItem, DisplayMode.Disabled, If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit))
                                                       Fill: |-
@@ -903,59 +909,40 @@ Screens:
                                                           =Font.'Segoe UI'
                                                       Height: |-
                                                           =36
+                                                      InputTextPlaceholder: |-
+                                                          ="At least 7 characters, e.g. SSV13 HFC"
+                                                      IsSearchable: |-
+                                                          =true
+                                                      ItemDisplayText: |-
+                                                          =ThisItem.Display
+                                                      Items: |-
+                                                          =With(
+                                                              { q: Trim(Self.SearchText) },
+                                                              With(
+                                                                  {
+                                                                      s: Table({ Code: "?search", Description: q,
+                                                                                 Display: q & "  -  press Enter to search SAP",
+                                                                                 Maintainable: true, Level: "" }),
+                                                                      ask: Len(q) >= 7 && !varDomFlBusy &&
+                                                                           Upper(q) <> Upper(Coalesce(varDomFlLast, "")),
+                                                                      narrow: CountRows(colDomFl) > 0 && !IsBlank(varDomFlLast) &&
+                                                                              StartsWith(Upper(q), Upper(varDomFlLast))
+                                                                  },
+                                                                  If(
+                                                                      !ask, colDomFl,
+                                                                      narrow, Ungroup(Table({ Rows: colDomFl }, { Rows: s }), Rows),
+                                                                      Ungroup(Table({ Rows: s }, { Rows: colDomFl }), Rows)
+                                                                  )
+                                                              )
+                                                          )
                                                       LayoutMinWidth: |-
                                                           =0
-                                                      Placeholder: |-
-                                                          ="e.g. SSV10 KAB10"
-                                                      RadiusBottomLeft: |-
-                                                          =10
-                                                      RadiusBottomRight: |-
-                                                          =10
-                                                      RadiusTopLeft: |-
-                                                          =10
-                                                      RadiusTopRight: |-
-                                                          =10
-                                                      Size: |-
-                                                          =14
-                                                      Type: |-
-                                                          =TextInputType.Multiline
-                                                      ValidationState: |-
-                                                          =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
-                                                      Width: |-
-                                                          =Max(0, ((((If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4))))) - ((86) + 8) - 2)
-                                                - btnDomFlSearch:
-                                                    Control: ModernButton
-                                                    Properties:
-                                                      AccessibleLabel: |-
-                                                          ="Search functional location"
-                                                      Align: |-
-                                                          =Align.Center
-                                                      AlignInContainer: |-
-                                                          =AlignInContainer.Center
-                                                      Appearance: |-
-                                                          =ButtonAppearance.Outline
-                                                      BorderColor: |-
-                                                          =C.'border-default'
-                                                      BorderThickness: |-
-                                                          =1
-                                                      Color: |-
-                                                          =C.'text-primary'
-                                                      DisplayMode: |-
-                                                          =If(varDomFlBusy, DisplayMode.Disabled, If(varDomFNoBomItem, DisplayMode.Disabled, If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)))
-                                                      Font: |-
-                                                          =Font.'Segoe UI'
-                                                      FontWeight: |-
-                                                          =FontWeight.Semibold
-                                                      Height: |-
-                                                          =36
-                                                      Layout: |-
-                                                          =ButtonLayout.TextOnly
-                                                      LayoutMinWidth: |-
-                                                          =86
-                                                      OnSelect: |-
-                                                          =Set(varDomFlQuery, txtDomFlQuery.Text);
-                                                          With(
-                                                              { q: Trim(txtDomFlQuery.Text) },
+                                                      OnChange: |-
+                                                          =If(
+                                                              Self.Selected.Code = "?search",
+                                                              Set(varDomFlQuery, Self.Selected.Description);
+                                                              With(
+                                                              { q: Trim(varDomFlQuery) },
                                                               If(
                                                                   Len(q) < 7,
                                                                   Notify(
@@ -964,6 +951,9 @@ Screens:
                                                                   ),
                                                           
                                                                   Set(varDomFlBusy, true);
+                                                                  Set(varDomFlLast, q);
+                                                                  Clear(colDomFl);
+                                                                  Set(varDomFFunctionalLocation, "");
                                                                   Set(varDomFlMsg, "Searching for " & q & " ...");
                                                                   IfError(
                                                                       Set(varDomFlRaw, 'BioSap-Integration-FunctionalLocations'.Run(q));
@@ -985,6 +975,10 @@ Screens:
                                                               )
                                                           )
                                                                       );
+                                                                      If(
+                                                                          CountRows(colDomFl) = 0,
+                                                                          Notify("No functional locations found for " & q & ".", NotificationType.Warning)
+                                                                      );
                                                                       Set(
                                                                           varDomFlMsg,
                                                                           With(
@@ -1002,7 +996,108 @@ Screens:
                                                                           )
                                                                       ),
                                                                       Clear(colDomFl);
-                                                                      Set(varDomFlMsg, "Search failed: " & FirstError.Message)
+                                                                      Set(varDomFlMsg, "Search failed: " & FirstError.Message);
+                                                                      Notify("The functional locations search failed. Try again.", NotificationType.Error)
+                                                                  );
+                                                                  Set(varDomFlBusy, false)
+                                                              )
+                                                          );
+                                                              Reset(cmbDomFl),
+                                                              Set(varDomFFunctionalLocation, Coalesce(Self.Selected.Code, ""))
+                                                          )
+                                                      SelectMultiple: |-
+                                                          =false
+                                                      Size: |-
+                                                          =14
+                                                      Width: |-
+                                                          =Max(0, ((((If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4))))) - (If(!varDomFlBusy, (86) + 8, 0)) - (If(varDomFlBusy, (86) + 8, 0)) - 2)
+                                                - btnDomFlSearch:
+                                                    Control: ModernButton
+                                                    Properties:
+                                                      AccessibleLabel: |-
+                                                          ="Search functional location"
+                                                      Align: |-
+                                                          =Align.Center
+                                                      AlignInContainer: |-
+                                                          =AlignInContainer.Center
+                                                      Appearance: |-
+                                                          =ButtonAppearance.Outline
+                                                      BorderColor: |-
+                                                          =C.'border-default'
+                                                      BorderThickness: |-
+                                                          =1
+                                                      Color: |-
+                                                          =C.'text-primary'
+                                                      DisplayMode: |-
+                                                          =If(Len(Trim(Coalesce(cmbDomFl.SearchText, varDomFlQuery))) < 7, DisplayMode.Disabled, If(varDomFNoBomItem, DisplayMode.Disabled, If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)))
+                                                      Font: |-
+                                                          =Font.'Segoe UI'
+                                                      FontWeight: |-
+                                                          =FontWeight.Semibold
+                                                      Height: |-
+                                                          =36
+                                                      Layout: |-
+                                                          =ButtonLayout.TextOnly
+                                                      LayoutMinWidth: |-
+                                                          =86
+                                                      OnSelect: |-
+                                                          =With(
+                                                              { q: Trim(Coalesce(cmbDomFl.SearchText, varDomFlQuery)) },
+                                                              If(
+                                                                  Len(q) < 7,
+                                                                  Notify(
+                                                                      "Type at least 7 characters before searching.",
+                                                                      NotificationType.Warning
+                                                                  ),
+                                                          
+                                                                  Set(varDomFlBusy, true);
+                                                                  Set(varDomFlLast, q);
+                                                                  Clear(colDomFl);
+                                                                  Set(varDomFFunctionalLocation, "");
+                                                                  Set(varDomFlMsg, "Searching for " & q & " ...");
+                                                                  IfError(
+                                                                      Set(varDomFlRaw, 'BioSap-Integration-FunctionalLocations'.Run(q));
+                                                                      If(
+                                                                          IsBlank(varDomFlRaw) || IsBlank(varDomFlRaw.functionallocationoutput),
+                                                                          Clear(colDomFl),
+                                                                          ClearCollect(
+                                                              colDomFl,
+                                                              ForAll(
+                                                                  Table(ParseJSON(varDomFlRaw.functionallocationoutput)) As R,
+                                                                  {
+                                                                      Code: Text(R.Value.functionKey),
+                                                                      Description: Text(R.Value.description),
+                                                                      Display: Text(R.Value.functionKey) & " - " & Text(R.Value.description) &
+                                                                          If(Boolean(R.Value.maintainable), "", "   (not maintainable)"),
+                                                                      Maintainable: Boolean(R.Value.maintainable),
+                                                                      Level: Text(R.Value.level)
+                                                                  }
+                                                              )
+                                                          )
+                                                                      );
+                                                                      If(
+                                                                          CountRows(colDomFl) = 0,
+                                                                          Notify("No functional locations found for " & q & ".", NotificationType.Warning)
+                                                                      );
+                                                                      Set(
+                                                                          varDomFlMsg,
+                                                                          With(
+                                                                              { n: CountRows(colDomFl) },
+                                                                              If(
+                                                                                  n = 0,
+                                                                                  "No Functional Locations found for " & q & ".",
+                                                                                  Text(n) & " Functional Locations found for " & q & ". " &
+                                                                                      If(
+                                                                                          n > 50,
+                                                                                          "The list is long - type more characters to narrow it.",
+                                                                                          "Select one from the list below."
+                                                                                      )
+                                                                              )
+                                                                          )
+                                                                      ),
+                                                                      Clear(colDomFl);
+                                                                      Set(varDomFlMsg, "Search failed: " & FirstError.Message);
+                                                                      Notify("The functional locations search failed. Try again.", NotificationType.Error)
                                                                   );
                                                                   Set(varDomFlBusy, false)
                                                               )
@@ -1018,12 +1113,68 @@ Screens:
                                                       Size: |-
                                                           =14
                                                       Text: |-
-                                                          =If(varDomFlBusy, Left("...", 1 + varDomFlDots), "Search")
+                                                          ="Search"
                                                       VerticalAlign: |-
                                                           =VerticalAlign.Middle
+                                                      Visible: |-
+                                                          =!varDomFlBusy
                                                       Width: |-
                                                           =86
-                                          - tmrDomFlEnter:
+                                                - conDomFlSearchBusy:
+                                                    Control: GroupContainer
+                                                    Variant: AutoLayout
+                                                    Properties:
+                                                      BorderColor: |-
+                                                          =C.'border-default'
+                                                      BorderThickness: |-
+                                                          =1
+                                                      DropShadow: |-
+                                                          =DropShadow.None
+                                                      Fill: |-
+                                                          =C.'input-bg-disabled'
+                                                      FillPortions: |-
+                                                          =0
+                                                      Height: |-
+                                                          =36
+                                                      LayoutAlignItems: |-
+                                                          =LayoutAlignItems.Center
+                                                      LayoutDirection: |-
+                                                          =LayoutDirection.Horizontal
+                                                      LayoutGap: |-
+                                                          =0
+                                                      LayoutJustifyContent: |-
+                                                          =LayoutJustifyContent.Center
+                                                      LayoutMinWidth: |-
+                                                          =86
+                                                      LayoutOverflowX: |-
+                                                          =LayoutOverflow.Hide
+                                                      LayoutOverflowY: |-
+                                                          =LayoutOverflow.Hide
+                                                      RadiusBottomLeft: |-
+                                                          =10
+                                                      RadiusBottomRight: |-
+                                                          =10
+                                                      RadiusTopLeft: |-
+                                                          =10
+                                                      RadiusTopRight: |-
+                                                          =10
+                                                      Visible: |-
+                                                          =varDomFlBusy
+                                                      Width: |-
+                                                          =86
+                                                    Children:
+                                                      - spnDomFlSearch:
+                                                          Control: ModernSpinner
+                                                          Properties:
+                                                            AccessibleLabel: |-
+                                                                ="Searching functional locations"
+                                                            Height: |-
+                                                                =24
+                                                            Label: |-
+                                                                =""
+                                                            Width: |-
+                                                                =24
+                                          - tmrDomFlCapture:
                                               Control: Timer
                                               Properties:
                                                 AutoPause: |-
@@ -1031,163 +1182,19 @@ Screens:
                                                 AutoStart: |-
                                                     =false
                                                 Duration: |-
-                                                    =1
-                                                Height: |-
-                                                    =1
-                                                OnTimerStart: |-
-                                                    =Set(varDomFlQuery, Substitute(Substitute(txtDomFlQuery.Text, Char(13), ""), Char(10), ""));
-                                                    Reset(txtDomFlQuery);
-                                                    With(
-                                                        { q: Trim(varDomFlQuery) },
-                                                        If(
-                                                            Len(q) < 7,
-                                                            Notify(
-                                                                "Type at least 7 characters before searching.",
-                                                                NotificationType.Warning
-                                                            ),
-                                                    
-                                                            Set(varDomFlBusy, true);
-                                                            Set(varDomFlMsg, "Searching for " & q & " ...");
-                                                            IfError(
-                                                                Set(varDomFlRaw, 'BioSap-Integration-FunctionalLocations'.Run(q));
-                                                                If(
-                                                                    IsBlank(varDomFlRaw) || IsBlank(varDomFlRaw.functionallocationoutput),
-                                                                    Clear(colDomFl),
-                                                                    ClearCollect(
-                                                        colDomFl,
-                                                        ForAll(
-                                                            Table(ParseJSON(varDomFlRaw.functionallocationoutput)) As R,
-                                                            {
-                                                                Code: Text(R.Value.functionKey),
-                                                                Description: Text(R.Value.description),
-                                                                Display: Text(R.Value.functionKey) & " - " & Text(R.Value.description) &
-                                                                    If(Boolean(R.Value.maintainable), "", "   (not maintainable)"),
-                                                                Maintainable: Boolean(R.Value.maintainable),
-                                                                Level: Text(R.Value.level)
-                                                            }
-                                                        )
-                                                    )
-                                                                );
-                                                                Set(
-                                                                    varDomFlMsg,
-                                                                    With(
-                                                                        { n: CountRows(colDomFl) },
-                                                                        If(
-                                                                            n = 0,
-                                                                            "No Functional Locations found for " & q & ".",
-                                                                            Text(n) & " Functional Locations found for " & q & ". " &
-                                                                                If(
-                                                                                    n > 50,
-                                                                                    "The list is long - type more characters to narrow it.",
-                                                                                    "Select one from the list below."
-                                                                                )
-                                                                        )
-                                                                    )
-                                                                ),
-                                                                Clear(colDomFl);
-                                                                Set(varDomFlMsg, "Search failed: " & FirstError.Message)
-                                                            );
-                                                            Set(varDomFlBusy, false)
-                                                        )
-                                                    )
-                                                Repeat: |-
-                                                    =false
-                                                Start: |-
-                                                    =Find(Char(10), txtDomFlQuery.Text) > 0 && !varDomFlBusy
-                                                Visible: |-
-                                                    =false
-                                                Width: |-
-                                                    =1
-                                          - tmrDomFlDots:
-                                              Control: Timer
-                                              Properties:
-                                                AutoPause: |-
-                                                    =false
-                                                AutoStart: |-
-                                                    =false
-                                                Duration: |-
-                                                    =400
+                                                    =300
                                                 Height: |-
                                                     =1
                                                 OnTimerEnd: |-
-                                                    =Set(varDomFlDots, Mod(varDomFlDots + 1, 3))
+                                                    =If(!IsBlank(cmbDomFl.SearchText), Set(varDomFlQuery, cmbDomFl.SearchText))
                                                 Repeat: |-
                                                     =true
                                                 Start: |-
-                                                    =varDomFlBusy
+                                                    =!IsBlank(cmbDomFl.SearchText)
                                                 Visible: |-
                                                     =false
                                                 Width: |-
                                                     =1
-                                    - drpDomFl:
-                                        Control: Classic/DropDown
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Functional location"
-                                          AllowEmptySelection: |-
-                                              =true
-                                          BorderColor: |-
-                                              =If(
-                                                  varDomValidated && !varDomFNoBomItem && IsBlank(Self.Selected.Value),
-                                                  C.'border-error',
-                                                  If(IsBlank(Self.Selected.Value), C.'border-default', C.'border-ok')
-                                              )
-                                          BorderStyle: |-
-                                              =BorderStyle.Solid
-                                          BorderThickness: |-
-                                              =1
-                                          ChevronBackground: |-
-                                              =If(If(varDomFNoBomItem, DisplayMode.Disabled, If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
-                                          ChevronDisabledBackground: |-
-                                              =C.'input-bg-disabled'
-                                          ChevronDisabledFill: |-
-                                              =C.'text-muted'
-                                          ChevronFill: |-
-                                              =C.'text-primary'
-                                          ChevronHoverBackground: |-
-                                              =C.'color-brand-primary-soft'
-                                          ChevronHoverFill: |-
-                                              =C.'text-primary'
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Default: |-
-                                              =LookUp(colDomFl, Code = varDomFFunctionalLocation).Display
-                                          DisabledColor: |-
-                                              =C.'text-muted'
-                                          DisabledFill: |-
-                                              =C.'input-bg-disabled'
-                                          DisplayMode: |-
-                                              =If(varDomFNoBomItem, DisplayMode.Disabled, If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit))
-                                          Fill: |-
-                                              =If(If(varDomFNoBomItem, DisplayMode.Disabled, If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =36
-                                          HoverColor: |-
-                                              =C.'text-primary'
-                                          HoverFill: |-
-                                              =C.'color-brand-primary-soft'
-                                          Items: |-
-                                              =ForAll(colDomFl As F, { Value: F.Display, Code: F.Code })
-                                          Items.Value: |-
-                                              =Value
-                                          OnChange: |-
-                                              =Set(varDomFFunctionalLocation, Self.Selected.Code)
-                                          PaddingLeft: |-
-                                              =12
-                                          PressedColor: |-
-                                              =C.'text-on-primary'
-                                          PressedFill: |-
-                                              =C.'color-brand-primary'
-                                          SelectionColor: |-
-                                              =C.'text-on-primary'
-                                          SelectionFill: |-
-                                              =C.'color-brand-primary'
-                                          Size: |-
-                                              =14
-                                          Width: |-
-                                              =Parent.Width
                               - conManufacturer:
                                   Control: GroupContainer
                                   Variant: AutoLayout
@@ -3553,7 +3560,8 @@ Screens:
                                             Set(varDomFLongText, "");
                                             Set(varDomFlMsg, "");
                                             Set(varDomFlQuery, "");
-                                            Reset(txtDomFlQuery);
+                                            Set(varDomFlLast, "");
+                                            Reset(cmbDomFl);
                                             Set(varDomInfo, "Row deleted. The documents remain in the library.")
                                         )
                                     RadiusBottomLeft: |-
@@ -3912,7 +3920,8 @@ Screens:
                                         Set(varDomFLongText, "");
                                         Set(varDomFlMsg, "");
                                         Set(varDomFlQuery, "");
-                                        Reset(txtDomFlQuery);
+                                        Set(varDomFlLast, "");
+                                        Reset(cmbDomFl);
                                         Set(varDomInfo, "New row - fill in and save.")
                                     RadiusBottomLeft: |-
                                         =10
@@ -5143,7 +5152,7 @@ Screens:
                                         Set(varDomFLongText, ThisItem.LongText);
                                         If(
                                             !IsBlank(ThisItem.FunctionalLocation) && IsBlank(LookUp(colDomFl, Code = ThisItem.FunctionalLocation)),
-                                            Collect(colDomFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation, Maintainable: true, Level: "" })
+                                            Collect(colDomFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
                                         )
                                     Selectable: |-
                                         =true
@@ -5955,7 +5964,7 @@ Screens:
                                               Set(varDomFLongText, ThisItem.LongText);
                                               If(
                                                   !IsBlank(ThisItem.FunctionalLocation) && IsBlank(LookUp(colDomFl, Code = ThisItem.FunctionalLocation)),
-                                                  Collect(colDomFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation, Maintainable: true, Level: "" })
+                                                  Collect(colDomFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
                                               )
                                           RadiusBottomLeft: |-
                                               =10
@@ -6023,7 +6032,7 @@ Screens:
                                               Set(varDomFLongText, ThisItem.LongText);
                                               If(
                                                   !IsBlank(ThisItem.FunctionalLocation) && IsBlank(LookUp(colDomFl, Code = ThisItem.FunctionalLocation)),
-                                                  Collect(colDomFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation, Maintainable: true, Level: "" })
+                                                  Collect(colDomFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
                                               );
                                               Set(varDomInfo, "Copied to a new row - not saved yet. Documents were not copied.")
                                           RadiusBottomLeft: |-
@@ -6101,7 +6110,8 @@ Screens:
                                                   Set(varDomFLongText, "");
                                                   Set(varDomFlMsg, "");
                                                   Set(varDomFlQuery, "");
-                                                  Reset(txtDomFlQuery);
+                                                  Set(varDomFlLast, "");
+                                                  Reset(cmbDomFl);
                                                   Set(varDomInfo, "New row - fill in and save.")
                                               );
                                               
@@ -7376,7 +7386,7 @@ Screens:
                             Set(varDomFLongText, LookUp(colDomRows, RowId = varDomDetailsId).LongText);
                             If(
                                 !IsBlank(LookUp(colDomRows, RowId = varDomDetailsId).FunctionalLocation) && IsBlank(LookUp(colDomFl, Code = LookUp(colDomRows, RowId = varDomDetailsId).FunctionalLocation)),
-                                Collect(colDomFl, { Code: LookUp(colDomRows, RowId = varDomDetailsId).FunctionalLocation, Description: "", Display: LookUp(colDomRows, RowId = varDomDetailsId).FunctionalLocation, Maintainable: true, Level: "" })
+                                Collect(colDomFl, { Code: LookUp(colDomRows, RowId = varDomDetailsId).FunctionalLocation, Description: "", Display: LookUp(colDomRows, RowId = varDomDetailsId).FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
                             );
                             Set(varDomDetailsId, Blank())
                         RadiusBottomLeft: |-

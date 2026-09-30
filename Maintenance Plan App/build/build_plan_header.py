@@ -320,7 +320,7 @@ def build_plan_header():
             # blive slettet uden at nogen har bekraeftet det.
             "            If(\n"
             "                !IsBlank(varVhpPrevPlant) && Upper(varVhpPrevPlant) <> Upper(drpVhpPlant.Selected.Value),\n"
-            "                Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemTasklist); Reset(txtVhpFlQuery);\n"
+            "                Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemTasklist); Reset(cmbVhpItemFL);\n"
             "                Notify(\n"
             "                    \"Plant changed to \" & drpVhpPlant.Selected.Value &\n"
             "                        \". Check work centre, task list and functional location on existing items.\",\n"

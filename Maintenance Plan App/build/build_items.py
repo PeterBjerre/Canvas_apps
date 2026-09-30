@@ -13,7 +13,7 @@ from build_helpers import (text_ctrl, group, button, button_row, text_input, num
 from build_plan_header import section_header, help_panel
 import build_help as bh
 from build_helpers import HINTS_ON as bh_hints
-from build_flsearch import search_action, MIN_SEARCH_LEN
+from fl_picker import fl_picker, SEARCH_CODE
 
 DM_ITEM = "If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)"
 REQ_ITEM = "varVhpItemValidated"
@@ -25,9 +25,6 @@ EDITOR_CW = f"({EDITOR_W} - 36)"
 # Tre kolonner i stedet for to for indtastningsfelterne i Item Editor.
 EDITOR_COLS = 3
 
-# Bredden paa Soeg-knappen i FL-blokken.
-FL_BTN_W = 84
-
 # Gallerihoejde: een raekke pr. item. Mellemrummet paa 6 px ligger UNDER
 # kortet i raekken (kortet er 88 hoejt), ikke i TemplatePadding - saa ville
 # det ogsaa ligge til hoejre og venstre, og kortet flugtede ikke med
@@ -36,10 +33,19 @@ ITEM_GAP = 6
 ITEM_ROW_H = 88 + ITEM_GAP
 ITEMS_GAL_H = f"Max(CountRows(colVhpItems), 1) * {ITEM_ROW_H}"
 
-# Den FL der er valgt lige nu: dropdownens valg, med fald tilbage til det
+# Comboboksen (tools/fl_picker.py, issue #63) - soegefelt OG valgliste.
+FL_COMBO = "cmbVhpItemFL"
+
+# Den valgte FL-kode. Soegeraekken ("press Enter to search SAP") staar i
+# comboboksens liste, men er ikke en Functional Location - er den valgt et
+# oejeblik, mens soegningen koerer, er der intet valgt.
+FL_CODE = (f'If({FL_COMBO}.Selected.Code = "{SEARCH_CODE}", Blank(), '
+           f'{FL_COMBO}.Selected.Code)')
+
+# Den FL der er valgt lige nu: comboboksens valg, med fald tilbage til det
 # gemte paa itemet, saa objektlisten ogsaa filtrerer korrekt foer brugeren
-# har roert dropdownen.
-SEL_FL = ("Coalesce(drpVhpItemFL.Selected.Code, "
+# har roert comboboksen.
+SEL_FL = (f"Coalesce({FL_CODE}, "
           "LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)")
 
 # Kandidater til objektlisten: alt under den valgte FL, minus den selv.
@@ -65,75 +71,39 @@ OBJ_CANDIDATES = (
 # konkurrerende liste.
 OBJ_CHOSEN = "Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)"
 
-# Hvad der er valgt - under Object List-knappen, saa det kan ses uden at
-# aabne popup'en.
-OBJ_CHOSEN_TEXT = (
+# Object List-knappens tooltip (issue #63): de valgte objekter, een pr.
+# linje. Teksten under knappen er vaek - hover viser det samme, og
+# knappens tal siger, hvor mange der er valgt.
+OBJ_TOOLTIP = (
     "With(\n"
-    f"    {{ n: CountRows({OBJ_CHOSEN}) }},\n"
+    f"    {{ n: CountRows({OBJ_CHOSEN}),\n"
+    f"      fremmede: CountRows(Filter({OBJ_CHOSEN}, !StartsWith(Code, {SEL_FL}))) }},\n"
     "    If(\n"
     "        n = 0, \"No sub-objects selected.\",\n"
-    "        Text(n) & \" selected: \" &\n"
-    f"            Concat(Sort({OBJ_CHOSEN}, Code), Code, \", \") &\n"
-    "            With(\n"
-    f"                {{ fremmede: CountRows(Filter({OBJ_CHOSEN}, !StartsWith(Code, {SEL_FL}))) }},\n"
-    "                If(\n"
-    "                    fremmede > 0,\n"
-    "                    \"   |   WARNING: \" & Text(fremmede) &\n"
-    "                        \" of them are not under the selected functional location.\",\n"
-    "                    \"\"\n"
-    "                )\n"
+    "        \"Selected:\" & Char(10) &\n"
+    f"            Concat(Sort({OBJ_CHOSEN}, Code), Code & \" - \" & Description, Char(10)) &\n"
+    "            If(\n"
+    "                fremmede > 0,\n"
+    "                Char(10) & \"WARNING: \" & Text(fremmede) &\n"
+    "                    \" of them are not under the selected functional location.\",\n"
+    "                \"\"\n"
     "            )\n"
     "    )\n"
     ")"
 )
-OBJ_CHOSEN_COLOR = (f"If(\n"
-                    f"    CountRows(Filter({OBJ_CHOSEN}, !StartsWith(Code, {SEL_FL}))) > 0, {C_INVALID_FG},\n"
-                    f"    CountRows({OBJ_CHOSEN}) = 0, {C_MUTED},\n"
-                    f"    {C_TITLE}\n"
-                    f")")
+# Er der noget at vise? Kandidater under den valgte FL - eller et valg,
+# der skal kunne fjernes igen.
+OBJ_HAS_DATA = f"CountRows({OBJ_CANDIDATES}) > 0 || CountRows({OBJ_CHOSEN}) > 0"
 
-# DROPDOWNEN EFTER EN SOEGNING (issue #54)
-#
-# Efter en soegning stod dropdownen tom, selv om der var 819 resultater:
-# itemet havde ingen FL endnu, saa Default var blank, og den oeverste linje
-# var tom. Nu staar der en pladsholder oeverst - "Select result (819)",
-# "No results found" eller en opfordring til at soege.
-#
-# Pladsholderen er en RAEKKE i Items med tom Code. Den kan ikke gemmes som
-# et valg: Save kraever !IsBlank(drpVhpItemFL.Selected.Code), og kanten
-# bliver roed paa samme betingelse. Der vaelges aldrig et rigtigt resultat
-# automatisk - brugeren aabner selv listen.
-#
-# Ungroup, fordi Table() ikke blander en record og en tabel. Kolonnenavnet
-# er et NAVN, ikke en streng (check_layout regel 31).
-FL_PLACEHOLDER = (
-    "{ Code: \"\", Description: \"\", Maintainable: true, Level: \"\",\n"
-    "  Display: If(\n"
-    "      CountRows(colVhpFlSearch) > 0,\n"
-    "      \"Select result (\" & Text(CountRows(colVhpFlSearch)) & \")\",\n"
-    "      IsBlank(varVhpFlMeta), \"Search to list functional locations\",\n"
-    "      \"No results found\"\n"
-    "  ) }"
-)
-FL_ITEMS = ("Ungroup(\n"
-            f"    Table({{ Rows: Table({FL_PLACEHOLDER}) }}, {{ Rows: Sort(colVhpFlSearch, Code) }}),\n"
-            "    Rows\n"
-            ")")
-FL_DEFAULT = ("With(\n"
-              f"    {{ hit: LookUp({FL_ITEMS}, !IsBlank(Code) && Code = "
-              "LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation) },\n"
-              f"    If(IsBlank(hit), First({FL_ITEMS}), hit)\n"
-              ")")
-
-# FL-soegningens ventetilstand. Samme konstruktion som Equipment og
-# Material (tools/domain_parts.py): knappen er deaktiveret, og "Search" er
-# skiftet ud med prikker, der bevaeger sig. search_action saetter den
-# false igen ad BEGGE veje ud - svar og fejl.
+# FL-vaelgerens tilstand - samme konstruktion som Equipments og Materials
+# (tools/fl_picker.py). search_action saetter FL_BUSY_VAR false igen ad
+# BEGGE veje ud - svar og fejl.
 FL_BUSY_VAR = "varVhpFlBusy"
-FL_DOTS_VAR = "varVhpFlDots"
+FL_QUERY_VAR = "varVhpFlQuery"
+FL_LAST_VAR = "varVhpFlLast"
 
 RESET_EDITOR_CONTROLS = (
-    "Reset(drpVhpItemFL); Reset(txtVhpFlQuery); "
+    f"Set({FL_QUERY_VAR}, \"\"); Set({FL_LAST_VAR}, \"\"); Reset({FL_COMBO}); "
     "Reset(txtVhpItemShortText); "
     "Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(tglVhpItemRevision); "
     "Reset(txtVhpItemInitials); "
@@ -402,21 +372,6 @@ def build_items_rail():
     return card("conVhpItemsCard", [header, btnRow, gallery, emptyState], gap=12)
 
 
-def _timer(name, start, duration, on_end):
-    """Usynlig timer, der koerer, mens start er sand."""
-    return Ctrl(name, "Timer", props={
-        "AutoPause": "false",
-        "AutoStart": "false",
-        "Duration": str(duration),
-        "Height": "1",
-        "OnTimerEnd": on_end,
-        "Repeat": "true",
-        "Start": start,
-        "Visible": "false",
-        "Width": "1",
-    }, h=1, vis="false")
-
-
 # Editorens tre kolonner. Functional Location har sin egen kolonne, og
 # feltets indhold er hoejst saa bredt - saa det er kompakt, og der er plads
 # til Object List-knappen lige under dropdownen (issue #54).
@@ -428,91 +383,54 @@ def build_item_editor():
     header = section_header("conVhpEditorHead", "Item Editor", "")
     helpPanel = help_panel("conVhpItemHelp", "item")
 
-    # --- Functional Location: soegefelt, soegeknap, dropdown ---------------
+    # --- Functional Location: EEN combobox med Search (issue #63) ---------
     #
-    # Ingen combobox. Den forrige udgave lod en Timer polle
-    # Classic/ComboBox.SearchText og lod comboboksen selv filtrere. Flowet
-    # returnerede 819 raekker, beskeden sagde det - og dropdownen var TOM.
-    # Comboboksens indbyggede filtrering viste ingen af de raekker, den
-    # havde faaet.
-    #
-    # Her er der ingen skjult filtrering tilbage: dropdownen viser praecis
-    # det, samlingen indeholder. Og felterne ser ud som alle de andre.
+    # Soegefelt og valgliste er den samme ModernCombobox - den samme
+    # vaelger som Equipments og Materials (tools/fl_picker.py). Search-
+    # knappen eller Enter kalder flowet; det, brugeren derefter skriver,
+    # filtrerer svaret lokalt uden nye kald.
     flLabelRow = label_row("conVhpItemFlLabel", "Functional Location", required=True)
     flHint = text_ctrl("txtVhpItemFlHint", bh.hint("FunctionalLocation"), size=12,
                        color=C_MUTED, height=32, wrap="true", visible=HINTS_ON)
 
-    # Soegeteksten starter med vaerkets kode - FL-koderne begynder med den
-    # (SSV13 HFC10 ...), saa brugeren skal kun skrive resten. Reset() ved
-    # skift af item eller vaerk henter den igen (issue #54).
-    txtFlQuery = text_input(
-        "txtVhpFlQuery", "Coalesce(varVhpPlan.Plant, \"\")",
-        placeholder=("\"At least %d characters, e.g. SSV13 HFC\"" % MIN_SEARCH_LEN),
-        display_mode=DM_ITEM, label="\"Search functional location\"")
-    grow(txtFlQuery)
-    btnFlSearch = button(
-        "btnVhpFlSearch",
-        f"If({FL_BUSY_VAR}, Left(\"...\", 1 + {FL_DOTS_VAR}), \"Search\")",
-        # raw_var foelger VH-plans egen navnekonvention. Den stod foer som
-        # en konstant i appens EGEN kopi af build_flsearch.py - og det var
-        # netop den ene linje, de tre kopier havde glidt fra hinanden paa.
-        search_action("txtVhpFlQuery", "colVhpFlSearch", "varVhpFlMeta",
-                      raw_var="varVhpFlRaw", busy_var=FL_BUSY_VAR),
-        primary=True, width=FL_BTN_W, height=36,
-        display_mode=f"If({FL_BUSY_VAR}, DisplayMode.Disabled, {DM_ITEM})",
-        accessible="If(%s, \"Searching functional locations\", \"Search functional location\")"
-                   % FL_BUSY_VAR)
-    btnFlSearch.props["LayoutMinWidth"] = str(FL_BTN_W)
-    flSearchRow = group("conVhpItemFlSearchRow", [txtFlQuery, btnFlSearch],
-                        direction="Horizontal", gap=8, height=36,
-                        align_items="Center", width="Parent.Width")
-    flDots = _timer("tmrVhpFlDots", FL_BUSY_VAR, 400,
-                    f"Set({FL_DOTS_VAR}, Mod({FL_DOTS_VAR} + 1, 3))")
-
-    drpFl = dropdown(
-        "drpVhpItemFL", FL_ITEMS, FL_DEFAULT,
-        item_display="ThisItem.Display",
-        required_formula=REQ_ITEM, display_mode=DM_ITEM, value_field="Code", label="\"Select functional location\"")
+    # raw_var foelger VH-plans egen navnekonvention. Den stod foer som en
+    # konstant i appens EGEN kopi af build_flsearch.py - og det var netop
+    # den ene linje, de tre kopier havde glidt fra hinanden paa.
+    flPicker = fl_picker(
+        "Vhp", combo=FL_COMBO, results="colVhpFlSearch", raw_var="varVhpFlRaw",
+        msg_var="varVhpFlMeta", busy_var=FL_BUSY_VAR, query_var=FL_QUERY_VAR,
+        last_var=FL_LAST_VAR,
+        default_items=("Filter(colVhpFlSearch, Code = "
+                       "LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)"),
+        display_mode=DM_ITEM, required_formula=REQ_ITEM, label="Functional location")
 
     # OBJECT LIST ER EN POPUP (issue #54). Knappen staar lige under
-    # FL-dropdownen, er saa bred som sin tekst, og aabner popup'en med en
-    # KLADDE af det valgte. Lukkes popup'en uden "Use selected", er intet
-    # aendret. Se build_object_list_modal nedenfor.
+    # comboboksen og aabner popup'en med en KLADDE af det valgte. Lukkes
+    # popup'en uden "Use selected", er intet aendret. Se
+    # build_object_list_modal nedenfor.
+    #
+    # Issue #63: ingen hjaelpe- eller statustekst under knappen. Antallet
+    # staar i knappen - "Object List (3)" - og de valgte vises ved hover
+    # (Tooltip). Er der intet at vaelge og intet valgt, er den deaktiveret.
+    # Bredden er regnet af den bredeste tekst, den kan faa.
+    n_obj = f"CountRows({OBJ_CHOSEN})"
     btnObjList = button(
-        "btnVhpObjList", "\"Object List\"",
+        "btnVhpObjList", f'"Object List (" & Text({n_obj}) & ")"',
         (
             "ClearCollect(\n"
             "    colVhpObjDraft,\n"
             f"    ForAll({OBJ_CHOSEN} As O, {{ Code: O.Code, Description: O.Description }})\n"
             ");\n"
             "Set(varVhpObjListOpen, true)"
-        ), width=fit_button_width("\"Object List\""), height=34, display_mode=DM_ITEM)
+        ), width=fit_button_width("\"Object List (000)\""), height=34,
+        display_mode=(f"If(IsBlank(varVhpActiveItemId) || !({OBJ_HAS_DATA}), "
+                      "DisplayMode.Disabled, DisplayMode.Edit)"),
+        accessible=f'"Object List, " & Text({n_obj}) & " selected"')
     btnObjList.props["AlignInContainer"] = "AlignInContainer.Start"
-
-    flDescription = text_ctrl(
-        "txtVhpItemFlDescription",
-        (
-            "If(\n"
-            "    IsBlank(drpVhpItemFL.Selected.Code), \"No functional location selected yet.\",\n"
-            "    \"Selected: \" & drpVhpItemFL.Selected.Code & \" - \" &\n"
-            "    drpVhpItemFL.Selected.Description &\n"
-            "    If(\n"
-            "        drpVhpItemFL.Selected.Maintainable, \"\",\n"
-            "        \"   |   WARNING: marked as not maintainable in SAP.\"\n"
-            "    )\n"
-            ")"
-        ),
-        size=12, height=18, wrap="true",
-        color=("If(!IsBlank(drpVhpItemFL.Selected.Code) && "
-               f"!drpVhpItemFL.Selected.Maintainable, {C_INVALID_FG}, {C_MUTED})"))
-    flMeta = text_ctrl("txtVhpItemFlMeta", "varVhpFlMeta", size=12, color=C_MUTED,
-                       height=32, wrap="true")
-    objChosen = text_ctrl("txtVhpItemObjChosen", OBJ_CHOSEN_TEXT, size=12, height=32,
-                          wrap="true", color=OBJ_CHOSEN_COLOR)
+    btnObjList.props["Tooltip"] = OBJ_TOOLTIP
 
     flBlock = group("conVhpItemFlBlock",
-                    [flLabelRow, flHint, flSearchRow, drpFl, btnObjList, objChosen,
-                     flDescription, flMeta, flDots],
+                    [flLabelRow, flHint, flPicker, btnObjList],
                     direction="Vertical", gap=6, width=FL_W, fill_portions=0,
                     align_in_container="Start")
 
@@ -642,7 +560,7 @@ def build_item_editor():
             "        IsBlank(Trim(txtVhpItemShortText.Text)) || Len(Trim(txtVhpItemShortText.Text)) > 40 ||\n"
             "        IsBlank(drpVhpItemMainWorkCenter.Selected.Value) ||\n"
             "        IsBlank(drpVhpItemActivityType.Selected.Value) ||\n"
-            "        IsBlank(drpVhpItemFL.Selected.Code),\n"
+            f"        IsBlank({FL_CODE}),\n"
             "        UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { Status: \"invalid\" });\n"
             "        Set(varVhpRuntimeInfo, \"Item contains issues. Fix required fields (marked with *).\");\n"
             "        Notify(varVhpRuntimeInfo, NotificationType.Warning),\n"
@@ -652,14 +570,14 @@ def build_item_editor():
             # konkurrerende liste, der skal kopieres herind ved Save.
 
             "        With(\n"
-            "            { code: drpVhpItemFL.Selected.Code },\n"
+            f"            {{ code: {FL_CODE} }},\n"
             "            UpdateIf(\n"
             "                colVhpItems,\n"
             "                ItemId = varVhpActiveItemId,\n"
             "                {\n"
             "                    ShortText: Trim(txtVhpItemShortText.Text),\n"
             "                    FunctionalLocation: code,\n"
-            "                    FlDescription: drpVhpItemFL.Selected.Description,\n"
+            f"                    FlDescription: {FL_COMBO}.Selected.Description,\n"
             "                    MainWorkCenter: drpVhpItemMainWorkCenter.Selected.Value,\n"
             "                    ActivityType: drpVhpItemActivityType.Selected.Value,\n"
             "                    ObjectList: Concat(Sort(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), Code), Code, \"; \"),\n"

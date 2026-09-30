@@ -118,36 +118,33 @@ def collect_results(target_collection, raw_var=DEFAULT_RAW):
 
 def search_action(query_ctrl, target_collection, msg_var,
                   label="Functional Locations", raw_var=DEFAULT_RAW,
-                  busy_var=None, query_expr=None):
+                  busy_var=None, query_expr=None, last_var=None, on_start=None):
     """Soegningen, som den ser ud bag en SOEGEKNAP.
 
-    HVORFOR IKKE LAENGERE EN TIMER OG EN COMBOBOX
-    ---------------------------------------------
-    Foerste udgave lod en Timer polle Classic/ComboBox.SearchText og lod
-    comboboksen selv filtrere resultatet. Det virkede ikke i praksis:
-    flowet returnerede 819 raekker for "SSV13 HFC10", beskeden sagde det
-    ogsaa - og dropdownen var alligevel TOM. Comboboksens indbyggede
-    soegefiltrering viste ingen af de raekker, den havde faaet.
+    Hvem der kalder den: Search-knappen og Enter i FL-vaelgeren
+    (tools/fl_picker.py). Soegningen koerer KUN der - naar brugeren
+    filtrerer i svaret, sker det lokalt i comboboksen, uden nyt kald.
 
-    Nu er der ingen skjult filtrering tilbage:
-
-        et tekstfelt      brugeren skriver hvad der skal soeges paa
-        en soegeknap      brugeren bestemmer HVORNAAR der soeges
-        en dropdown       viser praecis det, samlingen indeholder
-
-    Dropdownen har ingen egen soegning, saa der er ikke noget lag, der kan
-    skjule raekker. Til gengaeld kan listen blive lang - derfor siger
-    beskeden til, naar resultatet er stort nok til at brugeren boer soege
-    smallere.
-
-    busy_var: en variabel, der er true, MENS flowet koerer. Knappen viser
-    den som "Searching..." med prikker, der bevaeger sig - uden den kunne
-    brugeren ikke se, at et tryk paa Search overhovedet var registreret.
+    busy_var: en variabel, der er true, MENS flowet koerer. Search-knappen
+    viser en spinner saa laenge - uden den kunne brugeren ikke se, at et
+    tryk paa Search overhovedet var registreret.
     Den saettes false igen ad BEGGE veje ud (svar og fejl), fordi IfError
     fanger fejlen og fortsaetter.
 
     query_expr: udtrykket, soegeteksten laeses af. Standard er feltets
-    Text; Enter-tasten sender i stedet teksten uden linjeskiftet.
+    Text.
+
+    last_var: faar soegeteksten, naar soegningen starter. FL-vaelgeren
+    (fl_picker.py) bruger den til at vide, om brugeren filtrerer i det
+    sidste svar eller skriver en ny soegning.
+
+    on_start: koeres, naar soegningen starter - fx at rydde det valgte.
+
+    GAMLE RESULTATER RYDDES, NAAR EN NY SOEGNING STARTER (issue #63)
+    ----------------------------------------------------------------
+    Ellers kunne man vaelge en raekke fra den forrige soegning, mens den
+    nye koerte. Fejler soegningen, eller finder den intet, siger en kort
+    Notify det - beskeden under feltet findes ikke i alle apps.
     """
     q_src = query_expr if query_expr else f"{query_ctrl}.Text"
     busy_on = f"        Set({busy_var}, true);\n" if busy_var else ""
@@ -162,14 +159,21 @@ def search_action(query_ctrl, target_collection, msg_var,
         f"            NotificationType.Warning\n"
         f"        ),\n"
         f"\n"
-        + busy_on +
-        f"        Set({msg_var}, \"Searching for \" & q & \" ...\");\n"
+        + busy_on
+        + (f"        Set({last_var}, q);\n" if last_var else "")
+        + f"        Clear({target_collection});\n"
+        + (f"        {on_start};\n" if on_start else "")
+        + f"        Set({msg_var}, \"Searching for \" & q & \" ...\");\n"
         f"        IfError(\n"
         f"            Set({raw_var}, {FLOW_NAME}.Run(q));\n"
         f"            If(\n"
         f"                IsBlank({raw_var}) || IsBlank({raw_var}.{FLOW_OUTPUT}),\n"
         f"                Clear({target_collection}),\n"
         f"                {collect_results(target_collection, raw_var)}\n"
+        f"            );\n"
+        f"            If(\n"
+        f"                CountRows({target_collection}) = 0,\n"
+        f"                Notify(\"No {label.lower()} found for \" & q & \".\", NotificationType.Warning)\n"
         f"            );\n"
         f"            Set(\n"
         f"                {msg_var},\n"
@@ -188,7 +192,8 @@ def search_action(query_ctrl, target_collection, msg_var,
         f"                )\n"
         f"            ),\n"
         f"            Clear({target_collection});\n"
-        f"            Set({msg_var}, \"Search failed: \" & FirstError.Message)\n"
+        f"            Set({msg_var}, \"Search failed: \" & FirstError.Message);\n"
+        f"            Notify(\"The {label.lower()} search failed. Try again.\", NotificationType.Error)\n"
         f"        )"
         + busy_off + "\n"
         f"    )\n"

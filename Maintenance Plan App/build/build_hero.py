@@ -6,6 +6,7 @@ from build_helpers import (button, group, fit_button_width, text_ctrl, text_px, 
                            ICON_W)
 from layout_tokens import if_below, at_least
 from design_tokens import ref_hex
+from build_items import FL_CODE
 
 # Topbjaelken er ALT, der er tilbage af hero-kortet.
 #
@@ -63,7 +64,7 @@ ITEM_DIRTY = (
     "        (drpVhpItemMainWorkCenter.Selected.Value & \"\") <> (it.MainWorkCenter & \"\") ||\n"
     "        (drpVhpItemActivityType.Selected.Value & \"\") <> (it.ActivityType & \"\") ||\n"
     "        tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||\n"
-    "        (drpVhpItemFL.Selected.Code & \"\") <> (it.FunctionalLocation & \"\") ||\n"
+    f"        ({FL_CODE} & \"\") <> (it.FunctionalLocation & \"\") ||\n"
     "        Trim(txtVhpItemInitials.Text & \"\") <> Trim(it.Initials & \"\")\n"
     "    )\n"
     ")"
