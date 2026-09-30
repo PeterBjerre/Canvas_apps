@@ -229,6 +229,12 @@ def main(argv=None):
         r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "check_ps1.py")])
         if r.returncode:
             return r.returncode
+        # VBA-modulerne importeres i Excel paa Windows - samme slags fejl
+        # som i PowerShell (tegnsaet, linjeskift). Tjekket fandtes, men blev
+        # aldrig koert af byggeriet.
+        r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "check_vba.py")])
+        if r.returncode:
+            return r.returncode
 
         # Og solution-eksporten: baerer den en hemmelighed?
         #
