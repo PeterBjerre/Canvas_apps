@@ -108,7 +108,10 @@ def _find_screen():
 WIDTHS = lay.test_widths()
 ITEM_COUNTS = [0, 1, 3, 8]
 OP_COUNTS = [0, 1, 4, 12]
-PKG_COUNTS = [3, 4]
+# 0 SKAL VAERE MED. evaluate() bruger kun max(items, ops, pkgs), og her
+# stod [3, 4] - saa N var aldrig under 3, og en tom liste ("No rows yet")
+# blev aldrig regnet efter, selv om SKILL.md sagde "0-8 items".
+PKG_COUNTS = [0, 3, 4]
 
 CTRL_HEIGHT_REF = re.compile(r"\b(?:con|gal|txt|btn|drp|num|chk)[A-Za-z0-9_]*\.Height\b")
 

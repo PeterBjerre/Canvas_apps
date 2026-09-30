@@ -450,7 +450,7 @@ indekserede boolske `IsOpen` — ikke på en række OR'ede statusværdier.
 ## Hvad check_layout.py fanger
 
 Canvas-layout kan ikke renderes uden for Studio, så det regnes efter i
-stedet, for de skærmbredder,
+stedet, for 0, 1, 3, 4, 8 og 12 rækker og for de skærmbredder,
 `layout_tokens.test_widths()` giver — **hver breakpoint-grænse og pixlen
 under den** (420, 719, 720, 1023, 1024, 1366, 1599, 1600, 1920). Før stod
 der en håndplukket liste, der sprang henover 1023, og det er præcis dér,

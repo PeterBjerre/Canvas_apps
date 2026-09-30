@@ -1,0 +1,37 @@
+# Bygger alle apps, koerer alle tjek og kraever, at det committede output er
+# det, builderne laver. Samme kommando som lokalt: python3 tools/build_all.py
+name: build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Node er IKKE valgfri her: uden den efterproeves Functional
+      # Location-reglerne ikke mod html/*.js (tools/fl/harness.js).
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Afhaengigheder
+        run: pip install -r requirements.txt
+
+      - name: Byg alle apps og koer alle tjek
+        run: python3 tools/build_all.py
+
+      # Genereret output, der ikke passer til builderne, er en rettelse i
+      # YAML'en uden om kilden - eller en builder, nogen glemte at koere.
+      - name: Det committede output er det, builderne laver
+        run: git diff --exit-code -- '*.pa.yaml'
+
+      - name: Tests (plantede fejl)
+        run: python3 -m pytest -q tests
