@@ -69,8 +69,7 @@ def toggle_nobom_fx():
         "If(\n"
         f"    {NOBOM},\n"
         f'    Set({FL_VAR}, "");\n'
-        f'    Set({dp.FL_QUERY_VAR}, "");\n'
-        f"    Reset({dp.FL_COMBO});\n"
+        f"    {dp.fl_reset_fx_dom()};\n"
         '    Set(varDomFlMsg, "No BOM item - a functional location is not required."),\n'
         '    Set(varDomFlMsg, "")\n'
         ")"

@@ -138,19 +138,62 @@ def _domain_switch(field, fallback):
 
 
 # ---------------------------------------------------------------------------
-# Afgraensningen. Begge grene er delegerbare hver for sig:
-#   Mine  - afgraenset af brugeren, altid en haandterbar maengde
-#   Koeen - afgraenset af IsOpen, et indekseret boolsk felt
-# IsOpen vedligeholdes af submit-flowet sammen med Status. Et enkelt boolsk
-# felt er delegerbart; en raekke OR'ede statusvaerdier er det ikke.
+# Afgraensningen - TO uafhaengige valg (issue #74):
+#
+#   HVIS    "My requests" (gblView)   mine / hele afdelingen
+#   HVILKE  Open / Closed / All       gblStatusMode
+#
+# "My requests" er et OMFANG, ikke et statusfilter; de to kombineres. Foer
+# var afdelingens visning det samme som "aabne", saa Closed og All viste
+# intet, naar My requests var slaaet fra, og fliserne talte altid kun aabne.
+#
+# Hver gren er delegerbar for sig: RequesterEmail og IsOpen er indekserede
+# felter, og en enkelt sammenligning paa hver er det, SharePoint kan. En
+# raekke OR'ede statusvaerdier kunne den ikke - derfor IsOpen, som
+# submit-flowet vedligeholder sammen med Status.
+#
+# SCOPE er BAADE listens, flisernes og taellerens grundlag, saa de tre
+# aldrig kan vaere uenige om, hvad der er valgt.
 # ---------------------------------------------------------------------------
+_MINE = f"Filter('{LIST}', RequesterEmail = gblMe)"
+_ALL = f"'{LIST}'"
+
+
+def _by_status(base):
+    return ("If(\n"
+            f"        gblStatusMode = \"open\", Filter({base}, IsOpen = true),\n"
+            f"        gblStatusMode = \"done\", Filter({base}, IsOpen = false),\n"
+            f"        {base}\n"
+            "    )")
+
+
 SCOPE = (
     "If(\n"
     "    gblView = \"mine\",\n"
-    f"    Filter('{LIST}', RequesterEmail = gblMe),\n"
-    f"    Filter('{LIST}', IsOpen = true)\n"
+    f"    {_by_status(_MINE)},\n"
+    f"    {_by_status(_ALL)}\n"
     ")"
 )
+
+# Flisernes undertekst: hvad tallet taeller.
+SCOPE_WORDS = ('Switch(gblStatusMode, "open", "Open", "done", "Closed", "All") & '
+               'If(gblView = "mine", " - my requests", " - whole department")')
+
+# De seneste lukkede indmeldinger i det valgte omfang - til Closed-preview'et.
+CLOSED_LATEST = (
+    "FirstN(\n"
+    "    SortByColumns(\n"
+    "        If(\n"
+    "            gblView = \"mine\",\n"
+    f"            Filter('{LIST}', RequesterEmail = gblMe, IsOpen = false),\n"
+    f"            Filter('{LIST}', IsOpen = false)\n"
+    "        ),\n"
+    "        \"LastActionOn\", SortOrder.Descending\n"
+    "    ),\n"
+    "    5\n"
+    ")"
+)
+PEEK_OPEN = "IfError(gblClosedPeek, false)"
 
 # Tabellens kolonner. EEN kilde til bredderne, saa overskriften og raekken
 # ikke kan komme til at staa forskudt. Resten af bredden ligger i REQUEST,
@@ -170,6 +213,25 @@ ROW_H = 52
 GAL_ROWS = 9
 
 ICON_CHEVRON = "M9 6l6 6-6 6"
+
+# Det, raekken viser ud for nummeret - kun de dele, der er udfyldt.
+NO_W = 120
+ROW_META = (
+    "Concat(\n"
+    "    Filter(\n"
+    "        Table(\n"
+    '            { v: If(!IsBlank(ThisItem.RequesterName), "by " & ThisItem.RequesterName) },\n'
+    "            { v: If(ThisItem.ItemCount > 0, Text(ThisItem.ItemCount) &\n"
+    '                    If(ThisItem.ItemCount = 1, " item", " items")) },\n'
+    '            { v: If(!IsBlank(ThisItem.SapObjectNo), "SAP " & ThisItem.SapObjectNo) },\n'
+    '            { v: If(!IsBlank(ThisItem.LastActionBy), "last change by " & ThisItem.LastActionBy) }\n'
+    "        ),\n"
+    "        !IsBlank(v)\n"
+    "    ),\n"
+    "    v,\n"
+    '    "  \u00b7  "\n'
+    ")"
+)
 
 # Hvert statusikon skal have en status - og omvendt.
 if set(STATUS_ICON) != {s[0] for s in STATUS}:
@@ -218,8 +280,8 @@ def build_bar():
                  primary=True, width=fit_button_width('"New request"') + ICON_W, height=36,
                  icon="Add")
     return top_bar("Md", '"Masterdatahub"',
-                   '"SAP requests - " & If(gblView = "mine", gblMe, "queue, whole department")',
-                   [mine, new])
+                   '"SAP requests - " & If(gblView = "mine", gblMe, "whole department")',
+                   [mine, new], icon="hub")
 
 
 MENU_W = 290
@@ -301,18 +363,24 @@ TILE_W = if_below("Tablet", TILES_CW,
                   if_below("Desktop", f"({TILES_CW} - {TILE_GAP}) / 2",
                            f"({TILES_CW} - {4 * TILE_GAP}) / 5"))
 TILE_LINES = if_below("Tablet", "5", if_below("Desktop", "3", "1"))
-TILE_FACE_H = 156
+# Kompakt (issue #74): ikon og navn paa een linje, tallet under. Var 156
+# px forside + 4 px streg + en knaprad paa 48 - nu er hele flisen 108.
+TILE_H = 108
+STRIPE_H = 4
 
 
 def _tile_state(d, sel):
     """Flisens tilstande - de SAMME for alle fem, kun farven er domaenets.
 
         standard   kortets fyld, 1 px graa kant, ingen skygge
-        hover      forsiden toner svagt i domaenets bloede farve
+        hover      HELE flisen toner i domaenets bloede farve
         trykket    samme toning
-        fokus      2 px kant i domaenets farve om forsiden (tastatur)
+        fokus      2 px kant i domaenets farve (tastatur)
         valgt      2 px kant i domaenets farve, bloed toning af hele
                    flisen og en let skygge - ikke en kraftig baggrund
+
+    Hover daekker hele flisen, fordi hele flisen ER eet billede (issue
+    #74): der er ingen knaprad under forsiden mere, som hover ikke naaede.
 
     Den bloede farve (domain-*-soft) er domaenet blandet 8 % (lys) / 16 %
     (moerk) ind i kortets baggrund, og design_tokens.CONTRAST kraever, at
@@ -328,67 +396,52 @@ def _tile_state(d, sel):
 
 
 def _tile_face(d, count_expr):
-    """Flisens forside som EEN SVG: ikonet i en tonet cirkel, navnet,
-    tallet og teksten under. Bredden er billedets egen (Self.Width), saa
-    indholdet staar til venstre og intet skaleres.
+    """HELE flisen som EEN SVG: stregen foroven i domaenets farve, ikonet i
+    en tonet cirkel med navnet ved siden af, tallet og hvad det taeller.
+    Bredden er billedets egen (Self.Width), saa intet skaleres.
 
-    Et billede har OnSelect - det har en tekst ikke. Derfor er forsiden et
-    billede: saa er hele flisen (paa naer "New") filterknappen."""
+    Et billede har OnSelect og HoverFill - det har en tekst ikke. Derfor er
+    flisen et billede: saa er hele flisen filterknappen, og hele flisen
+    reagerer paa musen."""
     c = _hx(d["token"])
     w = '" & Self.Width & "'
-    h = TILE_FACE_H
+    h = TILE_H
     return ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{h}' "
             f"viewBox='0 0 {w} {h}'>"
-            f"<circle cx='40' cy='40' r='24' fill='{c}' fill-opacity='0.12'/>"
-            + _dglyph(d, c, x=28, y=28) +
-            f"<text x='16' y='92' {SVG_FONT} font-size='15' font-weight='600' "
+            f"<rect width='{w}' height='{STRIPE_H}' fill='{c}'/>"
+            f"<circle cx='34' cy='36' r='18' fill='{c}' fill-opacity='0.12'/>"
+            + _dglyph(d, c, x=24, y=26, size=20) +
+            f"<text x='62' y='41' {SVG_FONT} font-size='14' font-weight='600' "
             f"fill='{_hx('text-primary')}'>{d['name']}</text>"
-            f"<text x='16' y='126' {SVG_FONT} font-size='28' font-weight='600' "
+            f"<text x='16' y='82' {SVG_FONT} font-size='26' font-weight='600' "
             f"fill='{_hx('text-primary')}'>\" & {count_expr} & \"</text>"
-            f"<text x='16' y='146' {SVG_FONT} font-size='12' "
-            f"fill='{_hx('text-muted')}'>\" & "
-            'If(gblView = "mine", "open with me", "open in the queue")'
-            " & \"</text></svg>" + '"')
+            f"<text x='16' y='98' {SVG_FONT} font-size='11' "
+            f"fill='{_hx('text-muted')}'>\" & {SCOPE_WORDS} & \"</text></svg>" + '"')
 
 
 def build_tiles():
+    """De fem domaenefliser. Hele flisen filtrerer listen; "New request" i
+    bjaelken er vejen til en ny indmelding (issue #74 fjernede flisernes
+    egne "+ New")."""
     tiles = []
     for d in DOMAINS:
         n = d["short"]
         sel = f'gblDomain = "{d["key"]}"'
-        # Tallet taelles paa det samme afgraensede saet som galleriet bruger -
-        # ikke som et selvstaendigt opslag mod hele listen.
-        count = f'Text(CountRows(Filter({SCOPE}, Domain.Value = "{d["key"]}", IsOpen = true)))'
+        # Tallet taelles paa PRAECIS det saet, listen viser - omfang og
+        # Open/Closed/All - bare afgraenset til domaenet.
+        count = f'Text(CountRows(Filter({SCOPE}, Domain.Value = "{d["key"]}")))'
 
         st = _tile_state(d, sel)
-        stripe = group(f"conMdStripe{n}", [], height=4, fill=d["color"],
-                       direction="Horizontal")
         face = _image(f"imgMdTile{n}", _svg_uri(_tile_face(d, count)), "Parent.Width",
-                      TILE_FACE_H,
+                      TILE_H,
                       onselect=f'Set(gblDomain, If({sel}, "", "{d["key"]}"))',
                       # Uden tallet: det ville vaere endnu en forespoergsel.
                       label=f'If({sel}, "Show all domains", "Show only {d["name"].lower()}")',
                       hover=st["hover"])
         face.props["FocusedBorderColor"] = d["color"]
 
-        act, ready = _new_action(d)
-        label = '"New"' if ready else '"Coming soon"'
-        bNew = button(f"btnMdTileNew{n}", label, act,
-                      width=fit_button_width(label) + (ICON_W if ready else 0), height=32,
-                      icon="Add" if ready else None,
-                      accessible=f'"New {d["name"].lower()} request"' if ready else label,
-                      display_mode="DisplayMode.Edit" if ready else "DisplayMode.Disabled")
-        if ready:
-            # Knappen i domaenets farve - tekst, ikon og kant.
-            bNew.props["Color"] = d["color"]
-            bNew.props["BorderColor"] = d["color"]
-        btns = group(f"conMdTileBtns{n}", [bNew], direction="Horizontal", gap=6,
-                     pad=(0, 16, 16, 16), align_items="Center")
-
-        # Stregen foroven har domaenets farve hele tiden; kant, toning og
-        # skygge kun naar flisen filtrerer listen (_tile_state).
         tile = group(
-            f"conMdTile{n}", [stripe, face, btns], direction="Vertical", gap=0,
+            f"conMdTile{n}", [face], direction="Vertical", gap=0,
             fill=st["fill"], radius=12, width=TILE_W,
             border_color=st["border"], border_thickness=st["thickness"])
         tile.props["DropShadow"] = st["shadow"]
@@ -413,7 +466,18 @@ def _chip(name, label, value, icon):
     return _selected_style(b, f'gblStatusMode = "{value}"', idle_color=C_MUTED)
 
 
+SEARCH_W = 280
+
+
 def build_filters():
+    """Vaerktoejslinjen (issue #74):
+
+        [Search number, text or plant...][Open][Closed][i][All]      42 requests
+
+    Soegefeltet er saa bredt som det, man soeger efter (et nummer, et
+    vaerk, et par ord) - ikke resten af linjen. Taelleren staar til hoejre
+    og tager resten, saa den flugter med listens hoejre kant. My requests
+    staar i bjaelken: det er et omfang, ikke et statusfilter."""
     search = Ctrl("txtMdSearch", "ModernTextInput", props={
         "AccessibleLabel": '"Search number, text or plant"',
         "BorderColor": C_CARD_BORDER, "BorderStyle": "BorderStyle.Solid", "BorderThickness": "1",
@@ -422,15 +486,130 @@ def build_filters():
         "RadiusBottomLeft": "10", "RadiusBottomRight": "10",
         "RadiusTopLeft": "10", "RadiusTopRight": "10",
         "Size": "13", "Type": "TextInputType.Search",
-        "Width": "0",   # flow_row: resten af linjen, mindst 180
+        "Width": str(SEARCH_W),
     }, h=36)
-    count = text_ctrl("txtMdCount", f'Text(CountRows({SCOPE})) & " requests"',
+    shown = f'CountRows(Filter({SCOPE}, gblDomain = "" || Domain.Value = gblDomain))'
+    count = text_ctrl("txtMdCount", f'Text({shown}) & " requests"',
                       size=12, color=C_MUTED, height=36, align="Right", width=110, wrap="false")
+    closed = _chip("btnMdStDone", "Closed", "done", "CheckmarkCircle")
+    closed.props["Tooltip"] = _closed_tooltip()
     kids = [search, _chip("btnMdStOpen", "Open", "open", "MailInbox"),
-            _chip("btnMdStDone", "Closed", "done", "CheckmarkCircle"),
+            closed, _peek_button(),
             _chip("btnMdStAll", "All", "all", "TextBulletListLtr"), count]
     # Enten een linje, eller et felt pr. linje - se build_helpers.flow_row.
-    return flow_row("conMdFilters", kids, SHELL_W, gap=10, flex=search, flex_min=180)
+    return flow_row("conMdFilters", kids, SHELL_W, gap=10, flex=count, flex_min=110)
+
+
+# ---------------------------------------------------------------------------
+# Closed-preview (issue #74) - KUN ved Closed
+# ---------------------------------------------------------------------------
+# To veje til det samme: hover over Closed viser de seneste lukkede som
+# tooltip, og info-knappen ved siden af aabner en lille popover, hvor hver
+# raekke kan aabnes. Knappen er vejen paa touch og med tastatur - en
+# tooltip kan hverken naas med en finger eller klikkes i.
+PEEK_W = 360
+PEEK_ROW_H = 48
+
+
+def _closed_tooltip():
+    return (f"With(\n    {{ l: {CLOSED_LATEST} }},\n"
+            "    If(\n"
+            '        IsEmpty(l), "No closed requests yet.",\n'
+            '        "Latest closed:" & Char(10) &\n'
+            f'            Concat(l, {COL_NO} & "  " & Domain.Value & " - " & ShortText, Char(10))\n'
+            "    )\n)")
+
+
+def _peek_button():
+    b = button("btnMdClosedPeek", '""', f"Set(gblClosedPeek, !{PEEK_OPEN})",
+               width=36, height=36, icon="Info",
+               accessible='"Show the latest closed requests"')
+    b.props["Layout"] = "ButtonLayout.IconOnly"
+    b.props["Tooltip"] = '"Latest closed requests"'
+    return _selected_style(b, PEEK_OPEN, idle_color=C_MUTED)
+
+
+def build_closed_peek():
+    """Popoveren: [sloer, kort]. Staar paa skaermen efter rammen, som
+    "New request"-menuen - se assemble_hub."""
+    close = "Set(gblClosedPeek, false)"
+    scrim = Ctrl("imgMdPeekScrim", "Image", props={
+        "AccessibleLabel": '"Close preview"',
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        "Fill": C_TRANSPARENT, "HoverFill": C_TRANSPARENT, "PressedFill": C_TRANSPARENT,
+        "Height": "App.Height",
+        "Image": '""',
+        "OnSelect": close,
+        "TabIndex": "-1",
+        "Visible": PEEK_OPEN,
+        "Width": "App.Width",
+        "X": "0",
+        "Y": "0",
+    }, h="App.Height", vis=PEEK_OPEN)
+    title = text_ctrl("txtMdPeekTitle", '"Latest closed requests"', size=14,
+                      weight="Semibold", height=22, wrap="false")
+    sub = text_ctrl("txtMdPeekSub",
+                    'If(gblView = "mine", "My requests", "Whole department")',
+                    size=11, color=C_MUTED, height=18, wrap="false")
+
+    icon = _image("imgMdPeekDomain",
+                  _svg_uri(_domain_switch(
+                      lambda d: _icon_svg(d["icon"], _hx(d["token"]),
+                                          mirror=d.get("mirror", False)), '""')),
+                  20, 20)
+    icon.props["X"] = "8"
+    icon.props["Y"] = str((PEEK_ROW_H - 20) // 2)
+    line1 = text_ctrl("txtMdPeekNo",
+                      f'ThisItem.{COL_NO} & "  -  " & ' +
+                      _domain_switch(lambda d: f'"{d["name"]}"', '""'),
+                      size=13, weight="Semibold", height=20, wrap="false")
+    line2 = text_ctrl("txtMdPeekText", "ThisItem.ShortText", size=12, color=C_MUTED,
+                      height=18, wrap="false")
+    for i, t in enumerate((line1, line2)):
+        t.props["X"] = "38"
+        t.props["Y"] = str(5 + i * 20)
+        t.props["Width"] = str(PEEK_W - 16 - 38 - 12)
+    act = _open_action()
+    # Hele raekken er klikbar - samme konstruktion som VH-planens item-kort:
+    # en gennemsigtig klassisk knap oven paa teksterne.
+    hit = Ctrl("btnMdPeekOpen", "Classic/Button", props={
+        "BorderColor": C_TRANSPARENT, "BorderStyle": "BorderStyle.Solid",
+        "BorderThickness": "2", "Color": C_TRANSPARENT, "Fill": C_TRANSPARENT,
+        "FocusedBorderColor": C_PRIMARY, "FocusedBorderThickness": "2",
+        "Height": str(PEEK_ROW_H), "HoverBorderColor": C_PRIMARY,
+        "HoverColor": C_TRANSPARENT, "HoverFill": C_TRANSPARENT,
+        "OnSelect": f"{close};\n{act}",
+        "PressedBorderColor": C_PRIMARY, "PressedColor": C_TRANSPARENT,
+        "PressedFill": C_TRANSPARENT,
+        "RadiusBottomLeft": "8", "RadiusBottomRight": "8",
+        "RadiusTopLeft": "8", "RadiusTopRight": "8",
+        "TabIndex": "0",
+        "Text": f'"Open " & ThisItem.{COL_NO}',
+        "Width": str(PEEK_W - 16), "X": "0", "Y": "0",
+    }, h=PEEK_ROW_H)
+    gal = Ctrl("galMdPeek", "Gallery", variant="Vertical", props={
+        "AccessibleLabel": '"Latest closed requests"',
+        "BorderStyle": "BorderStyle.None", "Fill": C_TRANSPARENT, "FillPortions": "0",
+        "Height": str(5 * PEEK_ROW_H),
+        "Items": CLOSED_LATEST, "LayoutMinWidth": "0",
+        "LoadingSpinner": "LoadingSpinner.Controls",
+        "Selectable": "false", "ShowScrollbar": "false", "TabIndex": "0",
+        "TemplatePadding": "0", "TemplateSize": str(PEEK_ROW_H),
+        "Width": str(PEEK_W - 16), "WrapCount": "1",
+        # Start, ikke Stretch: saa er bredden praecis den skrevne, og
+        # skabelonen regnes uden GALLERY_RESERVE (se VH-planens items).
+        "AlignInContainer": "AlignInContainer.Start",
+    }, children=[icon, line1, line2, hit], h=5 * PEEK_ROW_H)
+    empty = text_ctrl("txtMdPeekEmpty", '"No closed requests yet."', size=12,
+                      color=C_MUTED, height=20, wrap="false",
+                      visible="IsEmpty(galMdPeek.AllItems)")
+    card_ = group("conMdPeek", [title, sub, gal, empty], direction="Vertical", gap=6,
+                  width=PEEK_W, fill=C_MODAL_BG, border_color=C_CARD_BORDER, radius=12,
+                  pad=8, drop_shadow="Bold", visible=PEEK_OPEN, align_items="Stretch")
+    card_.props["X"] = f"Max(8, App.Width - Self.Width - {PAGE_PAD_R + SCROLLBAR_W})"
+    card_.props["Y"] = str(HEADER_PAD_T + 52 + 6)
+    return [scrim, card_]
 
 
 # ---------------------------------------------------------------------------
@@ -441,8 +620,6 @@ ITEMS = (
     "    Filter(\n"
     f"        {SCOPE},\n"
     '        gblDomain = "" || Domain.Value = gblDomain,\n'
-    '        gblStatusMode = "all" || (gblStatusMode = "open" && IsOpen) ||\n'
-    '            (gblStatusMode = "done" && !IsOpen),\n'
     '        IsBlank(Trim(txtMdSearch.Text)) ||\n'
     f"            StartsWith({COL_NO}, Trim(txtMdSearch.Text)) ||\n"
     "            StartsWith(ShortText, Trim(txtMdSearch.Text)) ||\n"
@@ -488,10 +665,21 @@ def build_list():
     dom = group("conMdRowDom", [dom_icon, dom_name], direction="Horizontal", gap=12,
                 width=COLS[0][1], align_items="Center")
 
-    no = text_ctrl("txtMdRowNo", f"ThisItem.{COL_NO}", size=13, height=20, wrap="false")
+    # DEN TOMME MIDTE (issue #74). Raekken viste kun nummer og kort tekst,
+    # og resten af den bredeste kolonne stod tom. Nu staar det, indekset
+    # ALLEREDE har, ud for nummeret: hvem der har oprettet den, hvor mange
+    # linjer, SAP-nummeret, naar det findes, og hvem der sidst roerte den.
+    # Ingen nye kald - det er kolonner i MD_RequestIndex, som galleriet
+    # alligevel henter.
+    no = text_ctrl("txtMdRowNo", f"ThisItem.{COL_NO}", size=13, weight="Semibold",
+                   height=20, width=NO_W, wrap="false")
+    meta = text_ctrl("txtMdRowMeta", ROW_META, size=12, color=C_MUTED, height=20,
+                     width=f"{MAIN_W} - {NO_W} - 8", wrap="false")
+    top = group("conMdRowTop", [no, meta], direction="Horizontal", gap=8, width=MAIN_W,
+                height=20, align_items="Center")
     txt = text_ctrl("txtMdRowText", "ThisItem.ShortText", size=12, color=C_MUTED, height=18,
                     wrap="false")
-    main = group("conMdRowMain", [no, txt], direction="Vertical", gap=0, width=MAIN_W,
+    main = group("conMdRowMain", [top, txt], direction="Vertical", gap=0, width=MAIN_W,
                  align_items="Stretch")
 
     plant = text_ctrl("txtMdRowPlant", "ThisItem.Plant", size=13, height=20,

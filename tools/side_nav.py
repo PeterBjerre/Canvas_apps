@@ -100,19 +100,15 @@ CLOSE = f"Set({OPEN}, false)"
 ITEM_H = 40
 BRAND_H = 44
 
-# (noegle i canvas_apps.json, tekst, ikon). Raekkefoelgen og ikonerne er
-# NAV_ITEMS i html/shell.js; teksterne er appsenes egne navne.
+# (noegle i canvas_apps.json, tekst, ikon). Raekkefoelgen er NAV_ITEMS i
+# html/shell.js; teksterne er appsenes egne navne. Ikonerne er de SAMME som
+# paa hubbens fliser og i sideoverskrifterne - tools/icons.py (issue #74).
 ITEMS = [
-    ("hub", "Masterdata Hub",
-     "M3 10.5 12 3l9 7.5M5.5 9.5V20h13V9.5"),
-    ("functionallocation", "Functional Location", icons.FUNCTIONAL_LOCATION),
-    ("vhplan", "VH-plan",
-     "M4 6.5h16M4 12h16M4 17.5h10 M17.5 16.5l1.6 1.6 3-3.2"),
-    ("material", "Materials",
-     "M12 3 21 8v8l-9 5-9-5V8l9-5Z M3 8l9 5 9-5 M12 13v8"),
-    ("equipment", "Equipments",
-     "M7 7h10v10H7z M4.5 10.5h2.5M4.5 13.5h2.5M17 10.5h2.5M17 13.5h2.5"
-     "M10.5 4.5V7M13.5 4.5V7M10.5 17v2.5M13.5 17v2.5"),
+    ("hub", "Masterdata Hub", icons.path("hub")),
+    ("functionallocation", "Functional Location", icons.path("functionallocation")),
+    ("vhplan", "VH-plan", icons.path("vhplan")),
+    ("material", "Materials", icons.path("material")),
+    ("equipment", "Equipments", icons.path("equipment")),
 ]
 
 # DEN SAMLEDE APP: {noegle: skaermnavn}. None = de fem enkelte apps, hvor
@@ -223,11 +219,12 @@ def _column(p, suffix, w, current, is_open, help_on, help_action):
                    CLOSE if hub else _launch("hub"),
                    '"BIO SAP - Masterdata Hub"', hover=False)
     if is_open:
-        # Kun dobbeltpilen - ingen "Collapse"-tekst (issue #65). Billedet er
-        # saa bredt som den lukkede skinne, saa pilen staar det samme sted
-        # som ">>", og resten af raekken er ikke et klikfelt.
-        toggle = _image(n("NavToggle"), _item_svg(lay.NAV_W, ICON_COLLAPSE, None, False),
-                        lay.NAV_W, ITEM_H, CLOSE, '"Collapse menu"',
+        # Kun dobbeltpilen - ingen "Collapse"-tekst (issue #65). Pilen staar
+        # det samme sted som ">>", men HELE raekken er klikfeltet (issue
+        # #74): hover, fokus og tryk daekker den fulde bredde, som paa de
+        # andre punkter i sidebaren.
+        toggle = _image(n("NavToggle"), _item_svg(w, ICON_COLLAPSE, None, False),
+                        w, ITEM_H, CLOSE, '"Collapse menu"',
                         tooltip='"Collapse menu"')
     else:
         toggle = _image(n("NavToggle"), _item_svg(w, ICON_EXPAND, None, False),

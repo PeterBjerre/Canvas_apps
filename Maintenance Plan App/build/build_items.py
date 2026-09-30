@@ -9,11 +9,11 @@ from layout_tokens import if_below
 from build_helpers import (text_ctrl, group, button, button_row, text_input, number_input, dropdown,
                            label_row, field_cell, row_n, col_width, badge, card, combobox, poll_timer,
                            TWO_COL_MIN, HINTS_ON, grow, fit_button_width, column_grid,
-                           ICON_SAVE, ICON_W)
+                           ICON_SAVE, ICON_W, mark_done, bool_toggle)
 from build_plan_header import section_header, help_panel
 import build_help as bh
 from build_helpers import HINTS_ON as bh_hints
-from fl_picker import fl_picker, SEARCH_CODE
+from fl_picker import fl_picker
 
 DM_ITEM = "If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)"
 REQ_ITEM = "varVhpItemValidated"
@@ -22,8 +22,9 @@ REQ_ITEM = "varVhpItemValidated"
 RAIL_CW = RAIL_W - 36
 EDITOR_CW = f"({EDITOR_W} - 36)"
 
-# Tre kolonner i stedet for to for indtastningsfelterne i Item Editor.
-EDITOR_COLS = 3
+# To kolonner til felterne - Functional Location har sin egen raekke i
+# editorens fulde bredde under dem (issue #72).
+EDITOR_COLS = 2
 
 # Gallerihoejde: een raekke pr. item. Mellemrummet paa 6 px ligger UNDER
 # kortet i raekken (kortet er 88 hoejt), ikke i TemplatePadding - saa ville
@@ -36,11 +37,9 @@ ITEMS_GAL_H = f"Max(CountRows(colVhpItems), 1) * {ITEM_ROW_H}"
 # Comboboksen (tools/fl_picker.py, issue #63) - soegefelt OG valgliste.
 FL_COMBO = "cmbVhpItemFL"
 
-# Den valgte FL-kode. Soegeraekken ("press Enter to search SAP") staar i
-# comboboksens liste, men er ikke en Functional Location - er den valgt et
-# oejeblik, mens soegningen koerer, er der intet valgt.
-FL_CODE = (f'If({FL_COMBO}.Selected.Code = "{SEARCH_CODE}", Blank(), '
-           f'{FL_COMBO}.Selected.Code)')
+# Den valgte FL-kode. Listen indeholder kun rigtige Functional Locations
+# (issue #72), saa comboboksens valg ER koden.
+FL_CODE = f"{FL_COMBO}.Selected.Code"
 
 # Den FL der er valgt lige nu: comboboksens valg, med fald tilbage til det
 # gemte paa itemet, saa objektlisten ogsaa filtrerer korrekt foer brugeren
@@ -91,9 +90,10 @@ OBJ_TOOLTIP = (
     "    )\n"
     ")"
 )
-# Er der noget at vise? Kandidater under den valgte FL - eller et valg,
-# der skal kunne fjernes igen.
-OBJ_HAS_DATA = f"CountRows({OBJ_CANDIDATES}) > 0 || CountRows({OBJ_CHOSEN}) > 0"
+# Er der noget at vise? Foerst en gyldig Functional Location (issue #72) -
+# saa kandidater under den, eller et valg, der skal kunne fjernes igen.
+OBJ_HAS_DATA = (f"!IsBlank({SEL_FL}) && "
+                f"(CountRows({OBJ_CANDIDATES}) > 0 || CountRows({OBJ_CHOSEN}) > 0)")
 
 # FL-vaelgerens tilstand - samme konstruktion som Equipments og Materials
 # (tools/fl_picker.py). search_action saetter FL_BUSY_VAR false igen ad
@@ -101,9 +101,13 @@ OBJ_HAS_DATA = f"CountRows({OBJ_CANDIDATES}) > 0 || CountRows({OBJ_CHOSEN}) > 0"
 FL_BUSY_VAR = "varVhpFlBusy"
 FL_QUERY_VAR = "varVhpFlQuery"
 FL_LAST_VAR = "varVhpFlLast"
+# Det valgte resultat. Soegningen saetter den til det FOERSTE svar (issue
+# #72); comboboksens DefaultSelectedItems laeser den foer itemets gemte FL.
+FL_PICK_VAR = "varVhpFlPick"
 
 RESET_EDITOR_CONTROLS = (
-    f"Set({FL_QUERY_VAR}, \"\"); Set({FL_LAST_VAR}, \"\"); Reset({FL_COMBO}); "
+    f"Set({FL_QUERY_VAR}, \"\"); Set({FL_LAST_VAR}, \"\"); Set({FL_PICK_VAR}, \"\"); "
+    f"Reset({FL_COMBO}); "
     "Reset(txtVhpItemShortText); "
     "Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(tglVhpItemRevision); "
     "Reset(txtVhpItemInitials); "
@@ -372,11 +376,11 @@ def build_items_rail():
     return card("conVhpItemsCard", [header, btnRow, gallery, emptyState], gap=12)
 
 
-# Editorens tre kolonner. Functional Location har sin egen kolonne, og
-# feltets indhold er hoejst saa bredt - saa det er kompakt, og der er plads
-# til Object List-knappen lige under dropdownen (issue #54).
+# Editorens to kolonner. Functional Location staar i sin egen raekke i
+# editorens FULDE bredde (issue #72): soegningen skal have plads til koder
+# som "SSV13 HFC10AJ010 - Ball bearing house ...".
 EDITOR_COL_W = col_width(EDITOR_CW, EDITOR_COLS)
-FL_W = f"Min({EDITOR_COL_W}, 360)"
+FL_W = EDITOR_CW
 
 
 def build_item_editor():
@@ -399,10 +403,21 @@ def build_item_editor():
     flPicker = fl_picker(
         "Vhp", combo=FL_COMBO, results="colVhpFlSearch", raw_var="varVhpFlRaw",
         msg_var="varVhpFlMeta", busy_var=FL_BUSY_VAR, query_var=FL_QUERY_VAR,
-        last_var=FL_LAST_VAR,
-        default_items=("Filter(colVhpFlSearch, Code = "
-                       "LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)"),
-        display_mode=DM_ITEM, required_formula=REQ_ITEM, label="Functional location")
+        last_var=FL_LAST_VAR, pick_var=FL_PICK_VAR,
+        default_items=(f"Filter(colVhpFlSearch, Code = Coalesce({FL_PICK_VAR}, "
+                       "LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation))"),
+        # En ny soegning goer det gamle objektvalg ugyldigt (issue #72):
+        # objekterne hoerer til den soegning, de blev valgt i.
+        on_clear=("RemoveIf(colVhpItemObjects, ItemId = varVhpActiveItemId); "
+                  "Clear(colVhpObjDraft)"),
+        display_mode=DM_ITEM, required_formula=REQ_ITEM, label="Functional location",
+        width=FL_W)
+
+    # Soegningens status UNDER feltet - som i Materials (issue #72): "6
+    # Functional Locations found for SSV13 HFC10AJ010. Select one from the
+    # list below.", soeger, ingen traef, fejl. Aldrig inde i listen.
+    flMsg = text_ctrl("txtVhpFlMsg", "varVhpFlMeta", size=12, color=C_MUTED,
+                      height=18, wrap="false", visible="!IsBlank(varVhpFlMeta)")
 
     # OBJECT LIST ER EN POPUP (issue #54). Knappen staar lige under
     # comboboksen og aabner popup'en med en KLADDE af det valgte. Lukkes
@@ -428,9 +443,13 @@ def build_item_editor():
         accessible=f'"Object List, " & Text({n_obj}) & " selected"')
     btnObjList.props["AlignInContainer"] = "AlignInContainer.Start"
     btnObjList.props["Tooltip"] = OBJ_TOOLTIP
+    # Samme udfyldt-tilstand som Item Long Text (issue #73). Den foelger
+    # antallet: ryddes valget - af Cancel, Reset eller en ny soegning - er
+    # den groenne kant vaek med det samme.
+    mark_done(btnObjList, f"{n_obj} > 0")
 
     flBlock = group("conVhpItemFlBlock",
-                    [flLabelRow, flHint, flPicker, btnObjList],
+                    [flLabelRow, flHint, flPicker, flMsg, btnObjList],
                     direction="Vertical", gap=6, width=FL_W, fill_portions=0,
                     align_in_container="Start")
 
@@ -466,22 +485,14 @@ def build_item_editor():
     # den klassiske staar i den gamle VH-plan-app og kompilerer. Den har
     # ingen AccessibleLabel (samme fejl som Classic/Button, issue #57) -
     # Tooltip bruges i stedet.
-    tglRevision = Ctrl("tglVhpItemRevision", "Classic/Toggle", props={
-        "Color": C_TITLE,
-        "Default": "!IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Revision)",
-        "DisplayMode": DM_ITEM,
-        "FalseFill": C_MUTED,
-        "FalseText": '"No"',
-        "Font": FONT,
-        "HandleFill": C_WHITE,
-        "Height": "36",
-        "Size": "13",
-        "Tooltip": '"Revision: outage work (" & First(colVhpRevisionOptions).Value & ")"',
-        "TrueFill": C_PRIMARY,
-        "TrueText": '"Yes - outage work"',
-        "Width": "220",
-    }, h=36)
-    tglRevision.props["AlignInContainer"] = "AlignInContainer.Start"
+    # Kompakt kontakt (issue #73) - build_helpers.bool_toggle, den samme
+    # stil for alle ja/nej-felter. "Yes"/"No" og intet andet; hvad "Yes"
+    # betyder, staar i tooltip'en og i feltets hjaelpetekst.
+    tglRevision = bool_toggle(
+        "tglVhpItemRevision",
+        "!IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Revision)",
+        display_mode=DM_ITEM,
+        tooltip='"Revision: outage work (" & First(colVhpRevisionOptions).Value & ")"')
     # "Orsted Responsible" er fjernet (issue #54) - Initials er nok.
     # Kolonnen OrstedResponsible paa itemet bliver staaende: Save skriver
     # stadig indsenderen som ansvarlig i SharePoint (build_save.py), og en
@@ -493,31 +504,43 @@ def build_item_editor():
     # viser begyndelsen af teksten; skrivningen sker i popup'en
     # (build_modal.build_longtext_modal), der gemmer direkte paa itemet.
     LT = "LookUp(colVhpItems, ItemId = varVhpActiveItemId).LongText"
+    LT_TIP = 400
+    #
+    # Issue #73: en KOMPAKT knap med et dokumentikon - ikke et felt i hele
+    # kolonnens bredde. "Add long text" uden tekst, "Long text" med, og
+    # saa den faelles udfyldt-tilstand (groen kant). Hover viser teksten;
+    # er den lang, vises begyndelsen, og knappen aabner hele teksten.
+    HAS_LT = f"!IsBlank(Trim(Coalesce({LT}, \"\")))"
     btnLongText = button(
         "btnVhpItemLongText",
-        (f"If(\n"
-         f"    IsBlank(Trim(Coalesce({LT}, \"\"))),\n"
-         f"    \"Add text...\",\n"
-         f"    Left({LT}, 40) & If(Len({LT}) > 40, \"...\")\n"
-         f")"),
+        f'If({HAS_LT}, "Long text", "Add long text")',
         ("Set(varVhpLongTextTarget, \"item\");\n"
          "Set(varVhpLongTextItemId, varVhpActiveItemId);\n"
          f"Set(varVhpLongTextDraft, Coalesce({LT}, \"\"));\n"
          "Reset(txtVhpLongTextBox);\n"
          "Set(varVhpLongTextOpen, true)"),
-        height=36, display_mode=DM_ITEM,
-        accessible="\"Edit long text for item \" & Text(varVhpActiveItemId)")
-    btnLongText.props["Width"] = "Parent.Width"
-    btnLongText.props["AlignInContainer"] = "AlignInContainer.Stretch"
-    btnLongText.props["Align"] = "Align.Left"
+        width=fit_button_width('"Add long text"') + ICON_W, height=36,
+        display_mode=DM_ITEM, icon="TextDescription",
+        accessible=(f'If({HAS_LT}, "Edit long text for item ", "Add long text for item ") '
+                    "& Text(varVhpActiveItemId)"))
+    btnLongText.props["AlignInContainer"] = "AlignInContainer.Start"
+    btnLongText.props["Tooltip"] = (
+        f"If({HAS_LT}, If(Len({LT}) > {LT_TIP}, Left({LT}, {LT_TIP}) & "
+        "\"... (open to read all)\", " + LT + "), \"No long text yet\")")
+    mark_done(btnLongText, HAS_LT)
 
-    # KOLONNE-ORDEN (issue #54): oppefra og ned i kolonne 1, saa kolonne 2.
+    # KOLONNE-ORDEN (issue #54, #72): oppefra og ned i kolonne 1, saa
+    # kolonne 2 - og Functional Location i fuld bredde under dem.
     #
-    #     +---------------------+---------------------+----------------+
-    #     | Item Short Text     | Revision            | Functional     |
-    #     | Main Work Center    | Initials            | Location       |
-    #     | Activity Type       | Item Long Text      | [Object List]  |
-    #     +---------------------+---------------------+----------------+
+    #     +------------------------------+------------------------------+
+    #     | Item Short Text              | Revision                     |
+    #     | Main Work Center             | Initials                     |
+    #     | Activity Type                | Item Long Text               |
+    #     +------------------------------+------------------------------+
+    #     | Functional Location  [combobox ................][Search] o  |
+    #     | 6 Functional Locations found for ...                        |
+    #     | [Object List (3)]                                           |
+    #     +-------------------------------------------------------------+
     CW = EDITOR_CW
 
     def cell(name, label, ctrl, hint, required=False):
@@ -532,7 +555,6 @@ def build_item_editor():
         [cell("conVhpCellItemRevision", "Revision", tglRevision, "Revision"),
          cell("conVhpCellItemInitials", "Initials", txtInitials, "Initials"),
          cell("conVhpCellItemLongText", "Item Long Text", btnLongText, "ItemLongText")],
-        [flBlock],
     ], container_w=CW, row_gap=12)
 
     itemMeta = text_ctrl(
@@ -650,7 +672,7 @@ def build_item_editor():
                    gap=8, height=36, align_items="Center")
 
     return card("conVhpEditorCard",
-                [header, helpPanel, fieldsGrid, footer])
+                [header, helpPanel, fieldsGrid, flBlock, footer])
 
 
 def build_object_list_modal():
@@ -681,21 +703,25 @@ def build_object_list_modal():
         size=12, color=C_MUTED, height=18, wrap="false")
 
     IN_DRAFT = "CountRows(Filter(colVhpObjDraft, Code = ThisItem.Code)) > 0"
+    # EEN afkrydsning, EEN tekst pr. objekt (issue #72). Foer stod der en
+    # afkrydsning paa 26 px OG en tekst ved siden af - afkrydsningens egen
+    # etiket (platformens standard) blev tegnet oven i teksten, naar raekken
+    # blev valgt. Nu ER teksten afkrydsningens etiket, og der er ikke noget
+    # andet i raekken, der kan overlappe den.
     chkObj = Ctrl("chkVhpObjPick", "ModernCheckbox", props={
         "AccessibleLabel": "\"Select object \" & ThisItem.Code",
         "Default": IN_DRAFT,
         "Height": "24",
+        "Label": "ThisItem.Code & If(IsBlank(ThisItem.Description), \"\", \" - \" & ThisItem.Description)",
         "OnCheck": ("If(\n"
                     f"    !({IN_DRAFT}),\n"
                     "    Collect(colVhpObjDraft, { Code: ThisItem.Code, Description: ThisItem.Description })\n"
                     ")"),
         "OnUncheck": "RemoveIf(colVhpObjDraft, Code = ThisItem.Code)",
-        "Width": "26",
+        "Width": "0",
     }, h=24)
-    txtObjRow = grow(text_ctrl("txtVhpObjRowText", "ThisItem.Display", size=13, height=24,
-                               wrap="false"))
-    # Den valgte raekke er markeret med info-farven - ikke kun krydset.
-    objRowTpl = group("conVhpObjRow", [chkObj, txtObjRow], direction="Horizontal",
+    grow(chkObj)
+    objRowTpl = group("conVhpObjRow", [chkObj], direction="Horizontal",
                       gap=10, height="Parent.TemplateHeight - 2", pad=(0, 8, 0, 8),
                       fill=f"If({IN_DRAFT}, {C_INFO_BG}, {C_TRANSPARENT})",
                       align_items="Center", width="Parent.TemplateWidth")
@@ -769,6 +795,9 @@ def build_object_list_modal():
     return modal
 
 
+SECTION_SLACK = 2
+
+
 def build_items_section():
     rail = build_items_rail()
     editor = build_item_editor()
@@ -787,5 +816,21 @@ def build_items_section():
     # som er hele kroppens - uden dens padding og scrollbar trukket fra.
     rail.props["Width"] = if_below("Desktop", SHELL_W, str(RAIL_W))
     editor.props["Width"] = EDITOR_W
+    # HOEJRE KANT FLUGTER MED DE ANDRE KORT (issue #72/#73). SHELL_W er en
+    # NEDRE graense (scrollbar og luft er trukket fra), mens kortene over og
+    # under straekkes til hele bredden - editoren endte op til 24 px foer
+    # deres hoejre kant. Nu tager editoren RESTEN af sin linje
+    # (FillPortions i en raekke, der ombryder - regel 28 undtager den), og
+    # under Desktop goer skinnen det samme paa sin egen linje. Bredderne
+    # ovenfor er mindstemaal, som afgoer, hvornaar raekken ombryder.
+    editor.props["FillPortions"] = "1"
+    editor.props["LayoutMinWidth"] = EDITOR_W
+    rail.props["FillPortions"] = if_below("Desktop", "1", "0")
+    rail.props["LayoutMinWidth"] = if_below("Desktop", SHELL_W, str(RAIL_W))
+    # 2 px under kortene: kanten, hjoernerne og fokusringen nederst paa
+    # Items og Item Editor maa ikke klippes af raekkens LayoutOverflow.Hide
+    # (issue #73) - heller ikke naar Studio tegner et kort en pixel hoejere,
+    # end hoejde-algebraen regnede med.
     return group("conVhpItemsSplit", [rail, editor], direction="Horizontal", gap=SPLIT_GAP,
-                 height=h, wrap="true")
+                 height=f"({h}) + {SECTION_SLACK}", pad=(0, 0, SECTION_SLACK, 0),
+                 wrap="true", align_items="Start")
