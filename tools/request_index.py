@@ -59,7 +59,7 @@ SUBMITTED = "Indsendt"
 # Det gaelder ogsaa en anmodning, der er gemt fra en af enkeltapperne,
 # mens de stadig findes. BIO SAP App/build/combined.py laeser samme
 # parameternavn.
-COMBINED_APP = "biosap"
+COMBINED_APP = env.COMBINED
 DOMAIN_PARAM = "domain"
 
 

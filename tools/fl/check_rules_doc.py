@@ -65,10 +65,16 @@ def ui_rows(text):
 def main():
     text = open(DOC, encoding="utf-8").read()
     rows = rule_rows(text)
+    # Den byggede FL-skaerm: i FL-appen, og i den samlede app (hvor den er
+    # den eneste, naar enkeltapperne er udfaset - docs/33-udfasning.md).
     built = ""
-    for f in os.listdir(APP):
-        if f.endswith(".pa.yaml"):
-            built += open(os.path.join(APP, f), encoding="utf-8").read()
+    combined = os.path.join(ROOT, "BIO SAP App")
+    for d, only in ((APP, None), (combined, ("App.pa.yaml", "ScreenFunctionalLocation.pa.yaml"))):
+        if not os.path.isdir(d):
+            continue
+        for f in os.listdir(d):
+            if f.endswith(".pa.yaml") and (only is None or f in only):
+                built += open(os.path.join(d, f), encoding="utf-8").read()
     problems = []
     n_names = 0
 

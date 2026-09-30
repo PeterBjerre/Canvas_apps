@@ -19,7 +19,9 @@ import pytest
 
 from conftest import ROOT
 
-APP = os.path.join(ROOT, "Equipment App")
+# Den samlede app: dens skaerme findes, ogsaa naar enkeltapperne er udfaset
+# (docs/33-udfasning.md). Equipment-skaermen hedder Eq i stedet for Dom.
+APP = os.path.join(ROOT, "BIO SAP App")
 SCREEN = "ScreenEquipment.pa.yaml"
 
 
@@ -50,8 +52,8 @@ def test_layout_clean_screen_passes(tmp_path):
 
 def test_layout_rule_1_height_references_other_control(tmp_path):
     def plant(t):
-        return re.sub(r"(conDomFormCard:\n(?:.*\n)*?\s+Height: \|-\n\s+)=[^\n]+",
-                      r"\1=btnDomSave.Height + 10", t, count=1)
+        return re.sub(r"(conEqFormCard:\n(?:.*\n)*?\s+Height: \|-\n\s+)=[^\n]+",
+                      r"\1=btnEqSave.Height + 10", t, count=1)
     rc, out = _layout(tmp_path, plant)
     assert rc == 1 and "[1]" in out
 
@@ -65,14 +67,14 @@ def test_layout_rule_8c_app_width_comparison(tmp_path):
 
 def test_layout_rule_0_duplicate_name(tmp_path):
     def plant(t):
-        return t.replace("btnDomNew:", "btnDomSave:", 1)
+        return t.replace("btnEqNew:", "btnEqSave:", 1)
     rc, out = _layout(tmp_path, plant)
     assert rc == 1 and "[0]" in out
 
 
 def test_layout_rule_31_string_column_name(tmp_path):
     def plant(t):
-        return t.replace("=LayoutRank", '=CountRows(GroupBy(colDomRows, "Plant", "G")) * 0 + LayoutRank', 1)
+        return t.replace("=LayoutRank", '=CountRows(GroupBy(colEqRows, "Plant", "G")) * 0 + LayoutRank', 1)
     rc, out = _layout(tmp_path, plant)
     assert rc == 1 and "[31]" in out
 
@@ -86,7 +88,7 @@ def test_layout_rule_16_classic_dropdown(tmp_path):
 
 def test_layout_rule_33_prefix_follows_type(tmp_path):
     def plant(t):
-        return t.replace("inpDomText:", "txtDomTextX:", 1)
+        return t.replace("inpEqText:", "txtEqTextX:", 1)
     rc, out = _layout(tmp_path, plant)
     assert rc == 1 and "[33]" in out
 
@@ -187,7 +189,8 @@ def test_every_app_has_the_same_on_error():
     import app_yaml
     import env_config
     want = "=" + app_yaml.ON_ERROR
-    for key, app in env_config.APPS.items():
+    for key in env_config.build_targets():
+        app = env_config.APPS[key]
         doc = yaml.safe_load(open(os.path.join(ROOT, app["folder"], "App.pa.yaml"),
                                   encoding="utf-8"))
         assert doc["App"]["Properties"]["OnError"].strip() == want.strip(), key

@@ -9,7 +9,8 @@ tilbage.
 > **Status: den app, der skal bruges (besluttet 2026-09-30).** At skifte
 > mellem fem apps var for klodset. De fem enkeltapps udfases, når den
 > samlede app har bestået testplanen nedenfor. Indtil da bygges begge dele
-> af de samme byggere, så en rettelse kommer med begge steder.
+> af de samme byggere, så en rettelse kommer med begge steder. Udfasningen er
+> forberedt som ét flag — se [`docs/33-udfasning.md`](../docs/33-udfasning.md).
 
 Baggrunden for beslutningen står i
 [`../docs/07-landingsside.md`](../docs/07-landingsside.md) §9.
