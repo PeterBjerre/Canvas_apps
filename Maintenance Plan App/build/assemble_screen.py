@@ -52,9 +52,9 @@ def build_screen():
     root = app_frame("Vhp", build_top_bar(), sections, body_gap=20)
 
     # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
-    rail, overlay = side_nav("Vhp", "vhplan", HELP_ON, HELP_ACTION)
+    nav, overlay = side_nav("Vhp", "vhplan", HELP_ON, HELP_ACTION)
     return render_screen("ScreenVhPlan", {"Fill": C_APP_BG},
-                         [root, rail,
+                         [root, *nav,
                           build_modal_backdrop(), build_tasklist_picker_modal(),
                           build_longtext_modal(), build_object_list_modal(),
                           *build_ops_modals(), *CONFIRM, *overlay,

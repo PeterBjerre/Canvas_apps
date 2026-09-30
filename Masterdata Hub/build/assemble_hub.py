@@ -22,11 +22,11 @@ def build_screen():
     # krop, der goer. Se build_helpers.app_frame.
     root = app_frame("Md", build_bar(), [build_tiles(), build_filters(), build_list()])
     # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
-    rail, overlay = side_nav("Md", "hub")
+    nav, overlay = side_nav("Md", "hub")
     # "New request"-menuen ligger oven paa rammen, men under den aabne
     # sidebar.
     return render_screen("ScreenMdHub", {"Fill": C_APP_BG},
-                         [root, rail, *build_new_menu(), *overlay])
+                         [root, *nav, *build_new_menu(), *overlay])
 
 
 def main():

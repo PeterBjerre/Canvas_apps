@@ -146,7 +146,8 @@ def rank_for(width):
 #
 # Alle fire skaerme har samme ramme (build_helpers.app_frame):
 #
-#     con<X>Root     lodret, (Parent.Width - NAV_W) x Parent.Height, X = NAV_W,
+#     con<X>Root     lodret, ROOT_W x ROOT_H paa (ROOT_X, ROOT_Y) - efter
+#                    skinnen, eller under mobilbjaelken,
 #                    scroller IKKE
 #       con<X>Header   fast hoejde - bjaelken. Scroller aldrig vaek, og
 #                      dens hoejde afhaenger kun af App.Width.
@@ -203,15 +204,34 @@ FIT_SLACK = 6
 SHELL_INSET = PAGE_PAD_L + PAGE_PAD_R + SCROLLBAR_W + FIT_SLACK
 
 # SIDEBAREN (tools/side_nav.py) staar til venstre for rammen i alle fem
-# apps. Lukket er den NAV_W bred, og rammen starter dér - X = NAV_W,
-# Width = Parent.Width - NAV_W. Aabnet er den NAV_W_OPEN og ligger OVEN
+# apps (fra Tablet og op). Lukket er den NAV_W bred, og rammen starter
+# dér - X = NAV_W, Width = Parent.Width - NAV_W. Aabnet er den NAV_W_OPEN og ligger OVEN
 # PAA indholdet som i HTML-siden (shell.css: "Expands as an overlay so the
 # workspace never reflows"). Derfor indgaar kun den LUKKEDE bredde i
 # SHELL_W: at aabne sidebaren flytter ingenting.
 NAV_W = 56
 NAV_W_OPEN = 232
 
-SHELL_W = "(App.Width - %d)" % (NAV_W + SHELL_INSET)
+# MOBIL: TOPBJAELKE I STEDET FOR SKINNE (issue #65)
+#
+# Paa en telefon er 56 px af 390 for meget at bruge paa en skinne. Under
+# Tablet er skinnen skjult, og en topbjaelke (MOBILE_BAR_H) staar oeverst
+# med logo, appens navn og en menuknap. Menuen er det SAMME aabne panel som
+# paa desktop - bare aabnet fra bjaelken - saa der er een navigation.
+#
+# Rammen flytter derfor med tieren. De fire udtryk nedenfor er de eneste
+# steder, det staar; app_frame skriver dem, og layout-tjekkets regel 23
+# kraever praecis dem.
+MOBILE_BAR_H = 52
+NAV_ON = "%s >= %d" % (RANK, _RANK["Tablet"])        # skinnen vises (Tablet+)
+NAV_OFFSET = "If(%s, %d, 0)" % (NAV_ON, NAV_W)       # rammens X
+BAR_OFFSET = "If(%s, 0, %d)" % (NAV_ON, MOBILE_BAR_H)  # rammens Y
+ROOT_X = NAV_OFFSET
+ROOT_Y = BAR_OFFSET
+ROOT_W = "Parent.Width - %s" % NAV_OFFSET
+ROOT_H = "Parent.Height - %s" % BAR_OFFSET
+
+SHELL_W = "(App.Width - %s - %d)" % (NAV_OFFSET, SHELL_INSET)
 
 # Top og bund. Bunden i kroppen er stor nok til, at det sidste kort ikke
 # ligger klos op ad kanten, naar man har scrollet helt ned.

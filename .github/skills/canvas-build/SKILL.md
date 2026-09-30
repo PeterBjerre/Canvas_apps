@@ -60,7 +60,8 @@ ligge i miljøvariabler, og hvordan valget huskes.
 
 **Ingen skærm må sammenligne `App.Width` med et tal.** `check_layout.py`
 regel 8c stopper byggeriet. Aritmetik er fint — `SHELL_W` *er*
-`(App.Width - 120)` (sidebaren 56 + rammen 64) — det er kun
+`(App.Width - NAV_OFFSET - 64)` (sidebaren 56, eller 0 på mobil + rammen
+64) — det er kun
 **sammenligningen**, der er en beslutning.
 
 Alle breakpoints står i `tools/layout_tokens.py` og bliver til to
@@ -164,7 +165,14 @@ en knap der åbner og lukker den, et punkt pr. app (den, man står i, er
 markeret) og en fod med **Help**-kontakten (kun VH-plan) og **temaskiftet**.
 
 - Lukket er den `NAV_W` = 56 px, og rammen starter dér: `con<X>Root` har
-  `X = 56`, `Width = Parent.Width - 56`. Regel 23 kræver præcis det.
+  `X = 56`, `Width = Parent.Width - 56`. Regel 23 kræver præcis det —
+  udtrykkene er `ROOT_X`/`ROOT_Y`/`ROOT_W`/`ROOT_H` i `layout_tokens.py`.
+- **Mobil (under Tablet, issue #65):** skinnen er skjult, og
+  `con<X>MobileBar` (52 px: menu, logo, appens navn) står øverst. Rammen
+  står under den i fuld bredde. Menuknappen åbner **det samme** panel —
+  ingen anden navigation. `side_nav()` returnerer derfor `([skinne,
+  bjælke], overlag)`, og skærmen skriver `[root, *nav, ..., *overlay]`.
+- Den åbne sidebars lukkeknap er kun dobbeltpilen — ingen "Collapse"-tekst.
 - Åbnet er et **separat panel**, `con<X>NavOpen` (`NAV_W_OPEN` = 232 px,
   `Visible = gblNavOpen`), der ligger **oven på** indholdet som i HTML-siden.
   Derfor regner `SHELL_W` kun med den lukkede bredde.
