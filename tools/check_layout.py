@@ -1843,29 +1843,16 @@ def main():
                                     f"andet. Power Apps afviser at compile - "
                                     f"del det i to Concurrent efter hinanden")
 
-    # --- 16. Dropdown-Default der ikke er en RECORD ------------------------
-    # ModernDropdown.Default vil have en RECORD fra kontrollens egen
-    # Items-tabel - ikke vaerdien inde i den. Staar der en variabel eller
-    # en streng, svarer compile:
-    #     [Control 'drpX', Property 'Default'] Expected a valid input
-    #     matching Items
-    # Det koster en hel runde gennem Studio at faa at vide.
-    #
-    # En record kommer fra LookUp(), First(), en record-literal, ThisItem
-    # eller Blank(). Er ingen af dem i udtrykket, er det en skalar.
-    RECORDISH = ("LookUp(", "First(", "Last(", "{", "ThisItem", "Blank()",
-                 "Self.Selected", ".Selected")
+    # --- 16. Ingen ModernDropdown (REVIEW.md A1) ---------------------------
+    # ModernDropdown aabner sin liste som en Fluent-flyout, der farves af
+    # Fluent-temaet og ikke af kontrollens egne egenskaber. I moerk tilstand
+    # var listen lys med lys tekst. Dens Default er desuden en RECORD, hvor
+    # Classic/DropDown tager TEKSTEN - to semantikker for det samme felt.
+    # Alle dropdowns bygges derfor af build_helpers.themed_dropdown.
     for p_, name, body in all_nodes:
-        if (body.get("Control") or "").strip().split("@")[0] != "ModernDropdown":
-            continue
-        props = body.get("Properties") or {}
-        default = (props.get("Default") or "").strip().lstrip("=").strip()
-        if not default:
-            continue
-        if not any(tok in default for tok in RECORDISH):
-            problems.append(f"[16] {name}.Default: '{default}' er ikke en "
-                            f"record fra Items - compile vil fejle")
-            continue
+        if (body.get("Control") or "").strip().split("@")[0] == "ModernDropdown":
+            problems.append(f"[16] {name}: ModernDropdown - byg den med "
+                            f"build_helpers.themed_dropdown (Classic/DropDown)")
 
     # Her stod en regel 17: "Default laeser en variabel, men der er ingen
     # OnChange". Den er FJERNET igen. Den gav elleve fund i VH-plan-appen,

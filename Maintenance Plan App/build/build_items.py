@@ -8,7 +8,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_MUTED, C_INFO_FG,
                         C_PRIMARY_SOFT)
 from layout_tokens import if_below, at_least
 from build_helpers import (checkbox_theme, row_hit, text_ctrl, group, button,
-                           button_row, text_input, dropdown, label_row,
+                           button_row, text_input, themed_dropdown, label_row,
                            field_cell, col_width, card, HINTS_ON, grow,
                            fit_button_width, column_grid, ICON_SAVE, ICON_W,
                            mark_done, bool_toggle)
@@ -472,11 +472,11 @@ def build_item_editor():
                  ")")
     # Default slaar op i den FILTREREDE liste: et arbejdscenter fra et andet
     # vaerk vises som tomt i stedet for som et gyldigt valg.
-    drpMwc = dropdown("drpVhpItemMainWorkCenter", MWC_ITEMS,
-                      f"LookUp({MWC_ITEMS}, Value = LookUp(colVhpItems, ItemId = varVhpActiveItemId).MainWorkCenter)",
+    drpMwc = themed_dropdown("drpVhpItemMainWorkCenter", MWC_ITEMS,
+                      f"LookUp({MWC_ITEMS}, Value = LookUp(colVhpItems, ItemId = varVhpActiveItemId).MainWorkCenter).Value",
                       required_formula=REQ_ITEM, display_mode=DM_ITEM)
-    drpAct = dropdown("drpVhpItemActivityType", "colVhpActivityTypeOptions",
-                      "LookUp(colVhpActivityTypeOptions, Value = LookUp(colVhpItems, ItemId = varVhpActiveItemId).ActivityType)",
+    drpAct = themed_dropdown("drpVhpItemActivityType", "colVhpActivityTypeOptions",
+                      "LookUp(colVhpActivityTypeOptions, Value = LookUp(colVhpItems, ItemId = varVhpActiveItemId).ActivityType).Value",
                       required_formula=REQ_ITEM, display_mode=DM_ITEM)
     txtShort = text_input("txtVhpItemShortText",
                           "LookUp(colVhpItems, ItemId = varVhpActiveItemId).ShortText", max_length=40,

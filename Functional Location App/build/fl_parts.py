@@ -30,7 +30,7 @@ from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED, C_WHITE,
                         C_CARD_BG, C_DIVIDER)
 from design_tokens import ref_hex
 from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE, at_least, below
-from build_helpers import (text_ctrl, group, button, text_input, dropdown, card,
+from build_helpers import (text_ctrl, group, button, text_input, themed_dropdown, card,
                            pin_widths, top_bar, grow, badge, fit_button_width, row_rule,
                            loading_overlay, with_busy, confirm_modal, ICON_SAVE, ICON_SUBMIT,
                            ICON_W)
@@ -549,8 +549,8 @@ def build_detail():
     txt.props["BorderColor"] = _field_border("!IsBlank(ThisItem.Issue)",
                                              "!IsBlank(ThisItem.Value)")
     txt.vis = "ThisItem.Editable && IsBlank(ThisItem.List)"
-    dd = dropdown("drpFlDetVal", DD_ITEMS,
-                  f"LookUp({DD_ITEMS}, Upper(Value) = Upper(ThisItem.Value))",
+    dd = themed_dropdown("drpFlDetVal", DD_ITEMS,
+                  f"LookUp({DD_ITEMS}, Upper(Value) = Upper(ThisItem.Value)).Value",
                   width="Parent.Width", display_mode=DM_EDIT, label="ThisItem.Column")
     dd.props["OnChange"] = set_val_fx("varFlDetailRow", "ThisItem.Field",
                                       "Coalesce(Self.Selected.Value, \"\")")

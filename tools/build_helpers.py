@@ -1168,32 +1168,9 @@ def date_picker(name, default_date, required_formula="false",
     return Ctrl(name, "ModernDatePicker", props=props, h=height)
 
 
-def dropdown(name, items, default, item_display="ThisItem.Value", required_formula="false",
-             width="Parent.Width", height=36, display_mode=None, value_field="Value", label=None):
-    props = {
-        "AccessibleLabel": label if label else f"\"{name}\"",
-        "BorderColor": border_rule(f"IsBlank(Self.Selected.{value_field})",
-                                   required_formula),
-        "BorderStyle": "BorderStyle.Solid",
-        "BorderThickness": "1",
-        "Default": default,
-        "Height": str(height),
-        "ItemDisplayText": item_display,
-        "Items": items,
-        "LayoutMinWidth": "0",
-        "RadiusBottomLeft": "10", "RadiusBottomRight": "10",
-        "RadiusTopLeft": "10", "RadiusTopRight": "10",
-        "Size": "14",
-        "ValidationState": f"If({required_formula} && IsBlank(Self.Selected.{value_field}), ValidationState.Error, ValidationState.None)",
-        "Width": width,
-    }
-    input_theme(props, display_mode)
-    return Ctrl(name, "ModernDropdown", props=props, h=height)
-
-
 def themed_dropdown(name, items, default_text, value_col="Value", required_formula="false",
                     width="Parent.Width", height=36, display_mode=None, label=None,
-                    onchange=None):
+                    onchange=None, display_col=None):
     """Dropdown, hvis LISTE ogsaa foelger temaet.
 
     HVORFOR IKKE ModernDropdown
@@ -1210,7 +1187,14 @@ def themed_dropdown(name, items, default_text, value_col="Value", required_formu
 
     Default er TEKSTEN i value_col - ikke en record, som ModernDropdown
     ville have. Selected er stadig hele recorden, saa Self.Selected.Code
-    virker som foer."""
+    virker som foer.
+
+    display_col er den kolonne, listen VISER og Default matcher paa (fx
+    "Name"), naar den ikke er value_col. value_col er den, der kraeves
+    udfyldt (Self.Selected.<value_col>). Default er da teksten i display_col.
+
+    Det er appernes ENESTE dropdown (REVIEW.md A1). ModernDropdown afvises
+    af check_layout regel 16."""
     props = {
         "AccessibleLabel": label if label else f"\"{name}\"",
         "AllowEmptySelection": "true",
@@ -1233,7 +1217,7 @@ def themed_dropdown(name, items, default_text, value_col="Value", required_formu
         "HoverColor": C_TITLE,
         "HoverFill": C_PRIMARY_SOFT,
         "Items": items,
-        "Items.Value": value_col,
+        "Items.Value": display_col or value_col,
         "PaddingLeft": "12",
         "PressedColor": C_WHITE,
         "PressedFill": C_PRIMARY,

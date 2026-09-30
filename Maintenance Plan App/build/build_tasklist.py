@@ -5,7 +5,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
                         C_PRIMARY, C_WHITE, C_MODAL_BG, C_PRIMARY_SOFT,
                         C_INVALID_FG, C_DIVIDER, C_TRANSPARENT, SHELL_W)
 from build_helpers import (checkbox_theme, table_surface, flow_row, text_ctrl,
-                           group, button, text_input, number_input, dropdown,
+                           group, button, text_input, number_input, themed_dropdown,
                            field_cell, card, pin_widths, grow,
                            fit_button_width, fit_button_row, ICON_W)
 from build_plan_header import section_header, help_panel
@@ -562,10 +562,10 @@ def build_tasklist_section():
     # Default slaar op i den FILTREREDE liste: en tasklist fra et andet
     # vaerk vises som tom, naar vaerket er skiftet, i stedet for som et
     # gyldigt valg.
-    drpTasklist = dropdown(
+    drpTasklist = themed_dropdown(
         "drpVhpItemTasklist", TL_ITEMS,
-        f"LookUp({TL_ITEMS}, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey)",
-        item_display="ThisItem.Name", display_mode=DM_ITEM, value_field="Key")
+        f"LookUp({TL_ITEMS}, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Name",
+        display_mode=DM_ITEM, value_col="Key", display_col="Name")
     # Valget ER stadig handlingen - OnChange skriver listen paa itemet. Apply
     # Tasklist nedenfor goer det samme, for den, der leder efter en knap.
     #
@@ -790,9 +790,9 @@ def build_tasklist_section():
                   "    ),\n"
                   "    !IsBlank(Value)\n"
                   ")")
-    drpOpCtrl = dropdown(
+    drpOpCtrl = themed_dropdown(
         "drpVhpOpCtrl", ctrl_items,
-        'LookUp(' + ctrl_items + ', Value = ThisItem.ControlKey)',
+        'LookUp(' + ctrl_items + ', Value = ThisItem.ControlKey).Value',
         width=w["CTRL"], height=32, display_mode=DM_CTRL, label="\"Control key\"")
     drpOpCtrl.props["OnChange"] = ("Patch(colVhpOperations, ThisItem, "
                                    "{ ControlKey: Self.Selected.Value })")
