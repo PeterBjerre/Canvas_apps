@@ -1,5 +1,16 @@
 <!--
-  VH-plan sendt til oprettelse - mailskabelon til Power Automate.
+  VH-plan - FAELLES mailskabelon til Power Automate.
+
+  Bruges af alle VH-planens mailflows: sendt til godkendelse, sendt retur,
+  paamindelse, klar til oprettelse i SAP og oprettet i SAP. Mailene er ens
+  opbygget og adskiller sig kun ved tre tokens:
+
+      {{Headline}}    linjen over plannummeret, fx "Sendt retur"
+      {{Banner}}      en hel <tr>-raekke med en farvet boks - eller tom
+      {{ButtonText}}  teksten paa knappen
+
+  Hvad hver mail saetter dem til, og de faerdige bannere, staar i
+  docs/17-flow-email.md, afsnittet "Samme skabelon i alle mails".
 
   Indsaettes i "Send an email (V2)" -> Body -> kodevisningen (</>).
   Tokens skrevet som {{Navn}} erstattes med dynamisk indhold. Se
@@ -33,7 +44,7 @@
               <tr>
                 <td style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;
                            color:#8fc4e5;padding-bottom:4px;">
-                  Vedligeholdelsesplan sendt til oprettelse
+                  {{Headline}}
                 </td>
               </tr>
               <tr>
@@ -49,6 +60,13 @@
             </table>
           </td>
         </tr>
+
+        <!-- ================= BANNER ================= -->
+        <!-- Banner-tokenet er en hel <tr> eller en tom streng. Outlook kan ikke
+             skjule en raekke med CSS, saa en tom boks ville staa som en
+             farvet stribe. Derfor saetter flowet hele raekken - eller
+             ingenting. Snippets i docs/17. -->
+        {{Banner}}
 
         <!-- ================= NOEGLETAL ================= -->
         <!-- Tre tal en modtager kan aflaese uden at laese. Ligeligt fordelt
@@ -183,7 +201,7 @@
                   <a href="{{AppUrl}}" target="_blank"
                      style="font-family:Segoe UI,Arial,Helvetica,sans-serif;font-size:15px;
                             font-weight:600;color:#ffffff;text-decoration:none;display:inline-block;">
-                    Åbn planen i appen
+                    {{ButtonText}}
                   </a>
                 </td>
               </tr>
@@ -198,7 +216,7 @@
             Indmelding <strong style="color:#6b7b8c;">{{RequestNo}}</strong> &middot;
             sendt {{SubmittedOn}}.<br>
             Denne mail er sendt automatisk af VH-plan appen. Svar på den når ikke nogen -
-            skriv til <a href="mailto:SAPvedligehold@orsted.dk" style="color:#1a6ea8;text-decoration:none;">SAPvedligehold@orsted.dk</a>.
+            skriv til <a href="mailto:sapvedligehold@orsted.com" style="color:#1a6ea8;text-decoration:none;">sapvedligehold@orsted.com</a>.
           </td>
         </tr>
 
