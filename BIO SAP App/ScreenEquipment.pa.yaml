@@ -132,7 +132,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =Parent.Height
+                =Parent.Height - If(LayoutRank >= 2, 0, 52)
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -146,11 +146,11 @@ Screens:
             LayoutOverflowY: |-
                 =LayoutOverflow.Hide
             Width: |-
-                =Parent.Width - 56
+                =Parent.Width - If(LayoutRank >= 2, 56, 0)
             X: |-
-                =56
+                =If(LayoutRank >= 2, 56, 0)
             Y: |-
-                =0
+                =If(LayoutRank >= 2, 0, 52)
           Children:
             - conEqHeader:
                 Control: GroupContainer
@@ -241,7 +241,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Width: |-
-                                  =Max(0, (((((App.Width - 56))) - 24 - 34)) - (If(LayoutRank >= 2, (110) + 10, 0)) - (If(LayoutRank >= 2, (150) + 10, 0)) - 2)
+                                  =Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - (If(LayoutRank >= 2, (110) + 10, 0)) - (If(LayoutRank >= 2, (150) + 10, 0)) - 2)
                             Children:
                               - txtEqTitle:
                                   Control: ModernText
@@ -479,7 +479,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =94 + 14 + (If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0))) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62)) + 60, (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0))) + 14 + (62)))) + (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 20), (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0))) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 0)) + If(!IsBlank(varEqFlMsg), 14 + (18), 0) + 14 + (If((((App.Width - 120) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 36, (28) + 8 + (36) + 8 + (36) + 8 + (36) + 8 + (36)))
+                            =94 + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0))) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62)) + 60, (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0))) + 14 + (62)))) + (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 20), (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0))) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 0)) + If(!IsBlank(varEqFlMsg), 14 + (18), 0) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 36, (28) + 8 + (36) + 8 + (36) + 8 + (36) + 8 + (36)))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -652,7 +652,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0))) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62)) + 60, (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0))) + 14 + (62)))) + (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 20), (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0))) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 0)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0))) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62)) + 60, (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0))) + 14 + (62)))) + (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 20), (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0))) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 0)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -697,7 +697,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                   Children:
                                     - conEqRequestType:
                                         Control: GroupContainer
@@ -726,7 +726,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conEqRequestTypeLbl:
                                               Control: ModernText
@@ -835,7 +835,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conEqPlantRow:
                                               Control: GroupContainer
@@ -896,7 +896,7 @@ Screens:
                                                       Text: |-
                                                           ="Plant"
                                                       Width: |-
-                                                          =Min(32, (If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)) - 13)
+                                                          =Min(32, (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)) - 13)
                                                       Wrap: |-
                                                           =false
                                                 - conEqPlantStar:
@@ -1030,7 +1030,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conEqEquipmentNumberLbl:
                                               Control: ModernText
@@ -1139,7 +1139,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conEqTextRow:
                                               Control: GroupContainer
@@ -1200,7 +1200,7 @@ Screens:
                                                       Text: |-
                                                           ="Description"
                                                       Width: |-
-                                                          =Min(72, (If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)) - 13)
+                                                          =Min(72, (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)) - 13)
                                                       Wrap: |-
                                                           =false
                                                 - conEqTextStar:
@@ -1314,7 +1314,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conEqEquipmentCategoryLbl:
                                               Control: ModernText
@@ -1423,7 +1423,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                   Children:
                                     - conEqManufacturer:
                                         Control: GroupContainer
@@ -1452,7 +1452,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conEqManufacturerLbl:
                                               Control: ModernText
@@ -1561,7 +1561,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conEqTypeDesignationLbl:
                                               Control: ModernText
@@ -1670,7 +1670,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conEqSerialNumberLbl:
                                               Control: ModernText
@@ -1779,7 +1779,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conEqFlLbl:
                                               Control: ModernText
@@ -1841,7 +1841,7 @@ Screens:
                                                 LayoutOverflowY: |-
                                                     =LayoutOverflow.Hide
                                                 Width: |-
-                                                    =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                                    =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                               Children:
                                                 - conEqFlInput:
                                                     Control: GroupContainer
@@ -1868,7 +1868,7 @@ Screens:
                                                       LayoutOverflowY: |-
                                                           =LayoutOverflow.Hide
                                                       Width: |-
-                                                          =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                                          =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                                     Children:
                                                       - cmbEqFl:
                                                           Control: ModernCombobox
@@ -1998,7 +1998,7 @@ Screens:
                                                             Size: |-
                                                                 =14
                                                             Width: |-
-                                                                =Max(0, ((((If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4))))) - (If(!varEqFlBusy, (86) + 8, 0)) - (If(varEqFlBusy, (86) + 8, 0)) - 2)
+                                                                =Max(0, ((((If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4))))) - (If(!varEqFlBusy, (86) + 8, 0)) - (If(varEqFlBusy, (86) + 8, 0)) - 2)
                                                       - btnEqFlSearch:
                                                           Control: ModernButton
                                                           Properties:
@@ -2210,7 +2210,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conEqFunctionalLocation1Lbl:
                                               Control: ModernText
@@ -2319,7 +2319,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                   Children:
                                     - conEqFunctionalLocation2:
                                         Control: GroupContainer
@@ -2348,7 +2348,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conEqFunctionalLocation2Lbl:
                                               Control: ModernText
@@ -2457,7 +2457,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conEqClassDataLbl:
                                               Control: ModernText
@@ -2566,7 +2566,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conEqRoomCoordinatesLbl:
                                               Control: ModernText
@@ -2675,7 +2675,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conEqPlacementLbl:
                                               Control: ModernText
@@ -2784,7 +2784,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conEqWarrantyStartLbl:
                                               Control: ModernText
@@ -2891,7 +2891,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                   Children:
                                     - conEqWarrantyEnd:
                                         Control: GroupContainer
@@ -2920,7 +2920,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conEqWarrantyEndLbl:
                                               Control: ModernText
@@ -3027,7 +3027,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conEqDocsLbl:
                                               Control: ModernText
@@ -3089,7 +3089,7 @@ Screens:
                                                 LayoutOverflowY: |-
                                                     =LayoutOverflow.Hide
                                                 Width: |-
-                                                    =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                                    =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                               Children:
                                                 - txtEqDocsInfo:
                                                     Control: ModernTextInput
@@ -3133,7 +3133,7 @@ Screens:
                                                       ValidationState: |-
                                                           =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                                       Width: |-
-                                                          =Max(0, (((If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)))) - ((113) + 8) - 2)
+                                                          =Max(0, (((If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)))) - ((113) + 8) - 2)
                                                 - btnEqDocs:
                                                     Control: ModernButton
                                                     Properties:
@@ -3260,11 +3260,11 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - 120) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 36, (28) + 8 + (36) + 8 + (36) + 8 + (36) + 8 + (36))
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 36, (28) + 8 + (36) + 8 + (36) + 8 + (36) + 8 + (36))
                               LayoutAlignItems: |-
-                                  =If((((App.Width - 120) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                               LayoutDirection: |-
-                                  =If((((App.Width - 120) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =8
                               LayoutMinWidth: |-
@@ -3301,7 +3301,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =Max(0, ((((((App.Width - 56))) - 24 - 16 - 18) - 18 - 18)) - ((111) + 8) - ((135) + 8) - ((95) + 8) - ((91) + 8) - 2)
+                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18)) - ((111) + 8) - ((135) + 8) - ((95) + 8) - ((91) + 8) - 2)
                                   Children:
                                     - txtEqFormPlant:
                                         Control: ModernText
@@ -3427,7 +3427,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 120) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 111, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 111, 0)
                                     OnSelect: |-
                                         =If(
                                             IsBlank(varEqActiveRowId),
@@ -3539,7 +3539,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.IconBefore
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 120) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 135, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 135, 0)
                                     OnSelect: |-
                                         =Set(varEqSaving, true);
                                         Set(varEqValidated, true);
@@ -3679,7 +3679,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.IconBefore
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 120) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 95, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 95, 0)
                                     OnSelect: |-
                                         =Set(varEqSaving, true);
                                         Set(varEqValidated, true);
@@ -3819,7 +3819,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 120) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 91, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 91, 0)
                                     OnSelect: |-
                                         =Set(varEqActiveRowId, Blank());
                                         Set(varEqRowStatus, "valid");
@@ -3907,14 +3907,14 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =114 + (If((((App.Width - 120) - 36)) >= (240) + (170) + (170) + (111) + 24, 36, (26) + 8 + (36) + 8 + (36) + 8 + (36))) + 14 + (34 + (Max(Min(CountRows(Filter(
+                            =114 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (240) + (170) + (170) + (111) + 24, 36, (26) + 8 + (36) + 8 + (36) + 8 + (36))) + 14 + (34 + (Max(Min(CountRows(Filter(
                                 colEqRows,
                                 (IsBlank(Trim(txtEqSearch.Text)) || Trim(txtEqSearch.Text) in Description || Trim(txtEqSearch.Text) in FunctionalLocation || Trim(txtEqSearch.Text) in SerialNumber || Trim(txtEqSearch.Text) in EquipmentNumber),
                                 (drpEqStatusFilter.Selected.Value = "All status" ||
                                  Status = drpEqStatusFilter.Selected.Value),
                                 (drpEqPlantFilter.Selected.Value = "All plants" ||
                                  Plant = drpEqPlantFilter.Selected.Value)
-                            )), 8), 1) * 46) + If(((If(varEqAllCols, 2765, Max(1182, ((((App.Width - 120) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - 120) - 36)), 18, 0)) + If(IfError(CountRows(colEqRows) = 0, false), 14 + (22), 0) + 14 + (If((((App.Width - 120) - 36)) >= (124) + (158) + (195) + (0) + 24, 36, (20) + 8 + (36) + 8 + (36) + 8 + (36)))
+                            )), 8), 1) * 46) + If(((If(varEqAllCols, 2765, Max(1182, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)), 18, 0)) + If(IfError(CountRows(colEqRows) = 0, false), 14 + (22), 0) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (124) + (158) + (195) + (0) + 24, 36, (20) + 8 + (36) + 8 + (36) + 8 + (36)))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -3957,11 +3957,11 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - 120) - 36)) >= (240) + (170) + (170) + (111) + 24, 36, (26) + 8 + (36) + 8 + (36) + 8 + (36))
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (240) + (170) + (170) + (111) + 24, 36, (26) + 8 + (36) + 8 + (36) + 8 + (36))
                               LayoutAlignItems: |-
-                                  =If((((App.Width - 120) - 36)) >= (240) + (170) + (170) + (111) + 24, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (240) + (170) + (170) + (111) + 24, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                               LayoutDirection: |-
-                                  =If((((App.Width - 120) - 36)) >= (240) + (170) + (170) + (111) + 24, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (240) + (170) + (170) + (111) + 24, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =8
                               LayoutMinWidth: |-
@@ -4009,7 +4009,7 @@ Screens:
                                     Text: |-
                                         ="Saved Rows"
                                     Width: |-
-                                        =Max(0, ((((((App.Width - 56))) - 24 - 16 - 18) - 18 - 18)) - ((240) + 8) - ((170) + 8) - ((170) + 8) - 2)
+                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18)) - ((240) + 8) - ((170) + 8) - ((170) + 8) - 2)
                                     Wrap: |-
                                         =false
                               - txtEqSearch:
@@ -4034,7 +4034,7 @@ Screens:
                                     Height: |-
                                         =36
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 120) - 36)) >= (240) + (170) + (170) + (111) + 24, 240, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (240) + (170) + (170) + (111) + 24, 240, 0)
                                     Placeholder: |-
                                         ="Search FL, equipment no., serial no., description"
                                     RadiusBottomLeft: |-
@@ -4099,7 +4099,7 @@ Screens:
                                     Items.Value: |-
                                         =Value
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 120) - 36)) >= (240) + (170) + (170) + (111) + 24, 170, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (240) + (170) + (170) + (111) + 24, 170, 0)
                                     PaddingLeft: |-
                                         =12
                                     PressedColor: |-
@@ -4166,7 +4166,7 @@ Screens:
                                     Items.Value: |-
                                         =Value
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 120) - 36)) >= (240) + (170) + (170) + (111) + 24, 170, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (240) + (170) + (170) + (111) + 24, 170, 0)
                                     PaddingLeft: |-
                                         =12
                                     PressedColor: |-
@@ -4322,7 +4322,7 @@ Screens:
                                        Status = drpEqStatusFilter.Selected.Value),
                                       (drpEqPlantFilter.Selected.Value = "All plants" ||
                                        Plant = drpEqPlantFilter.Selected.Value)
-                                  )), 8), 1) * 46) + If(((If(varEqAllCols, 2765, Max(1182, ((((App.Width - 120) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - 120) - 36)), 18, 0)
+                                  )), 8), 1) * 46) + If(((If(varEqAllCols, 2765, Max(1182, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)), 18, 0)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Start
                               LayoutDirection: |-
@@ -4365,7 +4365,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If(varEqAllCols, 2765, Max(1182, ((((App.Width - 120) - 36)) - 4 - 18)))
+                                        =If(varEqAllCols, 2765, Max(1182, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))
                                   Children:
                                     - txtEqHeadStatus:
                                         Control: ModernText
@@ -4434,7 +4434,7 @@ Screens:
                                           Text: |-
                                               ="TYPE"
                                           Width: |-
-                                              =If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)
+                                              =If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)
                                           Wrap: |-
                                               =false
                                     - txtEqHead1:
@@ -4469,7 +4469,7 @@ Screens:
                                           Text: |-
                                               ="PLANT"
                                           Width: |-
-                                              =If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)
+                                              =If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)
                                           Wrap: |-
                                               =false
                                     - txtEqHead2:
@@ -4504,7 +4504,7 @@ Screens:
                                           Text: |-
                                               =If(varEqAllCols, "EQUIPMENT NUMBER", "FUNCTIONAL LOCATION")
                                           Width: |-
-                                              =If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)
+                                              =If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)
                                           Wrap: |-
                                               =false
                                     - txtEqHead3:
@@ -4539,7 +4539,7 @@ Screens:
                                           Text: |-
                                               =If(varEqAllCols, "DESCRIPTION", "EQUIPMENT NUMBER")
                                           Width: |-
-                                              =If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)
+                                              =If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)
                                           Wrap: |-
                                               =false
                                     - txtEqHead4:
@@ -4574,7 +4574,7 @@ Screens:
                                           Text: |-
                                               =If(varEqAllCols, "EQUIPMENT TYPE", "DESCRIPTION")
                                           Width: |-
-                                              =If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)
+                                              =If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)
                                           Wrap: |-
                                               =false
                                     - txtEqHead5:
@@ -4609,7 +4609,7 @@ Screens:
                                           Text: |-
                                               =If(varEqAllCols, "MANUFACTURER", "EQUIPMENT TYPE")
                                           Width: |-
-                                              =If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)
+                                              =If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)
                                           Wrap: |-
                                               =false
                                     - txtEqHead6:
@@ -5195,7 +5195,7 @@ Screens:
                                     TemplateSize: |-
                                         =44
                                     Width: |-
-                                        =(If(varEqAllCols, 2765, Max(1182, ((((App.Width - 120) - 36)) - 4 - 18)))) + 4 + 18
+                                        =(If(varEqAllCols, 2765, Max(1182, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18
                                     WrapCount: |-
                                         =1
                                   Children:
@@ -5278,7 +5278,7 @@ Screens:
                                           Text: |-
                                               =ThisItem.RequestType
                                           Width: |-
-                                              =If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)
+                                              =If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)
                                           Wrap: |-
                                               =false
                                           X: |-
@@ -5315,11 +5315,11 @@ Screens:
                                           Text: |-
                                               =ThisItem.Plant
                                           Width: |-
-                                              =If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)
+                                              =If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6
+                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtEqCell2:
@@ -5352,11 +5352,11 @@ Screens:
                                           Text: |-
                                               =If(varEqAllCols, ThisItem.EquipmentNumber, ThisItem.FunctionalLocation)
                                           Width: |-
-                                              =If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)
+                                              =If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6
+                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtEqCell3:
@@ -5389,11 +5389,11 @@ Screens:
                                           Text: |-
                                               =If(varEqAllCols, If(IsBlank(Trim(ThisItem.Description)), "(no text)", ThisItem.Description), ThisItem.EquipmentNumber)
                                           Width: |-
-                                              =If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)
+                                              =If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6
+                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtEqCell4:
@@ -5426,11 +5426,11 @@ Screens:
                                           Text: |-
                                               =If(varEqAllCols, ThisItem.EquipmentCategory, If(IsBlank(Trim(ThisItem.Description)), "(no text)", ThisItem.Description))
                                           Width: |-
-                                              =If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)
+                                              =If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6
+                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtEqCell5:
@@ -5463,11 +5463,11 @@ Screens:
                                           Text: |-
                                               =If(varEqAllCols, ThisItem.Manufacturer, ThisItem.EquipmentCategory)
                                           Width: |-
-                                              =If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)
+                                              =If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6
+                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtEqCell6:
@@ -5506,7 +5506,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6
+                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtEqCell7:
@@ -5545,7 +5545,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0)
+                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0)
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtEqCell8:
@@ -5584,7 +5584,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0)
+                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0)
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtEqCell9:
@@ -5623,7 +5623,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0)
+                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0)
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtEqCell10:
@@ -5662,7 +5662,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0) + If(varEqAllCols, (110) + 6, 0)
+                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0) + If(varEqAllCols, (110) + 6, 0)
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtEqCell11:
@@ -5701,7 +5701,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0) + If(varEqAllCols, (110) + 6, 0) + If(varEqAllCols, (164) + 6, 0)
+                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0) + If(varEqAllCols, (110) + 6, 0) + If(varEqAllCols, (164) + 6, 0)
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtEqCell12:
@@ -5740,7 +5740,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0) + If(varEqAllCols, (110) + 6, 0) + If(varEqAllCols, (164) + 6, 0) + If(varEqAllCols, (100) + 6, 0)
+                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0) + If(varEqAllCols, (110) + 6, 0) + If(varEqAllCols, (164) + 6, 0) + If(varEqAllCols, (100) + 6, 0)
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtEqCell13:
@@ -5779,7 +5779,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0) + If(varEqAllCols, (110) + 6, 0) + If(varEqAllCols, (164) + 6, 0) + If(varEqAllCols, (100) + 6, 0) + If(varEqAllCols, (141) + 6, 0)
+                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0) + If(varEqAllCols, (110) + 6, 0) + If(varEqAllCols, (164) + 6, 0) + If(varEqAllCols, (100) + 6, 0) + If(varEqAllCols, (141) + 6, 0)
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtEqCell14:
@@ -5818,7 +5818,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0) + If(varEqAllCols, (110) + 6, 0) + If(varEqAllCols, (164) + 6, 0) + If(varEqAllCols, (100) + 6, 0) + If(varEqAllCols, (141) + 6, 0) + If(varEqAllCols, (120) + 6, 0)
+                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0) + If(varEqAllCols, (110) + 6, 0) + If(varEqAllCols, (164) + 6, 0) + If(varEqAllCols, (100) + 6, 0) + If(varEqAllCols, (141) + 6, 0) + If(varEqAllCols, (120) + 6, 0)
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtEqCell15:
@@ -5857,7 +5857,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0) + If(varEqAllCols, (110) + 6, 0) + If(varEqAllCols, (164) + 6, 0) + If(varEqAllCols, (100) + 6, 0) + If(varEqAllCols, (141) + 6, 0) + If(varEqAllCols, (120) + 6, 0) + If(varEqAllCols, (122) + 6, 0)
+                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0) + If(varEqAllCols, (110) + 6, 0) + If(varEqAllCols, (164) + 6, 0) + If(varEqAllCols, (100) + 6, 0) + If(varEqAllCols, (141) + 6, 0) + If(varEqAllCols, (120) + 6, 0) + If(varEqAllCols, (122) + 6, 0)
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtEqCell16:
@@ -5896,7 +5896,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0) + If(varEqAllCols, (110) + 6, 0) + If(varEqAllCols, (164) + 6, 0) + If(varEqAllCols, (100) + 6, 0) + If(varEqAllCols, (141) + 6, 0) + If(varEqAllCols, (120) + 6, 0) + If(varEqAllCols, (122) + 6, 0) + If(varEqAllCols, (105) + 6, 0)
+                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0) + If(varEqAllCols, (110) + 6, 0) + If(varEqAllCols, (164) + 6, 0) + If(varEqAllCols, (100) + 6, 0) + If(varEqAllCols, (141) + 6, 0) + If(varEqAllCols, (120) + 6, 0) + If(varEqAllCols, (122) + 6, 0) + If(varEqAllCols, (105) + 6, 0)
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtEqCell17:
@@ -5935,7 +5935,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0) + If(varEqAllCols, (110) + 6, 0) + If(varEqAllCols, (164) + 6, 0) + If(varEqAllCols, (100) + 6, 0) + If(varEqAllCols, (141) + 6, 0) + If(varEqAllCols, (120) + 6, 0) + If(varEqAllCols, (122) + 6, 0) + If(varEqAllCols, (105) + 6, 0) + If(varEqAllCols, (95) + 6, 0)
+                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0) + If(varEqAllCols, (110) + 6, 0) + If(varEqAllCols, (164) + 6, 0) + If(varEqAllCols, (100) + 6, 0) + If(varEqAllCols, (141) + 6, 0) + If(varEqAllCols, (120) + 6, 0) + If(varEqAllCols, (122) + 6, 0) + If(varEqAllCols, (105) + 6, 0) + If(varEqAllCols, (95) + 6, 0)
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - btnEqRowDetails:
@@ -5980,7 +5980,7 @@ Screens:
                                           Width: |-
                                               =72
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0) + If(varEqAllCols, (110) + 6, 0) + If(varEqAllCols, (164) + 6, 0) + If(varEqAllCols, (100) + 6, 0) + If(varEqAllCols, (141) + 6, 0) + If(varEqAllCols, (120) + 6, 0) + If(varEqAllCols, (122) + 6, 0) + If(varEqAllCols, (105) + 6, 0) + If(varEqAllCols, (95) + 6, 0) + If(varEqAllCols, (200) + 6, 0) + 10 + 0
+                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0) + If(varEqAllCols, (110) + 6, 0) + If(varEqAllCols, (164) + 6, 0) + If(varEqAllCols, (100) + 6, 0) + If(varEqAllCols, (141) + 6, 0) + If(varEqAllCols, (120) + 6, 0) + If(varEqAllCols, (122) + 6, 0) + If(varEqAllCols, (105) + 6, 0) + If(varEqAllCols, (95) + 6, 0) + If(varEqAllCols, (200) + 6, 0) + 10 + 0
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                                     - btnEqRowDocs:
@@ -6060,7 +6060,7 @@ Screens:
                                           Width: |-
                                               =64
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0) + If(varEqAllCols, (110) + 6, 0) + If(varEqAllCols, (164) + 6, 0) + If(varEqAllCols, (100) + 6, 0) + If(varEqAllCols, (141) + 6, 0) + If(varEqAllCols, (120) + 6, 0) + If(varEqAllCols, (122) + 6, 0) + If(varEqAllCols, (105) + 6, 0) + If(varEqAllCols, (95) + 6, 0) + If(varEqAllCols, (200) + 6, 0) + 10 + 0 + (72) + 4
+                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0) + If(varEqAllCols, (110) + 6, 0) + If(varEqAllCols, (164) + 6, 0) + If(varEqAllCols, (100) + 6, 0) + If(varEqAllCols, (141) + 6, 0) + If(varEqAllCols, (120) + 6, 0) + If(varEqAllCols, (122) + 6, 0) + If(varEqAllCols, (105) + 6, 0) + If(varEqAllCols, (95) + 6, 0) + If(varEqAllCols, (200) + 6, 0) + 10 + 0 + (72) + 4
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                                     - btnEqRowOpen:
@@ -6127,7 +6127,7 @@ Screens:
                                           Width: |-
                                               =60
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0) + If(varEqAllCols, (110) + 6, 0) + If(varEqAllCols, (164) + 6, 0) + If(varEqAllCols, (100) + 6, 0) + If(varEqAllCols, (141) + 6, 0) + If(varEqAllCols, (120) + 6, 0) + If(varEqAllCols, (122) + 6, 0) + If(varEqAllCols, (105) + 6, 0) + If(varEqAllCols, (95) + 6, 0) + If(varEqAllCols, (200) + 6, 0) + (150) + 6 + 10 + 0
+                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0) + If(varEqAllCols, (110) + 6, 0) + If(varEqAllCols, (164) + 6, 0) + If(varEqAllCols, (100) + 6, 0) + If(varEqAllCols, (141) + 6, 0) + If(varEqAllCols, (120) + 6, 0) + If(varEqAllCols, (122) + 6, 0) + If(varEqAllCols, (105) + 6, 0) + If(varEqAllCols, (95) + 6, 0) + If(varEqAllCols, (200) + 6, 0) + (150) + 6 + 10 + 0
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                                     - btnEqRowCopy:
@@ -6195,7 +6195,7 @@ Screens:
                                           Width: |-
                                               =64
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0) + If(varEqAllCols, (110) + 6, 0) + If(varEqAllCols, (164) + 6, 0) + If(varEqAllCols, (100) + 6, 0) + If(varEqAllCols, (141) + 6, 0) + If(varEqAllCols, (120) + 6, 0) + If(varEqAllCols, (122) + 6, 0) + If(varEqAllCols, (105) + 6, 0) + If(varEqAllCols, (95) + 6, 0) + If(varEqAllCols, (200) + 6, 0) + (150) + 6 + 10 + 0 + (60) + 4
+                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0) + If(varEqAllCols, (110) + 6, 0) + If(varEqAllCols, (164) + 6, 0) + If(varEqAllCols, (100) + 6, 0) + If(varEqAllCols, (141) + 6, 0) + If(varEqAllCols, (120) + 6, 0) + If(varEqAllCols, (122) + 6, 0) + If(varEqAllCols, (105) + 6, 0) + If(varEqAllCols, (95) + 6, 0) + If(varEqAllCols, (200) + 6, 0) + (150) + 6 + 10 + 0 + (60) + 4
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                                     - btnEqRowDelete:
@@ -6304,7 +6304,7 @@ Screens:
                                           Width: |-
                                               =72
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0) + If(varEqAllCols, (110) + 6, 0) + If(varEqAllCols, (164) + 6, 0) + If(varEqAllCols, (100) + 6, 0) + If(varEqAllCols, (141) + 6, 0) + If(varEqAllCols, (120) + 6, 0) + If(varEqAllCols, (122) + 6, 0) + If(varEqAllCols, (105) + 6, 0) + If(varEqAllCols, (95) + 6, 0) + If(varEqAllCols, (200) + 6, 0) + (150) + 6 + 10 + 0 + (60) + 4 + (64) + 4
+                                              =0 + 0 + 0 + (90) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varEqAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varEqAllCols, (128) + 6, 0) + If(varEqAllCols, (111) + 6, 0) + If(varEqAllCols, (154) + 6, 0) + If(varEqAllCols, (110) + 6, 0) + If(varEqAllCols, (164) + 6, 0) + If(varEqAllCols, (100) + 6, 0) + If(varEqAllCols, (141) + 6, 0) + If(varEqAllCols, (120) + 6, 0) + If(varEqAllCols, (122) + 6, 0) + If(varEqAllCols, (105) + 6, 0) + If(varEqAllCols, (95) + 6, 0) + If(varEqAllCols, (200) + 6, 0) + (150) + 6 + 10 + 0 + (60) + 4 + (64) + 4
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                         - txtEqNoRows:
@@ -6351,11 +6351,11 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - 120) - 36)) >= (124) + (158) + (195) + (0) + 24, 36, (20) + 8 + (36) + 8 + (36) + 8 + (36))
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (124) + (158) + (195) + (0) + 24, 36, (20) + 8 + (36) + 8 + (36) + 8 + (36))
                               LayoutAlignItems: |-
-                                  =If((((App.Width - 120) - 36)) >= (124) + (158) + (195) + (0) + 24, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (124) + (158) + (195) + (0) + 24, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                               LayoutDirection: |-
-                                  =If((((App.Width - 120) - 36)) >= (124) + (158) + (195) + (0) + 24, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (124) + (158) + (195) + (0) + 24, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =8
                               LayoutMinWidth: |-
@@ -6409,7 +6409,7 @@ Screens:
                                             "Request " & varEqRequestNo & " is on the landing page."
                                         )
                                     Width: |-
-                                        =Max(0, ((((((App.Width - 56))) - 24 - 16 - 18) - 18 - 18)) - ((124) + 8) - ((158) + 8) - ((195) + 8) - 2)
+                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18)) - ((124) + 8) - ((158) + 8) - ((195) + 8) - 2)
                                     Wrap: |-
                                         =false
                               - btnEqReload:
@@ -6438,7 +6438,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 120) - 36)) >= (124) + (158) + (195) + (0) + 24, 124, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (124) + (158) + (195) + (0) + 24, 124, 0)
                                     OnSelect: |-
                                         =ClearCollect(
                                             colEqRows,
@@ -6516,7 +6516,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.IconBefore
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 120) - 36)) >= (124) + (158) + (195) + (0) + 24, 158, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (124) + (158) + (195) + (0) + 24, 158, 0)
                                     OnSelect: |-
                                         =Set(varEqSaving, true);
                                         If(
@@ -6654,7 +6654,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.IconBefore
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 120) - 36)) >= (124) + (158) + (195) + (0) + 24, 195, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (124) + (158) + (195) + (0) + 24, 195, 0)
                                     OnSelect: |-
                                         =Set(varEqConfirmSubmit, true)
                                     RadiusBottomLeft: |-
@@ -6742,6 +6742,8 @@ Screens:
                 =0
             PaddingTop: |-
                 =13
+            Visible: |-
+                =LayoutRank >= 2
             Width: |-
                 =57
             X: |-
@@ -7104,6 +7106,156 @@ Screens:
                             =0
                         Width: |-
                             =36
+      - conEqMobileBar:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'border-subtle'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.None
+            Fill: |-
+                =C.'bg-surface'
+            FillPortions: |-
+                =0
+            Height: |-
+                =52
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Center
+            LayoutDirection: |-
+                =LayoutDirection.Horizontal
+            LayoutGap: |-
+                =0
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =0
+            PaddingLeft: |-
+                =0
+            PaddingRight: |-
+                =16
+            PaddingTop: |-
+                =0
+            Visible: |-
+                =!(LayoutRank >= 2)
+            Width: |-
+                =App.Width + 2
+            X: |-
+                =-1
+            Y: |-
+                =-1
+          Children:
+            - imgEqNavMenu:
+                Control: Image
+                Properties:
+                  AccessibleLabel: |-
+                      ="Open menu"
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  FocusedBorderColor: |-
+                      =C.'color-brand-primary'
+                  FocusedBorderThickness: |-
+                      =2
+                  Height: |-
+                      =40
+                  HoverFill: |-
+                      =C.'bg-muted'
+                  Image: |-
+                      ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M4 7h16M4 12h16M4 17h16'/></g></svg>")
+                  ImagePosition: |-
+                      =ImagePosition.Fit
+                  OnSelect: |-
+                      =Set(gblNavOpen, true)
+                  PressedFill: |-
+                      =C.'bg-muted'
+                  TabIndex: |-
+                      =0
+                  Tooltip: |-
+                      ="Open menu"
+                  Width: |-
+                      =56
+            - imgEqNavBrandMobile:
+                Control: Image
+                Properties:
+                  AccessibleLabel: |-
+                      ="BIO SAP - Masterdata Hub"
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  FocusedBorderColor: |-
+                      =C.'color-brand-primary'
+                  FocusedBorderThickness: |-
+                      =2
+                  Height: |-
+                      =44
+                  HoverFill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Image: |-
+                      ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='136' height='44' viewBox='0 0 136 44'><rect x='15' y='9' width='26' height='26' rx='7' fill='" & C.'hex-color-brand-primary' & "'/><text x='28' y='26' text-anchor='middle' font-family='Consolas, monospace' font-size='11' font-weight='700' fill='" & C.'hex-text-on-primary' & "'>BS</text><text x='56' y='28' font-family='Segoe UI, sans-serif' font-size='16' font-weight='600' fill='" & C.'hex-text-primary' & "'>BIO SAP</text></svg>")
+                  ImagePosition: |-
+                      =ImagePosition.Fit
+                  OnSelect: |-
+                      =Set(gblNavOpen, false); Navigate(ScreenMdHub, ScreenTransition.None)
+                  PressedFill: |-
+                      =RGBA(0, 0, 0, 0)
+                  TabIndex: |-
+                      =0
+                  Width: |-
+                      =136
+            - txtEqNavTitle:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      ="Equipments"
+                  Align: |-
+                      =Align.Right
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-primary'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  FillPortions: |-
+                      =0
+                  Font: |-
+                      =Font.'Segoe UI'
+                  FontWeight: |-
+                      =FontWeight.Semibold
+                  Height: |-
+                      =22
+                  LayoutMinWidth: |-
+                      =0
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =14
+                  Text: |-
+                      ="Equipments"
+                  Width: |-
+                      =Max(0, ((App.Width + 2) - 16) - ((56) + 0) - ((136) + 0) - 2)
+                  Wrap: |-
+                      =false
       - conEqBackdrop:
           Control: GroupContainer
           Variant: AutoLayout
@@ -10207,7 +10359,7 @@ Screens:
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M18 6l-6 6 6 6 M12 6l-6 6 6 6'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Collapse</text></svg>")
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M18 6l-6 6 6 6 M12 6l-6 6 6 6'/></g></svg>")
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
@@ -10216,8 +10368,10 @@ Screens:
                             =C.'bg-muted'
                         TabIndex: |-
                             =0
+                        Tooltip: |-
+                            ="Collapse menu"
                         Width: |-
-                            =232
+                            =56
                   - imgEqNavHubOpen:
                       Control: Image
                       Properties:

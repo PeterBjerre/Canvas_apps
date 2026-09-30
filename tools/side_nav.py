@@ -10,7 +10,7 @@ med ikoner; aabnet viser den teksterne ved siden af.
     lukket (NAV_W)        aabnet (NAV_W_OPEN)
     +------+              +------------------------+
     | [BS] |              | [BS]  BIO SAP          |
-    |  >>  |              |  <<   Collapse         |
+    |  >>  |              |  <<                    |
     |  ^   |              |  ^    Masterdata Hub   |
     |  o   |              |  o    Functional ...   |
     | |=   |              | |=    VH-plan    <- markeret: den app, man er i
@@ -36,7 +36,25 @@ HVAD DER ER ANDERLEDES
 ----------------------
   * HTML-skinnen aabner, naar musen er over den. En canvas app har ingen
     hover-haendelse, og paa en trykskaerm findes den slet ikke - derfor
-    en knap (">>" / "<<  Collapse"), der aabner og lukker.
+    en knap (">>" / "<<"), der aabner og lukker. Kun dobbeltpilen - ordet
+    "Collapse" er fjernet (issue #65); knappens AccessibleLabel og
+    Tooltip siger det stadig.
+
+MOBIL: EN TOPBJAELKE I STEDET FOR SKINNEN (issue #65)
+-----------------------------------------------------
+Under Tablet (layout_tokens.NAV_ON er falsk) er skinnen skjult, og en
+topbjaelke i fuld bredde staar oeverst:
+
+    +--------------------------------------------+
+    | [=]  [BS] BIO SAP              VH-plan     |
+    +--------------------------------------------+
+
+Menuknappen (hamburger) aabner det SAMME panel som skinnens ">>" - alle
+punkter med tekst, Help og temaet - som en skuffe fra venstre, med det
+gennemsigtige sloer bag. Der er altsaa een navigation, een markering af
+den aktive app og een Launch/Navigate pr. punkt; bjaelken er kun en
+anden maade at aabne den paa. Rammen staar under bjaelken
+(layout_tokens.ROOT_Y).
   * Et klik uden for den aabne sidebar lukker den (et gennemsigtigt
     sloer bag den), saa den ikke skal lukkes med knappen.
   * Lukket og aaben er TO containere med hver sin faste bredde: skinnen
@@ -69,7 +87,8 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import Ctrl, C_SURFACE, C_DIVIDER, C_MUTED_BG, C_PRIMARY
 from design_tokens import ref_hex, theme_query, TRANSPARENT
-from build_helpers import group, theme_button, help_toggle, THEME_TOGGLE_H
+from gen_screen import C_TITLE
+from build_helpers import group, theme_button, help_toggle, text_ctrl, grow, THEME_TOGGLE_H
 import layout_tokens as lay
 import env_config as env
 
@@ -103,6 +122,7 @@ ITEMS = [
 SCREENS = None
 
 ICON_EXPAND = "M6 6l6 6-6 6 M12 6l6 6-6 6"
+ICON_MENU = "M4 7h16M4 12h16M4 17h16"
 ICON_COLLAPSE = "M18 6l-6 6 6 6 M12 6l-6 6 6 6"
 
 FONT = "font-family='Segoe UI, sans-serif'"
@@ -205,8 +225,12 @@ def _column(p, suffix, w, current, is_open, help_on, help_action):
                    CLOSE if hub else _launch("hub"),
                    '"BIO SAP - Masterdata Hub"', hover=False)
     if is_open:
-        toggle = _image(n("NavToggle"), _item_svg(w, ICON_COLLAPSE, "Collapse", False),
-                        w, ITEM_H, CLOSE, '"Collapse menu"')
+        # Kun dobbeltpilen - ingen "Collapse"-tekst (issue #65). Billedet er
+        # saa bredt som den lukkede skinne, saa pilen staar det samme sted
+        # som ">>", og resten af raekken er ikke et klikfelt.
+        toggle = _image(n("NavToggle"), _item_svg(lay.NAV_W, ICON_COLLAPSE, None, False),
+                        lay.NAV_W, ITEM_H, CLOSE, '"Collapse menu"',
+                        tooltip='"Collapse menu"')
     else:
         toggle = _image(n("NavToggle"), _item_svg(w, ICON_EXPAND, None, False),
                         w, ITEM_H, f"Set({OPEN}, true)", '"Expand menu"',
@@ -243,20 +267,50 @@ def _column(p, suffix, w, current, is_open, help_on, help_action):
                 border_thickness=1, pad=(13, 0, 15, 0), align_items="Start",
                 justify="SpaceBetween",
                 drop_shadow="Bold" if is_open else "None",
-                visible=OPEN if is_open else None)
+                visible=OPEN if is_open else lay.NAV_ON)
     col.props["X"] = "-1"
     col.props["Y"] = "-1"
     return col
 
 
+def _mobile_bar(p, current):
+    """Topbjaelken paa mobil (issue #65) - kun synlig, naar skinnen ikke er.
+
+    Menuknappen aabner det samme panel som skinnens ">>". Logoet goer det
+    samme som i skinnen (til hubben), og appens navn staar til hoejre, saa
+    man kan se, hvor man er, uden at aabne menuen."""
+    label = dict((k, l) for k, l, _ in ITEMS)[current]
+    hub = current == "hub"
+    menu = _image(f"img{p}NavMenu", _svg(lay.NAV_W, ITEM_H, _icon(ICON_MENU, _hx("text-primary"))),
+                  lay.NAV_W, ITEM_H, f"Set({OPEN}, true)", '"Open menu"',
+                  tooltip='"Open menu"')
+    brand_w = lay.NAV_W + 80
+    brand = _image(f"img{p}NavBrandMobile", _brand_svg(brand_w, True), brand_w, BRAND_H,
+                   CLOSE if hub else _launch("hub"), '"BIO SAP - Masterdata Hub"',
+                   hover=False)
+    title = grow(text_ctrl(f"txt{p}NavTitle", f'"{label}"', size=14, color=C_TITLE,
+                           weight="Semibold", height=22, align="Right"))
+    bar = group(f"con{p}MobileBar", [menu, brand, title], direction="Horizontal", gap=0,
+                height=lay.MOBILE_BAR_H, width="App.Width", align_items="Center",
+                fill=C_SURFACE, border_color=C_DIVIDER, border_thickness=1,
+                pad=(0, 16, 0, 0), visible=f"!({lay.NAV_ON})")
+    # Rammen er skubbet 1 px ud over skaermens top og sider, saa kun
+    # bundkanten ses - som skinnens hoejrekant.
+    bar.props["X"] = "-1"
+    bar.props["Y"] = "-1"
+    bar.props["Width"] = "App.Width + 2"
+    return bar
+
+
 def side_nav(prefix, current, help_on=None, help_action=None):
-    """Sidebaren. Returnerer (skinne, overlag) - de staar to steder i
+    """Sidebaren. Returnerer (navigation, overlag) - de staar to steder i
     skaermens Children:
 
-        [root, skinne, sloer og popupper ..., *overlag]
+        [root, *navigation, sloer og popupper ..., *overlag]
 
-    skinne:  den lukkede udgave (NAV_W). Lige efter rammen, saa popupper
-             og deres sloer ligger oven paa den som paa alt andet.
+    navigation: den lukkede skinne (NAV_W, Tablet og op) og mobilens
+             topbjaelke (under Tablet). Lige efter rammen, saa popupper og
+             deres sloer ligger oven paa dem som paa alt andet.
     overlag: et gennemsigtigt sloer (klik = luk) og det aabne panel
              (NAV_W_OPEN, Visible = gblNavOpen). SIDST paa skaermen: i en
              .pa.yaml ligger det, der staar senere, oeverst - saa panelet
@@ -292,4 +346,4 @@ def side_nav(prefix, current, help_on=None, help_action=None):
         "X": "0",
         "Y": "0",
     }, h="App.Height", vis=OPEN)
-    return rail, [scrim, panel]
+    return [rail, _mobile_bar(p, current)], [scrim, panel]

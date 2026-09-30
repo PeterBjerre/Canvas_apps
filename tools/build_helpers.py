@@ -726,12 +726,13 @@ def app_frame(prefix, header, body, body_gap=16, body_pad_b=None):
                  overflow_y="Scroll", fill=C_APP_BG,
                  pad=(lay.BODY_PAD_T, lay.PAGE_PAD_R, pb, lay.PAGE_PAD_L))
     # Sidebaren (tools/side_nav.py) staar til venstre. Rammen starter
-    # efter dens LUKKEDE bredde; aabnet ligger den oven paa rammen.
+    # efter dens LUKKEDE bredde; aabnet ligger den oven paa rammen. Paa
+    # mobil er skinnen skjult, og rammen starter under topbjaelken i stedet
+    # (issue #65) - udtrykkene staar i tools/layout_tokens.py.
     root = group("con%sRoot" % prefix, [head, main], direction="Vertical", gap=0,
-                 height="Parent.Height", width="Parent.Width - %d" % lay.NAV_W,
-                 fill=C_APP_BG)
-    root.props["X"] = str(lay.NAV_W)
-    root.props["Y"] = "0"
+                 height=lay.ROOT_H, width=lay.ROOT_W, fill=C_APP_BG)
+    root.props["X"] = lay.ROOT_X
+    root.props["Y"] = lay.ROOT_Y
     return root
 
 
