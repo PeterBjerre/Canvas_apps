@@ -78,10 +78,7 @@ Screens:
                   Set(varMatFStrategicPart, "");
                   Set(varMatFWearPart, "");
                   Set(varMatFLongText, "");
-                  Set(varMatFlMsg, "");
-                  Set(varMatFlQuery, "");
-                  Set(varMatFlLast, "");
-                  Reset(cmbMatFl);
+                  Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
                   Set(varMatInfo, "New row - fill in and save.")
               )
           );
@@ -167,7 +164,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =25 + (0 + (Max((55), (22), (24))) * 1 + 0)
+                      =25 + (0 + (Max((32), (55), (22), (24))) * 1 + 0)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -202,7 +199,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =0 + (Max((55), (22), (24))) * 1 + 0
+                            =0 + (Max((32), (55), (22), (24))) * 1 + 0
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Center
                         LayoutDirection: |-
@@ -218,6 +215,31 @@ Screens:
                         Width: |-
                             =Parent.Width
                       Children:
+                        - imgMatTitleIcon:
+                            Control: Image
+                            Properties:
+                              AccessibleLabel: |-
+                                  =""
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Height: |-
+                                  =32
+                              Image: |-
+                                  ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='" & C.'hex-domain-mat' & "' fill-opacity='0.12'/><g transform='translate(6 6)'><svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><g fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g></svg></g></svg>")
+                              ImagePosition: |-
+                                  =ImagePosition.Fit
+                              LayoutMinWidth: |-
+                                  =32
+                              OnSelect: |-
+                                  =false
+                              TabIndex: |-
+                                  =-1
+                              Width: |-
+                                  =32
                         - conMatBarLeft:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -243,7 +265,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Width: |-
-                                  =Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - (If(LayoutRank >= 2, (110) + 10, 0)) - (If(LayoutRank >= 2, (150) + 10, 0)) - 2)
+                                  =Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - ((32) + 10) - (If(LayoutRank >= 2, (110) + 10, 0)) - (If(LayoutRank >= 2, (150) + 10, 0)) - 2)
                             Children:
                               - txtMatTitle:
                                   Control: ModernText
@@ -442,7 +464,7 @@ Screens:
                   FillPortions: |-
                       =1
                   Height: |-
-                      =Parent.Height - (25 + (0 + (Max((55), (22), (24))) * 1 + 0))
+                      =Parent.Height - (25 + (0 + (Max((32), (55), (22), (24))) * 1 + 0))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -481,7 +503,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =68 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (164) + (228) + 12, 32, (26) + 12 + (32))) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (20 + 6 + (36 + If(false, 0 + (1), 0))) + (62) + (62) + (62) + 60, (Max((20 + 6 + (36 + If(false, 0 + (1), 0))), (62))) + (Max((62), (62))) + 20), (Max((20 + 6 + (36 + If(false, 0 + (1), 0))), (62), (62), (62))) + 0)) + If(!IsBlank(varMatFlMsg), 14 + (18), 0) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (62) + (62) + (62) + (62) + 60, (Max((62), (62))) + (Max((62), (62))) + 20), (Max((62), (62), (62), (62))) + 0)) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (62) + (62) + (62) + (62) + 60, (Max((62), (62))) + (Max((62), (62))) + 20), (Max((62), (62), (62), (62))) + 0)) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (62) + (62) + (62) + (62) + 60, (Max((62), (62))) + (Max((62), (62))) + 20), (Max((62), (62), (62), (62))) + 0)) + 14 + (98) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (135) + (124) + (111) + (428) + 32, 36, (28) + 8 + (36) + 8 + (36) + 8 + (36) + 8 + (36)))
+                            =68 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (164) + (228) + 12, 32, (26) + 12 + (32))) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (20 + 6 + (40 + If(false, 0 + (1), 0))) + (62) + (62) + (62) + 60, (Max((20 + 6 + (40 + If(false, 0 + (1), 0))), (62))) + (Max((62), (62))) + 20), (Max((20 + 6 + (40 + If(false, 0 + (1), 0))), (62), (62), (62))) + 0)) + If(!IsBlank(varMatFlMsg), 14 + (18), 0) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (62) + (62) + (62) + (62) + 60, (Max((62), (62))) + (Max((62), (62))) + 20), (Max((62), (62), (62), (62))) + 0)) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (62) + (62) + (62) + (62) + 60, (Max((62), (62))) + (Max((62), (62))) + 20), (Max((62), (62), (62), (62))) + 0)) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (62) + (62) + (62) + (62) + 60, (Max((62), (62))) + (Max((62), (62))) + 20), (Max((62), (62), (62), (62))) + 0)) + 14 + (98) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (135) + (124) + (111) + (428) + 32, 36, (28) + 8 + (36) + 8 + (36) + 8 + (36) + 8 + (36)))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -706,8 +728,7 @@ Screens:
                                         If(
                                             varMatFNoBomItem,
                                             Set(varMatFFunctionalLocation, "");
-                                            Set(varMatFlQuery, "");
-                                            Reset(cmbMatFl);
+                                            Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
                                             Set(varMatFlMsg, "No BOM item - a functional location is not required."),
                                             Set(varMatFlMsg, "")
                                         )
@@ -738,7 +759,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (20 + 6 + (36 + If(false, 0 + (1), 0))) + (62) + (62) + (62) + 60, (Max((20 + 6 + (36 + If(false, 0 + (1), 0))), (62))) + (Max((62), (62))) + 20), (Max((20 + 6 + (36 + If(false, 0 + (1), 0))), (62), (62), (62))) + 0)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (20 + 6 + (40 + If(false, 0 + (1), 0))) + (62) + (62) + (62) + 60, (Max((20 + 6 + (40 + If(false, 0 + (1), 0))), (62))) + (Max((62), (62))) + 20), (Max((20 + 6 + (40 + If(false, 0 + (1), 0))), (62), (62), (62))) + 0)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -769,7 +790,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =20 + 6 + (36 + If(false, 0 + (1), 0))
+                                        =20 + 6 + (40 + If(false, 0 + (1), 0))
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Stretch
                                     LayoutDirection: |-
@@ -895,7 +916,7 @@ Screens:
                                           FillPortions: |-
                                               =0
                                           Height: |-
-                                              =36 + If(false, 0 + (1), 0)
+                                              =40 + If(false, 0 + (1), 0)
                                           LayoutAlignItems: |-
                                               =LayoutAlignItems.Stretch
                                           LayoutDirection: |-
@@ -922,7 +943,7 @@ Screens:
                                                 FillPortions: |-
                                                     =0
                                                 Height: |-
-                                                    =36
+                                                    =40
                                                 LayoutAlignItems: |-
                                                     =LayoutAlignItems.Center
                                                 LayoutDirection: |-
@@ -935,6 +956,14 @@ Screens:
                                                     =LayoutOverflow.Hide
                                                 LayoutOverflowY: |-
                                                     =LayoutOverflow.Hide
+                                                PaddingBottom: |-
+                                                    =2
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =2
                                                 Width: |-
                                                     =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                               Children:
@@ -942,19 +971,21 @@ Screens:
                                                     Control: ModernCombobox
                                                     Properties:
                                                       AccessibleLabel: |-
-                                                          ="Functional location - type at least 7 characters, then Search or Enter"
+                                                          ="Functional location - type at least 7 characters, then Search"
                                                       Appearance: |-
                                                           =Appearance.Outline
                                                       BorderColor: |-
                                                           =If(
-                                                              varMatValidated && !varMatFNoBomItem && (IsBlank(Self.Selected.Code) || Self.Selected.Code = "?search"),
+                                                              varMatValidated && !varMatFNoBomItem && IsBlank(Self.Selected.Code),
                                                               C.'border-error',
-                                                              If((IsBlank(Self.Selected.Code) || Self.Selected.Code = "?search"), C.'border-default', C.'border-ok')
+                                                              If(IsBlank(Self.Selected.Code), C.'border-default', C.'border-ok')
                                                           )
                                                       BorderStyle: |-
                                                           =BorderStyle.Solid
                                                       BorderThickness: |-
                                                           =1
+                                                      Color: |-
+                                                          =C.'text-primary'
                                                       DefaultSelectedItems: |-
                                                           =Filter(colMatFl, Code = varMatFFunctionalLocation)
                                                       DelayOutput: |-
@@ -976,106 +1007,32 @@ Screens:
                                                       ItemDisplayText: |-
                                                           =ThisItem.Display
                                                       Items: |-
-                                                          =With(
-                                                              { q: Trim(Self.SearchText) },
-                                                              With(
-                                                                  {
-                                                                      s: Table({ Code: "?search", Description: q,
-                                                                                 Display: q & "  -  press Enter to search SAP",
-                                                                                 Maintainable: true, Level: "" }),
-                                                                      ask: Len(q) >= 7 && !varMatFlBusy &&
-                                                                           Upper(q) <> Upper(Coalesce(varMatFlLast, "")),
-                                                                      narrow: CountRows(colMatFl) > 0 && !IsBlank(varMatFlLast) &&
-                                                                              StartsWith(Upper(q), Upper(varMatFlLast))
-                                                                  },
-                                                                  If(
-                                                                      !ask, colMatFl,
-                                                                      narrow, Ungroup(Table({ Rows: colMatFl }, { Rows: s }), Rows),
-                                                                      Ungroup(Table({ Rows: s }, { Rows: colMatFl }), Rows)
-                                                                  )
-                                                              )
-                                                          )
+                                                          =colMatFl
                                                       LayoutMinWidth: |-
                                                           =0
                                                       OnChange: |-
-                                                          =If(
-                                                              Self.Selected.Code = "?search",
-                                                              Set(varMatFlQuery, Self.Selected.Description);
-                                                              With(
-                                                              { q: Trim(varMatFlQuery) },
-                                                              If(
-                                                                  Len(q) < 7,
-                                                                  Notify(
-                                                                      "Type at least 7 characters before searching.",
-                                                                      NotificationType.Warning
-                                                                  ),
-                                                          
-                                                                  Set(varMatFlBusy, true);
-                                                                  Set(varMatFlLast, q);
-                                                                  Clear(colMatFl);
-                                                                  Set(varMatFFunctionalLocation, "");
-                                                                  Set(varMatFlMsg, "Searching for " & q & " ...");
-                                                                  IfError(
-                                                                      Set(varMatFlRaw, 'BioSap-Integration-FunctionalLocations'.Run(q));
-                                                                      If(
-                                                                          IsBlank(varMatFlRaw) || IsBlank(varMatFlRaw.functionallocationoutput),
-                                                                          Clear(colMatFl),
-                                                                          ClearCollect(
-                                                              colMatFl,
-                                                              ForAll(
-                                                                  Table(ParseJSON(varMatFlRaw.functionallocationoutput)) As R,
-                                                                  {
-                                                                      Code: Text(R.Value.functionKey),
-                                                                      Description: Text(R.Value.description),
-                                                                      Display: Text(R.Value.functionKey) & " - " & Text(R.Value.description) &
-                                                                          If(Boolean(R.Value.maintainable), "", "   (not maintainable)"),
-                                                                      Maintainable: Boolean(R.Value.maintainable),
-                                                                      Level: Text(R.Value.level)
-                                                                  }
-                                                              )
-                                                          )
-                                                                      );
-                                                                      If(
-                                                                          CountRows(colMatFl) = 0,
-                                                                          Notify("No functional locations found for " & q & ".", NotificationType.Warning)
-                                                                      );
-                                                                      Set(
-                                                                          varMatFlMsg,
-                                                                          With(
-                                                                              { n: CountRows(colMatFl) },
-                                                                              If(
-                                                                                  n = 0,
-                                                                                  "No Functional Locations found for " & q & ".",
-                                                                                  Text(n) & " Functional Locations found for " & q & ". " &
-                                                                                      If(
-                                                                                          n > 50,
-                                                                                          "The list is long - type more characters to narrow it.",
-                                                                                          "Select one from the list below."
-                                                                                      )
-                                                                              )
-                                                                          )
-                                                                      ),
-                                                                      Clear(colMatFl);
-                                                                      Set(varMatFlMsg, "Search failed: " & FirstError.Message);
-                                                                      Notify("The functional locations search failed. Try again.", NotificationType.Error)
-                                                                  );
-                                                                  Set(varMatFlBusy, false)
-                                                              )
-                                                          );
-                                                              Reset(cmbMatFl),
-                                                              Set(varMatFFunctionalLocation, Coalesce(Self.Selected.Code, ""))
-                                                          )
+                                                          =Set(varMatFFunctionalLocation, Coalesce(Self.Selected.Code, ""))
+                                                      RadiusBottomLeft: |-
+                                                          =10
+                                                      RadiusBottomRight: |-
+                                                          =10
+                                                      RadiusTopLeft: |-
+                                                          =10
+                                                      RadiusTopRight: |-
+                                                          =10
                                                       SelectMultiple: |-
                                                           =false
                                                       Size: |-
                                                           =14
+                                                      ValidationState: |-
+                                                          =If(varMatValidated && !varMatFNoBomItem && IsBlank(Self.Selected.Code), ValidationState.Error, ValidationState.None)
                                                       Width: |-
-                                                          =Max(0, ((((If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4))))) - (If(!varMatFlBusy, (86) + 8, 0)) - (If(varMatFlBusy, (86) + 8, 0)) - 2)
+                                                          =Max(0, ((((If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4))))) - ((86) + 8) - ((20) + 8) - 2)
                                                 - btnMatFlSearch:
                                                     Control: ModernButton
                                                     Properties:
                                                       AccessibleLabel: |-
-                                                          ="Search functional location"
+                                                          =If(varMatFlBusy, "Searching functional locations", "Search functional location")
                                                       Align: |-
                                                           =Align.Center
                                                       AlignInContainer: |-
@@ -1089,7 +1046,7 @@ Screens:
                                                       Color: |-
                                                           =C.'text-primary'
                                                       DisplayMode: |-
-                                                          =If(Len(Trim(Coalesce(cmbMatFl.SearchText, varMatFlQuery))) < 7, DisplayMode.Disabled, If(varMatFNoBomItem, DisplayMode.Disabled, If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)))
+                                                          =If(varMatFlBusy || Len(Trim(Coalesce(cmbMatFl.SearchText, varMatFlQuery))) < 7, DisplayMode.Disabled, If(varMatFNoBomItem, DisplayMode.Disabled, If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)))
                                                       Font: |-
                                                           =Font.'Segoe UI'
                                                       FontWeight: |-
@@ -1113,7 +1070,7 @@ Screens:
                                                                   Set(varMatFlBusy, true);
                                                                   Set(varMatFlLast, q);
                                                                   Clear(colMatFl);
-                                                                  Set(varMatFFunctionalLocation, "");
+                                                                  Set(varMatFFunctionalLocation, ""); Reset(cmbMatFl); Set(varMatFFunctionalLocation, "");
                                                                   Set(varMatFlMsg, "Searching for " & q & " ...");
                                                                   IfError(
                                                                       Set(varMatFlRaw, 'BioSap-Integration-FunctionalLocations'.Run(q));
@@ -1137,7 +1094,9 @@ Screens:
                                                                       );
                                                                       If(
                                                                           CountRows(colMatFl) = 0,
-                                                                          Notify("No functional locations found for " & q & ".", NotificationType.Warning)
+                                                                          Notify("No functional locations found for " & q & ".", NotificationType.Warning),
+                                                                              Set(varMatFFunctionalLocation, First(colMatFl).Code);
+                                                                              Reset(cmbMatFl)
                                                                       );
                                                                       Set(
                                                                           varMatFlMsg,
@@ -1173,25 +1132,19 @@ Screens:
                                                       Size: |-
                                                           =14
                                                       Text: |-
-                                                          ="Search"
+                                                          =If(varMatFlBusy, "", "Search")
                                                       VerticalAlign: |-
                                                           =VerticalAlign.Middle
-                                                      Visible: |-
-                                                          =!varMatFlBusy
                                                       Width: |-
                                                           =86
                                                 - conMatFlSearchBusy:
                                                     Control: GroupContainer
                                                     Variant: AutoLayout
                                                     Properties:
-                                                      BorderColor: |-
-                                                          =C.'border-default'
-                                                      BorderThickness: |-
-                                                          =1
+                                                      BorderStyle: |-
+                                                          =BorderStyle.None
                                                       DropShadow: |-
                                                           =DropShadow.None
-                                                      Fill: |-
-                                                          =C.'input-bg-disabled'
                                                       FillPortions: |-
                                                           =0
                                                       Height: |-
@@ -1205,23 +1158,13 @@ Screens:
                                                       LayoutJustifyContent: |-
                                                           =LayoutJustifyContent.Center
                                                       LayoutMinWidth: |-
-                                                          =86
+                                                          =20
                                                       LayoutOverflowX: |-
                                                           =LayoutOverflow.Hide
                                                       LayoutOverflowY: |-
                                                           =LayoutOverflow.Hide
-                                                      RadiusBottomLeft: |-
-                                                          =10
-                                                      RadiusBottomRight: |-
-                                                          =10
-                                                      RadiusTopLeft: |-
-                                                          =10
-                                                      RadiusTopRight: |-
-                                                          =10
-                                                      Visible: |-
-                                                          =varMatFlBusy
                                                       Width: |-
-                                                          =86
+                                                          =20
                                                     Children:
                                                       - spnMatFlSearch:
                                                           Control: ModernSpinner
@@ -1229,11 +1172,13 @@ Screens:
                                                             AccessibleLabel: |-
                                                                 ="Searching functional locations"
                                                             Height: |-
-                                                                =24
+                                                                =20
                                                             Label: |-
                                                                 =""
+                                                            Visible: |-
+                                                                =varMatFlBusy
                                                             Width: |-
-                                                                =24
+                                                                =20
                                           - tmrMatFlCapture:
                                               Control: Timer
                                               Properties:
@@ -3618,10 +3563,7 @@ Screens:
                                             Set(varMatFStrategicPart, "");
                                             Set(varMatFWearPart, "");
                                             Set(varMatFLongText, "");
-                                            Set(varMatFlMsg, "");
-                                            Set(varMatFlQuery, "");
-                                            Set(varMatFlLast, "");
-                                            Reset(cmbMatFl);
+                                            Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
                                             Set(varMatInfo, "Row deleted. The documents remain in the library.")
                                         )
                                     RadiusBottomLeft: |-
@@ -3978,10 +3920,7 @@ Screens:
                                         Set(varMatFStrategicPart, "");
                                         Set(varMatFWearPart, "");
                                         Set(varMatFLongText, "");
-                                        Set(varMatFlMsg, "");
-                                        Set(varMatFlQuery, "");
-                                        Set(varMatFlLast, "");
-                                        Reset(cmbMatFl);
+                                        Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
                                         Set(varMatInfo, "New row - fill in and save.")
                                     RadiusBottomLeft: |-
                                         =10
@@ -6168,10 +6107,7 @@ Screens:
                                                   Set(varMatFStrategicPart, "");
                                                   Set(varMatFWearPart, "");
                                                   Set(varMatFLongText, "");
-                                                  Set(varMatFlMsg, "");
-                                                  Set(varMatFlQuery, "");
-                                                  Set(varMatFlLast, "");
-                                                  Reset(cmbMatFl);
+                                                  Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
                                                   Set(varMatInfo, "New row - fill in and save.")
                                               );
                                               
@@ -6816,7 +6752,7 @@ Screens:
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z M8.5 14.5v-3l2 1.2v-1.2l2 1.2V8h2.5v6.5Z M13.3 6.2c.4-.6 1.2-.6 1.6 0'/></g></svg>")
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g></svg>")
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
@@ -6849,7 +6785,7 @@ Screens:
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M4 6.5h16M4 12h16M4 17.5h10 M17.5 16.5l1.6 1.6 3-3.2'/></g></svg>")
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g></svg>")
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
@@ -6882,7 +6818,7 @@ Screens:
                         HoverFill: |-
                             =RGBA(0, 0, 0, 0)
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><rect x='8' y='0' width='40' height='40' rx='8' fill='" & C.'hex-state-info-bg' & "'/><rect x='0' y='10' width='3' height='20' rx='1.5' fill='" & C.'hex-color-brand-primary' & "'/><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 21 8v8l-9 5-9-5V8l9-5Z M3 8l9 5 9-5 M12 13v8'/></g></svg>")
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><rect x='8' y='0' width='40' height='40' rx='8' fill='" & C.'hex-state-info-bg' & "'/><rect x='0' y='10' width='3' height='20' rx='1.5' fill='" & C.'hex-color-brand-primary' & "'/><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g></svg>")
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
@@ -6915,7 +6851,7 @@ Screens:
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M7 7h10v10H7z M4.5 10.5h2.5M4.5 13.5h2.5M17 10.5h2.5M17 13.5h2.5M10.5 4.5V7M13.5 4.5V7M10.5 17v2.5M13.5 17v2.5'/></g></svg>")
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g></svg>")
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
@@ -10380,7 +10316,7 @@ Screens:
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M18 6l-6 6 6 6 M12 6l-6 6 6 6'/></g></svg>")
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M18 6l-6 6 6 6 M12 6l-6 6 6 6'/></g></svg>")
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
@@ -10392,7 +10328,7 @@ Screens:
                         Tooltip: |-
                             ="Collapse menu"
                         Width: |-
-                            =56
+                            =232
                   - imgMatNavHubOpen:
                       Control: Image
                       Properties:
@@ -10444,7 +10380,7 @@ Screens:
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z M8.5 14.5v-3l2 1.2v-1.2l2 1.2V8h2.5v6.5Z M13.3 6.2c.4-.6 1.2-.6 1.6 0'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Functional Location</text></svg>")
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Functional Location</text></svg>")
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
@@ -10475,7 +10411,7 @@ Screens:
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M4 6.5h16M4 12h16M4 17.5h10 M17.5 16.5l1.6 1.6 3-3.2'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>VH-plan</text></svg>")
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>VH-plan</text></svg>")
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
@@ -10506,7 +10442,7 @@ Screens:
                         HoverFill: |-
                             =RGBA(0, 0, 0, 0)
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><rect x='8' y='0' width='216' height='40' rx='8' fill='" & C.'hex-state-info-bg' & "'/><rect x='0' y='10' width='3' height='20' rx='1.5' fill='" & C.'hex-color-brand-primary' & "'/><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 21 8v8l-9 5-9-5V8l9-5Z M3 8l9 5 9-5 M12 13v8'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-state-info-fg' & "'>Materials</text></svg>")
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><rect x='8' y='0' width='216' height='40' rx='8' fill='" & C.'hex-state-info-bg' & "'/><rect x='0' y='10' width='3' height='20' rx='1.5' fill='" & C.'hex-color-brand-primary' & "'/><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-state-info-fg' & "'>Materials</text></svg>")
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
@@ -10537,7 +10473,7 @@ Screens:
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M7 7h10v10H7z M4.5 10.5h2.5M4.5 13.5h2.5M17 10.5h2.5M17 13.5h2.5M10.5 4.5V7M13.5 4.5V7M10.5 17v2.5M13.5 17v2.5'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Equipments</text></svg>")
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Equipments</text></svg>")
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-

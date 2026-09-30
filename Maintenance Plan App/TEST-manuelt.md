@@ -24,17 +24,20 @@ som i Equipments og Materials (`tools/fl_picker.py`). Der er intet separat
 søgefelt og ingen separat dropdown.
 
 1. Vælg et item. Skriv under 7 tegn i comboboksen.
-   → **Search** er deaktiveret, og der står ingen søgerække i listen.
+   → **Search** er deaktiveret, og listen er tom — ingen hjælpetekst,
+     ingen søgerække.
 2. Skriv `SSV13 HFC10` og klik **Search**.
-   → Knappen bliver til en boks af samme størrelse med én spinner, indtil
-     svaret er der. Intet i rækken flytter sig.
-   → Comboboksen viser resultaterne.
-3. Skriv videre (fx `SSV13 HFC10AA`).
+   → Knappen står stille (samme størrelse, uden tekst), og én spinner
+     drejer lige til højre for den. Intet i rækken flytter sig.
+   → Det **første** resultat står i feltet, og under feltet står
+     *"n Functional Locations found for SSV13 HFC10. Select one from the
+     list below."*
+3. Klik et andet sted på skærmen.
+   → Valget og teksten bliver stående.
+4. Skriv videre (fx `SSV13 HFC10AA`).
    → Listen snævres ind **uden** et nyt kald (ingen spinner).
-4. Skriv en ny søgning (fx `SSV13 KAB10`) og tryk **Enter**.
-   → Den øverste række, *"SSV13 KAB10 - press Enter to search SAP"*, er
-     valgt, og søgningen kører — som et klik på Search. De gamle resultater
-     og det gamle valg er væk.
+   Skriv en ny søgning og klik **Search**.
+   → De gamle resultater, det gamle valg og objektvalget er væk.
 5. Vælg én Functional Location. Ikke-vedligeholdbare står med
    *(not maintainable)* bag teksten.
 6. Søg på noget, der ikke findes → en kort advarsel (*No functional
