@@ -1020,8 +1020,9 @@ def row_hit(name, onselect, label, width, height, radius=0, hover_border=False):
     ses ikke. Scrolling paa en touchskaerm udloeser ikke OnSelect; kun et
     tryk goer.
 
-    Cellerne under laget, der selv kan aabnes (Open, pilen), skal have
-    TabIndex -1, saa tastaturet ikke moeder den samme handling to gange."""
+    Cellerne under laget, der selv kan aabnes, tages ud af tab-
+    raekkefoelgen med TabIndex -1, hvor typen kender den (Image, klassiske
+    kontroller) - ModernButton goer IKKE (check_layout regel 10)."""
     t = C_TRANSPARENT
     edge = C_PRIMARY if hover_border else t
     props = {
