@@ -913,7 +913,7 @@ Screens:
                                                       AccessibleLabel: |-
                                                           ="Functional location - type at least 7 characters, then Search"
                                                       Appearance: |-
-                                                          =Appearance.FilledDarker
+                                                          =If((If(varDomFNoBomItem, DisplayMode.Disabled, If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit))) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                                       BasePaletteColor: |-
                                                           =C.'color-brand-primary'
                                                       BorderColor: |-
@@ -927,7 +927,7 @@ Screens:
                                                       BorderThickness: |-
                                                           =1
                                                       Color: |-
-                                                          =C.'text-primary'
+                                                          =If((If(varDomFNoBomItem, DisplayMode.Disabled, If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit))) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                                       DefaultSelectedItems: |-
                                                           =Filter(colDomFl, Code = varDomFFunctionalLocation)
                                                       DelayOutput: |-
@@ -1212,7 +1212,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Manufacturer"
                                           Appearance: |-
-                                              =Appearance.FilledDarker
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
@@ -1222,7 +1222,7 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                           Default: |-
                                               =varDomFManufacturer
                                           DisplayMode: |-
@@ -1325,7 +1325,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Model number"
                                           Appearance: |-
-                                              =Appearance.FilledDarker
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
@@ -1335,7 +1335,7 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                           Default: |-
                                               =varDomFModelNumber
                                           DisplayMode: |-
@@ -1438,7 +1438,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Manufacturer part no."
                                           Appearance: |-
-                                              =Appearance.FilledDarker
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
@@ -1448,7 +1448,7 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                           Default: |-
                                               =varDomFManufacturerPartNo
                                           DisplayMode: |-
@@ -1675,7 +1675,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Material description, required"
                                           Appearance: |-
-                                              =Appearance.FilledDarker
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
@@ -1689,7 +1689,7 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                           Default: |-
                                               =varDomFText
                                           DisplayMode: |-
@@ -1819,7 +1819,7 @@ Screens:
                                                 AccessibleLabel: |-
                                                     ="Documents on this row"
                                                 Appearance: |-
-                                                    =Appearance.FilledDarker
+                                                    =If((DisplayMode.View) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                                 BasePaletteColor: |-
                                                     =C.'color-brand-primary'
                                                 BorderColor: |-
@@ -1829,7 +1829,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =1
                                                 Color: |-
-                                                    =C.'text-primary'
+                                                    =If((DisplayMode.View) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                                 Default: |-
                                                     =If(IsBlank(varDomActiveRowId), "Save the row first", Text(Coalesce(LookUp(colDomRows, RowId = varDomActiveRowId).FileCount, 0)) & " document(s)")
                                                 DisplayMode: |-
@@ -2012,7 +2012,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Stock unit"
                                           Appearance: |-
-                                              =Appearance.FilledDarker
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
@@ -2022,7 +2022,7 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                           Default: |-
                                               =varDomFStockUnit
                                           DisplayMode: |-
@@ -2125,7 +2125,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Price"
                                           Appearance: |-
-                                              =Appearance.FilledDarker
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
@@ -2135,7 +2135,7 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                           Default: |-
                                               =varDomFPrice
                                           DisplayMode: |-
@@ -2265,7 +2265,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Price unit"
                                           Appearance: |-
-                                              =Appearance.FilledDarker
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
@@ -2275,7 +2275,7 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                           Default: |-
                                               =varDomFPriceUnit
                                           DisplayMode: |-
@@ -2378,7 +2378,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Delivery time (days)"
                                           Appearance: |-
-                                              =Appearance.FilledDarker
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
@@ -2388,7 +2388,7 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                           Default: |-
                                               =varDomFDeliveringTime
                                           DisplayMode: |-
@@ -2489,7 +2489,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Recommended stock"
                                           Appearance: |-
-                                              =Appearance.FilledDarker
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
@@ -2499,7 +2499,7 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                           Default: |-
                                               =varDomFRecommendedStock
                                           DisplayMode: |-
@@ -2600,7 +2600,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Supplier"
                                           Appearance: |-
-                                              =Appearance.FilledDarker
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
@@ -2610,7 +2610,7 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                           Default: |-
                                               =varDomFSupplier
                                           DisplayMode: |-
@@ -2742,7 +2742,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Supplier part no."
                                           Appearance: |-
-                                              =Appearance.FilledDarker
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
@@ -2752,7 +2752,7 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                           Default: |-
                                               =varDomFSupplierPartNo
                                           DisplayMode: |-
@@ -2855,7 +2855,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Strategic part"
                                           Appearance: |-
-                                              =Appearance.FilledDarker
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
@@ -2865,7 +2865,7 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                           Default: |-
                                               =varDomFStrategicPart
                                           DisplayMode: |-
@@ -2968,7 +2968,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Wear part"
                                           Appearance: |-
-                                              =Appearance.FilledDarker
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
@@ -2978,7 +2978,7 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                           Default: |-
                                               =varDomFWearPart
                                           DisplayMode: |-
@@ -3276,7 +3276,7 @@ Screens:
                                     AccessibleLabel: |-
                                         ="Long text"
                                     Appearance: |-
-                                        =Appearance.FilledDarker
+                                        =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                     BasePaletteColor: |-
                                         =C.'color-brand-primary'
                                     BorderColor: |-
@@ -3286,7 +3286,7 @@ Screens:
                                     BorderThickness: |-
                                         =1
                                     Color: |-
-                                        =C.'text-primary'
+                                        =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                     Default: |-
                                         =varDomFLongText
                                     DisplayMode: |-

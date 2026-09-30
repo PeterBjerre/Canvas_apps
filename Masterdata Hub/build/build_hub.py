@@ -17,7 +17,7 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_PRIMARY,
                         C_MUTED_BG, C_MODAL_BG, C_DIVIDER, C_TRANSPARENT, FONT, SHELL_W)
-from build_helpers import (row_rule, text_input, text_ctrl, group, button, card, flow_row, top_bar,
+from build_helpers import (row_rule, row_hit, text_input, text_ctrl, group, button, card, flow_row, top_bar,
                            fit_button_width, ICON_W)
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, STATUS_ICON, APP_TARGET
 from design_tokens import theme_query, ref_hex, ref as _t
@@ -566,23 +566,9 @@ def build_closed_peek():
         t.props["Y"] = str(5 + i * 20)
         t.props["Width"] = str(PEEK_W - 16 - 38 - 12)
     act = _open_action()
-    # Hele raekken er klikbar - samme konstruktion som VH-planens item-kort:
-    # en gennemsigtig klassisk knap oven paa teksterne.
-    hit = Ctrl("btnMdPeekOpen", "Classic/Button", props={
-        "BorderColor": C_TRANSPARENT, "BorderStyle": "BorderStyle.Solid",
-        "BorderThickness": "2", "Color": C_TRANSPARENT, "Fill": C_TRANSPARENT,
-        "FocusedBorderColor": C_PRIMARY, "FocusedBorderThickness": "2",
-        "Height": str(PEEK_ROW_H), "HoverBorderColor": C_PRIMARY,
-        "HoverColor": C_TRANSPARENT, "HoverFill": C_TRANSPARENT,
-        "OnSelect": f"{close};\n{act}",
-        "PressedBorderColor": C_PRIMARY, "PressedColor": C_TRANSPARENT,
-        "PressedFill": C_TRANSPARENT,
-        "RadiusBottomLeft": "8", "RadiusBottomRight": "8",
-        "RadiusTopLeft": "8", "RadiusTopRight": "8",
-        "TabIndex": "0",
-        "Text": f'"Open " & ThisItem.{COL_NO}',
-        "Width": str(PEEK_W - 16), "X": "0", "Y": "0",
-    }, h=PEEK_ROW_H)
+    # Hele raekken er klikbar - det faelles moenster (build_helpers.row_hit).
+    hit = row_hit("btnMdPeekOpen", f"{close};\n{act}", f'"Open " & ThisItem.{COL_NO}',
+                  PEEK_W - 16, PEEK_ROW_H, radius=8)
     gal = Ctrl("galMdPeek", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Latest closed requests"',
         "BorderStyle": "BorderStyle.None", "Fill": C_TRANSPARENT, "FillPortions": "0",
@@ -705,6 +691,11 @@ def build_list():
     chevron = _image("imgMdRowGo", _svg_uri(_icon_svg(ICON_CHEVRON, _hx("text-muted"))),
                      24, 24, onselect=act,
                      label=f'"Open " & ThisItem.{COL_NO}')
+    # Open og pilen er TEGN paa, at raekken kan aabnes. Klikket og
+    # tastaturet er hele raekkens (row_hit nedenfor) - ellers moedte Tab
+    # den samme handling tre gange pr. raekke (issue #79).
+    open_btn.props["TabIndex"] = "-1"
+    chevron.props["TabIndex"] = "-1"
     actions = group("conMdRowActions", [open_btn, chevron], direction="Horizontal", gap=16,
                     width=COLS[5][1], align_items="Center")
 
@@ -722,6 +713,10 @@ def build_list():
     # tabellen. Nu er galleriet i kortets farve, og stregen er en figur
     # nederst i hver raekke.
     rule = row_rule("rctMdRowRule", ROW_H)
+    # HELE RAEKKEN ER KLIKBAR (issue #79) - samme handling som Open.
+    hit = row_hit("btnMdRowHit", act,
+                  f'"Open " & ThisItem.{COL_NO} & " - " & ThisItem.ShortText',
+                  "Parent.TemplateWidth", ROW_H - 1)
     gal = Ctrl("galMdRequests", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Requests"',
         "BorderStyle": "BorderStyle.None", "Fill": C_CARD_BG, "FillPortions": "0",
@@ -730,7 +725,7 @@ def build_list():
         "Selectable": "false", "ShowScrollbar": "true", "TabIndex": "0",
         "TemplatePadding": "0", "TemplateSize": str(ROW_H),
         "Width": "Parent.Width", "WrapCount": "1",
-    }, children=[row, rule], h=GAL_ROWS * ROW_H)
+    }, children=[row, rule, hit], h=GAL_ROWS * ROW_H)
 
     empty = text_ctrl("txtMdEmpty", '"No requests match the filters."', size=13,
                       color=C_MUTED, height=24, wrap="true",
