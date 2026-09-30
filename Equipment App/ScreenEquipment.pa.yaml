@@ -55,6 +55,7 @@ Screens:
           Set(varDomFWarrantyEnd, Blank());
           Set(varDomFlMsg, "");
           Set(varDomFlQuery, "");
+          Set(varDomFlLast, "");
           Reset(cmbDomFl);
           Set(varDomInfo, "New row - fill in and save.")
     Children:
@@ -71,7 +72,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =Parent.Height
+                =Parent.Height - If(LayoutRank >= 2, 0, 52)
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -85,11 +86,11 @@ Screens:
             LayoutOverflowY: |-
                 =LayoutOverflow.Hide
             Width: |-
-                =Parent.Width - 56
+                =Parent.Width - If(LayoutRank >= 2, 56, 0)
             X: |-
-                =56
+                =If(LayoutRank >= 2, 56, 0)
             Y: |-
-                =0
+                =If(LayoutRank >= 2, 0, 52)
           Children:
             - conDomHeader:
                 Control: GroupContainer
@@ -180,7 +181,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Width: |-
-                                  =Max(0, (((((App.Width - 56))) - 24 - 34)) - (If(LayoutRank >= 2, (110) + 10, 0)) - (If(LayoutRank >= 2, (150) + 10, 0)) - 2)
+                                  =Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - (If(LayoutRank >= 2, (110) + 10, 0)) - (If(LayoutRank >= 2, (150) + 10, 0)) - 2)
                             Children:
                               - txtDomTitle:
                                   Control: ModernText
@@ -418,7 +419,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =94 + 14 + (If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62)) + 60, (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))) + 14 + (62)))) + (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 20), (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 0)) + If(!IsBlank(varDomFlMsg), 14 + (18), 0) + 14 + (If((((App.Width - 120) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 36, (28) + 8 + (36) + 8 + (36) + 8 + (36) + 8 + (36)))
+                            =94 + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0))) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62)) + 60, (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0))) + 14 + (62)))) + (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 20), (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0))) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 0)) + If(!IsBlank(varDomFlMsg), 14 + (18), 0) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 36, (28) + 8 + (36) + 8 + (36) + 8 + (36) + 8 + (36)))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -591,7 +592,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62)) + 60, (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))) + 14 + (62)))) + (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 20), (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 0)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0))) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62)) + 60, (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0))) + 14 + (62)))) + (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 20), (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0))) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 0)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -636,7 +637,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                   Children:
                                     - conRequestType:
                                         Control: GroupContainer
@@ -665,7 +666,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conRequestTypeLbl:
                                               Control: ModernText
@@ -774,7 +775,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conDomPlantRow:
                                               Control: GroupContainer
@@ -835,7 +836,7 @@ Screens:
                                                       Text: |-
                                                           ="Plant"
                                                       Width: |-
-                                                          =Min(32, (If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)) - 13)
+                                                          =Min(32, (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)) - 13)
                                                       Wrap: |-
                                                           =false
                                                 - conDomPlantStar:
@@ -969,7 +970,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conEquipmentNumberLbl:
                                               Control: ModernText
@@ -1078,7 +1079,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conDomTextRow:
                                               Control: GroupContainer
@@ -1139,7 +1140,7 @@ Screens:
                                                       Text: |-
                                                           ="Description"
                                                       Width: |-
-                                                          =Min(72, (If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)) - 13)
+                                                          =Min(72, (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)) - 13)
                                                       Wrap: |-
                                                           =false
                                                 - conDomTextStar:
@@ -1253,7 +1254,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conEquipmentCategoryLbl:
                                               Control: ModernText
@@ -1348,7 +1349,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))) + 14 + (62)
+                                        =0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (36 + If(false, 0 + (1), 0))) + 14 + (62)
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Stretch
                                     LayoutDirection: |-
@@ -1362,7 +1363,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                   Children:
                                     - conManufacturer:
                                         Control: GroupContainer
@@ -1391,7 +1392,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conManufacturerLbl:
                                               Control: ModernText
@@ -1500,7 +1501,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conTypeDesignationLbl:
                                               Control: ModernText
@@ -1609,7 +1610,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conSerialNumberLbl:
                                               Control: ModernText
@@ -1704,7 +1705,7 @@ Screens:
                                           FillPortions: |-
                                               =0
                                           Height: |-
-                                              =20 + 6 + (36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))
+                                              =20 + 6 + (36 + If(false, 0 + (1), 0))
                                           LayoutAlignItems: |-
                                               =LayoutAlignItems.Stretch
                                           LayoutDirection: |-
@@ -1718,7 +1719,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conDomFlLbl:
                                               Control: ModernText
@@ -1766,7 +1767,7 @@ Screens:
                                                 FillPortions: |-
                                                     =0
                                                 Height: |-
-                                                    =36 + If(false, 0 + (1), 0) + If(false, 0 + (1), 0)
+                                                    =36 + If(false, 0 + (1), 0)
                                                 LayoutAlignItems: |-
                                                     =LayoutAlignItems.Stretch
                                                 LayoutDirection: |-
@@ -1780,7 +1781,7 @@ Screens:
                                                 LayoutOverflowY: |-
                                                     =LayoutOverflow.Hide
                                                 Width: |-
-                                                    =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                                    =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                               Children:
                                                 - conDomFlInput:
                                                     Control: GroupContainer
@@ -1807,13 +1808,13 @@ Screens:
                                                       LayoutOverflowY: |-
                                                           =LayoutOverflow.Hide
                                                       Width: |-
-                                                          =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                                          =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                                     Children:
                                                       - cmbDomFl:
                                                           Control: ModernCombobox
                                                           Properties:
                                                             AccessibleLabel: |-
-                                                                ="Functional location - type at least 7 characters and select Search"
+                                                                ="Functional location - type at least 7 characters, then Search or Enter"
                                                             Appearance: |-
                                                                 =Appearance.Outline
                                                             BorderColor: |-
@@ -1824,6 +1825,8 @@ Screens:
                                                                 =1
                                                             DefaultSelectedItems: |-
                                                                 =Filter(colDomFl, Code = varDomFFunctionalLocation)
+                                                            DelayOutput: |-
+                                                                =false
                                                             DisplayMode: |-
                                                                 =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
                                                             Fill: |-
@@ -1841,49 +1844,33 @@ Screens:
                                                             ItemDisplayText: |-
                                                                 =ThisItem.Display
                                                             Items: |-
-                                                                =colDomFl
+                                                                =With(
+                                                                    { q: Trim(Self.SearchText) },
+                                                                    With(
+                                                                        {
+                                                                            s: Table({ Code: "?search", Description: q,
+                                                                                       Display: q & "  -  press Enter to search SAP",
+                                                                                       Maintainable: true, Level: "" }),
+                                                                            ask: Len(q) >= 7 && !varDomFlBusy &&
+                                                                                 Upper(q) <> Upper(Coalesce(varDomFlLast, "")),
+                                                                            narrow: CountRows(colDomFl) > 0 && !IsBlank(varDomFlLast) &&
+                                                                                    StartsWith(Upper(q), Upper(varDomFlLast))
+                                                                        },
+                                                                        If(
+                                                                            !ask, colDomFl,
+                                                                            narrow, Ungroup(Table({ Rows: colDomFl }, { Rows: s }), Rows),
+                                                                            Ungroup(Table({ Rows: s }, { Rows: colDomFl }), Rows)
+                                                                        )
+                                                                    )
+                                                                )
                                                             LayoutMinWidth: |-
                                                                 =0
                                                             OnChange: |-
-                                                                =Set(varDomFFunctionalLocation, Coalesce(Self.Selected.Code, ""))
-                                                            SelectMultiple: |-
-                                                                =false
-                                                            Size: |-
-                                                                =14
-                                                            Width: |-
-                                                                =Max(0, ((((If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4))))) - ((86) + 8) - 2)
-                                                      - btnDomFlSearch:
-                                                          Control: ModernButton
-                                                          Properties:
-                                                            AccessibleLabel: |-
-                                                                ="Search functional location"
-                                                            Align: |-
-                                                                =Align.Center
-                                                            AlignInContainer: |-
-                                                                =AlignInContainer.Center
-                                                            Appearance: |-
-                                                                =ButtonAppearance.Outline
-                                                            BorderColor: |-
-                                                                =C.'border-default'
-                                                            BorderThickness: |-
-                                                                =1
-                                                            Color: |-
-                                                                =C.'text-primary'
-                                                            DisplayMode: |-
-                                                                =If(varDomFlBusy, DisplayMode.Disabled, If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit))
-                                                            Font: |-
-                                                                =Font.'Segoe UI'
-                                                            FontWeight: |-
-                                                                =FontWeight.Semibold
-                                                            Height: |-
-                                                                =36
-                                                            Layout: |-
-                                                                =ButtonLayout.TextOnly
-                                                            LayoutMinWidth: |-
-                                                                =86
-                                                            OnSelect: |-
-                                                                =With(
-                                                                    { q: Trim(Coalesce(cmbDomFl.SearchText, varDomFlQuery)) },
+                                                                =If(
+                                                                    Self.Selected.Code = "?search",
+                                                                    Set(varDomFlQuery, Self.Selected.Description);
+                                                                    With(
+                                                                    { q: Trim(varDomFlQuery) },
                                                                     If(
                                                                         Len(q) < 7,
                                                                         Notify(
@@ -1892,6 +1879,9 @@ Screens:
                                                                         ),
                                                                 
                                                                         Set(varDomFlBusy, true);
+                                                                        Set(varDomFlLast, q);
+                                                                        Clear(colDomFl);
+                                                                        Set(varDomFFunctionalLocation, "");
                                                                         Set(varDomFlMsg, "Searching for " & q & " ...");
                                                                         IfError(
                                                                             Set(varDomFlRaw, 'BioSap-Integration-FunctionalLocations'.Run(q));
@@ -1913,6 +1903,10 @@ Screens:
                                                                     )
                                                                 )
                                                                             );
+                                                                            If(
+                                                                                CountRows(colDomFl) = 0,
+                                                                                Notify("No functional locations found for " & q & ".", NotificationType.Warning)
+                                                                            );
                                                                             Set(
                                                                                 varDomFlMsg,
                                                                                 With(
@@ -1930,7 +1924,108 @@ Screens:
                                                                                 )
                                                                             ),
                                                                             Clear(colDomFl);
-                                                                            Set(varDomFlMsg, "Search failed: " & FirstError.Message)
+                                                                            Set(varDomFlMsg, "Search failed: " & FirstError.Message);
+                                                                            Notify("The functional locations search failed. Try again.", NotificationType.Error)
+                                                                        );
+                                                                        Set(varDomFlBusy, false)
+                                                                    )
+                                                                );
+                                                                    Reset(cmbDomFl),
+                                                                    Set(varDomFFunctionalLocation, Coalesce(Self.Selected.Code, ""))
+                                                                )
+                                                            SelectMultiple: |-
+                                                                =false
+                                                            Size: |-
+                                                                =14
+                                                            Width: |-
+                                                                =Max(0, ((((If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4))))) - (If(!varDomFlBusy, (86) + 8, 0)) - (If(varDomFlBusy, (86) + 8, 0)) - 2)
+                                                      - btnDomFlSearch:
+                                                          Control: ModernButton
+                                                          Properties:
+                                                            AccessibleLabel: |-
+                                                                ="Search functional location"
+                                                            Align: |-
+                                                                =Align.Center
+                                                            AlignInContainer: |-
+                                                                =AlignInContainer.Center
+                                                            Appearance: |-
+                                                                =ButtonAppearance.Outline
+                                                            BorderColor: |-
+                                                                =C.'border-default'
+                                                            BorderThickness: |-
+                                                                =1
+                                                            Color: |-
+                                                                =C.'text-primary'
+                                                            DisplayMode: |-
+                                                                =If(Len(Trim(Coalesce(cmbDomFl.SearchText, varDomFlQuery))) < 7, DisplayMode.Disabled, If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit))
+                                                            Font: |-
+                                                                =Font.'Segoe UI'
+                                                            FontWeight: |-
+                                                                =FontWeight.Semibold
+                                                            Height: |-
+                                                                =36
+                                                            Layout: |-
+                                                                =ButtonLayout.TextOnly
+                                                            LayoutMinWidth: |-
+                                                                =86
+                                                            OnSelect: |-
+                                                                =With(
+                                                                    { q: Trim(Coalesce(cmbDomFl.SearchText, varDomFlQuery)) },
+                                                                    If(
+                                                                        Len(q) < 7,
+                                                                        Notify(
+                                                                            "Type at least 7 characters before searching.",
+                                                                            NotificationType.Warning
+                                                                        ),
+                                                                
+                                                                        Set(varDomFlBusy, true);
+                                                                        Set(varDomFlLast, q);
+                                                                        Clear(colDomFl);
+                                                                        Set(varDomFFunctionalLocation, "");
+                                                                        Set(varDomFlMsg, "Searching for " & q & " ...");
+                                                                        IfError(
+                                                                            Set(varDomFlRaw, 'BioSap-Integration-FunctionalLocations'.Run(q));
+                                                                            If(
+                                                                                IsBlank(varDomFlRaw) || IsBlank(varDomFlRaw.functionallocationoutput),
+                                                                                Clear(colDomFl),
+                                                                                ClearCollect(
+                                                                    colDomFl,
+                                                                    ForAll(
+                                                                        Table(ParseJSON(varDomFlRaw.functionallocationoutput)) As R,
+                                                                        {
+                                                                            Code: Text(R.Value.functionKey),
+                                                                            Description: Text(R.Value.description),
+                                                                            Display: Text(R.Value.functionKey) & " - " & Text(R.Value.description) &
+                                                                                If(Boolean(R.Value.maintainable), "", "   (not maintainable)"),
+                                                                            Maintainable: Boolean(R.Value.maintainable),
+                                                                            Level: Text(R.Value.level)
+                                                                        }
+                                                                    )
+                                                                )
+                                                                            );
+                                                                            If(
+                                                                                CountRows(colDomFl) = 0,
+                                                                                Notify("No functional locations found for " & q & ".", NotificationType.Warning)
+                                                                            );
+                                                                            Set(
+                                                                                varDomFlMsg,
+                                                                                With(
+                                                                                    { n: CountRows(colDomFl) },
+                                                                                    If(
+                                                                                        n = 0,
+                                                                                        "No Functional Locations found for " & q & ".",
+                                                                                        Text(n) & " Functional Locations found for " & q & ". " &
+                                                                                            If(
+                                                                                                n > 50,
+                                                                                                "The list is long - type more characters to narrow it.",
+                                                                                                "Select one from the list below."
+                                                                                            )
+                                                                                    )
+                                                                                )
+                                                                            ),
+                                                                            Clear(colDomFl);
+                                                                            Set(varDomFlMsg, "Search failed: " & FirstError.Message);
+                                                                            Notify("The functional locations search failed. Try again.", NotificationType.Error)
                                                                         );
                                                                         Set(varDomFlBusy, false)
                                                                     )
@@ -1946,11 +2041,67 @@ Screens:
                                                             Size: |-
                                                                 =14
                                                             Text: |-
-                                                                =If(varDomFlBusy, Left("...", 1 + varDomFlDots), "Search")
+                                                                ="Search"
                                                             VerticalAlign: |-
                                                                 =VerticalAlign.Middle
+                                                            Visible: |-
+                                                                =!varDomFlBusy
                                                             Width: |-
                                                                 =86
+                                                      - conDomFlSearchBusy:
+                                                          Control: GroupContainer
+                                                          Variant: AutoLayout
+                                                          Properties:
+                                                            BorderColor: |-
+                                                                =C.'border-default'
+                                                            BorderThickness: |-
+                                                                =1
+                                                            DropShadow: |-
+                                                                =DropShadow.None
+                                                            Fill: |-
+                                                                =C.'input-bg-disabled'
+                                                            FillPortions: |-
+                                                                =0
+                                                            Height: |-
+                                                                =36
+                                                            LayoutAlignItems: |-
+                                                                =LayoutAlignItems.Center
+                                                            LayoutDirection: |-
+                                                                =LayoutDirection.Horizontal
+                                                            LayoutGap: |-
+                                                                =0
+                                                            LayoutJustifyContent: |-
+                                                                =LayoutJustifyContent.Center
+                                                            LayoutMinWidth: |-
+                                                                =86
+                                                            LayoutOverflowX: |-
+                                                                =LayoutOverflow.Hide
+                                                            LayoutOverflowY: |-
+                                                                =LayoutOverflow.Hide
+                                                            RadiusBottomLeft: |-
+                                                                =10
+                                                            RadiusBottomRight: |-
+                                                                =10
+                                                            RadiusTopLeft: |-
+                                                                =10
+                                                            RadiusTopRight: |-
+                                                                =10
+                                                            Visible: |-
+                                                                =varDomFlBusy
+                                                            Width: |-
+                                                                =86
+                                                          Children:
+                                                            - spnDomFlSearch:
+                                                                Control: ModernSpinner
+                                                                Properties:
+                                                                  AccessibleLabel: |-
+                                                                      ="Searching functional locations"
+                                                                  Height: |-
+                                                                      =24
+                                                                  Label: |-
+                                                                      =""
+                                                                  Width: |-
+                                                                      =24
                                                 - tmrDomFlCapture:
                                                     Control: Timer
                                                     Properties:
@@ -1968,27 +2119,6 @@ Screens:
                                                           =true
                                                       Start: |-
                                                           =!IsBlank(cmbDomFl.SearchText)
-                                                      Visible: |-
-                                                          =false
-                                                      Width: |-
-                                                          =1
-                                                - tmrDomFlDots:
-                                                    Control: Timer
-                                                    Properties:
-                                                      AutoPause: |-
-                                                          =false
-                                                      AutoStart: |-
-                                                          =false
-                                                      Duration: |-
-                                                          =400
-                                                      Height: |-
-                                                          =1
-                                                      OnTimerEnd: |-
-                                                          =Set(varDomFlDots, Mod(varDomFlDots + 1, 3))
-                                                      Repeat: |-
-                                                          =true
-                                                      Start: |-
-                                                          =varDomFlBusy
                                                       Visible: |-
                                                           =false
                                                       Width: |-
@@ -2020,7 +2150,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conFunctionalLocation1Lbl:
                                               Control: ModernText
@@ -2129,7 +2259,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                   Children:
                                     - conFunctionalLocation2:
                                         Control: GroupContainer
@@ -2158,7 +2288,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conFunctionalLocation2Lbl:
                                               Control: ModernText
@@ -2267,7 +2397,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conClassDataLbl:
                                               Control: ModernText
@@ -2376,7 +2506,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conRoomCoordinatesLbl:
                                               Control: ModernText
@@ -2485,7 +2615,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conPlacementLbl:
                                               Control: ModernText
@@ -2594,7 +2724,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conWarrantyStartLbl:
                                               Control: ModernText
@@ -2701,7 +2831,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                   Children:
                                     - conWarrantyEnd:
                                         Control: GroupContainer
@@ -2730,7 +2860,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conWarrantyEndLbl:
                                               Control: ModernText
@@ -2837,7 +2967,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                         Children:
                                           - conDomDocsLbl:
                                               Control: ModernText
@@ -2899,7 +3029,7 @@ Screens:
                                                 LayoutOverflowY: |-
                                                     =LayoutOverflow.Hide
                                                 Width: |-
-                                                    =If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)
+                                                    =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)
                                               Children:
                                                 - txtDomDocsInfo:
                                                     Control: ModernTextInput
@@ -2943,7 +3073,7 @@ Screens:
                                                       ValidationState: |-
                                                           =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                                       Width: |-
-                                                          =Max(0, (((If((((App.Width - 120) - 36)) < 860, If((((App.Width - 120) - 36)) < 460, ((App.Width - 120) - 36), ((((App.Width - 120) - 36)) - 20) / 2), ((((App.Width - 120) - 36)) - 60) / 4)))) - ((113) + 8) - 2)
+                                                          =Max(0, (((If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4)))) - ((113) + 8) - 2)
                                                 - btnDomDocs:
                                                     Control: ModernButton
                                                     Properties:
@@ -3070,11 +3200,11 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - 120) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 36, (28) + 8 + (36) + 8 + (36) + 8 + (36) + 8 + (36))
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 36, (28) + 8 + (36) + 8 + (36) + 8 + (36) + 8 + (36))
                               LayoutAlignItems: |-
-                                  =If((((App.Width - 120) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                               LayoutDirection: |-
-                                  =If((((App.Width - 120) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =8
                               LayoutMinWidth: |-
@@ -3111,7 +3241,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =Max(0, ((((((App.Width - 56))) - 24 - 16 - 18) - 18 - 18)) - ((111) + 8) - ((135) + 8) - ((95) + 8) - ((91) + 8) - 2)
+                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18)) - ((111) + 8) - ((135) + 8) - ((95) + 8) - ((91) + 8) - 2)
                                   Children:
                                     - txtDomFormPlant:
                                         Control: ModernText
@@ -3237,7 +3367,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 120) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 111, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 111, 0)
                                     OnSelect: |-
                                         =If(
                                             IsBlank(varDomActiveRowId),
@@ -3299,6 +3429,7 @@ Screens:
                                             Set(varDomFWarrantyEnd, Blank());
                                             Set(varDomFlMsg, "");
                                             Set(varDomFlQuery, "");
+                                            Set(varDomFlLast, "");
                                             Reset(cmbDomFl);
                                             Set(varDomInfo, "Row deleted. The documents remain in the library.")
                                         )
@@ -3348,7 +3479,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.IconBefore
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 120) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 135, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 135, 0)
                                     OnSelect: |-
                                         =Set(varDomSaving, true);
                                         Set(varDomValidated, true);
@@ -3488,7 +3619,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.IconBefore
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 120) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 95, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 95, 0)
                                     OnSelect: |-
                                         =Set(varDomSaving, true);
                                         Set(varDomValidated, true);
@@ -3628,7 +3759,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 120) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 91, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 91, 0)
                                     OnSelect: |-
                                         =Set(varDomActiveRowId, Blank());
                                         Set(varDomRowStatus, "valid");
@@ -3651,6 +3782,7 @@ Screens:
                                         Set(varDomFWarrantyEnd, Blank());
                                         Set(varDomFlMsg, "");
                                         Set(varDomFlQuery, "");
+                                        Set(varDomFlLast, "");
                                         Reset(cmbDomFl);
                                         Set(varDomInfo, "New row - fill in and save.")
                                     RadiusBottomLeft: |-
@@ -3715,14 +3847,14 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =114 + (If((((App.Width - 120) - 36)) >= (240) + (170) + (170) + (111) + 24, 36, (26) + 8 + (36) + 8 + (36) + 8 + (36))) + 14 + (34 + (Max(Min(CountRows(Filter(
+                            =114 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (240) + (170) + (170) + (111) + 24, 36, (26) + 8 + (36) + 8 + (36) + 8 + (36))) + 14 + (34 + (Max(Min(CountRows(Filter(
                                 colDomRows,
                                 (IsBlank(Trim(txtDomSearch.Text)) || Trim(txtDomSearch.Text) in Description || Trim(txtDomSearch.Text) in FunctionalLocation || Trim(txtDomSearch.Text) in SerialNumber || Trim(txtDomSearch.Text) in EquipmentNumber),
                                 (drpDomStatusFilter.Selected.Value = "All status" ||
                                  Status = drpDomStatusFilter.Selected.Value),
                                 (drpDomPlantFilter.Selected.Value = "All plants" ||
                                  Plant = drpDomPlantFilter.Selected.Value)
-                            )), 8), 1) * 46) + If(((If(varDomAllCols, 2765, Max(1182, ((((App.Width - 120) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - 120) - 36)), 18, 0)) + If(IfError(CountRows(colDomRows) = 0, false), 14 + (22), 0) + 14 + (If((((App.Width - 120) - 36)) >= (124) + (158) + (195) + (0) + 24, 36, (20) + 8 + (36) + 8 + (36) + 8 + (36)))
+                            )), 8), 1) * 46) + If(((If(varDomAllCols, 2765, Max(1182, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)), 18, 0)) + If(IfError(CountRows(colDomRows) = 0, false), 14 + (22), 0) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (124) + (158) + (195) + (0) + 24, 36, (20) + 8 + (36) + 8 + (36) + 8 + (36)))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -3765,11 +3897,11 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - 120) - 36)) >= (240) + (170) + (170) + (111) + 24, 36, (26) + 8 + (36) + 8 + (36) + 8 + (36))
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (240) + (170) + (170) + (111) + 24, 36, (26) + 8 + (36) + 8 + (36) + 8 + (36))
                               LayoutAlignItems: |-
-                                  =If((((App.Width - 120) - 36)) >= (240) + (170) + (170) + (111) + 24, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (240) + (170) + (170) + (111) + 24, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                               LayoutDirection: |-
-                                  =If((((App.Width - 120) - 36)) >= (240) + (170) + (170) + (111) + 24, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (240) + (170) + (170) + (111) + 24, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =8
                               LayoutMinWidth: |-
@@ -3817,7 +3949,7 @@ Screens:
                                     Text: |-
                                         ="Saved Rows"
                                     Width: |-
-                                        =Max(0, ((((((App.Width - 56))) - 24 - 16 - 18) - 18 - 18)) - ((240) + 8) - ((170) + 8) - ((170) + 8) - 2)
+                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18)) - ((240) + 8) - ((170) + 8) - ((170) + 8) - 2)
                                     Wrap: |-
                                         =false
                               - txtDomSearch:
@@ -3842,7 +3974,7 @@ Screens:
                                     Height: |-
                                         =36
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 120) - 36)) >= (240) + (170) + (170) + (111) + 24, 240, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (240) + (170) + (170) + (111) + 24, 240, 0)
                                     Placeholder: |-
                                         ="Search FL, equipment no., serial no., description"
                                     RadiusBottomLeft: |-
@@ -3907,7 +4039,7 @@ Screens:
                                     Items.Value: |-
                                         =Value
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 120) - 36)) >= (240) + (170) + (170) + (111) + 24, 170, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (240) + (170) + (170) + (111) + 24, 170, 0)
                                     PaddingLeft: |-
                                         =12
                                     PressedColor: |-
@@ -3974,7 +4106,7 @@ Screens:
                                     Items.Value: |-
                                         =Value
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 120) - 36)) >= (240) + (170) + (170) + (111) + 24, 170, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (240) + (170) + (170) + (111) + 24, 170, 0)
                                     PaddingLeft: |-
                                         =12
                                     PressedColor: |-
@@ -4130,7 +4262,7 @@ Screens:
                                        Status = drpDomStatusFilter.Selected.Value),
                                       (drpDomPlantFilter.Selected.Value = "All plants" ||
                                        Plant = drpDomPlantFilter.Selected.Value)
-                                  )), 8), 1) * 46) + If(((If(varDomAllCols, 2765, Max(1182, ((((App.Width - 120) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - 120) - 36)), 18, 0)
+                                  )), 8), 1) * 46) + If(((If(varDomAllCols, 2765, Max(1182, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)), 18, 0)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Start
                               LayoutDirection: |-
@@ -4173,7 +4305,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If(varDomAllCols, 2765, Max(1182, ((((App.Width - 120) - 36)) - 4 - 18)))
+                                        =If(varDomAllCols, 2765, Max(1182, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))
                                   Children:
                                     - txtDomHeadStatus:
                                         Control: ModernText
@@ -4242,7 +4374,7 @@ Screens:
                                           Text: |-
                                               ="TYPE"
                                           Width: |-
-                                              =If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)
+                                              =If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)
                                           Wrap: |-
                                               =false
                                     - txtDomHead1:
@@ -4277,7 +4409,7 @@ Screens:
                                           Text: |-
                                               ="PLANT"
                                           Width: |-
-                                              =If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)
+                                              =If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)
                                           Wrap: |-
                                               =false
                                     - txtDomHead2:
@@ -4312,7 +4444,7 @@ Screens:
                                           Text: |-
                                               =If(varDomAllCols, "EQUIPMENT NUMBER", "FUNCTIONAL LOCATION")
                                           Width: |-
-                                              =If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)
+                                              =If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)
                                           Wrap: |-
                                               =false
                                     - txtDomHead3:
@@ -4347,7 +4479,7 @@ Screens:
                                           Text: |-
                                               =If(varDomAllCols, "DESCRIPTION", "EQUIPMENT NUMBER")
                                           Width: |-
-                                              =If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)
+                                              =If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)
                                           Wrap: |-
                                               =false
                                     - txtDomHead4:
@@ -4382,7 +4514,7 @@ Screens:
                                           Text: |-
                                               =If(varDomAllCols, "EQUIPMENT TYPE", "DESCRIPTION")
                                           Width: |-
-                                              =If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)
+                                              =If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)
                                           Wrap: |-
                                               =false
                                     - txtDomHead5:
@@ -4417,7 +4549,7 @@ Screens:
                                           Text: |-
                                               =If(varDomAllCols, "MANUFACTURER", "EQUIPMENT TYPE")
                                           Width: |-
-                                              =If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)
+                                              =If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)
                                           Wrap: |-
                                               =false
                                     - txtDomHead6:
@@ -4990,7 +5122,7 @@ Screens:
                                         Set(varDomFWarrantyEnd, ThisItem.WarrantyEnd);
                                         If(
                                             !IsBlank(ThisItem.FunctionalLocation) && IsBlank(LookUp(colDomFl, Code = ThisItem.FunctionalLocation)),
-                                            Collect(colDomFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation, Maintainable: true, Level: "" })
+                                            Collect(colDomFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
                                         )
                                     Selectable: |-
                                         =true
@@ -5003,7 +5135,7 @@ Screens:
                                     TemplateSize: |-
                                         =44
                                     Width: |-
-                                        =(If(varDomAllCols, 2765, Max(1182, ((((App.Width - 120) - 36)) - 4 - 18)))) + 4 + 18
+                                        =(If(varDomAllCols, 2765, Max(1182, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18
                                     WrapCount: |-
                                         =1
                                   Children:
@@ -5086,7 +5218,7 @@ Screens:
                                           Text: |-
                                               =ThisItem.RequestType
                                           Width: |-
-                                              =If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)
+                                              =If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)
                                           Wrap: |-
                                               =false
                                           X: |-
@@ -5123,11 +5255,11 @@ Screens:
                                           Text: |-
                                               =ThisItem.Plant
                                           Width: |-
-                                              =If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)
+                                              =If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6
+                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtDomCell2:
@@ -5160,11 +5292,11 @@ Screens:
                                           Text: |-
                                               =If(varDomAllCols, ThisItem.EquipmentNumber, ThisItem.FunctionalLocation)
                                           Width: |-
-                                              =If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)
+                                              =If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6
+                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtDomCell3:
@@ -5197,11 +5329,11 @@ Screens:
                                           Text: |-
                                               =If(varDomAllCols, If(IsBlank(Trim(ThisItem.Description)), "(no text)", ThisItem.Description), ThisItem.EquipmentNumber)
                                           Width: |-
-                                              =If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)
+                                              =If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6
+                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtDomCell4:
@@ -5234,11 +5366,11 @@ Screens:
                                           Text: |-
                                               =If(varDomAllCols, ThisItem.EquipmentCategory, If(IsBlank(Trim(ThisItem.Description)), "(no text)", ThisItem.Description))
                                           Width: |-
-                                              =If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)
+                                              =If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6
+                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtDomCell5:
@@ -5271,11 +5403,11 @@ Screens:
                                           Text: |-
                                               =If(varDomAllCols, ThisItem.Manufacturer, ThisItem.EquipmentCategory)
                                           Width: |-
-                                              =If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)
+                                              =If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6
+                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtDomCell6:
@@ -5314,7 +5446,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6
+                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtDomCell7:
@@ -5353,7 +5485,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0)
+                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0)
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtDomCell8:
@@ -5392,7 +5524,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0)
+                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0)
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtDomCell9:
@@ -5431,7 +5563,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0)
+                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0)
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtDomCell10:
@@ -5470,7 +5602,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0) + If(varDomAllCols, (110) + 6, 0)
+                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0) + If(varDomAllCols, (110) + 6, 0)
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtDomCell11:
@@ -5509,7 +5641,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0) + If(varDomAllCols, (110) + 6, 0) + If(varDomAllCols, (164) + 6, 0)
+                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0) + If(varDomAllCols, (110) + 6, 0) + If(varDomAllCols, (164) + 6, 0)
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtDomCell12:
@@ -5548,7 +5680,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0) + If(varDomAllCols, (110) + 6, 0) + If(varDomAllCols, (164) + 6, 0) + If(varDomAllCols, (100) + 6, 0)
+                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0) + If(varDomAllCols, (110) + 6, 0) + If(varDomAllCols, (164) + 6, 0) + If(varDomAllCols, (100) + 6, 0)
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtDomCell13:
@@ -5587,7 +5719,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0) + If(varDomAllCols, (110) + 6, 0) + If(varDomAllCols, (164) + 6, 0) + If(varDomAllCols, (100) + 6, 0) + If(varDomAllCols, (141) + 6, 0)
+                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0) + If(varDomAllCols, (110) + 6, 0) + If(varDomAllCols, (164) + 6, 0) + If(varDomAllCols, (100) + 6, 0) + If(varDomAllCols, (141) + 6, 0)
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtDomCell14:
@@ -5626,7 +5758,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0) + If(varDomAllCols, (110) + 6, 0) + If(varDomAllCols, (164) + 6, 0) + If(varDomAllCols, (100) + 6, 0) + If(varDomAllCols, (141) + 6, 0) + If(varDomAllCols, (120) + 6, 0)
+                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0) + If(varDomAllCols, (110) + 6, 0) + If(varDomAllCols, (164) + 6, 0) + If(varDomAllCols, (100) + 6, 0) + If(varDomAllCols, (141) + 6, 0) + If(varDomAllCols, (120) + 6, 0)
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtDomCell15:
@@ -5665,7 +5797,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0) + If(varDomAllCols, (110) + 6, 0) + If(varDomAllCols, (164) + 6, 0) + If(varDomAllCols, (100) + 6, 0) + If(varDomAllCols, (141) + 6, 0) + If(varDomAllCols, (120) + 6, 0) + If(varDomAllCols, (122) + 6, 0)
+                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0) + If(varDomAllCols, (110) + 6, 0) + If(varDomAllCols, (164) + 6, 0) + If(varDomAllCols, (100) + 6, 0) + If(varDomAllCols, (141) + 6, 0) + If(varDomAllCols, (120) + 6, 0) + If(varDomAllCols, (122) + 6, 0)
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtDomCell16:
@@ -5704,7 +5836,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0) + If(varDomAllCols, (110) + 6, 0) + If(varDomAllCols, (164) + 6, 0) + If(varDomAllCols, (100) + 6, 0) + If(varDomAllCols, (141) + 6, 0) + If(varDomAllCols, (120) + 6, 0) + If(varDomAllCols, (122) + 6, 0) + If(varDomAllCols, (105) + 6, 0)
+                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0) + If(varDomAllCols, (110) + 6, 0) + If(varDomAllCols, (164) + 6, 0) + If(varDomAllCols, (100) + 6, 0) + If(varDomAllCols, (141) + 6, 0) + If(varDomAllCols, (120) + 6, 0) + If(varDomAllCols, (122) + 6, 0) + If(varDomAllCols, (105) + 6, 0)
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - txtDomCell17:
@@ -5743,7 +5875,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0) + If(varDomAllCols, (110) + 6, 0) + If(varDomAllCols, (164) + 6, 0) + If(varDomAllCols, (100) + 6, 0) + If(varDomAllCols, (141) + 6, 0) + If(varDomAllCols, (120) + 6, 0) + If(varDomAllCols, (122) + 6, 0) + If(varDomAllCols, (105) + 6, 0) + If(varDomAllCols, (95) + 6, 0)
+                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0) + If(varDomAllCols, (110) + 6, 0) + If(varDomAllCols, (164) + 6, 0) + If(varDomAllCols, (100) + 6, 0) + If(varDomAllCols, (141) + 6, 0) + If(varDomAllCols, (120) + 6, 0) + If(varDomAllCols, (122) + 6, 0) + If(varDomAllCols, (105) + 6, 0) + If(varDomAllCols, (95) + 6, 0)
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (20)) / 2
                                     - btnDomRowDetails:
@@ -5788,7 +5920,7 @@ Screens:
                                           Width: |-
                                               =72
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0) + If(varDomAllCols, (110) + 6, 0) + If(varDomAllCols, (164) + 6, 0) + If(varDomAllCols, (100) + 6, 0) + If(varDomAllCols, (141) + 6, 0) + If(varDomAllCols, (120) + 6, 0) + If(varDomAllCols, (122) + 6, 0) + If(varDomAllCols, (105) + 6, 0) + If(varDomAllCols, (95) + 6, 0) + If(varDomAllCols, (200) + 6, 0) + 10 + 0
+                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0) + If(varDomAllCols, (110) + 6, 0) + If(varDomAllCols, (164) + 6, 0) + If(varDomAllCols, (100) + 6, 0) + If(varDomAllCols, (141) + 6, 0) + If(varDomAllCols, (120) + 6, 0) + If(varDomAllCols, (122) + 6, 0) + If(varDomAllCols, (105) + 6, 0) + If(varDomAllCols, (95) + 6, 0) + If(varDomAllCols, (200) + 6, 0) + 10 + 0
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                                     - btnDomRowDocs:
@@ -5868,7 +6000,7 @@ Screens:
                                           Width: |-
                                               =64
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0) + If(varDomAllCols, (110) + 6, 0) + If(varDomAllCols, (164) + 6, 0) + If(varDomAllCols, (100) + 6, 0) + If(varDomAllCols, (141) + 6, 0) + If(varDomAllCols, (120) + 6, 0) + If(varDomAllCols, (122) + 6, 0) + If(varDomAllCols, (105) + 6, 0) + If(varDomAllCols, (95) + 6, 0) + If(varDomAllCols, (200) + 6, 0) + 10 + 0 + (72) + 4
+                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0) + If(varDomAllCols, (110) + 6, 0) + If(varDomAllCols, (164) + 6, 0) + If(varDomAllCols, (100) + 6, 0) + If(varDomAllCols, (141) + 6, 0) + If(varDomAllCols, (120) + 6, 0) + If(varDomAllCols, (122) + 6, 0) + If(varDomAllCols, (105) + 6, 0) + If(varDomAllCols, (95) + 6, 0) + If(varDomAllCols, (200) + 6, 0) + 10 + 0 + (72) + 4
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                                     - btnDomRowOpen:
@@ -5916,7 +6048,7 @@ Screens:
                                               Set(varDomFWarrantyEnd, ThisItem.WarrantyEnd);
                                               If(
                                                   !IsBlank(ThisItem.FunctionalLocation) && IsBlank(LookUp(colDomFl, Code = ThisItem.FunctionalLocation)),
-                                                  Collect(colDomFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation, Maintainable: true, Level: "" })
+                                                  Collect(colDomFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
                                               )
                                           RadiusBottomLeft: |-
                                               =10
@@ -5935,7 +6067,7 @@ Screens:
                                           Width: |-
                                               =60
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0) + If(varDomAllCols, (110) + 6, 0) + If(varDomAllCols, (164) + 6, 0) + If(varDomAllCols, (100) + 6, 0) + If(varDomAllCols, (141) + 6, 0) + If(varDomAllCols, (120) + 6, 0) + If(varDomAllCols, (122) + 6, 0) + If(varDomAllCols, (105) + 6, 0) + If(varDomAllCols, (95) + 6, 0) + If(varDomAllCols, (200) + 6, 0) + (150) + 6 + 10 + 0
+                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0) + If(varDomAllCols, (110) + 6, 0) + If(varDomAllCols, (164) + 6, 0) + If(varDomAllCols, (100) + 6, 0) + If(varDomAllCols, (141) + 6, 0) + If(varDomAllCols, (120) + 6, 0) + If(varDomAllCols, (122) + 6, 0) + If(varDomAllCols, (105) + 6, 0) + If(varDomAllCols, (95) + 6, 0) + If(varDomAllCols, (200) + 6, 0) + (150) + 6 + 10 + 0
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                                     - btnDomRowCopy:
@@ -5983,7 +6115,7 @@ Screens:
                                               Set(varDomFWarrantyEnd, ThisItem.WarrantyEnd);
                                               If(
                                                   !IsBlank(ThisItem.FunctionalLocation) && IsBlank(LookUp(colDomFl, Code = ThisItem.FunctionalLocation)),
-                                                  Collect(colDomFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation, Maintainable: true, Level: "" })
+                                                  Collect(colDomFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
                                               );
                                               Set(varDomInfo, "Copied to a new row - not saved yet. Documents were not copied.")
                                           RadiusBottomLeft: |-
@@ -6003,7 +6135,7 @@ Screens:
                                           Width: |-
                                               =64
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0) + If(varDomAllCols, (110) + 6, 0) + If(varDomAllCols, (164) + 6, 0) + If(varDomAllCols, (100) + 6, 0) + If(varDomAllCols, (141) + 6, 0) + If(varDomAllCols, (120) + 6, 0) + If(varDomAllCols, (122) + 6, 0) + If(varDomAllCols, (105) + 6, 0) + If(varDomAllCols, (95) + 6, 0) + If(varDomAllCols, (200) + 6, 0) + (150) + 6 + 10 + 0 + (60) + 4
+                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0) + If(varDomAllCols, (110) + 6, 0) + If(varDomAllCols, (164) + 6, 0) + If(varDomAllCols, (100) + 6, 0) + If(varDomAllCols, (141) + 6, 0) + If(varDomAllCols, (120) + 6, 0) + If(varDomAllCols, (122) + 6, 0) + If(varDomAllCols, (105) + 6, 0) + If(varDomAllCols, (95) + 6, 0) + If(varDomAllCols, (200) + 6, 0) + (150) + 6 + 10 + 0 + (60) + 4
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                                     - btnDomRowDelete:
@@ -6060,6 +6192,7 @@ Screens:
                                                   Set(varDomFWarrantyEnd, Blank());
                                                   Set(varDomFlMsg, "");
                                                   Set(varDomFlQuery, "");
+                                                  Set(varDomFlLast, "");
                                                   Reset(cmbDomFl);
                                                   Set(varDomInfo, "New row - fill in and save.")
                                               );
@@ -6111,7 +6244,7 @@ Screens:
                                           Width: |-
                                               =72
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - 120) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0) + If(varDomAllCols, (110) + 6, 0) + If(varDomAllCols, (164) + 6, 0) + If(varDomAllCols, (100) + 6, 0) + If(varDomAllCols, (141) + 6, 0) + If(varDomAllCols, (120) + 6, 0) + If(varDomAllCols, (122) + 6, 0) + If(varDomAllCols, (105) + 6, 0) + If(varDomAllCols, (95) + 6, 0) + If(varDomAllCols, (200) + 6, 0) + (150) + 6 + 10 + 0 + (60) + 4 + (64) + 4
+                                              =0 + 0 + 0 + (90) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 139, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 130, 139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 117, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + (If(varDomAllCols, 115, 117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1182) / 6)) + 6 + If(varDomAllCols, (128) + 6, 0) + If(varDomAllCols, (111) + 6, 0) + If(varDomAllCols, (154) + 6, 0) + If(varDomAllCols, (110) + 6, 0) + If(varDomAllCols, (164) + 6, 0) + If(varDomAllCols, (100) + 6, 0) + If(varDomAllCols, (141) + 6, 0) + If(varDomAllCols, (120) + 6, 0) + If(varDomAllCols, (122) + 6, 0) + If(varDomAllCols, (105) + 6, 0) + If(varDomAllCols, (95) + 6, 0) + If(varDomAllCols, (200) + 6, 0) + (150) + 6 + 10 + 0 + (60) + 4 + (64) + 4
                                           Y: |-
                                               =0 + 0 + ((((44) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                         - txtDomNoRows:
@@ -6158,11 +6291,11 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - 120) - 36)) >= (124) + (158) + (195) + (0) + 24, 36, (20) + 8 + (36) + 8 + (36) + 8 + (36))
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (124) + (158) + (195) + (0) + 24, 36, (20) + 8 + (36) + 8 + (36) + 8 + (36))
                               LayoutAlignItems: |-
-                                  =If((((App.Width - 120) - 36)) >= (124) + (158) + (195) + (0) + 24, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (124) + (158) + (195) + (0) + 24, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                               LayoutDirection: |-
-                                  =If((((App.Width - 120) - 36)) >= (124) + (158) + (195) + (0) + 24, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (124) + (158) + (195) + (0) + 24, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =8
                               LayoutMinWidth: |-
@@ -6216,7 +6349,7 @@ Screens:
                                             "Request " & varDomRequestNo & " is on the landing page."
                                         )
                                     Width: |-
-                                        =Max(0, ((((((App.Width - 56))) - 24 - 16 - 18) - 18 - 18)) - ((124) + 8) - ((158) + 8) - ((195) + 8) - 2)
+                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18)) - ((124) + 8) - ((158) + 8) - ((195) + 8) - 2)
                                     Wrap: |-
                                         =false
                               - btnDomReload:
@@ -6245,7 +6378,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 120) - 36)) >= (124) + (158) + (195) + (0) + 24, 124, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (124) + (158) + (195) + (0) + 24, 124, 0)
                                     OnSelect: |-
                                         =ClearCollect(
                                             colDomRows,
@@ -6323,7 +6456,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.IconBefore
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 120) - 36)) >= (124) + (158) + (195) + (0) + 24, 158, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (124) + (158) + (195) + (0) + 24, 158, 0)
                                     OnSelect: |-
                                         =Set(varDomSaving, true);
                                         If(
@@ -6461,7 +6594,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.IconBefore
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - 120) - 36)) >= (124) + (158) + (195) + (0) + 24, 195, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (124) + (158) + (195) + (0) + 24, 195, 0)
                                     OnSelect: |-
                                         =Set(varDomConfirmSubmit, true)
                                     RadiusBottomLeft: |-
@@ -6549,6 +6682,8 @@ Screens:
                 =0
             PaddingTop: |-
                 =13
+            Visible: |-
+                =LayoutRank >= 2
             Width: |-
                 =57
             X: |-
@@ -6700,7 +6835,7 @@ Screens:
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z M12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z'/></g></svg>")
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z M8.5 14.5v-3l2 1.2v-1.2l2 1.2V8h2.5v6.5Z M13.3 6.2c.4-.6 1.2-.6 1.6 0'/></g></svg>")
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
@@ -6911,6 +7046,156 @@ Screens:
                             =0
                         Width: |-
                             =36
+      - conDomMobileBar:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'border-subtle'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.None
+            Fill: |-
+                =C.'bg-surface'
+            FillPortions: |-
+                =0
+            Height: |-
+                =52
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Center
+            LayoutDirection: |-
+                =LayoutDirection.Horizontal
+            LayoutGap: |-
+                =0
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =0
+            PaddingLeft: |-
+                =0
+            PaddingRight: |-
+                =16
+            PaddingTop: |-
+                =0
+            Visible: |-
+                =!(LayoutRank >= 2)
+            Width: |-
+                =App.Width + 2
+            X: |-
+                =-1
+            Y: |-
+                =-1
+          Children:
+            - imgDomNavMenu:
+                Control: Image
+                Properties:
+                  AccessibleLabel: |-
+                      ="Open menu"
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  FocusedBorderColor: |-
+                      =C.'color-brand-primary'
+                  FocusedBorderThickness: |-
+                      =2
+                  Height: |-
+                      =40
+                  HoverFill: |-
+                      =C.'bg-muted'
+                  Image: |-
+                      ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M4 7h16M4 12h16M4 17h16'/></g></svg>")
+                  ImagePosition: |-
+                      =ImagePosition.Fit
+                  OnSelect: |-
+                      =Set(gblNavOpen, true)
+                  PressedFill: |-
+                      =C.'bg-muted'
+                  TabIndex: |-
+                      =0
+                  Tooltip: |-
+                      ="Open menu"
+                  Width: |-
+                      =56
+            - imgDomNavBrandMobile:
+                Control: Image
+                Properties:
+                  AccessibleLabel: |-
+                      ="BIO SAP - Masterdata Hub"
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  FocusedBorderColor: |-
+                      =C.'color-brand-primary'
+                  FocusedBorderThickness: |-
+                      =2
+                  Height: |-
+                      =44
+                  HoverFill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Image: |-
+                      ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='136' height='44' viewBox='0 0 136 44'><rect x='15' y='9' width='26' height='26' rx='7' fill='" & C.'hex-color-brand-primary' & "'/><text x='28' y='26' text-anchor='middle' font-family='Consolas, monospace' font-size='11' font-weight='700' fill='" & C.'hex-text-on-primary' & "'>BS</text><text x='56' y='28' font-family='Segoe UI, sans-serif' font-size='16' font-weight='600' fill='" & C.'hex-text-primary' & "'>BIO SAP</text></svg>")
+                  ImagePosition: |-
+                      =ImagePosition.Fit
+                  OnSelect: |-
+                      =Set(gblNavOpen, false); Launch("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/f387047d-86af-4d6a-8370-afcf35939436" & "?theme=" & If(darkModeEnabled, "dark", "light"), { }, LaunchTarget.Replace)
+                  PressedFill: |-
+                      =RGBA(0, 0, 0, 0)
+                  TabIndex: |-
+                      =0
+                  Width: |-
+                      =136
+            - txtDomNavTitle:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      ="Equipments"
+                  Align: |-
+                      =Align.Right
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-primary'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  FillPortions: |-
+                      =0
+                  Font: |-
+                      =Font.'Segoe UI'
+                  FontWeight: |-
+                      =FontWeight.Semibold
+                  Height: |-
+                      =22
+                  LayoutMinWidth: |-
+                      =0
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =14
+                  Text: |-
+                      ="Equipments"
+                  Width: |-
+                      =Max(0, ((App.Width + 2) - 16) - ((56) + 0) - ((136) + 0) - 2)
+                  Wrap: |-
+                      =false
       - conDomBackdrop:
           Control: GroupContainer
           Variant: AutoLayout
@@ -7331,7 +7616,7 @@ Screens:
                             Set(varDomFWarrantyEnd, LookUp(colDomRows, RowId = varDomDetailsId).WarrantyEnd);
                             If(
                                 !IsBlank(LookUp(colDomRows, RowId = varDomDetailsId).FunctionalLocation) && IsBlank(LookUp(colDomFl, Code = LookUp(colDomRows, RowId = varDomDetailsId).FunctionalLocation)),
-                                Collect(colDomFl, { Code: LookUp(colDomRows, RowId = varDomDetailsId).FunctionalLocation, Description: "", Display: LookUp(colDomRows, RowId = varDomDetailsId).FunctionalLocation, Maintainable: true, Level: "" })
+                                Collect(colDomFl, { Code: LookUp(colDomRows, RowId = varDomDetailsId).FunctionalLocation, Description: "", Display: LookUp(colDomRows, RowId = varDomDetailsId).FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
                             );
                             Set(varDomDetailsId, Blank())
                         RadiusBottomLeft: |-
@@ -10014,7 +10299,7 @@ Screens:
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M18 6l-6 6 6 6 M12 6l-6 6 6 6'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Collapse</text></svg>")
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M18 6l-6 6 6 6 M12 6l-6 6 6 6'/></g></svg>")
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
@@ -10023,8 +10308,10 @@ Screens:
                             =C.'bg-muted'
                         TabIndex: |-
                             =0
+                        Tooltip: |-
+                            ="Collapse menu"
                         Width: |-
-                            =232
+                            =56
                   - imgDomNavHubOpen:
                       Control: Image
                       Properties:
@@ -10076,7 +10363,7 @@ Screens:
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z M12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Functional Location</text></svg>")
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z M8.5 14.5v-3l2 1.2v-1.2l2 1.2V8h2.5v6.5Z M13.3 6.2c.4-.6 1.2-.6 1.6 0'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Functional Location</text></svg>")
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
@@ -10641,7 +10928,7 @@ Screens:
             Height: |-
                 =App.Height
             Image: |-
-                ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><circle cx='32' cy='32' r='22' fill='none' stroke-width='6' stroke='" & C.'hex-state-neutral-bg' & "'/><path d='M32 10 a22 22 0 0 1 22 22' fill='none' stroke-width='6' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'><animateTransform attributeName='transform' type='rotate' from='0 32 32' to='360 32 32' dur='0.9s' repeatCount='indefinite'/></path></svg>")
+                ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><g opacity='0'><animate attributeName='opacity' from='0' to='1' begin='0.15s' dur='0.2s' fill='freeze'/><circle cx='32' cy='32' r='22' fill='none' stroke-width='6' stroke='" & C.'hex-state-neutral-bg' & "'/><path d='M32 10 a22 22 0 0 1 22 22' fill='none' stroke-width='6' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'><animateTransform attributeName='transform' type='rotate' from='0 32 32' to='360 32 32' dur='0.9s' repeatCount='indefinite'/></path></g></svg>")
             ImagePosition: |-
                 =ImagePosition.Center
             TabIndex: |-

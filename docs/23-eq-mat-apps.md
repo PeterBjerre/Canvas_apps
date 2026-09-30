@@ -250,7 +250,7 @@ hvilke kolonner** er appens egen:
 | Knapperne | Så brede som deres tekst (`fit_button_width` + ikon) og låst med `LayoutMinWidth`, så teksten aldrig klippes |
 | Listen | Søgning, status- og værksfilter, **Compact/All columns** (`varDomAllCols`), statusmærke, Details og Docs, Edit/Copy/Delete. Indsend står under tabellen til højre |
 | No BOM Item (Materials) | Knap i formularens hoved. Til: funktionspladsen ryddes og deaktiveres, stjernen forsvinder, og Save row kræver den ikke. Kolonnen er `MaterialItems.NoBomItem` (Boolean) |
-| FL-comboboksen (Equipments) | Søgning og valg i **én** `ModernCombobox` + Search (`build_fl_combobox`). `FL_INPUT = "combobox"` i `domain_config.py` |
+| FL-vælgeren (begge apps + VH-plan) | Søgning og valg i **én** `ModernCombobox` + Search — `tools/fl_picker.py` (issue #63). Enter søger via en søgerække i listen; mens flowet kører, står en spinner på Search-knappens plads |
 | Felter (Equipments) | Func. loc. 1, Functional location 2 og Class data er tilbage i formularen (fjernet i #37). Kolonnerne var aldrig slettet |
 
 **Compact og All columns er ét galleri.** Kolonnerne står i forskellig

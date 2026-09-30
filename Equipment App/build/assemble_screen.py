@@ -56,12 +56,12 @@ def build_screen():
     # i en krop, der goer - se build_helpers.app_frame.
     root = app_frame("Dom", build_bar(), [ep.build_form(), ep.build_rows()])
     # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
-    rail, overlay = side_nav("Dom", "equipment")
+    nav, overlay = side_nav("Dom", "equipment")
     # Sloeret FOER popupperne: kontrollerne tegnes i den raekkefoelge, de
     # staar, saa det, der skal ligge bagved, skal staa foerst.
     return render_screen(cfg.SCREEN,
                          {"Fill": C_APP_BG, "OnVisible": on_visible()},
-                         [root, rail, build_backdrop(), build_details(), build_attachments(),
+                         [root, *nav, build_backdrop(), build_details(), build_attachments(),
                           *overlay,
                           # Bekraeftelsen foer Submit og ventespinneren - oeverst.
                           *build_submit_confirm()])

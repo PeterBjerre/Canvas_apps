@@ -31,7 +31,7 @@ from design_tokens import ref_hex
 from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE, at_least
 from build_helpers import (text_ctrl, group, button, text_input, dropdown, card,
                            pin_widths, top_bar, grow, button_row, badge,
-                           busy_overlay, with_busy, confirm_modal, ICON_SAVE, ICON_SUBMIT,
+                           loading_overlay, with_busy, confirm_modal, ICON_SAVE, ICON_SUBMIT,
                            ICON_W)
 
 # Indsendt = laast (FL69).
@@ -643,4 +643,4 @@ def build_submit_confirm():
         "Fl", "varFlConfirmSubmit", "Submit request?",
         '"A JSON snapshot is frozen and the rows are locked."',
         "Submit", with_busy("varFlSaving", S.submit_fx()), "btnFlSubmitConfirm") + [
-        busy_overlay("imgFlSaving", "varFlSaving")]
+        loading_overlay("imgFlSaving", "varFlSaving")]

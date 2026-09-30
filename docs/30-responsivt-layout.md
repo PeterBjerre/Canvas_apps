@@ -125,9 +125,16 @@ flugter med kortenes.
 at passe, passer — på Mac og på Windows.
 
 **Sidebaren.** Siden alle fem apps fik sidebaren (`tools/side_nav.py`)
-starter rammen 56 px inde (`NAV_W`): `X = 56`, `Width = Parent.Width - 56`,
-og `SHELL_W = App.Width - 120`. Åbnet ligger sidebaren oven på indholdet,
-så kun den lukkede bredde indgår. Tre gallerier skulle have smallere
+starter rammen 56 px inde (`NAV_W`) fra Tablet og op: `X = 56`,
+`Width = Parent.Width - 56`, og `SHELL_W = App.Width - 56 - 64`. Åbnet
+ligger sidebaren oven på indholdet, så kun den lukkede bredde indgår.
+
+**Mobil (issue #65).** Under Tablet er skinnen skjult, og en topbjælke på
+`MOBILE_BAR_H` = 52 px står øverst (`con<X>MobileBar`: menu, logo, appens
+navn). Rammen står under den i fuld bredde: `X = 0`, `Y = 52`,
+`SHELL_W = App.Width - 0 - 64`. De fire udtryk er `ROOT_X`/`ROOT_Y`/
+`ROOT_W`/`ROOT_H` i `tools/layout_tokens.py`; regel 23 kræver præcis dem.
+Menuknappen åbner det samme panel som skinnens `>>`. Tre gallerier skulle have smallere
 kolonner ved 720 px for at passe (VH-planens dokumentliste, FL-appens to
 rækkelister).
 

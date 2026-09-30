@@ -57,7 +57,7 @@ from build_helpers import (text_ctrl, group, button, text_input,
                            number_input, themed_dropdown, card, field_cell,
                            pin_widths, badge, top_bar, grow, flow_row,
                            border_rule, input_fill, label_px, text_px,
-                           busy_overlay, with_busy, confirm_modal, ICON_SAVE,
+                           loading_overlay, with_busy, confirm_modal, ICON_SAVE,
                            ICON_SUBMIT, ICON_W)
 
 # Mens en gemning koerer, staar ventespinneren oven paa skaermen (issue #54).
@@ -72,6 +72,7 @@ import attflows
 # domaeneudgave - samme tre flows, egne samlingsnavne.
 att = attflows.DomainPane()
 import build_flsearch as fl
+from fl_picker import fl_picker, known_fx as fl_known_fx
 
 # Raekkens felter i een flad liste - raekkefoelgen er sektionernes.
 FIELDS = [f for _sec, fields in cfg.SECTIONS for f in fields]
@@ -248,198 +249,31 @@ def _plant_dropdown():
                            onchange="Set(varDomFPlant, Self.Selected.Value)")
 
 
-# Soegefeltets tekst uden linjeskift. Feltets Default peger paa den, saa
-# Reset() kan fjerne det linjeskift, Enter laegger i feltet.
+# FL-vaelgerens tilstand. Selve vaelgeren er tools/fl_picker.py - den
+# samme i VH-plan, Equipments og Materials (issue #63).
 FL_QUERY_VAR = "varDomFlQuery"
 FL_BUSY_VAR = "varDomFlBusy"
-FL_DOTS_VAR = "varDomFlDots"
-
-
-def _fl_search(query_expr=None):
-    return fl.search_action("txtDomFlQuery", "colDomFl", "varDomFlMsg",
-                            busy_var=FL_BUSY_VAR, query_expr=query_expr)
-
-
-def _timer(name, start, duration, repeat, on_start=None, on_end=None):
-    props = {
-        "AutoPause": "false",
-        "AutoStart": "false",
-        "Duration": str(duration),
-        "Height": "1",
-        "Repeat": "true" if repeat else "false",
-        "Start": start,
-        "Visible": "false",
-        "Width": "1",
-    }
-    if on_start:
-        props["OnTimerStart"] = on_start
-    if on_end:
-        props["OnTimerEnd"] = on_end
-    return Ctrl(name, "Timer", props=props, h=1, vis="false")
-
-
-def fl_search_button(onselect, dm=DM_ROW):
-    """Search-knappen. Mens flowet koerer, er den deaktiveret, og "Search"
-    er skiftet ud med tre prikker, der bevaeger sig (fl_dots_timer). Den
-    har samme bredde i begge tilstande, saa feltet ved siden af ikke hopper."""
-    btn = button("btnDomFlSearch",
-                 f'If({FL_BUSY_VAR}, Left("...", 1 + {FL_DOTS_VAR}), "Search")',
-                 onselect, width=fit_button_width('"Search"'),
-                 display_mode=f"If({FL_BUSY_VAR}, DisplayMode.Disabled, {dm})",
-                 accessible='"Search functional location"')
-    btn.props["LayoutMinWidth"] = btn.props["Width"]
-    return btn
-
-
-def fl_dots_timer():
-    """Prikkerne paa Search, mens flowet koerer."""
-    return _timer("tmrDomFlDots", FL_BUSY_VAR, 400, True,
-                  on_end=f"Set({FL_DOTS_VAR}, Mod({FL_DOTS_VAR} + 1, 3))")
-
-
-def build_fl_controls(cell_w, lock=None, required_formula="false"):
-    """Soegningen (tekstfelt + knap + de to timere) og dropdownen - uden
-    celler om. Materials stabler dem i EEN celle (material_parts.py).
-
-    lock: et udtryk, der - naar det er sandt - deaktiverer soegningen og
-    dropdownen (Materials' No BOM Item). required_formula: hvornaar
-    dropdownens kant maa vaere roed.
-
-        [ Search functional location ][ Functional location ]
-        [ tekstfelt          Search  ][ dropdown           ]
-
-    Foer fyldte blokken sin egen raekke i fuld bredde, med soegefeltet
-    strakt ud over hele kortet og en "Selected: ..."-linje under
-    dropdownen. Den linje er vaek: det valgte staar i dropdownen.
-
-    Der er stadig INGEN skjult filtrering: et tekstfelt siger HVAD der
-    soeges, en knap (eller Enter) siger HVORNAAR, og dropdownen viser
-    praecis det, samlingen indeholder. Den foerste udgave i VH-plan brugte
-    en combobox med indbygget soegning - den fik 819 raekker og viste nul.
-
-    ENTER SOEGER
-    ------------
-    Den moderne tekstboks har ingen Enter-haendelse - OnChange kommer
-    foerst, naar feltet mister fokus. Feltet er derfor Multiline: Enter
-    laegger et linjeskift i Text (TriggerOutput er Keypress), og
-    tmrDomFlEnter starter, saa snart der staar et. Den fjerner
-    linjeskiftet (Reset til FL_QUERY_VAR) og soeger. Start bliver false
-    igen efter Reset, saa naeste Enter starter den igen.
-
-    SOEGNINGEN KAN SES
-    ------------------
-    Mens flowet koerer, er knappen deaktiveret, og "Search" er skiftet ud
-    med tre prikker, der bevaeger sig (. .. ...; tmrDomFlDots). Foer skete
-    der intet synligt, fra man trykkede, til svaret kom. Knappen har samme
-    bredde i begge tilstande, saa soegefeltet ikke hopper."""
-    dm = DM_ROW if lock is None else f"If({lock}, DisplayMode.Disabled, {DM_ROW})"
-    q = text_input("txtDomFlQuery", FL_QUERY_VAR,
-                   placeholder='"e.g. SSV10 KAB10"',
-                   display_mode=dm, ttype="Multiline",
-                   label=f'"Search functional location - at least {fl.MIN_SEARCH_LEN} characters, then Enter"')
-    grow(q)
-    btn = fl_search_button(f"Set({FL_QUERY_VAR}, txtDomFlQuery.Text);\n" + _fl_search(),
-                           dm)
-    # IKKE "conDomFlSearchRow": label_row() kalder sin egen raekke
-    # <celle>Row, og cellen hedder conDomFlSearch. To kontroller med samme
-    # navn afvises af compile (issue #29) - check_layout regel 0 fanger det.
-    row = group("conDomFlQueryRow", [q, btn], direction="Horizontal", gap=8,
-                height=36, align_items="Center", width=cell_w)
-
-    newline = 'Find(Char(10), txtDomFlQuery.Text) > 0'
-    enter = _timer(
-        "tmrDomFlEnter", f"{newline} && !{FL_BUSY_VAR}", 1, False,
-        on_start=(f'Set({FL_QUERY_VAR}, Substitute(Substitute(txtDomFlQuery.Text, '
-                  f'Char(13), ""), Char(10), ""));\n'
-                  f"Reset(txtDomFlQuery);\n" + _fl_search(FL_QUERY_VAR)))
-
-    search = group("conDomFlSearchWrap", [row, enter, fl_dots_timer()],
-                   direction="Vertical", gap=0, width=cell_w)
-
-    # ITEMS HAR EN KOLONNE, DER HEDDER Value (issue #37)
-    #
-    # Her stod Items = colDomFl og Items.Value = Display. Studio lod ikke
-    # Items.Value staa: efter compile stod der Code, og deploy-tjekket
-    # meldte, at Studios trae ikke var det byggede. Classic/DropDown viser
-    # kolonnen Value, naar der er en - det er den, vaerksfeltet og
-    # statusfilteret bruger, og dem roerer Studio ikke. Code er med, saa
-    # Self.Selected.Code stadig er den gemte vaerdi.
-    drop = themed_dropdown("drpDomFl",
-                           "ForAll(colDomFl As F, { Value: F.Display, Code: F.Code })",
-                           f"LookUp(colDomFl, Code = {_var(cfg.FL_FIELD)}).Display",
-                           value_col="Value", display_mode=dm,
-                           required_formula=required_formula,
-                           label='"Functional location"',
-                           onchange=f"Set({_var(cfg.FL_FIELD)}, Self.Selected.Code)")
-    return search, drop
-
-
+FL_LAST_VAR = "varDomFlLast"
 FL_COMBO = "cmbDomFl"
 
 
-def fl_uses_combobox():
-    """Soeger appen i EEN combobox (Equipment, issue #68) - eller i
-    tekstfelt + dropdown (Materials)? Styrer, hvad formularen nulstiller."""
-    return getattr(cfg, "FL_INPUT", "search") == "combobox"
+def build_fl_picker(cell_w, lock=None, required_formula="false"):
+    """Functional Location i EEN combobox med Search - soegefelt OG
+    valgliste (fl_picker.py). Der er ingen separat soegeboks og ingen
+    separat dropdown.
 
-
-def build_fl_combobox(cell_w, required_formula="false"):
-    """Functional Location i EEN moderne combobox: soegefelt OG valgliste.
-
-        [ SSV13 HFC|                   v ][ Search ]
-
-    Brugeren skriver i comboboksen og trykker Search. Flowet fylder
-    colDomFl, og den SAMME combobox viser resultatet og filtrerer det
-    lokalt, mens der skrives videre - uden nye kald til flowet.
-
-    HVORFOR DEN MODERNE, NAAR build_flsearch FRARAADER EN COMBOBOX
-    ---------------------------------------------------------------
-    Det var Classic/ComboBox, der fik 819 raekker og viste nul: dens
-    indbyggede filter laa i et lag, der ikke kunne ses. ModernCombobox
-    (brugt i BIO SAP's TaskListOperations, ModernCombobox@1.1.1) filtrerer
-    paa ItemDisplayText, og Items er colDomFl uden omskrivning - samme
-    Display, som dropdownen viste. Efterproev det i Studio mod rigtige data,
-    foer den tages i brug i de andre apps (issue #63).
-
-    SOEGETEKSTEN GEMMES, MENS DER SKRIVES
-    -------------------------------------
-    SearchText er comboboksens output. Trykker man Search, mister
-    comboboksen fokus, og en Fluent-combobox kan rydde sin tekst i samme
-    oejeblik. tmrDomFlCapture laegger derfor teksten i FL_QUERY_VAR, saa
-    laenge der staar noget, og Search soeger paa den."""
-    cmb = Ctrl(FL_COMBO, "ModernCombobox", props={
-        "AccessibleLabel": (f'"Functional location - type at least {fl.MIN_SEARCH_LEN} '
-                            f'characters and select Search"'),
-        "Appearance": "Appearance.Outline",
-        "BorderColor": border_rule("IsBlank(Self.Selected.Code)", required_formula),
-        "BorderStyle": "BorderStyle.Solid",
-        "BorderThickness": "1",
-        "DefaultSelectedItems": f"Filter(colDomFl, Code = {_var(cfg.FL_FIELD)})",
-        "DisplayMode": DM_ROW,
-        "Fill": input_fill(DM_ROW),
-        "Font": FONT,
-        "Height": "36",
-        "InputTextPlaceholder": f'"At least {fl.MIN_SEARCH_LEN} characters, e.g. SSV13 HFC"',
-        "IsSearchable": "true",
-        "ItemDisplayText": "ThisItem.Display",
-        "Items": "colDomFl",
-        "LayoutMinWidth": "0",
-        "OnChange": f'Set({_var(cfg.FL_FIELD)}, Coalesce(Self.Selected.Code, ""))',
-        "SelectMultiple": "false",
-        "Size": "14",
-        "Width": "0",
-    }, h=36)
-    grow(cmb)
-    query = f"Coalesce({FL_COMBO}.SearchText, {FL_QUERY_VAR})"
-    btn = fl_search_button(_fl_search(query))
-    row = group("conDomFlInput", [cmb, btn], direction="Horizontal", gap=8,
-                height=36, align_items="Center", width=cell_w)
-    capture = _timer(
-        "tmrDomFlCapture", f"!IsBlank({FL_COMBO}.SearchText)", 300, True,
-        on_end=(f"If(!IsBlank({FL_COMBO}.SearchText), "
-                f"Set({FL_QUERY_VAR}, {FL_COMBO}.SearchText))"))
-    return group("conDomFlWrap", [row, capture, fl_dots_timer()],
-                 direction="Vertical", gap=0, width=cell_w)
+    lock: et udtryk, der - naar det er sandt - deaktiverer vaelgeren
+    (Materials' No BOM Item). required_formula: hvornaar kanten maa vaere
+    roed."""
+    dm = DM_ROW if lock is None else f"If({lock}, DisplayMode.Disabled, {DM_ROW})"
+    v = _var(cfg.FL_FIELD)
+    return fl_picker(
+        "Dom", combo=FL_COMBO, results="colDomFl", raw_var=fl.DEFAULT_RAW,
+        msg_var="varDomFlMsg", busy_var=FL_BUSY_VAR, query_var=FL_QUERY_VAR,
+        last_var=FL_LAST_VAR, default_items=f"Filter(colDomFl, Code = {v})",
+        on_select=f'Set({v}, Coalesce(Self.Selected.Code, ""))',
+        on_clear=f'Set({v}, "")', display_mode=dm,
+        required_formula=required_formula, width=cell_w)
 
 
 def build_fl_msg():
@@ -450,17 +284,9 @@ def build_fl_msg():
 
 
 def _fl_known_fx(src):
-    """Den gemte funktionsplads skal staa i dropdownen, naar en raekke
-    hentes eller kopieres - ogsaa selv om der ikke er soegt paa den.
-
-    "Selected: ..."-linjen under dropdownen var det eneste sted, den kunne
-    ses. Den linje er vaek, saa vaerdien laegges i colDomFl, hvis den ikke
-    er der i forvejen."""
-    return (f"If(\n"
-            f"    !IsBlank({src}) && IsBlank(LookUp(colDomFl, Code = {src})),\n"
-            f"    Collect(colDomFl, {{ Code: {src}, Description: \"\", Display: {src},"
-            f" Maintainable: true, Level: \"\" }})\n"
-            f");")
+    """Den gemte funktionsplads skal staa i comboboksen, naar en raekke
+    hentes eller kopieres - ogsaa selv om der ikke er soegt paa den."""
+    return fl_known_fx("colDomFl", src)
 
 
 # ---------------------------------------------------------------------------
@@ -526,7 +352,8 @@ def clear_form_fx():
         lines.append(f"Set({_var(col)}, {_blank(kind)});")
     lines.append('Set(varDomFlMsg, "");')
     lines.append(f'Set({FL_QUERY_VAR}, "");')
-    lines.append(f'Reset({FL_COMBO if fl_uses_combobox() else "txtDomFlQuery"});')
+    lines.append(f'Set({FL_LAST_VAR}, "");')
+    lines.append(f'Reset({FL_COMBO});')
     lines.append('Set(varDomInfo, "New row - fill in and save.")')
     return "\n".join(lines)
 
@@ -1140,7 +967,7 @@ def build_submit_confirm():
         "Dom", CONFIRM_VAR, "Submit request?",
         '"The valid rows are sent to the landing page as Submitted and locked."',
         "Submit", with_busy(SAVING_VAR, send_fx(True)), "btnDomSubmitConfirm") + [
-        busy_overlay("imgDomSaving", SAVING_VAR)]
+        loading_overlay("imgDomSaving", SAVING_VAR)]
 
 
 # ---------------------------------------------------------------------------

@@ -46,7 +46,7 @@ NOT_IN_GRID = {cfg.FL_FIELD}
 def _cell(key):
     if key == "FL":
         return dp.grid_cell("conDomFl", "Functional location",
-                            dp.build_fl_combobox(dp.CELL_W))
+                            dp.build_fl_picker(dp.CELL_W))
     if key == "TEXT":
         return dp.text_cell()
     if key == "DOCS":

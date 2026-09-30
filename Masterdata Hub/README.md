@@ -27,9 +27,27 @@ Efter `image.png`, med to afvigelser:
   forside (ikon, navn, tal) er ét SVG-billede med `OnSelect`, så et klik
   hvor som helst på den — undtagen "New" — filtrerer listen på domænet.
   Et klik mere viser alle igen.
-- **Valgt = farvet kant.** Den valgte flise får kanten i domænets farve
-  (2 px). Samme regel gælder "My requests" og Open / Closed / All: valgt
-  er kanten og teksten i accentfarven.
+- **Valgt = farvet kant, blød toning, let skygge** (issue #70). Den valgte
+  flise får kanten i domænets farve (2 px), et fyld i domænets bløde tone
+  (`domain-*-soft`) og `DropShadow.Light`. Hover og tryk toner forsiden i
+  samme bløde tone, og tastaturfokus er en 2 px kant i domænets farve — ens
+  for alle fem fliser. "New" er i domænets farve. Samme regel gælder "My
+  requests" og Open / Closed / All: valgt er kanten og teksten i
+  accentfarven.
+- **Fliserækken har luft** — 12 px i hver side (det samme som mellem
+  fliserne) og lidt foroven og forneden, så kant og skygge aldrig klippes.
+- **Paletten** (issue #70): fem tydeligt adskilte farver — blå (FL), teal
+  (Equipment), oliven-lime (Measuring point), orange (Material), violet
+  (VH-plan). `design_tokens.py` stopper byggeriet, hvis to af dem kommer
+  under ΔE 45 i et af temaerne. Measuring points lineal er spejlet, så den
+  peger samme vej som Equipments skruenøgle.
+- **Functional Location-ikonet** er et kraftværk i en lokationsnål — én
+  definition i `tools/icons.py`, brugt af fliserne, menuen, tabellen og
+  sidebaren i alle apps.
+- **Tabellen er neutral.** Galleriet har kortets farve; stregen mellem
+  rækkerne er en figur i hver række, og der er en streg under
+  overskriften. Et aktivt domænefilter står som en lille knap i domænets
+  farve over tabellen (klik = fjern filteret).
 
 "New request" i bjælken åbner en menu med de fem domæner.
 
