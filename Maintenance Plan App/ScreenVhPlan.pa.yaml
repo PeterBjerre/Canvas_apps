@@ -1578,8 +1578,6 @@ Screens:
                                     - conVhpPlanHelpH:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.Heading
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -1619,8 +1617,6 @@ Screens:
                                     - conVhpPlanHelpB:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.Body
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -1927,11 +1923,6 @@ Screens:
                                           - conVhpCellPlanTypeHint:
                                               Control: ModernText
                                               Properties:
-                                                AccessibleLabel: |-
-                                                    =Coalesce(
-                                                        LookUp(colVhpHelp, Key = "PlanType" && Kind = "Hint").Body,
-                                                        ""
-                                                    )
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -2081,8 +2072,6 @@ Screens:
                                           - conVhpCellStrategyHint:
                                               Control: ModernText
                                               Properties:
-                                                AccessibleLabel: |-
-                                                    =If(varVhpPlan.PlanType = "Strategy", "The packages are shown in Strategy Packages below.", "Only relevant for strategy plans.")
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -2291,11 +2280,6 @@ Screens:
                                           - conVhpCellPlantHint:
                                               Control: ModernText
                                               Properties:
-                                                AccessibleLabel: |-
-                                                    =Coalesce(
-                                                        LookUp(colVhpHelp, Key = "Plant" && Kind = "Hint").Body,
-                                                        ""
-                                                    )
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -2536,11 +2520,6 @@ Screens:
                                           - conVhpCellStatusHint:
                                               Control: ModernText
                                               Properties:
-                                                AccessibleLabel: |-
-                                                    =Coalesce(
-                                                        LookUp(colVhpHelp, Key = "Status" && Kind = "Hint").Body,
-                                                        ""
-                                                    )
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -2752,13 +2731,6 @@ Screens:
                                           - conVhpCellPlanTextHint:
                                               Control: ModernText
                                               Properties:
-                                                AccessibleLabel: |-
-                                                    =If(
-                                                        !IsBlank(varVhpPlan.Plant) && !IsBlank(varVhpPlan.PlanText) &&
-                                                            !StartsWith(Upper(varVhpPlan.PlanText), Upper(varVhpPlan.Plant)),
-                                                        "Should start with the plant code " & varVhpPlan.Plant & " - so the plan can be found without searching by plant.",
-                                                        "Start with the plant code. The text must cover every task the plan calls. Max 40 characters."
-                                                    )
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -2906,15 +2878,6 @@ Screens:
                                           - conVhpCellSortFieldHint:
                                               Control: ModernText
                                               Properties:
-                                                AccessibleLabel: |-
-                                                    =With(
-                                                        { n: CountRows(Filter(colVhpItems, StartsWith(ActivityType, "110") || StartsWith(ActivityType, "115"))) },
-                                                        If(
-                                                            n > 0,
-                                                            "Required: " & Text(n) & " item(s) have activity type 110 or 115. All items in the plan must be the same statutory inspection.",
-                                                            "Only used for statutory inspections (activity type 110 and 115)."
-                                                        )
-                                                    )
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -3159,11 +3122,6 @@ Screens:
                                           - conVhpCellCycleHint:
                                               Control: ModernText
                                               Properties:
-                                                AccessibleLabel: |-
-                                                    =Coalesce(
-                                                        LookUp(colVhpHelp, Key = "Cycle" && Kind = "Hint").Body,
-                                                        ""
-                                                    )
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -3375,11 +3333,6 @@ Screens:
                                           - conVhpCellUnitHint:
                                               Control: ModernText
                                               Properties:
-                                                AccessibleLabel: |-
-                                                    =Coalesce(
-                                                        LookUp(colVhpHelp, Key = "Unit" && Kind = "Hint").Body,
-                                                        ""
-                                                    )
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -3525,16 +3478,6 @@ Screens:
                                           - conVhpCellCallHorizonHint:
                                               Control: ModernText
                                               Properties:
-                                                AccessibleLabel: |-
-                                                    =With(
-                                                        { m: LookUp(colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon) },
-                                                        If(
-                                                            IsBlank(m.Value),
-                                                            "Working days the order stays on the job list before the finish date.",
-                                                            Text(m.Days) & " FCD, schedulering " & Text(m.SchedPeriod) &
-                                                                " years. Set automatically from the cycle."
-                                                        )
-                                                    )
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -3712,11 +3655,6 @@ Screens:
                                           - conVhpCellSchedIndHint:
                                               Control: ModernText
                                               Properties:
-                                                AccessibleLabel: |-
-                                                    =Coalesce(
-                                                        LookUp(colVhpHelp, Key = "SchedInd" && Kind = "Hint").Body,
-                                                        ""
-                                                    )
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -3860,11 +3798,6 @@ Screens:
                                           - conVhpCellStatutorySortFieldHint:
                                               Control: ModernText
                                               Properties:
-                                                AccessibleLabel: |-
-                                                    =Coalesce(
-                                                        LookUp(colVhpHelp, Key = "StatutorySortField" && Kind = "Hint").Body,
-                                                        ""
-                                                    )
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -4211,12 +4144,6 @@ Screens:
                                           - conVhpCellFirstCallHint:
                                               Control: ModernText
                                               Properties:
-                                                AccessibleLabel: |-
-                                                    =If(
-                                                        CountRows(Filter(colVhpItems, !IsBlank(Revision))) > 0,
-                                                        "Fixed to 01/01: an item is marked as outage work. Only the year can be chosen.",
-                                                        "First call. Choose day, month and year."
-                                                    )
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -4306,8 +4233,6 @@ Screens:
                                     - txtVhpPlanMeta:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =If(varVhpPlanCommitted, "Plan created " & Text(varVhpPlanCreatedAt, "dd-mm-yyyy hh:mm"), "")
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -4337,14 +4262,6 @@ Screens:
                                     - txtVhpPlanOptionsState:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              ="Data: " & Text(CountRows(colVhpTasklists)) & " task lists, " &
-                                              Text(CountRows(colVhpStrategies)) & " strategies" &
-                                              With(
-                                                  { mangler: CountRows(Filter(colVhpStrategies, !PackagesLoaded)) },
-                                                  If(mangler > 0, " (" & Text(mangler) & " without packages)", "")
-                                              ) & ", " &
-                                              Text(CountRows(colVhpMainWorkCenters)) & " work centres."
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -4686,8 +4603,6 @@ Screens:
                                     - txtVhpItemsPlant:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              ="Plant: " & varVhpPlan.Plant
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5138,8 +5053,6 @@ Screens:
                                     - txtVhpItemCardTitle:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =If(IsBlank(ThisItem.ShortText), "Item " & Text(ThisItem.ItemId), ThisItem.ShortText)
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5177,8 +5090,6 @@ Screens:
                                     - txtVhpItemCardFl:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              ="FL: " & If(IsBlank(ThisItem.FunctionalLocation), "No FL", ThisItem.FunctionalLocation)
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5214,8 +5125,6 @@ Screens:
                                     - txtVhpItemCardTasklist:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =If(IsBlank(ThisItem.TasklistName), "No tasklist", ThisItem.TasklistName) & " | Ops: " & Text(CountRows(Filter(colVhpOperations, ItemId = ThisItem.ItemId)))
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5251,8 +5160,6 @@ Screens:
                                     - txtVhpItemCardStatus:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =Upper(ThisItem.Status)
                                           Align: |-
                                               =Align.Center
                                           BorderStyle: |-
@@ -5685,8 +5592,6 @@ Screens:
                                           - conVhpItemHelpH:
                                               Control: ModernText
                                               Properties:
-                                                AccessibleLabel: |-
-                                                    =ThisItem.Heading
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -5726,8 +5631,6 @@ Screens:
                                           - conVhpItemHelpB:
                                               Control: ModernText
                                               Properties:
-                                                AccessibleLabel: |-
-                                                    =ThisItem.Body
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -6034,11 +5937,6 @@ Screens:
                                                 - conVhpCellItemShortTextHint:
                                                     Control: ModernText
                                                     Properties:
-                                                      AccessibleLabel: |-
-                                                          =Coalesce(
-                                                              LookUp(colVhpHelp, Key = "ItemShortText" && Kind = "Hint").Body,
-                                                              ""
-                                                          )
                                                       BorderStyle: |-
                                                           =BorderStyle.None
                                                       BorderThickness: |-
@@ -6264,11 +6162,6 @@ Screens:
                                                 - conVhpCellItemMwcHint:
                                                     Control: ModernText
                                                     Properties:
-                                                      AccessibleLabel: |-
-                                                          =Coalesce(
-                                                              LookUp(colVhpHelp, Key = "MainWorkCenter" && Kind = "Hint").Body,
-                                                              ""
-                                                          )
                                                       BorderStyle: |-
                                                           =BorderStyle.None
                                                       BorderThickness: |-
@@ -6480,17 +6373,6 @@ Screens:
                                                 - conVhpCellItemActHint:
                                                     Control: ModernText
                                                     Properties:
-                                                      AccessibleLabel: |-
-                                                          =With(
-                                                              { a: LookUp(colVhpItems, ItemId = varVhpActiveItemId).ActivityType },
-                                                              If(
-                                                                  StartsWith(a, "110") || StartsWith(a, "115"),
-                                                                  "Statutory: the long text MUST reference the applicable legislation.",
-                                                                  StartsWith(a, "120"),
-                                                                  "Running task - max 1 year. Priority becomes blue.",
-                                                                  "101 preventive - 102 predetermined - 110 statutory - 115 regulatory condition - 120 running - 130 cleaning - 160 lubrication."
-                                                              )
-                                                          )
                                                       BorderStyle: |-
                                                           =BorderStyle.None
                                                       BorderThickness: |-
@@ -6673,11 +6555,6 @@ Screens:
                                                 - conVhpCellItemRevisionHint:
                                                     Control: ModernText
                                                     Properties:
-                                                      AccessibleLabel: |-
-                                                          =Coalesce(
-                                                              LookUp(colVhpHelp, Key = "Revision" && Kind = "Hint").Body,
-                                                              ""
-                                                          )
                                                       BorderStyle: |-
                                                           =BorderStyle.None
                                                       BorderThickness: |-
@@ -6823,11 +6700,6 @@ Screens:
                                                 - conVhpCellItemInitialsHint:
                                                     Control: ModernText
                                                     Properties:
-                                                      AccessibleLabel: |-
-                                                          =Coalesce(
-                                                              LookUp(colVhpHelp, Key = "Initials" && Kind = "Hint").Body,
-                                                              ""
-                                                          )
                                                       BorderStyle: |-
                                                           =BorderStyle.None
                                                       BorderThickness: |-
@@ -6979,11 +6851,6 @@ Screens:
                                                 - conVhpCellItemLongTextHint:
                                                     Control: ModernText
                                                     Properties:
-                                                      AccessibleLabel: |-
-                                                          =Coalesce(
-                                                              LookUp(colVhpHelp, Key = "ItemLongText" && Kind = "Hint").Body,
-                                                              ""
-                                                          )
                                                       BorderStyle: |-
                                                           =BorderStyle.None
                                                       BorderThickness: |-
@@ -7144,11 +7011,6 @@ Screens:
                                     - txtVhpItemFlHint:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =Coalesce(
-                                                  LookUp(colVhpHelp, Key = "FunctionalLocation" && Kind = "Hint").Body,
-                                                  ""
-                                              )
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -7480,8 +7342,6 @@ Screens:
                                     - txtVhpFlMsg:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =varVhpFlMeta
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -7608,8 +7468,6 @@ Screens:
                                     - txtVhpItemMeta:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =If(IsBlank(varVhpActiveItemId), "No item selected.", "Item " & Text(varVhpActiveItemId) & " - status: " & Upper(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status))
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -8088,8 +7946,6 @@ Screens:
                                     - conVhpOpsHelpH:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.Heading
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -8129,8 +7985,6 @@ Screens:
                                     - conVhpOpsHelpB:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.Body
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -8860,16 +8714,6 @@ Screens:
                               - txtVhpTasklistMeta:
                                   Control: ModernText
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =If(
-                                            IsBlank(varVhpActiveItemId), "Select an item to manage its tasklist and operations.",
-                                            If(
-                                                IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey),
-                                                "No tasklist linked yet.",
-                                                "Tasklist " & LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistName & " linked. " &
-                                                Text(CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId))) & " operation line(s) on this item."
-                                            )
-                                        )
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -8907,22 +8751,6 @@ Screens:
                               - txtVhpOpsHint:
                                   Control: ModernText
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =With(
-                                            {
-                                                ops: Filter(colVhpOperations, ItemId = varVhpActiveItemId),
-                                                first: LookUp(Sort(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Value(OperationNo)), true)
-                                            },
-                                            If(
-                                                CountRows(ops) = 0, "",
-                                                IsBlank(first.MainWorkCenter),
-                                                "Operation " & first.OperationNo & " must carry the main responsible work centre.",
-                                                CountRows(Filter(ops, IsBlank(OperationShortText))) > 0,
-                                                Text(CountRows(Filter(ops, IsBlank(OperationShortText)))) & " operation(s) are missing a short text.",
-                                                CountRows(Filter(ops, WorkHours <= 0)) > 0,
-                                                "Every operation needs a time and manning estimate - Work must be above 0."
-                                            )
-                                        )
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -9108,8 +8936,6 @@ Screens:
                                           - txtVhpOpNo:
                                               Control: ModernText
                                               Properties:
-                                                AccessibleLabel: |-
-                                                    =ThisItem.OperationNo
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -9669,14 +9495,6 @@ Screens:
                                           - txtVhpOpPackages:
                                               Control: ModernText
                                               Properties:
-                                                AccessibleLabel: |-
-                                                    =If(
-                                                        varVhpPlan.PlanType <> "Strategy", "-",
-                                                        With(
-                                                            { sel: Filter(colVhpStrategyPackages As P, P.StrategyKey = varVhpPlan.Strategy && ";" & Text(P.PackageNo) & ";" in Coalesce(ThisItem.PackagesKey, ";")) },
-                                                            If(CountRows(sel) = 0, "(none)", Concat(Sort(sel, PackageNo), ShortCode, ", "))
-                                                        )
-                                                    )
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -10027,8 +9845,6 @@ Screens:
                                           - conVhpPkgHelpH:
                                               Control: ModernText
                                               Properties:
-                                                AccessibleLabel: |-
-                                                    =ThisItem.Heading
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -10068,8 +9884,6 @@ Screens:
                                           - conVhpPkgHelpB:
                                               Control: ModernText
                                               Properties:
-                                                AccessibleLabel: |-
-                                                    =ThisItem.Body
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -10141,13 +9955,6 @@ Screens:
                               - txtVhpPkgMeta:
                                   Control: ModernText
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =If(
-                                            IsBlank(varVhpPlan.Strategy), "Choose a strategy in the plan header first.",
-                                            "Strategy " & varVhpPlan.Strategy & " - " &
-                                            Coalesce(LookUp(colVhpStrategies, Key = varVhpPlan.Strategy).Name, "") & ": " &
-                                            Concat(Sort(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy), PackageNo), ShortCode & " (" & Text(CycleLength) & " " & CycleUnit & ")", ", ") & "."
-                                        )
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -10395,18 +10202,6 @@ Screens:
                               - txtVhpPkgHierNote:
                                   Control: ModernText
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =With(
-                                            { h: LookUp(colVhpStrategies, Key = varVhpPlan.Strategy).Hierarchical },
-                                            If(
-                                                h = "Ja", "",
-                                                h = "Nej",
-                                                "Hierarchy fill is off: the packages in this strategy are not " &
-                                                    "nested, so they must be ticked one by one.",
-                                                "Hierarchy fill is off: it is not settled whether this " &
-                                                    "strategy is hierarchical. Set the Hierarchical field in MD_Strategy."
-                                            )
-                                        )
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -10574,8 +10369,6 @@ Screens:
                                                 - txtVhpPkgHeadCell:
                                                     Control: ModernText
                                                     Properties:
-                                                      AccessibleLabel: |-
-                                                          =ThisItem.ShortCode
                                                       Align: |-
                                                           =Align.Center
                                                       BorderStyle: |-
@@ -10678,8 +10471,6 @@ Screens:
                                           - txtVhpPkgRowOpNo:
                                               Control: ModernText
                                               Properties:
-                                                AccessibleLabel: |-
-                                                    =ThisItem.OperationNo
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -10715,8 +10506,6 @@ Screens:
                                           - txtVhpPkgRowText:
                                               Control: ModernText
                                               Properties:
-                                                AccessibleLabel: |-
-                                                    =If(IsBlank(ThisItem.OperationShortText), "(no text)", ThisItem.OperationShortText)
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -10841,19 +10630,6 @@ Screens:
                               - txtVhpPkgEmpty:
                                   Control: ModernText
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =If(
-                                            IsBlank(varVhpPlan.Strategy),
-                                            "Choose a strategy in the plan header.",
-                                        
-                                            CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 0 = false,
-                                            "Strategy " & varVhpPlan.Strategy & " has no packages in MD_StrategyPackage yet, " &
-                                                "so there is nothing to allocate. The packages come from SAP (IP11). " &
-                                                "The plan can still be saved and submitted without a package allocation.",
-                                        
-                                            "No operations on the active item yet. " &
-                                                "Add operations under Tasklist and Operations."
-                                        )
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -10896,26 +10672,6 @@ Screens:
                               - txtVhpPkgWarnings:
                                   Control: ModernText
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =With(
-                                            {
-                                                noPkg: Filter(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Len(Coalesce(PackagesKey, ";")) <= 1),
-                                                emptyPkg: Filter(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy) As P,
-                                                    CountRows(Filter(Filter(colVhpOperations, ItemId = varVhpActiveItemId), ";" & Text(P.PackageNo) & ";" in Coalesce(PackagesKey, ";"))) = 0)
-                                            },
-                                            If(
-                                                CountRows(noPkg) = 0 && CountRows(emptyPkg) = 0,
-                                                "Every operation has at least one package, and every package has operations.",
-                                                If(CountRows(noPkg) > 0,
-                                                    "S4: " & Concat(noPkg, OperationNo, ", ") & " has no package and would never be carried out. ",
-                                                    ""
-                                                ) &
-                                                If(CountRows(emptyPkg) > 0,
-                                                    "S5: package " & Concat(emptyPkg, ShortCode, ", ") & " contains no operations.",
-                                                    ""
-                                                )
-                                            )
-                                        )
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -11863,14 +11619,6 @@ Screens:
             - txtVhpPickerInfo:
                 Control: ModernText
                 Properties:
-                  AccessibleLabel: |-
-                      =Text(CountRows(Filter(Filter(
-                          LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
-                          IsBlank(Trim(txtVhpPickerSearch.Text)) || Trim(txtVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
-                      ) As VOP, CountRows(Filter(colVhpPickerSelected, OperationNo = VOP.OperationNo)) > 0))) & "/" & Text(CountRows(Filter(
-                          LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
-                          IsBlank(Trim(txtVhpPickerSearch.Text)) || Trim(txtVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
-                      ))) & " visible selected (" & Text(CountRows(colVhpPickerSelected)) & " total selected)."
                   BorderStyle: |-
                       =BorderStyle.None
                   BorderThickness: |-
@@ -12045,8 +11793,6 @@ Screens:
                         - txtVhpPickerOpNo:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =ThisItem.OperationNo
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -12082,8 +11828,6 @@ Screens:
                         - txtVhpPickerShortText:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =ThisItem.OperationShortText
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -12119,8 +11863,6 @@ Screens:
                         - txtVhpPickerMwc:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =ThisItem.MainWorkCenter
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -12156,8 +11898,6 @@ Screens:
                         - txtVhpPickerCtrl:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =ThisItem.ControlKey
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -12193,8 +11933,6 @@ Screens:
                         - txtVhpPickerWork:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Text(ThisItem.WorkHours)
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -12230,8 +11968,6 @@ Screens:
                         - txtVhpPickerDur:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Text(ThisItem.DurationHours)
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -12514,8 +12250,6 @@ Screens:
                   - txtVhpLongTextTitle:
                       Control: ModernText
                       Properties:
-                        AccessibleLabel: |-
-                            =If(varVhpLongTextTarget = "item", "Long text - item " & Text(varVhpLongTextItemId), "Long text - operation " & varVhpLongTextOpNo)
                         BorderStyle: |-
                             =BorderStyle.None
                         BorderThickness: |-
@@ -12911,11 +12645,6 @@ Screens:
             - txtVhpObjListFl:
                 Control: ModernText
                 Properties:
-                  AccessibleLabel: |-
-                      =If(IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)), "No functional location selected.", "Sub-objects under " & Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation) & " - " & Text(CountRows(Filter(
-                          colVhpFlSearch,
-                          !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
-                      ))) & " found.")
                   BorderStyle: |-
                       =BorderStyle.None
                   BorderThickness: |-
@@ -13047,12 +12776,6 @@ Screens:
             - txtVhpObjEmpty:
                 Control: ModernText
                 Properties:
-                  AccessibleLabel: |-
-                      =If(
-                          IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)),
-                          "Choose a functional location first.",
-                          "No results found. Search more broadly in the functional location field."
-                      )
                   BorderStyle: |-
                       =BorderStyle.None
                   BorderThickness: |-
@@ -13118,8 +12841,6 @@ Screens:
                   - txtVhpObjListInfo:
                       Control: ModernText
                       Properties:
-                        AccessibleLabel: |-
-                            =Text(CountRows(colVhpObjDraft)) & " selected"
                         BorderStyle: |-
                             =BorderStyle.None
                         BorderThickness: |-
@@ -13324,8 +13045,6 @@ Screens:
                   - txtVhpMatTitle:
                       Control: ModernText
                       Properties:
-                        AccessibleLabel: |-
-                            ="Materials - operation " & varVhpMatOpNo
                         BorderStyle: |-
                             =BorderStyle.None
                         BorderThickness: |-
@@ -13747,8 +13466,6 @@ Screens:
                         - txtVhpMatDesc:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =If(IsBlank(ThisItem.Description), "-", ThisItem.Description)
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -13831,8 +13548,6 @@ Screens:
                         - txtVhpMatUnit:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =If(IsBlank(ThisItem.Unit), "-", ThisItem.Unit)
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -14004,8 +13719,6 @@ Screens:
                   - txtVhpAttTitle:
                       Control: ModernText
                       Properties:
-                        AccessibleLabel: |-
-                            ="Documents - operation " & varVhpAttOpNo
                         BorderStyle: |-
                             =BorderStyle.None
                         BorderThickness: |-
@@ -14514,8 +14227,6 @@ Screens:
                   - txtVhpAttName:
                       Control: ModernText
                       Properties:
-                        AccessibleLabel: |-
-                            =ThisItem.FileName
                         BorderStyle: |-
                             =BorderStyle.None
                         BorderThickness: |-
@@ -14551,12 +14262,6 @@ Screens:
                   - txtVhpAttScope:
                       Control: ModernText
                       Properties:
-                        AccessibleLabel: |-
-                            =If(
-                                Len(Coalesce(ThisItem.OperationsKey, ";")) <= 1,
-                                "Whole item",
-                                "Ops: " & Substitute(Mid(ThisItem.OperationsKey, 2), ";", " ")
-                            )
                         BorderStyle: |-
                             =BorderStyle.None
                         BorderThickness: |-
@@ -14663,12 +14368,6 @@ Screens:
             - txtVhpAttEmpty:
                 Control: ModernText
                 Properties:
-                  AccessibleLabel: |-
-                      =If(
-                          IsBlank(LookUp(colVhpSavedItems, LocalId = varVhpActiveItemId).ItemKey),
-                          "Save the plan before attaching documents - the folder is named after the item.",
-                          "No documents in " & "TaskListDocuments/" & LookUp(colVhpSavedItems, LocalId = varVhpActiveItemId).ItemKey & " yet."
-                      )
                   BorderStyle: |-
                       =BorderStyle.None
                   BorderThickness: |-
@@ -14812,8 +14511,6 @@ Screens:
             - txtVhpConfirmText:
                 Control: ModernText
                 Properties:
-                  AccessibleLabel: |-
-                      ="The plan " & varVhpPlan.Plant & " " & varVhpPlan.PlanText & " is saved and marked as ready for processing on the landing page."
                   BorderStyle: |-
                       =BorderStyle.None
                   BorderThickness: |-

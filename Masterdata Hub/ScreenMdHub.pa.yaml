@@ -189,8 +189,6 @@ Screens:
                               - txtMdSub:
                                   Control: ModernText
                                   Properties:
-                                    AccessibleLabel: |-
-                                        ="SAP requests - " & If(gblView = "mine", gblMe, "whole department")
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -468,19 +466,11 @@ Screens:
                                     HoverFill: |-
                                         =C.'domain-fl-soft'
                                     Image: |-
-                                        ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='108' viewBox='0 0 " & Self.Width & " 108'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-fl' & "'/><circle cx='34' cy='36' r='18' fill='" & C.'hex-domain-fl' & "' fill-opacity='0.12'/><g transform='translate(24 26) scale(0.833333)' fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g><text x='62' y='41' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>Functional location</text><text x='16' y='82' font-family='Segoe UI, sans-serif' font-size='26' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(If(
-                                            gblView = "mine",
-                                            If(
-                                                gblStatusMode = "open", Filter(Filter('MD_RequestIndex', RequesterEmail = gblMe), IsOpen = true),
-                                                gblStatusMode = "done", Filter(Filter('MD_RequestIndex', RequesterEmail = gblMe), IsOpen = false),
-                                                Filter('MD_RequestIndex', RequesterEmail = gblMe)
-                                            ),
-                                            If(
-                                                gblStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                                                gblStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                                                'MD_RequestIndex'
-                                            )
-                                        ), Domain.Value = "FunctionalLocation"))) & "</text><text x='16' y='98' font-family='Segoe UI, sans-serif' font-size='11' fill='" & C.'hex-text-muted' & "'>" & Switch(gblStatusMode, "open", "Open", "done", "Closed", "All") & If(gblView = "mine", " - my requests", " - whole department") & "</text></svg>")
+                                        ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='108' viewBox='0 0 " & Self.Width & " 108'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-fl' & "'/><circle cx='34' cy='36' r='18' fill='" & C.'hex-domain-fl' & "' fill-opacity='0.12'/><g transform='translate(24 26) scale(0.833333)' fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g><text x='62' y='41' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>Functional location</text><text x='16' y='82' font-family='Segoe UI, sans-serif' font-size='26' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(Filter(
+                                                'MD_RequestIndex',
+                                                gblView <> "mine" || RequesterEmail = gblMe,
+                                                gblStatusMode = "all" || IsOpen = (gblStatusMode = "open")
+                                            ), Domain.Value = "FunctionalLocation"))) & "</text><text x='16' y='98' font-family='Segoe UI, sans-serif' font-size='11' fill='" & C.'hex-text-muted' & "'>" & Switch(gblStatusMode, "open", "Open", "done", "Closed", "All") & If(gblView = "mine", " - my requests", " - whole department") & "</text></svg>")
                                     ImagePosition: |-
                                         =ImagePosition.Fit
                                     OnSelect: |-
@@ -550,19 +540,11 @@ Screens:
                                     HoverFill: |-
                                         =C.'domain-eq-soft'
                                     Image: |-
-                                        ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='108' viewBox='0 0 " & Self.Width & " 108'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-eq' & "'/><circle cx='34' cy='36' r='18' fill='" & C.'hex-domain-eq' & "' fill-opacity='0.12'/><g transform='translate(24 26) scale(0.833333)' fill='none' stroke='" & C.'hex-domain-eq' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g><text x='62' y='41' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>Equipment</text><text x='16' y='82' font-family='Segoe UI, sans-serif' font-size='26' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(If(
-                                            gblView = "mine",
-                                            If(
-                                                gblStatusMode = "open", Filter(Filter('MD_RequestIndex', RequesterEmail = gblMe), IsOpen = true),
-                                                gblStatusMode = "done", Filter(Filter('MD_RequestIndex', RequesterEmail = gblMe), IsOpen = false),
-                                                Filter('MD_RequestIndex', RequesterEmail = gblMe)
-                                            ),
-                                            If(
-                                                gblStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                                                gblStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                                                'MD_RequestIndex'
-                                            )
-                                        ), Domain.Value = "Equipment"))) & "</text><text x='16' y='98' font-family='Segoe UI, sans-serif' font-size='11' fill='" & C.'hex-text-muted' & "'>" & Switch(gblStatusMode, "open", "Open", "done", "Closed", "All") & If(gblView = "mine", " - my requests", " - whole department") & "</text></svg>")
+                                        ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='108' viewBox='0 0 " & Self.Width & " 108'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-eq' & "'/><circle cx='34' cy='36' r='18' fill='" & C.'hex-domain-eq' & "' fill-opacity='0.12'/><g transform='translate(24 26) scale(0.833333)' fill='none' stroke='" & C.'hex-domain-eq' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g><text x='62' y='41' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>Equipment</text><text x='16' y='82' font-family='Segoe UI, sans-serif' font-size='26' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(Filter(
+                                                'MD_RequestIndex',
+                                                gblView <> "mine" || RequesterEmail = gblMe,
+                                                gblStatusMode = "all" || IsOpen = (gblStatusMode = "open")
+                                            ), Domain.Value = "Equipment"))) & "</text><text x='16' y='98' font-family='Segoe UI, sans-serif' font-size='11' fill='" & C.'hex-text-muted' & "'>" & Switch(gblStatusMode, "open", "Open", "done", "Closed", "All") & If(gblView = "mine", " - my requests", " - whole department") & "</text></svg>")
                                     ImagePosition: |-
                                         =ImagePosition.Fit
                                     OnSelect: |-
@@ -632,19 +614,11 @@ Screens:
                                     HoverFill: |-
                                         =C.'domain-mp-soft'
                                     Image: |-
-                                        ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='108' viewBox='0 0 " & Self.Width & " 108'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-mp' & "'/><circle cx='34' cy='36' r='18' fill='" & C.'hex-domain-mp' & "' fill-opacity='0.12'/><g transform='translate(24 26) scale(0.833333)' fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><g transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></g><text x='62' y='41' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>Measuring point</text><text x='16' y='82' font-family='Segoe UI, sans-serif' font-size='26' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(If(
-                                            gblView = "mine",
-                                            If(
-                                                gblStatusMode = "open", Filter(Filter('MD_RequestIndex', RequesterEmail = gblMe), IsOpen = true),
-                                                gblStatusMode = "done", Filter(Filter('MD_RequestIndex', RequesterEmail = gblMe), IsOpen = false),
-                                                Filter('MD_RequestIndex', RequesterEmail = gblMe)
-                                            ),
-                                            If(
-                                                gblStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                                                gblStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                                                'MD_RequestIndex'
-                                            )
-                                        ), Domain.Value = "MeasuringPoint"))) & "</text><text x='16' y='98' font-family='Segoe UI, sans-serif' font-size='11' fill='" & C.'hex-text-muted' & "'>" & Switch(gblStatusMode, "open", "Open", "done", "Closed", "All") & If(gblView = "mine", " - my requests", " - whole department") & "</text></svg>")
+                                        ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='108' viewBox='0 0 " & Self.Width & " 108'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-mp' & "'/><circle cx='34' cy='36' r='18' fill='" & C.'hex-domain-mp' & "' fill-opacity='0.12'/><g transform='translate(24 26) scale(0.833333)' fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><g transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></g><text x='62' y='41' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>Measuring point</text><text x='16' y='82' font-family='Segoe UI, sans-serif' font-size='26' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(Filter(
+                                                'MD_RequestIndex',
+                                                gblView <> "mine" || RequesterEmail = gblMe,
+                                                gblStatusMode = "all" || IsOpen = (gblStatusMode = "open")
+                                            ), Domain.Value = "MeasuringPoint"))) & "</text><text x='16' y='98' font-family='Segoe UI, sans-serif' font-size='11' fill='" & C.'hex-text-muted' & "'>" & Switch(gblStatusMode, "open", "Open", "done", "Closed", "All") & If(gblView = "mine", " - my requests", " - whole department") & "</text></svg>")
                                     ImagePosition: |-
                                         =ImagePosition.Fit
                                     OnSelect: |-
@@ -714,19 +688,11 @@ Screens:
                                     HoverFill: |-
                                         =C.'domain-mat-soft'
                                     Image: |-
-                                        ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='108' viewBox='0 0 " & Self.Width & " 108'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-mat' & "'/><circle cx='34' cy='36' r='18' fill='" & C.'hex-domain-mat' & "' fill-opacity='0.12'/><g transform='translate(24 26) scale(0.833333)' fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g><text x='62' y='41' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>Material</text><text x='16' y='82' font-family='Segoe UI, sans-serif' font-size='26' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(If(
-                                            gblView = "mine",
-                                            If(
-                                                gblStatusMode = "open", Filter(Filter('MD_RequestIndex', RequesterEmail = gblMe), IsOpen = true),
-                                                gblStatusMode = "done", Filter(Filter('MD_RequestIndex', RequesterEmail = gblMe), IsOpen = false),
-                                                Filter('MD_RequestIndex', RequesterEmail = gblMe)
-                                            ),
-                                            If(
-                                                gblStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                                                gblStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                                                'MD_RequestIndex'
-                                            )
-                                        ), Domain.Value = "Material"))) & "</text><text x='16' y='98' font-family='Segoe UI, sans-serif' font-size='11' fill='" & C.'hex-text-muted' & "'>" & Switch(gblStatusMode, "open", "Open", "done", "Closed", "All") & If(gblView = "mine", " - my requests", " - whole department") & "</text></svg>")
+                                        ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='108' viewBox='0 0 " & Self.Width & " 108'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-mat' & "'/><circle cx='34' cy='36' r='18' fill='" & C.'hex-domain-mat' & "' fill-opacity='0.12'/><g transform='translate(24 26) scale(0.833333)' fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g><text x='62' y='41' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>Material</text><text x='16' y='82' font-family='Segoe UI, sans-serif' font-size='26' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(Filter(
+                                                'MD_RequestIndex',
+                                                gblView <> "mine" || RequesterEmail = gblMe,
+                                                gblStatusMode = "all" || IsOpen = (gblStatusMode = "open")
+                                            ), Domain.Value = "Material"))) & "</text><text x='16' y='98' font-family='Segoe UI, sans-serif' font-size='11' fill='" & C.'hex-text-muted' & "'>" & Switch(gblStatusMode, "open", "Open", "done", "Closed", "All") & If(gblView = "mine", " - my requests", " - whole department") & "</text></svg>")
                                     ImagePosition: |-
                                         =ImagePosition.Fit
                                     OnSelect: |-
@@ -796,19 +762,11 @@ Screens:
                                     HoverFill: |-
                                         =C.'domain-vhp-soft'
                                     Image: |-
-                                        ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='108' viewBox='0 0 " & Self.Width & " 108'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-vhp' & "'/><circle cx='34' cy='36' r='18' fill='" & C.'hex-domain-vhp' & "' fill-opacity='0.12'/><g transform='translate(24 26) scale(0.833333)' fill='none' stroke='" & C.'hex-domain-vhp' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g><text x='62' y='41' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>Maintenance plan</text><text x='16' y='82' font-family='Segoe UI, sans-serif' font-size='26' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(If(
-                                            gblView = "mine",
-                                            If(
-                                                gblStatusMode = "open", Filter(Filter('MD_RequestIndex', RequesterEmail = gblMe), IsOpen = true),
-                                                gblStatusMode = "done", Filter(Filter('MD_RequestIndex', RequesterEmail = gblMe), IsOpen = false),
-                                                Filter('MD_RequestIndex', RequesterEmail = gblMe)
-                                            ),
-                                            If(
-                                                gblStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                                                gblStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                                                'MD_RequestIndex'
-                                            )
-                                        ), Domain.Value = "MaintenancePlan"))) & "</text><text x='16' y='98' font-family='Segoe UI, sans-serif' font-size='11' fill='" & C.'hex-text-muted' & "'>" & Switch(gblStatusMode, "open", "Open", "done", "Closed", "All") & If(gblView = "mine", " - my requests", " - whole department") & "</text></svg>")
+                                        ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='108' viewBox='0 0 " & Self.Width & " 108'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-vhp' & "'/><circle cx='34' cy='36' r='18' fill='" & C.'hex-domain-vhp' & "' fill-opacity='0.12'/><g transform='translate(24 26) scale(0.833333)' fill='none' stroke='" & C.'hex-domain-vhp' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g><text x='62' y='41' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>Maintenance plan</text><text x='16' y='82' font-family='Segoe UI, sans-serif' font-size='26' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(Filter(
+                                                'MD_RequestIndex',
+                                                gblView <> "mine" || RequesterEmail = gblMe,
+                                                gblStatusMode = "all" || IsOpen = (gblStatusMode = "open")
+                                            ), Domain.Value = "MaintenancePlan"))) & "</text><text x='16' y='98' font-family='Segoe UI, sans-serif' font-size='11' fill='" & C.'hex-text-muted' & "'>" & Switch(gblStatusMode, "open", "Open", "done", "Closed", "All") & If(gblView = "mine", " - my requests", " - whole department") & "</text></svg>")
                                     ImagePosition: |-
                                         =ImagePosition.Fit
                                     OnSelect: |-
@@ -982,24 +940,7 @@ Screens:
                               Text: |-
                                   ="Closed"
                               Tooltip: |-
-                                  =With(
-                                      { l: FirstN(
-                                      SortByColumns(
-                                          If(
-                                              gblView = "mine",
-                                              Filter('MD_RequestIndex', RequesterEmail = gblMe, IsOpen = false),
-                                              Filter('MD_RequestIndex', IsOpen = false)
-                                          ),
-                                          "LastActionOn", SortOrder.Descending
-                                      ),
-                                      5
-                                  ) },
-                                      If(
-                                          IsEmpty(l), "No closed requests yet.",
-                                          "Latest closed:" & Char(10) &
-                                              Concat(l, RequestNo & "  " & Domain.Value & " - " & ShortText, Char(10))
-                                      )
-                                  )
+                                  ="Show closed requests - the (i) button lists the latest"
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
@@ -1103,20 +1044,6 @@ Screens:
                         - txtMdCount:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Text(CountRows(Filter(If(
-                                      gblView = "mine",
-                                      If(
-                                          gblStatusMode = "open", Filter(Filter('MD_RequestIndex', RequesterEmail = gblMe), IsOpen = true),
-                                          gblStatusMode = "done", Filter(Filter('MD_RequestIndex', RequesterEmail = gblMe), IsOpen = false),
-                                          Filter('MD_RequestIndex', RequesterEmail = gblMe)
-                                      ),
-                                      If(
-                                          gblStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                                          gblStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                                          'MD_RequestIndex'
-                                      )
-                                  ), gblDomain = "" || Domain.Value = gblDomain))) & " requests"
                               Align: |-
                                   =Align.Right
                               BorderStyle: |-
@@ -1146,19 +1073,11 @@ Screens:
                               Size: |-
                                   =12
                               Text: |-
-                                  =Text(CountRows(Filter(If(
-                                      gblView = "mine",
-                                      If(
-                                          gblStatusMode = "open", Filter(Filter('MD_RequestIndex', RequesterEmail = gblMe), IsOpen = true),
-                                          gblStatusMode = "done", Filter(Filter('MD_RequestIndex', RequesterEmail = gblMe), IsOpen = false),
-                                          Filter('MD_RequestIndex', RequesterEmail = gblMe)
-                                      ),
-                                      If(
-                                          gblStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                                          gblStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                                          'MD_RequestIndex'
-                                      )
-                                  ), gblDomain = "" || Domain.Value = gblDomain))) & " requests"
+                                  =Text(CountRows(Filter(Filter(
+                                          'MD_RequestIndex',
+                                          gblView <> "mine" || RequesterEmail = gblMe,
+                                          gblStatusMode = "all" || IsOpen = (gblStatusMode = "open")
+                                      ), gblDomain = "" || Domain.Value = gblDomain))) & " requests"
                               Width: |-
                                   =Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18)) - ((280) + 10) - ((96) + 10) - ((110) + 10) - ((36) + 10) - ((96) + 10) - 2)
                               Wrap: |-
@@ -1606,19 +1525,11 @@ Screens:
                               Items: |-
                                   =SortByColumns(
                                       Filter(
-                                          If(
-                                      gblView = "mine",
-                                      If(
-                                          gblStatusMode = "open", Filter(Filter('MD_RequestIndex', RequesterEmail = gblMe), IsOpen = true),
-                                          gblStatusMode = "done", Filter(Filter('MD_RequestIndex', RequesterEmail = gblMe), IsOpen = false),
-                                          Filter('MD_RequestIndex', RequesterEmail = gblMe)
+                                          Filter(
+                                          'MD_RequestIndex',
+                                          gblView <> "mine" || RequesterEmail = gblMe,
+                                          gblStatusMode = "all" || IsOpen = (gblStatusMode = "open")
                                       ),
-                                      If(
-                                          gblStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                                          gblStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                                          'MD_RequestIndex'
-                                      )
-                                  ),
                                           gblDomain = "" || Domain.Value = gblDomain,
                                           IsBlank(Trim(txtMdSearch.Text)) ||
                                               StartsWith(RequestNo, Trim(txtMdSearch.Text)) ||
@@ -1709,16 +1620,6 @@ Screens:
                               - txtMdRowDomain:
                                   Control: ModernText
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =Switch(
-                                            ThisItem.Domain.Value,
-                                            "FunctionalLocation", "Functional location",
-                                            "Equipment", "Equipment",
-                                            "MeasuringPoint", "Measuring point",
-                                            "Material", "Material",
-                                            "MaintenancePlan", "Maintenance plan",
-                                            "?"
-                                        )
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -1762,8 +1663,6 @@ Screens:
                               - txtMdRowNo:
                                   Control: ModernText
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =ThisItem.RequestNo
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -1801,21 +1700,6 @@ Screens:
                               - txtMdRowMeta:
                                   Control: ModernText
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =Concat(
-                                            Filter(
-                                                Table(
-                                                    { v: If(!IsBlank(ThisItem.RequesterName), "by " & ThisItem.RequesterName) },
-                                                    { v: If(ThisItem.ItemCount > 0, Text(ThisItem.ItemCount) &
-                                                            If(ThisItem.ItemCount = 1, " item", " items")) },
-                                                    { v: If(!IsBlank(ThisItem.SapObjectNo), "SAP " & ThisItem.SapObjectNo) },
-                                                    { v: If(!IsBlank(ThisItem.LastActionBy), "last change by " & ThisItem.LastActionBy) }
-                                                ),
-                                                !IsBlank(v)
-                                            ),
-                                            v,
-                                            "  ·  "
-                                        )
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -1864,8 +1748,6 @@ Screens:
                               - txtMdRowText:
                                   Control: ModernText
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =ThisItem.ShortText
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -1901,8 +1783,6 @@ Screens:
                               - txtMdRowPlant:
                                   Control: ModernText
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =ThisItem.Plant
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -1976,19 +1856,6 @@ Screens:
                               - txtMdRowStatus:
                                   Control: ModernText
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =Switch(
-                                            ThisItem.Status.Value,
-                                            "Kladde", "Draft",
-                                            "Indsendt", "Submitted",
-                                            "UnderBehandling", "In progress",
-                                            "AfventerInfo", "Awaiting info",
-                                            "KlarTilSAP", "Ready for SAP",
-                                            "OprettetISAP", "Created in SAP",
-                                            "Afvist", "Rejected",
-                                            "Annulleret", "Cancelled",
-                                            "Unknown"
-                                        )
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -2035,11 +1902,6 @@ Screens:
                               - txtMdRowWhen:
                                   Control: ModernText
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =With(
-                                            { d: DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days) },
-                                            If(d <= 0, "Today", If(d = 1, "Yesterday", Text(d) & " days ago"))
-                                        )
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -2099,14 +1961,29 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     OnSelect: |-
-                                        =If(
-                                            IsBlank(ThisItem.AppUrl),
-                                            Notify("This request has no app URL.", NotificationType.Error),
-                                            Launch(
-                                                ThisItem.AppUrl & If(Find("?", ThisItem.AppUrl) > 0, "&", "?") &
-                                                    "reqid=" & ThisItem.RequestGuid & "&theme=" & If(darkModeEnabled, "dark", "light"),
-                                                { },
-                                                LaunchTarget.Replace
+                                        =With(
+                                            { u: Switch(
+                                                ThisItem.Domain.Value,
+                                                "FunctionalLocation", "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/8a6fabf2-e3a3-4f36-8ff6-94c7d33d9575",
+                                                "Equipment", "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/24bf3bbc-601f-480d-a8fe-7cd3180906d1",
+                                                "Material", "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/d7762919-c716-4bd0-9abd-24bab436221f",
+                                                "MaintenancePlan", "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/11fa8d90-868a-45a4-ba23-28f2cf0671a2",
+                                                ""
+                                            ) },
+                                            If(
+                                                IsBlank(ThisItem.RequestGuid),
+                                                Notify("This request has no ID.", NotificationType.Error),
+                                                !IsBlank(u),
+                                                Launch(u & "?reqid=" & ThisItem.RequestGuid & "&theme=" & If(darkModeEnabled, "dark", "light"), { }, LaunchTarget.Replace),
+                                                !IsBlank(ThisItem.AppUrl),
+                                                Launch(
+                                                    If(Find("reqid=", ThisItem.AppUrl) > 0, ThisItem.AppUrl,
+                                                        ThisItem.AppUrl & If(Find("?", ThisItem.AppUrl) > 0, "&", "?") &
+                                                            "reqid=" & ThisItem.RequestGuid) &
+                                                        "&theme=" & If(darkModeEnabled, "dark", "light"),
+                                                    { }, LaunchTarget.Replace
+                                                ),
+                                                Notify("This request has no app URL.", NotificationType.Error)
                                             )
                                         )
                                     RadiusBottomLeft: |-
@@ -2153,14 +2030,29 @@ Screens:
                                     ImagePosition: |-
                                         =ImagePosition.Fit
                                     OnSelect: |-
-                                        =If(
-                                            IsBlank(ThisItem.AppUrl),
-                                            Notify("This request has no app URL.", NotificationType.Error),
-                                            Launch(
-                                                ThisItem.AppUrl & If(Find("?", ThisItem.AppUrl) > 0, "&", "?") &
-                                                    "reqid=" & ThisItem.RequestGuid & "&theme=" & If(darkModeEnabled, "dark", "light"),
-                                                { },
-                                                LaunchTarget.Replace
+                                        =With(
+                                            { u: Switch(
+                                                ThisItem.Domain.Value,
+                                                "FunctionalLocation", "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/8a6fabf2-e3a3-4f36-8ff6-94c7d33d9575",
+                                                "Equipment", "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/24bf3bbc-601f-480d-a8fe-7cd3180906d1",
+                                                "Material", "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/d7762919-c716-4bd0-9abd-24bab436221f",
+                                                "MaintenancePlan", "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/11fa8d90-868a-45a4-ba23-28f2cf0671a2",
+                                                ""
+                                            ) },
+                                            If(
+                                                IsBlank(ThisItem.RequestGuid),
+                                                Notify("This request has no ID.", NotificationType.Error),
+                                                !IsBlank(u),
+                                                Launch(u & "?reqid=" & ThisItem.RequestGuid & "&theme=" & If(darkModeEnabled, "dark", "light"), { }, LaunchTarget.Replace),
+                                                !IsBlank(ThisItem.AppUrl),
+                                                Launch(
+                                                    If(Find("reqid=", ThisItem.AppUrl) > 0, ThisItem.AppUrl,
+                                                        ThisItem.AppUrl & If(Find("?", ThisItem.AppUrl) > 0, "&", "?") &
+                                                            "reqid=" & ThisItem.RequestGuid) &
+                                                        "&theme=" & If(darkModeEnabled, "dark", "light"),
+                                                    { }, LaunchTarget.Replace
+                                                ),
+                                                Notify("This request has no app URL.", NotificationType.Error)
                                             )
                                         )
                                     PressedFill: |-
@@ -2222,14 +2114,29 @@ Screens:
                                     HoverFill: |-
                                         =C.'row-hover'
                                     OnSelect: |-
-                                        =If(
-                                            IsBlank(ThisItem.AppUrl),
-                                            Notify("This request has no app URL.", NotificationType.Error),
-                                            Launch(
-                                                ThisItem.AppUrl & If(Find("?", ThisItem.AppUrl) > 0, "&", "?") &
-                                                    "reqid=" & ThisItem.RequestGuid & "&theme=" & If(darkModeEnabled, "dark", "light"),
-                                                { },
-                                                LaunchTarget.Replace
+                                        =With(
+                                            { u: Switch(
+                                                ThisItem.Domain.Value,
+                                                "FunctionalLocation", "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/8a6fabf2-e3a3-4f36-8ff6-94c7d33d9575",
+                                                "Equipment", "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/24bf3bbc-601f-480d-a8fe-7cd3180906d1",
+                                                "Material", "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/d7762919-c716-4bd0-9abd-24bab436221f",
+                                                "MaintenancePlan", "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/11fa8d90-868a-45a4-ba23-28f2cf0671a2",
+                                                ""
+                                            ) },
+                                            If(
+                                                IsBlank(ThisItem.RequestGuid),
+                                                Notify("This request has no ID.", NotificationType.Error),
+                                                !IsBlank(u),
+                                                Launch(u & "?reqid=" & ThisItem.RequestGuid & "&theme=" & If(darkModeEnabled, "dark", "light"), { }, LaunchTarget.Replace),
+                                                !IsBlank(ThisItem.AppUrl),
+                                                Launch(
+                                                    If(Find("reqid=", ThisItem.AppUrl) > 0, ThisItem.AppUrl,
+                                                        ThisItem.AppUrl & If(Find("?", ThisItem.AppUrl) > 0, "&", "?") &
+                                                            "reqid=" & ThisItem.RequestGuid) &
+                                                        "&theme=" & If(darkModeEnabled, "dark", "light"),
+                                                    { }, LaunchTarget.Replace
+                                                ),
+                                                Notify("This request has no app URL.", NotificationType.Error)
                                             )
                                         )
                                     PressedBorderColor: |-
@@ -3205,8 +3112,6 @@ Screens:
             - txtMdPeekSub:
                 Control: ModernText
                 Properties:
-                  AccessibleLabel: |-
-                      =If(gblView = "mine", "My requests", "Whole department")
                   BorderStyle: |-
                       =BorderStyle.None
                   BorderThickness: |-
@@ -3252,11 +3157,7 @@ Screens:
                   Items: |-
                       =FirstN(
                           SortByColumns(
-                              If(
-                                  gblView = "mine",
-                                  Filter('MD_RequestIndex', RequesterEmail = gblMe, IsOpen = false),
-                                  Filter('MD_RequestIndex', IsOpen = false)
-                              ),
+                              Filter('MD_RequestIndex', gblView <> "mine" || RequesterEmail = gblMe, IsOpen = false),
                               "LastActionOn", SortOrder.Descending
                           ),
                           5
@@ -3318,16 +3219,6 @@ Screens:
                   - txtMdPeekNo:
                       Control: ModernText
                       Properties:
-                        AccessibleLabel: |-
-                            =ThisItem.RequestNo & "  -  " & Switch(
-                                ThisItem.Domain.Value,
-                                "FunctionalLocation", "Functional location",
-                                "Equipment", "Equipment",
-                                "MeasuringPoint", "Measuring point",
-                                "Material", "Material",
-                                "MaintenancePlan", "Maintenance plan",
-                                ""
-                            )
                         BorderStyle: |-
                             =BorderStyle.None
                         BorderThickness: |-
@@ -3373,8 +3264,6 @@ Screens:
                   - txtMdPeekText:
                       Control: ModernText
                       Properties:
-                        AccessibleLabel: |-
-                            =ThisItem.ShortText
                         BorderStyle: |-
                             =BorderStyle.None
                         BorderThickness: |-
@@ -3434,14 +3323,29 @@ Screens:
                             =C.'row-hover'
                         OnSelect: |-
                             =Set(gblClosedPeek, false);
-                            If(
-                                IsBlank(ThisItem.AppUrl),
-                                Notify("This request has no app URL.", NotificationType.Error),
-                                Launch(
-                                    ThisItem.AppUrl & If(Find("?", ThisItem.AppUrl) > 0, "&", "?") &
-                                        "reqid=" & ThisItem.RequestGuid & "&theme=" & If(darkModeEnabled, "dark", "light"),
-                                    { },
-                                    LaunchTarget.Replace
+                            With(
+                                { u: Switch(
+                                    ThisItem.Domain.Value,
+                                    "FunctionalLocation", "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/8a6fabf2-e3a3-4f36-8ff6-94c7d33d9575",
+                                    "Equipment", "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/24bf3bbc-601f-480d-a8fe-7cd3180906d1",
+                                    "Material", "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/d7762919-c716-4bd0-9abd-24bab436221f",
+                                    "MaintenancePlan", "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/11fa8d90-868a-45a4-ba23-28f2cf0671a2",
+                                    ""
+                                ) },
+                                If(
+                                    IsBlank(ThisItem.RequestGuid),
+                                    Notify("This request has no ID.", NotificationType.Error),
+                                    !IsBlank(u),
+                                    Launch(u & "?reqid=" & ThisItem.RequestGuid & "&theme=" & If(darkModeEnabled, "dark", "light"), { }, LaunchTarget.Replace),
+                                    !IsBlank(ThisItem.AppUrl),
+                                    Launch(
+                                        If(Find("reqid=", ThisItem.AppUrl) > 0, ThisItem.AppUrl,
+                                            ThisItem.AppUrl & If(Find("?", ThisItem.AppUrl) > 0, "&", "?") &
+                                                "reqid=" & ThisItem.RequestGuid) &
+                                            "&theme=" & If(darkModeEnabled, "dark", "light"),
+                                        { }, LaunchTarget.Replace
+                                    ),
+                                    Notify("This request has no app URL.", NotificationType.Error)
                                 )
                             )
                         PressedBorderColor: |-

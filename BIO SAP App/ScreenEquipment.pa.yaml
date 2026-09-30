@@ -335,8 +335,6 @@ Screens:
                         - txtEqCount:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  ="Rows: " & CountRows(colEqRows)
                               Align: |-
                                   =Align.Center
                               AlignInContainer: |-
@@ -386,8 +384,6 @@ Screens:
                         - txtEqReqNo:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =If(IsBlank(varEqRequestNo), "Not submitted", varEqRequestNo)
                               AlignInContainer: |-
                                   =AlignInContainer.Center
                               BorderStyle: |-
@@ -3230,8 +3226,6 @@ Screens:
                         - txtEqFlMsg:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =varEqFlMsg
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -3317,8 +3311,6 @@ Screens:
                                     - txtEqFormPlant:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              ="Plant: " & Coalesce(varEqFPlant, "-")
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -3360,13 +3352,6 @@ Screens:
                                     - txtEqFormState:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =If(
-                                                  IsBlank(varEqActiveRowId),
-                                                  "Row status: New row - not saved yet",
-                                                  "Row status: " & Coalesce(LookUp(colEqRows, RowId = varEqActiveRowId).ItemKey, "row " & varEqActiveRowId) &
-                                                      " (" & varEqRowStatus & ")"
-                                              )
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -3818,8 +3803,6 @@ Screens:
                         - txtEqFormInfo:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =varEqInfo
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -5017,8 +5000,6 @@ Screens:
                                     - txtEqHeadDetails:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =If(varEqAllCols, "ACTIONS", "DETAILS")
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5209,8 +5190,6 @@ Screens:
                                     - txtEqCell0:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.RequestType
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5246,8 +5225,6 @@ Screens:
                                     - txtEqCell1:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.Plant
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5283,8 +5260,6 @@ Screens:
                                     - txtEqCell2:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =If(varEqAllCols, ThisItem.EquipmentNumber, ThisItem.FunctionalLocation)
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5320,8 +5295,6 @@ Screens:
                                     - txtEqCell3:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =If(varEqAllCols, If(IsBlank(Trim(ThisItem.Description)), "(no text)", ThisItem.Description), ThisItem.EquipmentNumber)
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5357,8 +5330,6 @@ Screens:
                                     - txtEqCell4:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =If(varEqAllCols, ThisItem.EquipmentCategory, If(IsBlank(Trim(ThisItem.Description)), "(no text)", ThisItem.Description))
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5394,8 +5365,6 @@ Screens:
                                     - txtEqCell5:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =If(varEqAllCols, ThisItem.Manufacturer, ThisItem.EquipmentCategory)
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5431,8 +5400,6 @@ Screens:
                                     - txtEqCell6:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.TypeDesignation
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5470,8 +5437,6 @@ Screens:
                                     - txtEqCell7:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.SerialNumber
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5509,8 +5474,6 @@ Screens:
                                     - txtEqCell8:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.FunctionalLocation
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5548,8 +5511,6 @@ Screens:
                                     - txtEqCell9:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.FunctionalLocation1
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5587,8 +5548,6 @@ Screens:
                                     - txtEqCell10:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.FunctionalLocation2
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5626,8 +5585,6 @@ Screens:
                                     - txtEqCell11:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.ClassData
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5665,8 +5622,6 @@ Screens:
                                     - txtEqCell12:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.RoomCoordinates
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5704,8 +5659,6 @@ Screens:
                                     - txtEqCell13:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.Placement
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5743,8 +5696,6 @@ Screens:
                                     - txtEqCell14:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =If(IsBlank(ThisItem.WarrantyStart), "", Text(ThisItem.WarrantyStart, "yyyy-mm-dd"))
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5782,8 +5733,6 @@ Screens:
                                     - txtEqCell15:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =If(IsBlank(ThisItem.WarrantyEnd), "", Text(ThisItem.WarrantyEnd, "yyyy-mm-dd"))
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5821,8 +5770,6 @@ Screens:
                                     - txtEqCell16:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =If(ThisItem.FileCount > 0, Text(ThisItem.FileCount) & " file(s)", "-")
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5860,8 +5807,6 @@ Screens:
                                     - txtEqCell17:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =If(IsBlank(ThisItem.ItemKey), "-", "TaskListDocuments/" & ThisItem.ItemKey)
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -6277,12 +6222,6 @@ Screens:
                               - txtEqSubmitState:
                                   Control: ModernText
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =If(
-                                            IsBlank(varEqRequestNo),
-                                            "The request has not been sent to the hub yet.",
-                                            "Request " & varEqRequestNo & " is on the landing page."
-                                        )
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -7305,8 +7244,6 @@ Screens:
                         - txtEqDetKey:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colEqRows, RowId = varEqDetailsId).ItemKey, "Row " & Text(varEqDetailsId))
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -7338,22 +7275,6 @@ Screens:
                         - txtEqDetPos:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  ="" & Text(CountRows(Filter(Sort(Filter(
-                                      colEqRows,
-                                      (IsBlank(Trim(txtEqSearch.Text)) || Trim(txtEqSearch.Text) in Description || Trim(txtEqSearch.Text) in FunctionalLocation || Trim(txtEqSearch.Text) in SerialNumber || Trim(txtEqSearch.Text) in EquipmentNumber),
-                                      (drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
-                                      (drpEqPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpEqPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varEqDetailsId)) + 1) & " of " & Text(CountRows(Sort(Filter(
-                                      colEqRows,
-                                      (IsBlank(Trim(txtEqSearch.Text)) || Trim(txtEqSearch.Text) in Description || Trim(txtEqSearch.Text) in FunctionalLocation || Trim(txtEqSearch.Text) in SerialNumber || Trim(txtEqSearch.Text) in EquipmentNumber),
-                                      (drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
-                                      (drpEqPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpEqPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending)))
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -7745,8 +7666,6 @@ Screens:
                         - txtEqDet0V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colEqRows, RowId = varEqDetailsId).Description, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -7844,8 +7763,6 @@ Screens:
                         - txtEqDet1V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colEqRows, RowId = varEqDetailsId).Plant, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -7943,8 +7860,6 @@ Screens:
                         - txtEqDet2V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colEqRows, RowId = varEqDetailsId).Status, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -8042,8 +7957,6 @@ Screens:
                         - txtEqDet3V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Text(Coalesce(LookUp(colEqRows, RowId = varEqDetailsId).FileCount, 0))
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -8141,8 +8054,6 @@ Screens:
                         - txtEqDet4V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colEqRows, RowId = varEqDetailsId).RequestType, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -8240,8 +8151,6 @@ Screens:
                         - txtEqDet5V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colEqRows, RowId = varEqDetailsId).EquipmentNumber, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -8339,8 +8248,6 @@ Screens:
                         - txtEqDet6V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colEqRows, RowId = varEqDetailsId).EquipmentCategory, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -8438,8 +8345,6 @@ Screens:
                         - txtEqDet7V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colEqRows, RowId = varEqDetailsId).Manufacturer, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -8537,8 +8442,6 @@ Screens:
                         - txtEqDet8V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colEqRows, RowId = varEqDetailsId).TypeDesignation, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -8636,8 +8539,6 @@ Screens:
                         - txtEqDet9V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colEqRows, RowId = varEqDetailsId).SerialNumber, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -8735,8 +8636,6 @@ Screens:
                         - txtEqDet10V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colEqRows, RowId = varEqDetailsId).FunctionalLocation, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -8834,8 +8733,6 @@ Screens:
                         - txtEqDet11V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colEqRows, RowId = varEqDetailsId).FunctionalLocation1, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -8933,8 +8830,6 @@ Screens:
                         - txtEqDet12V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colEqRows, RowId = varEqDetailsId).FunctionalLocation2, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -9032,8 +8927,6 @@ Screens:
                         - txtEqDet13V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colEqRows, RowId = varEqDetailsId).ClassData, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -9131,8 +9024,6 @@ Screens:
                         - txtEqDet14V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colEqRows, RowId = varEqDetailsId).RoomCoordinates, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -9230,8 +9121,6 @@ Screens:
                         - txtEqDet15V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colEqRows, RowId = varEqDetailsId).Placement, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -9329,8 +9218,6 @@ Screens:
                         - txtEqDet16V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =If(IsBlank(LookUp(colEqRows, RowId = varEqDetailsId).WarrantyStart), "-", Text(LookUp(colEqRows, RowId = varEqDetailsId).WarrantyStart))
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -9428,8 +9315,6 @@ Screens:
                         - txtEqDet17V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =If(IsBlank(LookUp(colEqRows, RowId = varEqDetailsId).WarrantyEnd), "-", Text(LookUp(colEqRows, RowId = varEqDetailsId).WarrantyEnd))
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -9545,8 +9430,6 @@ Screens:
                   - txtEqAttH:
                       Control: ModernText
                       Properties:
-                        AccessibleLabel: |-
-                            ="Documents - " & Coalesce(LookUp(colEqRows, RowId = varEqDocsId).ItemKey, "")
                         BorderStyle: |-
                             =BorderStyle.None
                         BorderThickness: |-
@@ -10004,8 +9887,6 @@ Screens:
                   - txtEqAttName:
                       Control: ModernText
                       Properties:
-                        AccessibleLabel: |-
-                            =ThisItem.FileName
                         BorderStyle: |-
                             =BorderStyle.None
                         BorderThickness: |-
@@ -10086,12 +9967,6 @@ Screens:
             - txtEqAttEmpty:
                 Control: ModernText
                 Properties:
-                  AccessibleLabel: |-
-                      =If(
-                          IsBlank(LookUp(colEqRows, RowId = varEqDocsId).ItemKey),
-                          "Save the row first - the folder is named after the row key.",
-                          "No documents in " & "TaskListDocuments/" & LookUp(colEqRows, RowId = varEqDocsId).ItemKey & " yet."
-                      )
                   BorderStyle: |-
                       =BorderStyle.None
                   BorderThickness: |-
@@ -10658,8 +10533,6 @@ Screens:
             - txtEqDelConfirmText:
                 Control: ModernText
                 Properties:
-                  AccessibleLabel: |-
-                      ="Row " & LookUp(colEqRows, RowId = varEqDeleteId).ItemKey & " is deleted in SharePoint. The documents remain in the library."
                   BorderStyle: |-
                       =BorderStyle.None
                   BorderThickness: |-

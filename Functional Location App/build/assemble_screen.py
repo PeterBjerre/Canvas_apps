@@ -30,17 +30,33 @@ import fl_parts as P
 import fl_save as S
 
 
-def on_visible():
+ME = "Set(varFlMe, Lower(User().Email))"
+
+
+def load_part():
+    """Hent anmodningen bag ?reqid=, naar det er en anden end den viste.
+
+    Egen funktion, saa BIO SAP App kan koere den KUN naar hubben beder om
+    en anden anmodning (dens open_block) - ikke ved hvert skaermbesoeg.
+    Stod den i OnVisible dér, overskrev et besoeg en ny anmodning med den
+    gamle, fordi "New request" ikke nulstiller gblFlReqId (REVIEW.md D23)."""
     return (
-        "Set(varFlMe, Lower(User().Email));\n"
         "If(\n"
         '    !IsBlank(Param("reqid")) && varFlRequestGuid <> Param("reqid"),\n'
         "    " + S.load_fx().replace("\n", "\n    ") + ";\n"
         "    // Beskederne gemmes ikke - de regnes igen, automatisk (issue #77).\n"
         "    Select(btnFlVerify)\n"
-        ");\n"
-        "If(CountRows(colFlRows) = 0, " + P.add_row_fx().replace("\n", " ") + ")"
+        ")"
     )
+
+
+def ensure_row_part():
+    """En tom anmodning har altid een raekke at skrive i."""
+    return "If(CountRows(colFlRows) = 0, " + P.add_row_fx().replace("\n", " ") + ")"
+
+
+def on_visible():
+    return ME + ";\n" + load_part() + ";\n" + ensure_row_part()
 
 
 def build_screen():

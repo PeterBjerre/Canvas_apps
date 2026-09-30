@@ -107,11 +107,15 @@ def _index_patch(status, step):
     )"""
 
 
-def save_fx(status="Kladde", step=1):
+def save_fx(status="Kladde", step=1, notify=True):
     """Gem - trin 1-5 ovenfor. status er det, hovedet og indekset faar til
     SIDST. Indsend kalder den med Kladde og saetter Indsendt bagefter,
     naar snapshottet er skrevet."""
     L = cfg.L_ITEMS
+    # Indsend kalder gem foerst og siger selv "Submitted as ..." bagefter -
+    # to beskeder i traek for een handling (REVIEW.md A6).
+    ok = ('Notify("Saved as " & varFlRequestNo & " - see it on the landing page.", '
+          'NotificationType.Success)' if notify else 'Set(varFlInfo, "")')
     new_rows = f'Filter(colFlRows, Status <> "draft" && !(RowGuid in colFlSp.RowGuid))'
     old_rows = f'Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid)'
     return f"""Clear(colFlSaveErrors);
@@ -227,7 +231,7 @@ If(
     CountRows(colFlSaveErrors) = 0,
     Set(varFlStatus, "{status}");
     Set(varFlInfo, "");
-    Notify("Saved as " & varFlRequestNo & " - see it on the landing page.", NotificationType.Success),
+    {ok},
     Set(varFlInfo, "Saving failed (" & First(colFlSaveErrors).Where & "): " & First(colFlSaveErrors).Msg);
     Notify(CountRows(colFlSaveErrors) & " step(s) failed. What was saved is kept - try again.", NotificationType.Error)
 )"""
@@ -285,7 +289,7 @@ def submit_fx():
     !({SUBMIT_OK}),
     Notify({SUBMIT_WHY}, NotificationType.Warning),
 
-    {save_fx().replace(chr(10), chr(10) + "    ")};
+    {save_fx(notify=False).replace(chr(10), chr(10) + "    ")};
 
     If(
         CountRows(colFlSaveErrors) = 0,
@@ -300,7 +304,7 @@ def submit_fx():
                 Patch({cfg.L_INDEX}, varFlIdx, {{ Status: {{ Value: "Indsendt" }}, StatusStep: 2, LastActionOn: Now() }});
                 Set(varFlStatus, "Indsendt");
                 Set(varFlInfo, "");
-                Notify("Submitted as " & varFlRequestNo & ".", NotificationType.Success),
+                Notify("Submitted as " & varFlRequestNo & " - see it on the landing page.", NotificationType.Success),
                 Set(varFlInfo, "Submit failed: " & FirstError.Message);
                 Notify("Submit failed: " & FirstError.Message, NotificationType.Error)
             )
@@ -315,51 +319,59 @@ def load_fx():
     L = cfg.L_ITEMS
     return f"""Set(varFlRequestGuid, Param("reqid"));
 Set(varFlReq, LookUp({cfg.L_REQ}, RequestGuid = varFlRequestGuid));
-Set(varFlRequestNo, Coalesce(varFlReq.RequestNo, ""));
-Set(varFlStatus, Coalesce(varFlReq.Status.Value, "Kladde"));
-ClearCollect(
-    colFlLoad,
-    ForAll(
-        Filter({L}, RequestGuid = varFlRequestGuid) As I,
-        {{
-            RowGuid: I.RowGuid, RowNo: I.RowNo, SpId: I.ID,
-            FL: I.FunctionalLocation, Description: I.Description,
-            KksType: I.KksType, AssignedClass: I.AssignedClass,
-            Status: I.RowStatus.Value, FirstIssue: I.FirstIssue,
-            IssueCount: I.IssueCount, Json: Coalesce(I.SpoolValuesJson, "[]")
-        }}
-    )
-);
-ClearCollect(
-    colFlRows,
-    ForAll(
-        Sort(colFlLoad, RowNo) As I,
-        {{
-            RowGuid: I.RowGuid, RowNo: I.RowNo, SpId: I.SpId, FL: I.FL,
-            Description: I.Description, KksType: I.KksType,
-            AssignedClass: I.AssignedClass, Status: I.Status,
-            FirstIssue: I.FirstIssue, FirstWarning: "",
-            IssueCount: I.IssueCount, WarningCount: 0
-        }}
-    )
-);
-ClearCollect(
-    colFlVals,
-    Ungroup(
+// Linket peger paa noget, der ikke er her (andet miljoe, slettet): sig det,
+// og slip GUID'en - ellers oprettede naeste gem et hoved med den fremmede.
+If(
+    IsBlank(varFlReq),
+    Notify("Could not find the request behind this link. Opening a new request.",
+        NotificationType.Warning);
+    Set(varFlRequestGuid, ""),
+    Set(varFlRequestNo, Coalesce(varFlReq.RequestNo, ""));
+    Set(varFlStatus, Coalesce(varFlReq.Status.Value, "Kladde"));
+    ClearCollect(
+        colFlLoad,
         ForAll(
-            colFlLoad As I,
+            Filter({L}, RequestGuid = varFlRequestGuid) As I,
             {{
-                Vals: ForAll(
-                    Table(ParseJSON(I.Json)) As J,
-                    {{ RowGuid: I.RowGuid, Field: Text(J.Value.field), Value: Text(J.Value.value) }}
-                )
+                RowGuid: I.RowGuid, RowNo: I.RowNo, SpId: I.ID,
+                FL: I.FunctionalLocation, Description: I.Description,
+                KksType: I.KksType, AssignedClass: I.AssignedClass,
+                Status: I.RowStatus.Value, FirstIssue: I.FirstIssue,
+                IssueCount: I.IssueCount, Json: Coalesce(I.SpoolValuesJson, "[]")
             }}
-        ),
-        Vals
-    )
-);
-Set(varFlNextRowNo, Max(colFlRows, RowNo) + 1);
-// Beskederne gemmes ikke - de regnes. OnVisible koerer valideringen lige
-// efter (Select(btnFlVerify)), og indtil da kan der ikke indsendes (FL68).
-Set(varFlStale, true);
-Set(varFlInfo, "")"""
+        )
+    );
+    ClearCollect(
+        colFlRows,
+        ForAll(
+            Sort(colFlLoad, RowNo) As I,
+            {{
+                RowGuid: I.RowGuid, RowNo: I.RowNo, SpId: I.SpId, FL: I.FL,
+                Description: I.Description, KksType: I.KksType,
+                AssignedClass: I.AssignedClass, Status: I.Status,
+                FirstIssue: I.FirstIssue, FirstWarning: "",
+                IssueCount: I.IssueCount, WarningCount: 0
+            }}
+        )
+    );
+    ClearCollect(
+        colFlVals,
+        Ungroup(
+            ForAll(
+                colFlLoad As I,
+                {{
+                    Vals: ForAll(
+                        Table(ParseJSON(I.Json)) As J,
+                        {{ RowGuid: I.RowGuid, Field: Text(J.Value.field), Value: Text(J.Value.value) }}
+                    )
+                }}
+            ),
+            Vals
+        )
+    );
+    Set(varFlNextRowNo, Max(colFlRows, RowNo) + 1);
+    // Beskederne gemmes ikke - de regnes. OnVisible koerer valideringen lige
+    // efter (Select(btnFlVerify)), og indtil da kan der ikke indsendes (FL68).
+    Set(varFlStale, true);
+    Set(varFlInfo, "")
+)"""
