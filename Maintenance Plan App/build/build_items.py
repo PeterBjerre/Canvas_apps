@@ -6,6 +6,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_MUTED, C_INFO_FG,
                         C_INVALID_BG, C_NEUTRAL_BG, C_INPUT_BG, SHELL_W,
                         EDITOR_W, RAIL_W, SPLIT_GAP, C_TRANSPARENT, C_MODAL_BG,
                         C_PRIMARY_SOFT)
+import layout_tokens as lay
 from layout_tokens import if_below, at_least
 from build_helpers import (checkbox_theme, row_hit, text_ctrl, group, button,
                            button_row, text_input, themed_dropdown, label_row,
@@ -681,7 +682,7 @@ def build_object_list_modal():
     den valgte Functional Location - men krydserne skrives i en KLADDE,
     colVhpObjDraft. Foerst "Use selected" skriver dem paa itemet. Close og
     X lukker uden at aendre noget."""
-    title = text_ctrl("txtVhpObjListTitle", "\"Object List\"", size=17, weight="Semibold",
+    title = text_ctrl("txtVhpObjListTitle", "\"Object List\"", size=lay.SIZE_CARD_TITLE, weight="Semibold",
                       height=26, wrap="false")
     grow(title)
     btnX = button("btnVhpObjListClose", "\"Close\"",
@@ -782,7 +783,7 @@ def build_object_list_modal():
     # Maks 640 bred og aldrig bredere end skaermen minus 20 px i hver side.
     modal = group(
         "conVhpObjListModal", [headRow, under, galObj, objEmpty, footer], direction="Vertical",
-        gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=16,
+        gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
         pad=(18, 18, 18, 18), width="Min(640, App.Width - 40)", drop_shadow="ExtraBold",
         visible="varVhpObjListOpen")
     modal.props["X"] = "(App.Width - Self.Width) / 2"

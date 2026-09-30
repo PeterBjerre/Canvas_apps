@@ -18,6 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
                         C_PRIMARY, C_MUTED_BG, C_MODAL_BG, C_DIVIDER,
                         C_TRANSPARENT, SHELL_W)
+import layout_tokens as lay
 from build_helpers import (row_rule, row_hit, text_input, text_ctrl, group, button, card, flow_row, top_bar,
                            fit_button_width, ICON_W)
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, STATUS_ICON, APP_TARGET
@@ -355,7 +356,7 @@ def build_new_menu():
                             else f'"{d["name"]} - coming soon"',
                             hover=C_MUTED_BG if ready else None))
     menu = group("conMdNewMenu", items, direction="Vertical", gap=2, width=MENU_W,
-                 fill=C_MODAL_BG, border_color=C_CARD_BORDER, radius=12, pad=8,
+                 fill=C_MODAL_BG, border_color=C_CARD_BORDER, radius=lay.RADIUS_MODAL, pad=8,
                  drop_shadow="Bold", visible=MENU_OPEN, align_items="Start")
     menu.props["X"] = f"App.Width - Self.Width - {PAGE_PAD_R + SCROLLBAR_W}"
     # Lige under bjaelken: dens padding + titel og undertitel (30 + 2 + 20).
@@ -469,7 +470,7 @@ def build_tiles():
 
         tile = group(
             f"conMdTile{n}", [face], direction="Vertical", gap=0,
-            fill=st["fill"], radius=12, width=TILE_W,
+            fill=st["fill"], radius=lay.RADIUS_CARD, width=TILE_W,
             border_color=st["border"], border_thickness=st["thickness"])
         tile.props["DropShadow"] = st["shadow"]
         tiles.append(tile)
@@ -606,7 +607,7 @@ def build_closed_peek():
                       color=C_MUTED, height=20, wrap="false",
                       visible="IsEmpty(galMdPeek.AllItems)")
     card_ = group("conMdPeek", [title, sub, gal, empty], direction="Vertical", gap=6,
-                  width=PEEK_W, fill=C_MODAL_BG, border_color=C_CARD_BORDER, radius=12,
+                  width=PEEK_W, fill=C_MODAL_BG, border_color=C_CARD_BORDER, radius=lay.RADIUS_MODAL,
                   pad=8, drop_shadow="Bold", visible=PEEK_OPEN, align_items="Stretch")
     card_.props["X"] = f"Max(8, App.Width - Self.Width - {PAGE_PAD_R + SCROLLBAR_W})"
     card_.props["Y"] = str(HEADER_PAD_T + 52 + 6)
@@ -669,7 +670,7 @@ def _open_action():
 
 def build_list():
     head = group("conMdListHead",
-                 [text_ctrl(f"txtMdH{i}", f'"{t}"', size=10, weight="Semibold", color=C_MUTED,
+                 [text_ctrl(f"txtMdH{i}", f'"{t}"', size=lay.SIZE_MICRO, weight="Semibold", color=C_MUTED,
                             height=20, wrap="false",
                             width=(MAIN_W if w == 0 else w))
                   for i, (t, w) in enumerate(COLS)],
