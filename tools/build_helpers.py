@@ -187,7 +187,7 @@ ICON_W = 24
 
 def button(name, text, onselect, primary=False, danger=False, width=140, height=36,
            display_mode=None, base_color=None, layout_min_width=None, visible=None,
-           accessible=None, icon=None):
+           accessible=None, icon=None, tooltip=None):
     props = {
         "AccessibleLabel": accessible if accessible else text,
         "Align": "Align.Center",
@@ -234,6 +234,8 @@ def button(name, text, onselect, primary=False, danger=False, width=140, height=
         props["LayoutMinWidth"] = str(layout_min_width)
     if visible is not None:
         props["Visible"] = visible
+    if tooltip:
+        props["Tooltip"] = tooltip
     # Ikon foran teksten. icon er et Fluent-ikonnavn ("Save") eller et
     # Power Fx-udtryk, der giver et.
     if icon:

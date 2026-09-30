@@ -63,6 +63,9 @@ from build_helpers import (text_ctrl, group, button, text_input,
 SAVING_VAR = "varDomSaving"
 # Bekraeftelsen foer Submit.
 CONFIRM_VAR = "varDomConfirmSubmit"
+# Sletning sker bag en bekraeftelse: hvilken raekke, og om popuppen er aaben.
+DELETE_ID = "varDomDeleteId"
+DELETE_VAR = "varDomConfirmDelete"
 from layout_tokens import SCROLLBAR_W
 import domain_config as cfg
 import attflows
@@ -136,6 +139,9 @@ REQUIRED = "varDomValidated"
 # Dokumentpopuppens knapper haenger paa DEN raekke, popuppen er aabnet for.
 DM_DOCS = ('If(IsBlank(varDomDocsId), DisplayMode.Disabled, DisplayMode.Edit)')
 DM_SEL = ('If(IsBlank(varDomActiveRowId), DisplayMode.Disabled, DisplayMode.Edit)')
+# En indsendt raekke ejes af SAP-processen og kan ikke slettes.
+DM_DEL = ('If(IsBlank(varDomActiveRowId) || varDomRowStatus = "submitted", '
+          'DisplayMode.Disabled, DisplayMode.Edit)')
 
 
 # ---------------------------------------------------------------------------
@@ -172,7 +178,7 @@ def _var(col):
 
 
 def _input_for(col, kind, choices):
-    name = "inp" + col
+    name = "inpDom" + col
     v = _var(col)
     if kind == "num":
         c = number_input(name, v, display_mode=DM_ROW)
@@ -391,28 +397,9 @@ def copy_row_fx():
 
 
 def delete_this_row_fx():
-    """Slet DEN raekke, knappen sidder paa - ikke den, der er aaben.
-
-    btnDomDelete i formularen sletter varDomActiveRowId. Her er raekken
-    ThisItem, og de to er ikke noedvendigvis den samme: man skal kunne
-    slette en raekke i listen uden foerst at aabne den."""
-    return (
-        f"Remove({cfg.L_ROWS}, LookUp({cfg.L_ROWS}, ID = ThisItem.RowId));\n"
-        "RemoveIf(colDomAttachments, RowId = ThisItem.RowId);\n"
-        "If(varDomDetailsId = ThisItem.RowId, Set(varDomDetailsId, Blank()));\n"
-        "If(varDomDocsId = ThisItem.RowId, Set(varDomDocsId, Blank()));\n"
-        "\n"
-        "// Var det den aabne raekke, skal formularen ogsaa ryddes - ellers\n"
-        "// staar der felter fra noget, der ikke findes.\n"
-        "If(\n"
-        "    varDomActiveRowId = ThisItem.RowId,\n"
-        "    " + clear_form_fx().replace("\n", "\n    ") + "\n"
-        ");\n"
-        "\n"
-        + refresh_rows_fx() + ";\n"
-        'Set(varDomInfo, "Row deleted. The documents remain in the library.")'
-    )
-
+    """Listens Delete: slet DEN raekke, knappen sidder paa - bag en
+    bekraeftelse (build_delete_confirm)."""
+    return f"Set({DELETE_ID}, ThisItem.RowId);\nSet({DELETE_VAR}, true)"
 
 def load_row_fx():
     """Vaelg en gemt raekke og laeg den i formularen.
@@ -535,6 +522,10 @@ def save_row_fx(status="valid", required=()):
         "            }\n"
         "        )\n"
         "    );\n"
+        # Id'et STRAKS. Stod det foerst efter noegle-Patchen, og fejlede den,
+        # var raekken oprettet, men formularen stadig "ny" - og naeste Gem
+        # lavede en dublet med Defaults().
+        "    Set(varDomActiveRowId, varDomSpRow.ID);\n"
         "\n"
         "    // Noeglen er lavet af raekkens eget ID og kan derfor foerst\n"
         "    // dannes, naar raekken findes. Derfor to skrivninger paa en ny\n"
@@ -551,7 +542,6 @@ def save_row_fx(status="valid", required=()):
         "            }\n"
         "        )\n"
         "    );\n"
-        "    Set(varDomActiveRowId, varDomSpRow.ID);\n"
         f'    Set(varDomRowStatus, "{status}");\n'
         "\n"
         + refresh_rows_fx(4) + ";\n"
@@ -569,29 +559,63 @@ def save_row_fx(status="valid", required=()):
 
 
 def delete_row_fx():
-    """Slet raekken - ogsaa i SharePoint.
+    """Formularens Delete row: slet den AABNE raekke - bag en bekraeftelse."""
+    return (f"Set({DELETE_ID}, varDomActiveRowId);\n"
+            f"Set({DELETE_VAR}, true)")
+
+
+def delete_confirmed_fx():
+    """Sletningen selv - koeres af bekraeftelsens "Delete".
+
+    Her stod to sletninger (listen og formularen) direkte paa knapperne:
+    uden bekraeftelse, uden IfError - brugeren fik "Row deleted" ogsaa
+    naar SharePoint afviste - og uden spaerre for en INDSENDT raekke, som
+    SAP-processen ejer (DM_ROW). Nu er der een, og den tjekker alle tre.
 
     Dokumenterne i biblioteket bliver staaende. Det er med vilje: en
     raekke, der fjernes ved et uheld, maa ikke tage bilagene med sig."""
+    row = f"LookUp(colDomRows, RowId = {DELETE_ID})"
     return (
         "If(\n"
-        "    IsBlank(varDomActiveRowId),\n"
-        '    Set(varDomInfo, "Select a row in the list first."),\n'
+        f"    IsBlank({DELETE_ID}) || IsBlank({row}),\n"
+        '    Notify("Select a row in the list first.", NotificationType.Warning),\n'
         "\n"
-        f"    Remove({cfg.L_ROWS}, LookUp({cfg.L_ROWS}, ID = varDomActiveRowId));\n"
-        "    RemoveIf(colDomAttachments, RowId = varDomActiveRowId);\n"
-        "    If(varDomDetailsId = varDomActiveRowId, Set(varDomDetailsId, Blank()));\n"
-        "    If(varDomDocsId = varDomActiveRowId, Set(varDomDocsId, Blank()));\n"
+        f'    {row}.Status = "submitted",\n'
+        '    Notify("A submitted row cannot be deleted.", NotificationType.Warning),\n'
         "\n"
-        + refresh_rows_fx(4) + ";\n"
-        "\n"
-        + clear_form_fx().replace("\n", "\n    ").replace(
-            'Set(varDomInfo, "New row - fill in and save.")',
-            'Set(varDomInfo, "Row deleted. The documents remain in the library.")')
-        + "\n"
-        ")"
+        "    If(\n"
+        "        IfError(\n"
+        f"            Remove({cfg.L_ROWS}, LookUp({cfg.L_ROWS}, ID = {DELETE_ID}));\n"
+        "            true,\n"
+        '            Notify("Delete failed: " & FirstError.Message, NotificationType.Error);\n'
+        "            false\n"
+        "        ),\n"
+        f"        RemoveIf(colDomAttachments, RowId = {DELETE_ID});\n"
+        f"        If(varDomDetailsId = {DELETE_ID}, Set(varDomDetailsId, Blank()));\n"
+        f"        If(varDomDocsId = {DELETE_ID}, Set(varDomDocsId, Blank()));\n"
+        # Var det den aabne raekke, skal formularen ogsaa ryddes - ellers
+        # staar der felter fra noget, der ikke findes.
+        f"        If(varDomActiveRowId = {DELETE_ID},\n"
+        "            " + clear_form_fx().replace("\n", "\n            ") + "\n"
+        "        );\n"
+        + refresh_rows_fx(8) + ";\n"
+        '        Set(varDomInfo, "Row deleted. The documents remain in the library.");\n'
+        '        Notify("Row deleted. The documents remain in the library.", '
+        "NotificationType.Success)\n"
+        "    )\n"
+        ");\n"
+        f"Set({DELETE_ID}, Blank())"
     )
 
+
+def build_delete_confirm():
+    """Bekraeftelsen foer sletning - [sloer, popup], som Submit's."""
+    return confirm_modal(
+        "DomDel", DELETE_VAR, "Delete row?",
+        f'"Row " & LookUp(colDomRows, RowId = {DELETE_ID}).ItemKey & '
+        '" is deleted in SharePoint. The documents remain in the library."',
+        "Delete", with_busy(SAVING_VAR, delete_confirmed_fx()),
+        "btnDomDeleteConfirm", icon="Delete")
 
 # ---------------------------------------------------------------------------
 # Dokumentruden
@@ -854,7 +878,15 @@ def send_fx(submit):
     rows = VALID if submit else SENDABLE
     status = "Indsendt" if submit else "Kladde"
     step = 2 if submit else 1
-    label = "Submitted" if submit else "Saved as draft"
+    # Samme tekster som i VH-plan og FL: "Saved as X" / "Submitted as X".
+    # Her stod "Saved as draft", og beskeden blev "Saved as draft as EQ-..".
+    label = "Submitted" if submit else "Saved"
+    action = "Submit" if submit else "Save"
+    # Efter Submit er anmodningen afleveret. Stod GUID og nummer tilbage,
+    # patchede naeste "Save as draft" i samme session den INDSENDTE
+    # indeksraekke tilbage til Kladde. Naeste batch er en ny anmodning.
+    after = (';\n        Set(varDomRequestGuid, "");\n'
+             '        Set(varDomRequestNo, "")') if submit else ""
     empty = ("There are no completed rows to submit."
              if submit else "There are no rows to save.")
 
@@ -950,10 +982,10 @@ def send_fx(submit):
         "\n"
         f'        Set(varDomInfo, "{label}: " & varDomRequestNo);\n'
         f'        Notify("{label} as " & varDomRequestNo & " - see it on the '
-        'landing page.", NotificationType.Success),\n'
+        'landing page.", NotificationType.Success)' + after + ',\n'
         "\n"
-        '        Set(varDomInfo, "It failed: " & FirstError.Message);\n'
-        '        Notify("It failed: " & FirstError.Message, '
+        f'        Set(varDomInfo, "{action} failed: " & FirstError.Message);\n'
+        f'        Notify("{action} failed: " & FirstError.Message, '
         "NotificationType.Error)\n"
         "    )\n"
         ")"
@@ -1050,7 +1082,7 @@ def field_grid_cell(col):
     """Et felt fra SECTIONS som celle i gitteret."""
     for c, label, kind, choices in FIELDS:
         if c == col:
-            return grid_cell(f"con{c}", label, _input_for(c, kind, choices))
+            return grid_cell(f"conDom{c}", label, _input_for(c, kind, choices))
     raise SystemExit(f"domain_parts: {col} er ikke et felt i SECTIONS")
 
 
@@ -1203,14 +1235,18 @@ def form_buttons(save_fx, save_text, new_text):
     save_fx(status) er appens gem (save_row_fx med evt. egne krav)."""
     return [
         fit(button("btnDomDelete", '"Delete row"', delete_row_fx(),
-                   danger=True, display_mode=DM_SEL)),
-        fit(button("btnDomSaveDraft", '"Save draft"',
+                   danger=True, display_mode=DM_DEL,
+        tooltip='"Delete the open row in SharePoint (asks first)"')),
+        fit(button("btnDomSaveDraft", '"Save row draft"',
                    with_busy(SAVING_VAR, save_fx("draft")),
-                   display_mode=DM_ROW, icon=ICON_SAVE), icon=True),
+                   display_mode=DM_ROW, icon=ICON_SAVE,
+        tooltip='"Save the row as a draft - only the description is required"'), icon=True),
         fit(button("btnDomSave", f'"{save_text}"',
                    with_busy(SAVING_VAR, save_fx("valid")),
-                   primary=True, display_mode=DM_ROW, icon=ICON_SAVE), icon=True),
-        fit(button("btnDomNew", f'"{new_text}"', clear_form_fx())),
+                   primary=True, display_mode=DM_ROW, icon=ICON_SAVE,
+        tooltip='"Save the row as complete, ready to submit"'), icon=True),
+        fit(button("btnDomNew", f'"{new_text}"', clear_form_fx(),
+        tooltip='"Clear the form and start a new row"')),
     ]
 
 
@@ -1247,7 +1283,7 @@ LIST_SCOPE = (
     "    colDomRows,\n"
     f"    (IsBlank(Trim(txtDomSearch.Text)) || {SEARCH}),\n"
     f'    (drpDomStatusFilter.Selected.Value = "{ALL_STATUS}" ||\n'
-    "     Status = drpDomStatusFilter.Selected.Value),\n"
+    "     Status = Lower(drpDomStatusFilter.Selected.Value)),\n"
     f'    (drpDomPlantFilter.Selected.Value = "{ALL_PLANTS}" ||\n'
     "     Plant = drpDomPlantFilter.Selected.Value)\n"
     ")"
@@ -1388,11 +1424,15 @@ def _status_badge():
                  pad=(0, 0, 0, CELL_PAD))
 
 
-def _row_buttons(name, btns, fxs, width, danger=()):
+def _row_buttons(name, btns, fxs, width, danger=(), modes=None):
     out = []
     for (bn, text), fx in zip(btns, fxs):
+        # Raekkens noegle i label og tooltip: otte "Delete" efter hinanden
+        # siger intet til en skaermlaeser (REVIEW.md D29/A17).
+        who = f'{text} & " " & ThisItem.ItemKey'
         b = button(bn, text, fx, danger=bn in danger, width=ROW_BTN[bn],
-                   height=ROW_BTN_H)
+                   height=ROW_BTN_H, display_mode=(modes or {}).get(bn),
+                   accessible=who, tooltip=who)
         b.props["Size"] = "13"
         out.append(b)
     return group(name, out, direction="Horizontal", gap=ROW_BTN_GAP, height=ROW_BTN_H,
@@ -1413,7 +1453,7 @@ def build_list(slots, badge_head, search_placeholder):
                         placeholder=f'"{search_placeholder}"',
                         label='"Search the rows"')
     status = themed_dropdown(
-        "drpDomStatusFilter", f'["{ALL_STATUS}", "draft", "valid", "submitted"]',
+        "drpDomStatusFilter", f'["{ALL_STATUS}", "Draft", "Valid", "Submitted"]',
         f'"{ALL_STATUS}"', width="170", label='"Filter by status"')
     plant = themed_dropdown("drpDomPlantFilter", PLANT_ITEMS, f'"{ALL_PLANTS}"',
                             width="170", label='"Filter by plant"')
@@ -1452,7 +1492,10 @@ def build_list(slots, badge_head, search_placeholder):
                               LIST_DETAILS_W))
     cells.append(_row_buttons("conDomRowActions", ACTION_BTNS,
                               [load_row_fx(), copy_row_fx(), delete_this_row_fx()],
-                              LIST_ACTIONS_W, danger=("btnDomRowDelete",)))
+                              LIST_ACTIONS_W, danger=("btnDomRowDelete",),
+                              modes={"btnDomRowDelete": (
+                                  'If(ThisItem.Status = "submitted", '
+                                  "DisplayMode.Disabled, DisplayMode.Edit)")}))
 
     table_w = lay_.table_w
     list_head = group("conDomListHead", heads, direction="Horizontal", gap=T_GAP,
@@ -1507,18 +1550,21 @@ def _submit_parts():
     # "Hent forfra" stod BEGGE steder - her og paa dokumentruden - og
     # betoed to forskellige ting. Nu siger navnet hvad der hentes.
     reload_ = fit(button("btnDomReload", '"Reload rows"',
-                         refresh_rows_fx() + ';\nSet(varDomInfo, "Reloaded.")'))
+                         refresh_rows_fx() + ';\nSet(varDomInfo, "Reloaded.")',
+        tooltip='"Fetch your rows from SharePoint again"'))
     draft = fit(button(
         "btnDomSendDraft", '"Save as draft"', with_busy(SAVING_VAR, send_fx(False)),
         icon=ICON_SAVE,
-        display_mode=f'If(CountRows({SENDABLE}) = 0, DisplayMode.Disabled, DisplayMode.Edit)'),
+        display_mode=f'If(CountRows({SENDABLE}) = 0, DisplayMode.Disabled, DisplayMode.Edit)',
+        tooltip='"Put the request on the landing page as Draft - rows stay editable"'),
         icon=True)
     # Submit spoerger foerst (build_submit_confirm); indsendelsen koerer i
     # popup'ens Submit.
     submit = fit(button(
         "btnDomSubmit", '"Submit saved rows"', f"Set({CONFIRM_VAR}, true)", primary=True,
         icon=ICON_SUBMIT,
-        display_mode=f'If(CountRows({VALID}) = 0, DisplayMode.Disabled, DisplayMode.Edit)'),
+        display_mode=f'If(CountRows({VALID}) = 0, DisplayMode.Disabled, DisplayMode.Edit)',
+        tooltip='"Submit the valid rows - they are locked afterwards (asks first)"'),
         icon=True)
     state = text_ctrl(
         "txtDomSubmitState",
