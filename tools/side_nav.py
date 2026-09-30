@@ -85,9 +85,8 @@ SCREENS (de fem enkelte apps) er intet aendret.
 """
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gen_screen import Ctrl, C_SURFACE, C_DIVIDER, C_MUTED_BG, C_PRIMARY
+from gen_screen import Ctrl, C_SURFACE, C_DIVIDER, C_MUTED_BG, C_PRIMARY, C_TITLE
 from design_tokens import ref_hex, theme_query, TRANSPARENT
-from gen_screen import C_TITLE
 from build_helpers import group, theme_button, help_toggle, text_ctrl, grow, THEME_TOGGLE_H
 import layout_tokens as lay
 import env_config as env
