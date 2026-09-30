@@ -141,8 +141,8 @@ def _forall(source, fields, alias="R"):
 # ---------------------------------------------------------------------------
 STATIC_TABLES = [
     ("colVhpYesNoOptions", [{"Value": "JA"}, {"Value": "NEJ"}],
-     "SAP-vaerdier for schedulering. Ingen kontrol bruger den endnu: "
-     "SchedulingIndicator er et tekstfelt og gemmes ikke (REVIEW.md D12)."),
+     "Valgene i MaintenancePlans.SchedulingIndicator (drpVhpSchedInd). "
+     "SharePoints egne vaerdier - de oversaettes ikke."),
     ("colVhpPlanTypeOptions",
      [{"Key": "SingleCycle", "Value": "Single cycle plan (IP41)"},
       {"Key": "Strategy", "Value": "Strategiplan (IP42)"}],

@@ -144,7 +144,7 @@ def help_panel(name, section):
 # tilbage, eller appens startvaerdier, hvis planen aldrig er gemt.
 PLAN_CONTROLS = ("drpVhpPlanType", "drpVhpStrategy", "drpVhpPlant", "drpVhpStatus",
                  "inpVhpPlanText", "drpVhpSortField", "numVhpCycle", "drpVhpUnit",
-                 "drpVhpCallHorizon", "inpVhpSchedInd", "inpVhpStatutorySortField",
+                 "drpVhpCallHorizon", "drpVhpSchedInd",
                  "numVhpFirstCallDay", "numVhpFirstCallMonth", "numVhpFirstCallYear")
 
 
@@ -190,15 +190,18 @@ def build_plan_header():
     drpCallHorizon = themed_dropdown("drpVhpCallHorizon", "colVhpCallHorizonOptions",
                               "LookUp(colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon).Value",
                               display_mode=DM_PLAN)
-    txtSchedInd = text_input("inpVhpSchedInd", "varVhpPlan.SchedulingIndicator", display_mode=DM_PLAN)
+    # SchedulingIndicator er en Choice (JA/NEJ) paa MaintenancePlans. Den stod
+    # som fritekst og blev aldrig gemt (REVIEW.md D12). Vaerdierne er
+    # SharePoints og oversaettes ikke.
+    drpSchedInd = themed_dropdown("drpVhpSchedInd", "colVhpYesNoOptions",
+                                  "LookUp(colVhpYesNoOptions, Value = varVhpPlan.SchedulingIndicator).Value",
+                                  display_mode=DM_PLAN)
     numFirstCallDay = number_input("numVhpFirstCallDay", "varVhpPlan.FirstCallDay", min_v=1, max_v=31,
                                    required_formula=REQ_PLAN, display_mode=DM_PLAN, label="\"First call, day\"")
     numFirstCallMonth = number_input("numVhpFirstCallMonth", "varVhpPlan.FirstCallMonth", min_v=1, max_v=12,
                                      required_formula=REQ_PLAN, display_mode=DM_PLAN, label="\"First call, month\"")
     numFirstCallYear = number_input("numVhpFirstCallYear", "varVhpPlan.FirstCallYear", min_v=2020, max_v=2100,
                                     required_formula=REQ_PLAN, display_mode=DM_PLAN, label="\"First call, year\"")
-    txtStatutorySortField = text_input("inpVhpStatutorySortField", "varVhpPlan.StatutorySortField",
-                                       display_mode=DM_PLAN)
 
     # KOLONNE-ORDEN (issue #54). Felterne udfyldes oppefra og ned i hver
     # kolonne, foer naeste kolonne begynder - Plan Type, Maintenance
@@ -234,9 +237,9 @@ def build_plan_header():
         [cell("conVhpCellCycle", "Cycle", numCycle, "Cycle", True),
          cell("conVhpCellUnit", "Unit", drpUnit, "Unit", True),
          cell("conVhpCellCallHorizon", "Call Horizon", drpCallHorizon, "CallHorizon")],
-        [cell("conVhpCellSchedInd", "Scheduling Indicator", txtSchedInd, "SchedInd"),
-         cell("conVhpCellStatutorySortField", "Statutory Sort Field",
-              txtStatutorySortField, "StatutorySortField"),
+        # "Statutory Sort Field" stod her som et tekstfelt uden kolonne i
+        # SharePoint - det blev aldrig gemt og er fjernet (REVIEW.md D12).
+        [cell("conVhpCellSchedInd", "Scheduling Indicator", drpSchedInd, "SchedInd"),
          cell("conVhpCellFirstCall", "First Call (dd / mm / yyyy)", firstCallRow,
               "FirstCall", True)],
     ], container_w=CW, row_gap=10)
@@ -302,11 +305,10 @@ def build_plan_header():
             "                    Cycle: If(isStrat, 0, numVhpCycle.Value),\n"
             "                    Unit: If(isStrat, \"\", drpVhpUnit.Selected.Value),\n"
             "                    CallHorizon: drpVhpCallHorizon.Selected.Value,\n"
-            "                    SchedulingIndicator: Trim(inpVhpSchedInd.Text),\n"
+            "                    SchedulingIndicator: drpVhpSchedInd.Selected.Value,\n"
             "                    FirstCallDay: numVhpFirstCallDay.Value,\n"
             "                    FirstCallMonth: numVhpFirstCallMonth.Value,\n"
-            "                    FirstCallYear: numVhpFirstCallYear.Value,\n"
-            "                    StatutorySortField: Trim(inpVhpStatutorySortField.Text)\n"
+            "                    FirstCallYear: numVhpFirstCallYear.Value\n"
             "                }\n"
             "            );\n"
             "            Set(varVhpPlanCommitted, true);\n"
