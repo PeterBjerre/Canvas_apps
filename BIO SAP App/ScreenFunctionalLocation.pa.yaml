@@ -285,7 +285,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Width: |-
-                                  =Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - ((32) + 10) - (If(LayoutRank >= 3, (220) + 10, 0)) - ((135) + 10) - ((106) + 10) - ((124) + 10) - 2)
+                                  =Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - ((32) + 10) - (If(LayoutRank >= 3, (220) + 10, 0)) - ((If(LayoutRank < 2, 40, 135)) + 10) - ((If(LayoutRank < 2, 40, 106)) + 10) - ((If(LayoutRank < 2, 40, 148)) + 10) - 2)
                             Children:
                               - txtFlTitle:
                                   Control: ModernText
@@ -430,9 +430,9 @@ Screens:
                               Icon: |-
                                   ="Save"
                               Layout: |-
-                                  =ButtonLayout.IconBefore
+                                  =If(LayoutRank < 2, ButtonLayout.IconOnly, ButtonLayout.IconBefore)
                               LayoutMinWidth: |-
-                                  =135
+                                  =If(LayoutRank < 2, 40, 135)
                               OnSelect: |-
                                   =Set(varFlSaving, true);
                                   Clear(colFlSaveErrors);
@@ -638,7 +638,7 @@ Screens:
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
-                                  =135
+                                  =If(LayoutRank < 2, 40, 135)
                         - btnFlSubmit:
                             Control: ModernButton
                             Properties:
@@ -663,9 +663,9 @@ Screens:
                               Icon: |-
                                   ="Send"
                               Layout: |-
-                                  =ButtonLayout.IconBefore
+                                  =If(LayoutRank < 2, ButtonLayout.IconOnly, ButtonLayout.IconBefore)
                               LayoutMinWidth: |-
-                                  =106
+                                  =If(LayoutRank < 2, 40, 106)
                               OnSelect: |-
                                   =Set(varFlConfirmSubmit, true)
                               RadiusBottomLeft: |-
@@ -689,7 +689,7 @@ Screens:
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
-                                  =106
+                                  =If(LayoutRank < 2, 40, 106)
                         - btnFlNew:
                             Control: ModernButton
                             Properties:
@@ -713,10 +713,12 @@ Screens:
                                   =FontWeight.Semibold
                               Height: |-
                                   =36
+                              Icon: |-
+                                  ="Add"
                               Layout: |-
-                                  =ButtonLayout.TextOnly
+                                  =If(LayoutRank < 2, ButtonLayout.IconOnly, ButtonLayout.IconBefore)
                               LayoutMinWidth: |-
-                                  =124
+                                  =If(LayoutRank < 2, 40, 148)
                               OnSelect: |-
                                   =Clear(colFlRows);
                                   Clear(colFlVals);
@@ -747,7 +749,7 @@ Screens:
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
-                                  =124
+                                  =If(LayoutRank < 2, 40, 148)
                   - conFlHeaderRule:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -1367,6 +1369,10 @@ Screens:
                                   Properties:
                                     AccessibleLabel: |-
                                         ="Functional Location"
+                                    Appearance: |-
+                                        =Appearance.FilledDarker
+                                    BasePaletteColor: |-
+                                        =C.'color-brand-primary'
                                     BorderColor: |-
                                         =If((ThisItem.Status <> "draft" && CountRows(Filter(colFlIssues, RowGuid = ThisItem.RowGuid && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg))) > 0), C.'border-error', ThisItem.Status <> "draft", C.'border-ok', C.'border-default')
                                     BorderStyle: |-
@@ -1378,7 +1384,7 @@ Screens:
                                     Default: |-
                                         =ThisItem.FL
                                     DisplayMode: |-
-                                        =If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)
+                                        =If((If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                     Fill: |-
                                         =If(If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                     Font: |-
@@ -1416,6 +1422,10 @@ Screens:
                                   Properties:
                                     AccessibleLabel: |-
                                         ="Description"
+                                    Appearance: |-
+                                        =Appearance.FilledDarker
+                                    BasePaletteColor: |-
+                                        =C.'color-brand-primary'
                                     BorderColor: |-
                                         =If((ThisItem.Status <> "draft" && CountRows(Filter(colFlIssues, RowGuid = ThisItem.RowGuid && Sev = "Error" && ("Description" exactin Msg))) > 0), C.'border-error', ThisItem.Status <> "draft" && !IsBlank(ThisItem.Description), C.'border-ok', C.'border-default')
                                     BorderStyle: |-
@@ -1427,7 +1437,7 @@ Screens:
                                     Default: |-
                                         =ThisItem.Description
                                     DisplayMode: |-
-                                        =If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)
+                                        =If((If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                     Fill: |-
                                         =If(If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                     Font: |-
@@ -2767,6 +2777,10 @@ Screens:
                                   Properties:
                                     AccessibleLabel: |-
                                         ="Functional Location"
+                                    Appearance: |-
+                                        =Appearance.FilledDarker
+                                    BasePaletteColor: |-
+                                        =C.'color-brand-primary'
                                     BorderColor: |-
                                         =If((ThisItem.Status <> "draft" && CountRows(Filter(colFlIssues, RowGuid = ThisItem.RowGuid && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg))) > 0), C.'border-error', true, C.'border-ok', C.'border-default')
                                     BorderStyle: |-
@@ -2778,7 +2792,7 @@ Screens:
                                     Default: |-
                                         =ThisItem.FL
                                     DisplayMode: |-
-                                        =If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)
+                                        =If((If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                     Fill: |-
                                         =If(If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                     Font: |-
@@ -2816,6 +2830,10 @@ Screens:
                                   Properties:
                                     AccessibleLabel: |-
                                         ="Description"
+                                    Appearance: |-
+                                        =Appearance.FilledDarker
+                                    BasePaletteColor: |-
+                                        =C.'color-brand-primary'
                                     BorderColor: |-
                                         =If((ThisItem.Status <> "draft" && CountRows(Filter(colFlIssues, RowGuid = ThisItem.RowGuid && Sev = "Error" && ("Description" exactin Msg))) > 0), C.'border-error', !IsBlank(ThisItem.Description), C.'border-ok', C.'border-default')
                                     BorderStyle: |-
@@ -2827,7 +2845,7 @@ Screens:
                                     Default: |-
                                         =ThisItem.Description
                                     DisplayMode: |-
-                                        =If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)
+                                        =If((If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                     Fill: |-
                                         =If(If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                     Font: |-
@@ -4309,6 +4327,10 @@ Screens:
                       Properties:
                         AccessibleLabel: |-
                             =ThisItem.Column
+                        Appearance: |-
+                            =Appearance.FilledDarker
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
                         BorderColor: |-
                             =If(!IsBlank(ThisItem.Issue), C.'border-error', !IsBlank(ThisItem.Value), C.'border-ok', C.'border-default')
                         BorderStyle: |-
@@ -4320,7 +4342,7 @@ Screens:
                         Default: |-
                             =ThisItem.Value
                         DisplayMode: |-
-                            =If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)
+                            =If((If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                         Fill: |-
                             =If(If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                         Font: |-
@@ -4372,7 +4394,9 @@ Screens:
                         AccessibleLabel: |-
                             =ThisItem.Column
                         Appearance: |-
-                            =Appearance.Outline
+                            =Appearance.FilledDarker
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
                         BorderColor: |-
                             =If(!IsBlank(ThisItem.Issue), C.'border-error', !IsBlank(ThisItem.Value), C.'border-ok', C.'border-default')
                         BorderStyle: |-
@@ -4392,7 +4416,7 @@ Screens:
                                 G
                             ), Upper(Value) = Upper(ThisItem.Value))
                         DisplayMode: |-
-                            =If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)
+                            =If((If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                         Fill: |-
                             =If(If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                         Font: |-

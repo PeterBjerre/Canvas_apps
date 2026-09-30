@@ -6,7 +6,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQU
                         C_NEUTRAL_FG, C_NEUTRAL_BG, C_INPUT_BG, FONT, SHELL_W, EDITOR_W, RAIL_W,
                         SPLIT_GAP, C_TRANSPARENT, C_MODAL_BG, C_PRIMARY_SOFT)
 from layout_tokens import if_below
-from build_helpers import (text_ctrl, group, button, button_row, text_input, number_input, dropdown,
+from build_helpers import (checkbox_theme, text_ctrl, group, button, button_row, text_input, number_input, dropdown,
                            label_row, field_cell, row_n, col_width, badge, card, combobox, poll_timer,
                            TWO_COL_MIN, HINTS_ON, grow, fit_button_width, column_grid,
                            ICON_SAVE, ICON_W, mark_done, bool_toggle)
@@ -708,7 +708,7 @@ def build_object_list_modal():
     # etiket (platformens standard) blev tegnet oven i teksten, naar raekken
     # blev valgt. Nu ER teksten afkrydsningens etiket, og der er ikke noget
     # andet i raekken, der kan overlappe den.
-    chkObj = Ctrl("chkVhpObjPick", "ModernCheckbox", props={
+    chkObj = Ctrl("chkVhpObjPick", "ModernCheckbox", props=checkbox_theme({
         "AccessibleLabel": "\"Select object \" & ThisItem.Code",
         "Default": IN_DRAFT,
         "Height": "24",
@@ -719,7 +719,7 @@ def build_object_list_modal():
                     ")"),
         "OnUncheck": "RemoveIf(colVhpObjDraft, Code = ThisItem.Code)",
         "Width": "0",
-    }, h=24)
+    }), h=24)
     grow(chkObj)
     objRowTpl = group("conVhpObjRow", [chkObj], direction="Horizontal",
                       gap=10, height="Parent.TemplateHeight - 2", pad=(0, 8, 0, 8),

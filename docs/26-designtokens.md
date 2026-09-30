@@ -337,6 +337,29 @@ tal hører sammen.
 
 ---
 
+## Felterne arver aldrig Fluent-temaets farver (issue #78)
+
+Appen sætter ikke Fluent-temaet — farverne er `C`. Et moderne felt, der
+overlader en farve til platformen, får derfor temaets *lyse* farve, også i
+mørk tilstand. Tre ting gjorde det:
+
+| Årsag | Følge i mørk tilstand | Rettelse |
+|---|---|---|
+| `DisplayMode.Disabled` | Fluent tegner felter med sine egne disabled-farver og ignorerer `Color` og `Fill`: grå tekst på sort. Det var præcis de felter, der kan være låste — Main Work Center, Control Key, Vendor, Cost, Material Group, Plan Text, Scheduling Indicator, Statutory Sort Field og FL-comboboksen | `build_helpers.readonly_mode`: låst = `DisplayMode.View`, der er dokumenteret som skrivebeskyttet og bruger vores farver. `input-bg-disabled` siger stadig, at feltet er låst |
+| `Appearance.Outline` | "Transparent background" — `Fill` blev ikke tegnet | `Appearance.FilledDarker` på alle felter (som tekstfeltet altid havde) |
+| Manglende `Color`/`BasePaletteColor` | Datovælgeren og alle `ModernCheckbox`-etiketter var temaets mørke tekst | `input_theme` / `checkbox_theme` sætter dem |
+
+Alle felter går gennem **`build_helpers.input_theme`** (tekst, tal, dato,
+dropdown, FL-comboboksen) og **`checkbox_theme`**. `check_layout` regel
+**10c** stopper byggeriet, hvis et felt mangler `Color`, `Fill`,
+`Appearance` eller `BasePaletteColor`, står i Outline, eller kan blive
+`Disabled` uden om `readonly_mode`. Knapper røres ikke: en deaktiveret knap
+skal se deaktiveret ud.
+
+Tabeller har en neutral flade og en streg pr. række
+(`build_helpers.table_surface` / `row_rule`) — aldrig galleriets fyld i
+kantfarven, som gjorde hele tabellen grå.
+
 ## Sådan retter du en farve
 
 ```bash

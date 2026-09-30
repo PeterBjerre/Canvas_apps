@@ -913,7 +913,9 @@ Screens:
                                                       AccessibleLabel: |-
                                                           ="Functional location - type at least 7 characters, then Search"
                                                       Appearance: |-
-                                                          =Appearance.Outline
+                                                          =Appearance.FilledDarker
+                                                      BasePaletteColor: |-
+                                                          =C.'color-brand-primary'
                                                       BorderColor: |-
                                                           =If(
                                                               varDomValidated && !varDomFNoBomItem && IsBlank(Self.Selected.Code),
@@ -931,7 +933,7 @@ Screens:
                                                       DelayOutput: |-
                                                           =false
                                                       DisplayMode: |-
-                                                          =If(varDomFNoBomItem, DisplayMode.Disabled, If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit))
+                                                          =If((If(varDomFNoBomItem, DisplayMode.Disabled, If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                       Fill: |-
                                                           =If(If(varDomFNoBomItem, DisplayMode.Disabled, If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                       FillPortions: |-
@@ -1209,6 +1211,10 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Manufacturer"
+                                          Appearance: |-
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -1220,7 +1226,7 @@ Screens:
                                           Default: |-
                                               =varDomFManufacturer
                                           DisplayMode: |-
-                                              =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
@@ -1318,6 +1324,10 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Model number"
+                                          Appearance: |-
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -1329,7 +1339,7 @@ Screens:
                                           Default: |-
                                               =varDomFModelNumber
                                           DisplayMode: |-
-                                              =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
@@ -1427,6 +1437,10 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Manufacturer part no."
+                                          Appearance: |-
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -1438,7 +1452,7 @@ Screens:
                                           Default: |-
                                               =varDomFManufacturerPartNo
                                           DisplayMode: |-
-                                              =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
@@ -1660,6 +1674,10 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Material description, required"
+                                          Appearance: |-
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =If(
                                                   varDomValidated && IsBlank(Trim(Self.Text)),
@@ -1675,7 +1693,7 @@ Screens:
                                           Default: |-
                                               =varDomFText
                                           DisplayMode: |-
-                                              =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
@@ -1800,6 +1818,10 @@ Screens:
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Documents on this row"
+                                                Appearance: |-
+                                                    =Appearance.FilledDarker
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
                                                 BorderColor: |-
                                                     =C.'border-default'
                                                 BorderStyle: |-
@@ -1811,7 +1833,7 @@ Screens:
                                                 Default: |-
                                                     =If(IsBlank(varDomActiveRowId), "Save the row first", Text(Coalesce(LookUp(colDomRows, RowId = varDomActiveRowId).FileCount, 0)) & " document(s)")
                                                 DisplayMode: |-
-                                                    =DisplayMode.View
+                                                    =If((DisplayMode.View) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(DisplayMode.View = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 FillPortions: |-
@@ -1989,6 +2011,10 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Stock unit"
+                                          Appearance: |-
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -2000,7 +2026,7 @@ Screens:
                                           Default: |-
                                               =varDomFStockUnit
                                           DisplayMode: |-
-                                              =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
@@ -2099,7 +2125,9 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Price"
                                           Appearance: |-
-                                              =Appearance.Outline
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -2111,7 +2139,7 @@ Screens:
                                           Default: |-
                                               =varDomFPrice
                                           DisplayMode: |-
-                                              =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
@@ -2236,6 +2264,10 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Price unit"
+                                          Appearance: |-
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -2247,7 +2279,7 @@ Screens:
                                           Default: |-
                                               =varDomFPriceUnit
                                           DisplayMode: |-
-                                              =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
@@ -2346,7 +2378,9 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Delivery time (days)"
                                           Appearance: |-
-                                              =Appearance.Outline
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -2358,7 +2392,7 @@ Screens:
                                           Default: |-
                                               =varDomFDeliveringTime
                                           DisplayMode: |-
-                                              =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
@@ -2455,7 +2489,9 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Recommended stock"
                                           Appearance: |-
-                                              =Appearance.Outline
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -2467,7 +2503,7 @@ Screens:
                                           Default: |-
                                               =varDomFRecommendedStock
                                           DisplayMode: |-
-                                              =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
@@ -2563,6 +2599,10 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Supplier"
+                                          Appearance: |-
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -2574,7 +2614,7 @@ Screens:
                                           Default: |-
                                               =varDomFSupplier
                                           DisplayMode: |-
-                                              =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
@@ -2701,6 +2741,10 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Supplier part no."
+                                          Appearance: |-
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -2712,7 +2756,7 @@ Screens:
                                           Default: |-
                                               =varDomFSupplierPartNo
                                           DisplayMode: |-
-                                              =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
@@ -2810,6 +2854,10 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Strategic part"
+                                          Appearance: |-
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -2821,7 +2869,7 @@ Screens:
                                           Default: |-
                                               =varDomFStrategicPart
                                           DisplayMode: |-
-                                              =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
@@ -2919,6 +2967,10 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Wear part"
+                                          Appearance: |-
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -2930,7 +2982,7 @@ Screens:
                                           Default: |-
                                               =varDomFWearPart
                                           DisplayMode: |-
-                                              =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                              =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
@@ -3223,6 +3275,10 @@ Screens:
                                   Properties:
                                     AccessibleLabel: |-
                                         ="Long text"
+                                    Appearance: |-
+                                        =Appearance.FilledDarker
+                                    BasePaletteColor: |-
+                                        =C.'color-brand-primary'
                                     BorderColor: |-
                                         =C.'border-default'
                                     BorderStyle: |-
@@ -3234,7 +3290,7 @@ Screens:
                                     Default: |-
                                         =varDomFLongText
                                     DisplayMode: |-
-                                        =If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                        =If((If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                     Fill: |-
                                         =If(If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                     Font: |-
@@ -4034,6 +4090,10 @@ Screens:
                                   Properties:
                                     AccessibleLabel: |-
                                         ="Search the rows"
+                                    Appearance: |-
+                                        =Appearance.FilledDarker
+                                    BasePaletteColor: |-
+                                        =C.'color-brand-primary'
                                     BorderColor: |-
                                         =C.'border-default'
                                     BorderStyle: |-
@@ -9961,8 +10021,14 @@ Screens:
                       Properties:
                         AccessibleLabel: |-
                             ="Select document"
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
+                        Color: |-
+                            =C.'text-primary'
                         Default: |-
                             =ThisItem.Selected
+                        Font: |-
+                            =Font.'Segoe UI'
                         Height: |-
                             =24
                         Label: |-
@@ -9971,6 +10037,8 @@ Screens:
                             =Patch(colDomAttachments, ThisItem, { Selected: true })
                         OnUncheck: |-
                             =Patch(colDomAttachments, ThisItem, { Selected: false })
+                        Size: |-
+                            =13
                         Width: |-
                             =30
                         X: |-
