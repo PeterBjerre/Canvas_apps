@@ -456,49 +456,50 @@ under den** (420, 719, 720, 1023, 1024, 1366, 1599, 1600, 1920). Før stod
 der en håndplukket liste, der sprang henover 1023, og det er præcis dér,
 layoutfejl bor:
 
-1. Ingen `Height`-formel refererer en anden kontrols `.Height`
-2. Lodrette containere er høje nok til børn + gaps + egen polstring
-3. Vandrette containere er høje nok til deres højeste barn
-4. Faste bredder i en række overstiger ikke rækkens bredde
-5. HTML-tabeloverskrifter flugter med kontrollerne i rækken
-6. Balancerede parenteser og anførselstegn i alle formler
-7. Ingen formel refererer en kontrol, der ikke findes
-8. Enhver `col*`, skærmen bruger, findes i `App.pa.yaml` — som navngiven
-   formel eller som `ClearCollect`
-8b. Enhver designtoken, skærmen bruger, findes i temaformlen `C`. Power Fx
-   siger **ikke** fra ved et felt, en record ikke har — den giver blank, og
-   blank er gennemsigtig. En stavefejl ville derfor ikke fejle i compile;
-   kontrollen ville bare forsvinde, måske kun i det ene tema
-8c. Ingen formel sammenligner `App.Width` med et tal — breakpoints hører i
-   `tools/layout_tokens.py`
-9. Ingen **lodret** container har et barn med `FillPortions <> 0` —
-   undtagen rammens krop, som skal fylde skærmen under headeren
-4c. Hver wrap-række **spilles**: børnene pakkes i linjer, som autolayout
-   gør det, i den bredde containeren faktisk får — **med scrollbaren
-   trukket fra**. Højden skal rumme de linjer, der kommer ud af det
-23. Rammen: `con<X>Root` → header med fast højde + præcis én krop med
-   `Scroll`. Headerens højde må ikke afhænge af data (23b), og padding +
-   scrollbar + luft skal være mindst `SHELL_INSET` (23c)
-4d. En række, der skifter retning, skal passe i sin vandrette tilstand —
-   i den bredde, den faktisk får
-24. `Parent.Width` må ikke indgå i et regnestykke. Den er forælderens
-   Width-egenskab; padding og scrollbar er ikke trukket fra
-25. En knap er mindst 30 px høj
-26. Ingen `Parent.Template*` i den byggede skærm, og en gallerirække skal
-   rumme sine celler fra Tablet og op
-27. En tekst er mindst 1,5 × sin skriftstørrelse høj
-28. Ingen `FillPortions` i en vandret række, der ikke ombryder
-29. Listens overskrift og dens gallerirække har de samme kolonnebredder
-31. `GroupBy`, `Ungroup`, `DropColumns`, `ShowColumns`, `AddColumns` og
-    `RenameColumns` tager kolonnenavne som NAVNE, ikke strenge - Studio
-    afviser strengformen (issue #32)
-32. `IfError`: vaerdi og fallback skal have SAMME type. `Patch` af een raekke
-    er en record, `Collect` en tabel - afslut begge grene med `; true` /
-    `; false` (issue #32)
-30. Et filter mod en SharePoint-liste sammenligner mod noget konstant —
-   ellers kan det ikke delegeres
-16. Ingen `ModernDropdown` — brug `themed_dropdown`
-33. Navnets præfiks følger kontroltypen (tabellen under **Navngivning**)
+<!-- rules:start - genereret af `python3 tools/check_layout.py --rules`; ret i check_layout.py -->
+| Regel | Hvad |
+|---|---|
+| 0 | Hvert kontrolnavn findes kun een gang |
+| 1 | Ingen kontrol-til-kontrol hoejdereferencer |
+| 2/3 | Hoejde vs. indhold |
+| 4c | Ombrydningen, som platformen faktisk laver den |
+| 4d | En raekke, der skifter retning, skal passe, naar den er vandret |
+| 24 | Parent.Width maa ikke indgaa i regnestykker |
+| 25 | En knap skal vaere mindst 30 px hoej |
+| 26 | Galleriernes skabeloner |
+| 26c | Ingen container i et galleri |
+| 30 | Delegerbare filtre: sammenlign mod noget KONSTANT |
+| 29 | Overskriften og raekken skal have SAMME kolonnebredder |
+| 27 | En tekst skal vaere mindst een linje hoej |
+| 28 | Ingen FillPortions i en raekke, der ikke ombryder |
+| 23 | Rammen |
+| 4 | En vandret raekke skal kunne rumme sine boern |
+| 4b | En wrap-raekke maa ikke have en KONSTANT hoejde |
+| 5 | HTML-overskriften skal flugte med kontrollerne i raekken |
+| 6 | Balancerede parenteser og anfoerselstegn i alle formler |
+| 7 | Ingen formel maa referere en kontrol, der ikke findes |
+| 9 | FillPortions i en lodret container |
+| 8 | Samlinger skal findes i App.pa.yaml |
+| 8c | Ingen skaerm maa sammenligne App.Width med et tal |
+| 8b | Designtokens skal findes i temaformlen |
+| 10 | Egenskaber kontroltypen ikke kender |
+| 10c | Inputfelter faar ALDRIG Fluent-temaets farver (issue #78) |
+| 10b | SetFocus kan ikke naa ind i en container |
+| 31 | Kolonnenavne er navne, ikke strenge |
+| 32 | IfError: begge grene skal ende i en skalar |
+| 11 | Efterstillet komma i Power Fx |
+| 12 | Uescapet anfoerselstegn i en Power Fx-streng |
+| 13 | Parent.Template* uden for et galleris direkte barn |
+| 14 | Vandret scroll under Stretch |
+| 15 | Mutation inde i ForAll (ADVARSEL, ikke fejl) |
+| 21 | ButtonAppearance.Secondary |
+| 22 | Concurrent med en indbyrdes afhaengighed |
+| 16 | Ingen Classic/DropDown |
+| 33 | Navnets praefiks foelger kontroltypen (REVIEW.md A3/A4) |
+| 18 | Enhver Gallery skal have TabIndex |
+| 19 | AccessibleLabel maa ikke vaere kontrollens navn |
+| 20 | Flere UAFHAENGIGE hentninger i kaede -> Concurrent |
+<!-- rules:end -->
 
 Punkt 7 fanger den klassiske: du sletter en kontrol og glemmer en
 `Reset()` på den et andet sted. Det ville ellers først vælte i compile.
