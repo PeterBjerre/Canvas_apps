@@ -22,8 +22,8 @@ det, der SKAL vaere anderledes i een app:
   opstart        hvert domaenes OnStart flyttes til dets skaerms OnVisible
                  og koeres FOERST, naar skaermen aabnes. App.OnStart har
                  kun temaet og hubbens fire variabler.
-  indlaesning    en ventespinner, mens et domaene klargoeres (loading_overlay
-                 i build_screens.py), og skaermens egen LoadingSpinner.
+  indlaesning    een ventespinner, mens et domaene klargoeres - den faelles
+                 build_helpers.loading_overlay (issue #64).
 
 Stopper en af de fem apps med at se ud, som denne fil forventer, stopper
 byggeriet med en besked - den glider ikke tavst fra dem.

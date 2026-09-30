@@ -20,7 +20,7 @@ OnVisible kan saettes - og sidebaren og hubben faar deres Navigate-kroge
 (side_nav.SCREENS, build_hub.NEW_ACTION/OPEN_ACTION).
 
 Oveni faar hver domaeneskaerm en ventespinner (loading_overlay), mens den
-klargoeres, og alle skaerme faar Power Apps' egen LoadingSpinner.
+klargoeres - den faelles build_helpers.loading_overlay, og kun den.
 """
 import importlib.util
 import os
@@ -139,59 +139,31 @@ def done(domain):
 
 
 def screen_props(props):
-    """Power Apps' egen spinner, mens skaermens kontroller tegnes - ogsaa
-    ved opstart. Den daekker IKKE datahentningen i OnVisible; det goer
-    loading_overlay."""
-    from gen_screen import C_PRIMARY
+    """Skaermens egne egenskaber - uden Power Apps' LoadingSpinner.
+
+    Her stod LoadingSpinner.Data. Den tegner Power Apps' EGET hjul midt paa
+    skaermen, mens data hentes - samtidig med loading_overlay, som staar
+    det samme sted. Resultatet var et hjul inden i hjulet (issue #64). Der
+    skal vaere praecis een spinner, og det er den faelles
+    (build_helpers.loading_overlay)."""
     props = dict(props)
-    props["LoadingSpinner"] = "LoadingSpinner.Data"
-    props["LoadingSpinnerColor"] = C_PRIMARY
+    props.pop("LoadingSpinner", None)
+    props.pop("LoadingSpinnerColor", None)
     return props
 
 
 def loading_overlay(domain, label):
-    """Ventespinneren, mens et domaene klargoeres.
+    """Ventespinneren, mens et domaene klargoeres - den FAELLES komponent
+    (build_helpers.loading_overlay), ikke en kopi af den.
 
-    Kun et drejende hjul midt paa skaermen - ingen tekst. Det staar oven paa
-    ALT - ogsaa sidebaren - og daekker skaermen med sloerets farve, saa ingen naar at trykke paa en formular, der er ved at
-    blive fyldt. Synlig, saa laenge var<X>Loading er sand: open_block saetter
-    den foerst, done() nulstiller den sidst i OnVisible. Imens venter
-    OnVisible paa SharePoint, og saa laenge tegnes skaermen med spinneren.
-
-    Et Image med en SVG, af samme grund som sidebaren og temaknappen: den
-    tegner praecis det, der staar, i temaets farver. Hjulet drejer med
-    SVG's egen animation (animateTransform)."""
-    from gen_screen import Ctrl, C_OVERLAY
-    from design_tokens import ref_hex
-    hx = lambda n: '" & %s & "' % ref_hex(n)
-    # Kun hjulet - ingen tekstboks.
-    w = h = 64
-    c = w // 2
-    svg = ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{h}' "
-           f"viewBox='0 0 {w} {h}'>"
-           f"<circle cx='{c}' cy='{c}' r='22' fill='none' stroke-width='6' "
-           f"stroke='{hx('state-neutral-bg')}'/>"
-           f"<path d='M{c} {c - 22} a22 22 0 0 1 22 22' fill='none' stroke-width='6' "
-           f"stroke-linecap='round' stroke='{hx('color-brand-primary')}'>"
-           f"<animateTransform attributeName='transform' type='rotate' "
-           f"from='0 {c} {c}' to='360 {c} {c}' dur='0.9s' repeatCount='indefinite'/>"
-           f"</path>"
-           "</svg>" + '"')
-    var = cb.loading_var(domain["tag"])
-    return Ctrl(f"img{domain['tag']}Loading", "Image", props={
-        "AccessibleLabel": f'"Loading {label}, please wait"',
-        "BorderStyle": "BorderStyle.None",
-        "BorderThickness": "0",
-        "Fill": C_OVERLAY,
-        "Height": "App.Height",
-        "Image": f'"data:image/svg+xml;utf8," & EncodeUrl({svg})',
-        "ImagePosition": "ImagePosition.Center",
-        "TabIndex": "-1",
-        "Visible": var,
-        "Width": "App.Width",
-        "X": "0",
-        "Y": "0",
-    }, h="App.Height", vis=var)
+    Synlig, saa laenge var<X>Loading er sand: open_block saetter den
+    foerst, done() nulstiller den sidst i OnVisible. Imens venter OnVisible
+    paa SharePoint, og saa laenge daekker sloeret skaermen - ogsaa
+    sidebaren - saa ingen naar at trykke paa en formular, der er ved at
+    blive fyldt."""
+    from build_helpers import loading_overlay as shared
+    return shared(f"img{domain['tag']}Loading", cb.loading_var(domain["tag"]),
+                  f"Loading {label}, please wait")
 
 
 def _write(screen_name, text, domain=None):

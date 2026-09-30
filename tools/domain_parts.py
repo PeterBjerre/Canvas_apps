@@ -57,7 +57,7 @@ from build_helpers import (text_ctrl, group, button, text_input,
                            number_input, themed_dropdown, card, field_cell,
                            pin_widths, badge, top_bar, grow, flow_row,
                            border_rule, input_fill, label_px, text_px,
-                           busy_overlay, with_busy, confirm_modal, ICON_SAVE,
+                           loading_overlay, with_busy, confirm_modal, ICON_SAVE,
                            ICON_SUBMIT, ICON_W)
 
 # Mens en gemning koerer, staar ventespinneren oven paa skaermen (issue #54).
@@ -1140,7 +1140,7 @@ def build_submit_confirm():
         "Dom", CONFIRM_VAR, "Submit request?",
         '"The valid rows are sent to the landing page as Submitted and locked."',
         "Submit", with_busy(SAVING_VAR, send_fx(True)), "btnDomSubmitConfirm") + [
-        busy_overlay("imgDomSaving", SAVING_VAR)]
+        loading_overlay("imgDomSaving", SAVING_VAR)]
 
 
 # ---------------------------------------------------------------------------
