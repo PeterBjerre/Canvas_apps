@@ -14,6 +14,7 @@ sys.path.insert(0, os.path.join(
     "tools"))
 from design_tokens import ref as _t
 import env_config as env
+import icons
 
 # Navnet paa listen som den hedder, naar den er tilfoejet appen som datakilde.
 LIST = "MD_RequestIndex"
@@ -55,8 +56,8 @@ ENV_ID = env.ENV_ID
 DOMAINS = [
     {"key": "FunctionalLocation", "short": "FL",  "name": "Functional location",
      "token": "domain-fl",  "app": "functionallocation",
-     "icon": "M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z "
-             "M12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"},
+     # Kraftvaerket i en naal - den FAELLES definition (tools/icons.py).
+     "icon": icons.FUNCTIONAL_LOCATION},
     {"key": "Equipment",          "short": "EQ",  "name": "Equipment",
      "token": "domain-eq",  "app": "equipment",
      "icon": "M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 "
@@ -65,7 +66,10 @@ DOMAINS = [
      "token": "domain-mp",  "app": None,
      "icon": "M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 "
              "0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z "
-             "M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2"},
+             "M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2",
+     # Spejlet vandret, saa linealen peger samme vej som Equipments
+     # skruenoegle (issue #70).
+     "mirror": True},
     {"key": "Material",           "short": "MAT", "name": "Material",
      "token": "domain-mat", "app": "material",
      "icon": "M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5"},

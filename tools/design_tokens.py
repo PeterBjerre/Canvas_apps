@@ -120,11 +120,18 @@ LIGHT = {
     'overlay':  "RGBA(15, 23, 42, 0.35)",
 
     # --- de fem domaener paa landingssiden ---
-    'domain-fl':  "RGBA(0, 103, 174, 1)",
-    'domain-eq':  "RGBA(14, 124, 134, 1)",
-    'domain-mp':  "RGBA(21, 127, 92, 1)",
-    'domain-mat': "RGBA(154, 99, 0, 1)",
-    'domain-vhp': "RGBA(109, 74, 166, 1)",
+    # Issue #70: fem tydeligt adskilte farver - se DOMAIN_MIN_DELTA_E.
+    # -soft er domaenet blandet 8 % ind i bg-card: den valgte flises fyld.
+    'domain-fl':  "RGBA(0, 95, 184, 1)",
+    'domain-eq':  "RGBA(0, 128, 128, 1)",
+    'domain-mp':  "RGBA(90, 120, 10, 1)",
+    'domain-mat': "RGBA(180, 83, 9, 1)",
+    'domain-vhp': "RGBA(147, 51, 234, 1)",
+    'domain-fl-soft':  "RGBA(230, 239, 247, 1)",
+    'domain-eq-soft':  "RGBA(230, 241, 243, 1)",
+    'domain-mp-soft':  "RGBA(237, 241, 234, 1)",
+    'domain-mat-soft': "RGBA(244, 238, 233, 1)",
+    'domain-vhp-soft': "RGBA(242, 235, 251, 1)",
 }
 
 
@@ -205,11 +212,17 @@ DARK = {
     'overlay':  "RGBA(2, 6, 23, 0.72)",
 
     # --- domaener. Lysere udgaver, saa striben kan ses mod det moerke kort ---
-    'domain-fl':  "RGBA(96, 165, 250, 1)",
+    # -soft: domaenet blandet 16 % ind i bg-card - den valgte flises fyld.
+    'domain-fl':  "RGBA(125, 180, 255, 1)",
     'domain-eq':  "RGBA(45, 212, 191, 1)",
-    'domain-mp':  "RGBA(52, 211, 153, 1)",
-    'domain-mat': "RGBA(251, 191, 36, 1)",
-    'domain-vhp': "RGBA(167, 139, 250, 1)",
+    'domain-mp':  "RGBA(163, 230, 53, 1)",
+    'domain-mat': "RGBA(251, 146, 60, 1)",
+    'domain-vhp': "RGBA(232, 121, 249, 1)",
+    'domain-fl-soft':  "RGBA(33, 48, 76, 1)",
+    'domain-eq-soft':  "RGBA(20, 53, 66, 1)",
+    'domain-mp-soft':  "RGBA(39, 56, 44, 1)",
+    'domain-mat-soft': "RGBA(53, 43, 45, 1)",
+    'domain-vhp-soft': "RGBA(50, 39, 75, 1)",
 }
 
 
@@ -311,7 +324,13 @@ CONTRAST = (
      for bg in ("input-bg", "input-bg-disabled", "bg-card")] +
     # Domaenestriben langs hubbens fliser.
     [(fg, "bg-card", UI_MIN) for fg in
-     ("domain-fl", "domain-eq", "domain-mp", "domain-mat", "domain-vhp")]
+     ("domain-fl", "domain-eq", "domain-mp", "domain-mat", "domain-vhp")] +
+    # Den VALGTE flise (issue #70): tekst paa det tonede fyld, og
+    # domaenets kant, ikon og knaptekst paa det samme fyld.
+    [(fg, "domain-%s-soft" % d, TEXT_MIN) for d in ("fl", "eq", "mp", "mat", "vhp")
+     for fg in ("text-primary", "text-muted")] +
+    [("domain-%s" % d, "domain-%s-soft" % d, UI_MIN)
+     for d in ("fl", "eq", "mp", "mat", "vhp")]
 )
 
 
@@ -475,6 +494,53 @@ _check_balance()
 
 
 # ---------------------------------------------------------------------------
+# DOMAENEFARVERNE SKAL KUNNE SKELNES (issue #70)
+#
+# Equipments turkis og Measuring Points groenne laa ΔE 20-28 fra hinanden
+# (CIE76) - to nuancer af det samme, naar de stod side om side i hubben.
+# Functional Location og VH-plan laa 31-33. Ingen regel sagde noget, fordi
+# kontrasten mod baggrunden var fin for dem alle.
+#
+# Nu skal hvert par vaere mindst DOMAIN_MIN_DELTA_E fra hinanden i BEGGE
+# temaer. Paletten ligger paa ~58.
+# ---------------------------------------------------------------------------
+DOMAIN_MIN_DELTA_E = 45
+DOMAINS = ("domain-fl", "domain-eq", "domain-mp", "domain-mat", "domain-vhp")
+
+
+def _lab(rgba):
+    body = rgba[rgba.index("(") + 1:rgba.rindex(")")]
+    rgb = [float(n) for n in body.split(",")[:3]]
+
+    def lin(u):
+        u /= 255
+        return ((u + 0.055) / 1.055) ** 2.4 if u > 0.04045 else u / 12.92
+    r, g, b = (lin(u) for u in rgb)
+    x = (0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047
+    y = 0.2126 * r + 0.7152 * g + 0.0722 * b
+    z = (0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883
+    f = lambda t: t ** (1 / 3) if t > 0.008856 else 7.787 * t + 16 / 116
+    return 116 * f(y) - 16, 500 * (f(x) - f(y)), 200 * (f(y) - f(z))
+
+
+def _check_domain_distance():
+    import itertools, math
+    bad = []
+    for theme, values in (("lys", LIGHT), ("moerk", DARK)):
+        for a, b in itertools.combinations(DOMAINS, 2):
+            de = math.dist(_lab(values[a]), _lab(values[b]))
+            if de < DOMAIN_MIN_DELTA_E:
+                bad.append("  %-6s %-11s / %-11s ΔE %.1f" % (theme, a, b, de))
+    if bad:
+        raise SystemExit(
+            "Designtokens: to domaenefarver er for ens (kraever ΔE >= %d).\n"
+            % DOMAIN_MIN_DELTA_E + "\n".join(bad))
+
+
+_check_domain_distance()
+
+
+# ---------------------------------------------------------------------------
 # HTML-kontrollernes farver
 #
 # VH-plans tabeloverskrifter er HtmlViewer-kontroller, og HTML kender ikke
@@ -506,6 +572,7 @@ HTML_TOKENS = ("text-primary", "text-muted",
                # domaeneikonerne og statusikonerne er SVG'er i de samme farver.
                "domain-fl", "domain-eq", "domain-mp", "domain-mat", "domain-vhp",
                "state-error-fg", "state-neutral-fg")
+
 
 
 def _hex(rgba):

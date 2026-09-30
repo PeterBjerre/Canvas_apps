@@ -91,6 +91,7 @@ from gen_screen import C_TITLE
 from build_helpers import group, theme_button, help_toggle, text_ctrl, grow, THEME_TOGGLE_H
 import layout_tokens as lay
 import env_config as env
+import icons
 
 # Aaben eller lukket. Blank ved start = lukket. Den gemmes ikke: en
 # sidebar, der stod aaben fra sidst, ville ligge oven paa formularen.
@@ -105,9 +106,7 @@ BRAND_H = 44
 ITEMS = [
     ("hub", "Masterdata Hub",
      "M3 10.5 12 3l9 7.5M5.5 9.5V20h13V9.5"),
-    ("functionallocation", "Functional Location",
-     "M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z "
-     "M12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"),
+    ("functionallocation", "Functional Location", icons.FUNCTIONAL_LOCATION),
     ("vhplan", "VH-plan",
      "M4 6.5h16M4 12h16M4 17.5h10 M17.5 16.5l1.6 1.6 3-3.2"),
     ("material", "Materials",
