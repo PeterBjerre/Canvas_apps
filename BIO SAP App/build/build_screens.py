@@ -24,7 +24,6 @@ klargoeres - den faelles build_helpers.loading_overlay, og kun den.
 """
 import importlib.util
 import os
-import re
 import subprocess
 import sys
 
@@ -47,20 +46,6 @@ def _load(domain, module_file):
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
-
-
-def _walk(c):
-    yield c
-    for k in c.children:
-        yield from _walk(k)
-
-
-def _subst_props(roots, fn):
-    for r in roots:
-        for c in _walk(r):
-            for k, v in list(c.props.items()):
-                if isinstance(v, str):
-                    c.props[k] = fn(v)
 
 
 def _navigation():
@@ -290,26 +275,12 @@ def build_domain_app(key):
     init = cb.domain_onstart(d) + ";\n" + dp.clear_form_fx()
     seen["props"]["OnVisible"] = (open_block(d, init) + ";\n\n"
                                   + me + dp.refresh_rows_fx() + done(d))
-    # Felternes kontroller hedder inp<Kolonne>, con<Kolonne> og
-    # con<Kolonne>Lbl - uden Dom. Manufacturer er et felt i begge domaener,
-    # saa ogsaa de skal have domaenets praefiks. De faar Dom her, og _write
-    # doeber det om sammen med resten.
-    names = {c.name for r in seen["children"] for c in _walk(r)}
-    plain = {}
-    for n in names:
-        m = re.match(r"([a-z]{2,5})([A-Z]\w*)$", n)
-        if m and not m.group(2).startswith("Dom"):
-            plain[n] = m.group(1) + "Dom" + m.group(2)
-    if plain:
-        pat = re.compile(r"\b(%s)\b" % "|".join(
-            re.escape(n) for n in sorted(plain, key=len, reverse=True)))
-        for r in seen["children"]:
-            for c in _walk(r):
-                c.name = plain.get(c.name, c.name)
-        _subst_props(seen["children"], lambda v: pat.sub(lambda m: plain[m.group(1)], v))
-        seen["props"] = {k: pat.sub(lambda m: plain[m.group(1)], v)
-                         for k, v in seen["props"].items()}
-    # Efter omdoebningen - spinneren har allerede domaenets eget praefiks.
+    # Her stod en regex-omdoebning: felternes kontroller hed inp<Kolonne>
+    # og con<Kolonne> uden Dom, og Manufacturer findes i begge domaener.
+    # domain_parts navngiver dem nu selv inpDom<Kolonne>/conDom<Kolonne>
+    # (REVIEW.md A2). Slipper et navn uden Dom igennem, stopper
+    # check_combined paa dubletten.
+    # Spinneren har allerede domaenets eget praefiks.
     seen["children"].append(loading_overlay(
         d, {"equipment": "Equipments", "material": "Materials"}[key]))
     from gen_screen import render_screen

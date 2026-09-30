@@ -60,7 +60,7 @@ def build_form():
     dp.check_form_order([k for col in COLUMNS for k in col], SPECIAL, NOT_IN_GRID)
     head = dp.form_head("Equipment Form")
     grid = dp.grid_columns("conDomGrid", [[_cell(k) for k in col] for col in COLUMNS])
-    buttons = dp.form_buttons(dp.save_row_fx, "Save", "New row")
+    buttons = dp.form_buttons(dp.save_row_fx, "Save row", "New row")
     return card("conDomFormCard",
                 [head, grid, dp.build_fl_msg()] + dp.form_footer(buttons))
 
@@ -110,5 +110,5 @@ SLOTS = [
 
 
 def build_rows():
-    return dp.build_list(SLOTS, "VALIDATION",
+    return dp.build_list(SLOTS, "STATUS",
                          "Search FL, equipment no., serial no., description")

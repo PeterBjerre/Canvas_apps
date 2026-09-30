@@ -40,6 +40,9 @@ Screens:
                   Set(varEqActiveRowId, Blank());
                   // Hvilken raekke detaljeruden viser. Blank = ruden er skjult.
                   Set(varEqDetailsId, Blank());
+                  // Sletning sker bag en bekraeftelse: hvilken raekke, og om den er aaben.
+                  Set(varEqDeleteId, Blank());
+                  Set(varEqConfirmDelete, false);
                   // Hvilken raekke dokumentpopuppen viser. Blank = lukket.
                   Set(varEqDocsId, Blank());
                   Set(varEqRowStatus, "valid");
@@ -501,7 +504,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =94 + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (40 + If(false, 0 + (1), 0))) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62)) + 60, (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (40 + If(false, 0 + (1), 0))) + 14 + (62)))) + (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 20), (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (40 + If(false, 0 + (1), 0))) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 0)) + If(!IsBlank(varEqFlMsg), 14 + (18), 0) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 36, (28) + 8 + (36) + 8 + (36) + 8 + (36) + 8 + (36)))
+                            =94 + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (40 + If(false, 0 + (1), 0))) + 14 + (62)) + (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)) + (0 + (62) + 14 + (62)) + 60, (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (40 + If(false, 0 + (1), 0))) + 14 + (62)))) + (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 20), (Max((0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (20 + 6 + (40 + If(false, 0 + (1), 0))) + 14 + (62)), (0 + (62) + 14 + (62) + 14 + (62) + 14 + (62) + 14 + (62)), (0 + (62) + 14 + (62)))) + 0)) + If(!IsBlank(varEqFlMsg), 14 + (18), 0) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (164) + (124) + (91) + (428) + 32, 36, (28) + 8 + (36) + 8 + (36) + 8 + (36) + 8 + (36)))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -3268,11 +3271,11 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 36, (28) + 8 + (36) + 8 + (36) + 8 + (36) + 8 + (36))
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (164) + (124) + (91) + (428) + 32, 36, (28) + 8 + (36) + 8 + (36) + 8 + (36) + 8 + (36))
                               LayoutAlignItems: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (164) + (124) + (91) + (428) + 32, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                               LayoutDirection: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (164) + (124) + (91) + (428) + 32, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =8
                               LayoutMinWidth: |-
@@ -3309,7 +3312,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18)) - ((111) + 8) - ((135) + 8) - ((95) + 8) - ((91) + 8) - 2)
+                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18)) - ((111) + 8) - ((164) + 8) - ((124) + 8) - ((91) + 8) - 2)
                                   Children:
                                     - txtEqFormPlant:
                                         Control: ModernText
@@ -3425,7 +3428,7 @@ Screens:
                                     Color: |-
                                         =C.'state-error-fg'
                                     DisplayMode: |-
-                                        =If(IsBlank(varEqActiveRowId), DisplayMode.Disabled, DisplayMode.Edit)
+                                        =If(IsBlank(varEqActiveRowId) || varEqRowStatus = "submitted", DisplayMode.Disabled, DisplayMode.Edit)
                                     Font: |-
                                         =Font.'Segoe UI'
                                     FontWeight: |-
@@ -3435,69 +3438,10 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 111, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (164) + (124) + (91) + (428) + 32, 111, 0)
                                     OnSelect: |-
-                                        =If(
-                                            IsBlank(varEqActiveRowId),
-                                            Set(varEqInfo, "Select a row in the list first."),
-                                        
-                                            Remove(EquipmentItems, LookUp(EquipmentItems, ID = varEqActiveRowId));
-                                            RemoveIf(colEqAttachments, RowId = varEqActiveRowId);
-                                            If(varEqDetailsId = varEqActiveRowId, Set(varEqDetailsId, Blank()));
-                                            If(varEqDocsId = varEqActiveRowId, Set(varEqDocsId, Blank()));
-                                        
-                                            ClearCollect(
-                                                colEqRows,
-                                                ForAll(
-                                                    Filter(EquipmentItems, RequesterEmail = varEqMe) As R,
-                                                    {
-                                                        RowId: R.ID,
-                                                        ItemKey: Coalesce(R.ItemKey, ""),
-                                                        RequestNo: Coalesce(R.RequestNo, ""),
-                                                        Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                        FileCount: Coalesce(R.FileCount, 0),
-                                                        Description: Coalesce(R.Description, ""),
-                                                        Plant: Coalesce(R.Plant, ""),
-                                                        RequestType: Coalesce(R.RequestType, ""),
-                                                        EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
-                                                        EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
-                                                        Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                        TypeDesignation: Coalesce(R.TypeDesignation, ""),
-                                                        SerialNumber: Coalesce(R.SerialNumber, ""),
-                                                        FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                        FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
-                                                        FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
-                                                        ClassData: Coalesce(R.ClassData, ""),
-                                                        RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
-                                                        Placement: Coalesce(R.Placement, ""),
-                                                        WarrantyStart: R.WarrantyStart,
-                                                        WarrantyEnd: R.WarrantyEnd
-                                                    }
-                                                )
-                                            );
-                                        
-                                        Set(varEqActiveRowId, Blank());
-                                            Set(varEqRowStatus, "valid");
-                                            Set(varEqValidated, false);
-                                            Set(varEqFText, "");
-                                            Set(varEqFPlant, "");
-                                            Set(varEqFRequestType, "");
-                                            Set(varEqFEquipmentNumber, "");
-                                            Set(varEqFEquipmentCategory, "");
-                                            Set(varEqFManufacturer, "");
-                                            Set(varEqFTypeDesignation, "");
-                                            Set(varEqFSerialNumber, "");
-                                            Set(varEqFFunctionalLocation, "");
-                                            Set(varEqFFunctionalLocation1, "");
-                                            Set(varEqFFunctionalLocation2, "");
-                                            Set(varEqFClassData, "");
-                                            Set(varEqFRoomCoordinates, "");
-                                            Set(varEqFPlacement, "");
-                                            Set(varEqFWarrantyStart, Blank());
-                                            Set(varEqFWarrantyEnd, Blank());
-                                            Set(varEqFlQuery, ""); Set(varEqFlLast, ""); Set(varEqFlMsg, ""); Clear(colEqFl); Reset(cmbEqFl);
-                                            Set(varEqInfo, "Row deleted. The documents remain in the library.")
-                                        )
+                                        =Set(varEqDeleteId, varEqActiveRowId);
+                                        Set(varEqConfirmDelete, true)
                                     RadiusBottomLeft: |-
                                         =10
                                     RadiusBottomRight: |-
@@ -3510,6 +3454,8 @@ Screens:
                                         =14
                                     Text: |-
                                         ="Delete row"
+                                    Tooltip: |-
+                                        ="Delete the open row in SharePoint (asks first)"
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
@@ -3518,7 +3464,7 @@ Screens:
                                   Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Save draft"
+                                        ="Save row draft"
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
@@ -3544,7 +3490,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.IconBefore
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 135, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (164) + (124) + (91) + (428) + 32, 164, 0)
                                     OnSelect: |-
                                         =Set(varEqSaving, true);
                                         Set(varEqValidated, true);
@@ -3585,6 +3531,7 @@ Screens:
                                                     }
                                                 )
                                             );
+                                            Set(varEqActiveRowId, varEqSpRow.ID);
                                         
                                             // Noeglen er lavet af raekkens eget ID og kan derfor foerst
                                             // dannes, naar raekken findes. Derfor to skrivninger paa en ny
@@ -3601,7 +3548,6 @@ Screens:
                                                     }
                                                 )
                                             );
-                                            Set(varEqActiveRowId, varEqSpRow.ID);
                                             Set(varEqRowStatus, "draft");
                                         
                                             ClearCollect(
@@ -3653,16 +3599,18 @@ Screens:
                                     Size: |-
                                         =14
                                     Text: |-
-                                        ="Save draft"
+                                        ="Save row draft"
+                                    Tooltip: |-
+                                        ="Save the row as a draft - only the description is required"
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
-                                        =135
+                                        =164
                               - btnEqSave:
                                   Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Save"
+                                        ="Save row"
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
@@ -3684,7 +3632,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.IconBefore
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 95, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (164) + (124) + (91) + (428) + 32, 124, 0)
                                     OnSelect: |-
                                         =Set(varEqSaving, true);
                                         Set(varEqValidated, true);
@@ -3725,6 +3673,7 @@ Screens:
                                                     }
                                                 )
                                             );
+                                            Set(varEqActiveRowId, varEqSpRow.ID);
                                         
                                             // Noeglen er lavet af raekkens eget ID og kan derfor foerst
                                             // dannes, naar raekken findes. Derfor to skrivninger paa en ny
@@ -3741,7 +3690,6 @@ Screens:
                                                     }
                                                 )
                                             );
-                                            Set(varEqActiveRowId, varEqSpRow.ID);
                                             Set(varEqRowStatus, "valid");
                                         
                                             ClearCollect(
@@ -3793,11 +3741,13 @@ Screens:
                                     Size: |-
                                         =14
                                     Text: |-
-                                        ="Save"
+                                        ="Save row"
+                                    Tooltip: |-
+                                        ="Save the row as complete, ready to submit"
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
-                                        =95
+                                        =124
                               - btnEqNew:
                                   Control: ModernButton
                                   Properties:
@@ -3824,7 +3774,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (135) + (95) + (91) + (428) + 32, 91, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (164) + (124) + (91) + (428) + 32, 91, 0)
                                     OnSelect: |-
                                         =Set(varEqActiveRowId, Blank());
                                         Set(varEqRowStatus, "valid");
@@ -3859,6 +3809,8 @@ Screens:
                                         =14
                                     Text: |-
                                         ="New row"
+                                    Tooltip: |-
+                                        ="Clear the form and start a new row"
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
@@ -3913,7 +3865,7 @@ Screens:
                                 colEqRows,
                                 (IsBlank(Trim(txtEqSearch.Text)) || Trim(txtEqSearch.Text) in Description || Trim(txtEqSearch.Text) in FunctionalLocation || Trim(txtEqSearch.Text) in SerialNumber || Trim(txtEqSearch.Text) in EquipmentNumber),
                                 (drpEqStatusFilter.Selected.Value = "All status" ||
-                                 Status = drpEqStatusFilter.Selected.Value),
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
                                 (drpEqPlantFilter.Selected.Value = "All plants" ||
                                  Plant = drpEqPlantFilter.Selected.Value)
                             )), 8), 1) * 46) + If(((If(varEqAllCols, 2765, Max(1182, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)), 18, 0)) + If(IfError(CountRows(colEqRows) = 0, false), 14 + (22), 0) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (124) + (158) + (195) + (0) + 24, 36, (20) + 8 + (36) + 8 + (36) + 8 + (36)))
@@ -4101,7 +4053,7 @@ Screens:
                                     HoverFill: |-
                                         =C.'color-brand-primary-soft'
                                     Items: |-
-                                        =["All status", "draft", "valid", "submitted"]
+                                        =["All status", "Draft", "Valid", "Submitted"]
                                     Items.Value: |-
                                         =Value
                                     LayoutMinWidth: |-
@@ -4325,7 +4277,7 @@ Screens:
                                       colEqRows,
                                       (IsBlank(Trim(txtEqSearch.Text)) || Trim(txtEqSearch.Text) in Description || Trim(txtEqSearch.Text) in FunctionalLocation || Trim(txtEqSearch.Text) in SerialNumber || Trim(txtEqSearch.Text) in EquipmentNumber),
                                       (drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = drpEqStatusFilter.Selected.Value),
+                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
                                       (drpEqPlantFilter.Selected.Value = "All plants" ||
                                        Plant = drpEqPlantFilter.Selected.Value)
                                   )), 8), 1) * 46) + If(((If(varEqAllCols, 2765, Max(1182, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)), 18, 0)
@@ -4377,7 +4329,7 @@ Screens:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="VALIDATION"
+                                              ="STATUS"
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -4403,7 +4355,7 @@ Screens:
                                           Size: |-
                                               =11
                                           Text: |-
-                                              ="VALIDATION"
+                                              ="STATUS"
                                           Width: |-
                                               =90
                                           Wrap: |-
@@ -5149,7 +5101,7 @@ Screens:
                                             colEqRows,
                                             (IsBlank(Trim(txtEqSearch.Text)) || Trim(txtEqSearch.Text) in Description || Trim(txtEqSearch.Text) in FunctionalLocation || Trim(txtEqSearch.Text) in SerialNumber || Trim(txtEqSearch.Text) in EquipmentNumber),
                                             (drpEqStatusFilter.Selected.Value = "All status" ||
-                                             Status = drpEqStatusFilter.Selected.Value),
+                                             Status = Lower(drpEqStatusFilter.Selected.Value)),
                                             (drpEqPlantFilter.Selected.Value = "All plants" ||
                                              Plant = drpEqPlantFilter.Selected.Value)
                                         )), 8), 1) * 46
@@ -5158,7 +5110,7 @@ Screens:
                                             colEqRows,
                                             (IsBlank(Trim(txtEqSearch.Text)) || Trim(txtEqSearch.Text) in Description || Trim(txtEqSearch.Text) in FunctionalLocation || Trim(txtEqSearch.Text) in SerialNumber || Trim(txtEqSearch.Text) in EquipmentNumber),
                                             (drpEqStatusFilter.Selected.Value = "All status" ||
-                                             Status = drpEqStatusFilter.Selected.Value),
+                                             Status = Lower(drpEqStatusFilter.Selected.Value)),
                                             (drpEqPlantFilter.Selected.Value = "All plants" ||
                                              Plant = drpEqPlantFilter.Selected.Value)
                                         ), RowId, SortOrder.Descending)
@@ -5948,7 +5900,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Details"
+                                              ="Details" & " " & ThisItem.ItemKey
                                           Align: |-
                                               =Align.Center
                                           Appearance: |-
@@ -5981,6 +5933,8 @@ Screens:
                                               =13
                                           Text: |-
                                               ="Details"
+                                          Tooltip: |-
+                                              ="Details" & " " & ThisItem.ItemKey
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
@@ -5993,7 +5947,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Docs"
+                                              ="Docs" & " " & ThisItem.ItemKey
                                           Align: |-
                                               =Align.Center
                                           Appearance: |-
@@ -6061,6 +6015,8 @@ Screens:
                                               =13
                                           Text: |-
                                               ="Docs"
+                                          Tooltip: |-
+                                              ="Docs" & " " & ThisItem.ItemKey
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
@@ -6073,7 +6029,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Edit"
+                                              ="Edit" & " " & ThisItem.ItemKey
                                           Align: |-
                                               =Align.Center
                                           Appearance: |-
@@ -6128,6 +6084,8 @@ Screens:
                                               =13
                                           Text: |-
                                               ="Edit"
+                                          Tooltip: |-
+                                              ="Edit" & " " & ThisItem.ItemKey
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
@@ -6140,7 +6098,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Copy"
+                                              ="Copy" & " " & ThisItem.ItemKey
                                           Align: |-
                                               =Align.Center
                                           Appearance: |-
@@ -6196,6 +6154,8 @@ Screens:
                                               =13
                                           Text: |-
                                               ="Copy"
+                                          Tooltip: |-
+                                              ="Copy" & " " & ThisItem.ItemKey
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
@@ -6208,7 +6168,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Delete"
+                                              ="Delete" & " " & ThisItem.ItemKey
                                           Align: |-
                                               =Align.Center
                                           Appearance: |-
@@ -6219,6 +6179,8 @@ Screens:
                                               =1
                                           Color: |-
                                               =C.'state-error-fg'
+                                          DisplayMode: |-
+                                              =If(ThisItem.Status = "submitted", DisplayMode.Disabled, DisplayMode.Edit)
                                           Font: |-
                                               =Font.'Segoe UI'
                                           FontWeight: |-
@@ -6228,68 +6190,8 @@ Screens:
                                           Layout: |-
                                               =ButtonLayout.TextOnly
                                           OnSelect: |-
-                                              =Remove(EquipmentItems, LookUp(EquipmentItems, ID = ThisItem.RowId));
-                                              RemoveIf(colEqAttachments, RowId = ThisItem.RowId);
-                                              If(varEqDetailsId = ThisItem.RowId, Set(varEqDetailsId, Blank()));
-                                              If(varEqDocsId = ThisItem.RowId, Set(varEqDocsId, Blank()));
-                                              
-                                              // Var det den aabne raekke, skal formularen ogsaa ryddes - ellers
-                                              // staar der felter fra noget, der ikke findes.
-                                              If(
-                                                  varEqActiveRowId = ThisItem.RowId,
-                                                  Set(varEqActiveRowId, Blank());
-                                                  Set(varEqRowStatus, "valid");
-                                                  Set(varEqValidated, false);
-                                                  Set(varEqFText, "");
-                                                  Set(varEqFPlant, "");
-                                                  Set(varEqFRequestType, "");
-                                                  Set(varEqFEquipmentNumber, "");
-                                                  Set(varEqFEquipmentCategory, "");
-                                                  Set(varEqFManufacturer, "");
-                                                  Set(varEqFTypeDesignation, "");
-                                                  Set(varEqFSerialNumber, "");
-                                                  Set(varEqFFunctionalLocation, "");
-                                                  Set(varEqFFunctionalLocation1, "");
-                                                  Set(varEqFFunctionalLocation2, "");
-                                                  Set(varEqFClassData, "");
-                                                  Set(varEqFRoomCoordinates, "");
-                                                  Set(varEqFPlacement, "");
-                                                  Set(varEqFWarrantyStart, Blank());
-                                                  Set(varEqFWarrantyEnd, Blank());
-                                                  Set(varEqFlQuery, ""); Set(varEqFlLast, ""); Set(varEqFlMsg, ""); Clear(colEqFl); Reset(cmbEqFl);
-                                                  Set(varEqInfo, "New row - fill in and save.")
-                                              );
-                                              
-                                              ClearCollect(
-                                                  colEqRows,
-                                                  ForAll(
-                                                      Filter(EquipmentItems, RequesterEmail = varEqMe) As R,
-                                                      {
-                                                          RowId: R.ID,
-                                                          ItemKey: Coalesce(R.ItemKey, ""),
-                                                          RequestNo: Coalesce(R.RequestNo, ""),
-                                                          Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                          FileCount: Coalesce(R.FileCount, 0),
-                                                          Description: Coalesce(R.Description, ""),
-                                                          Plant: Coalesce(R.Plant, ""),
-                                                          RequestType: Coalesce(R.RequestType, ""),
-                                                          EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
-                                                          EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
-                                                          Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                          TypeDesignation: Coalesce(R.TypeDesignation, ""),
-                                                          SerialNumber: Coalesce(R.SerialNumber, ""),
-                                                          FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                          FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
-                                                          FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
-                                                          ClassData: Coalesce(R.ClassData, ""),
-                                                          RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
-                                                          Placement: Coalesce(R.Placement, ""),
-                                                          WarrantyStart: R.WarrantyStart,
-                                                          WarrantyEnd: R.WarrantyEnd
-                                                      }
-                                                  )
-                                              );
-                                              Set(varEqInfo, "Row deleted. The documents remain in the library.")
+                                              =Set(varEqDeleteId, ThisItem.RowId);
+                                              Set(varEqConfirmDelete, true)
                                           RadiusBottomLeft: |-
                                               =10
                                           RadiusBottomRight: |-
@@ -6302,6 +6204,8 @@ Screens:
                                               =13
                                           Text: |-
                                               ="Delete"
+                                          Tooltip: |-
+                                              ="Delete" & " " & ThisItem.ItemKey
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
@@ -6485,6 +6389,8 @@ Screens:
                                         =14
                                     Text: |-
                                         ="Reload rows"
+                                    Tooltip: |-
+                                        ="Fetch your rows from SharePoint again"
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
@@ -6607,11 +6513,11 @@ Screens:
                                                     )
                                                 );
                                         
-                                                Set(varEqInfo, "Saved as draft: " & varEqRequestNo);
-                                                Notify("Saved as draft as " & varEqRequestNo & " - see it on the landing page.", NotificationType.Success),
+                                                Set(varEqInfo, "Saved: " & varEqRequestNo);
+                                                Notify("Saved as " & varEqRequestNo & " - see it on the landing page.", NotificationType.Success),
                                         
-                                                Set(varEqInfo, "It failed: " & FirstError.Message);
-                                                Notify("It failed: " & FirstError.Message, NotificationType.Error)
+                                                Set(varEqInfo, "Save failed: " & FirstError.Message);
+                                                Notify("Save failed: " & FirstError.Message, NotificationType.Error)
                                             )
                                         );
                                         Set(varEqSaving, false)
@@ -6627,6 +6533,8 @@ Screens:
                                         =14
                                     Text: |-
                                         ="Save as draft"
+                                    Tooltip: |-
+                                        ="Put the request on the landing page as Draft - rows stay editable"
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
@@ -6672,6 +6580,8 @@ Screens:
                                         =14
                                     Text: |-
                                         ="Submit saved rows"
+                                    Tooltip: |-
+                                        ="Submit the valid rows - they are locked afterwards (asks first)"
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
@@ -7433,14 +7343,14 @@ Screens:
                                       colEqRows,
                                       (IsBlank(Trim(txtEqSearch.Text)) || Trim(txtEqSearch.Text) in Description || Trim(txtEqSearch.Text) in FunctionalLocation || Trim(txtEqSearch.Text) in SerialNumber || Trim(txtEqSearch.Text) in EquipmentNumber),
                                       (drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = drpEqStatusFilter.Selected.Value),
+                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
                                       (drpEqPlantFilter.Selected.Value = "All plants" ||
                                        Plant = drpEqPlantFilter.Selected.Value)
                                   ), RowId, SortOrder.Descending), RowId > varEqDetailsId)) + 1) & " of " & Text(CountRows(Sort(Filter(
                                       colEqRows,
                                       (IsBlank(Trim(txtEqSearch.Text)) || Trim(txtEqSearch.Text) in Description || Trim(txtEqSearch.Text) in FunctionalLocation || Trim(txtEqSearch.Text) in SerialNumber || Trim(txtEqSearch.Text) in EquipmentNumber),
                                       (drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = drpEqStatusFilter.Selected.Value),
+                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
                                       (drpEqPlantFilter.Selected.Value = "All plants" ||
                                        Plant = drpEqPlantFilter.Selected.Value)
                                   ), RowId, SortOrder.Descending)))
@@ -7471,14 +7381,14 @@ Screens:
                                       colEqRows,
                                       (IsBlank(Trim(txtEqSearch.Text)) || Trim(txtEqSearch.Text) in Description || Trim(txtEqSearch.Text) in FunctionalLocation || Trim(txtEqSearch.Text) in SerialNumber || Trim(txtEqSearch.Text) in EquipmentNumber),
                                       (drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = drpEqStatusFilter.Selected.Value),
+                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
                                       (drpEqPlantFilter.Selected.Value = "All plants" ||
                                        Plant = drpEqPlantFilter.Selected.Value)
                                   ), RowId, SortOrder.Descending), RowId > varEqDetailsId)) + 1) & " of " & Text(CountRows(Sort(Filter(
                                       colEqRows,
                                       (IsBlank(Trim(txtEqSearch.Text)) || Trim(txtEqSearch.Text) in Description || Trim(txtEqSearch.Text) in FunctionalLocation || Trim(txtEqSearch.Text) in SerialNumber || Trim(txtEqSearch.Text) in EquipmentNumber),
                                       (drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = drpEqStatusFilter.Selected.Value),
+                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
                                       (drpEqPlantFilter.Selected.Value = "All plants" ||
                                        Plant = drpEqPlantFilter.Selected.Value)
                                   ), RowId, SortOrder.Descending)))
@@ -7506,7 +7416,7 @@ Screens:
                                 colEqRows,
                                 (IsBlank(Trim(txtEqSearch.Text)) || Trim(txtEqSearch.Text) in Description || Trim(txtEqSearch.Text) in FunctionalLocation || Trim(txtEqSearch.Text) in SerialNumber || Trim(txtEqSearch.Text) in EquipmentNumber),
                                 (drpEqStatusFilter.Selected.Value = "All status" ||
-                                 Status = drpEqStatusFilter.Selected.Value),
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
                                 (drpEqPlantFilter.Selected.Value = "All plants" ||
                                  Plant = drpEqPlantFilter.Selected.Value)
                             ), RowId, SortOrder.Descending), RowId > varEqDetailsId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)
@@ -7525,14 +7435,14 @@ Screens:
                                 colEqRows,
                                 (IsBlank(Trim(txtEqSearch.Text)) || Trim(txtEqSearch.Text) in Description || Trim(txtEqSearch.Text) in FunctionalLocation || Trim(txtEqSearch.Text) in SerialNumber || Trim(txtEqSearch.Text) in EquipmentNumber),
                                 (drpEqStatusFilter.Selected.Value = "All status" ||
-                                 Status = drpEqStatusFilter.Selected.Value),
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
                                 (drpEqPlantFilter.Selected.Value = "All plants" ||
                                  Plant = drpEqPlantFilter.Selected.Value)
                             ), RowId, SortOrder.Descending), Max(1, CountRows(Filter(Sort(Filter(
                                 colEqRows,
                                 (IsBlank(Trim(txtEqSearch.Text)) || Trim(txtEqSearch.Text) in Description || Trim(txtEqSearch.Text) in FunctionalLocation || Trim(txtEqSearch.Text) in SerialNumber || Trim(txtEqSearch.Text) in EquipmentNumber),
                                 (drpEqStatusFilter.Selected.Value = "All status" ||
-                                 Status = drpEqStatusFilter.Selected.Value),
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
                                 (drpEqPlantFilter.Selected.Value = "All plants" ||
                                  Plant = drpEqPlantFilter.Selected.Value)
                             ), RowId, SortOrder.Descending), RowId > varEqDetailsId)) + 1 - 1)).RowId)
@@ -7574,14 +7484,14 @@ Screens:
                                 colEqRows,
                                 (IsBlank(Trim(txtEqSearch.Text)) || Trim(txtEqSearch.Text) in Description || Trim(txtEqSearch.Text) in FunctionalLocation || Trim(txtEqSearch.Text) in SerialNumber || Trim(txtEqSearch.Text) in EquipmentNumber),
                                 (drpEqStatusFilter.Selected.Value = "All status" ||
-                                 Status = drpEqStatusFilter.Selected.Value),
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
                                 (drpEqPlantFilter.Selected.Value = "All plants" ||
                                  Plant = drpEqPlantFilter.Selected.Value)
                             ), RowId, SortOrder.Descending), RowId > varEqDetailsId)) + 1 >= CountRows(Sort(Filter(
                                 colEqRows,
                                 (IsBlank(Trim(txtEqSearch.Text)) || Trim(txtEqSearch.Text) in Description || Trim(txtEqSearch.Text) in FunctionalLocation || Trim(txtEqSearch.Text) in SerialNumber || Trim(txtEqSearch.Text) in EquipmentNumber),
                                 (drpEqStatusFilter.Selected.Value = "All status" ||
-                                 Status = drpEqStatusFilter.Selected.Value),
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
                                 (drpEqPlantFilter.Selected.Value = "All plants" ||
                                  Plant = drpEqPlantFilter.Selected.Value)
                             ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)
@@ -7600,21 +7510,21 @@ Screens:
                                 colEqRows,
                                 (IsBlank(Trim(txtEqSearch.Text)) || Trim(txtEqSearch.Text) in Description || Trim(txtEqSearch.Text) in FunctionalLocation || Trim(txtEqSearch.Text) in SerialNumber || Trim(txtEqSearch.Text) in EquipmentNumber),
                                 (drpEqStatusFilter.Selected.Value = "All status" ||
-                                 Status = drpEqStatusFilter.Selected.Value),
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
                                 (drpEqPlantFilter.Selected.Value = "All plants" ||
                                  Plant = drpEqPlantFilter.Selected.Value)
                             ), RowId, SortOrder.Descending), Min(CountRows(Sort(Filter(
                                 colEqRows,
                                 (IsBlank(Trim(txtEqSearch.Text)) || Trim(txtEqSearch.Text) in Description || Trim(txtEqSearch.Text) in FunctionalLocation || Trim(txtEqSearch.Text) in SerialNumber || Trim(txtEqSearch.Text) in EquipmentNumber),
                                 (drpEqStatusFilter.Selected.Value = "All status" ||
-                                 Status = drpEqStatusFilter.Selected.Value),
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
                                 (drpEqPlantFilter.Selected.Value = "All plants" ||
                                  Plant = drpEqPlantFilter.Selected.Value)
                             ), RowId, SortOrder.Descending)), CountRows(Filter(Sort(Filter(
                                 colEqRows,
                                 (IsBlank(Trim(txtEqSearch.Text)) || Trim(txtEqSearch.Text) in Description || Trim(txtEqSearch.Text) in FunctionalLocation || Trim(txtEqSearch.Text) in SerialNumber || Trim(txtEqSearch.Text) in EquipmentNumber),
                                 (drpEqStatusFilter.Selected.Value = "All status" ||
-                                 Status = drpEqStatusFilter.Selected.Value),
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
                                 (drpEqPlantFilter.Selected.Value = "All plants" ||
                                  Plant = drpEqPlantFilter.Selected.Value)
                             ), RowId, SortOrder.Descending), RowId > varEqDetailsId)) + 1 + 1)).RowId)
@@ -10637,6 +10547,334 @@ Screens:
                             =0
                         Width: |-
                             =104
+      - conEqDelConfirmBackdrop:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderStyle: |-
+                =BorderStyle.None
+            DropShadow: |-
+                =DropShadow.None
+            Fill: |-
+                =C.'overlay'
+            Height: |-
+                =App.Height
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            Visible: |-
+                =IfError(varEqConfirmDelete, false)
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - conEqDelConfirmModal:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'color-brand-primary-soft'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.ExtraBold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =162
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Stretch
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =12
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =18
+            PaddingLeft: |-
+                =18
+            PaddingRight: |-
+                =18
+            PaddingTop: |-
+                =18
+            RadiusBottomLeft: |-
+                =16
+            RadiusBottomRight: |-
+                =16
+            RadiusTopLeft: |-
+                =16
+            RadiusTopRight: |-
+                =16
+            Visible: |-
+                =IfError(varEqConfirmDelete, false)
+            Width: |-
+                =Min(460, App.Width - 40)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =Max(20, (App.Height - Self.Height) / 3)
+          Children:
+            - txtEqDelConfirmTitle:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      ="Delete row?"
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-primary'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  FontWeight: |-
+                      =FontWeight.Semibold
+                  Height: |-
+                      =26
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =17
+                  Text: |-
+                      ="Delete row?"
+                  Wrap: |-
+                      =false
+            - txtEqDelConfirmText:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      ="Row " & LookUp(colEqRows, RowId = varEqDeleteId).ItemKey & " is deleted in SharePoint. The documents remain in the library."
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =40
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =13
+                  Text: |-
+                      ="Row " & LookUp(colEqRows, RowId = varEqDeleteId).ItemKey & " is deleted in SharePoint. The documents remain in the library."
+                  Wrap: |-
+                      =true
+            - conEqDelConfirmFooter:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =36
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =8
+                  LayoutJustifyContent: |-
+                      =LayoutJustifyContent.End
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - btnEqDelConfirmCancel:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Cancel"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-default'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varEqConfirmDelete, false)
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =14
+                        Text: |-
+                            ="Cancel"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =86
+                  - btnEqDeleteConfirm:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Delete"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
+                        Color: |-
+                            =C.'text-on-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Icon: |-
+                            ="Delete"
+                        Layout: |-
+                            =ButtonLayout.IconBefore
+                        OnSelect: |-
+                            =Set(varEqConfirmDelete, false);
+                            Set(varEqSaving, true);
+                            If(
+                                IsBlank(varEqDeleteId) || IsBlank(LookUp(colEqRows, RowId = varEqDeleteId)),
+                                Notify("Select a row in the list first.", NotificationType.Warning),
+                            
+                                LookUp(colEqRows, RowId = varEqDeleteId).Status = "submitted",
+                                Notify("A submitted row cannot be deleted.", NotificationType.Warning),
+                            
+                                If(
+                                    IfError(
+                                        Remove(EquipmentItems, LookUp(EquipmentItems, ID = varEqDeleteId));
+                                        true,
+                                        Notify("Delete failed: " & FirstError.Message, NotificationType.Error);
+                                        false
+                                    ),
+                                    RemoveIf(colEqAttachments, RowId = varEqDeleteId);
+                                    If(varEqDetailsId = varEqDeleteId, Set(varEqDetailsId, Blank()));
+                                    If(varEqDocsId = varEqDeleteId, Set(varEqDocsId, Blank()));
+                                    If(varEqActiveRowId = varEqDeleteId,
+                                        Set(varEqActiveRowId, Blank());
+                                        Set(varEqRowStatus, "valid");
+                                        Set(varEqValidated, false);
+                                        Set(varEqFText, "");
+                                        Set(varEqFPlant, "");
+                                        Set(varEqFRequestType, "");
+                                        Set(varEqFEquipmentNumber, "");
+                                        Set(varEqFEquipmentCategory, "");
+                                        Set(varEqFManufacturer, "");
+                                        Set(varEqFTypeDesignation, "");
+                                        Set(varEqFSerialNumber, "");
+                                        Set(varEqFFunctionalLocation, "");
+                                        Set(varEqFFunctionalLocation1, "");
+                                        Set(varEqFFunctionalLocation2, "");
+                                        Set(varEqFClassData, "");
+                                        Set(varEqFRoomCoordinates, "");
+                                        Set(varEqFPlacement, "");
+                                        Set(varEqFWarrantyStart, Blank());
+                                        Set(varEqFWarrantyEnd, Blank());
+                                        Set(varEqFlQuery, ""); Set(varEqFlLast, ""); Set(varEqFlMsg, ""); Clear(colEqFl); Reset(cmbEqFl);
+                                        Set(varEqInfo, "New row - fill in and save.")
+                                    );
+                                    ClearCollect(
+                                        colEqRows,
+                                        ForAll(
+                                            Filter(EquipmentItems, RequesterEmail = varEqMe) As R,
+                                            {
+                                                RowId: R.ID,
+                                                ItemKey: Coalesce(R.ItemKey, ""),
+                                                RequestNo: Coalesce(R.RequestNo, ""),
+                                                Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                FileCount: Coalesce(R.FileCount, 0),
+                                                Description: Coalesce(R.Description, ""),
+                                                Plant: Coalesce(R.Plant, ""),
+                                                RequestType: Coalesce(R.RequestType, ""),
+                                                EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
+                                                EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
+                                                FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
+                                                ClassData: Coalesce(R.ClassData, ""),
+                                                RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                Placement: Coalesce(R.Placement, ""),
+                                                WarrantyStart: R.WarrantyStart,
+                                                WarrantyEnd: R.WarrantyEnd
+                                            }
+                                        )
+                                    );
+                                    Set(varEqInfo, "Row deleted. The documents remain in the library.");
+                                    Notify("Row deleted. The documents remain in the library.", NotificationType.Success)
+                                )
+                            );
+                            Set(varEqDeleteId, Blank());
+                            Set(varEqSaving, false)
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =14
+                        Text: |-
+                            ="Delete"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =106
       - conEqConfirmBackdrop:
           Control: GroupContainer
           Variant: AutoLayout
@@ -10962,10 +11200,12 @@ Screens:
                                     );
                             
                                     Set(varEqInfo, "Submitted: " & varEqRequestNo);
-                                    Notify("Submitted as " & varEqRequestNo & " - see it on the landing page.", NotificationType.Success),
+                                    Notify("Submitted as " & varEqRequestNo & " - see it on the landing page.", NotificationType.Success);
+                                    Set(varEqRequestGuid, "");
+                                    Set(varEqRequestNo, ""),
                             
-                                    Set(varEqInfo, "It failed: " & FirstError.Message);
-                                    Notify("It failed: " & FirstError.Message, NotificationType.Error)
+                                    Set(varEqInfo, "Submit failed: " & FirstError.Message);
+                                    Notify("Submit failed: " & FirstError.Message, NotificationType.Error)
                                 )
                             );
                             Set(varEqSaving, false)

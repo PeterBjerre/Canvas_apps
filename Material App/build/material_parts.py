@@ -131,13 +131,13 @@ def build_form():
     rows.insert(1, dp.build_fl_msg())
 
     col, label, _kind, _ch = next(f for f in dp.FIELDS if f[0] == "LongText")
-    long_text = field_cell(f"con{col}", label,
-                           text_input(f"inp{col}", dp._var(col), height=72,
+    long_text = field_cell(f"conDom{col}", label,
+                           text_input(f"inpDom{col}", dp._var(col), height=72,
                                       display_mode=dp.DM_ROW, ttype="Multiline",
                                       onchange=f"Set({dp._var(col)}, Self.Text)"),
                            width=dp.FORM_W, fill_portions_formula="0")
 
-    buttons = dp.form_buttons(save_fx, "Save row", "Reset form")
+    buttons = dp.form_buttons(save_fx, "Save row", "New row")
     return card("conDomFormCard", [head] + rows + [long_text] + dp.form_footer(buttons))
 
 
@@ -167,10 +167,10 @@ SLOTS = [
     (None, ("STOCK UNIT", "ThisItem.StockUnit", 90)),
     (None, ("PRICE", dp.num_text("Price"), 80)),
     (None, ("PRICE UNIT", "ThisItem.PriceUnit", 90)),
-    (None, ("DELIVERING TIME", dp.num_text("DeliveringTime"), 110)),
+    (None, ("DELIVERY TIME", dp.num_text("DeliveringTime"), 110)),
     (None, ("RECOMMENDED STOCK", dp.num_text("RecommendedStock"), 130)),
     (None, SUPP),
-    (None, ("SUPPLIER'S PART NO.", "ThisItem.SupplierPartNo", 130)),
+    (None, ("SUPPLIER PART NO.", "ThisItem.SupplierPartNo", 130)),
     (None, ("STRATEGIC PART", "ThisItem.StrategicPart", 100)),
     (None, ("WEAR PART", "ThisItem.WearPart", 90)),
 ]

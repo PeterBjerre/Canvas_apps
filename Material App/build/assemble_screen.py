@@ -32,7 +32,7 @@ from build_helpers import app_frame
 from side_nav import side_nav
 import domain_config as cfg
 from domain_parts import (build_bar, build_attachments, build_details,
-                          build_backdrop, build_submit_confirm,
+                          build_backdrop, build_submit_confirm, build_delete_confirm,
                           refresh_rows_fx, clear_form_fx)
 # Formularen og listen er appens egne (issue #67) - se material_parts.py.
 import material_parts as mp
@@ -64,7 +64,7 @@ def build_screen():
                           build_attachments(),
                           *overlay,
                           # Bekraeftelsen foer Submit og ventespinneren - oeverst.
-                          *build_submit_confirm()])
+                          *build_delete_confirm(), *build_submit_confirm()])
 
 
 def main():
