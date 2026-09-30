@@ -28,7 +28,7 @@ Linjenumrene i fundene nedenfor henviser til udgangspunktet (`764fbcb`).
 **Står tilbage**
 - **Kræver handling uden for repoet:**
   - D1/D3: rotér client secret og x-apikeys, og skift miljøvariablen til Secret.
-  - D2: ny trigger-signatur. `excel/artifact/BIO SAP VH-plan lister.xlsm` indeholder stadig den gamle URL i VBA-projektet og skal gemmes igen fra Excel. Indtil da er den **fulde** bygning bevidst rød.
+  - D2: ny trigger-signatur. `excel/artifact/BIO SAP VH-plan lister.xlsm`, som bar den gamle URL i VBA-projektet, er fjernet fra repoet (ligger stadig i historikken).
   - Omskrivning af git-historikken.
 - **Kræver adgang til SharePoint:** E9 (nyt skemaudtræk).
 - **Udskudt til fase 2:**
