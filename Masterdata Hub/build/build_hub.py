@@ -174,6 +174,27 @@ SCOPE = (
     "    )"
 )
 
+# FLISERNES OG TAELLERENS TAL - EEN HENTNING, IKKE SEKS
+#
+# Her stod CountRows(Filter(SCOPE, Domain.Value = "X")) fem gange plus een
+# for taelleren. CountRows mod en SharePoint-liste delegeres ikke: seks
+# forespoergsler, og hvert tal stoppede ved data row limit - netop det,
+# docs/07 regel 6 forbyder (REVIEW.md B1).
+#
+# Nu hentes omfanget EEN gang til colMdScope - kun domaenet - naar skaermen
+# vises, og naar "My requests" eller Open/Closed/All skifter. Tallene
+# taelles i samlingen. Rammer den loftet, staar der "500+".
+ROW_LIMIT = 500   # appens Data row limit (Studio -> Settings)
+SCOPE_REFRESH = f"ClearCollect(colMdScope, ForAll({SCOPE} As R, {{ Domain: R.Domain.Value }}))"
+SCOPE_FULL = f"CountRows(colMdScope) >= {ROW_LIMIT}"
+
+
+def scope_count(pred=None):
+    """Antal i colMdScope (evt. afgraenset) som tekst - med "+" ved loftet."""
+    n = f"CountRows(Filter(colMdScope, {pred}))" if pred else "CountRows(colMdScope)"
+    return f'Text({n}) & If({SCOPE_FULL}, "+", "")'
+
+
 # Flisernes undertekst: hvad tallet taeller.
 SCOPE_WORDS = ('Switch(gblStatusMode, "open", "Open", "done", "Closed", "All") & '
                'If(gblView = "mine", " - my requests", " - whole department")')
@@ -266,7 +287,8 @@ def build_bar():
     egne indmeldinger, slaaet fra afdelingens koe. "New request" aabner en
     menu med de fem domaener (build_new_menu)."""
     mine = button("btnMdViewMine", '"My requests"',
-                  'Set(gblView, If(gblView = "mine", "queue", "mine")); Set(gblDomain, "")',
+                  'Set(gblView, If(gblView = "mine", "queue", "mine")); Set(gblDomain, "");\n'
+                  + SCOPE_REFRESH,
                   width=fit_button_width('"My requests"') + ICON_W, height=36, icon="Person",
                   accessible='If(gblView = "mine", "Showing my requests - show the queue", '
                              '"Showing the queue - show my requests")')
@@ -424,7 +446,7 @@ def build_tiles():
         sel = f'gblDomain = "{d["key"]}"'
         # Tallet taelles paa PRAECIS det saet, listen viser - omfang og
         # Open/Closed/All - bare afgraenset til domaenet.
-        count = f'Text(CountRows(Filter({SCOPE}, Domain.Value = "{d["key"]}")))'
+        count = scope_count(f'Domain = "{d["key"]}"')
 
         st = _tile_state(d, sel)
         face = _image(f"imgMdTile{n}", _svg_uri(_tile_face(d, count)), "Parent.Width",
@@ -456,7 +478,7 @@ def build_tiles():
 # Filtre
 # ---------------------------------------------------------------------------
 def _chip(name, label, value, icon):
-    b = button(name, f'"{label}"', f'Set(gblStatusMode, "{value}")',
+    b = button(name, f'"{label}"', f'Set(gblStatusMode, "{value}");\n' + SCOPE_REFRESH,
                width=fit_button_width(f'"{label}"') + ICON_W, height=36, icon=icon)
     return _selected_style(b, f'gblStatusMode = "{value}"', idle_color=C_MUTED)
 
@@ -478,8 +500,8 @@ def build_filters():
     search = text_input("txtMdSearch", '""', placeholder='"Search number, text or plant..."',
                         width=str(SEARCH_W), ttype="Search",
                         label='"Search number, text or plant"')
-    shown = f'CountRows(Filter({SCOPE}, gblDomain = "" || Domain.Value = gblDomain))'
-    count = text_ctrl("txtMdCount", f'Text({shown}) & " requests"',
+    shown = scope_count('gblDomain = "" || Domain = gblDomain')
+    count = text_ctrl("txtMdCount", f'{shown} & " requests"',
                       size=12, color=C_MUTED, height=36, align="Right", width=110, wrap="false")
     closed = _chip("btnMdStDone", "Closed", "done", "CheckmarkCircle")
     # Statisk: tooltip'en hentede de seneste lukkede (en forespoergsel) ved

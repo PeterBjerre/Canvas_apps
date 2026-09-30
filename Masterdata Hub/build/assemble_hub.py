@@ -14,6 +14,7 @@ sys.path.insert(0, HERE)
 from gen_screen import render_screen, C_APP_BG, OUT_DIR
 from build_helpers import app_frame
 from side_nav import side_nav
+import build_hub
 from build_hub import (build_bar, build_tiles, build_filters, build_list, build_new_menu,
                        build_closed_peek)
 
@@ -26,7 +27,10 @@ def build_screen():
     nav, overlay = side_nav("Md", "hub")
     # "New request"-menuen ligger oven paa rammen, men under den aabne
     # sidebar.
-    return render_screen("ScreenMdHub", {"Fill": C_APP_BG},
+    # Tallene paa fliserne taelles i colMdScope, som hentes her og ved
+    # skift af visning/status (build_hub.SCOPE_REFRESH).
+    return render_screen("ScreenMdHub", {"Fill": C_APP_BG,
+                                         "OnVisible": build_hub.SCOPE_REFRESH},
                          [root, *nav, *build_new_menu(), *build_closed_peek(), *overlay])
 
 

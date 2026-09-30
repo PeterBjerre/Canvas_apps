@@ -33,7 +33,7 @@ from side_nav import side_nav
 import domain_config as cfg
 from domain_parts import (build_bar, build_attachments, build_details,
                           build_backdrop, build_submit_confirm, build_delete_confirm,
-                          refresh_rows_fx, clear_form_fx)
+                          refresh_rows_fx, clear_form_fx, open_request_fx)
 # Formularen og listen er appens egne (issue #67) - se material_parts.py.
 import material_parts as mp
 
@@ -41,6 +41,7 @@ import material_parts as mp
 def on_visible():
     return (
         "Set(varDomMe, Lower(User().Email));\n"
+        + open_request_fx() + ";\n"
         + refresh_rows_fx() + ";\n"
         + clear_form_fx()
     )

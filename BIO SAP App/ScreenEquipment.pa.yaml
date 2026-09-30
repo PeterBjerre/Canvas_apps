@@ -81,7 +81,23 @@ Screens:
                   Set(varEqFWarrantyStart, Blank());
                   Set(varEqFWarrantyEnd, Blank());
                   Set(varEqFlQuery, ""); Set(varEqFlLast, ""); Set(varEqFlMsg, ""); Clear(colEqFl); Reset(cmbEqFl);
-                  Set(varEqInfo, "New row - fill in and save.")
+                  Set(varEqInfo, "New row - fill in and save.");
+                  If(
+                      !IsBlank(gblEqReqId) && varEqRequestGuid <> gblEqReqId,
+                      Set(varEqRequestGuid, gblEqReqId);
+                      Set(varEqIdx, LookUp(MD_RequestIndex, RequestGuid = varEqRequestGuid));
+                      If(
+                          IsBlank(varEqIdx),
+                          Notify("Could not find the request behind this link. Rows you save start a new request.",
+                              NotificationType.Warning);
+                          Set(varEqRequestGuid, ""); Set(varEqRequestNo, ""),
+                          varEqIdx.Status.Value = "Indsendt",
+                          Notify("Request " & varEqIdx.RequestNo & " is already submitted. Rows you save start a new request.",
+                              NotificationType.Information);
+                          Set(varEqRequestGuid, ""); Set(varEqRequestNo, ""),
+                          Set(varEqRequestNo, varEqIdx.RequestNo)
+                      )
+                  )
               )
           );
           
@@ -89,7 +105,7 @@ Screens:
           ClearCollect(
               colEqRows,
               ForAll(
-                  Filter(EquipmentItems, RequesterEmail = varEqMe) As R,
+                  SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
                   {
                       RowId: R.ID,
                       ItemKey: Coalesce(R.ItemKey, ""),
@@ -335,6 +351,8 @@ Screens:
                         - txtEqCount:
                             Control: ModernText
                             Properties:
+                              AccessibleLabel: |-
+                                  =If(CountRows(colEqRows) >= 500, "Only your newest 500 rows are shown - older rows are in SharePoint.", "Your rows in SharePoint")
                               Align: |-
                                   =Align.Center
                               AlignInContainer: |-
@@ -374,7 +392,7 @@ Screens:
                               Size: |-
                                   =11
                               Text: |-
-                                  ="Rows: " & CountRows(colEqRows)
+                                  ="Rows: " & CountRows(colEqRows) & If(CountRows(colEqRows) >= 500, "+", "")
                               Visible: |-
                                   =LayoutRank >= 2
                               Width: |-
@@ -3538,7 +3556,7 @@ Screens:
                                             ClearCollect(
                                                 colEqRows,
                                                 ForAll(
-                                                    Filter(EquipmentItems, RequesterEmail = varEqMe) As R,
+                                                    SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
                                                     {
                                                         RowId: R.ID,
                                                         ItemKey: Coalesce(R.ItemKey, ""),
@@ -3680,7 +3698,7 @@ Screens:
                                             ClearCollect(
                                                 colEqRows,
                                                 ForAll(
-                                                    Filter(EquipmentItems, RequesterEmail = varEqMe) As R,
+                                                    SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
                                                     {
                                                         RowId: R.ID,
                                                         ItemKey: Coalesce(R.ItemKey, ""),
@@ -6289,7 +6307,7 @@ Screens:
                                         =ClearCollect(
                                             colEqRows,
                                             ForAll(
-                                                Filter(EquipmentItems, RequesterEmail = varEqMe) As R,
+                                                SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
                                                 {
                                                     RowId: R.ID,
                                                     ItemKey: Coalesce(R.ItemKey, ""),
@@ -6425,7 +6443,7 @@ Screens:
                                                 ClearCollect(
                                                     colEqRows,
                                                     ForAll(
-                                                        Filter(EquipmentItems, RequesterEmail = varEqMe) As R,
+                                                        SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
                                                         {
                                                             RowId: R.ID,
                                                             ItemKey: Coalesce(R.ItemKey, ""),
@@ -10700,7 +10718,7 @@ Screens:
                                     ClearCollect(
                                         colEqRows,
                                         ForAll(
-                                            Filter(EquipmentItems, RequesterEmail = varEqMe) As R,
+                                            SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
                                             {
                                                 RowId: R.ID,
                                                 ItemKey: Coalesce(R.ItemKey, ""),
@@ -11045,7 +11063,7 @@ Screens:
                                     ClearCollect(
                                         colEqRows,
                                         ForAll(
-                                            Filter(EquipmentItems, RequesterEmail = varEqMe) As R,
+                                            SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
                                             {
                                                 RowId: R.ID,
                                                 ItemKey: Coalesce(R.ItemKey, ""),

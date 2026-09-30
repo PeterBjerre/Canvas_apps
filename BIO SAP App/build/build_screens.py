@@ -217,8 +217,11 @@ def build_hub():
     seen = _capture(asm)
     asm.build_screen()
     from gen_screen import render_screen
-    if seen["props"].get("OnVisible"):
-        raise SystemExit("Masterdata Hub har faaet en OnVisible - byg den ind her.")
+    # Hubbens OnVisible henter flisernes taellesamling (colMdScope). Den
+    # skal koere ved hvert besoeg - ogsaa her, hvor man kommer tilbage fra
+    # et domaene, der netop har gemt.
+    if seen["props"].get("OnVisible") != build_hub.SCOPE_REFRESH:
+        raise SystemExit("Masterdata Hub's OnVisible er aendret - byg den ind her.")
     _write(d["screen"], render_screen(d["screen"], screen_props(seen["props"]),
                                       seen["children"]))
 
@@ -264,10 +267,11 @@ def build_domain_app(key):
     import domain_parts as dp
     own = seen["props"]["OnVisible"]
     me = "Set(varDomMe, Lower(User().Email));\n"
-    expected = me + dp.refresh_rows_fx() + ";\n" + dp.clear_form_fx()
+    expected = (me + dp.open_request_fx() + ";\n" + dp.refresh_rows_fx() + ";\n"
+                + dp.clear_form_fx())
     if own != expected:
-        raise SystemExit("%s: OnVisible er ikke laengere 'mig + hent raekker + ryd "
-                         "formularen'.\nRet build_domain_app(), saa den passer." % d["folder"])
+        raise SystemExit("%s: OnVisible er ikke laengere 'mig + dyblink + hent raekker + "
+                         "ryd formularen'.\nRet build_domain_app(), saa den passer." % d["folder"])
     # I den enkelte app ryddes formularen ved HVERT besoeg - appen startes
     # jo forfra hver gang. Her ville det smide en halvudfyldt formular
     # vaek, hver gang man kiggede forbi et andet domaene. Den ryddes derfor
@@ -275,7 +279,10 @@ def build_domain_app(key):
     # saa listen viser det, der staar i SharePoint nu.
     # clear_form_fx() har stadig appens Dom-navne; de doebes om sammen med
     # resten, naar skaermen skrives (_write).
-    init = cb.domain_onstart(d) + ";\n" + dp.clear_form_fx()
+    # Dyblinket/Open fra hubben hoerer til klargoeringen - den koerer kun,
+    # naar hubben beder om en anden anmodning (samme greb som FL, D23).
+    init = (cb.domain_onstart(d) + ";\n" + dp.clear_form_fx() + ";\n"
+            + cb.with_reqid(dp.open_request_fx(), d))
     seen["props"]["OnVisible"] = (open_block(d, init) + ";\n\n"
                                   + me + dp.refresh_rows_fx() + done(d))
     # Her stod en regex-omdoebning: felternes kontroller hed inp<Kolonne>
