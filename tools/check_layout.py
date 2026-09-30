@@ -1547,11 +1547,11 @@ def rule_10c(ctx):
             if key not in props:
                 problems.append(f"[10c] {name}: {ctl} mangler {key} - Fluent-temaets "
                                 f"farve i moerk tilstand (brug build_helpers.input_theme)")
-        app = str(props.get("Appearance", "")).strip().lstrip("=").strip()
+        appearance = str(props.get("Appearance", "")).strip().lstrip("=").strip()
         # Outline KUN i den laaste gren (input_theme): If(<redigerbar>,
         # FilledDarker, Outline). Et redigerbart felt i Outline tegner ikke Fill.
-        if "Outline" in app and not (app.startswith("If(") and
-                                     app.endswith("Appearance.FilledDarker, Appearance.Outline)")):
+        if "Outline" in appearance and not (appearance.startswith("If(") and
+                                            appearance.endswith("Appearance.FilledDarker, Appearance.Outline)")):
             problems.append(f"[10c] {name}: Appearance.Outline paa et redigerbart felt - "
                             f"gennemsigtig baggrund, Fill tegnes ikke")
         dm = str(props.get("DisplayMode", "")).strip().lstrip("=").strip()
@@ -1560,7 +1560,6 @@ def rule_10c(ctx):
         if "DisplayMode.Disabled" in dm and not wrapped:
             problems.append(f"[10c] {name}: {ctl} kan blive DisplayMode.Disabled - Fluent "
                             f"ignorerer da Color og Fill. Brug build_helpers.readonly_mode (View)")
-    _export(ctx, locals(), ['app'])
 
 def rule_10b(ctx):
     """SetFocus kan ikke naa ind i en container"""
@@ -1918,6 +1917,9 @@ def rule_21(ctx):
 def rule_22(ctx):
     """Concurrent med en indbyrdes afhaengighed"""
     all_nodes = ctx.all_nodes
+    # App-teksten fra regel 8. Foer opdelingen i regler genbrugte regel 10c
+    # navnet 'app' til en kontrols Appearance, saa den her regel aldrig
+    # saa App.pa.yaml's OnStart (fundet ved opdelingen, REVIEW.md C7).
     app = ctx.app
     problems = ctx.problems
     screen = ctx.screen
