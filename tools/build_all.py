@@ -235,10 +235,18 @@ def pick_apps(which):
     de tre andre apps' output det vaek, man faktisk skulle se, og en
     advarsel i VH-plan dukker op midt i et Equipment-deploy som om den
     hoerte til."""
-    if not which:
-        return APPS
     alias = {k: _env.APPS[k]["folder"] for k in _env.APP_ORDER}
+    # Udfasede enkeltapps bygges ikke for sig - BIO SAP koerer selv deres
+    # generatorer (docs/33-udfasning.md).
+    targets = [alias[k] for k in _env.build_targets()]
+    if not which:
+        return [(a, s) for a, s in APPS if a in targets]
     want = alias.get(which.lower(), which)
+    if want not in targets:
+        raise SystemExit(
+            "'%s' er udfaset (single_apps = retired i tools/canvas_apps.json).\n"
+            "Byg den samlede app:  python3 tools/build_all.py --app %s"
+            % (which, _env.COMBINED))
     hit = [(a, s) for a, s in APPS if a.lower() == want.lower()]
     if not hit:
         raise SystemExit(
@@ -333,7 +341,9 @@ def main(argv=None):
     # JS-filer og fejler, hvis planen er gaaet ud af trit med dem. Uden
     # Node kan det ikke koeres - saa siges det hoejt, men byggeriet stopper
     # ikke: den genererede plan er committet.
-    if any(a == "Functional Location App" for a, _ in apps):
+    # FL-reglerne gaelder, hvor FL-skaermen bygges: i FL-appen og i BIO SAP.
+    if any(a in ("Functional Location App", _env.APPS[_env.COMBINED]["folder"])
+           for a, _ in apps):
         node = shutil.which("node")
         if node:
             print("\n=== Functional Location: regler mod html/*.js ===")

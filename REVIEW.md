@@ -62,6 +62,8 @@ Linjenumrene i fundene nedenfor henviser til udgangspunktet (`764fbcb`).
 - **BIO SAP App er den app, der skal bruges** (besluttet 2026-09-30). De fire ting, der blokerede, er løst i repoet: D23, C4, `AppUrl` i indekset (peger nu på den samlede app med `?domain=…&reqid=…`) og et FL-testscenarie i `BIO SAP App/README.md`. Tilbage står:
   - mailflowet `BioSap-EmailNotification-NewPlanCreated`, der læser `AppUrl` fra `AppSettings` (uden for repoet — se BIO SAP-README'en);
   - testplanen skal køres i Studio, før de fem enkeltapps udfases.
+  
+  Udfasningen er forberedt: `"single_apps": "retired"` i `tools/canvas_apps.json` bygger og deployer kun BIO SAP. Tjekliste og tilbagevejen står i `docs/33-udfasning.md`.
 
 ---
 

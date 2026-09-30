@@ -146,6 +146,33 @@ def screen_apps():
     return [k for k in APP_ORDER if APPS[k].get("screen")]
 
 
+# ---------------------------------------------------------------------------
+# UDFASNINGEN AF ENKELTAPPERNE (docs/33-udfasning.md)
+#
+# BIO SAP App er den app, der skal bruges. "single_apps" i canvas_apps.json
+# siger, om de fem enkeltapps stadig bygges og deployes (active), eller om
+# kun den samlede goer (retired). CANVAS_SINGLE_APPS i omgivelserne vinder
+# over filen, saa den udfasede tilstand kan proeves foer den slaas til.
+# ---------------------------------------------------------------------------
+COMBINED = "biosap"
+SINGLE_APPS = (os.environ.get("CANVAS_SINGLE_APPS") or _CFG.get("single_apps")
+               or "active").strip().lower()
+if SINGLE_APPS not in ("active", "retired"):
+    raise SystemExit("single_apps skal vaere 'active' eller 'retired', ikke '%s' "
+                     "(tools/canvas_apps.json eller CANVAS_SINGLE_APPS)." % SINGLE_APPS)
+RETIRED = SINGLE_APPS == "retired"
+
+
+def build_targets():
+    """De apps, byggeriet og deploy arbejder med."""
+    return [COMBINED] if RETIRED else list(APP_ORDER)
+
+
+def is_retired(key):
+    """Er appen en udfaset enkeltapp?"""
+    return RETIRED and key != COMBINED
+
+
 def play_url(key):
     """Play-URL'en til en app. Tom streng, hvis appen ikke findes endnu."""
     aid = app_id(key)

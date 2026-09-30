@@ -294,6 +294,15 @@ def pick_app(cfg, key):
     if key not in apps:
         raise SystemExit("Ukendt app '%s'. Kendte: %s"
                          % (key, ", ".join(sorted(apps))))
+    # En udfaset enkeltapp deployes ikke - de bruges ikke laengere, og et
+    # deploy ville saette liv i en app, brugerne er flyttet vaek fra
+    # (docs/33-udfasning.md).
+    import env_config
+    if env_config.is_retired(key):
+        raise SystemExit(
+            "'%s' er udfaset (single_apps = retired i tools/canvas_apps.json).\n"
+            "Deploy den samlede app:  python tools\\canvas_mcp.py deploy --app %s"
+            % (key, env_config.COMBINED))
     app = dict(apps[key])
     app["key"] = key
     if not app.get("app_id"):
