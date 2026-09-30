@@ -2,8 +2,8 @@
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import Ctrl, SHELL_W, C_PRIMARY, C_CARD_BORDER
-from build_helpers import (button, group, fit_button_width, text_ctrl, text_px, grow,
-                           flow_row, flow_ok, page_icon, PAGE_ICON, ICON_W)
+from build_helpers import (group, fit_button_width, text_ctrl, text_px,
+                           flow_row, page_icon, PAGE_ICON, ICON_W)
 from layout_tokens import if_below, at_least
 from design_tokens import ref_hex
 from build_items import FL_CODE

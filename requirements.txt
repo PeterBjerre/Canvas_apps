@@ -1,0 +1,18 @@
+# Python-afhaengigheder for byggeriet og tjekkene. Python 3.10 eller nyere
+# (koert groent paa 3.11).
+#
+#   pip install -r requirements.txt
+#
+# Node (22+) bruges desuden af tools/build_all.py til at efterproeve
+# Functional Location-reglerne mod html/*.js (tools/fl/harness.js). Uden
+# Node bygges der stadig, men reglerne er da IKKE efterproevet.
+
+# check_layout, check_combined, deploy_verify og canvas_mcp parser YAML.
+PyYAML>=6.0
+
+# Kun tools/extract_spool_lists.py (udtraek af SPOOL-lister fra .xlsm).
+openpyxl>=3.1
+
+# Ikke paakraevet af byggeriet - til at finde ubrugte imports:
+#   python3 -m pyflakes tools/*.py */build/*.py
+pyflakes>=3.0

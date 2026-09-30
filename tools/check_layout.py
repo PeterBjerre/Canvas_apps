@@ -62,10 +62,12 @@ baade graensen og pixlen under den bliver proevet.
     python3 check_layout.py            # finder skaermen selv
     python3 check_layout.py ../ScreenVhPlan.pa.yaml
 """
-import os, re, sys, yaml
+import functools, os, re, sys, yaml
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), "tools"))
+# HERE ER tools/ (se gen_screen.py - samme rest fra build-mappetiden).
+if HERE not in sys.path:
+    sys.path.insert(0, HERE)
 import layout_tokens as lay
 
 # Skaermen findes af sig selv, saa denne fil er ordret ens i alle apps i
@@ -194,7 +196,17 @@ def _coalesce(*a):
 def evaluate(expr, w, n_items, n_ops, n_pkgs):
     """Evaluer et genereret hoejdeudtryk. Returnerer None hvis udtrykket
     indeholder noget, tjekket ikke kan regne paa (fx Parent.TemplateHeight
-    inde i en gallery-skabelon)."""
+    inde i en gallery-skabelon).
+
+    Kun max(n_items, n_ops, n_pkgs) indgaar (alle CountRows erstattes af
+    det samme tal), saa resultatet caches paa (expr, w, N). Loekkerne
+    kalder med 4 x 4 x 2 kombinationer, der kun giver faa forskellige N -
+    uden cachen blev det samme udtryk regnet ud op til 37 gange."""
+    return _evaluate_n(expr, w, max(n_items, n_ops, n_pkgs))
+
+
+@functools.lru_cache(maxsize=None)
+def _evaluate_n(expr, w, n):
     if expr is None:
         return None
     e = expr.strip()
@@ -205,7 +217,7 @@ def evaluate(expr, w, n_items, n_ops, n_pkgs):
 
     # De tre specifikke erstatninger her var VH-plans egne, paa ORDRET
     # tekst. _sub_countrows tager dem alle - ogsaa de tre andre apps'.
-    e = _sub_countrows(e, max(n_items, n_ops, n_pkgs))
+    e = _sub_countrows(e, n)
     # IsEmpty(...) -> sand: ugunstigste tilfaelde, "tom"-beskeden vises.
     # Hvad der staar inde i den, er data og ikke hoejdealgebra - samme
     # begrundelse som for CountRows.

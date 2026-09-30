@@ -68,11 +68,14 @@ OUT_DIR = _out_dir()
 # tools/ er udenfor app-mappen, og det er med vilje ufarligt her:
 # canvas_mcp.stage() kopierer KUN *.pa.yaml over til serveren, saa hverken
 # build/ eller tools/ naar nogensinde ud i Studio.
-ROOT = os.path.dirname(os.path.dirname(HERE))
-sys.path.insert(0, os.path.join(ROOT, "tools"))
+#
+# HERE ER tools/. Her stod ROOT = dirname(dirname(HERE)) fra dengang filen
+# laa i <App>/build/ - efter flytningen pegede den paa mappen OVER repoet,
+# og en fremmed tools/-mappe dér kunne skygge for repoets moduler.
+if HERE not in sys.path:
+    sys.path.insert(0, HERE)
 from design_tokens import ref as _t, TRANSPARENT
-from layout_tokens import (below, if_below, SHELL_W, SCROLLBAR_W,
-                           GALLERY_RESERVE)
+from layout_tokens import if_below, SHELL_W, SCROLLBAR_W, GALLERY_RESERVE
 
 # ---------------------------------------------------------------------------
 # Farver

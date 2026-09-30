@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gen_screen import Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED, C_PRIMARY, C_WHITE, \
-    C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, C_TRANSPARENT, C_DIVIDER, \
-    C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY, FONT
+from gen_screen import (Ctrl, C_MUTED, C_TRANSPARENT, C_DIVIDER, C_MODAL_BG,
+                        C_PRIMARY_SOFT, C_OVERLAY)
 from build_helpers import text_ctrl, group, button, text_input, grow, ICON_SAVE, checkbox_theme, table_surface
 from design_tokens import ref_hex
 

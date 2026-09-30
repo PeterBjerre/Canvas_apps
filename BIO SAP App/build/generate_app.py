@@ -24,7 +24,6 @@ import subprocess
 import sys
 
 import combined as cb
-import layout_tokens as lay
 
 
 def regenerate_sources():

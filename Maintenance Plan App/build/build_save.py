@@ -66,10 +66,7 @@ kilden afklares foerst - ikke gaettes her.
 """
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_PRIMARY, C_WHITE,
-                        C_VALID_FG, C_INVALID_FG, SHELL_W)
-from build_helpers import (text_ctrl, group, button, button_row, card, confirm_modal,
-                           ICON_SAVE, ICON_SUBMIT)
+from build_helpers import button, confirm_modal, ICON_SAVE, ICON_SUBMIT
 import sp_config as cfg
 
 # Appens play-URL. Hubben bruger den til at aabne indmeldingen igen.
