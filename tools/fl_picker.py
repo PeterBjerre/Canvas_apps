@@ -61,6 +61,7 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from gen_screen import Ctrl
+import layout_tokens as lay
 from build_helpers import (button, group, grow, border_rule, input_theme,
                            fit_button_width)
 import build_flsearch as fl
@@ -156,8 +157,7 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
         "LayoutMinWidth": "0",
         "OnChange": select,
         # Samme hjoerner som alle andre felter (text_input, dropdown ...).
-        "RadiusBottomLeft": "10", "RadiusBottomRight": "10",
-        "RadiusTopLeft": "10", "RadiusTopRight": "10",
+        **lay.radius(lay.RADIUS_INPUT),
         "SelectMultiple": "false",
         "ValidationState": (f"If({required_formula} && IsBlank(Self.Selected.Code), "
                             "ValidationState.Error, ValidationState.None)"),

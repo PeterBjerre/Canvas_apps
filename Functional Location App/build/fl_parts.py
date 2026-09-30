@@ -29,6 +29,7 @@ from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED, C_WHITE,
                         C_BORDER_OK, C_BORDER_ERROR, C_INVALID_FG, C_WARN_FG, C_VALID_FG,
                         C_CARD_BG, C_DIVIDER)
 from design_tokens import ref_hex
+import layout_tokens as lay
 from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE, at_least, below
 from build_helpers import (text_ctrl, group, button, text_input, themed_dropdown, card,
                            pin_widths, top_bar, grow, badge, fit_button_width, row_rule,
@@ -294,8 +295,8 @@ def verify_button():
 
 
 def build_rows():
-    title = grow(text_ctrl("txtFlRowsH", '"Validation"', size=16, weight="Semibold",
-                           height=22, wrap="false"))
+    title = grow(text_ctrl("txtFlRowsH", '"Validation"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
+                           height=26, wrap="false"))
     add = _fit(button("btnFlAddRow", '"Add row"', add_row_fx() + ";\n" + REVERIFY,
                       display_mode=DM_EDIT))
     head_row = group("conFlRowsTop", pin_widths([title, add]), direction="Horizontal",
@@ -387,7 +388,7 @@ TAB_W = 136
 def build_classes():
     """Uden klassificerede raekker er kortet KUN titlen og een linje - ingen
     tom fanebjaelke, overskrift eller tom raekke (issue #77)."""
-    title = text_ctrl("txtFlClassesH", '"Classes"', size=16, weight="Semibold", height=22,
+    title = text_ctrl("txtFlClassesH", '"Classes"', size=lay.SIZE_CARD_TITLE, weight="Semibold", height=26,
                       wrap="false")
 
     tab = button("btnFlTab", "ThisItem.Label",
@@ -521,7 +522,7 @@ ISSUE_W = 220
 
 
 def build_detail():
-    title = text_ctrl("txtFlDetH", '"Row details"', size=17, weight="Semibold", height=26,
+    title = text_ctrl("txtFlDetH", '"Row details"', size=lay.SIZE_CARD_TITLE, weight="Semibold", height=26,
                       wrap="false")
     sub = text_ctrl("txtFlDetSub",
                     f'"Class: " & varFlDetailClass & " | FL: " & Coalesce({DR}.FL, "-")',
@@ -591,7 +592,7 @@ def build_detail():
                      color=C_MUTED, height=22, wrap="false",
                      visible=f"IfError(CountRows({DET_ITEMS}) = 0, false)")
     modal = group("conFlDetailModal", [head, gal, none], direction="Vertical", gap=12,
-                  fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=16,
+                  fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(18, 18, 18, 18), width=DET_W, drop_shadow="ExtraBold",
                   visible=DET_OPEN)
     modal.props["X"] = MODAL_X
@@ -655,8 +656,8 @@ def structure_html():
 
 
 def build_structure():
-    title = text_ctrl("txtFlStructH", '"Structure"', size=16, weight="Semibold",
-                      height=22, wrap="false")
+    title = text_ctrl("txtFlStructH", '"Structure"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
+                      height=26, wrap="false")
     sub = text_ctrl("txtFlStructSub",
                     '"The KKS keys the rules read, per plant. For viewing only - edit the rows above."',
                     size=12, color=C_MUTED, height=18, wrap="false")

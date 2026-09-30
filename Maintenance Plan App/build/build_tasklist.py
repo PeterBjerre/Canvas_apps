@@ -4,6 +4,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
                         C_PRIMARY, C_WHITE, C_MODAL_BG, C_PRIMARY_SOFT,
                         C_INVALID_FG, C_DIVIDER, C_TRANSPARENT, SHELL_W)
+import layout_tokens as lay
 from build_helpers import (checkbox_theme, table_surface, flow_row, text_ctrl,
                            group, button, text_input, number_input, themed_dropdown,
                            field_cell, card, pin_widths, grow,
@@ -254,14 +255,14 @@ def _mat_header_html():
 def _modal(name, title, open_var, close_fx, kids, width=620):
     """En popup i appens moenster (som tasklist-pickeren): centreret,
     sloer bag (build_modal.build_modal_backdrop), titel og luk-knap."""
-    t = grow(text_ctrl(f"txt{name}Title", title, size=17, weight="Semibold", height=26,
+    t = grow(text_ctrl(f"txt{name}Title", title, size=lay.SIZE_CARD_TITLE, weight="Semibold", height=26,
                        wrap="false"))
     close = button(f"btn{name}Close", '"Close"', close_fx,
                    width=fit_button_width('"Close"'), height=32)
     head = group(f"con{name}HeadRow", [t, close], direction="Horizontal", gap=12,
                  height=32, align_items="Center")
     modal = group(f"con{name}Modal", [head] + kids, direction="Vertical", gap=12,
-                  fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=16,
+                  fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(18, 18, 18, 18), width=f"Min({width}, App.Width - 40)",
                   drop_shadow="ExtraBold", visible=f"IfError({open_var}, false)")
     modal.props["X"] = "(App.Width - Self.Width) / 2"

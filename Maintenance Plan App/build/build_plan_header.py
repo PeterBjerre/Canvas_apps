@@ -3,7 +3,8 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import Ctrl, C_MUTED, C_REQUIRED, C_INFO_BG, SHELL_W
 import build_help as bh
-from build_helpers import (child_name, text_ctrl, group, button, text_input, number_input,
+import layout_tokens as lay
+from build_helpers import (child_name, text_min_height, text_ctrl, group, button, text_input, number_input,
                            themed_dropdown, field_cell, col_width, badge, card, grow,
                            column_grid, text_px, fit_button_width, ICON_W)
 
@@ -57,8 +58,9 @@ def section_header(name, title, step_label, extra_right=(), extra_left=()):
 
     Beskrivelsen under titlen er fjernet (issue #54). Den gentog blot det,
     sektionen viser, og kostede en linje paa hvert kort."""
-    t = text_ctrl(child_name("txt", name, "Title"), f"\"{title}\"", size=19, weight="Semibold", height=29,
-                  width=text_px(title, 19), wrap="false")
+    t = text_ctrl(child_name("txt", name, "Title"), f"\"{title}\"", size=lay.SIZE_CARD_TITLE, weight="Semibold",
+                  height=text_min_height(lay.SIZE_CARD_TITLE),
+                  width=text_px(title, lay.SIZE_CARD_TITLE), wrap="false")
     t.props["LayoutMinWidth"] = t.props["Width"]
 
     right = list(extra_right)
@@ -241,7 +243,7 @@ def build_plan_header():
 
     planMeta = text_ctrl(
         "txtVhpPlanMeta",
-        "If(varVhpPlanCommitted, \"Plan created \" & Text(varVhpPlanCreatedAt, \"dd-mm-yyyy hh:mm\"), \"\")",
+        f"If(varVhpPlanCommitted, \"Plan created \" & Text(varVhpPlanCreatedAt, \"{lay.DATETIME_FMT}\"), \"\")",
         size=12, color=C_MUTED, height=18, wrap="false")
     # Hvad der faktisk er hentet. Tallene taelles paa de navngivne formler,
     # saa de er rigtige i stedet for en haardkodet paastand om "14 option lists".

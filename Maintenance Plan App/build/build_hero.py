@@ -2,6 +2,7 @@
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import Ctrl, SHELL_W, C_PRIMARY, C_CARD_BORDER
+import layout_tokens as lay
 from build_helpers import (group, fit_button_width, text_ctrl, text_px,
                            flow_row, page_icon, PAGE_ICON, ICON_W)
 from layout_tokens import if_below, at_least
@@ -277,7 +278,7 @@ def build_top_bar():
                   width=RIGHT_W, justify="End", align_items="Center", height=36)
     right.props["LayoutMinWidth"] = RIGHT_W
 
-    title = text_ctrl("txtVhpTitle", '"VH-plan"', size=22, weight="Semibold",
+    title = text_ctrl("txtVhpTitle", '"VH-plan"', size=lay.SIZE_PAGE_TITLE, weight="Semibold",
                       height=33, width=TITLE_W - PAGE_ICON - 10, wrap="false")
     icon = page_icon("imgVhpTitleIcon", "vhplan")
     left = group("conVhpBarLeft", [icon, title], direction="Horizontal", width=LEFT_W,

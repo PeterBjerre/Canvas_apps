@@ -67,7 +67,7 @@ HINTS_ON = "IfError(varVhpShowHints, false)"
 # scrollbar - det var den moerke streg midt i topbjaelken: titlen var 22 pt
 # i 30 px. Samme forhold stod paa VH-planens sektionstitler (19 i 26) og
 # hubbens tal (26 i 32). 1,5 x skriftstoerrelsen giver luft til Semibold.
-TEXT_LINE = 1.5
+TEXT_LINE = lay.TEXT_LINE
 
 
 def text_min_height(size):
@@ -205,9 +205,8 @@ def button(name, text, onselect, primary=False, danger=False, width=140, height=
         "Height": str(height),
         "Layout": "ButtonLayout.TextOnly",
         "OnSelect": onselect,
-        "RadiusBottomLeft": "10", "RadiusBottomRight": "10",
-        "RadiusTopLeft": "10", "RadiusTopRight": "10",
-        "Size": "14",
+        **lay.radius(lay.RADIUS_INPUT),
+        "Size": str(lay.SIZE_INPUT),
         "Text": text,
         "VerticalAlign": "VerticalAlign.Middle",
         "Width": str(width),
@@ -403,7 +402,7 @@ def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
         "X": "0",
         "Y": "0",
     }, children=[], vis=vis)
-    t = text_ctrl(f"txt{prefix}ConfirmTitle", f'"{title}"', size=17, weight="Semibold",
+    t = text_ctrl(f"txt{prefix}ConfirmTitle", f'"{title}"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
                   height=26, wrap="false")
     msg = text_ctrl(f"txt{prefix}ConfirmText", message, size=13, color=C_MUTED,
                     height=40, wrap="true")
@@ -415,7 +414,7 @@ def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
     footer = group(f"con{prefix}ConfirmFooter", [cancel, ok], direction="Horizontal", gap=8,
                    height=36, justify="End", align_items="Center")
     modal = group(f"con{prefix}ConfirmModal", [t, msg, footer], direction="Vertical", gap=12,
-                  fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=16,
+                  fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(18, 18, 18, 18), width="Min(460, App.Width - 40)",
                   drop_shadow="ExtraBold", visible=vis)
     modal.props["X"] = "(App.Width - Self.Width) / 2"
@@ -774,7 +773,7 @@ def top_bar(prefix, title, subtitle, actions, container_w=None, gap=10,
     sub: kontroller, der staar under titlen I STEDET for undertitlen
          (VH-planens procestrin). Deres hoejde goer bjaelken hoejere.
     """
-    t = text_ctrl("txt%sTitle" % prefix, title, size=22, weight="Semibold",
+    t = text_ctrl("txt%sTitle" % prefix, title, size=lay.SIZE_PAGE_TITLE, weight="Semibold",
                   height=30, wrap="false")
     if sub is None:
         sub = [text_ctrl("txt%sSub" % prefix, subtitle, size=13, color=C_MUTED,
@@ -952,7 +951,7 @@ def input_theme(props, display_mode):
     props["BasePaletteColor"] = C_PRIMARY
     props["Fill"] = input_fill(display_mode)
     props["Font"] = FONT
-    props["Size"] = "14"
+    props["Size"] = str(lay.SIZE_INPUT)
     if not display_mode:
         props["Appearance"] = "Appearance.FilledDarker"
         props["Color"] = C_TITLE
@@ -1089,9 +1088,7 @@ def text_input(name, default, placeholder="\"\"", max_length=None, required_form
         "Height": str(height),
         "LayoutMinWidth": "0",
         "Placeholder": placeholder,
-        "RadiusBottomLeft": "10", "RadiusBottomRight": "10",
-        "RadiusTopLeft": "10", "RadiusTopRight": "10",
-        "Size": "14",
+        **lay.radius(lay.RADIUS_INPUT),
         "ValidationState": f"If({required_formula} && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)",
         "Width": width,
     }
@@ -1117,9 +1114,7 @@ def number_input(name, default, min_v=None, max_v=None, required_formula="false"
         "Height": str(height),
         "LayoutMinWidth": "0",
         "Precision": "DecimalPrecision.'0'",
-        "RadiusBottomLeft": "10", "RadiusBottomRight": "10",
-        "RadiusTopLeft": "10", "RadiusTopRight": "10",
-        "Size": "14",
+        **lay.radius(lay.RADIUS_INPUT),
         "ValidationState": f"If({required_formula} && IsBlank(Self.Value), ValidationState.Error, ValidationState.None)",
         "Width": width,
     }
@@ -1133,7 +1128,7 @@ def number_input(name, default, min_v=None, max_v=None, required_formula="false"
 
 def date_picker(name, default_date, required_formula="false",
                 width="Parent.Width", height=36, display_mode=None,
-                onchange=None, label=None, placeholder='"dd/mm/yyyy"'):
+                onchange=None, label=None, placeholder=f'"{lay.DATE_FMT}"'):
     """Datovaelger - med SAMME kant- og baggrundsregel som de andre felter.
 
     Den var bygget i haanden inde i domain_parts.py og havde en FAST graa
@@ -1151,13 +1146,11 @@ def date_picker(name, default_date, required_formula="false",
         "BorderStyle": "BorderStyle.Solid",
         "BorderThickness": "1",
         "DefaultDate": default_date,
-        "Format": "DatePickerFormat.Short",
+        "Format": f'"{lay.DATE_FMT}"',
         "Height": str(height),
         "LayoutMinWidth": "0",
         "Placeholder": placeholder,
-        "RadiusBottomLeft": "10", "RadiusBottomRight": "10",
-        "RadiusTopLeft": "10", "RadiusTopRight": "10",
-        "Size": "14",
+        **lay.radius(lay.RADIUS_INPUT),
         "Width": width,
     }
     # Datovaelgeren havde hverken Color eller et tema - dens tekst var
@@ -1223,7 +1216,7 @@ def themed_dropdown(name, items, default_text, value_col="Value", required_formu
         "PressedFill": C_PRIMARY,
         "SelectionColor": C_WHITE,
         "SelectionFill": C_PRIMARY,
-        "Size": "14",
+        "Size": str(lay.SIZE_INPUT),
         "Width": width,
     }
     if display_mode is not None:
@@ -1285,7 +1278,7 @@ def combobox(name, items, display_field="Display", multi=False, default_items=No
         "SelectMultiple": "true" if multi else "false",
         "SelectionColor": C_WHITE,
         "SelectionFill": C_PRIMARY,
-        "Size": "14",
+        "Size": str(lay.SIZE_INPUT),
         "Width": width,
     }
     if default_items is not None:
@@ -1566,5 +1559,5 @@ def card(name, children, gap=14, visible=None, pad_y=18):
     pad_y er kun top og bund. Siderne er altid 18: indholdsbredden regnes
     overalt som SHELL_W - 36."""
     return group(name, children, direction="Vertical", gap=gap,
-                 fill=C_CARD_BG, border_color=C_CARD_BORDER, radius=14,
+                 fill=C_CARD_BG, border_color=C_CARD_BORDER, radius=lay.RADIUS_CARD,
                  pad=(pad_y, 18, pad_y, 18), visible=visible)

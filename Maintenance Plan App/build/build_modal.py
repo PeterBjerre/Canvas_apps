@@ -3,6 +3,7 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_MUTED, C_TRANSPARENT, C_DIVIDER, C_MODAL_BG,
                         C_PRIMARY_SOFT, C_OVERLAY)
+import layout_tokens as lay
 from build_helpers import text_ctrl, group, button, text_input, grow, ICON_SAVE, checkbox_theme, table_surface
 from design_tokens import ref_hex
 
@@ -51,7 +52,7 @@ PICKER_HEADER_HTML = _picker_header_html()
 
 
 def build_tasklist_picker_modal():
-    title = text_ctrl("txtVhpPickerTitle", "\"Select tasklist lines\"", size=17, weight="Semibold", height=24,
+    title = text_ctrl("txtVhpPickerTitle", "\"Select tasklist lines\"", size=lay.SIZE_CARD_TITLE, weight="Semibold", height=24,
                       wrap="false")
     btnClose = button(
         "btnVhpPickerClose", "\"Close\"",
@@ -223,7 +224,7 @@ def build_tasklist_picker_modal():
 
     modal = group(
         "conVhpPickerModal", [headRow, toolbar, infoText, listWrap, footer], direction="Vertical", gap=12,
-        fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=16,
+        fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
         pad=(18, 18, 18, 18), width=740, drop_shadow="ExtraBold", visible="varVhpTasklistPickerOpen")
     modal.props["X"] = "(App.Width - Self.Width) / 2"
     modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
@@ -252,7 +253,7 @@ def build_longtext_modal():
     title = text_ctrl("txtVhpLongTextTitle",
                       'If(varVhpLongTextTarget = "item", "Long text - item " & Text(varVhpLongTextItemId), '
                       '"Long text - operation " & varVhpLongTextOpNo)',
-                      size=17, weight="Semibold", height=24, wrap="false")
+                      size=lay.SIZE_CARD_TITLE, weight="Semibold", height=26, wrap="false")
     btnCancel = button("btnVhpLongTextCancel", '"Cancel"',
                        "Set(varVhpLongTextOpen, false)", width=90, height=32)
     headRow = group("conVhpLongTextHeadRow", [title, btnCancel], direction="Horizontal",
@@ -293,7 +294,7 @@ def build_longtext_modal():
 
     modal = group(
         "conVhpLongTextModal", [headRow, hint, box, footer], direction="Vertical", gap=12,
-        fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=16,
+        fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
         pad=(18, 18, 18, 18), width="Min(620, App.Width - 40)", drop_shadow="ExtraBold",
         visible="varVhpLongTextOpen")
     modal.props["X"] = "(App.Width - Self.Width) / 2"

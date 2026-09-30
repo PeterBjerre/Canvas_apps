@@ -50,8 +50,9 @@ from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED,
                         C_TRANSPARENT, C_NEUTRAL_BG, C_NEUTRAL_FG, C_INFO_FG,
                         C_INFO_BG, C_VALID_FG, C_VALID_BG, C_WARN_FG,
                         C_WARN_BG, C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY)
+import layout_tokens as lay
 from layout_tokens import fits
-from build_helpers import (text_ctrl, group, button, text_input,
+from build_helpers import (text_ctrl, text_min_height, group, button, text_input,
                            checkbox_theme, date_picker, fit_button_row,
                            fit_button_width, number_input, themed_dropdown,
                            card, field_cell, pin_widths, badge, top_bar, grow,
@@ -187,7 +188,7 @@ def build_bar():
         f'shown - older rows are in SharePoint.", "Your rows in SharePoint")')
     no = text_ctrl("txtDomReqNo",
                    'If(IsBlank(varDomRequestNo), "Not submitted", varDomRequestNo)',
-                   size=15, weight="Semibold", height=24, width=150, wrap="false")
+                   size=lay.SIZE_INPUT, weight="Semibold", height=24, width=150, wrap="false")
     # Temaskiftet og vejen til hubben staar i sidebaren (tools/side_nav.py).
     return top_bar("Dom", f'"{cfg.TITLE}"', f'"{cfg.SUBTITLE}"',
                    [count, no],
@@ -775,14 +776,14 @@ def build_attachments():
     title = grow(text_ctrl(
         "txtDomAttH",
         '"Documents - " & Coalesce(LookUp(colDomRows, RowId = varDomDocsId).ItemKey, "")',
-        size=17, weight="Semibold", height=26, wrap="false"))
+        size=lay.SIZE_CARD_TITLE, weight="Semibold", height=text_min_height(lay.SIZE_CARD_TITLE), wrap="false"))
     close = button("btnDomAttClose", '"Close"', "Set(varDomDocsId, Blank())",
                    width=84, height=32)
     head = group("conDomAttHead", [title, close], direction="Horizontal",
                  gap=12, align_items="Center")
     modal = group("conDomAttModal", [head, picker, actions, gal, empty],
                   direction="Vertical", gap=14,
-                  fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=16,
+                  fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(18, 18, 18, 18), width=DOCS_W, drop_shadow="ExtraBold",
                   visible="!IsBlank(varDomDocsId)")
     modal.props["X"] = MODAL_X
@@ -847,7 +848,8 @@ def build_details(scope=None):
 
     key = text_ctrl("txtDomDetKey",
                     f'Coalesce({row}.ItemKey, "Row " & Text(varDomDetailsId))',
-                    size=16, weight="Semibold", height=22, wrap="false")
+                    size=lay.SIZE_CARD_TITLE, weight="Semibold",
+                    height=text_min_height(lay.SIZE_CARD_TITLE), wrap="false")
     where = text_ctrl("txtDomDetPos",
                       f'"{{}} of " & Text(CountRows({order}))'.replace(
                           "{}", '" & Text(%s) & "' % pos),
@@ -904,7 +906,7 @@ def build_details(scope=None):
     box.props["LayoutOverflowY"] = "LayoutOverflow.Scroll"
     modal = group("conDomDetailsModal", [head, box], direction="Vertical",
                   gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT,
-                  radius=16, pad=(18, 18, 18, 18), width=DETAILS_W,
+                  radius=lay.RADIUS_MODAL, pad=(lay.CARD_PAD,) * 4, width=DETAILS_W,
                   drop_shadow="ExtraBold",
                   visible="!IsBlank(varDomDetailsId)")
     modal.props["X"] = MODAL_X
@@ -1245,8 +1247,9 @@ def docs_cell():
 # ---------------------------------------------------------------------------
 def form_head(title_txt, right=()):
     """Titlen, "* Required" og evt. kontroller til hoejre (No BOM Item)."""
-    title = text_ctrl("txtDomFormH", f'"{title_txt}"', size=17, weight="Semibold",
-                      height=26, width=text_px(title_txt, 17), wrap="false")
+    title = text_ctrl("txtDomFormH", f'"{title_txt}"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
+                      height=text_min_height(lay.SIZE_CARD_TITLE),
+                      width=text_px(title_txt, lay.SIZE_CARD_TITLE), wrap="false")
     star = text_ctrl("txtDomFormReqStar", '"*"', size=12, color=C_REQUIRED,
                      weight="Semibold", height=18, width=8, wrap="false",
                      accessible='"Required"')
@@ -1398,7 +1401,7 @@ def num_text(col):
 
 
 def date_text(col):
-    return f'If(IsBlank(ThisItem.{col}), "", Text(ThisItem.{col}, "yyyy-mm-dd"))'
+    return f'If(IsBlank(ThisItem.{col}), "", Text(ThisItem.{col}, "{lay.DATE_FMT}"))'
 
 
 class ListLayout:
@@ -1503,8 +1506,8 @@ def build_list(slots, badge_head, search_placeholder):
     lay_ = ListLayout(slots)
 
     # --- hovedet: titel, soegning og de to filtre ---------------------
-    title = text_ctrl("txtDomRowsH", '"Saved Rows"', size=17, weight="Semibold",
-                      height=26, wrap="false")
+    title = text_ctrl("txtDomRowsH", '"Saved Rows"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
+                      height=text_min_height(lay.SIZE_CARD_TITLE), wrap="false")
     search = text_input("inpDomSearch", '""', width="240",
                         placeholder=f'"{search_placeholder}"',
                         label='"Search the rows"')

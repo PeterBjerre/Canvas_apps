@@ -307,6 +307,45 @@ def _ladder(value_for):
     return "If(\n" + "\n".join(parts) + "\n)"
 
 
+# ---------------------------------------------------------------------------
+# TYPOGRAFI, MAAL OG FORMATER (REVIEW.md A9, A11, C8)
+#
+# Korttitler stod i 15, 16, 17 og 19 pt, hubbens kolonneoverskrifter i 10,
+# og hjoernerne var 10, 12, 14 og 16 efter hvem der byggede kortet. Her er
+# skalaen; builderne bruger navnene, ikke tallene.
+# ---------------------------------------------------------------------------
+SIZE_MICRO = 11        # kolonneoverskrifter, badges
+SIZE_SMALL = 12        # hjaelpetekst, metadata
+SIZE_BODY = 13         # etiketter, broedtekst
+SIZE_INPUT = 14        # felter og knapper
+SIZE_CARD_TITLE = 17   # titlen paa et kort eller en popup
+SIZE_PAGE_TITLE = 22   # sidens titel i topbjaelken
+TYPE_SCALE = (SIZE_MICRO, SIZE_SMALL, SIZE_BODY, SIZE_INPUT,
+              SIZE_CARD_TITLE, SIZE_PAGE_TITLE)
+
+# En tekst skal vaere mindst saa hoej som en linje af sin egen skrift, ellers
+# viser ModernText sin egen scrollbar (check_layout regel 27).
+TEXT_LINE = 1.5
+
+RADIUS_INPUT = 10      # felter og knapper
+RADIUS_CARD = 14       # kort og fliser
+RADIUS_MODAL = 16      # popups og menuer
+
+CONTROL_H = 36         # standardhoejden for et felt
+BUTTON_MIN_H = 30      # mindste knaphoejde (check_layout regel 25)
+CARD_PAD = 18          # kortets indre polstring
+
+# Datoer vises og indtastes ens i alle apps: sorterbart og uden tvivl om,
+# hvilket lands format der menes. Power Fx-formatstrenge.
+DATE_FMT = "yyyy-mm-dd"
+DATETIME_FMT = "yyyy-mm-dd hh:mm"
+
+
+def radius(r):
+    """De fire Radius*-egenskaber med samme vaerdi."""
+    return {"Radius" + k: str(r) for k in ("BottomLeft", "BottomRight", "TopLeft", "TopRight")}
+
+
 def formula():
     """De to navngivne formler til App.Formulas.
 

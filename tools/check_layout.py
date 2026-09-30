@@ -733,8 +733,8 @@ def main():
         if body.get("Control") != "ModernButton":
             continue
         h = evaluate((body.get("Properties") or {}).get("Height"), 1366, 3, 4, 4)
-        if h is not None and h < 30:
-            problems.append(f"[25] {name}: knappen er {h:.0f} px hoej - mindst 30")
+        if h is not None and h < lay.BUTTON_MIN_H:
+            problems.append(f"[25] {name}: knappen er {h:.0f} px hoej - mindst {lay.BUTTON_MIN_H}")
 
     # --- 26. Galleriernes skabeloner -------------------------------------
     #
@@ -929,9 +929,9 @@ def main():
         pr = body.get("Properties") or {}
         size = evaluate(pr.get("Size", "=14"), 1366, 3, 4, 4)
         h = evaluate(pr.get("Height"), 1366, 3, 4, 4)
-        if size and h is not None and h < size * 1.5 - 0.01:
+        if size and h is not None and h < size * lay.TEXT_LINE - 0.01:
             problems.append(f"[27] {name}: {size:.0f} pt i {h:.0f} px - mindst "
-                            f"{size * 1.5:.0f}, ellers faar teksten sin egen scrollbar")
+                            f"{size * lay.TEXT_LINE:.0f}, ellers faar teksten sin egen scrollbar")
 
     # --- 28. Ingen FillPortions i en raekke, der ikke ombryder ----------
     #
