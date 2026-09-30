@@ -27,6 +27,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), "tools"))
 
+import app_yaml
 import design_tokens as tok
 import layout_tokens as lay
 import fl_config as cfg
@@ -179,24 +180,7 @@ Set(varFlIdx, Blank())'''
 
 def main():
     onstart = (collection_block() + "\n\n" + tok.onstart_block() + "\n\n" + STATE)
-    lines = ["App:", "  Properties:", "    Formulas: |"]
-    first = True
-    for line in formulas_block().split("\n"):
-        lines.append(("      =" if first else "      ") + line if line.strip() else "")
-        first = False
-    lines.append("    OnStart: |")
-    first = True
-    for line in onstart.split("\n"):
-        if not line.strip():
-            lines.append("")
-            continue
-        lines.append(("      =" if first else "      ") + line)
-        first = False
-    lines += ["    StartScreen: |-", f"        ={cfg.SCREEN}",
-              "    Theme: |-", "        =PowerAppsTheme"]
-    content = "\n".join(lines) + "\n"
-    with open(os.path.join(OUT_DIR, "App.pa.yaml"), "w", encoding="utf-8", newline="\n") as f:
-        f.write(content)
+    content = app_yaml.write(OUT_DIR, formulas_block(), onstart, cfg.SCREEN)
     print("App.pa.yaml skrevet.", content.count(chr(10)) + 1, "linjer,",
           len(COLLECTIONS), "arbejdssamlinger, 0 datahentninger i OnStart,",
           len(R["plan"]), "tjek i nfFlPlan.")

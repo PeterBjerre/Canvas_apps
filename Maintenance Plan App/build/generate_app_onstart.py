@@ -21,6 +21,7 @@ import build_status
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT_DIR = os.path.join(HERE, "..")
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), "tools"))
+import app_yaml
 import design_tokens as tok
 import layout_tokens as lay
 
@@ -180,37 +181,12 @@ def build_formulas():
     return "\n".join(out).rstrip()
 
 
-def _yaml_block(prop, text, first_line_eq=True):
-    lines = [f"    {prop}: |"]
-    done = not first_line_eq
-    for line in text.split("\n"):
-        if not line.strip():
-            lines.append("")
-        elif not done:
-            lines.append("      =" + line)
-            done = True
-        else:
-            lines.append("      " + line)
-    return lines
-
-
 def main():
-    out = ["App:", "  Properties:"]
-    out += _yaml_block("Formulas", build_formulas())
-    out += _yaml_block("OnStart", build_onstart())
-    out += ["    StartScreen: |-", "        =ScreenVhPlan",
-            "    Theme: |-", "        =PowerAppsTheme"]
-    content = "\n".join(out) + "\n"
-
-    with open(os.path.join(OUT_DIR, "App.pa.yaml"), "w",
-              encoding="utf-8", newline="\n") as f:
-        f.write(content)
-
+    content = app_yaml.write(OUT_DIR, build_formulas(), build_onstart(), "ScreenVhPlan")
     n_fx = len(cfg.named_formulas()) + len(build_status.formulas())
     print(f"App.pa.yaml skrevet. {content.count(chr(10)) + 1} linjer, "
           f"{n_fx} navngivne formler, "
           f"{len(cfg.WORKING_COLLECTIONS)} arbejdssamlinger, 0 datahentninger i OnStart.")
-
 
 if __name__ == "__main__":
     main()

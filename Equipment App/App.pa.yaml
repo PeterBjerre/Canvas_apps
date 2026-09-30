@@ -159,6 +159,13 @@ App:
       // Vaerkerne. Eneste opslagsliste appen laeser, og den laeses foerst,
       // naar dropdownen aabnes.
       colDomPlants = Sort(ForAll(PlantList As R, { Value: R.Title }), Value);
+    OnError: |
+      =Trace(
+          "Unhandled error",
+          TraceSeverity.Error,
+          { Message: FirstError.Message, Source: FirstError.Source, Observed: FirstError.Observed }
+      );
+      Notify("Something went wrong: " & FirstError.Message, NotificationType.Error)
     OnStart: |
       =ClearCollect(colDomRows, { RowId: 0, ItemKey: "", RequestNo: "", Status: "", FileCount: 0, Description: "", Plant: "", RequestType: "", EquipmentNumber: "", EquipmentCategory: "", Manufacturer: "", TypeDesignation: "", SerialNumber: "", FunctionalLocation: "", FunctionalLocation1: "", FunctionalLocation2: "", ClassData: "", RoomCoordinates: "", Placement: "", WarrantyStart: Blank(), WarrantyEnd: Blank() });
       Clear(colDomRows);
@@ -211,7 +218,7 @@ App:
       Set(varDomFlLast, "");
       Set(varDomFlBusy, false);
       Set(varDomInfo, "");
-      // Listen: false = Compact, true = All columns (issue #68).
+      // Listen: false = Compact, true = All columns (issue #67/#68).
       Set(varDomAllCols, false);
 
       // Er formularen blevet tjekket? Styrer om en kraevet feltkant maa vaere

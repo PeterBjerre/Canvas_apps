@@ -85,6 +85,21 @@ from fl_picker import fl_picker, known_fx as fl_known_fx, reset_fx as fl_reset_f
 # Raekkens felter i een flad liste - raekkefoelgen er sektionernes.
 FIELDS = [f for _sec, fields in cfg.SECTIONS for f in fields]
 
+
+def use(expected):
+    """Stop, hvis modulet er bygget til en ANDEN apps domain_config.
+
+    FIELDS, SEARCH, LIST_SCOPE og CELL_W regnes af cfg, naar modulet
+    importeres. To apps i samme proces ville derfor tavst give den anden
+    app den foerstes felter (REVIEW.md C2). Hver app bygges i sin egen
+    proces (build_all, BIO SAP); tools/domain_app.py kalder use(cfg), saa
+    en fremtidig indgang, der blander dem, stopper hoejlydt i stedet."""
+    if expected is not cfg:
+        raise SystemExit(
+            "domain_parts er importeret til %s (%s), men kaldt med %s (%s).\n"
+            "Byg hver domaeneapp i sin egen proces."
+            % (cfg.APP_KEY, cfg.__file__, expected.APP_KEY, expected.__file__))
+
 ROW_H = 44
 GAL_ROWS = 8
 

@@ -1,76 +1,33 @@
 # -*- coding: utf-8 -*-
-"""Samler Equipment-skaermen.
+"""Samler Equipment-skaermen -> ../ScreenEquipment.pa.yaml.
 
-APPENS EGEN. Den var foer ordret ens med den anden domaeneapps,
-og build_all naegtede at bygge, hvis de gled fra hinanden. Den
-vagt er vaek: de to apps skal kunne to forskellige ting.
-Byggeklodserne er stadig faelles - se tools/domain_parts.py.
-
-DATAHENTNINGEN LIGGER I OnVisible, IKKE I App.OnStart
-----------------------------------------------------
-OnStart betales af hver bruger hver gang, ogsaa naar appen aabnes for at
-kigge. Raekkerne hoerer til skaermen, saa de hentes, naar skaermen vises.
-Det er den samme regel som i de to andre apps - se
-.github/skills/canvas-build/SKILL.md.
+Kompositionen er faelles (tools/domain_app.build_screen); det, der er
+appens eget, er formularen og listens kolonner i equipment_parts.py (issue #68).
+Datahentningen ligger i skaermens OnVisible, ikke i App.OnStart - se
+SKILL.md.
 """
-# tools/ paa sys.path. De tre store faellesfiler - gen_screen.py,
-# build_helpers.py og check_layout.py - ligger DER og ikke i en kopi pr.
-# app-mappe. sys.path er procesglobal, saa det raekker at saette den her i
-# indgangen: alt hvad builderne importerer bagefter, finder dem selv.
-import os as _os, sys as _sys
-_sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.dirname(
-    _os.path.dirname(_os.path.abspath(__file__)))), "tools"))
-
 import os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), "tools"))
 
-from gen_screen import render_screen, C_APP_BG, OUT_DIR
-from build_helpers import app_frame
-from side_nav import side_nav
+from gen_screen import render_screen
 import domain_config as cfg
-from domain_parts import (build_bar, build_attachments, build_details,
-                          build_backdrop, build_submit_confirm, build_delete_confirm,
-                          refresh_rows_fx, clear_form_fx, open_request_fx)
-# Formularen og listens kolonner er appens egne (issue #68) - se
-# equipment_parts.py.
-import equipment_parts as ep
-
-
-def on_visible():
-    return (
-        "Set(varDomMe, Lower(User().Email));\n"
-        + open_request_fx() + ";\n"
-        + refresh_rows_fx() + ";\n"
-        + clear_form_fx()
-    )
+import domain_app
+import equipment_parts as parts
 
 
 def build_screen():
-    # Een spalte: formularen og listen. Indsend staar under listen i samme
-    # kort, som i eq.png. Dokumenterne og detaljerne er popups
-    # (domain_parts), saa listen har hele bredden.
-    #
-    # RAMMEN: bjaelken i en header, der ikke scroller, og kortene direkte
-    # i en krop, der goer - se build_helpers.app_frame.
-    root = app_frame("Dom", build_bar(), [ep.build_form(), ep.build_rows()])
-    # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
-    nav, overlay = side_nav("Dom", "equipment")
-    # Sloeret FOER popupperne: kontrollerne tegnes i den raekkefoelge, de
-    # staar, saa det, der skal ligge bagved, skal staa foerst.
-    return render_screen(cfg.SCREEN,
-                         {"Fill": C_APP_BG, "OnVisible": on_visible()},
-                         [root, *nav, build_backdrop(), build_details(), build_attachments(),
-                          *overlay,
-                          # Bekraeftelsen foer Submit og ventespinneren - oeverst.
-                          *build_delete_confirm(), *build_submit_confirm()])
+    # render_screen slaas op i DETTE modul ved kaldet, saa BIO SAP App kan
+    # bytte den ud (build_screens._capture).
+    return domain_app.build_screen(cfg, parts, render_screen)
 
 
 def main():
     content = build_screen()
-    out = os.path.join(OUT_DIR, cfg.SCREEN + ".pa.yaml")
+    out = os.path.join(HERE, "..", cfg.SCREEN + ".pa.yaml")
     with open(out, "w", encoding="utf-8", newline="\n") as f:
         f.write(content)
     print("Wrote", out, "-", content.count(chr(10)) + 1, "lines")
