@@ -339,15 +339,46 @@ def collect(nodes, path="", out=None):
         collect(body.get("Children"), p, out)
     return out
 
+# ---------------------------------------------------------------------------
+# REGELREGISTRET (REVIEW.md C7)
+#
+# main() var een funktion paa 1.700 linjer, hvor reglerne delte lokale
+# variabler. Hver regel er nu sin egen funktion, og det, de deler (knuderne,
+# fundlisterne og hjaelpefunktionerne fra regel 2/3), ligger paa ctx.
+# Raekkefoelgen i RULES er den, reglerne koerer i - og dermed den
+# raekkefoelge, fundene skrives i. Listen i SKILL.md genereres herfra:
+#
+#     python3 tools/check_layout.py --rules
+# ---------------------------------------------------------------------------
+class Ctx:
+    """Det, reglerne deler. Attributterne saettes af _setup og af de regler,
+    der definerer noget, en senere regel bruger."""
 
-def main():
+
+def _export(ctx, scope, names):
+    for n in names:
+        if n in scope:
+            setattr(ctx, n, scope[n])
+
+
+class Rule:
+    def __init__(self, rid, title, fn):
+        self.id, self.title, self.fn = rid, title, fn
+
+
+def _setup(ctx):
+    """Opsaetning."""
     SCREEN = _find_screen()
     doc = yaml.safe_load(open(SCREEN, encoding="utf-8"))
     screen = list(doc["Screens"].values())[0]
     all_nodes = collect(screen["Children"])
     problems = []
+    _export(ctx, locals(), ['SCREEN', 'all_nodes', 'problems', 'screen'])
 
-    # --- 0. Hvert kontrolnavn findes kun een gang ------------------------
+def rule_0(ctx):
+    """Hvert kontrolnavn findes kun een gang"""
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     # Studio afviser skaermen: "An entity with name 'X' already exists".
     # Det skete i issue #29, hvor label_row() navngav sin raekke
     # conDomFlSearchRow - samme navn, som builderen gav soegeraekken.
@@ -359,13 +390,19 @@ def main():
         problems.append(f"[0] kontrolnavnet '{name}' findes {seen[name]} gange "
                         f"- compile vil fejle")
 
-    # --- 1. Ingen kontrol-til-kontrol hoejdereferencer ---------------------
+def rule_1(ctx):
+    """Ingen kontrol-til-kontrol hoejdereferencer"""
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     for p, name, body in all_nodes:
         h = (body.get("Properties") or {}).get("Height")
         if h and CTRL_HEIGHT_REF.search(h):
             problems.append(f"[1] {name}: Height refererer en anden kontrols .Height -> {h[:90]}")
 
-    # --- 2/3. Hoejde vs. indhold ------------------------------------------
+def rule_2_3(ctx):
+    """Hoejde vs. indhold"""
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     for p, name, body in all_nodes:
         props = body.get("Properties") or {}
         kids = body.get("Children") or []
@@ -554,8 +591,15 @@ def main():
                 return None
             e = e.replace("Parent.Width", "(%s)" % pv)
         return evaluate(e, w, ni, no, npk)
+    _export(ctx, locals(), ['_num', 'avail_width', 'by_path', 'prop_width', 'real_width'])
 
-    # --- 4c. Ombrydningen, som platformen faktisk laver den --------------
+def rule_4c(ctx):
+    """Ombrydningen, som platformen faktisk laver den"""
+    _num = ctx._num
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
+    prop_width = ctx.prop_width
+    real_width = ctx.real_width
     #
     # Regel 4 og 4b ser paa formlerne. Den her SPILLER layoutet: for hver
     # wrap-raekke, ved hver testbredde, pakkes boernene i raekker paa
@@ -631,7 +675,12 @@ def main():
         if found:
             problems.append(found)
 
-    # --- 4d. En raekke, der skifter retning, skal passe, naar den er vandret
+def rule_4d(ctx):
+    """En raekke, der skifter retning, skal passe, naar den er vandret"""
+    _num = ctx._num
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
+    real_width = ctx.real_width
     #
     # flow_row() staar vandret, naar dens graense siger "passer", og
     # lodret ellers. Graensen er regnet af SHELL_W; her efterproeves den mod
@@ -678,7 +727,11 @@ def main():
                                 f"(scrollbar medregnet) - det sidste skubbes ud")
                 break
 
-    # --- 24. Parent.Width maa ikke indgaa i regnestykker ----------------
+def rule_24(ctx):
+    """Parent.Width maa ikke indgaa i regnestykker"""
+    all_nodes = ctx.all_nodes
+    by_path = ctx.by_path
+    problems = ctx.problems
     #
     # Parent.Width er FORAELDERENS WIDTH-EGENSKAB - ikke pladsen inden i
     # den. Padding traekkes ikke fra, og en scrollbar heller ikke. Inde i et
@@ -723,7 +776,10 @@ def main():
             f"og scrollbar er ikke trukket fra). Brug FillPortions "
             f"(build_helpers.grow) eller en bredde regnet af SHELL_W")
 
-    # --- 25. En knap skal vaere mindst 30 px hoej -------------------------
+def rule_25(ctx):
+    """En knap skal vaere mindst 30 px hoej"""
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     #
     # Raekkeknapperne i Equipment og Material var 26 px med 14 pt tekst, og
     # de stod som tomme kanter i bunden af raekken. Den moderne knap har en
@@ -736,7 +792,11 @@ def main():
         if h is not None and h < lay.BUTTON_MIN_H:
             problems.append(f"[25] {name}: knappen er {h:.0f} px hoej - mindst {lay.BUTTON_MIN_H}")
 
-    # --- 26. Galleriernes skabeloner -------------------------------------
+def rule_26(ctx):
+    """Galleriernes skabeloner"""
+    _num = ctx._num
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     #
     # Parent.TemplateWidth gav 320 i Studio - containerens standardbredde.
     # Listens raekke var 320 px bred til 1200 px indhold, og alt efter
@@ -791,7 +851,10 @@ def main():
                                     f"sidste er skjult")
                     break
 
-    # --- 26c. Ingen container i et galleri -----------------------------
+def rule_26c(ctx):
+    """Ingen container i et galleri"""
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     #
     # Et galleris oeverste barn faar sin bredde af Studio - 320 efter et
     # deploy med --clean. Stod raekkens celler i en container, forsvandt
@@ -811,7 +874,11 @@ def main():
                                 f"gen_screen.render_screen, der folder den ud")
             stack.extend((kb or {}).get("Children") or [])
 
-    # --- 30. Delegerbare filtre: sammenlign mod noget KONSTANT ----------
+def rule_30(ctx):
+    """Delegerbare filtre: sammenlign mod noget KONSTANT"""
+    SCREEN = ctx.SCREEN
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     #
     # SharePoint delegerer kun en sammenligning, hvor vaerdien er ENS for
     # alle raekker: en global variabel, en kontrolegenskab eller en
@@ -862,7 +929,11 @@ def main():
                         f"- et scope-felt kan ikke delegeres. Saet vaerdien i en "
                         f"global variabel foerst, eller slaa op i den navngivne formel")
 
-    # --- 29. Overskriften og raekken skal have SAMME kolonnebredder ------
+def rule_29(ctx):
+    """Overskriften og raekken skal have SAMME kolonnebredder"""
+    all_nodes = ctx.all_nodes
+    by_path = ctx.by_path
+    problems = ctx.problems
     #
     # Regel 5 goer det for de overskrifter, der er en HtmlViewer. Den her
     # goer det for dem, der er rigtige kontroller.
@@ -919,7 +990,10 @@ def main():
                     f"{bad[0]} er {bad[1]:.0f} px, {bad[2]} er {bad[3]:.0f} px")
                 break
 
-    # --- 27. En tekst skal vaere mindst een linje hoej --------------------
+def rule_27(ctx):
+    """En tekst skal vaere mindst een linje hoej"""
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     #
     # Ellers viser den moderne Text-kontrol sin egen scrollbar. Det var den
     # moerke streg i topbjaelken: titlen var 22 pt i 30 px.
@@ -933,7 +1007,10 @@ def main():
             problems.append(f"[27] {name}: {size:.0f} pt i {h:.0f} px - mindst "
                             f"{size * lay.TEXT_LINE:.0f}, ellers faar teksten sin egen scrollbar")
 
-    # --- 28. Ingen FillPortions i en raekke, der ikke ombryder ----------
+def rule_28(ctx):
+    """Ingen FillPortions i en raekke, der ikke ombryder"""
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     #
     # I topbjaelken og detaljepopuppens hoved stod knapperne ved siden af en
     # FillPortions-venstreside - og i Studio blev de tegnet en linje for
@@ -958,7 +1035,11 @@ def main():
                 problems.append(f"[28] {kn}: FillPortions {fp[1:40]} i raekken {name} "
                                 f"- brug build_helpers.grow() (en udregnet bredde)")
 
-    # --- 23. Rammen ------------------------------------------------------
+def rule_23(ctx):
+    """Rammen"""
+    _num = ctx._num
+    problems = ctx.problems
+    screen = ctx.screen
     #
     # Alle fire skaerme har den samme ramme (build_helpers.app_frame):
     #
@@ -1040,7 +1121,11 @@ def main():
                         f"SHELL_INSET {lay.SHELL_INSET}. SHELL_W ville love "
                         f"mere plads, end der er")
 
-    # --- 4. En vandret raekke skal kunne rumme sine boern ------------------
+def rule_4(ctx):
+    """En vandret raekke skal kunne rumme sine boern"""
+    all_nodes = ctx.all_nodes
+    avail_width = ctx.avail_width
+    problems = ctx.problems
     #
     # TO TILFAELDE, OG DE ER IKKE DET SAMME
     #
@@ -1137,7 +1222,10 @@ def main():
                 f"raekken {own:.0f} px. Wrap er til smalle skaerme, ikke til "
                 f"en raekke der aldrig passer")
 
-    # --- 4b. En wrap-raekke maa ikke have en KONSTANT hoejde -------------
+def rule_4b(ctx):
+    """En wrap-raekke maa ikke have en KONSTANT hoejde"""
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     #
     # group(..., wrap_rows=2) ganger uden betingelse: hoejden blev
     # Max(52, 36) * 2 + 20 = 124 ved enhver skaermbredde. Men bjaelken
@@ -1164,7 +1252,10 @@ def main():
                 f"betinget, saa hoejden skal vaere det ogsaa - brug samme "
                 f"fits()-graense som bredden")
 
-    # --- 5. HTML-overskriften skal flugte med kontrollerne i raekken -------
+def rule_5(ctx):
+    """HTML-overskriften skal flugte med kontrollerne i raekken"""
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     by_name = {n: b for _, n, b in all_nodes}
     for html_name, row_name in (("htmVhpOpsHeader", "conVhpOpRow"),
                                 ("htmVhpPickerHeader", "conVhpPickerRow")):
@@ -1190,8 +1281,12 @@ def main():
                 rgap = float(re.sub(r"[^0-9.]", "", (rowb.get("Properties") or {}).get("LayoutGap", "=0")) or 0)
                 if abs(hgap - rgap) > 0.01:
                     problems.append(f"[5] {html_name}: column-gap {hgap} mod LayoutGap {rgap} i {row_name}")
+    _export(ctx, locals(), ['by_name'])
 
-    # --- 6. Balancerede parenteser og anfoerselstegn i alle formler --------
+def rule_6(ctx):
+    """Balancerede parenteser og anfoerselstegn i alle formler"""
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     for p_, name, body in all_nodes:
         for key, val in (body.get("Properties") or {}).items():
             if not isinstance(val, str):
@@ -1220,7 +1315,10 @@ def main():
             if depth != 0 or in_str:
                 problems.append(f"[6] {name}.{key}: ubalancerede parenteser/anfoerselstegn")
 
-    # --- 7. Ingen formel maa referere en kontrol, der ikke findes ----------
+def rule_7(ctx):
+    """Ingen formel maa referere en kontrol, der ikke findes"""
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     # En Reset() eller .Text paa et slettet kontrolnavn faar compile_canvas
     # til at fejle paa et ukendt navn - og det opdages ellers foerst i Studio.
     known = {n for _, n, _ in all_nodes}
@@ -1234,7 +1332,10 @@ def main():
                 if m not in known and m not in ("Parent", "Self", "ThisItem", "ThisRecord"):
                     problems.append(f"[7] {name}.{key}: refererer ukendt kontrol '{m}'")
 
-    # --- 9. FillPortions i en lodret container -----------------------------
+def rule_9(ctx):
+    """FillPortions i en lodret container"""
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     # FillPortions fordeler plads LANGS containerens retning: bredde i en
     # vandret, HOEJDE i en lodret.
     #
@@ -1269,7 +1370,12 @@ def main():
                 problems.append(f"[9] {kname}: FillPortions {fp[:40]} i den LODRETTE "
                                 f"container {name} - barnet straekkes i hoejden")
 
-    # --- 8. Samlinger skal findes i App.pa.yaml ---------------------------
+def rule_8(ctx):
+    """Samlinger skal findes i App.pa.yaml"""
+    SCREEN = ctx.SCREEN
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
+    screen = ctx.screen
     # En skaerm, der bruger colVhpNoget, som ingen definerer, kompilerer ikke
     # - men fejlen dukker foerst op i Studio. Da opslagslisterne blev flyttet
     # fra haardkodede tabeller til navngivne formler, blev tre referencer
@@ -1311,8 +1417,12 @@ def main():
         for name in sorted(used - defined):
             problems.append(f"[8] samlingen '{name}' bruges i skaermen, "
                             f"men defineres ikke i App.pa.yaml")
+    _export(ctx, locals(), ['app', 'app_path', 'screen_and_controls'])
 
-    # --- 8c. Ingen skaerm maa sammenligne App.Width med et tal ------------
+def rule_8c(ctx):
+    """Ingen skaerm maa sammenligne App.Width med et tal"""
+    problems = ctx.problems
+    screen_and_controls = ctx.screen_and_controls
     # Et braekpunkt hoerer til i tools/layout_tokens.py, ikke i en kontrol.
     #
     # Hvorfor det skal haandhaeves PAA SKAERMEN og ikke i builderne: tallet
@@ -1336,7 +1446,12 @@ def main():
                                 f"- braekpunkter hoerer i tools/layout_tokens.py "
                                 f"(below()/if_below()/fits())")
 
-    # --- 8b. Designtokens skal findes i temaformlen -----------------------
+def rule_8b(ctx):
+    """Designtokens skal findes i temaformlen"""
+    app = ctx.app
+    app_path = ctx.app_path
+    problems = ctx.problems
+    screen_and_controls = ctx.screen_and_controls
     # Hver farve i skaermen staar som C.'et-navn', og navnene defineres af
     # den navngivne formel C i App.pa.yaml (skrevet af
     # tools/design_tokens.py).
@@ -1365,7 +1480,10 @@ def main():
             problems.append("[8b] skaermen bruger designtokens, men App.pa.yaml "
                             "har ingen temaformel C")
 
-    # --- 10. Egenskaber kontroltypen ikke kender ---------------------------
+def rule_10(ctx):
+    """Egenskaber kontroltypen ikke kender"""
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     # Studio afviser en ukendt egenskab ved compile, ikke ved synk, saa
     # fejlen kommer foerst efter en fuld runde gennem VS Code. Den er
     # billig at fange her.
@@ -1403,7 +1521,10 @@ def main():
             problems.append(f"[10] {name}: {body['Control']} kender ikke "
                             f"egenskaben '{key}' - compile vil fejle")
 
-    # --- 10c. Inputfelter faar ALDRIG Fluent-temaets farver (issue #78) ----
+def rule_10c(ctx):
+    """Inputfelter faar ALDRIG Fluent-temaets farver (issue #78)"""
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     #
     # Appen saetter ikke Fluent-temaet - farverne er C (design_tokens). Et
     # moderne felt, der mangler Color/Fill, staar i Outline (gennemsigtig
@@ -1439,8 +1560,12 @@ def main():
         if "DisplayMode.Disabled" in dm and not wrapped:
             problems.append(f"[10c] {name}: {ctl} kan blive DisplayMode.Disabled - Fluent "
                             f"ignorerer da Color og Fill. Brug build_helpers.readonly_mode (View)")
+    _export(ctx, locals(), ['app'])
 
-    # --- 10b. SetFocus kan ikke naa ind i en container -------------------
+def rule_10b(ctx):
+    """SetFocus kan ikke naa ind i en container"""
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     #
     # "The specified control cannot be focused" - SetFocus virker ikke paa
     # en kontrol i en Container, et Gallery eller en komponent. I VH-plan
@@ -1466,7 +1591,10 @@ def main():
                             f"en container eller et galleri. Compile vil fejle")
                         break
 
-    # --- 31. Kolonnenavne er navne, ikke strenge -------------------------
+def rule_31(ctx):
+    """Kolonnenavne er navne, ikke strenge"""
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     #
     # GroupBy, Ungroup, DropColumns, ShowColumns, AddColumns og
     # RenameColumns vil have kolonnens NAVN: Ungroup(t, Items), ikke
@@ -1507,7 +1635,10 @@ def main():
                         problems.append(f"[31] {name}.{key}: {m.group(1)}(..., {args[i]}) - "
                                         f"kolonnenavnet skal skrives som et navn, ikke en streng")
 
-    # --- 32. IfError: begge grene skal ende i en skalar ------------------
+def rule_32(ctx):
+    """IfError: begge grene skal ende i en skalar"""
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     #
     # IfError kraever, at vaerdien og fallbacken har SAMME type. Patch af een
     # raekke giver en record, Collect og Patch med tabeller en tabel, og
@@ -1554,7 +1685,10 @@ def main():
                                         f"{last[:40]}... - vaerdi og fallback skal have samme "
                                         f"type. Afslut grenen med '; true' / '; false'")
 
-    # --- 11. Efterstillet komma i Power Fx ---------------------------------
+def rule_11(ctx):
+    """Efterstillet komma i Power Fx"""
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     # Power Fx tillader ikke et komma lige foer en lukkeparentes. Det sker,
     # naar nogen sletter den sidste gren af et If() og glemmer kommaet paa
     # linjen foer - og fejlen ses foerst ved compile.
@@ -1565,7 +1699,10 @@ def main():
                 problems.append(f"[11] {name}.{key}: komma lige foer ')' "
                                 f"- Power Fx afviser det ved compile")
 
-    # --- 12. Uescapet anfoerselstegn i en Power Fx-streng ------------------
+def rule_12(ctx):
+    """Uescapet anfoerselstegn i en Power Fx-streng"""
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     # En dansk hjaelpetekst, der selv naevner noget i anfoerselstegn, lukker
     # strengen midt i saetningen, hvis tegnene ikke er doblet. Power Fx
     # laeser saa resten som navne. Det gav 144 fejl fordelt paa fire
@@ -1614,7 +1751,11 @@ def main():
                 problems.append(f"[12] {name}.{key}: {why} - et anfoerselstegn "
                                 f"i teksten er ikke doblet. Brug build_help._q()")
 
-    # --- 13. Parent.Template* uden for et galleris direkte barn ------------
+def rule_13(ctx):
+    """Parent.Template* uden for et galleris direkte barn"""
+    all_nodes = ctx.all_nodes
+    by_name = ctx.by_name
+    problems = ctx.problems
     # TemplateWidth og TemplateHeight findes kun paa Gallery. Bruger en
     # kontrol dem, skal dens FORAELDER vaere galleriet - ellers er navnet
     # ukendt ved compile. Raekketeksten i objektlisten laa et niveau for
@@ -1631,7 +1772,10 @@ def main():
                 problems.append(f"[13] {name}.{key}: bruger Parent.Template*, "
                                 f"men forelderen '{pname}' er ikke et Gallery")
 
-    # --- 14. Vandret scroll under Stretch ----------------------------------
+def rule_14(ctx):
+    """Vandret scroll under Stretch"""
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     # I en LODRET container tvinger LayoutAlignItems.Stretch boernene ned i
     # containerens bredde. En tabel, der er bredere end kortet MED VILJE,
     # bliver derfor klemt sammen i stedet for at overflyde - og
@@ -1648,7 +1792,9 @@ def main():
             problems.append(f"[14] {name}: vandret scroll, men Stretch klemmer "
                             f"indholdet ned i containerens bredde - brug Start")
 
-    # --- 15. Mutation inde i ForAll (ADVARSEL, ikke fejl) ------------------
+def rule_15(ctx):
+    """Mutation inde i ForAll (ADVARSEL, ikke fejl)"""
+    all_nodes = ctx.all_nodes
     #
     # Den her staar for sig og staekker ikke byggeriet. VH-plan-appen har
     # otte af dem og har koert i lang tid; det er en ydelsessag, ikke en
@@ -1742,8 +1888,12 @@ def main():
                         f"checker melder ForAllWithMutation")
                 if remote or local:
                     break
+    _export(ctx, locals(), ['warnings'])
 
-    # --- 21. ButtonAppearance.Secondary ------------------------------------
+def rule_21(ctx):
+    """ButtonAppearance.Secondary"""
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     #
     # Den moderne Button har INGEN Fill-egenskab. Appearance afgoer
     # fyldet, og Secondary er dokumenteret som "subtle FILLED style" -
@@ -1765,7 +1915,12 @@ def main():
                     f"fyld fra Fluent-temaet, ikke fra en token - brug "
                     f"ButtonAppearance.Outline")
 
-    # --- 22. Concurrent med en indbyrdes afhaengighed ----------------------
+def rule_22(ctx):
+    """Concurrent med en indbyrdes afhaengighed"""
+    all_nodes = ctx.all_nodes
+    app = ctx.app
+    problems = ctx.problems
+    screen = ctx.screen
     #
     # Regel 20 foreslaar Concurrent, hvor der er noget at hente. Den her er
     # dens modstykke: den ser paa et Concurrent, der ALLEREDE staar der.
@@ -1843,7 +1998,10 @@ def main():
                                     f"andet. Power Apps afviser at compile - "
                                     f"del det i to Concurrent efter hinanden")
 
-    # --- 16. Ingen Classic/DropDown -----------------------------------------
+def rule_16(ctx):
+    """Ingen Classic/DropDown"""
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     # Alle dropdowns er ModernDropdown fra build_helpers.themed_dropdown: den
     # har runde hjoerner (Classic har ingen Radius), og dens tekst er
     # input-fg, der kan laeses paa Fluents lyse liste. Classic var valgt i
@@ -1866,7 +2024,10 @@ def main():
     # Elleve falske fund ville laere nogen at springe advarsler over, og
     # saa gaar regel 15's rigtige fund samme vej.
 
-    # --- 33. Navnets praefiks foelger kontroltypen (REVIEW.md A3/A4) -------
+def rule_33(ctx):
+    """Navnets praefiks foelger kontroltypen (REVIEW.md A3/A4)"""
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     # "txt" var baade ModernText og tekstfelt, og 110 etiketter hed "con"
     # efter den celle, de sad i. Standarden staar i SKILL.md; her holdes den.
     PREFIX = {"GroupContainer": "con", "ModernText": "txt", "Gallery": "gal",
@@ -1881,7 +2042,10 @@ def main():
             problems.append(f"[33] {name}: en {body['Control'].split('@')[0]} "
                             f"skal hedde {want}<App><Navn>")
 
-    # --- 18. Enhver Gallery skal have TabIndex ----------------------------
+def rule_18(ctx):
+    """Enhver Gallery skal have TabIndex"""
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     # En Gallery er en interaktiv kontrol for tastaturet - ogsaa naar
     # Selectable er false. Uden TabIndex er den ikke et tab stop, og
     # indholdet kan ikke naas uden mus.
@@ -1908,7 +2072,10 @@ def main():
             problems.append(f"[18] {name}: Gallery uden TabIndex - App checker "
                             f"melder 'Missing tab stop'. Saet TabIndex til 0")
 
-    # --- 19. AccessibleLabel maa ikke vaere kontrollens navn --------------
+def rule_19(ctx):
+    """AccessibleLabel maa ikke vaere kontrollens navn"""
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
     # En skaermlaeser laeser AccessibleLabel op. Staar der "inpManufacturer",
     # hoerer brugeren "inp Manufacturer" i stedet for "Fabrikat".
     #
@@ -1926,7 +2093,11 @@ def main():
             problems.append(f"[19] {name}.AccessibleLabel er kontrollens navn "
                             f"- en skaermlaeser laeser det op. Giv label=")
 
-    # --- 20. Flere UAFHAENGIGE hentninger i kaede -> Concurrent -----------
+def rule_20(ctx):
+    """Flere UAFHAENGIGE hentninger i kaede -> Concurrent"""
+    all_nodes = ctx.all_nodes
+    screen = ctx.screen
+    warnings = ctx.warnings
     # Uden Concurrent venter appen paa SUMMEN af kaldene; med den kun paa
     # det laengste.
     #
@@ -2058,6 +2229,11 @@ def main():
                 f"kaede ({names}). Saml dem i Concurrent() - appen venter "
                 f"ellers paa summen. Se build_helpers.concurrent()")
 
+def _report(ctx):
+    """Rapport."""
+    all_nodes = ctx.all_nodes
+    problems = ctx.problems
+    warnings = ctx.warnings
     print(f"Kontroller i alt: {len(all_nodes)}")
     if warnings:
         print(f"\n{len(warnings)} advarsel(er) - byggeriet stopper ikke:\n")
@@ -2075,5 +2251,65 @@ def main():
     return 0
 
 
+RULES = [
+    Rule('0', 'Hvert kontrolnavn findes kun een gang', rule_0),
+    Rule('1', 'Ingen kontrol-til-kontrol hoejdereferencer', rule_1),
+    Rule('2/3', 'Hoejde vs. indhold', rule_2_3),
+    Rule('4c', 'Ombrydningen, som platformen faktisk laver den', rule_4c),
+    Rule('4d', 'En raekke, der skifter retning, skal passe, naar den er vandret', rule_4d),
+    Rule('24', 'Parent.Width maa ikke indgaa i regnestykker', rule_24),
+    Rule('25', 'En knap skal vaere mindst 30 px hoej', rule_25),
+    Rule('26', 'Galleriernes skabeloner', rule_26),
+    Rule('26c', 'Ingen container i et galleri', rule_26c),
+    Rule('30', 'Delegerbare filtre: sammenlign mod noget KONSTANT', rule_30),
+    Rule('29', 'Overskriften og raekken skal have SAMME kolonnebredder', rule_29),
+    Rule('27', 'En tekst skal vaere mindst een linje hoej', rule_27),
+    Rule('28', 'Ingen FillPortions i en raekke, der ikke ombryder', rule_28),
+    Rule('23', 'Rammen', rule_23),
+    Rule('4', 'En vandret raekke skal kunne rumme sine boern', rule_4),
+    Rule('4b', 'En wrap-raekke maa ikke have en KONSTANT hoejde', rule_4b),
+    Rule('5', 'HTML-overskriften skal flugte med kontrollerne i raekken', rule_5),
+    Rule('6', 'Balancerede parenteser og anfoerselstegn i alle formler', rule_6),
+    Rule('7', 'Ingen formel maa referere en kontrol, der ikke findes', rule_7),
+    Rule('9', 'FillPortions i en lodret container', rule_9),
+    Rule('8', 'Samlinger skal findes i App.pa.yaml', rule_8),
+    Rule('8c', 'Ingen skaerm maa sammenligne App.Width med et tal', rule_8c),
+    Rule('8b', 'Designtokens skal findes i temaformlen', rule_8b),
+    Rule('10', 'Egenskaber kontroltypen ikke kender', rule_10),
+    Rule('10c', 'Inputfelter faar ALDRIG Fluent-temaets farver (issue #78)', rule_10c),
+    Rule('10b', 'SetFocus kan ikke naa ind i en container', rule_10b),
+    Rule('31', 'Kolonnenavne er navne, ikke strenge', rule_31),
+    Rule('32', 'IfError: begge grene skal ende i en skalar', rule_32),
+    Rule('11', 'Efterstillet komma i Power Fx', rule_11),
+    Rule('12', 'Uescapet anfoerselstegn i en Power Fx-streng', rule_12),
+    Rule('13', 'Parent.Template* uden for et galleris direkte barn', rule_13),
+    Rule('14', 'Vandret scroll under Stretch', rule_14),
+    Rule('15', 'Mutation inde i ForAll (ADVARSEL, ikke fejl)', rule_15),
+    Rule('21', 'ButtonAppearance.Secondary', rule_21),
+    Rule('22', 'Concurrent med en indbyrdes afhaengighed', rule_22),
+    Rule('16', 'Ingen Classic/DropDown', rule_16),
+    Rule('33', 'Navnets praefiks foelger kontroltypen (REVIEW.md A3/A4)', rule_33),
+    Rule('18', 'Enhver Gallery skal have TabIndex', rule_18),
+    Rule('19', 'AccessibleLabel maa ikke vaere kontrollens navn', rule_19),
+    Rule('20', 'Flere UAFHAENGIGE hentninger i kaede -> Concurrent', rule_20),
+]
+
+
+def rules_markdown():
+    """Regellisten til SKILL.md - samme raekkefoelge som koerslen."""
+    return "\n".join(f"| {r.id} | {r.title} |" for r in RULES)
+
+
+def main():
+    ctx = Ctx()
+    _setup(ctx)
+    for rule in RULES:
+        rule.fn(ctx)
+    return _report(ctx)
+
+
 if __name__ == "__main__":
+    if sys.argv[1:] == ["--rules"]:
+        print(rules_markdown())
+        sys.exit(0)
     sys.exit(main())
