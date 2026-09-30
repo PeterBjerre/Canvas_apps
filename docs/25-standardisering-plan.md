@@ -1,5 +1,7 @@
 # 25 – Standardisering af de fire apps og af Python-builderne
 
+> **Status: historisk.** Planen er delvist gennemført (fælles moduler i `tools/`). Enkelte filnavne her (`build_domain.py`, `palette.py`) findes ikke. Den aktuelle plan står i `REVIEW.md`.
+
 Oplæg til beslutning. Alt nedenfor var målt på
 repoet som det står i dag (bygget og efterprøvet med
 `python3 tools/build_all.py` — alt grønt, og byggeriet er deterministisk:

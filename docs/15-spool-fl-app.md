@@ -1,5 +1,7 @@
 # SPOOL-arket → en FL-indmeldingsapp
 
+> **Status: historisk.** Afløst af docs/31 — reglerne kompileres nu fra `html/*.js`, ikke fra SharePoint-lister.
+
 Første gennemgang af `FL_indberetninger_udgave_SPOOL_V3.20.xlsm`, så vi ved
 hvad opgaven er, før der bygges.
 

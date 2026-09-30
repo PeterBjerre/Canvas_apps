@@ -2,8 +2,8 @@
 """
 Kontroltrae-DSL og serialisering til .pa.yaml (Power Apps canvas).
 
-Filen er ordret ens i alle apps i repoet. Retter du her, skal du kopiere
-den til de oevrige build-mapper - se .github/skills/canvas-build/SKILL.md.
+Filen ligger i tools/ i een udgave for alle apps. Retter du her, rammer
+det alle skaermene - byg dem alle (python3 tools/build_all.py).
 
 HOEJDEMODELLEN
 --------------

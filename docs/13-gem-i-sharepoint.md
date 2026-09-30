@@ -1,5 +1,7 @@
 # Gemning i SharePoint
 
+> **Status: historisk.** Gemningen er siden ændret; den gældende står i `Maintenance Plan App/build/build_save.py`.
+
 Appen skriver nu. Fire lister, i den rækkefølge:
 
 ```

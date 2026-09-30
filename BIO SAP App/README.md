@@ -15,18 +15,17 @@ Baggrunden for beslutningen står i
 
 ## Skærmene
 
-| Skærm | Indhold | Kontroller |
-|---|---|---|
-| `ScreenMdHub` | Hubben. Startskærm | 106 |
-| `ScreenFunctionalLocation` | Functional Location | 115 |
-| `ScreenVhPlan` | VH-plan | 384 |
-| `ScreenEquipment` | Equipments | 209 |
-| `ScreenMaterial` | Materials | 230 |
-| | **I alt** | **1.044** |
+| Skærm | Indhold |
+|---|---|
+| `ScreenMdHub` | Hubben. Startskærm |
+| `ScreenFunctionalLocation` | Functional Location |
+| `ScreenVhPlan` | VH-plan |
+| `ScreenEquipment` | Equipments |
+| `ScreenMaterial` | Materials |
 
 Hver domæneskærm har én kontrol mere end i den enkelte app: ventespinneren.
-
-Tallene skrives af `build/check_combined.py` ved hvert build.
+Antallet pr. skærm skrives ud af `build/check_combined.py` ved hvert build
+(ca. 1.150 i alt) — det står ikke her, fordi et tal i en README forælder.
 
 ## Hvorfor den ikke bliver langsom
 

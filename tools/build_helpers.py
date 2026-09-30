@@ -758,7 +758,7 @@ def page_icon(name, key, size=PAGE_ICON):
 
 def top_bar(prefix, title, subtitle, actions, container_w=None, gap=10,
             narrow_hide=(), sub=None, icon=None):
-    """Bjaelken oeverst - den SAMME konstruktion i alle fire apps.
+    """Bjaelken oeverst - den SAMME konstruktion i alle apps.
 
     EEN vandret raekke uden formler i retning eller justering: titlen og
     undertitlen tager resten (build_helpers.grow -> en udregnet bredde), og
@@ -797,7 +797,7 @@ def top_bar(prefix, title, subtitle, actions, container_w=None, gap=10,
 
 
 def app_frame(prefix, header, body, body_gap=16, body_pad_b=None):
-    """Rammen om hele skaermen - den SAMME i alle fire apps.
+    """Rammen om hele skaermen - den SAMME i alle apps.
 
         con<X>Root     lodret, hele skaermen, scroller IKKE
           con<X>Header   fast hoejde. Bjaelken staar her og kan ikke

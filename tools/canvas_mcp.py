@@ -532,12 +532,12 @@ def run_build(app_key=None):
     grund til at logge ind.
 
     Kun den app, der skal deployes. Det er ikke tiden, det handler om -
-    hele byggeriet tager fire sekunder - men om at de tre andre apps'
+    hele byggeriet tager godt ti sekunder - men om at de andre apps'
     output ikke skal rulle det vaek, man faktisk skulle se. En advarsel i
     VH-plan midt i et Equipment-deploy ligner en, der hoerer til.
 
-    build_all.py koerer stadig sine to sammenhaengstjek (faelles filer og
-    app-id'er) og datakilde-tjekket paa ALLE apps - de tager
+    build_all.py koerer stadig farvevagten og datakilde-, sprog- og
+    hjaelpetekst-tjekket paa ALLE apps - de tager
     millisekunder, og de handler netop om det, en maalrettet bygning
     ellers ville springe over."""
     cmd = [sys.executable, os.path.join(ROOT, "tools", "build_all.py")]

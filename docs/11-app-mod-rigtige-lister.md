@@ -1,5 +1,7 @@
 # Appen mod de rigtige lister
 
+> **Status: historisk.** Migrationen er gennemført.
+
 Testdataene er væk. Appen læser nu SharePoint.
 
 ## Det der ændrede sig

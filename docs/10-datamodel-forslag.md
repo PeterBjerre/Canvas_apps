@@ -1,5 +1,7 @@
 # Forslag til datamodellen
 
+> **Status: historisk.** Forslaget er bygget; den gældende kontrakt står i `Maintenance Plan App/build/sp_config.py`.
+
 Bygger på fundene i [`09-datamodel-fund.md`](09-datamodel-fund.md) og på to
 svar: **appen skriver til listerne i dag**, og **ingen af os har bygget dem**.
 

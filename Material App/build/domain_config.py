@@ -2,11 +2,10 @@
 """
 Alt det, der skiller Materials-appen fra Equipment-appen, staar HER.
 
-De to apps er den samme app. Samme skaerm, samme gem, samme dokumentrude -
-kun felterne og listenavnet er forskellige. Derfor er build_domain.py,
-attflows.py, assemble_screen.py og generate_app_onstart.py ORDRET ens i de
-to build-mapper, og kun denne fil er forskellig. tools/build_all.py
-tjekker, at de bliver ved med at vaere ens.
+Equipments og Materials er to apps, der deler byggeklodserne i
+tools/domain_parts.py. Denne fil er appens kontrakt: felterne (SECTIONS),
+listenavnet og praefikset. Kompositionen staar i assemble_screen.py og
+*_parts.py (se SKILL.md "Hvem ejer hvad - Equipments og Materials").
 
 FELTERNE ER KONTRAKTEN, IKKE ET VALG
 ------------------------------------

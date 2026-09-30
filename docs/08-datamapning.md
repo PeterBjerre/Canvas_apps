@@ -1,5 +1,7 @@
 # Fra testdata til rigtige SharePoint-lister
 
+> **Status: historisk.** Migrationsnoter fra testdata til de rigtige lister. `sharepoint-schema.json` hedder nu `sharepoint/inspect/out/schema.json`.
+
 Appen kører i dag på 21 samlinger, der fyldes med **hårdkodede tabeller** i
 `App.OnStart`. Det her dokument er kortet over, hvad der skal erstattes med
 hvad — og hvad der mangler svar på, før det kan gøres.

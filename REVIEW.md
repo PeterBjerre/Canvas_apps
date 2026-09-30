@@ -12,6 +12,33 @@ Dato: 2026-09-30 · Grundlag: branch `claude/power-app-mcp-script-0mr7uy` @ `764
 
 Repoet har **seks** app-mapper: de fire nævnte (Masterdata Hub, Maintenance Plan App/VH-plan, Equipment App, Material App) plus **Functional Location App** og **BIO SAP App**. BIO SAP App er de fem apps samlet som skærme i én test-app. Begge er medtaget.
 
+
+## Status efter fase 0 og 1 (2026-09-30)
+
+Linjenumrene i fundene nedenfor henviser til udgangspunktet (`764fbcb`).
+
+**Gennemført i repoet**
+- *Fase 0:* signeret flow-URL fjernet fra VBA-kilden (D2, kildedelen); `tools/check_secrets.py` scanner hele repoet inkl. Office-filer; sessionsfiler og `.msapp` ude af git (E5, E6).
+- *Byggesystem:* C1, C10 (byggetid ca. 27 → 13 s), C13, E11, D27, 100 ubrugte imports fjernet, `requirements.txt`.
+- *VH-plan:* D4 (`APP_URL`), D9, D10, D11, D13, D14, D15, D16, A7 (inkl. strammere sprogtjek), A12, A14, B11; A16 for long text-popuppen.
+- *Equipment/Material:* D19, D20, D21, A2, A8, A15, A17, B17; BIO SAP's regex-omdøbning fjernet.
+- *Hub/FL/BIO SAP:* B2 (alle apps), B3, B9, D4 (Open ud fra domænet), D30 (blank RequestGuid), D16 (FL), D23, A6.
+- *Dokumentation:* E1, E2, E3, E4, E7, E12 (`archive/` + historiske docs markeret).
+
+**Står tilbage**
+- **Kræver handling uden for repoet:**
+  - D1/D3: rotér client secret og x-apikeys, og skift miljøvariablen til Secret.
+  - D2: ny trigger-signatur. `excel/artifact/BIO SAP VH-plan lister.xlsm` indeholder stadig den gamle URL i VBA-projektet og skal gemmes igen fra Excel. Indtil da er den **fulde** bygning bevidst rød.
+  - Omskrivning af git-historikken.
+- **Kræver adgang til SharePoint:** E9 (nyt skemaudtræk).
+- **Udskudt til fase 2:**
+  - A16 for tasklist-vælgeren: tabellen kræver vandret scroll.
+  - D12: SchedulingIndicator som dropdown.
+- **Ikke efterprøvet i Studio:** alle Power Fx-ændringer er bygget og layout-tjekket, men ikke compilet mod Studio. Kør `python tools\canvas_mcp.py deploy --app <nøgle>` pr. app, og efterprøv især:
+  - `Ungroup` i VH-planens dyblink;
+  - hubbens flade filter (delegeringsadvarsler);
+  - slet-bekræftelsen i Equipment/Material.
+
 ---
 
 ## 1. Arkitektur, som den er forstået

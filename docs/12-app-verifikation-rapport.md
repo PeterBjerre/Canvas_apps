@@ -1,5 +1,7 @@
 # Verifikation af VH-plan appen mod de rigtige lister
 
+> **Status: historisk.** Verifikationsrapport fra migrationen (2026-09-21).
+
 Udført mod miljøet Bioenergy Solutions DEV (`environment_id`
 `e0f8f822-d16a-e878-ba4e-fb42bc617e47`, `app_id`
 `11fa8d90-868a-45a4-ba23-28f2cf0671a2`), branch

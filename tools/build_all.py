@@ -4,13 +4,15 @@ Bygger alle canvas apps i repoet og efterregner layoutet.
 
     python3 tools/build_all.py
 
-Hver app har sin egen build-mappe med sine egne kopier af de tre faelles
-filer (gen_screen.py, build_helpers.py, check_layout.py). Det er med vilje:
-Power Apps' egen VS Code-vaerktoejskaede arbejder pr. app-mappe, og et
-delt modul udenfor mappen blev fjernet igen af den. Prisen er, at kopierne
-kan naa at glide fra hinanden - derfor tjekker dette script, at de er
-ordret ens, FOER der bygges. Er de ikke, staar der hvilken fil det er, og
-hvilken app der har den nyeste udgave.
+    python3 tools/build_all.py --app equipment
+
+Raekkefoelgen: PowerShell-, solution- og hemmelighedstjek (kun fuld
+bygning), farvevagten, FL-reglerne mod html/*.js (kraever Node), saa pr.
+app generate -> assemble -> check_layout, og til sidst datakilde-, sprog-
+og hjaelpetekst-tjekket over ALLE skaerme.
+
+De faelles moduler ligger i tools/ i een udgave; hver app-mappes build/
+indeholder kun appens egne filer og indgangene. Se nedenfor for hvorfor.
 """
 import argparse
 import os, re, shutil, subprocess, sys
@@ -18,7 +20,8 @@ import os, re, shutil, subprocess, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # EN UDGAVE, IKKE FIRE KOPIER
 #
-# gen_screen.py, build_helpers.py, check_layout.py, build_domain.py,
+# gen_screen.py, build_helpers.py, check_layout.py, build_domain.py (nu
+# domain_parts.py),
 # attflows.py og build_flsearch.py laa foer som ordrette kopier i hver
 # app's build-mappe - 5.863 af 14.825 linjer Python, 39%. De ligger nu i
 # tools/ i EEN udgave, og indgangene saetter tools/ paa sys.path.
@@ -168,10 +171,11 @@ def pick_apps(which):
     """Hvilke apps der skal bygges.
 
     Uden argument: alle. Med: den ene, valgt paa mappenavn eller paa
-    noeglen i tools/canvas_apps.json (equipment, material, vhplan, hub).
+    noeglen i tools/canvas_apps.json (equipment, material, vhplan, hub,
+    functionallocation, biosap).
 
     Hvorfor overhovedet kunne vaelge? Ikke for tidens skyld - hele
-    byggeriet tager fire sekunder. Men naar deploy bygger alle fire, ruller
+    byggeriet tager godt ti sekunder. Men naar deploy bygger alle, ruller
     de tre andre apps' output det vaek, man faktisk skulle se, og en
     advarsel i VH-plan dukker op midt i et Equipment-deploy som om den
     hoerte til."""
@@ -200,7 +204,7 @@ def main(argv=None):
     args = ap.parse_args(argv)
 
     # Miljoeet gives videre til byggescripterne gennem omgivelserne.
-    # env_config laeser den samme variabel, saa alle fire apps bygges mod
+    # env_config laeser den samme variabel, saa alle apps bygges mod
     # det SAMME miljoe - ogsaa naar de koeres som hver sit subprocess.
     sys.path.insert(0, os.path.join(ROOT, "tools"))
     import env_config
@@ -347,7 +351,7 @@ def main(argv=None):
     # SPROGTJEKKET LIGGER SIDST, OG PAA ALLE SKAERME
     #
     # Samme grund som datakilde-tjekket: en dansk streng, der glider ind i
-    # en faelles builder, rammer alle fire apps. Og den vigtigste halvdel
+    # en faelles builder, rammer alle apps. Og den vigtigste halvdel
     # af tjekket er den omvendte - at de seks SharePoint-valgvaerdier
     # (Kladde, Indsendt ...) IKKE bliver oversat. Se tools/check_language.py.
     print()

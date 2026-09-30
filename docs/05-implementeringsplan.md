@@ -1,5 +1,7 @@
 # Implementeringsplan
 
+> **Status: historisk.** Faseplan for den oprindelige `VHP_*`-model.
+
 Rækkefølgen er valgt, så det, der er dyrest at lave om, ligger først.
 
 ## Fase 0 – afklaring (før build)

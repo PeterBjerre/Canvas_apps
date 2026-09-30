@@ -1,5 +1,7 @@
 # Canvas app – opbygning
 
+> **Status: historisk.** Første design af VH-plan-appen. Den byggede app er beskrevet i SKILL.md og builderne i `Maintenance Plan App/build/`.
+
 ## 1. Skærmstruktur
 
 Én skærm pr. wizard-trin frem for containere på én skærm. Canvas-appens
