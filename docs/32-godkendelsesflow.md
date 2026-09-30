@@ -564,7 +564,7 @@ i `sp_config.py`, som alle andre.
 | *Add item* / *Copy item* (`build_items.py`) og startitemet (`build_load.py`, `EMPTY_ITEM_FIELDS`) | `ItemGuid: Text(GUID())` på det nye item. *Copy item* kopierer **ikke** kildens `ItemGuid` |
 | Indlæsning (`build_load.py`, `ITEM_FIELDS`) | `ItemGuid: Coalesce(IT.ItemGuid, Text(GUID()))` |
 | `colVhpItems` (`sp_config.py`, `WORKING_COLLECTIONS`) | Feltet `ItemGuid` |
-| Totalen pr. item (`conVhpOpsTotalsHtml` i `build_tasklist.py`) | Viser allerede summen for det aktive item. Nyt: en markering "Over 300.000 kr. – kræver omkostningsgodkendelse", når den er over grænsen fra `AppSettings`. Kun information; flowet regner selv |
+| Totalen pr. item (`htmVhpOpsTotals` i `build_tasklist.py`) | Viser allerede summen for det aktive item. Nyt: en markering "Over 300.000 kr. – kræver omkostningsgodkendelse", når den er over grænsen fra `AppSettings`. Kun information; flowet regner selv |
 | Items-skinnen | Pr. item et lille mærke med systemgodkendelse og omkostningsgodkendelse, læst fra `MD_ApprovalLog` på `RequestGuid` |
 | Statusbanner i toppen | Hvor sagen er (`ApprovalStage`), hvem den ligger hos, og `ReturnComment` ved `Returned` |
 | Skrivebeskyttelse | Alle felter låses, når `Status` ikke er `Draft` eller `Returned` |

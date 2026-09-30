@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from design_tokens import DARK_VAR, toggle_action, ref_hex as ref_hex_expr, TRANSPARENT
 import layout_tokens as lay
 from layout_tokens import at_least, fits, if_below, TWO_COL_MIN
-from gen_screen import (Ctrl, stack_height, row_height, C_APP_BG, C_CARD_BG,
+from gen_screen import (Ctrl, child_name, stack_height, row_height, C_APP_BG, C_CARD_BG,
                         C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED, C_PRIMARY,
                         C_PRIMARY2, C_WHITE, C_TRANSPARENT, C_INPUT_BG,
                         C_DISABLED_BG, C_DIVIDER, C_VALID_FG, C_INVALID_FG,
@@ -1434,15 +1434,15 @@ def label_row(name, label_text, required=False, width="Parent.Width", cell_w=Non
     # graense (kompleksitet 302 af 300, issue #37), og det var de
     # kontroller, der kunne undvaeres uden at noget ser anderledes ud.
     if not required:
-        return text_ctrl(f"{name}Lbl", f"\"{label_text}\"", size=13, weight="Semibold",
+        return text_ctrl(child_name("txt", name, "Lbl"), f"\"{label_text}\"", size=13, weight="Semibold",
                          height=20, width=width, wrap="false")
     lbl_w = label_px(label_text, 13)
     if cell_w is not None:
         lbl_w = "Min(%d, (%s) - 13)" % (lbl_w, cell_w)
-    kids = [text_ctrl(f"{name}Lbl", f"\"{label_text}\"", size=13, weight="Semibold", height=20,
+    kids = [text_ctrl(child_name("txt", name, "Lbl"), f"\"{label_text}\"", size=13, weight="Semibold", height=20,
                       width=lbl_w if required else None, wrap="false")]
     if required:
-        kids.append(text_ctrl(f"{name}Star", "\"*\"", size=13, color=C_REQUIRED, weight="Semibold",
+        kids.append(text_ctrl(child_name("txt", name, "Star"), "\"*\"", size=13, color=C_REQUIRED, weight="Semibold",
                               height=20, width=10, wrap="false", accessible="\"Required\""))
     return group(f"{name}Row", kids, direction="Horizontal", gap=3, height=20, align_items="Center", width=width)
 
@@ -1477,7 +1477,7 @@ def field_cell(name, label_text, input_ctrl, required=False, hint_text=None, wid
     w = width or col_width(container_w, cols, gap)
     kids = [label_row(name, label_text, required=required, cell_w=w), input_ctrl]
     if hint_text is not None:
-        kids.append(text_ctrl(f"{name}Hint", hint_text, size=12, color=C_MUTED,
+        kids.append(text_ctrl(child_name("txt", name, "Hint"), hint_text, size=12, color=C_MUTED,
                               height=32, wrap="true",
                               visible=HINTS_ON))
     # SKAERMLAESEREN SKAL HOERE ETIKETTEN, IKKE KONTROLNAVNET

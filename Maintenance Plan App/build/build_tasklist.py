@@ -317,7 +317,7 @@ def _materials_modal():
     actions = group("conVhpMatActions", [btnAdd, btnRemove], direction="Horizontal", gap=8,
                     height=36, align_items="Center")
 
-    header = Ctrl("conVhpMatHeaderHtml", "HtmlViewer", props={
+    header = Ctrl("htmVhpMatHeader", "HtmlViewer", props={
         "Fill": C_TRANSPARENT, "Height": "22", "HtmlText": _mat_header_html(),
         "PaddingBottom": "0", "PaddingLeft": "0", "PaddingRight": "0", "PaddingTop": "0",
         "Width": str(MAT_TABLE_W),
@@ -334,7 +334,7 @@ def _materials_modal():
         "OnUncheck": "Patch(colVhpMaterials, ThisItem, { Selected: false })",
         "Width": str(w["SEL"]),
     }), h=24)
-    txtNo = text_input("txtVhpMatNo", "ThisItem.MaterialNo", width=w["MATERIAL"], height=30,
+    txtNo = text_input("inpVhpMatNo", "ThisItem.MaterialNo", width=w["MATERIAL"], height=30,
                        onchange="Patch(colVhpMaterials, ThisItem, { MaterialNo: Self.Text })", label="\"Material number\"")
     # Kommer fra materialeopslaget, ikke fra brugeren.
     txtDesc = text_ctrl("txtVhpMatDesc",
@@ -614,7 +614,7 @@ def build_tasklist_section():
             "        IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey),\n"
             "        Notify(\"Select a tasklist first.\", NotificationType.Warning),\n"
             "        Clear(colVhpPickerSelected);\n"
-            "        Reset(txtVhpPickerSearch);\n"
+            "        Reset(inpVhpPickerSearch);\n"
             "        Set(varVhpTasklistPickerOpen, true)\n"
             "    )\n"
             ")"
@@ -715,7 +715,7 @@ def build_tasklist_section():
                         height=32, wrap="true",
                         visible="IfError(varVhpShowHints && !IsBlank(varVhpActiveItemId), false)")
 
-    opsHeader = Ctrl("conVhpOpsHeaderHtml", "HtmlViewer", props={
+    opsHeader = Ctrl("htmVhpOpsHeader", "HtmlViewer", props={
         "Fill": C_TRANSPARENT, "Height": "22", "HtmlText": _ops_header_html(),
         "PaddingBottom": "0", "PaddingLeft": "0", "PaddingRight": "0", "PaddingTop": "0",
         "Width": str(OPS_TABLE_W),
@@ -735,7 +735,7 @@ def build_tasklist_section():
         "Width": str(w["SEL"]),
     }), h=24)
     txtOpNo = text_ctrl("txtVhpOpNo", "ThisItem.OperationNo", size=13, height=32, width=w["OP NO."], wrap="false")
-    txtOpShort = text_input("txtVhpOpShortText", "ThisItem.OperationShortText", width=w["OPERATION SHORT TEXT"],
+    txtOpShort = text_input("inpVhpOpShortText", "ThisItem.OperationShortText", width=w["OPERATION SHORT TEXT"],
                             height=32,
                             onchange="Patch(colVhpOperations, ThisItem, { OperationShortText: Self.Text })", label="\"Operation text\"")
     # Work og No. skriver BEGGE varigheden, fordi den er regnet af dem
@@ -769,7 +769,7 @@ def build_tasklist_section():
     # skifter de andre felters regler under haanden paa en linje, SAP i
     # forvejen har bestemt. Det laeses nu - og ser graat ud som resten af
     # det, man ikke kan redigere.
-    txtOpMwc = text_input("txtVhpOpMwc", "ThisItem.MainWorkCenter", width=w["MAIN WORK CENTER"],
+    txtOpMwc = text_input("inpVhpOpMwc", "ThisItem.MainWorkCenter", width=w["MAIN WORK CENTER"],
                           height=32, display_mode="DisplayMode.View", label="\"Main work center\"")
     # Kontrolnoeglen: kun to valg at SKIFTE imellem, men listen skal
     # ogsaa kunne VISE den vaerdi, linjen allerede har - fx PM02 eller PM03
@@ -797,13 +797,13 @@ def build_tasklist_section():
     drpOpCtrl.props["OnChange"] = ("Patch(colVhpOperations, ThisItem, "
                                    "{ ControlKey: Self.Selected.Value })")
 
-    txtOpVendor = text_input("txtVhpOpVendor", "ThisItem.Vendor", width=w["VENDOR"], height=32,
+    txtOpVendor = text_input("inpVhpOpVendor", "ThisItem.Vendor", width=w["VENDOR"], height=32,
                              display_mode=DM_PURCHASE,
                              onchange="Patch(colVhpOperations, ThisItem, { Vendor: Self.Text })", label="\"Supplier\"")
     numOpCost = number_input("numVhpOpCost", "ThisItem.Cost", width=w["COST"], height=32,
                              display_mode=DM_PURCHASE, label="\"Price\"")
     numOpCost.props["OnChange"] = "Patch(colVhpOperations, ThisItem, { Cost: Self.Value })"
-    txtOpMatGrp = text_input("txtVhpOpMatGrp", "ThisItem.MaterialGroup", width=w["MAT.GRP"],
+    txtOpMatGrp = text_input("inpVhpOpMatGrp", "ThisItem.MaterialGroup", width=w["MAT.GRP"],
                              height=32, display_mode=DM_PURCHASE,
                              onchange="Patch(colVhpOperations, ThisItem, { MaterialGroup: Self.Text })", label="\"Material group\"")
     # Cellen viser begyndelsen af teksten; skrivningen sker i popup'en, hvor
@@ -823,7 +823,7 @@ def build_tasklist_section():
             "Set(varVhpLongTextItemId, ThisItem.ItemId);\n"
             "Set(varVhpLongTextOpNo, ThisItem.OperationNo);\n"
             "Set(varVhpLongTextDraft, Coalesce(ThisItem.LongText, \"\"));\n"
-            "Reset(txtVhpLongTextBox);\n"
+            "Reset(inpVhpLongTextBox);\n"
             "Set(varVhpLongTextOpen, true)"
         ),
         width=w["LONG TEXT"], height=32,
@@ -909,7 +909,7 @@ def build_tasklist_section():
     opsTotalsDivider = group("conVhpOpsTotalsDivider", [], height=1, fill=C_DIVIDER,
                              direction="Horizontal", width=str(OPS_TABLE_W),
                              visible=TOTALS_ON)
-    opsTotals = Ctrl("conVhpOpsTotalsHtml", "HtmlViewer", props={
+    opsTotals = Ctrl("htmVhpOpsTotals", "HtmlViewer", props={
         "Fill": C_TRANSPARENT, "Height": "24", "HtmlText": _ops_totals_html(),
         "PaddingBottom": "0", "PaddingLeft": "0", "PaddingRight": "0", "PaddingTop": "0",
         "Width": str(OPS_TABLE_W),

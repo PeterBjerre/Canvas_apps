@@ -481,6 +481,18 @@ _LAYOUT_ONLY = ("AlignInContainer", "LayoutMinWidth", "LayoutMaxWidth",
                 "FillPortions", "LayoutMinHeight", "LayoutMaxHeight")
 
 
+def child_name(prefix, name, suffix=""):
+    """Navnet paa en kontrol, der er AFLEDT af en anden (REVIEW.md A3).
+
+    Etiketten til cellen conVhpPlant er en ModernText og skal hedde
+    txtVhpPlantLbl - ikke conVhpPlantLbl. Praefikset (de foerste smaa
+    bogstaver) skiftes ud med kontroltypens eget; resten er basen."""
+    i = 0
+    while i < len(name) and name[i].islower():
+        i += 1
+    return prefix + name[i:] + suffix
+
+
 def _rounded_background(c, x, y, w, h, vis, fill, border, radius):
     """Baggrund MED runde hjoerner (issue #45): to ModernText-lag.
 
@@ -507,9 +519,9 @@ def _rounded_background(c, x, y, w, h, vis, fill, border, radius):
         return Ctrl(name, "ModernText", props=props, h=lh)
 
     if t == "0":
-        return [layer(c.name, x, y, w, h, fill or TRANSPARENT, radius)]
-    return [layer(c.name, x, y, w, h, border, radius),
-            layer(c.name + "Fill", f"{x} + {t}", f"{y} + {t}",
+        return [layer(child_name("txt", c.name, "Bg"), x, y, w, h, fill or TRANSPARENT, radius)]
+    return [layer(child_name("txt", c.name, "Bg"), x, y, w, h, border, radius),
+            layer(child_name("txt", c.name, "BgFill"), f"{x} + {t}", f"{y} + {t}",
                   f"({w}) - 2 * {t}", f"({h}) - 2 * {t}",
                   fill or TRANSPARENT, f"Max(0, {radius} - {t})")]
 
@@ -539,7 +551,7 @@ def _background(c, x, y, w, h, vis):
              "AccessibleLabel": "\"\""}
     if vis:
         props["Visible"] = vis
-    return [Ctrl(c.name, "Rectangle", props=props, h=h)]
+    return [Ctrl(child_name("rct", c.name, "Bg"), "Rectangle", props=props, h=h)]
 
 
 def _place(c, x, y, w, h, vis, out):

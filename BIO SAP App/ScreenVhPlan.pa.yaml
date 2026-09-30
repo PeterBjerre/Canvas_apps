@@ -405,7 +405,7 @@ Screens:
                           )
                       )
                   );
-                  Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(txtVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(tglVhpItemRevision); Reset(txtVhpItemInitials); Reset(drpVhpItemTasklist)
+                  Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(tglVhpItemRevision); Reset(inpVhpItemInitials); Reset(drpVhpItemTasklist)
               )
           );
           
@@ -632,12 +632,12 @@ Screens:
                                               d2: VhpStepItemDone && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
-                                                Trim(txtVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
                                                 (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
                                                 (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
                                                 tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(txtVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
                                         )),
                                               d3: VhpStepTasklistDone,
@@ -645,12 +645,12 @@ Screens:
                                               d5: VhpStepSaveDone && varVhpPlanLocked && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
-                                                Trim(txtVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
                                                 (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
                                                 (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
                                                 tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(txtVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
                                         )) },
                                             "Go to step 1, " & "Plan" & " - " & If(d1, "done", (!d1 && true), "current step", "not done")
@@ -667,12 +667,12 @@ Screens:
                                               d2: VhpStepItemDone && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
-                                                Trim(txtVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
                                                 (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
                                                 (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
                                                 tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(txtVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
                                         )),
                                               d3: VhpStepTasklistDone,
@@ -680,12 +680,12 @@ Screens:
                                               d5: VhpStepSaveDone && varVhpPlanLocked && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
-                                                Trim(txtVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
                                                 (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
                                                 (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
                                                 tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(txtVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
                                         )) },
                                             "data:image/svg+xml;utf8," & EncodeUrl(
@@ -713,12 +713,12 @@ Screens:
                                               d2: VhpStepItemDone && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
-                                                Trim(txtVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
                                                 (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
                                                 (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
                                                 tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(txtVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
                                         )),
                                               d3: VhpStepTasklistDone,
@@ -726,12 +726,12 @@ Screens:
                                               d5: VhpStepSaveDone && varVhpPlanLocked && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
-                                                Trim(txtVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
                                                 (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
                                                 (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
                                                 tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(txtVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
                                         )) },
                                             "Go to step 2, " & "Item" & " - " & If(d2, "done", (!d2 && d1), "current step", "not done")
@@ -748,12 +748,12 @@ Screens:
                                               d2: VhpStepItemDone && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
-                                                Trim(txtVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
                                                 (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
                                                 (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
                                                 tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(txtVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
                                         )),
                                               d3: VhpStepTasklistDone,
@@ -761,12 +761,12 @@ Screens:
                                               d5: VhpStepSaveDone && varVhpPlanLocked && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
-                                                Trim(txtVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
                                                 (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
                                                 (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
                                                 tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(txtVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
                                         )) },
                                             "data:image/svg+xml;utf8," & EncodeUrl(
@@ -795,12 +795,12 @@ Screens:
                                               d2: VhpStepItemDone && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
-                                                Trim(txtVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
                                                 (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
                                                 (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
                                                 tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(txtVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
                                         )),
                                               d3: VhpStepTasklistDone,
@@ -808,12 +808,12 @@ Screens:
                                               d5: VhpStepSaveDone && varVhpPlanLocked && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
-                                                Trim(txtVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
                                                 (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
                                                 (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
                                                 tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(txtVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
                                         )) },
                                             "Go to step 3, " & "Task list" & " - " & If(d3, "done", (!d3 && d1 && d2), "current step", "not done")
@@ -830,12 +830,12 @@ Screens:
                                               d2: VhpStepItemDone && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
-                                                Trim(txtVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
                                                 (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
                                                 (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
                                                 tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(txtVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
                                         )),
                                               d3: VhpStepTasklistDone,
@@ -843,12 +843,12 @@ Screens:
                                               d5: VhpStepSaveDone && varVhpPlanLocked && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
-                                                Trim(txtVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
                                                 (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
                                                 (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
                                                 tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(txtVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
                                         )) },
                                             "data:image/svg+xml;utf8," & EncodeUrl(
@@ -878,12 +878,12 @@ Screens:
                                               d2: VhpStepItemDone && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
-                                                Trim(txtVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
                                                 (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
                                                 (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
                                                 tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(txtVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
                                         )),
                                               d3: VhpStepTasklistDone,
@@ -891,12 +891,12 @@ Screens:
                                               d5: VhpStepSaveDone && varVhpPlanLocked && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
-                                                Trim(txtVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
                                                 (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
                                                 (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
                                                 tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(txtVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
                                         )) },
                                             "Go to step 4, " & If(varVhpPlan.PlanType = "Strategy", "Packages", "Operations") & " - " & If(d4, "done", (!d4 && d1 && d2 && d3), "current step", "not done")
@@ -913,12 +913,12 @@ Screens:
                                               d2: VhpStepItemDone && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
-                                                Trim(txtVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
                                                 (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
                                                 (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
                                                 tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(txtVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
                                         )),
                                               d3: VhpStepTasklistDone,
@@ -926,12 +926,12 @@ Screens:
                                               d5: VhpStepSaveDone && varVhpPlanLocked && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
-                                                Trim(txtVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
                                                 (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
                                                 (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
                                                 tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(txtVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
                                         )) },
                                             "data:image/svg+xml;utf8," & EncodeUrl(
@@ -961,12 +961,12 @@ Screens:
                                               d2: VhpStepItemDone && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
-                                                Trim(txtVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
                                                 (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
                                                 (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
                                                 tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(txtVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
                                         )),
                                               d3: VhpStepTasklistDone,
@@ -974,12 +974,12 @@ Screens:
                                               d5: VhpStepSaveDone && varVhpPlanLocked && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
-                                                Trim(txtVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
                                                 (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
                                                 (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
                                                 tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(txtVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
                                         )) },
                                             "Go to step 5, " & "Save" & " - " & If(d5, "done", (!d5 && d1 && d2 && d3 && d4), "current step", "not done")
@@ -996,12 +996,12 @@ Screens:
                                               d2: VhpStepItemDone && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
-                                                Trim(txtVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
                                                 (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
                                                 (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
                                                 tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(txtVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
                                         )),
                                               d3: VhpStepTasklistDone,
@@ -1009,12 +1009,12 @@ Screens:
                                               d5: VhpStepSaveDone && varVhpPlanLocked && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
-                                                Trim(txtVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
                                                 (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
                                                 (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
                                                 tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(txtVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
                                         )) },
                                             "data:image/svg+xml;utf8," & EncodeUrl(
@@ -1475,12 +1475,12 @@ Screens:
                                         =If(VhpCanSubmit && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
-                                                Trim(txtVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
                                                 (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
                                                 (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
                                                 tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(txtVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
                                         )), DisplayMode.Edit, DisplayMode.Disabled)
                                     Font: |-
@@ -1514,12 +1514,12 @@ Screens:
                                             VhpCanSubmit && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
-                                                Trim(txtVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
                                                 (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
                                                 (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
                                                 tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(txtVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
                                         )),
                                             "Submit the plan for processing.",
@@ -1528,12 +1528,12 @@ Screens:
                                             If(!VhpStepItemDone || (With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
-                                                Trim(txtVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
                                                 (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
                                                 (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
                                                 tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(txtVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
                                         )), "Save every item. ", "") &
                                             If(!VhpStepTasklistDone, "Give every item a task list. ", "") &
@@ -1689,7 +1689,7 @@ Screens:
                               Width: |-
                                   =Parent.Width
                             Children:
-                              - conVhpPlanHeadTitle:
+                              - txtVhpPlanHeadTitle:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
@@ -1847,7 +1847,7 @@ Screens:
                                         =LayoutOverflow.Hide
                                     Width: |-
                                         =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18)) - ((127) + 12) - ((83) + 12) - ((64) + 12) - 2)
-                              - conVhpPlanHeadBadge:
+                              - txtVhpPlanHeadBadge:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
@@ -1947,7 +1947,7 @@ Screens:
                               Width: |-
                                   =Parent.Width
                             Children:
-                              - conVhpPlanHelpGal:
+                              - galVhpPlanHelp:
                                   Control: Gallery
                                   Variant: Vertical
                                   Properties:
@@ -1978,7 +1978,7 @@ Screens:
                                     Width: |-
                                         =Parent.Width
                                   Children:
-                                    - conVhpPlanHelpH:
+                                    - txtVhpPlanHelpH:
                                         Control: ModernText
                                         Properties:
                                           BorderStyle: |-
@@ -2017,7 +2017,7 @@ Screens:
                                               =0 + 0
                                           Y: |-
                                               =0 + 0 + 0
-                                    - conVhpPlanHelpB:
+                                    - txtVhpPlanHelpB:
                                         Control: ModernText
                                         Properties:
                                           BorderStyle: |-
@@ -2052,7 +2052,7 @@ Screens:
                                               =0 + 0
                                           Y: |-
                                               =0 + 0 + 0 + If(!IsBlank(ThisItem.Heading), (20) + 2, 0)
-                              - conVhpPlanHelpEmpty:
+                              - txtVhpPlanHelpEmpty:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
@@ -2202,7 +2202,7 @@ Screens:
                                                 Width: |-
                                                     =Parent.Width
                                               Children:
-                                                - conVhpCellPlanTypeLbl:
+                                                - txtVhpCellPlanTypeLbl:
                                                     Control: ModernText
                                                     Properties:
                                                       AccessibleLabel: |-
@@ -2237,7 +2237,7 @@ Screens:
                                                           =Min(61, (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 60) / 4)) - 13)
                                                       Wrap: |-
                                                           =false
-                                                - conVhpCellPlanTypeStar:
+                                                - txtVhpCellPlanTypeStar:
                                                     Control: ModernText
                                                     Properties:
                                                       AccessibleLabel: |-
@@ -2339,7 +2339,7 @@ Screens:
                                                     =14
                                                 Width: |-
                                                     =Parent.Width
-                                          - conVhpCellPlanTypeHint:
+                                          - txtVhpCellPlanTypeHint:
                                               Control: ModernText
                                               Properties:
                                                 BorderStyle: |-
@@ -2402,7 +2402,7 @@ Screens:
                                           Width: |-
                                               =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 60) / 4)
                                         Children:
-                                          - conVhpCellStrategyLbl:
+                                          - txtVhpCellStrategyLbl:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
@@ -2504,7 +2504,7 @@ Screens:
                                                     =14
                                                 Width: |-
                                                     =Parent.Width
-                                          - conVhpCellStrategyHint:
+                                          - txtVhpCellStrategyHint:
                                               Control: ModernText
                                               Properties:
                                                 BorderStyle: |-
@@ -2591,7 +2591,7 @@ Screens:
                                                 Width: |-
                                                     =Parent.Width
                                               Children:
-                                                - conVhpCellPlantLbl:
+                                                - txtVhpCellPlantLbl:
                                                     Control: ModernText
                                                     Properties:
                                                       AccessibleLabel: |-
@@ -2626,7 +2626,7 @@ Screens:
                                                           =Min(32, (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 60) / 4)) - 13)
                                                       Wrap: |-
                                                           =false
-                                                - conVhpCellPlantStar:
+                                                - txtVhpCellPlantStar:
                                                     Control: ModernText
                                                     Properties:
                                                       AccessibleLabel: |-
@@ -2728,7 +2728,7 @@ Screens:
                                                     =14
                                                 Width: |-
                                                     =Parent.Width
-                                          - conVhpCellPlantHint:
+                                          - txtVhpCellPlantHint:
                                               Control: ModernText
                                               Properties:
                                                 BorderStyle: |-
@@ -2847,7 +2847,7 @@ Screens:
                                                 Width: |-
                                                     =Parent.Width
                                               Children:
-                                                - conVhpCellStatusLbl:
+                                                - txtVhpCellStatusLbl:
                                                     Control: ModernText
                                                     Properties:
                                                       AccessibleLabel: |-
@@ -2882,7 +2882,7 @@ Screens:
                                                           =Min(39, (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 60) / 4)) - 13)
                                                       Wrap: |-
                                                           =false
-                                                - conVhpCellStatusStar:
+                                                - txtVhpCellStatusStar:
                                                     Control: ModernText
                                                     Properties:
                                                       AccessibleLabel: |-
@@ -2984,7 +2984,7 @@ Screens:
                                                     =14
                                                 Width: |-
                                                     =Parent.Width
-                                          - conVhpCellStatusHint:
+                                          - txtVhpCellStatusHint:
                                               Control: ModernText
                                               Properties:
                                                 BorderStyle: |-
@@ -3074,7 +3074,7 @@ Screens:
                                                 Width: |-
                                                     =Parent.Width
                                               Children:
-                                                - conVhpCellPlanTextLbl:
+                                                - txtVhpCellPlanTextLbl:
                                                     Control: ModernText
                                                     Properties:
                                                       AccessibleLabel: |-
@@ -3109,7 +3109,7 @@ Screens:
                                                           =Min(57, (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 60) / 4)) - 13)
                                                       Wrap: |-
                                                           =false
-                                                - conVhpCellPlanTextStar:
+                                                - txtVhpCellPlanTextStar:
                                                     Control: ModernText
                                                     Properties:
                                                       AccessibleLabel: |-
@@ -3144,7 +3144,7 @@ Screens:
                                                           =10
                                                       Wrap: |-
                                                           =false
-                                          - txtVhpPlanText:
+                                          - inpVhpPlanText:
                                               Control: ModernTextInput
                                               Properties:
                                                 AccessibleLabel: |-
@@ -3195,7 +3195,7 @@ Screens:
                                                     =If(varVhpPlanValidated && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =Parent.Width
-                                          - conVhpCellPlanTextHint:
+                                          - txtVhpCellPlanTextHint:
                                               Control: ModernText
                                               Properties:
                                                 BorderStyle: |-
@@ -3260,7 +3260,7 @@ Screens:
                                           Width: |-
                                               =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 60) / 4)
                                         Children:
-                                          - conVhpCellSortFieldLbl:
+                                          - txtVhpCellSortFieldLbl:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
@@ -3358,7 +3358,7 @@ Screens:
                                                     =14
                                                 Width: |-
                                                     =Parent.Width
-                                          - conVhpCellSortFieldHint:
+                                          - txtVhpCellSortFieldHint:
                                               Control: ModernText
                                               Properties:
                                                 BorderStyle: |-
@@ -3481,7 +3481,7 @@ Screens:
                                                 Width: |-
                                                     =Parent.Width
                                               Children:
-                                                - conVhpCellCycleLbl:
+                                                - txtVhpCellCycleLbl:
                                                     Control: ModernText
                                                     Properties:
                                                       AccessibleLabel: |-
@@ -3516,7 +3516,7 @@ Screens:
                                                           =Min(34, (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 60) / 4)) - 13)
                                                       Wrap: |-
                                                           =false
-                                                - conVhpCellCycleStar:
+                                                - txtVhpCellCycleStar:
                                                     Control: ModernText
                                                     Properties:
                                                       AccessibleLabel: |-
@@ -3602,7 +3602,7 @@ Screens:
                                                     =If((varVhpPlanValidated && (drpVhpPlanType.Selected.Key <> "Strategy")) && IsBlank(Self.Value), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =Parent.Width
-                                          - conVhpCellCycleHint:
+                                          - txtVhpCellCycleHint:
                                               Control: ModernText
                                               Properties:
                                                 BorderStyle: |-
@@ -3692,7 +3692,7 @@ Screens:
                                                 Width: |-
                                                     =Parent.Width
                                               Children:
-                                                - conVhpCellUnitLbl:
+                                                - txtVhpCellUnitLbl:
                                                     Control: ModernText
                                                     Properties:
                                                       AccessibleLabel: |-
@@ -3727,7 +3727,7 @@ Screens:
                                                           =Min(26, (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 60) / 4)) - 13)
                                                       Wrap: |-
                                                           =false
-                                                - conVhpCellUnitStar:
+                                                - txtVhpCellUnitStar:
                                                     Control: ModernText
                                                     Properties:
                                                       AccessibleLabel: |-
@@ -3829,7 +3829,7 @@ Screens:
                                                     =14
                                                 Width: |-
                                                     =Parent.Width
-                                          - conVhpCellUnitHint:
+                                          - txtVhpCellUnitHint:
                                               Control: ModernText
                                               Properties:
                                                 BorderStyle: |-
@@ -3892,7 +3892,7 @@ Screens:
                                           Width: |-
                                               =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 60) / 4)
                                         Children:
-                                          - conVhpCellCallHorizonLbl:
+                                          - txtVhpCellCallHorizonLbl:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
@@ -3990,7 +3990,7 @@ Screens:
                                                     =14
                                                 Width: |-
                                                     =Parent.Width
-                                          - conVhpCellCallHorizonHint:
+                                          - txtVhpCellCallHorizonHint:
                                               Control: ModernText
                                               Properties:
                                                 BorderStyle: |-
@@ -4087,7 +4087,7 @@ Screens:
                                           Width: |-
                                               =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 60) / 4)
                                         Children:
-                                          - conVhpCellSchedIndLbl:
+                                          - txtVhpCellSchedIndLbl:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
@@ -4122,7 +4122,7 @@ Screens:
                                                     =Parent.Width
                                                 Wrap: |-
                                                     =false
-                                          - txtVhpSchedInd:
+                                          - inpVhpSchedInd:
                                               Control: ModernTextInput
                                               Properties:
                                                 AccessibleLabel: |-
@@ -4167,7 +4167,7 @@ Screens:
                                                     =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =Parent.Width
-                                          - conVhpCellSchedIndHint:
+                                          - txtVhpCellSchedIndHint:
                                               Control: ModernText
                                               Properties:
                                                 BorderStyle: |-
@@ -4230,7 +4230,7 @@ Screens:
                                           Width: |-
                                               =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 60) / 4)
                                         Children:
-                                          - conVhpCellStatutorySortFieldLbl:
+                                          - txtVhpCellStatutorySortFieldLbl:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
@@ -4265,7 +4265,7 @@ Screens:
                                                     =Parent.Width
                                                 Wrap: |-
                                                     =false
-                                          - txtVhpStatutorySortField:
+                                          - inpVhpStatutorySortField:
                                               Control: ModernTextInput
                                               Properties:
                                                 AccessibleLabel: |-
@@ -4310,7 +4310,7 @@ Screens:
                                                     =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =Parent.Width
-                                          - conVhpCellStatutorySortFieldHint:
+                                          - txtVhpCellStatutorySortFieldHint:
                                               Control: ModernText
                                               Properties:
                                                 BorderStyle: |-
@@ -4400,7 +4400,7 @@ Screens:
                                                 Width: |-
                                                     =Parent.Width
                                               Children:
-                                                - conVhpCellFirstCallLbl:
+                                                - txtVhpCellFirstCallLbl:
                                                     Control: ModernText
                                                     Properties:
                                                       AccessibleLabel: |-
@@ -4435,7 +4435,7 @@ Screens:
                                                           =Min(160, (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 60) / 4)) - 13)
                                                       Wrap: |-
                                                           =false
-                                                - conVhpCellFirstCallStar:
+                                                - txtVhpCellFirstCallStar:
                                                     Control: ModernText
                                                     Properties:
                                                       AccessibleLabel: |-
@@ -4656,7 +4656,7 @@ Screens:
                                                           =If(varVhpPlanValidated && IsBlank(Self.Value), ValidationState.Error, ValidationState.None)
                                                       Width: |-
                                                           =((If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 60) / 4) - 16) / 3)
-                                          - conVhpCellFirstCallHint:
+                                          - txtVhpCellFirstCallHint:
                                               Control: ModernText
                                               Properties:
                                                 BorderStyle: |-
@@ -4837,7 +4837,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     OnSelect: |-
-                                        =Reset(drpVhpPlanType); Reset(drpVhpStrategy); Reset(drpVhpPlant); Reset(drpVhpStatus); Reset(txtVhpPlanText); Reset(drpVhpSortField); Reset(numVhpCycle); Reset(drpVhpUnit); Reset(drpVhpCallHorizon); Reset(txtVhpSchedInd); Reset(txtVhpStatutorySortField); Reset(numVhpFirstCallDay); Reset(numVhpFirstCallMonth); Reset(numVhpFirstCallYear);
+                                        =Reset(drpVhpPlanType); Reset(drpVhpStrategy); Reset(drpVhpPlant); Reset(drpVhpStatus); Reset(inpVhpPlanText); Reset(drpVhpSortField); Reset(numVhpCycle); Reset(drpVhpUnit); Reset(drpVhpCallHorizon); Reset(inpVhpSchedInd); Reset(inpVhpStatutorySortField); Reset(numVhpFirstCallDay); Reset(numVhpFirstCallMonth); Reset(numVhpFirstCallYear);
                                         Set(varVhpPlanValidated, false);
                                         If(varVhpPlanCommitted, Set(varVhpPlanLocked, true))
                                     RadiusBottomLeft: |-
@@ -4893,7 +4893,7 @@ Screens:
                                                     IsBlank(drpVhpStatus.Selected.Value) ||
                                                     IsBlank(drpVhpPlanType.Selected.Key) ||
                                                     (isStrat && IsBlank(drpVhpStrategy.Selected.Key)) ||
-                                                    IsBlank(Trim(txtVhpPlanText.Text)) || Len(Trim(txtVhpPlanText.Text)) > 40 ||
+                                                    IsBlank(Trim(inpVhpPlanText.Text)) || Len(Trim(inpVhpPlanText.Text)) > 40 ||
                                                     (!isStrat && (IsBlank(numVhpCycle.Value) || numVhpCycle.Value <= 0)) ||
                                                     (!isStrat && IsBlank(drpVhpUnit.Selected.Value)) ||
                                                     IsBlank(numVhpFirstCallDay.Value) || numVhpFirstCallDay.Value < 1 || numVhpFirstCallDay.Value > 31 ||
@@ -4909,16 +4909,16 @@ Screens:
                                                             Status: drpVhpStatus.Selected.Value,
                                                             PlanType: drpVhpPlanType.Selected.Key,
                                                             Strategy: If(isStrat, drpVhpStrategy.Selected.Key, ""),
-                                                            PlanText: Trim(txtVhpPlanText.Text),
+                                                            PlanText: Trim(inpVhpPlanText.Text),
                                                             SortField: drpVhpSortField.Selected.Value,
                                                             Cycle: If(isStrat, 0, numVhpCycle.Value),
                                                             Unit: If(isStrat, "", drpVhpUnit.Selected.Value),
                                                             CallHorizon: drpVhpCallHorizon.Selected.Value,
-                                                            SchedulingIndicator: Trim(txtVhpSchedInd.Text),
+                                                            SchedulingIndicator: Trim(inpVhpSchedInd.Text),
                                                             FirstCallDay: numVhpFirstCallDay.Value,
                                                             FirstCallMonth: numVhpFirstCallMonth.Value,
                                                             FirstCallYear: numVhpFirstCallYear.Value,
-                                                            StatutorySortField: Trim(txtVhpStatutorySortField.Text)
+                                                            StatutorySortField: Trim(inpVhpStatutorySortField.Text)
                                                         }
                                                     );
                                                     Set(varVhpPlanCommitted, true);
@@ -4934,7 +4934,7 @@ Screens:
                                                         )
                                                     );
                                                     Notify(
-                                                        "Plan saved and locked: " & drpVhpPlant.Selected.Value & " " & Trim(txtVhpPlanText.Text) &
+                                                        "Plan saved and locked: " & drpVhpPlant.Selected.Value & " " & Trim(inpVhpPlanText.Text) &
                                                         If(isStrat, " (strategy " & drpVhpStrategy.Selected.Key & ").", "."),
                                                         NotificationType.Success
                                                     )
@@ -5078,7 +5078,7 @@ Screens:
                                     Width: |-
                                         =Parent.Width
                                   Children:
-                                    - conVhpItemsHeadTitle:
+                                    - txtVhpItemsHeadTitle:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
@@ -5176,7 +5176,7 @@ Screens:
                                               =LayoutOverflow.Hide
                                           Width: |-
                                               =Max(0, (((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), 360)) - 18 - 18)) - ((60) + 12) - (If(!IsBlank(varVhpPlan.Plant), (90) + 12, 0)) - ((64) + 12) - 2)
-                                    - conVhpItemsHeadBadge:
+                                    - txtVhpItemsHeadBadge:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
@@ -5308,7 +5308,7 @@ Screens:
                                                       )
                                                   )
                                               );
-                                                  Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(txtVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(tglVhpItemRevision); Reset(txtVhpItemInitials); Reset(drpVhpItemTasklist);
+                                                  Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(tglVhpItemRevision); Reset(inpVhpItemInitials); Reset(drpVhpItemTasklist);
                                                   Notify("Item " & Text(varVhpNextItemId) & " added.", NotificationType.Success)
                                               )
                                           RadiusBottomLeft: |-
@@ -5434,7 +5434,7 @@ Screens:
                                                       )
                                                   )
                                               );
-                                                      Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(txtVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(tglVhpItemRevision); Reset(txtVhpItemInitials); Reset(drpVhpItemTasklist);
+                                                      Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(tglVhpItemRevision); Reset(inpVhpItemInitials); Reset(drpVhpItemTasklist);
                                                       Notify("Item copied. Functional Location cleared on the copied item.", NotificationType.Success)
                                                   )
                                               )
@@ -5491,7 +5491,7 @@ Screens:
                                     WrapCount: |-
                                         =1
                                   Children:
-                                    - conVhpItemCard:
+                                    - txtVhpItemCardBg:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
@@ -5528,7 +5528,7 @@ Screens:
                                               =0
                                           Y: |-
                                               =0
-                                    - conVhpItemCardFill:
+                                    - txtVhpItemCardBgFill:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
@@ -5761,7 +5761,7 @@ Screens:
                                                       )
                                                   )
                                               );
-                                              Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(txtVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(tglVhpItemRevision); Reset(txtVhpItemInitials); Reset(drpVhpItemTasklist)
+                                              Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(tglVhpItemRevision); Reset(inpVhpItemInitials); Reset(drpVhpItemTasklist)
                                           PressedBorderColor: |-
                                               =C.'color-brand-primary'
                                           PressedColor: |-
@@ -5820,7 +5820,7 @@ Screens:
                                                   If(
                                                       varVhpActiveItemId = id,
                                                       Set(varVhpActiveItemId, If(CountRows(colVhpItems) > 0, First(colVhpItems).ItemId, Blank()));
-                                                      Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(txtVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(tglVhpItemRevision); Reset(txtVhpItemInitials); Reset(drpVhpItemTasklist)
+                                                      Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(tglVhpItemRevision); Reset(inpVhpItemInitials); Reset(drpVhpItemTasklist)
                                                   );
                                                   Notify("Item " & Text(id) & " deleted.", NotificationType.Success)
                                               )
@@ -5957,7 +5957,7 @@ Screens:
                                     Width: |-
                                         =Parent.Width
                                   Children:
-                                    - conVhpEditorHeadTitle:
+                                    - txtVhpEditorHeadTitle:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
@@ -6073,7 +6073,7 @@ Screens:
                                     Width: |-
                                         =Parent.Width
                                   Children:
-                                    - conVhpItemHelpGal:
+                                    - galVhpItemHelp:
                                         Control: Gallery
                                         Variant: Vertical
                                         Properties:
@@ -6104,7 +6104,7 @@ Screens:
                                           Width: |-
                                               =Parent.Width
                                         Children:
-                                          - conVhpItemHelpH:
+                                          - txtVhpItemHelpH:
                                               Control: ModernText
                                               Properties:
                                                 BorderStyle: |-
@@ -6143,7 +6143,7 @@ Screens:
                                                     =0 + 0
                                                 Y: |-
                                                     =0 + 0 + 0
-                                          - conVhpItemHelpB:
+                                          - txtVhpItemHelpB:
                                               Control: ModernText
                                               Properties:
                                                 BorderStyle: |-
@@ -6178,7 +6178,7 @@ Screens:
                                                     =0 + 0
                                                 Y: |-
                                                     =0 + 0 + 0 + If(!IsBlank(ThisItem.Heading), (20) + 2, 0)
-                                    - conVhpItemHelpEmpty:
+                                    - txtVhpItemHelpEmpty:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
@@ -6328,7 +6328,7 @@ Screens:
                                                       Width: |-
                                                           =Parent.Width
                                                     Children:
-                                                      - conVhpCellItemShortTextLbl:
+                                                      - txtVhpCellItemShortTextLbl:
                                                           Control: ModernText
                                                           Properties:
                                                             AccessibleLabel: |-
@@ -6363,7 +6363,7 @@ Screens:
                                                                 =Min(96, (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36), ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36) - 20) / 2)) - 13)
                                                             Wrap: |-
                                                                 =false
-                                                      - conVhpCellItemShortTextStar:
+                                                      - txtVhpCellItemShortTextStar:
                                                           Control: ModernText
                                                           Properties:
                                                             AccessibleLabel: |-
@@ -6398,7 +6398,7 @@ Screens:
                                                                 =10
                                                             Wrap: |-
                                                                 =false
-                                                - txtVhpItemShortText:
+                                                - inpVhpItemShortText:
                                                     Control: ModernTextInput
                                                     Properties:
                                                       AccessibleLabel: |-
@@ -6449,7 +6449,7 @@ Screens:
                                                           =If(varVhpItemValidated && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                                       Width: |-
                                                           =Parent.Width
-                                                - conVhpCellItemShortTextHint:
+                                                - txtVhpCellItemShortTextHint:
                                                     Control: ModernText
                                                     Properties:
                                                       BorderStyle: |-
@@ -6539,7 +6539,7 @@ Screens:
                                                       Width: |-
                                                           =Parent.Width
                                                     Children:
-                                                      - conVhpCellItemMwcLbl:
+                                                      - txtVhpCellItemMwcLbl:
                                                           Control: ModernText
                                                           Properties:
                                                             AccessibleLabel: |-
@@ -6574,7 +6574,7 @@ Screens:
                                                                 =Min(115, (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36), ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36) - 20) / 2)) - 13)
                                                             Wrap: |-
                                                                 =false
-                                                      - conVhpCellItemMwcStar:
+                                                      - txtVhpCellItemMwcStar:
                                                           Control: ModernText
                                                           Properties:
                                                             AccessibleLabel: |-
@@ -6690,7 +6690,7 @@ Screens:
                                                           =14
                                                       Width: |-
                                                           =Parent.Width
-                                                - conVhpCellItemMwcHint:
+                                                - txtVhpCellItemMwcHint:
                                                     Control: ModernText
                                                     Properties:
                                                       BorderStyle: |-
@@ -6780,7 +6780,7 @@ Screens:
                                                       Width: |-
                                                           =Parent.Width
                                                     Children:
-                                                      - conVhpCellItemActLbl:
+                                                      - txtVhpCellItemActLbl:
                                                           Control: ModernText
                                                           Properties:
                                                             AccessibleLabel: |-
@@ -6815,7 +6815,7 @@ Screens:
                                                                 =Min(166, (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36), ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36) - 20) / 2)) - 13)
                                                             Wrap: |-
                                                                 =false
-                                                      - conVhpCellItemActStar:
+                                                      - txtVhpCellItemActStar:
                                                           Control: ModernText
                                                           Properties:
                                                             AccessibleLabel: |-
@@ -6917,7 +6917,7 @@ Screens:
                                                           =14
                                                       Width: |-
                                                           =Parent.Width
-                                                - conVhpCellItemActHint:
+                                                - txtVhpCellItemActHint:
                                                     Control: ModernText
                                                     Properties:
                                                       BorderStyle: |-
@@ -7015,7 +7015,7 @@ Screens:
                                                 Width: |-
                                                     =If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36), ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36) - 20) / 2)
                                               Children:
-                                                - conVhpCellItemRevisionLbl:
+                                                - txtVhpCellItemRevisionLbl:
                                                     Control: ModernText
                                                     Properties:
                                                       AccessibleLabel: |-
@@ -7099,7 +7099,7 @@ Screens:
                                                           ="Yes"
                                                       Width: |-
                                                           =96
-                                                - conVhpCellItemRevisionHint:
+                                                - txtVhpCellItemRevisionHint:
                                                     Control: ModernText
                                                     Properties:
                                                       BorderStyle: |-
@@ -7162,7 +7162,7 @@ Screens:
                                                 Width: |-
                                                     =If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36), ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36) - 20) / 2)
                                               Children:
-                                                - conVhpCellItemInitialsLbl:
+                                                - txtVhpCellItemInitialsLbl:
                                                     Control: ModernText
                                                     Properties:
                                                       AccessibleLabel: |-
@@ -7197,7 +7197,7 @@ Screens:
                                                           =Parent.Width
                                                       Wrap: |-
                                                           =false
-                                                - txtVhpItemInitials:
+                                                - inpVhpItemInitials:
                                                     Control: ModernTextInput
                                                     Properties:
                                                       AccessibleLabel: |-
@@ -7244,7 +7244,7 @@ Screens:
                                                           =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                                       Width: |-
                                                           =Parent.Width
-                                                - conVhpCellItemInitialsHint:
+                                                - txtVhpCellItemInitialsHint:
                                                     Control: ModernText
                                                     Properties:
                                                       BorderStyle: |-
@@ -7307,7 +7307,7 @@ Screens:
                                                 Width: |-
                                                     =If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36), ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36) - 20) / 2)
                                               Children:
-                                                - conVhpCellItemLongTextLbl:
+                                                - txtVhpCellItemLongTextLbl:
                                                     Control: ModernText
                                                     Properties:
                                                       AccessibleLabel: |-
@@ -7375,7 +7375,7 @@ Screens:
                                                           =Set(varVhpLongTextTarget, "item");
                                                           Set(varVhpLongTextItemId, varVhpActiveItemId);
                                                           Set(varVhpLongTextDraft, Coalesce(LookUp(colVhpItems, ItemId = varVhpActiveItemId).LongText, ""));
-                                                          Reset(txtVhpLongTextBox);
+                                                          Reset(inpVhpLongTextBox);
                                                           Set(varVhpLongTextOpen, true)
                                                       RadiusBottomLeft: |-
                                                           =10
@@ -7395,7 +7395,7 @@ Screens:
                                                           =VerticalAlign.Middle
                                                       Width: |-
                                                           =158
-                                                - conVhpCellItemLongTextHint:
+                                                - txtVhpCellItemLongTextHint:
                                                     Control: ModernText
                                                     Properties:
                                                       BorderStyle: |-
@@ -7485,7 +7485,7 @@ Screens:
                                           Width: |-
                                               =Parent.Width
                                         Children:
-                                          - conVhpItemFlLabelLbl:
+                                          - txtVhpItemFlLabelLbl:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
@@ -7520,7 +7520,7 @@ Screens:
                                                     =123
                                                 Wrap: |-
                                                     =false
-                                          - conVhpItemFlLabelStar:
+                                          - txtVhpItemFlLabelStar:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
@@ -8110,7 +8110,7 @@ Screens:
                                                       )
                                                   )
                                               );
-                                              Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(txtVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(tglVhpItemRevision); Reset(txtVhpItemInitials); Reset(drpVhpItemTasklist)
+                                              Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(tglVhpItemRevision); Reset(inpVhpItemInitials); Reset(drpVhpItemTasklist)
                                           RadiusBottomLeft: |-
                                               =10
                                           RadiusBottomRight: |-
@@ -8159,7 +8159,7 @@ Screens:
                                               
                                                   Set(varVhpItemValidated, true);
                                                   If(
-                                                      IsBlank(Trim(txtVhpItemShortText.Text)) || Len(Trim(txtVhpItemShortText.Text)) > 40 ||
+                                                      IsBlank(Trim(inpVhpItemShortText.Text)) || Len(Trim(inpVhpItemShortText.Text)) > 40 ||
                                                       IsBlank(drpVhpItemMainWorkCenter.Selected.Value) ||
                                                       IsBlank(drpVhpItemActivityType.Selected.Value) ||
                                                       IsBlank(cmbVhpItemFL.Selected.Code),
@@ -8172,14 +8172,14 @@ Screens:
                                                               colVhpItems,
                                                               ItemId = varVhpActiveItemId,
                                                               {
-                                                                  ShortText: Trim(txtVhpItemShortText.Text),
+                                                                  ShortText: Trim(inpVhpItemShortText.Text),
                                                                   FunctionalLocation: code,
                                                                   FlDescription: cmbVhpItemFL.Selected.Description,
                                                                   MainWorkCenter: drpVhpItemMainWorkCenter.Selected.Value,
                                                                   ActivityType: drpVhpItemActivityType.Selected.Value,
                                                                   ObjectList: Concat(Sort(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), Code), Code, "; "),
                                                                   Revision: If(tglVhpItemRevision.Value, First(colVhpRevisionOptions).Value, ""),
-                                                                  Initials: Trim(txtVhpItemInitials.Text),
+                                                                  Initials: Trim(inpVhpItemInitials.Text),
                                                                   Status: "valid"
                                                               }
                                                           )
@@ -8190,7 +8190,7 @@ Screens:
                                                               "Item " & Text(varVhpActiveItemId) & " is not in the list - nothing was saved.",
                                                               NotificationType.Error
                                                           ),
-                                                          Notify("Item saved: " & Trim(txtVhpItemShortText.Text) & ".", NotificationType.Success)
+                                                          Notify("Item saved: " & Trim(inpVhpItemShortText.Text) & ".", NotificationType.Success)
                                                       )
                                                   )
                                               )
@@ -8296,7 +8296,7 @@ Screens:
                               Width: |-
                                   =Parent.Width
                             Children:
-                              - conVhpOpsHeadTitle:
+                              - txtVhpOpsHeadTitle:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
@@ -8359,7 +8359,7 @@ Screens:
                                         =LayoutOverflow.Hide
                                     Width: |-
                                         =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18)) - ((250) + 12) - ((64) + 12) - 2)
-                              - conVhpOpsHeadBadge:
+                              - txtVhpOpsHeadBadge:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
@@ -8459,7 +8459,7 @@ Screens:
                               Width: |-
                                   =Parent.Width
                             Children:
-                              - conVhpOpsHelpGal:
+                              - galVhpOpsHelp:
                                   Control: Gallery
                                   Variant: Vertical
                                   Properties:
@@ -8490,7 +8490,7 @@ Screens:
                                     Width: |-
                                         =Parent.Width
                                   Children:
-                                    - conVhpOpsHelpH:
+                                    - txtVhpOpsHelpH:
                                         Control: ModernText
                                         Properties:
                                           BorderStyle: |-
@@ -8529,7 +8529,7 @@ Screens:
                                               =0 + 0
                                           Y: |-
                                               =0 + 0 + 0
-                                    - conVhpOpsHelpB:
+                                    - txtVhpOpsHelpB:
                                         Control: ModernText
                                         Properties:
                                           BorderStyle: |-
@@ -8564,7 +8564,7 @@ Screens:
                                               =0 + 0
                                           Y: |-
                                               =0 + 0 + 0 + If(!IsBlank(ThisItem.Heading), (20) + 2, 0)
-                              - conVhpOpsHelpEmpty:
+                              - txtVhpOpsHelpEmpty:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
@@ -8835,7 +8835,7 @@ Screens:
                                                 Width: |-
                                                     =Parent.Width
                                               Children:
-                                                - conVhpCellTasklistLbl:
+                                                - txtVhpCellTasklistLbl:
                                                     Control: ModernText
                                                     Properties:
                                                       AccessibleLabel: |-
@@ -8870,7 +8870,7 @@ Screens:
                                                           =Min(144, (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360)) - 13)
                                                       Wrap: |-
                                                           =false
-                                                - conVhpCellTasklistStar:
+                                                - txtVhpCellTasklistStar:
                                                     Control: ModernText
                                                     Properties:
                                                       AccessibleLabel: |-
@@ -9121,7 +9121,7 @@ Screens:
                                                             IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey),
                                                             Notify("Select a tasklist first.", NotificationType.Warning),
                                                             Clear(colVhpPickerSelected);
-                                                            Reset(txtVhpPickerSearch);
+                                                            Reset(inpVhpPickerSearch);
                                                             Set(varVhpTasklistPickerOpen, true)
                                                         )
                                                     )
@@ -9383,7 +9383,7 @@ Screens:
                                     Width: |-
                                         =Parent.Width
                                   Children:
-                                    - conVhpOpsHeaderHtml:
+                                    - htmVhpOpsHeader:
                                         Control: HtmlViewer
                                         Properties:
                                           Fill: |-
@@ -9531,7 +9531,7 @@ Screens:
                                                     =0 + 0 + 0 + (30) + 10
                                                 Y: |-
                                                     =0 + 0 + ((((38) - 2) - 0 - 0) - (32)) / 2
-                                          - txtVhpOpShortText:
+                                          - inpVhpOpShortText:
                                               Control: ModernTextInput
                                               Properties:
                                                 AccessibleLabel: |-
@@ -9736,7 +9736,7 @@ Screens:
                                                     =0 + 0 + 0 + (30) + 10 + (60) + 10 + (200) + 10 + (64) + 10 + (50) + 10
                                                 Y: |-
                                                     =0 + 0 + ((((38) - 2) - 0 - 0) - (32)) / 2
-                                          - txtVhpOpMwc:
+                                          - inpVhpOpMwc:
                                               Control: ModernTextInput
                                               Properties:
                                                 AccessibleLabel: |-
@@ -9872,7 +9872,7 @@ Screens:
                                                     =0 + 0 + 0 + (30) + 10 + (60) + 10 + (200) + 10 + (64) + 10 + (50) + 10 + (64) + 10 + (110) + 10
                                                 Y: |-
                                                     =0 + 0 + ((((38) - 2) - 0 - 0) - (32)) / 2
-                                          - txtVhpOpVendor:
+                                          - inpVhpOpVendor:
                                               Control: ModernTextInput
                                               Properties:
                                                 AccessibleLabel: |-
@@ -9970,7 +9970,7 @@ Screens:
                                                     =0 + 0 + 0 + (30) + 10 + (60) + 10 + (200) + 10 + (64) + 10 + (50) + 10 + (64) + 10 + (110) + 10 + (90) + 10 + (110) + 10
                                                 Y: |-
                                                     =0 + 0 + ((((38) - 2) - 0 - 0) - (32)) / 2
-                                          - txtVhpOpMatGrp:
+                                          - inpVhpOpMatGrp:
                                               Control: ModernTextInput
                                               Properties:
                                                 AccessibleLabel: |-
@@ -10047,7 +10047,7 @@ Screens:
                                                     Set(varVhpLongTextItemId, ThisItem.ItemId);
                                                     Set(varVhpLongTextOpNo, ThisItem.OperationNo);
                                                     Set(varVhpLongTextDraft, Coalesce(ThisItem.LongText, ""));
-                                                    Reset(txtVhpLongTextBox);
+                                                    Reset(inpVhpLongTextBox);
                                                     Set(varVhpLongTextOpen, true)
                                                 RadiusBottomLeft: |-
                                                     =10
@@ -10234,7 +10234,7 @@ Screens:
                                               =IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false)
                                           Width: |-
                                               =1568
-                                    - conVhpOpsTotalsHtml:
+                                    - htmVhpOpsTotals:
                                         Control: HtmlViewer
                                         Properties:
                                           Fill: |-
@@ -10392,7 +10392,7 @@ Screens:
                                     Width: |-
                                         =Parent.Width
                                   Children:
-                                    - conVhpPkgHelpGal:
+                                    - galVhpPkgHelp:
                                         Control: Gallery
                                         Variant: Vertical
                                         Properties:
@@ -10423,7 +10423,7 @@ Screens:
                                           Width: |-
                                               =Parent.Width
                                         Children:
-                                          - conVhpPkgHelpH:
+                                          - txtVhpPkgHelpH:
                                               Control: ModernText
                                               Properties:
                                                 BorderStyle: |-
@@ -10462,7 +10462,7 @@ Screens:
                                                     =0 + 0
                                                 Y: |-
                                                     =0 + 0 + 0
-                                          - conVhpPkgHelpB:
+                                          - txtVhpPkgHelpB:
                                               Control: ModernText
                                               Properties:
                                                 BorderStyle: |-
@@ -10497,7 +10497,7 @@ Screens:
                                                     =0 + 0
                                                 Y: |-
                                                     =0 + 0 + 0 + If(!IsBlank(ThisItem.Heading), (20) + 2, 0)
-                                    - conVhpPkgHelpEmpty:
+                                    - txtVhpPkgHelpEmpty:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
@@ -12097,7 +12097,7 @@ Screens:
                   Width: |-
                       =Parent.Width
                 Children:
-                  - txtVhpPickerSearch:
+                  - inpVhpPickerSearch:
                       Control: ModernTextInput
                       Properties:
                         AccessibleLabel: |-
@@ -12154,13 +12154,13 @@ Screens:
                         Default: |-
                             =IfError(CountRows(Filter(
                                 LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
-                                IsBlank(Trim(txtVhpPickerSearch.Text)) || Trim(txtVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
+                                IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
                             )) > 0 && CountRows(Filter(Filter(
                                 LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
-                                IsBlank(Trim(txtVhpPickerSearch.Text)) || Trim(txtVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
+                                IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
                             ) As VOP, CountRows(Filter(colVhpPickerSelected, OperationNo = VOP.OperationNo)) > 0)) = CountRows(Filter(
                                 LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
-                                IsBlank(Trim(txtVhpPickerSearch.Text)) || Trim(txtVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
+                                IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
                             )), false)
                         Font: |-
                             =Font.'Segoe UI'
@@ -12175,7 +12175,7 @@ Screens:
                                     Filter(
                                         Filter(
                                 LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
-                                IsBlank(Trim(txtVhpPickerSearch.Text)) || Trim(txtVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
+                                IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
                             ) As VOP,
                                         CountRows(Filter(colVhpPickerSelected, OperationNo = VOP.OperationNo)) = 0
                                     ) As NEW,
@@ -12189,7 +12189,7 @@ Screens:
                                     colVhpPickerSelected As SEL,
                                     CountRows(Filter(Filter(
                                 LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
-                                IsBlank(Trim(txtVhpPickerSearch.Text)) || Trim(txtVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
+                                IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
                             ) As VOP, VOP.OperationNo = SEL.OperationNo)) > 0
                                 )
                             )
@@ -12225,10 +12225,10 @@ Screens:
                   Text: |-
                       =Text(CountRows(Filter(Filter(
                           LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
-                          IsBlank(Trim(txtVhpPickerSearch.Text)) || Trim(txtVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
+                          IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
                       ) As VOP, CountRows(Filter(colVhpPickerSelected, OperationNo = VOP.OperationNo)) > 0))) & "/" & Text(CountRows(Filter(
                           LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
-                          IsBlank(Trim(txtVhpPickerSearch.Text)) || Trim(txtVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
+                          IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
                       ))) & " visible selected (" & Text(CountRows(colVhpPickerSelected)) & " total selected)."
                   Wrap: |-
                       =false
@@ -12259,7 +12259,7 @@ Screens:
                   Width: |-
                       =636
                 Children:
-                  - conVhpPickerHeaderHtml:
+                  - htmVhpPickerHeader:
                       Control: HtmlViewer
                       Properties:
                         Fill: |-
@@ -12323,7 +12323,7 @@ Screens:
                         Items: |-
                             =Filter(
                                 LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
-                                IsBlank(Trim(txtVhpPickerSearch.Text)) || Trim(txtVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
+                                IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
                             )
                         LayoutMinWidth: |-
                             =0
@@ -12933,7 +12933,7 @@ Screens:
                       ="The long text follows the operation to SAP. Write the instruction as the technician needs to read it - steps, safety notes and references."
                   Wrap: |-
                       =true
-            - txtVhpLongTextBox:
+            - inpVhpLongTextBox:
                 Control: ModernTextInput
                 Properties:
                   AccessibleLabel: |-
@@ -13034,11 +13034,11 @@ Screens:
                             =If(
                                 varVhpLongTextTarget = "item",
                                 UpdateIf(colVhpItems, ItemId = varVhpLongTextItemId,
-                                         { LongText: Trim(txtVhpLongTextBox.Text) }),
+                                         { LongText: Trim(inpVhpLongTextBox.Text) }),
                                 UpdateIf(
                                     colVhpOperations,
                                     ItemId = varVhpLongTextItemId && OperationNo = varVhpLongTextOpNo,
-                                    { LongText: txtVhpLongTextBox.Text }
+                                    { LongText: inpVhpLongTextBox.Text }
                                 )
                             );
                             Set(varVhpLongTextOpen, false)
@@ -13297,7 +13297,7 @@ Screens:
                   WrapCount: |-
                       =1
                 Children:
-                  - conVhpObjRow:
+                  - rctVhpObjRowBg:
                       Control: Rectangle
                       Properties:
                         AccessibleLabel: |-
@@ -13886,7 +13886,7 @@ Screens:
                   Width: |-
                       =Parent.Width
                 Children:
-                  - conVhpMatHeaderHtml:
+                  - htmVhpMatHeader:
                       Control: HtmlViewer
                       Properties:
                         Fill: |-
@@ -13997,7 +13997,7 @@ Screens:
                                   =0 + 0 + 0
                               Y: |-
                                   =0 + 0 + ((((36) - 1) - 0 - 0) - (24)) / 2
-                        - txtVhpMatNo:
+                        - inpVhpMatNo:
                             Control: ModernTextInput
                             Properties:
                               AccessibleLabel: |-
