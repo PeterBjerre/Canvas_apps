@@ -28,7 +28,7 @@ skal gemmes og genindlæses:
 | `CallHorizon` | `55 Dage (1 YR)` |
 | `SchedulingIndicator` | `TIME` / `PERFORMANCE` |
 | `FirstCallDay` / `FirstCallMonth` / `FirstCallYear` | `1` / `1` / `2027` |
-| `StatutorySortField` | |
+| `StatutorySortField` | Ingen kolonne i SharePoint - feltet er fjernet fra appen (REVIEW.md D12) |
 
 **Formodning:** det er `MaintenancePlans` (34 rækker). Skal bekræftes.
 

@@ -170,6 +170,11 @@ def save_action(submit=False):
         "                varVhpPlan.FirstCallYear, varVhpPlan.FirstCallMonth, varVhpPlan.FirstCallDay\n"
         "            ),\n"
         "            StrategyKey: varVhpPlan.Strategy,\n"
+        # JA/NEJ-valget (REVIEW.md D12). Tomt valg skriver ingenting.
+        "            SchedulingIndicator: If(\n"
+        "                IsBlank(varVhpPlan.SchedulingIndicator), Blank(),\n"
+        "                { Value: varVhpPlan.SchedulingIndicator }\n"
+        "            ),\n"
         # CallHorizon skrives IKKE. Se docstringen oeverst.
         "            SchedulingPeriod: LookUp(\n"
         "                colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon\n"

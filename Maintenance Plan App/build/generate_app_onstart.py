@@ -63,8 +63,7 @@ VARS_BLOCK = """Set(
         SchedulingIndicator: "",
         FirstCallDay: Day(Today()),
         FirstCallMonth: Month(Today()),
-        FirstCallYear: Year(Today()) + 1,
-        StatutorySortField: ""
+        FirstCallYear: Year(Today()) + 1
     }
 );
 

@@ -87,7 +87,6 @@ PLAN_FIELDS = [
     ("FirstCallDay", "Day(pl.PlannedDate)"),
     ("FirstCallMonth", "Month(pl.PlannedDate)"),
     ("FirstCallYear", "Year(pl.PlannedDate)"),
-    ("StatutorySortField", '""'),
 ]
 
 # --- felt for felt, som modstykke til build_save ---------------------------

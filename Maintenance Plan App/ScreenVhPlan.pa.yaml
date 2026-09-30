@@ -755,6 +755,10 @@ Screens:
                                                         varVhpPlan.FirstCallYear, varVhpPlan.FirstCallMonth, varVhpPlan.FirstCallDay
                                                     ),
                                                     StrategyKey: varVhpPlan.Strategy,
+                                                    SchedulingIndicator: If(
+                                                        IsBlank(varVhpPlan.SchedulingIndicator), Blank(),
+                                                        { Value: varVhpPlan.SchedulingIndicator }
+                                                    ),
                                                     SchedulingPeriod: LookUp(
                                                         colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon
                                                     ).SchedPeriod,
@@ -1222,7 +1226,7 @@ Screens:
                             )), 1) * 88) + If(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "plan" && Kind = "Panel"),
                                 Ord
-                            )) = 0, 4 + (32), 0)), 0) + 10 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + 60, Max((0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))))))
+                            )) = 0, 4 + (32), 0)), 0) + 10 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + 60, Max((0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))))))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -1691,7 +1695,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + 60, Max((0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + 60, Max((0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -3634,7 +3638,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))
+                                        =0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Stretch
                                     LayoutDirection: |-
@@ -3714,49 +3718,67 @@ Screens:
                                                     =Parent.Width
                                                 Wrap: |-
                                                     =false
-                                          - inpVhpSchedInd:
-                                              Control: ModernTextInput
+                                          - drpVhpSchedInd:
+                                              Control: Classic/DropDown
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Scheduling Indicator"
-                                                Appearance: |-
-                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                                BasePaletteColor: |-
-                                                    =C.'color-brand-primary'
+                                                AllowEmptySelection: |-
+                                                    =true
                                                 BorderColor: |-
                                                     =C.'border-default'
                                                 BorderStyle: |-
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
                                                     =1
+                                                ChevronBackground: |-
+                                                    =If(If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                ChevronDisabledBackground: |-
+                                                    =C.'input-bg-disabled'
+                                                ChevronDisabledFill: |-
+                                                    =C.'text-muted'
+                                                ChevronFill: |-
+                                                    =C.'text-primary'
+                                                ChevronHoverBackground: |-
+                                                    =C.'color-brand-primary-soft'
+                                                ChevronHoverFill: |-
+                                                    =C.'text-primary'
                                                 Color: |-
-                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
+                                                    =C.'text-primary'
                                                 Default: |-
-                                                    =varVhpPlan.SchedulingIndicator
+                                                    =LookUp(colVhpYesNoOptions, Value = varVhpPlan.SchedulingIndicator).Value
+                                                DisabledColor: |-
+                                                    =C.'text-muted'
+                                                DisabledFill: |-
+                                                    =C.'input-bg-disabled'
                                                 DisplayMode: |-
-                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                    =If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)
                                                 Fill: |-
                                                     =If(If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =36
-                                                LayoutMinWidth: |-
-                                                    =0
-                                                Placeholder: |-
-                                                    =""
-                                                RadiusBottomLeft: |-
-                                                    =10
-                                                RadiusBottomRight: |-
-                                                    =10
-                                                RadiusTopLeft: |-
-                                                    =10
-                                                RadiusTopRight: |-
-                                                    =10
+                                                HoverColor: |-
+                                                    =C.'text-primary'
+                                                HoverFill: |-
+                                                    =C.'color-brand-primary-soft'
+                                                Items: |-
+                                                    =colVhpYesNoOptions
+                                                Items.Value: |-
+                                                    =Value
+                                                PaddingLeft: |-
+                                                    =12
+                                                PressedColor: |-
+                                                    =C.'text-on-primary'
+                                                PressedFill: |-
+                                                    =C.'color-brand-primary'
+                                                SelectionColor: |-
+                                                    =C.'text-on-primary'
+                                                SelectionFill: |-
+                                                    =C.'color-brand-primary'
                                                 Size: |-
                                                     =14
-                                                ValidationState: |-
-                                                    =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =Parent.Width
                                           - txtVhpCellSchedIndHint:
@@ -3787,149 +3809,6 @@ Screens:
                                                 Text: |-
                                                     =Coalesce(
                                                         LookUp(colVhpHelp, Key = "SchedInd" && Kind = "Hint").Body,
-                                                        ""
-                                                    )
-                                                Visible: |-
-                                                    =IfError(varVhpShowHints, false)
-                                                Wrap: |-
-                                                    =true
-                                    - conVhpCellStatutorySortField:
-                                        Control: GroupContainer
-                                        Variant: AutoLayout
-                                        Properties:
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Start
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          DropShadow: |-
-                                              =DropShadow.None
-                                          FillPortions: |-
-                                              =0
-                                          Height: |-
-                                              =62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)
-                                          LayoutAlignItems: |-
-                                              =LayoutAlignItems.Stretch
-                                          LayoutDirection: |-
-                                              =LayoutDirection.Vertical
-                                          LayoutGap: |-
-                                              =6
-                                          LayoutMinWidth: |-
-                                              =0
-                                          LayoutOverflowX: |-
-                                              =LayoutOverflow.Hide
-                                          LayoutOverflowY: |-
-                                              =LayoutOverflow.Hide
-                                          Width: |-
-                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 60) / 4)
-                                        Children:
-                                          - txtVhpCellStatutorySortFieldLbl:
-                                              Control: ModernText
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    ="Statutory Sort Field"
-                                                BorderStyle: |-
-                                                    =BorderStyle.None
-                                                BorderThickness: |-
-                                                    =0
-                                                Color: |-
-                                                    =C.'text-primary'
-                                                Fill: |-
-                                                    =RGBA(0, 0, 0, 0)
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                FontWeight: |-
-                                                    =FontWeight.Semibold
-                                                Height: |-
-                                                    =20
-                                                PaddingBottom: |-
-                                                    =0
-                                                PaddingLeft: |-
-                                                    =0
-                                                PaddingRight: |-
-                                                    =0
-                                                PaddingTop: |-
-                                                    =0
-                                                Size: |-
-                                                    =13
-                                                Text: |-
-                                                    ="Statutory Sort Field"
-                                                Width: |-
-                                                    =Parent.Width
-                                                Wrap: |-
-                                                    =false
-                                          - inpVhpStatutorySortField:
-                                              Control: ModernTextInput
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    ="Statutory Sort Field"
-                                                Appearance: |-
-                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                                BasePaletteColor: |-
-                                                    =C.'color-brand-primary'
-                                                BorderColor: |-
-                                                    =C.'border-default'
-                                                BorderStyle: |-
-                                                    =BorderStyle.Solid
-                                                BorderThickness: |-
-                                                    =1
-                                                Color: |-
-                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
-                                                Default: |-
-                                                    =varVhpPlan.StatutorySortField
-                                                DisplayMode: |-
-                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
-                                                Fill: |-
-                                                    =If(If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                Height: |-
-                                                    =36
-                                                LayoutMinWidth: |-
-                                                    =0
-                                                Placeholder: |-
-                                                    =""
-                                                RadiusBottomLeft: |-
-                                                    =10
-                                                RadiusBottomRight: |-
-                                                    =10
-                                                RadiusTopLeft: |-
-                                                    =10
-                                                RadiusTopRight: |-
-                                                    =10
-                                                Size: |-
-                                                    =14
-                                                ValidationState: |-
-                                                    =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
-                                                Width: |-
-                                                    =Parent.Width
-                                          - txtVhpCellStatutorySortFieldHint:
-                                              Control: ModernText
-                                              Properties:
-                                                BorderStyle: |-
-                                                    =BorderStyle.None
-                                                BorderThickness: |-
-                                                    =0
-                                                Color: |-
-                                                    =C.'text-muted'
-                                                Fill: |-
-                                                    =RGBA(0, 0, 0, 0)
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                Height: |-
-                                                    =32
-                                                PaddingBottom: |-
-                                                    =0
-                                                PaddingLeft: |-
-                                                    =0
-                                                PaddingRight: |-
-                                                    =0
-                                                PaddingTop: |-
-                                                    =0
-                                                Size: |-
-                                                    =12
-                                                Text: |-
-                                                    =Coalesce(
-                                                        LookUp(colVhpHelp, Key = "StatutorySortField" && Kind = "Hint").Body,
                                                         ""
                                                     )
                                                 Visible: |-
@@ -4429,7 +4308,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     OnSelect: |-
-                                        =Reset(drpVhpPlanType); Reset(drpVhpStrategy); Reset(drpVhpPlant); Reset(drpVhpStatus); Reset(inpVhpPlanText); Reset(drpVhpSortField); Reset(numVhpCycle); Reset(drpVhpUnit); Reset(drpVhpCallHorizon); Reset(inpVhpSchedInd); Reset(inpVhpStatutorySortField); Reset(numVhpFirstCallDay); Reset(numVhpFirstCallMonth); Reset(numVhpFirstCallYear);
+                                        =Reset(drpVhpPlanType); Reset(drpVhpStrategy); Reset(drpVhpPlant); Reset(drpVhpStatus); Reset(inpVhpPlanText); Reset(drpVhpSortField); Reset(numVhpCycle); Reset(drpVhpUnit); Reset(drpVhpCallHorizon); Reset(drpVhpSchedInd); Reset(numVhpFirstCallDay); Reset(numVhpFirstCallMonth); Reset(numVhpFirstCallYear);
                                         Set(varVhpPlanValidated, false);
                                         If(varVhpPlanCommitted, Set(varVhpPlanLocked, true))
                                     RadiusBottomLeft: |-
@@ -4506,11 +4385,10 @@ Screens:
                                                             Cycle: If(isStrat, 0, numVhpCycle.Value),
                                                             Unit: If(isStrat, "", drpVhpUnit.Selected.Value),
                                                             CallHorizon: drpVhpCallHorizon.Selected.Value,
-                                                            SchedulingIndicator: Trim(inpVhpSchedInd.Text),
+                                                            SchedulingIndicator: drpVhpSchedInd.Selected.Value,
                                                             FirstCallDay: numVhpFirstCallDay.Value,
                                                             FirstCallMonth: numVhpFirstCallMonth.Value,
-                                                            FirstCallYear: numVhpFirstCallYear.Value,
-                                                            StatutorySortField: Trim(inpVhpStatutorySortField.Text)
+                                                            FirstCallYear: numVhpFirstCallYear.Value
                                                         }
                                                     );
                                                     Set(varVhpPlanCommitted, true);
@@ -14870,6 +14748,10 @@ Screens:
                                             varVhpPlan.FirstCallYear, varVhpPlan.FirstCallMonth, varVhpPlan.FirstCallDay
                                         ),
                                         StrategyKey: varVhpPlan.Strategy,
+                                        SchedulingIndicator: If(
+                                            IsBlank(varVhpPlan.SchedulingIndicator), Blank(),
+                                            { Value: varVhpPlan.SchedulingIndicator }
+                                        ),
                                         SchedulingPeriod: LookUp(
                                             colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon
                                         ).SchedPeriod,
