@@ -73,6 +73,7 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 | [`docs/05-implementeringsplan.md`](docs/05-implementeringsplan.md) | Faser, risici, hvad der kan skæres væk |
 | [`docs/06-excel-gui-scripting.md`](docs/06-excel-gui-scripting.md) | **Den valgte vej til SAP:** Excel + GUI Scripting |
 | [`docs/07-landingsside.md`](docs/07-landingsside.md) | Landingsside for alle fem masterdata-domæner: hub vs. monolit, indekslisten, performanceregler |
+| [`docs/32-godkendelsesflow.md`](docs/32-godkendelsesflow.md) | **Oplæg:** godkendelsesflow for nye VH-planer — system- og omkostningsgodkendelse pr. item (Power BI Plant Section Key + MD_Approver, 300.000 kr.), kvalitet pr. værk; statusmodel, kolonner, flows |
 
 ## Kode og artefakter
 
@@ -87,6 +88,7 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 | `powerfx/05-html-timeline.fx` | Formel, der bygger HTML-forfaldskalenderen |
 | `sharepoint/provision/Provision-VHPlanLists.ps1` | Idempotent PnP-provisionering af alle lister |
 | `sharepoint/provision/Provision-RequestIndex.ps1` | `MD_RequestIndex` — den fælles indeksliste bag landingssiden |
+| `sharepoint/provision/Provision-VHPlanApproval.ps1` | Godkendelsesflowets fase 1: kolonner på `MaintenancePlans`, `MD_Approver`, `MD_ApprovalLog`, grænsen i `AppSettings` — se `docs/32` |
 | `sharepoint/seed/*.csv` | Eksempelmasterdata: fire strategier med pakker |
 | `schema/vhplan-request.schema.json` | Kontrakten mod SAP |
 | `schema/example-strategy-request.json` | Udfyldt eksempel (kompressor, Z-MONTH) |
