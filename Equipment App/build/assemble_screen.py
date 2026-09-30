@@ -19,10 +19,9 @@ import domain_app
 import equipment_parts as parts
 
 
-def build_screen():
-    # render_screen slaas op i DETTE modul ved kaldet, saa BIO SAP App kan
-    # bytte den ud (build_screens._capture).
-    return domain_app.build_screen(cfg, parts, render_screen)
+def build_screen(render=render_screen):
+    # render: gen_screen.render_screen - eller BIO SAP App's opsamler.
+    return domain_app.build_screen(cfg, parts, render)
 
 
 def main():

@@ -15,9 +15,9 @@ sin egen build-mappe paa sys.path - praecis som naar den bygges alene.
 HVAD DER AENDRES I FORHOLD TIL DE FEM APPS
 ------------------------------------------
 Kompositionen er appens egen: skaermen bygges af dens EGEN
-build_screen(). Kun render_screen() byttes ud, saa skaermens navn og
-OnVisible kan saettes - og sidebaren og hubben faar deres Navigate-kroge
-(side_nav.SCREENS, build_hub.NEW_ACTION/OPEN_ACTION).
+build_screen(render=...). BIO SAP giver sin egen render (_capture), saa
+skaermens navn og OnVisible kan saettes - og sidebaren og hubben faar
+deres Navigate-kroge (side_nav.use_screens, build_hub.use_actions).
 
 Oveni faar hver domaeneskaerm en ventespinner (loading_overlay), mens den
 klargoeres - den faelles build_helpers.loading_overlay, og kun den.
@@ -29,7 +29,7 @@ import sys
 
 import combined as cb
 
-PARTS = ["hub", "functionallocation", "vhplan", "equipment", "material"]
+PARTS = [d["key"] for d in cb.DOMAINS]
 
 
 # ---------------------------------------------------------------------------
@@ -51,22 +51,21 @@ def _load(domain, module_file):
 def _navigation():
     """Sidebaren navigerer mellem skaerme i stedet for at starte apps."""
     import side_nav
-    side_nav.SCREENS = dict(cb.SCREENS)
+    side_nav.use_screens(cb.SCREENS)
 
 
-def _capture(mod):
-    """Byt modulets render_screen ud med en, der gemmer argumenterne.
+def _capture():
+    """En render, der gemmer argumenterne i stedet for at skrive YAML.
 
-    Modulet har gjort 'from gen_screen import render_screen', saa navnet
-    bor i DETS navnerum - det er dér, det skal byttes."""
+    Gives til appens build_screen(render=...). Her stod en udskiftning af
+    render_screen i appens modul (monkeypatch) - nu er det en parameter,
+    som appen selv tager imod (REVIEW.md C4)."""
     seen = {}
 
     def fake(name, props, children):
         seen["name"], seen["props"], seen["children"] = name, dict(props), children
         return ""
-    mod.render_screen = fake
-    return seen
-
+    return seen, fake
 
 def open_block(domain, init):
     """Klargoer domaeneskaermen, naar hubben eller et dyblink beder om det.
@@ -210,12 +209,11 @@ def build_hub():
         "NotificationType.Warning)\n"
         "    )\n"
         ")")
-    build_hub.NEW_ACTION = new_action
-    build_hub.OPEN_ACTION = open_action
+    build_hub.use_actions(new_action, open_action)
 
     asm = _load(d, "assemble_hub.py")
-    seen = _capture(asm)
-    asm.build_screen()
+    seen, fake = _capture()
+    asm.build_screen(render=fake)
     from gen_screen import render_screen
     # Hubbens OnVisible henter flisernes taellesamling (colMdScope). Den
     # skal koere ved hvert besoeg - ogsaa her, hvor man kommer tilbage fra
@@ -233,8 +231,8 @@ def build_functionallocation():
     d = cb.BY_KEY["functionallocation"]
     _navigation()
     asm = _load(d, "assemble_screen.py")
-    seen = _capture(asm)
-    asm.build_screen()
+    seen, fake = _capture()
+    asm.build_screen(render=fake)
     load = asm.load_part()
     if 'Param("reqid")' not in load:
         raise SystemExit("Functional Location: load_part() laeser ikke laengere "
@@ -262,8 +260,8 @@ def build_domain_app(key):
     d = cb.BY_KEY[key]
     _navigation()
     asm = _load(d, "assemble_screen.py")
-    seen = _capture(asm)
-    asm.build_screen()
+    seen, fake = _capture()
+    asm.build_screen(render=fake)
     import domain_parts as dp
     own = seen["props"]["OnVisible"]
     me = "Set(varDomMe, Lower(User().Email));\n"
@@ -311,8 +309,8 @@ def build_vhplan():
     d = cb.BY_KEY["vhplan"]
     _navigation()
     asm = _load(d, "assemble_screen.py")
-    seen = _capture(asm)
-    asm.build_screen()
+    seen, fake = _capture()
+    asm.build_screen(render=fake)
     if seen["props"].get("OnVisible"):
         raise SystemExit("VH-plan har faaet en OnVisible - byg den ind i build_vhplan().")
     import build_items

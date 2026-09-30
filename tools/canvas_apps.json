@@ -35,6 +35,89 @@
     "Microsoft.PowerApps.CanvasAuthoring.McpServer",
     "--yes"
   ],
+  "_apps_kommentar": [
+    "APPERNE - ens i alle miljoeer. build_all.py, check_datasources.py,",
+    "side_nav.py og BIO SAP App laeser listen herfra (env_config.APP_ORDER).",
+    "",
+    "  folder     app-mappen",
+    "  screen     skaermen (None for den samlede app)",
+    "  prefix     infix i kontrol- og variabelnavne (btn<prefix>...)",
+    "  nav_label  teksten i sidebaren - None = ikke i sidebaren",
+    "  scripts    byggescripterne i build/, i raekkefoelge",
+    "",
+    "Raekkefoelgen er byggeraekkefoelgen - BIO SAP SIDST, fordi den",
+    "bygges af de andres byggere. Sidebarens raekkefoelge er nav_order."
+  ],
+  "nav_order": [
+    "hub",
+    "functionallocation",
+    "vhplan",
+    "material",
+    "equipment"
+  ],
+  "apps": {
+    "hub": {
+      "folder": "Masterdata Hub",
+      "screen": "ScreenMdHub",
+      "prefix": "Md",
+      "nav_label": "Masterdata Hub",
+      "scripts": [
+        "generate_hub_onstart.py",
+        "assemble_hub.py"
+      ]
+    },
+    "vhplan": {
+      "folder": "Maintenance Plan App",
+      "screen": "ScreenVhPlan",
+      "prefix": "Vhp",
+      "nav_label": "VH-plan",
+      "scripts": [
+        "generate_app_onstart.py",
+        "assemble_screen.py"
+      ]
+    },
+    "equipment": {
+      "folder": "Equipment App",
+      "screen": "ScreenEquipment",
+      "prefix": "Dom",
+      "nav_label": "Equipments",
+      "scripts": [
+        "generate_app_onstart.py",
+        "assemble_screen.py"
+      ]
+    },
+    "material": {
+      "folder": "Material App",
+      "screen": "ScreenMaterial",
+      "prefix": "Dom",
+      "nav_label": "Materials",
+      "scripts": [
+        "generate_app_onstart.py",
+        "assemble_screen.py"
+      ]
+    },
+    "functionallocation": {
+      "folder": "Functional Location App",
+      "screen": "ScreenFunctionalLocation",
+      "prefix": "Fl",
+      "nav_label": "Functional Location",
+      "scripts": [
+        "generate_app_onstart.py",
+        "assemble_screen.py"
+      ]
+    },
+    "biosap": {
+      "folder": "BIO SAP App",
+      "screen": null,
+      "prefix": null,
+      "nav_label": null,
+      "scripts": [
+        "generate_app.py",
+        "build_screens.py",
+        "check_combined.py"
+      ]
+    }
+  },
   "environments": {
     "dev": {
       "_navn": "Bioenergy Solutions DEV, solution BIO SAP",
@@ -43,32 +126,26 @@
       "apps": {
         "hub": {
           "navn": "Masterdata Hub",
-          "folder": "Masterdata Hub",
           "app_id": "f387047d-86af-4d6a-8370-afcf35939436"
         },
         "vhplan": {
           "navn": "VH-plan",
-          "folder": "Maintenance Plan App",
           "app_id": "11fa8d90-868a-45a4-ba23-28f2cf0671a2"
         },
         "equipment": {
           "navn": "Equipments",
-          "folder": "Equipment App",
           "app_id": "24bf3bbc-601f-480d-a8fe-7cd3180906d1"
         },
         "material": {
           "navn": "Materials",
-          "folder": "Material App",
           "app_id": "d7762919-c716-4bd0-9abd-24bab436221f"
         },
         "functionallocation": {
           "navn": "Functional Location",
-          "folder": "Functional Location App",
           "app_id": "8a6fabf2-e3a3-4f36-8ff6-94c7d33d9575"
         },
         "biosap": {
           "navn": "BIO SAP - de fem apps som skaerme i een app (til test)",
-          "folder": "BIO SAP App",
           "app_id": "17f6f493-203d-40a1-9fe4-2c99b04b85a5"
         }
       }

@@ -436,9 +436,8 @@ def main():
     prov = provisioned_columns()
     prov_choices = provisioned_choices()
     screens = []
-    for app in ("Maintenance Plan App", "Masterdata Hub",
-                "Equipment App", "Material App", "Functional Location App",
-                "BIO SAP App"):
+    import env_config
+    for app in [env_config.APPS[k]["folder"] for k in env_config.APP_ORDER]:
         d = os.path.join(ROOT, app)
         if not os.path.isdir(d):
             continue

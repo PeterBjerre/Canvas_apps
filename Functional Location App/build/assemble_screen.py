@@ -59,7 +59,8 @@ def on_visible():
     return ME + ";\n" + load_part() + ";\n" + ensure_row_part()
 
 
-def build_screen():
+def build_screen(render=render_screen):
+    """render: gen_screen.render_screen - eller BIO SAP App's opsamler."""
     # EEN spalte: Validation, Classes og strukturen. Save draft, Submit og
     # New request staar i bjaelken (issue #77). Detaljerne er en popup, med
     # sloeret FOERST, saa det ligger bagved.
@@ -67,7 +68,7 @@ def build_screen():
                      [P.build_rows(), P.build_classes(), P.build_structure()])
     # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
     nav, overlay = side_nav("Fl", "functionallocation")
-    return render_screen(cfg.SCREEN, {"Fill": C_APP_BG, "OnVisible": on_visible()},
+    return render(cfg.SCREEN, {"Fill": C_APP_BG, "OnVisible": on_visible()},
                          [root, *nav, P.build_backdrop(), P.build_detail(),
                           *overlay, *P.build_submit_confirm()])
 

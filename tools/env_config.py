@@ -94,6 +94,18 @@ def resolve(name=None):
     out = dict(envs[name])
     out["name"] = name
     out["mcp_package_args"] = _CFG.get("mcp_package_args")
+    # Appernes faste oplysninger (mappe, skaerm, scripts ...) staar een gang
+    # under "apps"; miljoeet bidrager kun med id'erne. Flettet her, saa
+    # canvas_mcp og builderne ser een record pr. app som foer.
+    shared = _CFG.get("apps") or {}
+    merged = {}
+    for key, meta in shared.items():
+        merged[key] = dict(meta, **(out.get("apps") or {}).get(key, {}))
+    unknown = set(out.get("apps") or {}) - set(shared)
+    if unknown:
+        raise SystemExit("canvas_apps.json: miljoeet '%s' naevner apps, der ikke "
+                         "staar under 'apps': %s" % (name, ", ".join(sorted(unknown))))
+    out["apps"] = merged
     return out
 
 
@@ -117,8 +129,20 @@ def app_id(key):
     return APPS[key].get("app_id") or None
 
 
+# Byggeraekkefoelgen (som i canvas_apps.json - BIO SAP sidst) og
+# sidebarens raekkefoelge. Laest af build_all, check_datasources, side_nav
+# og BIO SAP App - app-listen stod foer syv steder (REVIEW.md C6).
+APP_ORDER = list(_CFG.get("apps") or {})
+NAV_ORDER = list(_CFG.get("nav_order") or [])
+
+
 def folder(key):
     return APPS[key]["folder"]
+
+
+def screen_apps():
+    """De apps, der har een skaerm (alle undtagen den samlede)."""
+    return [k for k in APP_ORDER if APPS[k].get("screen")]
 
 
 def play_url(key):

@@ -42,6 +42,7 @@ if TOOLS not in sys.path:
     sys.path.insert(0, TOOLS)
 
 import design_tokens as tok
+import env_config as env
 
 # Noeglen i tools/canvas_apps.json.
 APP_KEY = "biosap"
@@ -54,18 +55,26 @@ APP_KEY = "biosap"
 #   screen  skaermen, sidebaren og hubben navigerer til.
 #   onvis   hvordan skaermens OnVisible bygges (se build_screens.py).
 # ---------------------------------------------------------------------------
-DOMAINS = [
-    {"key": "hub", "folder": "Masterdata Hub", "screen": "ScreenMdHub",
-     "tag": "Md"},
-    {"key": "functionallocation", "folder": "Functional Location App",
-     "screen": "ScreenFunctionalLocation", "tag": "Fl"},
-    {"key": "vhplan", "folder": "Maintenance Plan App", "screen": "ScreenVhPlan",
-     "tag": "Vhp"},
-    {"key": "equipment", "folder": "Equipment App", "screen": "ScreenEquipment",
-     "tag": "Eq", "rename": "Dom"},
-    {"key": "material", "folder": "Material App", "screen": "ScreenMaterial",
-     "tag": "Mat", "rename": "Dom"},
+# Mappe og skaerm kommer fra tools/canvas_apps.json ("apps"). Her staar
+# kun det, der er den samlede apps eget: raekkefoelgen, tag og omdoebning.
+_OWN = [
+    ("hub", "Md", None),
+    ("functionallocation", "Fl", None),
+    ("vhplan", "Vhp", None),
+    ("equipment", "Eq", "Dom"),
+    ("material", "Mat", "Dom"),
 ]
+DOMAINS = []
+for _key, _tag, _rename in _OWN:
+    _d = {"key": _key, "folder": env.APPS[_key]["folder"],
+          "screen": env.APPS[_key]["screen"], "tag": _tag}
+    if _rename:
+        _d["rename"] = _rename
+    DOMAINS.append(_d)
+if {d["key"] for d in DOMAINS} != set(env.screen_apps()):
+    raise SystemExit("BIO SAP App: combined._OWN og canvas_apps.json har ikke de "
+                     "samme apps: %s" % sorted({d["key"] for d in DOMAINS}
+                                              ^ set(env.screen_apps())))
 BY_KEY = {d["key"]: d for d in DOMAINS}
 
 # side_nav.SCREENS og StartScreen.
