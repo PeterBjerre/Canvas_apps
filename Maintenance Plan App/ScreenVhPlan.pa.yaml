@@ -1009,19 +1009,14 @@ Screens:
                                                         Plant: varVhpPlan.Plant,
                                                         ItemCount: CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))),
                                                         SourceItemId: planId,
-                                                        AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/11fa8d90-868a-45a4-ba23-28f2cf0671a2",
+                                                        AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/11fa8d90-868a-45a4-ba23-28f2cf0671a2?reqid=" & varVhpRequestGuid,
                                                         LastActionOn: Now(),
                                                         LastActionBy: Lower(User().Email)
                                                     }
                                                                 );
                                         
                                                                 Set(varVhpSavedJson, VhpStateJson);
-                                                                Notify(
-                                                                    planKey & " saved: " & Text(CountRows(colVhpItems)) &
-                                                                        " item(s) and " & Text(CountRows(colVhpOperations)) &
-                                                                        " operation(s).",
-                                                                    NotificationType.Success
-                                                                )
+                                                                Notify("Saved as " & planKey & " - see it on the landing page.", NotificationType.Success)
                                                             )
                                                         )
                                                     )
@@ -14951,25 +14946,20 @@ Screens:
                                             Plant: varVhpPlan.Plant,
                                             ItemCount: CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))),
                                             SourceItemId: planId,
-                                            AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/11fa8d90-868a-45a4-ba23-28f2cf0671a2",
+                                            AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/11fa8d90-868a-45a4-ba23-28f2cf0671a2?reqid=" & varVhpRequestGuid,
                                             LastActionOn: Now(),
                                             LastActionBy: Lower(User().Email)
                                         }
                                                     );
                             
                                                     Set(varVhpSavedJson, VhpStateJson);
-                                                    Notify(
-                                                        planKey & " submitted: " & Text(CountRows(colVhpItems)) &
-                                                            " item(s) and " & Text(CountRows(colVhpOperations)) &
-                                                            " operation(s).",
-                                                        NotificationType.Success
-                                                    )
+                                                    Notify("Submitted as " & planKey & " - see it on the landing page.", NotificationType.Success)
                                                 )
                                             )
                                         )
                                     ),
                             
-                                    Notify("Save failed: " & FirstError.Message, NotificationType.Error)
+                                    Notify("Submit failed: " & FirstError.Message, NotificationType.Error)
                                 );
                                 Set(varVhpSaving, false)
                             )

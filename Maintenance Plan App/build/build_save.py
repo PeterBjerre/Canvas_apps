@@ -68,18 +68,11 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from build_helpers import button, confirm_modal, ICON_SAVE, ICON_SUBMIT
 import sp_config as cfg
-import env_config as env
+import messages as msg
+import request_index as ri
 
-# Appens play-URL. Hubben bruger den til at aabne indmeldingen igen.
-#
-# Den stod her som en fast DEV-URL, saa "build_all.py --env prod" skrev
-# DEV-adressen i MD_RequestIndex.AppUrl. Nu kommer den fra
-# tools/canvas_apps.json som alle de andre apps' (se tools/env_config.py).
-APP_URL = env.play_url("vhplan")
-if not APP_URL:
-    raise SystemExit("VH-plan har intet app_id i miljoeet '%s' "
-                     "(tools/canvas_apps.json)." % env.ENV_NAME)
-
+# AppUrl (appens play-URL fra tools/canvas_apps.json) skrives af
+# tools/request_index.record - samme felter som de andre apps.
 DOMAIN = "MaintenancePlan"
 
 # Appen aabner med eet tomt item, saa Item Editoren ikke staar graa (#8).
@@ -163,9 +156,7 @@ def _reindent(block, spaces):
 def save_action(submit=False):
     """Hele gemningen som eet Power Fx-udtryk."""
     plan_status = PLAN_STATUS_SUBMITTED if submit else PLAN_STATUS_DRAFT
-    idx_status = "Indsendt" if submit else "Kladde"
-    idx_step = 2 if submit else 1
-    verb = "submitted" if submit else "saved"
+    idx_status = ri.SUBMITTED if submit else ri.DRAFT
 
     # Planhovedets felter. PlannedDate samles af de tre First Call-felter.
     plan_fields = (
@@ -271,25 +262,12 @@ def save_action(submit=False):
         "                        }"
     )
 
-    index_fields = (
-        "{\n"
-        f"                {cfg.C_INDEX_NO}: planKey,\n"
-        f"                Domain: {{ Value: \"{DOMAIN}\" }},\n"
-        f"                Status: {{ Value: \"{idx_status}\" }},\n"
-        f"                StatusStep: {idx_step},\n"
-        "                IsOpen: true,\n"
-        "                RequestGuid: varVhpRequestGuid,\n"
-        "                RequesterEmail: Lower(User().Email),\n"
-        "                RequesterName: User().FullName,\n"
-        "                ShortText: varVhpPlan.PlanText,\n"
-        "                Plant: varVhpPlan.Plant,\n"
-        f"                ItemCount: {SAVEABLE_COUNT},\n"
-        "                SourceItemId: planId,\n"
-        f"                AppUrl: \"{APP_URL}\",\n"
-        "                LastActionOn: Now(),\n"
-        "                LastActionBy: Lower(User().Email)\n"
-        "            }"
-    )
+    # Indeksraekken er den samme i alle apps - tools/request_index.py.
+    index_fields = ri.record(
+        DOMAIN, "vhplan", idx_status,
+        request_no="planKey", guid="varVhpRequestGuid", me="Lower(User().Email)",
+        short_text="varVhpPlan.PlanText", plant="varVhpPlan.Plant",
+        item_count=SAVEABLE_COUNT, source_id="planId", indent=12)
 
     return (
         "If(\n"
@@ -555,18 +533,13 @@ def save_action(submit=False):
         # Det, der nu staar i SharePoint. Save-trinnet er groent, saa
         # laenge planen er den samme - se VhpStateJson i sp_config.py.
         "                        Set(varVhpSavedJson, VhpStateJson);\n"
-        f"                        Notify(\n"
-        f"                            planKey & \" {verb}: \" & Text(CountRows(colVhpItems)) &\n"
-        "                                \" item(s) and \" & Text(CountRows(colVhpOperations)) &\n"
-        "                                \" operation(s).\",\n"
-        "                            NotificationType.Success\n"
-        "                        )\n"
+        f"                        {(msg.submitted if submit else msg.saved)('planKey')}\n"
         "                    )\n"
         "                )\n"
         "            )\n"
         "        ),\n"
         "\n"
-        "        Notify(\"Save failed: \" & FirstError.Message, NotificationType.Error)\n"
+        f"        {msg.failed('Submit' if submit else 'Save')}\n"
         "    );\n"
         # EET sted spinneren slukkes - samme form som build_helpers.with_busy
         # i de andre apps. Foer stod Set(varVhpSaving, false) paa tre

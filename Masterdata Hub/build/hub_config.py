@@ -15,16 +15,17 @@ sys.path.insert(0, os.path.join(
 from design_tokens import ref as _t
 import env_config as env
 import icons
+import request_index as ri
 
 # Navnet paa listen som den hedder, naar den er tilfoejet appen som datakilde.
-LIST = "MD_RequestIndex"
+LIST = ri.LIST
 
 # Power Fx binder SharePoint-kolonner paa VISNINGSNAVN, ikke internt navn.
 # Provisioneringsscriptet doeber den indbyggede Title-kolonne om til
 # "RequestNo", saa listen er laesbar for dem der aabner den direkte - og
 # derfor skal appen ogsaa kalde den RequestNo. Aendrer du navnet i
 # Provision-RequestIndex.ps1, skal det aendres her samtidig.
-COL_NO = "RequestNo"
+COL_NO = ri.COL_NO
 
 # ---------------------------------------------------------------------------
 # De fem domaener.
@@ -70,6 +71,9 @@ DOMAINS = [
 # sidebaren og sideoverskrifterne. Measuring Points lineal er spejlet, saa
 # den peger samme vej som Equipments skruenoegle (issue #70).
 for _d in DOMAINS:
+    if _d["key"] not in ri.DOMAINS:
+        raise SystemExit("hub_config: ukendt domaene '%s' - se tools/request_index.py" % _d["key"])
+for _d in DOMAINS:
     _d["icon"] = icons.path(_d["icon_key"])
     _d["mirror"] = icons.mirrored(_d["icon_key"])
 
@@ -109,25 +113,24 @@ for _d in DOMAINS:
 # step 1-5 baeres som tal i indekset, saa hubben kan tegne forloebet uden at
 # kende domaenespecifikke statusvaerdier. step 0 = afsluttet uden oprettelse.
 # ---------------------------------------------------------------------------
-STATUS = [
-    ("Kladde",          "Draft",          1, _t("state-neutral-fg"), _t("state-neutral-bg")),
-    ("Indsendt",        "Submitted",      2, _t("state-info-fg"),    _t("state-info-bg")),
-    ("UnderBehandling", "In progress",    3, _t("state-info-fg"),    _t("state-info-bg")),
-    ("AfventerInfo",    "Awaiting info",  3, _t("state-warn-fg"),    _t("state-warn-bg")),
-    ("KlarTilSAP",      "Ready for SAP",  4, _t("state-ok-fg"),      _t("state-ok-bg")),
-    ("OprettetISAP",    "Created in SAP", 5, _t("state-ok-fg"),      _t("state-ok-bg")),
-    ("Afvist",          "Rejected",       0, _t("state-error-fg"),   _t("state-error-bg")),
-    ("Annulleret",      "Cancelled",      0, _t("state-neutral-fg"), _t("state-neutral-bg")),
-]
+# Vaerdi, etiket og trin kommer fra tools/request_index.py - det samme
+# ordforraad, som domaeneapperne skriver med. Her tilfoejes kun farverne.
+_STATUS_COLORS = {
+    "Kladde":          ("state-neutral-fg", "state-neutral-bg"),
+    "Indsendt":        ("state-info-fg",    "state-info-bg"),
+    "UnderBehandling": ("state-info-fg",    "state-info-bg"),
+    "AfventerInfo":    ("state-warn-fg",    "state-warn-bg"),
+    "KlarTilSAP":      ("state-ok-fg",      "state-ok-bg"),
+    "OprettetISAP":    ("state-ok-fg",      "state-ok-bg"),
+    "Afvist":          ("state-error-fg",   "state-error-bg"),
+    "Annulleret":      ("state-neutral-fg", "state-neutral-bg"),
+}
+if set(_STATUS_COLORS) != {k for k, _l, _s in ri.STATUS}:
+    raise SystemExit("hub_config: _STATUS_COLORS og request_index.STATUS har ikke "
+                     "de samme noegler.")
+STATUS = [(k, label, step, _t(_STATUS_COLORS[k][0]), _t(_STATUS_COLORS[k][1]))
+          for k, label, step in ri.STATUS]
 
-
-def switch_on_status(field, fallback):
-    """Bygger en Switch over statusvaerdien. Bruges til farver og tekst, saa
-    ordforraadet kun staar eet sted."""
-    parts = []
-    for key, label, step, fg, bg in STATUS:
-        parts.append(f'"{key}", {field(key, label, step, fg, bg)}')
-    return "Switch(\n    ThisItem.Status.Value,\n    " + ",\n    ".join(parts) + f",\n    {fallback}\n)"
 
 
 # ---------------------------------------------------------------------------

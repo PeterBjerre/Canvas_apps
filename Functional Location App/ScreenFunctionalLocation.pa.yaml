@@ -499,12 +499,12 @@ Screens:
                                                   Status: { Value: "Kladde" },
                                                   StatusStep: 1,
                                                   IsOpen: true,
+                                                  RequestGuid: varFlRequestGuid,
                                                   RequesterEmail: varFlMe,
                                                   RequesterName: User().FullName,
                                                   ShortText: "Functional Location - Spool: " & CountRows(Filter(colFlRows, Status <> "draft")) & " row(s)",
                                                   Plant: Coalesce(Left(First(Sort(Filter(colFlRows, Status <> "draft"), RowNo)).FL, 3), ""),
                                                   ItemCount: CountRows(Filter(colFlRows, Status <> "draft")),
-                                                  RequestGuid: varFlRequestGuid,
                                                   SourceItemId: varFlReq.ID,
                                                   AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/8a6fabf2-e3a3-4f36-8ff6-94c7d33d9575?reqid=" & varFlRequestGuid,
                                                   LastActionOn: Now(),
@@ -5313,12 +5313,12 @@ Screens:
                                                 Status: { Value: "Kladde" },
                                                 StatusStep: 1,
                                                 IsOpen: true,
+                                                RequestGuid: varFlRequestGuid,
                                                 RequesterEmail: varFlMe,
                                                 RequesterName: User().FullName,
                                                 ShortText: "Functional Location - Spool: " & CountRows(Filter(colFlRows, Status <> "draft")) & " row(s)",
                                                 Plant: Coalesce(Left(First(Sort(Filter(colFlRows, Status <> "draft"), RowNo)).FL, 3), ""),
                                                 ItemCount: CountRows(Filter(colFlRows, Status <> "draft")),
-                                                RequestGuid: varFlRequestGuid,
                                                 SourceItemId: varFlReq.ID,
                                                 AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/8a6fabf2-e3a3-4f36-8ff6-94c7d33d9575?reqid=" & varFlRequestGuid,
                                                 LastActionOn: Now(),
@@ -5411,7 +5411,7 @@ Screens:
                                         IfError(
                                             Patch(FunctionalLocationRequests, varFlReq,
                                                   { Status: { Value: "Indsendt" }, PayloadJson: varFlPayload, SubmittedOn: Now() });
-                                            Patch(MD_RequestIndex, varFlIdx, { Status: { Value: "Indsendt" }, StatusStep: 2, LastActionOn: Now() });
+                                            Patch(MD_RequestIndex, varFlIdx, { Status: { Value: "Indsendt" }, StatusStep: 2, LastActionOn: Now(), LastActionBy: varFlMe });
                                             Set(varFlStatus, "Indsendt");
                                             Set(varFlInfo, "");
                                             Notify("Submitted as " & varFlRequestNo & " - see it on the landing page.", NotificationType.Success),

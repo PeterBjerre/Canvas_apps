@@ -30,6 +30,8 @@ kan kun ske, naar valideringen er koert efter sidste aendring - det sker
 af sig selv (fl_parts.REVERIFY) - og ingen raekke har en fejl (docs/31 FL68).
 """
 import fl_config as cfg
+import messages as msg
+import request_index as ri
 from fl_validation import BUCKETS
 
 LIVE = 'Filter(colFlRows, Status <> "draft")'
@@ -77,7 +79,15 @@ def _row_record():
             }}"""
 
 
-def _index_patch(status, step):
+def _index_patch(status, step=None):
+    """Indeksraekken - den samme i alle apps (tools/request_index.py).
+    step udledes af status; parameteren staar for kaldernes skyld."""
+    rec = ri.record(
+        cfg.DOMAIN, cfg.APP_KEY, status,
+        request_no="varFlRequestNo", guid="varFlRequestGuid", me="varFlMe",
+        short_text=f'"{cfg.TITLE}: " & CountRows({LIVE}) & " row(s)"',
+        plant=f'Coalesce(Left(First(Sort({LIVE}, RowNo)).FL, 3), "")',
+        item_count=f"CountRows({LIVE})", source_id="varFlReq.ID", indent=12)
     return f"""Set(
         varFlIdx,
         Patch(
@@ -86,26 +96,9 @@ def _index_patch(status, step):
                 LookUp({cfg.L_INDEX}, RequestGuid = varFlRequestGuid),
                 Defaults({cfg.L_INDEX})
             ),
-            {{
-                RequestNo: varFlRequestNo,
-                Domain: {{ Value: "{cfg.DOMAIN}" }},
-                Status: {{ Value: "{status}" }},
-                StatusStep: {step},
-                IsOpen: true,
-                RequesterEmail: varFlMe,
-                RequesterName: User().FullName,
-                ShortText: "{cfg.TITLE}: " & CountRows({LIVE}) & " row(s)",
-                Plant: Coalesce(Left(First(Sort({LIVE}, RowNo)).FL, 3), ""),
-                ItemCount: CountRows({LIVE}),
-                RequestGuid: varFlRequestGuid,
-                SourceItemId: varFlReq.ID,
-                AppUrl: "{cfg.PLAY_URL}?reqid=" & varFlRequestGuid,
-                LastActionOn: Now(),
-                LastActionBy: varFlMe
-            }}
+            {rec}
         )
     )"""
-
 
 def save_fx(status="Kladde", step=1, notify=True):
     """Gem - trin 1-5 ovenfor. status er det, hovedet og indekset faar til
@@ -114,8 +107,7 @@ def save_fx(status="Kladde", step=1, notify=True):
     L = cfg.L_ITEMS
     # Indsend kalder gem foerst og siger selv "Submitted as ..." bagefter -
     # to beskeder i traek for een handling (REVIEW.md A6).
-    ok = ('Notify("Saved as " & varFlRequestNo & " - see it on the landing page.", '
-          'NotificationType.Success)' if notify else 'Set(varFlInfo, "")')
+    ok = msg.saved("varFlRequestNo") if notify else 'Set(varFlInfo, "")'
     new_rows = f'Filter(colFlRows, Status <> "draft" && !(RowGuid in colFlSp.RowGuid))'
     old_rows = f'Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid)'
     return f"""Clear(colFlSaveErrors);
@@ -146,7 +138,7 @@ IfError(
 );
 If(
     IsBlank(varFlRequestNo) && !IsBlank(varFlReq.ID),
-    Set(varFlRequestNo, "{cfg.PREFIX}-" & Text(varFlReq.ID, "000000"));
+    Set(varFlRequestNo, {ri.number_expr(cfg.PREFIX, "varFlReq.ID")});
     IfError(
         Patch({cfg.L_REQ}, varFlReq, {{ RequestNo: varFlRequestNo }});
         true,
@@ -301,12 +293,12 @@ def submit_fx():
             IfError(
                 Patch({cfg.L_REQ}, varFlReq,
                       {{ Status: {{ Value: "Indsendt" }}, PayloadJson: varFlPayload, SubmittedOn: Now() }});
-                Patch({cfg.L_INDEX}, varFlIdx, {{ Status: {{ Value: "Indsendt" }}, StatusStep: 2, LastActionOn: Now() }});
+                Patch({cfg.L_INDEX}, varFlIdx, {{ Status: {{ Value: "{ri.SUBMITTED}" }}, StatusStep: {ri.step(ri.SUBMITTED)}, LastActionOn: Now(), LastActionBy: varFlMe }});
                 Set(varFlStatus, "Indsendt");
                 Set(varFlInfo, "");
-                Notify("Submitted as " & varFlRequestNo & " - see it on the landing page.", NotificationType.Success),
+                {msg.submitted("varFlRequestNo")},
                 Set(varFlInfo, "Submit failed: " & FirstError.Message);
-                Notify("Submit failed: " & FirstError.Message, NotificationType.Error)
+                {msg.failed("Submit")}
             )
         )
     )
