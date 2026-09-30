@@ -60,6 +60,68 @@ APPS = [(_env.APPS[k]["folder"], list(_env.APPS[k]["scripts"])) for k in _env.AP
 # sted (tools/domain_parts.py); det er KOMPOSITIONEN, der er appens egen.
 
 
+
+# ---------------------------------------------------------------------------
+# EET STED, HVOR ET BYGGESCRIPT KOERES
+#
+# build_all koerer hvert script som sit eget subprocess - saadan har det
+# altid vaeret, og CI goer det stadig. tools/build.py (REVIEW.md C7) koerer
+# den SAMME kaede i een proces: IN_PROCESS saettes, og _py koerer scriptet
+# med runpy i stedet for en ny Python. Repoets egne moduler glemmes efter
+# hvert script, saa to apps aldrig deler tilstand (fx side_nav's skaerme
+# eller build_hub's kroge) - praecis som med hver sin proces.
+# ---------------------------------------------------------------------------
+IN_PROCESS = False
+
+
+class _Result:
+    def __init__(self, returncode):
+        self.returncode = returncode
+
+
+def _run_here(cmd, cwd=None):
+    import runpy, traceback
+    path, args = cmd[0], list(cmd[1:])
+    if cwd and not os.path.isabs(path):
+        path = os.path.join(cwd, path)
+    old = (sys.argv[:], sys.path[:], os.getcwd())
+    before = set(sys.modules)
+    sys.argv = [path] + args
+    sys.path.insert(0, os.path.dirname(os.path.abspath(path)))
+    if cwd:
+        os.chdir(cwd)
+    rc = 0
+    try:
+        runpy.run_path(path, run_name="__main__")
+    except SystemExit as e:
+        if e.code is None or e.code == 0:
+            rc = 0
+        elif isinstance(e.code, int):
+            rc = e.code
+        else:
+            print(e.code, file=sys.stderr)     # som Python selv goer
+            rc = 1
+    except Exception:
+        traceback.print_exc()
+        rc = 1
+    finally:
+        sys.stdout.flush()
+        sys.argv, sys.path = old[0], old[1]
+        os.chdir(old[2])
+        for name in set(sys.modules) - before:
+            f = getattr(sys.modules[name], "__file__", None) or ""
+            if os.path.abspath(f).startswith(ROOT + os.sep):
+                del sys.modules[name]
+    return _Result(rc)
+
+
+def _py(cmd, cwd=None):
+    """Koer et Python-script i repoet: [sti, argumenter...]."""
+    if IN_PROCESS:
+        return _run_here(cmd, cwd)
+    sys.stdout.flush()
+    return subprocess.run([sys.executable] + list(cmd), cwd=cwd)
+
 def build_dirs():
     return [(app, os.path.join(ROOT, app, "build")) for app, _ in APPS]
 
@@ -217,13 +279,13 @@ def main(argv=None):
     # app at goere, og et deploy skal ikke stoppe paa en kommentar i et
     # PowerShell-script.
     if not args.app:
-        r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "check_ps1.py")])
+        r = _py([os.path.join(ROOT, "tools", "check_ps1.py")])
         if r.returncode:
             return r.returncode
         # VBA-modulerne importeres i Excel paa Windows - samme slags fejl
         # som i PowerShell (tegnsaet, linjeskift). Tjekket fandtes, men blev
         # aldrig koert af byggeriet.
-        r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "check_vba.py")])
+        r = _py([os.path.join(ROOT, "tools", "check_vba.py")])
         if r.returncode:
             return r.returncode
 
@@ -237,8 +299,7 @@ def main(argv=None):
         # sekund paa 118 filer.
         sol = os.path.join(ROOT, "solution")
         if os.path.isdir(sol):
-            r = subprocess.run([sys.executable,
-                                os.path.join(ROOT, "tools", "scrub_solution.py"),
+            r = _py([os.path.join(ROOT, "tools", "scrub_solution.py"),
                                 sol, "--report-only"])
             if r.returncode:
                 print("\nSolution-eksporten baerer noget hemmeligt. Koer:")
@@ -249,8 +310,7 @@ def main(argv=None):
 
         # Og resten af repoet. scrub_solution ser kun solution/, og en
         # signeret flow-URL stod i excel/ uden at noget saa den.
-        r = subprocess.run([sys.executable,
-                            os.path.join(ROOT, "tools", "check_secrets.py")])
+        r = _py([os.path.join(ROOT, "tools", "check_secrets.py")])
         if r.returncode:
             return r.returncode
 
@@ -299,7 +359,7 @@ def main(argv=None):
         # byggeriet - og den stod nedenfor fejlen, saa den var det sidste,
         # man saa.
         for s in scripts + ["check_layout.py"]:
-            r = subprocess.run([sys.executable, s], cwd=d)
+            r = _py([s], cwd=d)
             if r.returncode:
                 rc = r.returncode
                 print(f"  -> {s} fejlede. Springer resten af '{app}' over, "
@@ -329,7 +389,7 @@ def main(argv=None):
     # "Implementeret i", og har hver regel sine testsager? Efter bygningen,
     # fordi den ogsaa slaar kontrolnavne op i den byggede skaerm.
     if doc_check:
-        r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "fl", "check_rules_doc.py")])
+        r = _py([os.path.join(ROOT, "tools", "fl", "check_rules_doc.py")])
         if r.returncode:
             rc = r.returncode
 
@@ -341,7 +401,7 @@ def main(argv=None):
     # sted, kan braekke en anden app - det er billigere at opdage her end
     # ved dens naeste deploy.
     print()
-    r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "check_datasources.py")])
+    r = _py([os.path.join(ROOT, "tools", "check_datasources.py")])
     if r.returncode:
         rc = r.returncode
 
@@ -352,7 +412,7 @@ def main(argv=None):
     # af tjekket er den omvendte - at de seks SharePoint-valgvaerdier
     # (Kladde, Indsendt ...) IKKE bliver oversat. Se tools/check_language.py.
     print()
-    r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "check_language.py")])
+    r = _py([os.path.join(ROOT, "tools", "check_language.py")])
     if r.returncode:
         rc = r.returncode
 
@@ -360,7 +420,7 @@ def main(argv=None):
     # koden; resten er raekker i MD_HelpText. Staar en noegle begge steder,
     # vinder koden - og den, der retter raekken i SharePoint, ser ingen
     # forskel i appen.
-    r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "check_helptext.py")])
+    r = _py([os.path.join(ROOT, "tools", "check_helptext.py")])
     if r.returncode:
         rc = r.returncode
     return rc
