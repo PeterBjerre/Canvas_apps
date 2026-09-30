@@ -52,32 +52,26 @@ ENV_ID = env.ENV_ID
 #
 # "token" er farvens navn i tools/design_tokens.py - flisens og raekkens
 # ikon er SVG'er, og de skal have hex-udgaven af den samme farve.
-# "icon" er en SVG-sti i en 24 x 24 viewBox, tegnet med streg (ikke fyld).
+# "icon_key" er noeglen i tools/icons.DOMAIN - stien slaas op dér.
 DOMAINS = [
     {"key": "FunctionalLocation", "short": "FL",  "name": "Functional location",
-     "token": "domain-fl",  "app": "functionallocation",
-     # Kraftvaerket i en naal - den FAELLES definition (tools/icons.py).
-     "icon": icons.FUNCTIONAL_LOCATION},
+     "token": "domain-fl",  "app": "functionallocation", "icon_key": "functionallocation"},
     {"key": "Equipment",          "short": "EQ",  "name": "Equipment",
-     "token": "domain-eq",  "app": "equipment",
-     "icon": "M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 "
-             "7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z"},
+     "token": "domain-eq",  "app": "equipment", "icon_key": "equipment"},
     {"key": "MeasuringPoint",     "short": "MP",  "name": "Measuring point",
-     "token": "domain-mp",  "app": None,
-     "icon": "M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 "
-             "0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z "
-             "M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2",
-     # Spejlet vandret, saa linealen peger samme vej som Equipments
-     # skruenoegle (issue #70).
-     "mirror": True},
+     "token": "domain-mp",  "app": None, "icon_key": "measuringpoint"},
     {"key": "Material",           "short": "MAT", "name": "Material",
-     "token": "domain-mat", "app": "material",
-     "icon": "M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5"},
+     "token": "domain-mat", "app": "material", "icon_key": "material"},
     {"key": "MaintenancePlan",    "short": "VHP", "name": "Maintenance plan",
-     "token": "domain-vhp", "app": "vhplan",
-     "icon": "M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z "
-             "M8 2.5v4M16 2.5v4M3 10h18"},
+     "token": "domain-vhp", "app": "vhplan", "icon_key": "vhplan"},
 ]
+
+# Ikonerne er de FAELLES (tools/icons.py, issue #74) - de samme som i
+# sidebaren og sideoverskrifterne. Measuring Points lineal er spejlet, saa
+# den peger samme vej som Equipments skruenoegle (issue #70).
+for _d in DOMAINS:
+    _d["icon"] = icons.path(_d["icon_key"])
+    _d["mirror"] = icons.mirrored(_d["icon_key"])
 
 for _d in DOMAINS:
     _d["color"] = _t(_d["token"])
@@ -147,14 +141,30 @@ _CHECK = "M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M8 12.2l2.8 2.8L16 9.5
 _CLOCK = "M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M12 7v5l3.5 2"
 _ALERT = "M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M12 7.5v5.5M12 16.5v.01"
 _CROSS = "M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M9 9l6 6M15 9l-6 6"
+# Oprettet i SAP: et skjold med flueben - "laast og faerdigt", og en anden
+# FORM end Ready for SAP's cirkel, saa de to groenne kan skelnes.
+_SHIELD = "M12 21.5s7.5-3.2 7.5-9.5V5.2L12 2.5 4.5 5.2V12c0 6.3 7.5 9.5 7.5 9.5Z M8.8 11.8l2.3 2.3 4.3-4.6"
+# Annulleret: en overstreget cirkel - ikke Afvist's kryds i graat.
+_BAN = "M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M5.3 5.3l13.4 13.4"
 
+# Issue #74: hver status sin egen kombination af form og farve.
+#   Draft, Submitted, In progress   den blaa familie - tre forskellige former
+#   Submitted                       blaat flueben i blaa cirkel (var groent)
+#   Ready for SAP                   groent flueben i groen cirkel (uaendret)
+#   Created in SAP                  groent skjold med flueben
+#   Awaiting info                   advarsel
+#   Rejected / Cancelled            roedt kryds / graa overstreget cirkel
 STATUS_ICON = {
-    "Kladde":          (_DOC,   "state-info-fg"),
-    "Indsendt":        (_CHECK, "state-ok-fg"),
-    "UnderBehandling": (_CLOCK, "state-info-fg"),
-    "AfventerInfo":    (_ALERT, "state-warn-fg"),
-    "KlarTilSAP":      (_CHECK, "state-ok-fg"),
-    "OprettetISAP":    (_CHECK, "state-ok-fg"),
-    "Afvist":          (_CROSS, "state-error-fg"),
-    "Annulleret":      (_CROSS, "state-neutral-fg"),
+    "Kladde":          (_DOC,    "state-info-fg"),
+    "Indsendt":        (_CHECK,  "state-info-fg"),
+    "UnderBehandling": (_CLOCK,  "state-info-fg"),
+    "AfventerInfo":    (_ALERT,  "state-warn-fg"),
+    "KlarTilSAP":      (_CHECK,  "state-ok-fg"),
+    "OprettetISAP":    (_SHIELD, "state-ok-fg"),
+    "Afvist":          (_CROSS,  "state-error-fg"),
+    "Annulleret":      (_BAN,    "state-neutral-fg"),
 }
+
+# Ingen to statusser maa have samme ikon OG samme farve.
+if len(set(STATUS_ICON.values())) != len(STATUS_ICON):
+    raise SystemExit("hub_config: to statusser har samme ikon og farve")

@@ -34,7 +34,8 @@ ONSTART = _prefs + "\n\n" + tok.onstart_block() + '''
 Set(gblMe, Lower(User().Email));
 Set(gblView, "mine");
 Set(gblDomain, "");
-Set(gblStatusMode, "open")'''
+Set(gblStatusMode, "open");
+Set(gblClosedPeek, false)'''
 
 
 def _block(prop, text):

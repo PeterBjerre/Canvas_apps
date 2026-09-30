@@ -244,6 +244,71 @@ def button(name, text, onselect, primary=False, danger=False, width=140, height=
     return Ctrl(name, "ModernButton", props=props, h=height, vis=visible)
 
 
+def mark_done(btn, done_expr):
+    """Den FAELLES "udfyldt"-tilstand for en outline-knap (issue #73).
+
+    Item Long Text og Object List bruger den begge: naar der er noget,
+    faar knappen en groen kant og groen tekst. Kanten bliver 1 px bred i
+    alle tilstande, saa knappen aldrig skifter stoerrelse - kun farven
+    siger det. ModernButton har intet Fill, saa en tonet baggrund kan den
+    ikke faa; kant og tekst er den tilgaengelige udgave.
+
+    Tilstanden forsvinder i samme oejeblik, done_expr bliver falsk - der
+    er ingen variabel, der kan glemme at blive nulstillet."""
+    btn.props["BorderColor"] = f"If({done_expr}, {C_BORDER_OK}, {C_CARD_BORDER})"
+    btn.props["BorderThickness"] = "1"
+    btn.props["Color"] = f"If({done_expr}, {C_VALID_FG}, {C_TITLE})"
+    return btn
+
+
+TOGGLE_W = 96
+TOGGLE_H = 32
+
+
+def bool_toggle(name, default, display_mode=None, tooltip=None, true_text='"Yes"',
+                false_text='"No"', on_change=None):
+    """Kompakt ja/nej-kontakt - DEN ene stil for booleske felter (issue #73).
+
+    Classic/Toggle, fordi den tegner sin skinne, sit greb og sine
+    hover-flader med de farver, den faar (tokens) - og fordi den er
+    bevist i dette miljoe. Grebet glider selv mellem slukket og taendt.
+
+    Lille og tydelig: 96 x 32, teksten "Yes"/"No" ved siden af skinnen,
+    ingen tom plads. Ingen AccessibleLabel - compile afviste den paa de
+    klassiske kontroller (issue #57); Tooltip siger, hvad den er."""
+    props = {
+        "BorderColor": C_TRANSPARENT,
+        "Color": C_TITLE,
+        "Default": default,
+        "DisabledBorderColor": C_TRANSPARENT,
+        "FalseFill": C_NEUTRAL_BG,
+        "FalseHoverFill": C_DIVIDER,
+        "FalseText": false_text,
+        "FocusedBorderColor": C_PRIMARY,
+        "FocusedBorderThickness": "2",
+        "Font": FONT,
+        "HandleFill": C_WHITE,
+        "Height": str(TOGGLE_H),
+        "HoverBorderColor": C_TRANSPARENT,
+        "PressedBorderColor": C_PRIMARY,
+        "ShowLabel": "true",
+        "Size": "13",
+        "TrueFill": C_PRIMARY,
+        "TrueHoverFill": C_PRIMARY2,
+        "TrueText": true_text,
+        "Width": str(TOGGLE_W),
+    }
+    if display_mode:
+        props["DisplayMode"] = display_mode
+    if tooltip:
+        props["Tooltip"] = tooltip
+    if on_change:
+        props["OnChange"] = on_change
+    t = Ctrl(name, "Classic/Toggle", props=props, h=TOGGLE_H)
+    t.props["AlignInContainer"] = "AlignInContainer.Start"
+    return t
+
+
 def spinner_svg(size=64, stroke=6, delay=0.15):
     """Hjulet - EEN tegning for hele repoet (issue #64).
 
@@ -655,8 +720,36 @@ def flow_ok(children, container_w, gap=8, flex=None, flex_min=0):
     return _fits_expr(container_w, _sum_expr(terms, gap))
 
 
+PAGE_ICON = 32
+
+
+def page_icon(name, key, size=PAGE_ICON):
+    """Domaenets ikon til sideoverskriften (issue #74) - det SAMME ikon som i
+    sidebaren og paa hubbens flise (tools/icons.py), i domaenets farve, i
+    en svagt tonet firkant. Pynt: ingen tab stop, tom etiket."""
+    import icons
+    color = '" & %s & "' % ref_hex_expr(icons.token(key))
+    inner = icons.stroke_svg(key, color, size=20)
+    pad = (size - 20) / 2
+    svg = ("<svg xmlns='http://www.w3.org/2000/svg' width='%d' height='%d' "
+           "viewBox='0 0 %d %d'><rect width='%d' height='%d' rx='8' fill='%s' "
+           "fill-opacity='0.12'/><g transform='translate(%g %g)'>%s</g></svg>"
+           % (size, size, size, size, size, size, color, pad, pad, inner))
+    return Ctrl(name, "Image", props={
+        "AccessibleLabel": '""',
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        "Height": str(size),
+        "Image": f'"data:image/svg+xml;utf8," & EncodeUrl("{svg}")',
+        "ImagePosition": "ImagePosition.Fit",
+        "OnSelect": "false",
+        "TabIndex": "-1",
+        "Width": str(size),
+    }, h=size)
+
+
 def top_bar(prefix, title, subtitle, actions, container_w=None, gap=10,
-            narrow_hide=(), sub=None):
+            narrow_hide=(), sub=None, icon=None):
     """Bjaelken oeverst - den SAMME konstruktion i alle fire apps.
 
     EEN vandret raekke uden formler i retning eller justering: titlen og
@@ -679,12 +772,19 @@ def top_bar(prefix, title, subtitle, actions, container_w=None, gap=10,
         sub = [text_ctrl("txt%sSub" % prefix, subtitle, size=13, color=C_MUTED,
                          height=20, wrap="false")]
     left = grow(group("con%sBarLeft" % prefix, [t] + list(sub), direction="Vertical", gap=2))
+    lead = []
+    if icon:
+        # icon: noeglen i tools/icons.DOMAIN - appens eget domaeneikon.
+        ic = page_icon("img%sTitleIcon" % prefix, icon)
+        ic.props["AlignInContainer"] = "AlignInContainer.Center"
+        ic.props["LayoutMinWidth"] = str(PAGE_ICON)
+        lead = [ic]
     for a in actions:
         a.props["AlignInContainer"] = "AlignInContainer.Center"
         a.props["LayoutMinWidth"] = str(a.props["Width"])
         if a.name in narrow_hide:
             a.vis = at_least("Tablet")
-    return group("con%sBar" % prefix, [left] + list(actions), direction="Horizontal",
+    return group("con%sBar" % prefix, lead + [left] + list(actions), direction="Horizontal",
                  gap=gap, align_items="Center")
 
 

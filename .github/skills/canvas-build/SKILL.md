@@ -395,7 +395,14 @@ Se `docs/23-eq-mat-apps.md` og `docs/24-eq-mat-persistering.md`.
 Skal en ny domæneapp kobles på, eller skal en status skifte farve eller
 tekst, så er svaret **altid `hub_config.py`** og aldrig `build_hub.py`.
 Når en satellit-app er bygget, indsættes dens `app_id` i `DOMAINS`, og
-flisen skifter selv fra "Kommer snart" til "Opret ny".
+punktet i "New request"-menuen skifter selv fra "Coming soon" til aktivt.
+Fliserne har ingen "+ New" længere (issue #74) — hele flisen er
+domænefilteret, og tallet følger både "My requests" og Open/Closed/All.
+
+**Ikoner:** ét ikon pr. domæne i `tools/icons.py` (`DOMAIN`). Sidebaren,
+hubbens fliser/rækker og sideoverskrifterne (`build_helpers.page_icon`,
+`top_bar(..., icon=<nøgle>)`) slår alle op dér. Tegn aldrig et domæneikon
+et andet sted.
 
 ### Landingssidens to ufravigelige ydelseskrav
 
@@ -815,17 +822,24 @@ funktion, `fl_picker()`, og den samme flow-kontrakt, `build_flsearch.py`:
 
 - Search er deaktiveret under 7 tegn. Search kalder flowet **én** gang;
   derefter filtrerer comboboksen svaret lokalt, uden nye kald.
-- **Enter:** comboboksen har ingen Enter-hændelse, kun `OnChange` ved et
-  valg. Derfor står en søgerække (`SEARCH_CODE`) i listen, når teksten er
-  en ny søgning — Enter vælger den, og `OnChange` søger i stedet for at
-  gemme. Den står nederst, når brugeren blot snævrer det sidste svar ind.
-- **Mens flowet kører**, er knappen skiftet ud med en boks af samme
-  størrelse med én `ModernSpinner` — ingen prikker, ingen fuldskærmsspinner.
-- En ny søgning rydder gamle resultater og valget. Fejl og nul fund giver en
-  kort `Notify`.
-- Objektlisten (VH-plan) er stadig et **galleri med `ModernCheckbox`** i en
-  popup. Knappen viser antallet (`Object List (3)`), er deaktiveret uden
-  data og viser de valgte som `Tooltip`.
+- **Listen indeholder kun rigtige resultater** (issue #72) — ingen
+  søgerække, ingen hjælpetekst. Derfor søger Enter ikke; Search gør.
+- **Første resultat vælges automatisk** (`pick_var` + `Reset`), og valget
+  bliver stående, til der søges igen, nulstilles lokalt eller vælges om.
+- Status ("6 Functional Locations found for …", søger, ingen fund, fejl)
+  står **under** feltet i alle tre apps.
+- **Mens flowet kører**, står knappen stille (samme størrelse, deaktiveret,
+  uden tekst), og én `ModernSpinner` drejer i en fast plads lige til højre.
+  Rækken har 2 px luft over og under, så knappens fokusring ikke klippes.
+- Comboboksen har samme hjørner (10), kant og fyld som de andre felter.
+- **Reset er lokal:** `fl_picker.reset_fx()` rydder kun den vælgers egne
+  variabler og samling.
+- En ny søgning rydder gamle resultater, valget og (VH-plan) objektvalget.
+- Objektlisten (VH-plan) er et **galleri med én `ModernCheckbox` pr.
+  række** — koden og beskrivelsen er afkrydsningens egen etiket. Knappen
+  viser antallet (`Object List (3)`), får den fælles grønne
+  udfyldt-tilstand (`build_helpers.mark_done`), er deaktiveret uden en
+  gyldig FL og viser de valgte som `Tooltip`.
 
 **Efterprøv i Studio mod rigtige data**, hvis comboboksen nogensinde viser
 færre rækker end samlingen har — mistænk kontrollens eget filter før dine

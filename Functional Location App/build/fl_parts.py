@@ -108,7 +108,7 @@ def build_bar():
     export = button("btnFlExport", '"Export JSON"', S.export_fx(), width=120)
     # Temaskiftet og vejen til hubben staar i sidebaren (tools/side_nav.py).
     bar = top_bar("Fl", f'"{cfg.TITLE}"', f'"{cfg.SUBTITLE}"',
-                  [count, verify, export])
+                  [count, verify, export], icon=cfg.APP_KEY)
     count.vis = at_least("Desktop")
     return bar
 
