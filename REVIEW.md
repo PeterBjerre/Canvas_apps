@@ -13,7 +13,7 @@ Dato: 2026-09-30 · Grundlag: branch `claude/power-app-mcp-script-0mr7uy` @ `764
 Repoet har **seks** app-mapper: de fire nævnte (Masterdata Hub, Maintenance Plan App/VH-plan, Equipment App, Material App) plus **Functional Location App** og **BIO SAP App**. BIO SAP App er de fem apps samlet som skærme i én test-app. Begge er medtaget.
 
 
-## Status efter fase 0, 1 og 2 (2026-09-30)
+## Status efter fase 0, 1, 2 og 3 (2026-09-30)
 
 Linjenumrene i fundene nedenfor henviser til udgangspunktet (`764fbcb`).
 
@@ -33,6 +33,11 @@ Linjenumrene i fundene nedenfor henviser til udgangspunktet (`764fbcb`).
   - Tokens: typeskala, radius, mål og `DATE_FMT` i `layout_tokens` (A9, A11, C8).
   - `sharepoint/provision/_Common.psm1` (E8) og indeks på VH-opslagskolonnerne (B14).
   - Udskudt fra fase 1: A16 for tasklist-vælgeren (vandret scroll) og D12 (SchedulingIndicator som JA/NEJ-dropdown, der gemmes; Statutory Sort Field fjernet).
+- *Fase 3:*
+  - VH-gem (D7, D8, B7, C15): items og operationer husker deres SharePoint-ID og **opdateres** i stedet for at blive slettet og oprettet igen, så `ItemKey` og dokumentmappen er stabile. Alt skrives, før noget slettes; `Modified`-tjek mod samtidige gem; otte trin med `IfError` og `colVhpSaveErrors`; status skrives sidst. Offsets i `Concurrent`, SortField-`Id` i den navngivne formel, og Submit vælger Save draft-knappen, så gemmet står én gang i appen. `save_action` er delt i én funktion pr. trin. Se docs/13.
+  - FL (B5, B6, D24, D25): dubletter med én `GroupBy`, spool-tjek mod rækkens egne værdier, `Pos`/`FlBad`/`DescBad`/`Hint` regnet i valideringen og detaljeruden som samling. Gem sletter kun rækker, brugeren har slettet eller tømt. D25 er dokumenteret som uafklaret.
+  - `check_layout` som regelregister (C7): 40 regelfunktioner i `RULES`, opdelt ud fra syntakstræet og efterprøvet byte-identisk på alle skærme og 18 plantede fejl. Opdelingen afslørede, at regel 22 aldrig så `App.OnStart` (rettet). Én Power Fx-scanner i `tools/fx.py`; regeltabellen i SKILL.md genereres af `check_layout --rules`.
+  - `tools/build.py`: hele kæden i én proces, byte-identisk med `build_all.py`.
 
 **Står tilbage**
 - **Kræver handling uden for repoet:**
@@ -40,7 +45,7 @@ Linjenumrene i fundene nedenfor henviser til udgangspunktet (`764fbcb`).
   - D2: ny trigger-signatur. `excel/artifact/BIO SAP VH-plan lister.xlsm`, som bar den gamle URL i VBA-projektet, er fjernet fra repoet (ligger stadig i historikken).
   - Omskrivning af git-historikken.
 - **Kræver adgang til SharePoint:** E9 (nyt skemaudtræk).
-- **Ikke koert:** PowerShell findes ikke i byggemiljøet. `_Common.psm1` og de ni scripts er kun tjekket af `check_ps1` og `check_datasources`. Kør ét script med `-WhatIfOnly` (fx `Provision-VHPlanColumns.ps1`), før resten bruges.
+- **Provisionering:** `_Common.psm1` er kørt med `Provision-VHPlanColumns.ps1` mod DEV (issue #83). De otte andre scripts er kun tjekket af `check_ps1` og `check_datasources`.
 - **Fra E8 ikke gjort:** `-WhatIfOnly` i de scripts, der ikke har det. Deres øvrige PnP-kald (visninger, seed) respekterer det ikke, så et halvt tørløb ville skrive alligevel.
 - **Ikke efterprøvet i Studio:** alle Power Fx-ændringer er bygget og layout-tjekket, men ikke compilet mod Studio. Kør `python tools\canvas_mcp.py deploy --app <nøgle>` pr. app, og efterprøv især:
   - `Ungroup` i VH-planens dyblink;
@@ -48,7 +53,17 @@ Linjenumrene i fundene nedenfor henviser til udgangspunktet (`764fbcb`).
   - slet-bekræftelsen i Equipment/Material;
   - ModernDropdown i alle apps (`Default` slås op fra teksten) og felttekst i `input-fg` i mørk tilstand, også i dropdownens og comboboksens lyse liste; JA/NEJ-feltet ved gem;
   - DatePicker med `Format = "yyyy-mm-dd"`;
-  - tasklist-vælgeren på en smal skærm (vandret scroll).
+  - tasklist-vælgeren på en smal skærm (vandret scroll);
+  - VH-gem: gensave af en indlæst plan (items beholder ID og `ItemKey`), sletning af et item, Submit via bekræftelsen, og konflikttjekket med to brugere;
+  - FL: galleriets nummer og røde kanter, detaljeruden efter en rettelse, og at en række, en anden har tilføjet, overlever et gem.
+- **Fra fase 3 ikke gjort:**
+  - FL-validering af KUN den ændrede række (B5). Dubletter, TRM og fanerne går på tværs af rækker; hele valideringen er nu O(n) i stedet for O(n²).
+  - BIO SAP genbruger ikke enkeltappernes skærme (dobbeltbygningen). Det ville bryde isolationen mellem apps for ca. 3-4 s af 16.
+- **Beslutning om BIO SAP App (jeres):** af de fire ting, der blokerede, er to løst: D23 (fase 1) og C4 (fase 2). To står tilbage:
+  - `AppUrl` i indekset og mailflowets link peger på enkeltappen, også når anmodningen er gemt fra BIO SAP;
+  - der er intet testscenarie for FL i BIO SAP.
+  
+  Er den samlede app målet, er de to det næste, og derefter kan de fem enkeltapps udfases.
 
 ---
 
