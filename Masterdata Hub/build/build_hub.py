@@ -156,24 +156,22 @@ def _domain_switch(field, fallback):
 # SCOPE er BAADE listens, flisernes og taellerens grundlag, saa de tre
 # aldrig kan vaere uenige om, hvad der er valgt.
 # ---------------------------------------------------------------------------
-_MINE = f"Filter('{LIST}', RequesterEmail = gblMe)"
-_ALL = f"'{LIST}'"
-
-
-def _by_status(base):
-    return ("If(\n"
-            f"        gblStatusMode = \"open\", Filter({base}, IsOpen = true),\n"
-            f"        gblStatusMode = \"done\", Filter({base}, IsOpen = false),\n"
-            f"        {base}\n"
-            "    )")
-
-
+# ET FLADT FILTER, IKKE If(...) OMKRING SEKS FILTRE
+#
+# Her stod If(gblView = "mine", If(gblStatusMode = ...)) med et Filter i
+# hver gren. Om Power Apps delegerer det ydre Filter/SortByColumns GENNEM
+# en If, var aldrig efterproevet (README bad selv om at tjekke det). Et
+# enkelt Filter, hvor hver betingelse er "konstant ELLER delegerbar
+# sammenligning", er samme moenster som soegningen nedenfor
+# (IsBlank(...) || StartsWith(...)) - og det staar kun een gang i YAML'en.
+#
+# Stadig kun indekserede felter: RequesterEmail (tekst) og IsOpen (ja/nej).
 SCOPE = (
-    "If(\n"
-    "    gblView = \"mine\",\n"
-    f"    {_by_status(_MINE)},\n"
-    f"    {_by_status(_ALL)}\n"
-    ")"
+    "Filter(\n"
+    f"        '{LIST}',\n"
+    '        gblView <> "mine" || RequesterEmail = gblMe,\n'
+    '        gblStatusMode = "all" || IsOpen = (gblStatusMode = "open")\n'
+    "    )"
 )
 
 # Flisernes undertekst: hvad tallet taeller.
@@ -184,11 +182,7 @@ SCOPE_WORDS = ('Switch(gblStatusMode, "open", "Open", "done", "Closed", "All") &
 CLOSED_LATEST = (
     "FirstN(\n"
     "    SortByColumns(\n"
-    "        If(\n"
-    "            gblView = \"mine\",\n"
-    f"            Filter('{LIST}', RequesterEmail = gblMe, IsOpen = false),\n"
-    f"            Filter('{LIST}', IsOpen = false)\n"
-    "        ),\n"
+    f"        Filter('{LIST}', gblView <> \"mine\" || RequesterEmail = gblMe, IsOpen = false),\n"
     "        \"LastActionOn\", SortOrder.Descending\n"
     "    ),\n"
     "    5\n"
@@ -488,7 +482,9 @@ def build_filters():
     count = text_ctrl("txtMdCount", f'Text({shown}) & " requests"',
                       size=12, color=C_MUTED, height=36, align="Right", width=110, wrap="false")
     closed = _chip("btnMdStDone", "Closed", "done", "CheckmarkCircle")
-    closed.props["Tooltip"] = _closed_tooltip()
+    # Statisk: tooltip'en hentede de seneste lukkede (en forespoergsel) ved
+    # hver visning af skaermen. Info-knappen ved siden af viser dem.
+    closed.props["Tooltip"] = '"Show closed requests - the (i) button lists the latest"'
     kids = [search, _chip("btnMdStOpen", "Open", "open", "MailInbox"),
             closed, _peek_button(),
             _chip("btnMdStAll", "All", "all", "TextBulletListLtr"), count]
@@ -505,15 +501,6 @@ def build_filters():
 # tooltip kan hverken naas med en finger eller klikkes i.
 PEEK_W = 360
 PEEK_ROW_H = 48
-
-
-def _closed_tooltip():
-    return (f"With(\n    {{ l: {CLOSED_LATEST} }},\n"
-            "    If(\n"
-            '        IsEmpty(l), "No closed requests yet.",\n'
-            '        "Latest closed:" & Char(10) &\n'
-            f'            Concat(l, {COL_NO} & "  " & Domain.Value & " - " & ShortText, Char(10))\n'
-            "    )\n)")
 
 
 def _peek_button():
@@ -613,15 +600,37 @@ ITEMS = (
 
 
 def _open_action():
+    """Open: domaenets EGEN play-URL (hub_config, fra canvas_apps.json) +
+    ?reqid=.
+
+    Her stod ThisItem.AppUrl & "&reqid=". To problemer: Equipment,
+    Material og FL skriver allerede "?reqid=" i AppUrl, saa parameteren kom
+    med to gange - og AppUrl er en tekstkolonne, som alle med Contribute
+    kan rette, saa hubben launchede hvad som helst. Nu er URL'en hubbens
+    egen, og raekkens AppUrl bruges kun, hvis domaenet er ukendt.
+    Samme tjek som i BIO SAP: uden RequestGuid er der intet at aabne."""
+    known = [(d["key"], d["url"]) for d in DOMAINS if d["url"]]
+    url = ("Switch(\n"
+           "        ThisItem.Domain.Value,\n"
+           + "".join(f'        "{k}", "{u}",\n' for k, u in known) +
+           '        ""\n'
+           "    )")
     return OPEN_ACTION or (
-        "If(\n"
-        "    IsBlank(ThisItem.AppUrl),\n"
-        '    Notify("This request has no app URL.", NotificationType.Error),\n'
-        "    Launch(\n"
-        '        ThisItem.AppUrl & If(Find("?", ThisItem.AppUrl) > 0, "&", "?") &\n'
-        f'            "reqid=" & ThisItem.RequestGuid & {THEME_Q_AMP},\n'
-        "        { },\n"
-        f"        {APP_TARGET}\n"
+        f"With(\n    {{ u: {url} }},\n"
+        "    If(\n"
+        "        IsBlank(ThisItem.RequestGuid),\n"
+        '        Notify("This request has no ID.", NotificationType.Error),\n'
+        "        !IsBlank(u),\n"
+        f'        Launch(u & "?reqid=" & ThisItem.RequestGuid & {THEME_Q_AMP}, {{ }}, {APP_TARGET}),\n'
+        "        !IsBlank(ThisItem.AppUrl),\n"
+        "        Launch(\n"
+        '            If(Find("reqid=", ThisItem.AppUrl) > 0, ThisItem.AppUrl,\n'
+        '                ThisItem.AppUrl & If(Find("?", ThisItem.AppUrl) > 0, "&", "?") &\n'
+        '                    "reqid=" & ThisItem.RequestGuid) &\n'
+        f"                {THEME_Q_AMP},\n"
+        f"            {{ }}, {APP_TARGET}\n"
+        "        ),\n"
+        '        Notify("This request has no app URL.", NotificationType.Error)\n'
         "    )\n"
         ")")
 

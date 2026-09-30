@@ -73,66 +73,75 @@ Screens:
                   Set(varFlInfo, "");
                   Set(varFlPayload, "");
                   Set(varFlReq, Blank());
-                  Set(varFlIdx, Blank())
+                  Set(varFlIdx, Blank());
+                  Set(varFlMe, Lower(User().Email));
+                  If(
+                      !IsBlank(gblFlReqId) && varFlRequestGuid <> gblFlReqId,
+                      Set(varFlRequestGuid, gblFlReqId);
+                      Set(varFlReq, LookUp(FunctionalLocationRequests, RequestGuid = varFlRequestGuid));
+                      // Linket peger paa noget, der ikke er her (andet miljoe, slettet): sig det,
+                      // og slip GUID'en - ellers oprettede naeste gem et hoved med den fremmede.
+                      If(
+                          IsBlank(varFlReq),
+                          Notify("Could not find the request behind this link. Opening a new request.",
+                              NotificationType.Warning);
+                          Set(varFlRequestGuid, ""),
+                          Set(varFlRequestNo, Coalesce(varFlReq.RequestNo, ""));
+                          Set(varFlStatus, Coalesce(varFlReq.Status.Value, "Kladde"));
+                          ClearCollect(
+                              colFlLoad,
+                              ForAll(
+                                  Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) As I,
+                                  {
+                                      RowGuid: I.RowGuid, RowNo: I.RowNo, SpId: I.ID,
+                                      FL: I.FunctionalLocation, Description: I.Description,
+                                      KksType: I.KksType, AssignedClass: I.AssignedClass,
+                                      Status: I.RowStatus.Value, FirstIssue: I.FirstIssue,
+                                      IssueCount: I.IssueCount, Json: Coalesce(I.SpoolValuesJson, "[]")
+                                  }
+                              )
+                          );
+                          ClearCollect(
+                              colFlRows,
+                              ForAll(
+                                  Sort(colFlLoad, RowNo) As I,
+                                  {
+                                      RowGuid: I.RowGuid, RowNo: I.RowNo, SpId: I.SpId, FL: I.FL,
+                                      Description: I.Description, KksType: I.KksType,
+                                      AssignedClass: I.AssignedClass, Status: I.Status,
+                                      FirstIssue: I.FirstIssue, FirstWarning: "",
+                                      IssueCount: I.IssueCount, WarningCount: 0
+                                  }
+                              )
+                          );
+                          ClearCollect(
+                              colFlVals,
+                              Ungroup(
+                                  ForAll(
+                                      colFlLoad As I,
+                                      {
+                                          Vals: ForAll(
+                                              Table(ParseJSON(I.Json)) As J,
+                                              { RowGuid: I.RowGuid, Field: Text(J.Value.field), Value: Text(J.Value.value) }
+                                          )
+                                      }
+                                  ),
+                                  Vals
+                              )
+                          );
+                          Set(varFlNextRowNo, Max(colFlRows, RowNo) + 1);
+                          // Beskederne gemmes ikke - de regnes. OnVisible koerer valideringen lige
+                          // efter (Select(btnFlVerify)), og indtil da kan der ikke indsendes (FL68).
+                          Set(varFlStale, true);
+                          Set(varFlInfo, "")
+                      );
+                      // Beskederne gemmes ikke - de regnes igen, automatisk (issue #77).
+                      Select(btnFlVerify)
+                  )
               )
           );
           
           Set(varFlMe, Lower(User().Email));
-          If(
-              !IsBlank(gblFlReqId) && varFlRequestGuid <> gblFlReqId,
-              Set(varFlRequestGuid, gblFlReqId);
-              Set(varFlReq, LookUp(FunctionalLocationRequests, RequestGuid = varFlRequestGuid));
-              Set(varFlRequestNo, Coalesce(varFlReq.RequestNo, ""));
-              Set(varFlStatus, Coalesce(varFlReq.Status.Value, "Kladde"));
-              ClearCollect(
-                  colFlLoad,
-                  ForAll(
-                      Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) As I,
-                      {
-                          RowGuid: I.RowGuid, RowNo: I.RowNo, SpId: I.ID,
-                          FL: I.FunctionalLocation, Description: I.Description,
-                          KksType: I.KksType, AssignedClass: I.AssignedClass,
-                          Status: I.RowStatus.Value, FirstIssue: I.FirstIssue,
-                          IssueCount: I.IssueCount, Json: Coalesce(I.SpoolValuesJson, "[]")
-                      }
-                  )
-              );
-              ClearCollect(
-                  colFlRows,
-                  ForAll(
-                      Sort(colFlLoad, RowNo) As I,
-                      {
-                          RowGuid: I.RowGuid, RowNo: I.RowNo, SpId: I.SpId, FL: I.FL,
-                          Description: I.Description, KksType: I.KksType,
-                          AssignedClass: I.AssignedClass, Status: I.Status,
-                          FirstIssue: I.FirstIssue, FirstWarning: "",
-                          IssueCount: I.IssueCount, WarningCount: 0
-                      }
-                  )
-              );
-              ClearCollect(
-                  colFlVals,
-                  Ungroup(
-                      ForAll(
-                          colFlLoad As I,
-                          {
-                              Vals: ForAll(
-                                  Table(ParseJSON(I.Json)) As J,
-                                  { RowGuid: I.RowGuid, Field: Text(J.Value.field), Value: Text(J.Value.value) }
-                              )
-                          }
-                      ),
-                      Vals
-                  )
-              );
-              Set(varFlNextRowNo, Max(colFlRows, RowNo) + 1);
-              // Beskederne gemmes ikke - de regnes. OnVisible koerer valideringen lige
-              // efter (Select(btnFlVerify)), og indtil da kan der ikke indsendes (FL68).
-              Set(varFlStale, true);
-              Set(varFlInfo, "");
-              // Beskederne gemmes ikke - de regnes igen, automatisk (issue #77).
-              Select(btnFlVerify)
-          );
           If(CountRows(colFlRows) = 0, Collect(colFlRows, { RowGuid: Text(GUID()), RowNo: varFlNextRowNo, SpId: 0, FL: "", Description: "", KksType: "", AssignedClass: "", Status: "draft", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0 }); Set(varFlNextRowNo, varFlNextRowNo + 1));
           
           // Klar - ventespinneren forsvinder.
@@ -323,8 +332,6 @@ Screens:
                               - txtFlSub:
                                   Control: ModernText
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =If(IsBlank(varFlRequestNo), "Verify KKS codes, classes and spool fields - and pass the request on.", "Request " & varFlRequestNo & If(varFlStatus = "Indsendt", " - submitted and locked.", " - draft."))
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -354,8 +361,6 @@ Screens:
                         - txtFlCount:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  ="Rows: " & CountRows(colFlRows) & "  Ready: " & CountRows(Filter(colFlRows, Status = "valid" || Status = "warning")) & "  Issues: " & CountRows(Filter(colFlRows, Status = "invalid"))
                               Align: |-
                                   =Align.Center
                               AlignInContainer: |-
@@ -1328,8 +1333,6 @@ Screens:
                               - txtFlRowNo:
                                   Control: ModernText
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =Text(CountRows(Filter(colFlRows, RowNo <= ThisItem.RowNo)))
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -1473,8 +1476,6 @@ Screens:
                               - txtFlRowKks:
                                   Control: ModernText
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =If(IsBlank(ThisItem.KksType), "-", ThisItem.KksType)
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -1512,8 +1513,6 @@ Screens:
                               - txtFlRowCls:
                                   Control: ModernText
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =If(IsBlank(ThisItem.AssignedClass), "-", ThisItem.AssignedClass)
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -1553,8 +1552,6 @@ Screens:
                               - txtFlRowIssue:
                                   Control: ModernText
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =Switch(ThisItem.Status, "draft", "Draft", "valid", "Valid", "warning", "Warning" & If(IsBlank(ThisItem.FirstWarning), "", " - " & ThisItem.FirstWarning), If(IsBlank(ThisItem.FirstIssue), "Invalid", ThisItem.FirstIssue))
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -1847,8 +1844,6 @@ Screens:
                         - txtFlInfo:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(varFlInfo, "Submit is blocked: " & CountRows(Filter(colFlRows, Status = "invalid")) & " row(s) have errors.")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -2736,8 +2731,6 @@ Screens:
                               - txtFlCNo:
                                   Control: ModernText
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =Text(ThisItem.Pos)
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -2881,8 +2874,6 @@ Screens:
                               - txtFlCStr:
                                   Control: ModernText
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =ThisItem.KksType
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -2920,8 +2911,6 @@ Screens:
                               - txtFlCCls:
                                   Control: ModernText
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =ThisItem.AssignedClass
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -2961,8 +2950,6 @@ Screens:
                               - txtFlCInfo:
                                   Control: ModernText
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =Coalesce(ThisItem.FirstIssue, ThisItem.FirstWarning, "")
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -4050,8 +4037,6 @@ Screens:
                         - txtFlDetSub:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  ="Class: " & varFlDetailClass & " | FL: " & Coalesce(LookUp(colFlRows, RowGuid = varFlDetailRow).FL, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -4286,8 +4271,6 @@ Screens:
                   - txtFlDetCol:
                       Control: ModernText
                       Properties:
-                        AccessibleLabel: |-
-                            =ThisItem.Column
                         BorderStyle: |-
                             =BorderStyle.None
                         BorderThickness: |-
@@ -4473,8 +4456,6 @@ Screens:
                   - txtFlDetRo:
                       Control: ModernText
                       Properties:
-                        AccessibleLabel: |-
-                            =ThisItem.Value
                         BorderStyle: |-
                             =BorderStyle.None
                         BorderThickness: |-
@@ -4512,8 +4493,6 @@ Screens:
                   - txtFlDetIssue:
                       Control: ModernText
                       Properties:
-                        AccessibleLabel: |-
-                            =ThisItem.Issue
                         BorderStyle: |-
                             =BorderStyle.None
                         BorderThickness: |-
@@ -5456,7 +5435,7 @@ Screens:
                                     CountRows(colFlSaveErrors) = 0,
                                     Set(varFlStatus, "Kladde");
                                     Set(varFlInfo, "");
-                                    Notify("Saved as " & varFlRequestNo & " - see it on the landing page.", NotificationType.Success),
+                                    Set(varFlInfo, ""),
                                     Set(varFlInfo, "Saving failed (" & First(colFlSaveErrors).Where & "): " & First(colFlSaveErrors).Msg);
                                     Notify(CountRows(colFlSaveErrors) & " step(s) failed. What was saved is kept - try again.", NotificationType.Error)
                                 );
@@ -5512,7 +5491,7 @@ Screens:
                                             Patch(MD_RequestIndex, varFlIdx, { Status: { Value: "Indsendt" }, StatusStep: 2, LastActionOn: Now() });
                                             Set(varFlStatus, "Indsendt");
                                             Set(varFlInfo, "");
-                                            Notify("Submitted as " & varFlRequestNo & ".", NotificationType.Success),
+                                            Notify("Submitted as " & varFlRequestNo & " - see it on the landing page.", NotificationType.Success),
                                             Set(varFlInfo, "Submit failed: " & FirstError.Message);
                                             Notify("Submit failed: " & FirstError.Message, NotificationType.Error)
                                         )

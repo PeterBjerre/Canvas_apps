@@ -274,8 +274,6 @@ Screens:
                         - txtDomCount:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  ="Rows: " & CountRows(colDomRows)
                               Align: |-
                                   =Align.Center
                               AlignInContainer: |-
@@ -325,8 +323,6 @@ Screens:
                         - txtDomReqNo:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =If(IsBlank(varDomRequestNo), "Not submitted", varDomRequestNo)
                               AlignInContainer: |-
                                   =AlignInContainer.Center
                               BorderStyle: |-
@@ -1484,8 +1480,6 @@ Screens:
                         - txtDomFlMsg:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =varDomFlMsg
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -3376,8 +3370,6 @@ Screens:
                                     - txtDomFormPlant:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              ="Plant: " & Coalesce(varDomFPlant, "-")
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -3419,13 +3411,6 @@ Screens:
                                     - txtDomFormState:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =If(
-                                                  IsBlank(varDomActiveRowId),
-                                                  "Row status: New row - not saved yet",
-                                                  "Row status: " & Coalesce(LookUp(colDomRows, RowId = varDomActiveRowId).ItemKey, "row " & varDomActiveRowId) &
-                                                      " (" & varDomRowStatus & ")"
-                                              )
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -3884,8 +3869,6 @@ Screens:
                         - txtDomFormInfo:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =varDomInfo
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -4974,8 +4957,6 @@ Screens:
                                     - txtDomHeadDetails:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =If(varDomAllCols, "ACTIONS", "DETAILS")
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5167,8 +5148,6 @@ Screens:
                                     - txtDomCell0:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =If(ThisItem.NoBomItem, "No BOM item", ThisItem.FunctionalLocation)
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5204,8 +5183,6 @@ Screens:
                                     - txtDomCell1:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =If(varDomAllCols, ThisItem.Manufacturer, If(IsBlank(Trim(ThisItem.MaterialDescription)), "(no text)", ThisItem.MaterialDescription))
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5241,8 +5218,6 @@ Screens:
                                     - txtDomCell2:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =If(varDomAllCols, ThisItem.ModelNumber, ThisItem.Manufacturer)
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5278,8 +5253,6 @@ Screens:
                                     - txtDomCell3:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.ManufacturerPartNo
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5315,8 +5288,6 @@ Screens:
                                     - txtDomCell4:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =If(varDomAllCols, If(IsBlank(Trim(ThisItem.MaterialDescription)), "(no text)", ThisItem.MaterialDescription), ThisItem.Supplier)
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5352,8 +5323,6 @@ Screens:
                                     - txtDomCell5:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =If(ThisItem.FileCount > 0, Text(ThisItem.FileCount) & " file(s)", "-")
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5391,8 +5360,6 @@ Screens:
                                     - txtDomCell6:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.StockUnit
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5430,8 +5397,6 @@ Screens:
                                     - txtDomCell7:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =If(IsBlank(ThisItem.Price), "", Text(ThisItem.Price))
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5469,8 +5434,6 @@ Screens:
                                     - txtDomCell8:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.PriceUnit
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5508,8 +5471,6 @@ Screens:
                                     - txtDomCell9:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =If(IsBlank(ThisItem.DeliveringTime), "", Text(ThisItem.DeliveringTime))
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5547,8 +5508,6 @@ Screens:
                                     - txtDomCell10:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =If(IsBlank(ThisItem.RecommendedStock), "", Text(ThisItem.RecommendedStock))
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5586,8 +5545,6 @@ Screens:
                                     - txtDomCell11:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.Supplier
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5625,8 +5582,6 @@ Screens:
                                     - txtDomCell12:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.SupplierPartNo
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5664,8 +5619,6 @@ Screens:
                                     - txtDomCell13:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.StrategicPart
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -5703,8 +5656,6 @@ Screens:
                                     - txtDomCell14:
                                         Control: ModernText
                                         Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.WearPart
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -6122,12 +6073,6 @@ Screens:
                               - txtDomSubmitState:
                                   Control: ModernText
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =If(
-                                            IsBlank(varDomRequestNo),
-                                            "The request has not been sent to the hub yet.",
-                                            "Request " & varDomRequestNo & " is on the landing page."
-                                        )
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -7152,8 +7097,6 @@ Screens:
                         - txtDomDetKey:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).ItemKey, "Row " & Text(varDomDetailsId))
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -7185,22 +7128,6 @@ Screens:
                         - txtDomDetPos:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  ="" & Text(CountRows(Filter(Sort(Filter(
-                                      colDomRows,
-                                      (IsBlank(Trim(txtDomSearch.Text)) || Trim(txtDomSearch.Text) in MaterialDescription || Trim(txtDomSearch.Text) in FunctionalLocation || Trim(txtDomSearch.Text) in ManufacturerPartNo || Trim(txtDomSearch.Text) in Supplier),
-                                      (drpDomStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpDomStatusFilter.Selected.Value)),
-                                      (drpDomPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpDomPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varDomDetailsId)) + 1) & " of " & Text(CountRows(Sort(Filter(
-                                      colDomRows,
-                                      (IsBlank(Trim(txtDomSearch.Text)) || Trim(txtDomSearch.Text) in MaterialDescription || Trim(txtDomSearch.Text) in FunctionalLocation || Trim(txtDomSearch.Text) in ManufacturerPartNo || Trim(txtDomSearch.Text) in Supplier),
-                                      (drpDomStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpDomStatusFilter.Selected.Value)),
-                                      (drpDomPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpDomPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending)))
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -7593,8 +7520,6 @@ Screens:
                         - txtDomDet0V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).MaterialDescription, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -7692,8 +7617,6 @@ Screens:
                         - txtDomDet1V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).Plant, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -7791,8 +7714,6 @@ Screens:
                         - txtDomDet2V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).Status, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -7890,8 +7811,6 @@ Screens:
                         - txtDomDet3V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Text(Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).FileCount, 0))
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -7989,8 +7908,6 @@ Screens:
                         - txtDomDet4V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).FunctionalLocation, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -8088,8 +8005,6 @@ Screens:
                         - txtDomDet5V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =If(LookUp(colDomRows, RowId = varDomDetailsId).NoBomItem, "Yes", "No")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -8187,8 +8102,6 @@ Screens:
                         - txtDomDet6V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).Manufacturer, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -8286,8 +8199,6 @@ Screens:
                         - txtDomDet7V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).ModelNumber, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -8385,8 +8296,6 @@ Screens:
                         - txtDomDet8V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).ManufacturerPartNo, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -8484,8 +8393,6 @@ Screens:
                         - txtDomDet9V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).Supplier, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -8583,8 +8490,6 @@ Screens:
                         - txtDomDet10V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).SupplierPartNo, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -8682,8 +8587,6 @@ Screens:
                         - txtDomDet11V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =If(IsBlank(LookUp(colDomRows, RowId = varDomDetailsId).DeliveringTime), "-", Text(LookUp(colDomRows, RowId = varDomDetailsId).DeliveringTime))
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -8781,8 +8684,6 @@ Screens:
                         - txtDomDet12V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =If(IsBlank(LookUp(colDomRows, RowId = varDomDetailsId).Price), "-", Text(LookUp(colDomRows, RowId = varDomDetailsId).Price))
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -8880,8 +8781,6 @@ Screens:
                         - txtDomDet13V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).PriceUnit, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -8979,8 +8878,6 @@ Screens:
                         - txtDomDet14V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).StockUnit, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -9078,8 +8975,6 @@ Screens:
                         - txtDomDet15V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =If(IsBlank(LookUp(colDomRows, RowId = varDomDetailsId).RecommendedStock), "-", Text(LookUp(colDomRows, RowId = varDomDetailsId).RecommendedStock))
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -9177,8 +9072,6 @@ Screens:
                         - txtDomDet16V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).StrategicPart, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -9276,8 +9169,6 @@ Screens:
                         - txtDomDet17V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).WearPart, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -9375,8 +9266,6 @@ Screens:
                         - txtDomDet18V:
                             Control: ModernText
                             Properties:
-                              AccessibleLabel: |-
-                                  =Coalesce(LookUp(colDomRows, RowId = varDomDetailsId).LongText, "-")
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -9492,8 +9381,6 @@ Screens:
                   - txtDomAttH:
                       Control: ModernText
                       Properties:
-                        AccessibleLabel: |-
-                            ="Documents - " & Coalesce(LookUp(colDomRows, RowId = varDomDocsId).ItemKey, "")
                         BorderStyle: |-
                             =BorderStyle.None
                         BorderThickness: |-
@@ -9951,8 +9838,6 @@ Screens:
                   - txtDomAttName:
                       Control: ModernText
                       Properties:
-                        AccessibleLabel: |-
-                            =ThisItem.FileName
                         BorderStyle: |-
                             =BorderStyle.None
                         BorderThickness: |-
@@ -10033,12 +9918,6 @@ Screens:
             - txtDomAttEmpty:
                 Control: ModernText
                 Properties:
-                  AccessibleLabel: |-
-                      =If(
-                          IsBlank(LookUp(colDomRows, RowId = varDomDocsId).ItemKey),
-                          "Save the row first - the folder is named after the row key.",
-                          "No documents in " & "TaskListDocuments/" & LookUp(colDomRows, RowId = varDomDocsId).ItemKey & " yet."
-                      )
                   BorderStyle: |-
                       =BorderStyle.None
                   BorderThickness: |-
@@ -10605,8 +10484,6 @@ Screens:
             - txtDomDelConfirmText:
                 Control: ModernText
                 Properties:
-                  AccessibleLabel: |-
-                      ="Row " & LookUp(colDomRows, RowId = varDomDeleteId).ItemKey & " is deleted in SharePoint. The documents remain in the library."
                   BorderStyle: |-
                       =BorderStyle.None
                   BorderThickness: |-

@@ -232,17 +232,20 @@ def build_functionallocation():
     asm = _load(d, "assemble_screen.py")
     seen = _capture(asm)
     asm.build_screen()
-    own = seen["props"]["OnVisible"]
-    if 'Param("reqid")' not in own:
-        raise SystemExit("Functional Location: OnVisible laeser ikke laengere "
+    load = asm.load_part()
+    if 'Param("reqid")' not in load:
+        raise SystemExit("Functional Location: load_part() laeser ikke laengere "
                          "Param(\"reqid\") - ret build_functionallocation().")
-    # Appens egen OnVisible bliver staaende: den henter anmodningen, naar
-    # dens id er et andet end det, der er hentet, og laegger en tom raekke,
-    # naar der ingen er. Foran den staar domaenets OnStart, koert naar
-    # hubben beder om en ny eller en anden anmodning.
-    init = cb.with_reqid(cb.domain_onstart(d), d)
+    # Hentningen hoerer til KLARGOERINGEN (open_block): den koerer, naar
+    # hubben beder om en ny eller en anden anmodning - ikke ved hvert
+    # besoeg. Stod appens hele OnVisible her, genindlaeste et besoeg den
+    # gamle anmodning oven i en ny, fordi New request ikke nulstiller
+    # gblFlReqId (REVIEW.md D23). Den tomme raekke laegges stadig ved hvert
+    # besoeg, naar der ingen er.
+    init = (cb.with_reqid(cb.domain_onstart(d), d) + ";\n"
+            + asm.ME + ";\n" + cb.with_reqid(load, d))
     seen["props"]["OnVisible"] = (open_block(d, init) + ";\n\n"
-                                  + cb.with_reqid(own, d) + done(d))
+                                  + asm.ME + ";\n" + asm.ensure_row_part() + done(d))
     seen["children"].append(loading_overlay(d, "Functional Location"))
     from gen_screen import render_screen
     _write(d["screen"], render_screen(d["screen"], screen_props(seen["props"]),

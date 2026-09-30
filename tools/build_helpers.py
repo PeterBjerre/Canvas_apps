@@ -7,7 +7,7 @@ Det eneste der er lavet om, er hoejdemodellen: group() regner selv sin hoejde
 ud af boernenes hoejder plus gaps og padding, i stedet for at en formel i
 YAML'en refererer andre kontrollers .Height. Se gen_screen.stack_height.
 """
-import os, sys
+import os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from design_tokens import DARK_VAR, toggle_action, ref_hex as ref_hex_expr, TRANSPARENT
 import layout_tokens as lay
@@ -80,7 +80,6 @@ def text_ctrl(name, text, size=14, color=C_TITLE, weight=None, wrap="false",
     if isinstance(height, (int, float)) and height < text_min_height(size):
         height = text_min_height(size)
     props = {
-        "AccessibleLabel": accessible if accessible else text,
         "BorderStyle": "BorderStyle.None",
         "BorderThickness": "0",
         "Color": color,
@@ -92,6 +91,15 @@ def text_ctrl(name, text, size=14, color=C_TITLE, weight=None, wrap="false",
         "Text": text,
         "Wrap": wrap,
     }
+    # AccessibleLabel kun, naar den siger noget andet end teksten - eller
+    # naar teksten er en fast streng. En skaermlaeser laeser en ModernText's
+    # Text op i forvejen. Her stod ALTID "accessible or text", saa en tung
+    # tekstformel (hubbens CountRows mod SharePoint, Switch/DateDiff pr.
+    # galleriraekke) blev regnet ud to gange (REVIEW.md B2).
+    if accessible:
+        props["AccessibleLabel"] = accessible
+    elif re.fullmatch(r'"(?:[^"]|"")*"', text.strip()):
+        props["AccessibleLabel"] = text
     if weight:
         props["FontWeight"] = f"FontWeight.{weight}"
     if align:
