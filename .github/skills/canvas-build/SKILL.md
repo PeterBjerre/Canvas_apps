@@ -318,6 +318,15 @@ FL-regeltjekket, bygger derefter alle apps og kører deres layout-tjek, og
 slutter med datakilde-, sprog- og hjælpetekst-tjekket. Alt skal være grønt,
 før du synkroniserer.
 
+Samme kæde i **én proces** (`tools/build.py`, REVIEW.md C7) — samme tjek,
+byte-identiske skærme, uden et nyt Python pr. script:
+
+```bash
+python3 tools/build.py [--app equipment] [--env test]
+```
+
+CI kører `build_all.py`, som isolerer med rigtige processer.
+
 Én app ad gangen:
 
 ```bash
