@@ -11805,7 +11805,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =194 + 12 + (311)
+                =194 + 12 + (0 + (311))
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -11837,7 +11837,7 @@ Screens:
             Visible: |-
                 =varVhpTasklistPickerOpen
             Width: |-
-                =740
+                =Min(740, App.Width - 40)
             X: |-
                 =(App.Width - Self.Width) / 2
             Y: |-
@@ -12019,7 +12019,7 @@ Screens:
                         ValidationState: |-
                             =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                         Width: |-
-                            =Max(0, (((740) - 18 - 18)) - ((200) + 12) - 2)
+                            =Max(0, (((Min(740, App.Width - 40)) - 18 - 18)) - ((200) + 12) - 2)
                   - chkVhpPickerSelectAll:
                       Control: ModernCheckbox
                       Properties:
@@ -12110,7 +12110,7 @@ Screens:
                       ))) & " visible selected (" & Text(CountRows(colVhpPickerSelected)) & " total selected)."
                   Wrap: |-
                       =false
-            - conVhpPickerListWrap:
+            - conVhpPickerListScroll:
                 Control: GroupContainer
                 Variant: AutoLayout
                 Properties:
@@ -12121,42 +12121,23 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =311
+                      =0 + (311)
                   LayoutAlignItems: |-
-                      =LayoutAlignItems.Stretch
+                      =LayoutAlignItems.Start
                   LayoutDirection: |-
                       =LayoutDirection.Vertical
                   LayoutGap: |-
-                      =4
+                      =0
                   LayoutMinWidth: |-
                       =0
                   LayoutOverflowX: |-
-                      =LayoutOverflow.Hide
+                      =LayoutOverflow.Scroll
                   LayoutOverflowY: |-
                       =LayoutOverflow.Hide
                   Width: |-
-                      =636
+                      =Parent.Width
                 Children:
-                  - htmVhpPickerHeader:
-                      Control: HtmlViewer
-                      Properties:
-                        Fill: |-
-                            =RGBA(0, 0, 0, 0)
-                        Height: |-
-                            =22
-                        HtmlText: |-
-                            ="<style>html,body{margin:0;padding:0;overflow:hidden}</style><div style='display:grid;grid-template-columns:26px 54px 198px 114px 54px 54px 54px;column-gap:10px;align-items:center;height:21px;line-height:21px;overflow:hidden;color:" & C.'hex-text-muted' & ";font-family:Segoe UI;font-size:11px;font-weight:600;white-space:nowrap;'><span>SEL</span><span>OP NO.</span><span>OPERATION SHORT TEXT</span><span>MAIN WORK CENTER</span><span>CTRL</span><span>WORK</span><span>DUR.</span></div>"
-                        PaddingBottom: |-
-                            =0
-                        PaddingLeft: |-
-                            =0
-                        PaddingRight: |-
-                            =0
-                        PaddingTop: |-
-                            =0
-                        Width: |-
-                            =636
-                  - conVhpPickerDivider:
+                  - conVhpPickerListWrap:
                       Control: GroupContainer
                       Variant: AutoLayout
                       Properties:
@@ -12164,18 +12145,16 @@ Screens:
                             =BorderStyle.None
                         DropShadow: |-
                             =DropShadow.None
-                        Fill: |-
-                            =C.'border-subtle'
                         FillPortions: |-
                             =0
                         Height: |-
-                            =1
+                            =311
                         LayoutAlignItems: |-
-                            =LayoutAlignItems.Stretch
+                            =LayoutAlignItems.Start
                         LayoutDirection: |-
-                            =LayoutDirection.Horizontal
+                            =LayoutDirection.Vertical
                         LayoutGap: |-
-                            =8
+                            =4
                         LayoutMinWidth: |-
                             =0
                         LayoutOverflowX: |-
@@ -12183,87 +12162,17 @@ Screens:
                         LayoutOverflowY: |-
                             =LayoutOverflow.Hide
                         Width: |-
-                            =Parent.Width
-                  - galVhpPicker:
-                      Control: Gallery
-                      Variant: Vertical
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Tasklist line picker"
-                        BorderStyle: |-
-                            =BorderStyle.None
-                        Fill: |-
-                            =C.'bg-modal'
-                        FillPortions: |-
-                            =0
-                        Height: |-
-                            =280
-                        Items: |-
-                            =Filter(
-                                LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
-                                IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
-                            )
-                        LayoutMinWidth: |-
-                            =0
-                        LoadingSpinner: |-
-                            =LoadingSpinner.None
-                        Selectable: |-
-                            =false
-                        ShowScrollbar: |-
-                            =true
-                        TabIndex: |-
-                            =0
-                        TemplatePadding: |-
-                            =0
-                        TemplateSize: |-
-                            =34
-                        Width: |-
                             =636
-                        WrapCount: |-
-                            =1
                       Children:
-                        - chkVhpPickerRowSel:
-                            Control: ModernCheckbox
+                        - htmVhpPickerHeader:
+                            Control: HtmlViewer
                             Properties:
-                              AccessibleLabel: |-
-                                  ="Select line"
-                              BasePaletteColor: |-
-                                  =C.'color-brand-primary'
-                              Color: |-
-                                  =C.'text-primary'
-                              Default: |-
-                                  =CountRows(Filter(colVhpPickerSelected, OperationNo = ThisItem.OperationNo)) > 0
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              Height: |-
-                                  =24
-                              OnCheck: |-
-                                  =Collect(colVhpPickerSelected, { OperationNo: ThisItem.OperationNo })
-                              OnUncheck: |-
-                                  =RemoveIf(colVhpPickerSelected, OperationNo = ThisItem.OperationNo)
-                              Size: |-
-                                  =13
-                              Width: |-
-                                  =26
-                              X: |-
-                                  =0 + 0 + 0
-                              Y: |-
-                                  =0 + 0 + ((((34) - 1) - 0 - 0) - (24)) / 2
-                        - txtVhpPickerOpNo:
-                            Control: ModernText
-                            Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Color: |-
-                                  =C.'text-primary'
                               Fill: |-
                                   =RGBA(0, 0, 0, 0)
-                              Font: |-
-                                  =Font.'Segoe UI'
                               Height: |-
-                                  =28
+                                  =22
+                              HtmlText: |-
+                                  ="<style>html,body{margin:0;padding:0;overflow:hidden}</style><div style='display:grid;grid-template-columns:26px 54px 198px 114px 54px 54px 54px;column-gap:10px;align-items:center;height:21px;line-height:21px;overflow:hidden;color:" & C.'hex-text-muted' & ";font-family:Segoe UI;font-size:11px;font-weight:600;white-space:nowrap;'><span>SEL</span><span>OP NO.</span><span>OPERATION SHORT TEXT</span><span>MAIN WORK CENTER</span><span>CTRL</span><span>WORK</span><span>DUR.</span></div>"
                               PaddingBottom: |-
                                   =0
                               PaddingLeft: |-
@@ -12272,216 +12181,334 @@ Screens:
                                   =0
                               PaddingTop: |-
                                   =0
-                              Size: |-
-                                  =13
-                              Text: |-
-                                  =ThisItem.OperationNo
                               Width: |-
-                                  =54
-                              Wrap: |-
-                                  =false
-                              X: |-
-                                  =0 + 0 + 0 + (26) + 10
-                              Y: |-
-                                  =0 + 0 + ((((34) - 1) - 0 - 0) - (28)) / 2
-                        - txtVhpPickerShortText:
-                            Control: ModernText
+                                  =636
+                        - conVhpPickerDivider:
+                            Control: GroupContainer
+                            Variant: AutoLayout
                             Properties:
                               BorderStyle: |-
                                   =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Color: |-
-                                  =C.'text-primary'
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              Height: |-
-                                  =28
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
-                              Size: |-
-                                  =13
-                              Text: |-
-                                  =ThisItem.OperationShortText
-                              Width: |-
-                                  =198
-                              Wrap: |-
-                                  =false
-                              X: |-
-                                  =0 + 0 + 0 + (26) + 10 + (54) + 10
-                              Y: |-
-                                  =0 + 0 + ((((34) - 1) - 0 - 0) - (28)) / 2
-                        - txtVhpPickerMwc:
-                            Control: ModernText
-                            Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Color: |-
-                                  =C.'text-primary'
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              Height: |-
-                                  =28
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
-                              Size: |-
-                                  =13
-                              Text: |-
-                                  =ThisItem.MainWorkCenter
-                              Width: |-
-                                  =114
-                              Wrap: |-
-                                  =false
-                              X: |-
-                                  =0 + 0 + 0 + (26) + 10 + (54) + 10 + (198) + 10
-                              Y: |-
-                                  =0 + 0 + ((((34) - 1) - 0 - 0) - (28)) / 2
-                        - txtVhpPickerCtrl:
-                            Control: ModernText
-                            Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Color: |-
-                                  =C.'text-primary'
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              Height: |-
-                                  =28
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
-                              Size: |-
-                                  =13
-                              Text: |-
-                                  =ThisItem.ControlKey
-                              Width: |-
-                                  =54
-                              Wrap: |-
-                                  =false
-                              X: |-
-                                  =0 + 0 + 0 + (26) + 10 + (54) + 10 + (198) + 10 + (114) + 10
-                              Y: |-
-                                  =0 + 0 + ((((34) - 1) - 0 - 0) - (28)) / 2
-                        - txtVhpPickerWork:
-                            Control: ModernText
-                            Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Color: |-
-                                  =C.'text-primary'
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              Height: |-
-                                  =28
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
-                              Size: |-
-                                  =13
-                              Text: |-
-                                  =Text(ThisItem.WorkHours)
-                              Width: |-
-                                  =54
-                              Wrap: |-
-                                  =false
-                              X: |-
-                                  =0 + 0 + 0 + (26) + 10 + (54) + 10 + (198) + 10 + (114) + 10 + (54) + 10
-                              Y: |-
-                                  =0 + 0 + ((((34) - 1) - 0 - 0) - (28)) / 2
-                        - txtVhpPickerDur:
-                            Control: ModernText
-                            Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Color: |-
-                                  =C.'text-primary'
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              Height: |-
-                                  =28
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
-                              Size: |-
-                                  =13
-                              Text: |-
-                                  =Text(ThisItem.DurationHours)
-                              Width: |-
-                                  =54
-                              Wrap: |-
-                                  =false
-                              X: |-
-                                  =0 + 0 + 0 + (26) + 10 + (54) + 10 + (198) + 10 + (114) + 10 + (54) + 10 + (54) + 10
-                              Y: |-
-                                  =0 + 0 + ((((34) - 1) - 0 - 0) - (28)) / 2
-                        - rctVhpPickerRule:
-                            Control: Rectangle
-                            Properties:
-                              AccessibleLabel: |-
-                                  =""
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
+                              DropShadow: |-
+                                  =DropShadow.None
                               Fill: |-
                                   =C.'border-subtle'
+                              FillPortions: |-
+                                  =0
                               Height: |-
                                   =1
-                              OnSelect: |-
-                                  =false
-                              TabIndex: |-
-                                  =-1
-                              Width: |-
-                                  =((((740) - 18 - 18)) - 2 * 0 - 18 - 40)
-                              X: |-
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Stretch
+                              LayoutDirection: |-
+                                  =LayoutDirection.Horizontal
+                              LayoutGap: |-
+                                  =8
+                              LayoutMinWidth: |-
                                   =0
-                              Y: |-
-                                  =33
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              Width: |-
+                                  =636
+                        - galVhpPicker:
+                            Control: Gallery
+                            Variant: Vertical
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Tasklist line picker"
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              Fill: |-
+                                  =C.'bg-modal'
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =280
+                              Items: |-
+                                  =Filter(
+                                      LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
+                                      IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
+                                  )
+                              LayoutMinWidth: |-
+                                  =0
+                              LoadingSpinner: |-
+                                  =LoadingSpinner.None
+                              Selectable: |-
+                                  =false
+                              ShowScrollbar: |-
+                                  =true
+                              TabIndex: |-
+                                  =0
+                              TemplatePadding: |-
+                                  =0
+                              TemplateSize: |-
+                                  =34
+                              Width: |-
+                                  =636
+                              WrapCount: |-
+                                  =1
+                            Children:
+                              - chkVhpPickerRowSel:
+                                  Control: ModernCheckbox
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Select line"
+                                    BasePaletteColor: |-
+                                        =C.'color-brand-primary'
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Default: |-
+                                        =CountRows(Filter(colVhpPickerSelected, OperationNo = ThisItem.OperationNo)) > 0
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =24
+                                    OnCheck: |-
+                                        =Collect(colVhpPickerSelected, { OperationNo: ThisItem.OperationNo })
+                                    OnUncheck: |-
+                                        =RemoveIf(colVhpPickerSelected, OperationNo = ThisItem.OperationNo)
+                                    Size: |-
+                                        =13
+                                    Width: |-
+                                        =26
+                                    X: |-
+                                        =0 + 0 + 0
+                                    Y: |-
+                                        =0 + 0 + ((((34) - 1) - 0 - 0) - (24)) / 2
+                              - txtVhpPickerOpNo:
+                                  Control: ModernText
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =28
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        =ThisItem.OperationNo
+                                    Width: |-
+                                        =54
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 0 + 0 + (26) + 10
+                                    Y: |-
+                                        =0 + 0 + ((((34) - 1) - 0 - 0) - (28)) / 2
+                              - txtVhpPickerShortText:
+                                  Control: ModernText
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =28
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        =ThisItem.OperationShortText
+                                    Width: |-
+                                        =198
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 0 + 0 + (26) + 10 + (54) + 10
+                                    Y: |-
+                                        =0 + 0 + ((((34) - 1) - 0 - 0) - (28)) / 2
+                              - txtVhpPickerMwc:
+                                  Control: ModernText
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =28
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        =ThisItem.MainWorkCenter
+                                    Width: |-
+                                        =114
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 0 + 0 + (26) + 10 + (54) + 10 + (198) + 10
+                                    Y: |-
+                                        =0 + 0 + ((((34) - 1) - 0 - 0) - (28)) / 2
+                              - txtVhpPickerCtrl:
+                                  Control: ModernText
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =28
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        =ThisItem.ControlKey
+                                    Width: |-
+                                        =54
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 0 + 0 + (26) + 10 + (54) + 10 + (198) + 10 + (114) + 10
+                                    Y: |-
+                                        =0 + 0 + ((((34) - 1) - 0 - 0) - (28)) / 2
+                              - txtVhpPickerWork:
+                                  Control: ModernText
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =28
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        =Text(ThisItem.WorkHours)
+                                    Width: |-
+                                        =54
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 0 + 0 + (26) + 10 + (54) + 10 + (198) + 10 + (114) + 10 + (54) + 10
+                                    Y: |-
+                                        =0 + 0 + ((((34) - 1) - 0 - 0) - (28)) / 2
+                              - txtVhpPickerDur:
+                                  Control: ModernText
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =28
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        =Text(ThisItem.DurationHours)
+                                    Width: |-
+                                        =54
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 0 + 0 + (26) + 10 + (54) + 10 + (198) + 10 + (114) + 10 + (54) + 10 + (54) + 10
+                                    Y: |-
+                                        =0 + 0 + ((((34) - 1) - 0 - 0) - (28)) / 2
+                              - rctVhpPickerRule:
+                                  Control: Rectangle
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =""
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Fill: |-
+                                        =C.'border-subtle'
+                                    Height: |-
+                                        =1
+                                    OnSelect: |-
+                                        =false
+                                    TabIndex: |-
+                                        =-1
+                                    Width: |-
+                                        =((636) - 2 * 0 - 18)
+                                    X: |-
+                                        =0
+                                    Y: |-
+                                        =33
             - conVhpPickerFooter:
                 Control: GroupContainer
                 Variant: AutoLayout
