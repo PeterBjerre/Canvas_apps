@@ -190,11 +190,11 @@ def build_plan_header():
                               display_mode=DM_PLAN)
     txtSchedInd = text_input("txtVhpSchedInd", "varVhpPlan.SchedulingIndicator", display_mode=DM_PLAN)
     numFirstCallDay = number_input("numVhpFirstCallDay", "varVhpPlan.FirstCallDay", min_v=1, max_v=31,
-                                   required_formula=REQ_PLAN, display_mode=DM_PLAN, label="\"Foerste kald, dag\"")
+                                   required_formula=REQ_PLAN, display_mode=DM_PLAN, label="\"First call, day\"")
     numFirstCallMonth = number_input("numVhpFirstCallMonth", "varVhpPlan.FirstCallMonth", min_v=1, max_v=12,
-                                     required_formula=REQ_PLAN, display_mode=DM_PLAN, label="\"Foerste kald, maaned\"")
+                                     required_formula=REQ_PLAN, display_mode=DM_PLAN, label="\"First call, month\"")
     numFirstCallYear = number_input("numVhpFirstCallYear", "varVhpPlan.FirstCallYear", min_v=2020, max_v=2100,
-                                    required_formula=REQ_PLAN, display_mode=DM_PLAN, label="\"Foerste kald, aar\"")
+                                    required_formula=REQ_PLAN, display_mode=DM_PLAN, label="\"First call, year\"")
     txtStatutorySortField = text_input("txtVhpStatutorySortField", "varVhpPlan.StatutorySortField",
                                        display_mode=DM_PLAN)
 
@@ -268,7 +268,7 @@ def build_plan_header():
             "If(\n"
             "    varVhpPlanLocked,\n"
             "    Set(varVhpPlanLocked, false);\n"
-            "    Set(varVhpRuntimeInfo, \"Plan unlocked for editing.\"),\n"
+            "    Notify(\"Plan unlocked for editing.\", NotificationType.Success),\n"
             "\n"
             "    Set(varVhpPlanValidated, true);\n"
             "    With(\n"
@@ -284,7 +284,7 @@ def build_plan_header():
             "            IsBlank(numVhpFirstCallDay.Value) || numVhpFirstCallDay.Value < 1 || numVhpFirstCallDay.Value > 31 ||\n"
             "            IsBlank(numVhpFirstCallMonth.Value) || numVhpFirstCallMonth.Value < 1 || numVhpFirstCallMonth.Value > 12 ||\n"
             "            IsBlank(numVhpFirstCallYear.Value) || numVhpFirstCallYear.Value < 2020 || numVhpFirstCallYear.Value > 2100,\n"
-            "            Set(varVhpRuntimeInfo, \"Plan contains issues. Fix plan fields before creating items.\"),\n"
+            "            Notify(\"Plan contains issues. Fix plan fields before creating items.\", NotificationType.Warning),\n"
             "\n"
             # Vaerket FOER gemningen - se plantskiftet nedenfor.
             "            Set(varVhpPrevPlant, varVhpPlan.Plant);\n"
@@ -326,10 +326,10 @@ def build_plan_header():
             "                    NotificationType.Warning\n"
             "                )\n"
             "            );\n"
-            "            Set(\n"
-            "                varVhpRuntimeInfo,\n"
+            "            Notify(\n"
             "                \"Plan saved and locked: \" & drpVhpPlant.Selected.Value & \" \" & Trim(txtVhpPlanText.Text) &\n"
-            "                If(isStrat, \" (strategy \" & drpVhpStrategy.Selected.Key & \").\", \".\")\n"
+            "                If(isStrat, \" (strategy \" & drpVhpStrategy.Selected.Key & \").\", \".\"),\n"
+            "                NotificationType.Success\n"
             "            )\n"
             "        )\n"
             "    )\n"

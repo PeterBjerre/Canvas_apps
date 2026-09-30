@@ -15,6 +15,7 @@ from build_helpers import (checkbox_theme, row_hit, text_ctrl, group, button,
 from build_plan_header import section_header, help_panel
 import build_help as bh
 from fl_picker import fl_picker
+import sp_config as cfg
 
 DM_ITEM = "If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)"
 REQ_ITEM = "varVhpItemValidated"
@@ -135,6 +136,28 @@ SEED_FL_PICKER = (
 )
 
 
+def _copy_record(collection, alias, indent):
+    """Record til Copy item: HVERT felt i samlingens skema kopieres fra
+    alias, undtagen ItemId (den nye) og Selected (en markering er ikke en
+    del af raekken).
+
+    Her stod operationens felter skrevet af i haanden, og syv af dem
+    manglede (Persons, ControlKey, Cost, UnitCost, Currency, CostElement,
+    MaterialGroup) - de blev blanke paa kopien. Med skemaet som kilde kan
+    et nyt felt ikke glemmes igen."""
+    schema = dict(cfg.WORKING_COLLECTIONS)[collection]
+    pad = " " * indent
+    fields = []
+    for k in schema:
+        if k == "ItemId":
+            fields.append("ItemId: varVhpNextItemId")
+        elif k == "Selected":
+            fields.append("Selected: false")
+        else:
+            fields.append(f"{k}: {alias}.{k}")
+    return "{\n" + pad + "    " + (",\n" + pad + "    ").join(fields) + "\n" + pad + "}"
+
+
 def build_items_rail():
     # Vaerket fra Plan Header staar ved titlen: det er den kontekst, alle
     # items arbejder i - arbejdscentre, tasklister og FL-soegningen er
@@ -149,7 +172,7 @@ def build_items_rail():
         (
             "If(\n"
             "    !varVhpPlanCommitted,\n"
-            "    Set(varVhpRuntimeInfo, \"Save the plan before adding items.\"),\n"
+            "    Notify(\"Save the plan before adding items.\", NotificationType.Warning),\n"
             "\n"
             "    Set(varVhpNextItemId, varVhpNextItemId + 1);\n"
             "    Collect(\n"
@@ -166,7 +189,7 @@ def build_items_rail():
             "    Set(varVhpFlMeta, \"\");\n"
             f"    {SEED_FL_PICKER};\n"
             f"    {RESET_EDITOR_CONTROLS};\n"
-            "    Set(varVhpRuntimeInfo, \"Item \" & Text(varVhpNextItemId) & \" added.\")\n"
+            "    Notify(\"Item \" & Text(varVhpNextItemId) & \" added.\", NotificationType.Success)\n"
             ")"
         ))
 
@@ -175,7 +198,7 @@ def build_items_rail():
         (
             "If(\n"
             "    IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId)) = 0,\n"
-            "    Set(varVhpRuntimeInfo, \"Select an item to copy first.\"),\n"
+            "    Notify(\"Select an item to copy first.\", NotificationType.Warning),\n"
             "\n"
             "    With(\n"
             "        { src: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },\n"
@@ -202,13 +225,16 @@ def build_items_rail():
             "            colVhpOperations,\n"
             "            ForAll(\n"
             "                Filter(colVhpOperations, ItemId = varVhpActiveItemId) As SRC,\n"
-            "                {\n"
-            "                    ItemId: varVhpNextItemId, OperationNo: SRC.OperationNo,\n"
-            "                    OperationShortText: SRC.OperationShortText, WorkHours: SRC.WorkHours,\n"
-            "                    DurationHours: SRC.DurationHours, MainWorkCenter: SRC.MainWorkCenter,\n"
-            "                    Vendor: SRC.Vendor,\n"
-            "                    LongText: SRC.LongText, PackagesKey: SRC.PackagesKey, Selected: false\n"
-            "                }\n"
+            f"                {_copy_record('colVhpOperations', 'SRC', 16)}\n"
+            "            )\n"
+            "        );\n"
+            # Materialerne foelger operationerne. LineId er unik pr. item,
+            # saa kopien kan beholde den.
+            "        Collect(\n"
+            "            colVhpMaterials,\n"
+            "            ForAll(\n"
+            "                Filter(colVhpMaterials, ItemId = varVhpActiveItemId) As MSRC,\n"
+            f"                {_copy_record('colVhpMaterials', 'MSRC', 16)}\n"
             "            )\n"
             "        );\n"
             "        Collect(\n"
@@ -221,7 +247,7 @@ def build_items_rail():
             "        Set(varVhpActiveItemId, varVhpNextItemId);\n"
             f"        {SEED_FL_PICKER};\n"
             f"        {RESET_EDITOR_CONTROLS};\n"
-            "        Set(varVhpRuntimeInfo, \"Item copied. Functional Location cleared on the copied item.\")\n"
+            "        Notify(\"Item copied. Functional Location cleared on the copied item.\", NotificationType.Success)\n"
             "    )\n"
             ")"
         ))
@@ -269,13 +295,17 @@ def build_items_rail():
             "    { id: ThisItem.ItemId },\n"
             "    RemoveIf(colVhpOperations, ItemId = id);\n"
             "    RemoveIf(colVhpItemObjects, ItemId = id);\n"
+            # Materialer og dokumentraekker foelger med. Stod de tilbage,
+            # blev de gemt med tom ItemKey og laa usynlige i planen.
+            "    RemoveIf(colVhpMaterials, ItemId = id);\n"
+            "    RemoveIf(colVhpAttachments, ItemId = id);\n"
             "    RemoveIf(colVhpItems, ItemId = id);\n"
             "    If(\n"
             "        varVhpActiveItemId = id,\n"
             "        Set(varVhpActiveItemId, If(CountRows(colVhpItems) > 0, First(colVhpItems).ItemId, Blank()));\n"
             f"        {RESET_EDITOR_CONTROLS}\n"
             "    );\n"
-            "    Set(varVhpRuntimeInfo, \"Item \" & Text(id) & \" deleted.\")\n"
+            "    Notify(\"Item \" & Text(id) & \" deleted.\", NotificationType.Success)\n"
             ")"
         ), danger=True, width=DEL_W, height=30,
         accessible="\"Delete item \" & Text(ThisItem.ItemId)")
@@ -549,8 +579,7 @@ def build_item_editor():
         (
             "If(\n"
             "    IsBlank(varVhpActiveItemId),\n"
-            "    Set(varVhpRuntimeInfo, \"Select or add an item first.\");\n"
-            "    Notify(varVhpRuntimeInfo, NotificationType.Warning),\n"
+            "    Notify(\"Select or add an item first.\", NotificationType.Warning),\n"
             "\n"
             "    Set(varVhpItemValidated, true);\n"
             "    If(\n"
@@ -559,8 +588,7 @@ def build_item_editor():
             "        IsBlank(drpVhpItemActivityType.Selected.Value) ||\n"
             f"        IsBlank({FL_CODE}),\n"
             "        UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { Status: \"invalid\" });\n"
-            "        Set(varVhpRuntimeInfo, \"Item contains issues. Fix required fields (marked with *).\");\n"
-            "        Notify(varVhpRuntimeInfo, NotificationType.Warning),\n"
+            "        Notify(\"Item contains issues. Fix required fields (marked with *).\", NotificationType.Warning),\n"
             "\n"
             # colVhpItemObjects er allerede sandheden - Tilfoej/Fjern skriver
             # direkte i den. Der er ikke laengere en kontrol med en
@@ -585,21 +613,13 @@ def build_item_editor():
             "                }\n"
             "            )\n"
             "        );\n"
-            "        Set(\n"
-            "            varVhpRuntimeInfo,\n"
-            "            If(\n"
-            "                CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId)) = 0,\n"
+            "        If(\n"
+            "            CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId)) = 0,\n"
+            "            Notify(\n"
             "                \"Item \" & Text(varVhpActiveItemId) & \" is not in the list - nothing was saved.\",\n"
-            "                \"Item saved: \" & Trim(txtVhpItemShortText.Text) & \".\"\n"
-            "            )\n"
-            "        );\n"
-            "        Notify(\n"
-            "            varVhpRuntimeInfo,\n"
-            "            If(\n"
-            "                CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId)) = 0,\n"
-            "                NotificationType.Error,\n"
-            "                NotificationType.Success\n"
-            "            )\n"
+            "                NotificationType.Error\n"
+            "            ),\n"
+            "            Notify(\"Item saved: \" & Trim(txtVhpItemShortText.Text) & \".\", NotificationType.Success)\n"
             "        )\n"
             "    )\n"
             ")"

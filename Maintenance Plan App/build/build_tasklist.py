@@ -301,7 +301,7 @@ def _materials_modal():
             "        Selected: false\n"
             "    }\n"
             ");\n"
-            "Set(varVhpRuntimeInfo, \"Material line added.\")"
+            "Notify(\"Material line added.\", NotificationType.Success)"
         ), primary=True, width=fit_button_width('"Add material"'))
 
     btnRemove = button(
@@ -309,7 +309,7 @@ def _materials_modal():
         (
             "RemoveIf(colVhpMaterials, ItemId = varVhpActiveItemId, "
             "OperationNo = varVhpMatOpNo, Selected = true);\n"
-            "Set(varVhpRuntimeInfo, \"Removed selected material line(s).\")"
+            "Notify(\"Removed selected material line(s).\", NotificationType.Success)"
         ), danger=True, width=fit_button_width('"Remove material"'),
         display_mode=(f"If(CountRows(Filter({MAT_OP}, Selected = true)) = 0, "
                       "DisplayMode.Disabled, DisplayMode.Edit)"))
@@ -335,12 +335,12 @@ def _materials_modal():
         "Width": str(w["SEL"]),
     }), h=24)
     txtNo = text_input("txtVhpMatNo", "ThisItem.MaterialNo", width=w["MATERIAL"], height=30,
-                       onchange="Patch(colVhpMaterials, ThisItem, { MaterialNo: Self.Text })", label="\"Materialenummer\"")
+                       onchange="Patch(colVhpMaterials, ThisItem, { MaterialNo: Self.Text })", label="\"Material number\"")
     # Kommer fra materialeopslaget, ikke fra brugeren.
     txtDesc = text_ctrl("txtVhpMatDesc",
                         'If(IsBlank(ThisItem.Description), "-", ThisItem.Description)',
                         size=12, color=C_MUTED, height=30, width=w["DESCRIPTION"], wrap="false")
-    numQty = number_input("numVhpMatQty", "ThisItem.Quantity", width=w["QTY"], height=30, label="\"Number\"")
+    numQty = number_input("numVhpMatQty", "ThisItem.Quantity", width=w["QTY"], height=30, label="\"Quantity\"")
     numQty.props["OnChange"] = "Patch(colVhpMaterials, ThisItem, { Quantity: Self.Value })"
     txtUnit = text_ctrl("txtVhpMatUnit",
                         'If(IsBlank(ThisItem.Unit), "-", ThisItem.Unit)',
@@ -582,7 +582,7 @@ def build_tasklist_section():
         "    colVhpItems, ItemId = varVhpActiveItemId,\n"
         "    { TasklistKey: drpVhpItemTasklist.Selected.Key, TasklistName: drpVhpItemTasklist.Selected.Name }\n"
         ");\n"
-        "Set(varVhpRuntimeInfo, \"Tasklist \" & drpVhpItemTasklist.Selected.Key & \" selected for this item.\")")
+        "Notify(\"Tasklist \" & drpVhpItemTasklist.Selected.Key & \" selected for this item.\", NotificationType.Success)")
     drpTasklist.props["OnChange"] = (
         "If(\n"
         "    !IsBlank(varVhpActiveItemId) && !IsBlank(Self.Selected.Key) &&\n"
@@ -598,7 +598,7 @@ def build_tasklist_section():
         "btnVhpApplyTasklist", "\"Apply Tasklist\"",
         "If(\n"
         "    IsBlank(varVhpActiveItemId) || IsBlank(drpVhpItemTasklist.Selected.Key),\n"
-        "    Set(varVhpRuntimeInfo, \"Select an item and a tasklist first.\"),\n"
+        "    Notify(\"Select an item and a tasklist first.\", NotificationType.Warning),\n"
         "    " + APPLY_TL.replace("\n", "\n    ") + "\n"
         ")",
         display_mode=("If(IsBlank(varVhpActiveItemId) || IsBlank(drpVhpItemTasklist.Selected.Key), "
@@ -609,10 +609,10 @@ def build_tasklist_section():
         (
             "If(\n"
             "    IsBlank(varVhpActiveItemId),\n"
-            "    Set(varVhpRuntimeInfo, \"Select an item first.\"),\n"
+            "    Notify(\"Select an item first.\", NotificationType.Warning),\n"
             "    If(\n"
             "        IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey),\n"
-            "        Set(varVhpRuntimeInfo, \"Select a tasklist first.\"),\n"
+            "        Notify(\"Select a tasklist first.\", NotificationType.Warning),\n"
             "        Clear(colVhpPickerSelected);\n"
             "        Reset(txtVhpPickerSearch);\n"
             "        Set(varVhpTasklistPickerOpen, true)\n"
@@ -625,7 +625,7 @@ def build_tasklist_section():
         (
             "If(\n"
             "    IsBlank(varVhpActiveItemId),\n"
-            "    Set(varVhpRuntimeInfo, \"Select an item first.\"),\n"
+            "    Notify(\"Select an item first.\", NotificationType.Warning),\n"
             "    Collect(\n"
             "        colVhpOperations,\n"
             "        {\n"
@@ -647,7 +647,7 @@ def build_tasklist_section():
             "            Selected: false\n"
             "        }\n"
             "    );\n"
-            "    Set(varVhpRuntimeInfo, \"Operation line added.\")\n"
+            "    Notify(\"Operation line added.\", NotificationType.Success)\n"
             ")"
         ), display_mode=DM_ITEM)
 
@@ -658,12 +658,20 @@ def build_tasklist_section():
         (
             "If(\n"
             "    IsBlank(varVhpActiveItemId),\n"
-            "    Set(varVhpRuntimeInfo, \"Select an item first.\"),\n"
+            "    Notify(\"Select an item first.\", NotificationType.Warning),\n"
             "    If(\n"
             f"        CountRows({OPS_SELECTED}) = 0,\n"
-            "        Set(varVhpRuntimeInfo, \"Select one or more operation lines to remove (Sel column).\"),\n"
+            "        Notify(\"Select one or more operation lines to remove (Sel column).\", NotificationType.Warning),\n"
+            # Operationens materialer foelger med - ellers blev de gemt paa
+            # et OperationNo, der ikke findes. Dokumenterne hoerer til
+            # itemet og kan vaere knyttet til flere operationer; de bliver.
+            "        RemoveIf(\n"
+            "            colVhpMaterials,\n"
+            "            ItemId = varVhpActiveItemId,\n"
+            f"            OperationNo in {OPS_SELECTED}.OperationNo\n"
+            "        );\n"
             "        RemoveIf(colVhpOperations, ItemId = varVhpActiveItemId, Selected = true);\n"
-            "        Set(varVhpRuntimeInfo, \"Removed selected operation line(s).\")\n"
+            "        Notify(\"Removed selected operation line(s).\", NotificationType.Success)\n"
             "    )\n"
             ")"
         ), danger=True,
@@ -729,12 +737,12 @@ def build_tasklist_section():
     txtOpNo = text_ctrl("txtVhpOpNo", "ThisItem.OperationNo", size=13, height=32, width=w["OP NO."], wrap="false")
     txtOpShort = text_input("txtVhpOpShortText", "ThisItem.OperationShortText", width=w["OPERATION SHORT TEXT"],
                             height=32,
-                            onchange="Patch(colVhpOperations, ThisItem, { OperationShortText: Self.Text })", label="\"Operationstekst\"")
+                            onchange="Patch(colVhpOperations, ThisItem, { OperationShortText: Self.Text })", label="\"Operation text\"")
     # Work og No. skriver BEGGE varigheden, fordi den er regnet af dem
     # begge. Gjorde kun den ene det, ville et skift i den anden efterlade en
     # varighed, der ikke passer til linjen - og det er varigheden, der
     # gemmes i TaskListMain.Duration og sendes videre til SAP.
-    numOpWork = number_input("numVhpOpWork", "ThisItem.WorkHours", width=w["WORK (H)"], height=32, label="\"Arbejdstimer\"")
+    numOpWork = number_input("numVhpOpWork", "ThisItem.WorkHours", width=w["WORK (H)"], height=32, label="\"Work hours\"")
     numOpWork.props["OnChange"] = (
         "Patch(\n"
         "    colVhpOperations, ThisItem,\n"
@@ -755,14 +763,14 @@ def build_tasklist_section():
         ")")
     # Varigheden vises, men tastes ikke - den ER Work / No.
     numOpDur = number_input("numVhpOpDur", "ThisItem.DurationHours", width=w["DUR. (H)"], height=32,
-                            display_mode="DisplayMode.View", label="\"Varighed\"")
+                            display_mode="DisplayMode.View", label="\"Duration hours\"")
     # Arbejdscenteret kommer fra standardarbejdsplanen og bestemmer baade
     # kontrolnoeglen og indkoebsfelterne. Kan man rette det i hoejre hus,
     # skifter de andre felters regler under haanden paa en linje, SAP i
     # forvejen har bestemt. Det laeses nu - og ser graat ud som resten af
     # det, man ikke kan redigere.
     txtOpMwc = text_input("txtVhpOpMwc", "ThisItem.MainWorkCenter", width=w["MAIN WORK CENTER"],
-                          height=32, display_mode="DisplayMode.View", label="\"Plant\"")
+                          height=32, display_mode="DisplayMode.View", label="\"Main work center\"")
     # Kontrolnoeglen: kun to valg at SKIFTE imellem, men listen skal
     # ogsaa kunne VISE den vaerdi, linjen allerede har - fx PM02 eller PM03
     # fra standardplanen. Ellers stod cellen tom paa alle de linjer, man
@@ -785,7 +793,7 @@ def build_tasklist_section():
     drpOpCtrl = dropdown(
         "drpVhpOpCtrl", ctrl_items,
         'LookUp(' + ctrl_items + ', Value = ThisItem.ControlKey)',
-        width=w["CTRL"], height=32, display_mode=DM_CTRL, label="\"Styringsnoegle\"")
+        width=w["CTRL"], height=32, display_mode=DM_CTRL, label="\"Control key\"")
     drpOpCtrl.props["OnChange"] = ("Patch(colVhpOperations, ThisItem, "
                                    "{ ControlKey: Self.Selected.Value })")
 
@@ -797,7 +805,7 @@ def build_tasklist_section():
     numOpCost.props["OnChange"] = "Patch(colVhpOperations, ThisItem, { Cost: Self.Value })"
     txtOpMatGrp = text_input("txtVhpOpMatGrp", "ThisItem.MaterialGroup", width=w["MAT.GRP"],
                              height=32, display_mode=DM_PURCHASE,
-                             onchange="Patch(colVhpOperations, ThisItem, { MaterialGroup: Self.Text })", label="\"Materialegruppe\"")
+                             onchange="Patch(colVhpOperations, ThisItem, { MaterialGroup: Self.Text })", label="\"Material group\"")
     # Cellen viser begyndelsen af teksten; skrivningen sker i popup'en, hvor
     # der er plads til en instruktion. Reset FOER popup'en aabnes, saa feltet
     # viser den linje, man klikkede paa, og ikke den forrige.

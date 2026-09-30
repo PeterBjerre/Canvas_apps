@@ -65,6 +65,9 @@ SINGLE = {
     "stamdata", "modelnummer", "varenr", "leveringstid", "dage",
     "prisenhed", "lagerenhed", "klassificering", "sliddel",
     "bemaerkninger", "langtekst", "fundet", "gemning", "fejlede",
+    # "Gemning afbrudt - kontakt SAP masterdata." stod i to Notify'er i
+    # VH-plan og slap igennem: fem ord, og kun "gemning" stod her.
+    "afbrudt", "kontakt", "fejl", "gemmer", "venligst", "mislykkedes",
 }
 
 DANISH = re.compile(
@@ -123,8 +126,11 @@ def check():
             if len(v) < 3 or v in ALLOW or SKIP.match(v):
                 continue
             words = re.findall(r"[A-Za-zÆØÅæøå]+", v)
-            single = (len(words) <= 3
-                      and any(w.lower() in SINGLE for w in words))
+            # Kort streng: eet dansk ord er nok. Laengere streng: to - saa
+            # en enkelt tilfaeldighed ("alle" i et navn) ikke giver et fund,
+            # men en dansk saetning med kun SINGLE-ord gaar ikke igennem.
+            hits = sum(1 for w in words if w.lower() in SINGLE)
+            single = hits >= (1 if len(words) <= 3 else 2)
             if not DANISH.search(v) and not single:
                 continue
             # En VAERDI, ikke en visning: { Value: "..." } eller en

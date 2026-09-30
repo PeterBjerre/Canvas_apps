@@ -2051,12 +2051,8 @@ App:
 
       colVhpRevisionOptions = Choices(MaintenanceItems.RevisionMark);
 
-      colVhpPriorityOptions = Choices(MaintenanceItems.Priority);
-
       // Alle arbejdscentre med deres vaerk. Afgraenses i kontrollen.
       colVhpMainWorkCenters = ForAll(MainWorkCenters As R, { Id: R.ID, Value: Trim(R.Title), Plant: Trim(R.'Plant Key') });
-
-      colVhpCtrlOptions = Sort(Distinct(MD_StandardTaskOperations, ControlKey), Value);
 
       colVhpStrategies = Sort(ForAll(MD_Strategy As R, { Key: R.StrategyKey, Name: R.StrategyName, SchedIndicator: R.SchedulingIndicator.Value, Hierarchical: R.Hierarchical.Value, PackagesLoaded: R.PackagesLoaded, Display: R.StrategyKey & " - " & R.StrategyName & If(R.PackagesLoaded, "", "   (packages missing)") }), Key);
 
@@ -2069,7 +2065,7 @@ App:
 
       colVhpTasklists = ForAll(Distinct(colVhpStdOps, Plant) As P, { Plant: P.Value, Key: P.Value & "-STD", Name: "Standard task list - " & P.Value, Description: "", Operations: ForAll(Sort(Filter(colVhpStdOps, Plant = P.Value), OperationNo) As O, { OperationNo: Text(O.OperationNo, "0000"), OperationShortText: O.OperationShortText, WorkHours: O.Work, Persons: O.NumberOfCapacities, DurationHours: O.Work / Max(Coalesce(O.NumberOfCapacities, 1), 1), MainWorkCenter: O.WorkCenter, Vendor: O.VendorNo, LongText: "", ControlKey: O.ControlKey, UnitCost: O.Price, Cost: O.Work * O.Price, Currency: O.Currency, CostElement: O.CostElement, MaterialGroup: O.MaterialGroup, OpPlant: O.SapPlant }) });
 
-      // SAP-vaerdier for schedulering.
+      // SAP-vaerdier for schedulering. Ingen kontrol bruger den endnu: SchedulingIndicator er et tekstfelt og gemmes ikke (REVIEW.md D12).
       colVhpYesNoOptions = Table({ Value: "JA" }, { Value: "NEJ" });
 
       // Appens eget begreb, ikke et SAP-felt.
@@ -2080,7 +2076,7 @@ App:
 
       // Reglerne fra den tidligere Validate-knap. Tom = ingen fejl.
       VhpValidationErrors = With(
-          { isStrat: varVhpPlan.PlanType = "Strategy" },
+          { isStrat: varVhpPlan.PlanType = "Strategy", hasPkgs: !IsEmpty(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) },
           With(
               {
                   itemErr:
@@ -2103,7 +2099,7 @@ App:
                               Char(10)
                           ), ""),
                   s4:
-                      If(isStrat,
+                      If(isStrat && hasPkgs,
                           Concat(
                               Filter(colVhpOperations, Len(Coalesce(PackagesKey, ";")) <= 1),
                               "S4: Item " & Text(ItemId) & " operation " & OperationNo &
@@ -2172,10 +2168,10 @@ App:
       // Trin 3: alle items har en tasklist.
       VhpStepTasklistDone = CountRows(VhpSaveableItems) > 0 && CountRows(Filter(VhpSaveableItems, IsBlank(TasklistKey))) = 0;
 
-      // Trin 4: alle items har operationer - og paa en strategiplan en pakke pr. operation.
+      // Trin 4: alle items har operationer - og paa en strategiplan med pakker en pakke pr. operation.
       VhpStepOpsDone = CountRows(VhpSaveableItems) > 0 &&
           CountRows(Filter(VhpSaveableItems, !(ItemId in colVhpOperations.ItemId))) = 0 &&
-          (varVhpPlan.PlanType <> "Strategy" || CountRows(Filter(colVhpOperations, Len(Coalesce(PackagesKey, ";")) <= 1)) = 0);
+          (varVhpPlan.PlanType <> "Strategy" || !(!IsEmpty(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy))) || CountRows(Filter(colVhpOperations, Len(Coalesce(PackagesKey, ";")) <= 1)) = 0);
 
       // Planen, som den ville blive gemt. Sammenlignes med varVhpSavedJson.
       VhpStateJson = JSON(

@@ -173,12 +173,8 @@ App:
 
       colVhpRevisionOptions = Choices(MaintenanceItems.RevisionMark);
 
-      colVhpPriorityOptions = Choices(MaintenanceItems.Priority);
-
       // Alle arbejdscentre med deres vaerk. Afgraenses i kontrollen.
       colVhpMainWorkCenters = ForAll(MainWorkCenters As R, { Id: R.ID, Value: Trim(R.Title), Plant: Trim(R.'Plant Key') });
-
-      colVhpCtrlOptions = Sort(Distinct(MD_StandardTaskOperations, ControlKey), Value);
 
       colVhpStrategies = Sort(ForAll(MD_Strategy As R, { Key: R.StrategyKey, Name: R.StrategyName, SchedIndicator: R.SchedulingIndicator.Value, Hierarchical: R.Hierarchical.Value, PackagesLoaded: R.PackagesLoaded, Display: R.StrategyKey & " - " & R.StrategyName & If(R.PackagesLoaded, "", "   (packages missing)") }), Key);
 
@@ -191,7 +187,7 @@ App:
 
       colVhpTasklists = ForAll(Distinct(colVhpStdOps, Plant) As P, { Plant: P.Value, Key: P.Value & "-STD", Name: "Standard task list - " & P.Value, Description: "", Operations: ForAll(Sort(Filter(colVhpStdOps, Plant = P.Value), OperationNo) As O, { OperationNo: Text(O.OperationNo, "0000"), OperationShortText: O.OperationShortText, WorkHours: O.Work, Persons: O.NumberOfCapacities, DurationHours: O.Work / Max(Coalesce(O.NumberOfCapacities, 1), 1), MainWorkCenter: O.WorkCenter, Vendor: O.VendorNo, LongText: "", ControlKey: O.ControlKey, UnitCost: O.Price, Cost: O.Work * O.Price, Currency: O.Currency, CostElement: O.CostElement, MaterialGroup: O.MaterialGroup, OpPlant: O.SapPlant }) });
 
-      // SAP-vaerdier for schedulering.
+      // SAP-vaerdier for schedulering. Ingen kontrol bruger den endnu: SchedulingIndicator er et tekstfelt og gemmes ikke (REVIEW.md D12).
       colVhpYesNoOptions = Table({ Value: "JA" }, { Value: "NEJ" });
 
       // Appens eget begreb, ikke et SAP-felt.
@@ -202,7 +198,7 @@ App:
 
       // Reglerne fra den tidligere Validate-knap. Tom = ingen fejl.
       VhpValidationErrors = With(
-          { isStrat: varVhpPlan.PlanType = "Strategy" },
+          { isStrat: varVhpPlan.PlanType = "Strategy", hasPkgs: !IsEmpty(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) },
           With(
               {
                   itemErr:
@@ -225,7 +221,7 @@ App:
                               Char(10)
                           ), ""),
                   s4:
-                      If(isStrat,
+                      If(isStrat && hasPkgs,
                           Concat(
                               Filter(colVhpOperations, Len(Coalesce(PackagesKey, ";")) <= 1),
                               "S4: Item " & Text(ItemId) & " operation " & OperationNo &
@@ -294,10 +290,10 @@ App:
       // Trin 3: alle items har en tasklist.
       VhpStepTasklistDone = CountRows(VhpSaveableItems) > 0 && CountRows(Filter(VhpSaveableItems, IsBlank(TasklistKey))) = 0;
 
-      // Trin 4: alle items har operationer - og paa en strategiplan en pakke pr. operation.
+      // Trin 4: alle items har operationer - og paa en strategiplan med pakker en pakke pr. operation.
       VhpStepOpsDone = CountRows(VhpSaveableItems) > 0 &&
           CountRows(Filter(VhpSaveableItems, !(ItemId in colVhpOperations.ItemId))) = 0 &&
-          (varVhpPlan.PlanType <> "Strategy" || CountRows(Filter(colVhpOperations, Len(Coalesce(PackagesKey, ";")) <= 1)) = 0);
+          (varVhpPlan.PlanType <> "Strategy" || !(!IsEmpty(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy))) || CountRows(Filter(colVhpOperations, Len(Coalesce(PackagesKey, ";")) <= 1)) = 0);
 
       // Planen, som den ville blive gemt. Sammenlignes med varVhpSavedJson.
       VhpStateJson = JSON(
@@ -407,7 +403,6 @@ App:
       // taeller varVhpNextItemId een op foerst) fortsaetter ved 2.
       Set(varVhpActiveItemId, 1);
       Set(varVhpNextItemId, 1);
-      Set(varVhpRuntimeInfo, "");
       Set(varVhpFlMeta, "");
       // Trinene og Submit regnes af navngivne formler (build_status.py).
       // varVhpSavedJson er planen, som den stod ved sidste gemning i SharePoint.
@@ -497,6 +492,8 @@ App:
                           "Could not find the request behind this link. Opening a new plan.",
                           NotificationType.Warning
                       );
+                      Set(varVhpRequestGuid, "");
+                      Set(varVhpPlanSpId, 0);
                       Collect(colVhpItems, {
                           ItemId: 1,
                           ShortText: "",
@@ -514,12 +511,13 @@ App:
                           Status: "draft"
                       }),
 
+                      IfError(
                       // --- planhovedet ---------------------------------
                       Set(
                           varVhpPlan,
                           {
                               Plant: pl.PlantsInitial.Value,
-                              Status: "",
+                              Status: Coalesce(LookUp(MaintenanceItems, MaintenancePlanNo.Id = varVhpPlanSpId).Status.Value, ""),
                               PlanType: If(IsBlank(pl.StrategyKey), "SingleCycle", "Strategy"),
                               Strategy: Coalesce(pl.StrategyKey, ""),
                               PlanText: pl.Title,
@@ -647,18 +645,58 @@ App:
                           )
                       );
 
+                      // --- det, gemningen ikke skriver, afledes ---------
+                      // Objektlisten ligger som tekst paa itemet ("A;B;C").
+                      ClearCollect(
+                          colVhpItemObjects,
+                          Ungroup(
+                              ForAll(
+                                  colVhpItems As I,
+                                  {
+                                      Objs: ForAll(
+                                          Filter(Split(I.ObjectList, ";"), !IsBlank(Trim(Value))) As S,
+                                          { ItemId: I.ItemId, Code: Trim(S.Value), Description: "" }
+                                      )
+                                  }
+                              ),
+                              Objs
+                          )
+                      );
+                      // Een standardarbejdsplan pr. vaerk: et item med
+                      // operationer har vaerkets (trin 3 og S3 kraever den).
+                      With(
+                          { tl: LookUp(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)) },
+                          UpdateIf(
+                              colVhpItems,
+                              ItemId in colVhpOperations.ItemId,
+                              { TasklistKey: Coalesce(tl.Key, ""), TasklistName: Coalesce(tl.Name, "") }
+                          )
+                      );
+
                       // --- hvad der er valgt naar skaermen tegnes -------
                       Set(varVhpActiveItemId, First(colVhpItems).ItemId);
                       Set(varVhpNextItemId, Max(colVhpItems, ItemId));
-                      Set(
-                          varVhpRuntimeInfo,
+                      Notify(
                           "Opened " & idx.RequestNo & " - " &
                               Text(CountRows(colVhpItems)) & " item(s), " &
-                              Text(CountRows(colVhpOperations)) & " operation line(s)."
+                              Text(CountRows(colVhpOperations)) & " operation line(s).",
+                          NotificationType.Success
                       );
                       // Den indlaeste plan ER den gemte - Save-trinnet er groent,
                       // til noget aendres.
-                      Set(varVhpSavedJson, VhpStateJson)
+                      Set(varVhpSavedJson, VhpStateJson);
+                      true,
+                      Notify(
+                          "Could not open the request: " & FirstError.Message,
+                          NotificationType.Error
+                      );
+                      Set(varVhpRequestGuid, "");
+                      Set(varVhpPlanSpId, 0);
+                      Set(varVhpPlanKey, "");
+                      Set(varVhpPlanCommitted, false);
+                      Set(varVhpPlanLocked, false);
+                      false
+                      )
                   )
               )
           )
