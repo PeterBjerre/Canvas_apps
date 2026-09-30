@@ -59,7 +59,15 @@ def _out_dir():
     return app
 
 
-OUT_DIR = _out_dir()
+def __getattr__(name):
+    """OUT_DIR regnes foerst, naar nogen spoerger (PEP 562).
+
+    Her stod OUT_DIR = _out_dir() ved import, saa ENHVER import uden for en
+    build-indgang - en test, en REPL, python -c - stoppede med SystemExit
+    (REVIEW.md C3). 'from gen_screen import OUT_DIR' virker som foer."""
+    if name == "OUT_DIR":
+        return _out_dir()
+    raise AttributeError(name)
 
 # Designtokens ligger EET sted for hele repoet - ikke i en kopi pr.
 # build-mappe som denne fil selv. Farven er det eneste, de fire apps skal

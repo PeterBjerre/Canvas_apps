@@ -312,6 +312,13 @@ App:
       // Submit er aktiv, naar trin 1-4 er faerdige, og reglerne ingen fejl finder.
       VhpCanSubmit = !varVhpSaving && VhpStepPlanDone && VhpStepItemDone && VhpStepTasklistDone &&
           VhpStepOpsDone && IsBlank(VhpValidationErrors);
+    OnError: |
+      =Trace(
+          "Unhandled error",
+          TraceSeverity.Error,
+          { Message: FirstError.Message, Source: FirstError.Source, Observed: FirstError.Observed }
+      );
+      Notify("Something went wrong: " & FirstError.Message, NotificationType.Error)
     OnStart: |
       =ClearCollect(colVhpItems, { ItemId: 0, ShortText: "", FunctionalLocation: "", FlDescription: "", MainWorkCenter: "", ActivityType: "", ObjectList: "", Revision: "", OrstedResponsible: "", Initials: "", LongText: "", TasklistKey: "", TasklistName: "", Status: "" });
       Clear(colVhpItems);

@@ -25,6 +25,10 @@ import sys
 
 import combined as cb
 
+if cb.TOOLS not in sys.path:
+    sys.path.insert(0, cb.TOOLS)
+import app_yaml  # noqa: E402
+
 
 def regenerate_sources():
     """Koer de fem appers egne App.pa.yaml-generatorer. De er hurtige og
@@ -83,35 +87,12 @@ def build_start_screen():
             ")")
 
 
-def _yaml_block(prop, text):
-    lines = [f"    {prop}: |"]
-    first = True
-    for line in text.split("\n"):
-        if not line.strip():
-            lines.append("")
-        elif first:
-            lines.append("      =" + line)
-            first = False
-        else:
-            lines.append("      " + line)
-    return lines
-
-
 def main():
     regenerate_sources()
     formulas, n_fx = build_formulas()
-    out = ["App:", "  Properties:"]
-    out += _yaml_block("Formulas", formulas)
-    out += _yaml_block("OnStart", build_onstart())
-    out += _yaml_block("StartScreen", build_start_screen())
-    out += ["    Theme: |-", "        =PowerAppsTheme"]
-    content = "\n".join(out) + "\n"
-    path = os.path.join(cb.APP_DIR, "App.pa.yaml")
-    with open(path, "w", encoding="utf-8", newline="\n") as f:
-        f.write(content)
+    content = app_yaml.write(cb.APP_DIR, formulas, build_onstart(), build_start_screen())
     print("App.pa.yaml skrevet. %d linjer, %d navngivne formler, "
           "0 datahentninger i OnStart." % (content.count("\n") + 1, n_fx))
-
 
 if __name__ == "__main__":
     main()

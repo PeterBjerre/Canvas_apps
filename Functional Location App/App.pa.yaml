@@ -2031,6 +2031,13 @@ App:
       nfFlFunctionKeyCount = 6441;
       // FL24: reglerne er 'indlaest', naar planen findes.
       nfFlRulesLoaded = CountRows(nfFlPlan) > 0;
+    OnError: |
+      =Trace(
+          "Unhandled error",
+          TraceSeverity.Error,
+          { Message: FirstError.Message, Source: FirstError.Source, Observed: FirstError.Observed }
+      );
+      Notify("Something went wrong: " & FirstError.Message, NotificationType.Error)
     OnStart: |
       =ClearCollect(colFlRows, { RowGuid: "", RowNo: 0, SpId: 0, FL: "", Description: "", KksType: "", AssignedClass: "", Status: "", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0 });
       Clear(colFlRows);

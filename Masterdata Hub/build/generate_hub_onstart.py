@@ -12,6 +12,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT_DIR = os.path.join(HERE, "..")
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), "tools"))
+import app_yaml
 import design_tokens as tok
 import layout_tokens as lay
 
@@ -41,25 +42,11 @@ ClearCollect(colMdScope, { Domain: "" });
 Clear(colMdScope)'''
 
 
-def _block(prop, text):
-    out = ["    %s: |" % prop]
-    first = True
-    for line in text.split("\n"):
-        if not line.strip():
-            out.append("")
-            continue
-        out.append(("      =" if first else "      ") + line)
-        first = False
-    return out
+def main():
+    content = app_yaml.write(OUT_DIR, FORMULAS, ONSTART, "ScreenMdHub")
+    print("App.pa.yaml skrevet.", content.count(chr(10)) + 1, "linjer, "
+          "0 datahentninger i OnStart.")
 
 
-lines = ["App:", "  Properties:"]
-lines += _block("Formulas", FORMULAS)
-lines += _block("OnStart", ONSTART)
-lines += ["    StartScreen: |-", "        =ScreenMdHub",
-          "    Theme: |-", "        =PowerAppsTheme"]
-
-content = "\n".join(lines) + "\n"
-with open(os.path.join(OUT_DIR, "App.pa.yaml"), "w", encoding="utf-8", newline="\n") as f:
-    f.write(content)
-print("App.pa.yaml written. Lines:", content.count(chr(10)) + 1)
+if __name__ == "__main__":
+    main()

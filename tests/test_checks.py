@@ -165,3 +165,22 @@ def test_domain_configs_use_known_domains():
         text = open(os.path.join(ROOT, app, "build", rel), encoding="utf-8").read()
         dom = re.search(r'^DOMAIN\s*=\s*"(\w+)"', text, re.M).group(1)
         assert dom in ri.DOMAINS, (app, dom)
+
+
+def test_every_app_has_the_same_on_error():
+    """Alle App.pa.yaml er skrevet af tools/app_yaml.py og har App.OnError."""
+    import yaml
+    import app_yaml
+    import env_config
+    want = "=" + app_yaml.ON_ERROR
+    for key, app in env_config.APPS.items():
+        doc = yaml.safe_load(open(os.path.join(ROOT, app["folder"], "App.pa.yaml"),
+                                  encoding="utf-8"))
+        assert doc["App"]["Properties"]["OnError"].strip() == want.strip(), key
+
+
+def test_gen_screen_imports_outside_a_build_entry():
+    """gen_screen maa kunne importeres fra en test - OUT_DIR er doven."""
+    import importlib
+    import gen_screen
+    importlib.reload(gen_screen)
