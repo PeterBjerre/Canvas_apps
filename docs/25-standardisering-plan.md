@@ -519,7 +519,7 @@ For fuldstændighedens skyld, siden gennemgangen var "alt ensartet":
 
 | App | Variabler | Samlinger | Kontroller |
 |---|---|---|---|
-| Masterdata Hub | `gblMe`, `gblView`, `gblDomain` | (ingen) | `txt…`, `con…`, `btn…`, `gal…` |
+| Masterdata Hub | `varMdMe`, `varMdView`, `varMdDomain` | (ingen) | `txt…`, `con…`, `btn…`, `gal…` |
 | Maintenance Plan | `varVhp…` (1.518 forekomster) | `colVhp…` (591) | samme + `drp`, `num`, `chk` |
 | Equipment/Material | `varDom…` (387/378) | `colDom…` (97) | samme, men `inp…` i stedet for `txt…` for inputs |
 

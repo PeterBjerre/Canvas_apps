@@ -51,7 +51,7 @@ SEL_FL = (f"Coalesce({FL_CODE}, "
 
 # Kandidater til objektlisten: alt under den valgte FL, minus den selv.
 #
-# De kommer fra colVhpFlSearch - altsaa SAMME resultat som FL-soegningen
+# De kommer fra colVhpFl - altsaa SAMME resultat som FL-soegningen
 # hentede. Objektlisten kalder aldrig selv flowet: soeger man fx "SSV13 HFC10",
 # returnerer flowet baade SSV13 HFC10 og alt under den, saa de underliggende
 # FL ligger allerede i samlingen.
@@ -62,7 +62,7 @@ SEL_FL = (f"Coalesce({FL_CODE}, "
 # stik modsatte af at vaere filtreret af FL-feltet.
 OBJ_CANDIDATES = (
     f"Filter(\n"
-    f"    colVhpFlSearch,\n"
+    f"    colVhpFl,\n"
     f"    !IsBlank({SEL_FL}) && StartsWith(Code, {SEL_FL}) && Code <> {SEL_FL}\n"
     f")"
 )
@@ -120,13 +120,13 @@ RESET_EDITOR_CONTROLS = (
 # Soegesamlingen er tom paa det tidspunkt, saa den seedes med den ene vaerdi.
 # Display skal med, fordi det er det felt comboboksen soeger og viser paa.
 SEED_FL_PICKER = (
-    "Clear(colVhpFlSearch);\n"
+    "Clear(colVhpFl);\n"
     "With(\n"
     "    { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },\n"
     "    If(\n"
     "        !IsBlank(it.FunctionalLocation),\n"
     "        Collect(\n"
-    "            colVhpFlSearch,\n"
+    "            colVhpFl,\n"
     "            { Code: it.FunctionalLocation, Description: it.FlDescription,\n"
     "              Display: it.FunctionalLocation & \" - \" & it.FlDescription,\n"
     "              Maintainable: true, Level: \"\" }\n"
@@ -186,7 +186,7 @@ def build_items_rail():
             "    );\n"
             "    Set(varVhpActiveItemId, varVhpNextItemId);\n"
             "    Set(varVhpItemValidated, false);\n"
-            "    Set(varVhpFlMeta, \"\");\n"
+            "    Set(varVhpFlMsg, \"\");\n"
             f"    {SEED_FL_PICKER};\n"
             f"    {RESET_EDITOR_CONTROLS};\n"
             "    Notify(\"Item \" & Text(varVhpNextItemId) & \" added.\", NotificationType.Success)\n"
@@ -338,7 +338,7 @@ def build_items_rail():
         "btnVhpItemOpen",
         ("Set(varVhpActiveItemId, ThisItem.ItemId);\n"
          "Set(varVhpItemValidated, false);\n"
-         "Set(varVhpFlMeta, \"\");\n"
+         "Set(varVhpFlMsg, \"\");\n"
          f"{SEED_FL_PICKER};\n"
          f"{RESET_EDITOR_CONTROLS}"),
         "\"Open item \" & Text(ThisItem.ItemId) & \" \" & ThisItem.ShortText",
@@ -406,10 +406,10 @@ def build_item_editor():
     # konstant i appens EGEN kopi af build_flsearch.py - og det var netop
     # den ene linje, de tre kopier havde glidt fra hinanden paa.
     flPicker = fl_picker(
-        "Vhp", combo=FL_COMBO, results="colVhpFlSearch", raw_var="varVhpFlRaw",
-        msg_var="varVhpFlMeta", busy_var=FL_BUSY_VAR, query_var=FL_QUERY_VAR,
+        "Vhp", combo=FL_COMBO, results="colVhpFl", raw_var="varVhpFlRaw",
+        msg_var="varVhpFlMsg", busy_var=FL_BUSY_VAR, query_var=FL_QUERY_VAR,
         last_var=FL_LAST_VAR, pick_var=FL_PICK_VAR,
-        default_items=(f"Filter(colVhpFlSearch, Code = Coalesce({FL_PICK_VAR}, "
+        default_items=(f"Filter(colVhpFl, Code = Coalesce({FL_PICK_VAR}, "
                        "LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation))"),
         # En ny soegning goer det gamle objektvalg ugyldigt (issue #72):
         # objekterne hoerer til den soegning, de blev valgt i.
@@ -421,8 +421,8 @@ def build_item_editor():
     # Soegningens status UNDER feltet - som i Materials (issue #72): "6
     # Functional Locations found for SSV13 HFC10AJ010. Select one from the
     # list below.", soeger, ingen traef, fejl. Aldrig inde i listen.
-    flMsg = text_ctrl("txtVhpFlMsg", "varVhpFlMeta", size=12, color=C_MUTED,
-                      height=18, wrap="false", visible="!IsBlank(varVhpFlMeta)")
+    flMsg = text_ctrl("txtVhpFlMsg", "varVhpFlMsg", size=12, color=C_MUTED,
+                      height=18, wrap="false", visible="!IsBlank(varVhpFlMsg)")
 
     # OBJECT LIST ER EN POPUP (issue #54). Knappen staar lige under
     # comboboksen og aabner popup'en med en KLADDE af det valgte. Lukkes
@@ -656,7 +656,7 @@ def build_item_editor():
             "    Collect(colVhpItemObjects, keep)\n"
             ");\n"
             "Set(varVhpItemValidated, false);\n"
-            "Set(varVhpFlMeta, \"\");\n"
+            "Set(varVhpFlMsg, \"\");\n"
             f"{SEED_FL_PICKER};\n"
             f"{RESET_EDITOR_CONTROLS}"
         ), width=fit_button_width("\"Reset\""), height=36,

@@ -209,14 +209,14 @@ def save_action(submit=False):
         # den, der kan filtreres delegerbart.\n
         "                        OrstedResponsible: {\n"
         "                            '@odata.type': \"#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser\",\n"
-        "                            Claims: \"i:0#.f|membership|\" & Lower(User().Email),\n"
+        "                            Claims: \"i:0#.f|membership|\" & varVhpMe,\n"
         "                            DisplayName: User().FullName,\n"
         "                            Email: User().Email,\n"
         "                            Department: \"\",\n"
         "                            JobTitle: \"\",\n"
         "                            Picture: \"\"\n"
         "                        },\n"
-        "                        OrstedResponsibleEmail: Lower(User().Email),\n"
+        "                        OrstedResponsibleEmail: varVhpMe,\n"
         "                        InitialOrstedResponsible: IT.Initials,\n"
         # OPSLAG I SAMLINGEN, IKKE I LISTEN
         #
@@ -265,7 +265,7 @@ def save_action(submit=False):
     # Indeksraekken er den samme i alle apps - tools/request_index.py.
     index_fields = ri.record(
         DOMAIN, "vhplan", idx_status,
-        request_no="planKey", guid="varVhpRequestGuid", me="Lower(User().Email)",
+        request_no="planKey", guid="varVhpRequestGuid", me="varVhpMe",
         short_text="varVhpPlan.PlanText", plant="varVhpPlan.Plant",
         item_count=SAVEABLE_COUNT, source_id="planId", indent=12)
 

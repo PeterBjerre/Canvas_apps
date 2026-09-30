@@ -31,7 +31,7 @@ import combined as cb
 # Navne uden domaenepraefiks, der er FAELLES med vilje.
 SHARED = {"gblNavOpen", "colAppPrefs", "darkModeEnabled", cb.NEW_SEQ}
 # Hubbens egne - de har aldrig haft et praefiks.
-HUB_OWN = {"gblMe", "gblView", "gblDomain", "gblStatusMode", "gblNewMenu", "gblClosedPeek"}
+HUB_OWN = {"varMdMe", "varMdView", "varMdDomain", "varMdStatusMode", "varMdNewMenu", "varMdClosedPeek"}
 
 TAGS = sorted({d["tag"] for d in cb.DOMAINS}, key=len, reverse=True)
 TAGGED = re.compile(r"\b(?:var|col|gbl)(%s)(?=[A-Z0-9_])\w*" % "|".join(TAGS))

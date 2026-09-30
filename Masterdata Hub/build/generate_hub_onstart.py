@@ -32,11 +32,11 @@ _prefs = "ClearCollect(%s, { %s });\nClear(%s);" % (
 
 ONSTART = _prefs + "\n\n" + tok.onstart_block() + '''
 
-Set(gblMe, Lower(User().Email));
-Set(gblView, "mine");
-Set(gblDomain, "");
-Set(gblStatusMode, "open");
-Set(gblClosedPeek, false);
+Set(varMdMe, Lower(User().Email));
+Set(varMdView, "mine");
+Set(varMdDomain, "");
+Set(varMdStatusMode, "open");
+Set(varMdClosedPeek, false);
 // Skemaet for flisernes taellesamling - hentes i skaermens OnVisible.
 ClearCollect(colMdScope, { Domain: "" });
 Clear(colMdScope)'''

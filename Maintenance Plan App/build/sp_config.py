@@ -362,7 +362,7 @@ WORKING_COLLECTIONS = [
       # timerne rettes. Se cost_expr() i build_tasklist.py.
       "ControlKey": '""', "Cost": 0, "UnitCost": 0, "Currency": '""',
       "CostElement": 0, "MaterialGroup": '""'}),
-    ("colVhpFlSearch",
+    ("colVhpFl",
      {"Code": '""', "Description": '""', "Display": '""',
       "Maintainable": "false", "Level": '""'}),
     ("colVhpItemObjects", {"ItemId": 0, "Code": '""', "Description": '""'}),
