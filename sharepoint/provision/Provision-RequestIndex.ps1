@@ -51,52 +51,9 @@ $LIST_NAME = 'MD_RequestIndex'
 # staar som COL_NO i hub_config.py. Aendrer du den ene, skal du aendre begge.
 $COL_NO = 'RequestNo'
 
-# PnP.PowerShell 2.x har ikke laengere en faelles app-registrering, saa
-# -Interactive kraever et ClientId. Saet PNP_CLIENT_ID som miljoevariabel,
-# eller giv -ClientId. Appen findes allerede i tenanten:
-#     9bc3ab49-b65d-410a-85ad-de819febfddc
-# Et client id er ikke en hemmelighed - se docs/08-datamapning.md 6B.
-# Har du ingen app, opretter denne en ny:
-#     Register-PnPEntraIDAppForInteractiveLogin ``
-#         -ApplicationName "PnP Masterdata" -Tenant <tenant>.onmicrosoft.com -Interactive
-$conn = @{ Url = $SiteUrl; Interactive = $true }
-# PnP.PowerShell 2.x har ingen faelles app-registrering, saa -Interactive
-# KRAEVER et ClientId. Uden et fejler MSAL med "User canceled
-# authentication" - hvilket lyder som om brugeren trykkede fortryd, men
-# ikke er det. Her stod "if ($ClientId) { ... }", saa scriptet koerte
-# videre uden. Nu er der en standard.
-# Et client id er ikke en hemmelighed - se docs/08-datamapning.md 6B.
-if (-not $ClientId) { $ClientId = '9bc3ab49-b65d-410a-85ad-de819febfddc' }
-$conn.ClientId = $ClientId
-Connect-PnPOnline @conn
-
-function New-IdxList {
-    param([string]$Title, [string]$Description)
-    if (Get-PnPList -Identity $Title -ErrorAction SilentlyContinue) {
-        Write-Host "  = Liste '$Title' findes allerede" -ForegroundColor DarkGray
-    } else {
-        New-PnPList -Title $Title -Template GenericList -OnQuickLaunch:$false | Out-Null
-        Write-Host "  + Liste '$Title' oprettet" -ForegroundColor Green
-    }
-    Set-PnPList -Identity $Title -Description $Description
-}
-
-function New-IdxField {
-    param([string]$List, [string]$Name, [string]$Type, [string[]]$Choices,
-          [switch]$Indexed, [switch]$Required)
-    if (Get-PnPField -List $List -Identity $Name -ErrorAction SilentlyContinue) {
-        Write-Host "    = $Name" -ForegroundColor DarkGray
-    } else {
-        $p = @{ List = $List; DisplayName = $Name; InternalName = $Name; Type = $Type }
-        if ($Choices) { $p.Choices = $Choices }
-        Add-PnPField @p -AddToDefaultView | Out-Null
-        Write-Host "    + $Name ($Type)" -ForegroundColor Green
-    }
-    $values = @{}
-    if ($Indexed)  { $values.Indexed  = $true }
-    if ($Required) { $values.Required = $true }
-    if ($values.Count) { Set-PnPField -List $List -Identity $Name -Values $values }
-}
+# Login og de faelles hjaelpefunktioner (REVIEW.md E8).
+Import-Module (Join-Path $PSScriptRoot '_Common.psm1') -Force
+Connect-MdSite -SiteUrl $SiteUrl -ClientId $ClientId
 
 # Vaerdierne skal vaere ORDRET de samme som i hub_config.py (DOMAINS/STATUS).
 # Landingssiden slaar op paa dem; en stavefejl giver en raekke uden farve og
@@ -114,43 +71,43 @@ function Add-IndexColumns {
     Set-PnPField -List $List -Identity 'Title' -Values @{ Title = $COL_NO; Indexed = $true }
 
     # --- Det landingssiden grupperer og filtrerer paa ---------------------
-    New-IdxField $List 'Domain'     Choice -Choices $DOMAINS -Indexed -Required
-    New-IdxField $List 'Status'     Choice -Choices $STATUS  -Indexed -Required
+    New-MdField $List 'Domain'     Choice -Choices $DOMAINS -Indexed -Required
+    New-MdField $List 'Status'     Choice -Choices $STATUS  -Indexed -Required
 
     # 1-5. Hubben tegner forloebet uden at kende domaenespecifikke vaerdier.
     # 0 = afsluttet uden oprettelse (Afvist/Annulleret).
-    New-IdxField $List 'StatusStep' Number
+    New-MdField $List 'StatusStep' Number
 
     # Et enkelt indekseret boolsk felt ER delegerbart. En raekke OR'ede
     # statusvaerdier er det IKKE - og koeen i landingssiden filtrerer paa
     # praecis dette felt. Saettes af submit-flowet sammen med Status.
-    New-IdxField $List 'IsOpen'     Boolean -Indexed
+    New-MdField $List 'IsOpen'     Boolean -Indexed
 
     # --- Hvem ------------------------------------------------------------
     # TEKST, ikke Person. Person-kolonner kan ikke filtreres delegerbart i
     # SharePoint, og det er praecis det filter, "Mine indmeldinger" bygger
     # paa. Skriv User().Email i smaa bogstaver fra flowet.
-    New-IdxField $List 'RequesterEmail'  Text -Indexed -Required
-    New-IdxField $List 'RequesterName'   Text
-    New-IdxField $List 'AssignedToEmail' Text -Indexed
-    New-IdxField $List 'AssignedToName'  Text
+    New-MdField $List 'RequesterEmail'  Text -Indexed -Required
+    New-MdField $List 'RequesterName'   Text
+    New-MdField $List 'AssignedToEmail' Text -Indexed
+    New-MdField $List 'AssignedToName'  Text
 
     # --- Indholdet i raekken ---------------------------------------------
-    New-IdxField $List 'ShortText'    Text            # vises som raekkens titel
-    New-IdxField $List 'Plant'        Text -Indexed   # vaerk
-    New-IdxField $List 'ItemCount'    Number
-    New-IdxField $List 'SapObjectNo'  Text            # udfyldes naar SAP har oprettet
+    New-MdField $List 'ShortText'    Text            # vises som raekkens titel
+    New-MdField $List 'Plant'        Text -Indexed   # vaerk
+    New-MdField $List 'ItemCount'    Number
+    New-MdField $List 'SapObjectNo'  Text            # udfyldes naar SAP har oprettet
 
     # --- Tilbage til domaeneappen ----------------------------------------
     # RequestGuid saettes af domaeneappen og haenges paa AppUrl som ?reqid=,
     # saa "Aabn" lander paa den rigtige indmelding og ikke bare i appen.
-    New-IdxField $List 'RequestGuid'  Text -Indexed
-    New-IdxField $List 'SourceItemId' Number
-    New-IdxField $List 'AppUrl'       Text
+    New-MdField $List 'RequestGuid'  Text -Indexed
+    New-MdField $List 'SourceItemId' Number
+    New-MdField $List 'AppUrl'       Text
 
     # --- Sortering --------------------------------------------------------
-    New-IdxField $List 'LastActionOn' DateTime -Indexed
-    New-IdxField $List 'LastActionBy' Text
+    New-MdField $List 'LastActionOn' DateTime -Indexed
+    New-MdField $List 'LastActionBy' Text
 }
 
 function Set-IdxView {
@@ -171,13 +128,13 @@ function Set-IdxView {
 }
 
 Write-Host "`n=== $LIST_NAME ===" -ForegroundColor Cyan
-New-IdxList $LIST_NAME 'Faelles indeks over alle masterdata-indmeldinger. Laeses af landingssiden (Masterdata Hub).'
+New-MdList $LIST_NAME 'Faelles indeks over alle masterdata-indmeldinger. Laeses af landingssiden (Masterdata Hub).'
 Add-IndexColumns $LIST_NAME
 Set-IdxView $LIST_NAME
 
 if ($IncludeArchive) {
     Write-Host "`n=== ${LIST_NAME}Archive ===" -ForegroundColor Cyan
-    New-IdxList "${LIST_NAME}Archive" 'Afsluttede indmeldinger aeldre end 12 maaneder.'
+    New-MdList "${LIST_NAME}Archive" 'Afsluttede indmeldinger aeldre end 12 maaneder.'
     Add-IndexColumns "${LIST_NAME}Archive"
     Set-IdxView "${LIST_NAME}Archive"
 }

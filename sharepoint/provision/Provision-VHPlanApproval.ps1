@@ -81,7 +81,7 @@
 
 .NOTES
     Kraever PnP.PowerShell. ClientId findes i tenanten:
-        9bc3ab49-b65d-410a-85ad-de819febfddc
+        se MdDefaultClientId i _Common.psm1
 #>
 
 [CmdletBinding()]
@@ -112,13 +112,9 @@ $RETURNED  = 'Returned'
 $THRESHOLD_OPTION = 'CostApprovalThresholdDkk'
 $THRESHOLD_VALUE  = 300000
 
-# PnP.PowerShell 2.x har ingen faelles app-registrering, saa -Interactive
-# KRAEVER et ClientId. Et client id er ikke en hemmelighed - se
-# docs/08-datamapning.md 6B.
-$conn = @{ Url = $SiteUrl; Interactive = $true }
-if (-not $ClientId) { $ClientId = '9bc3ab49-b65d-410a-85ad-de819febfddc' }
-$conn.ClientId = $ClientId
-Connect-PnPOnline @conn
+# Login og de faelles hjaelpefunktioner (REVIEW.md E8).
+Import-Module (Join-Path $PSScriptRoot '_Common.psm1') -Force
+Connect-MdSite -SiteUrl $SiteUrl -ClientId $ClientId
 
 # ---------------------------------------------------------------------------
 # Hjaelpere

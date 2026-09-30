@@ -56,7 +56,7 @@
     .\Provision-EqMatLists.ps1 -SiteUrl "https://orsted.sharepoint.com/teams/BioSAPDev"
 
 .EXAMPLE
-    .\Provision-EqMatLists.ps1 -SiteUrl "https://..." -Domain Equipment -WhatIfReport
+    .\Provision-EqMatLists.ps1 -SiteUrl "https://..." -Domain Equipment
 
 .NOTES
     Kolonnernes INTERNE navne laases ved oprettelse og kan ikke aendres
@@ -95,104 +95,9 @@ $ROWSTATUS = 'draft', 'valid', 'submitted'
 # samme bibliotek og holdes fra hinanden paa MAPPENAVNET.
 $LIBRARY = 'TaskListDocuments'
 
-# PnP.PowerShell 2.x har ikke laengere en faelles app-registrering, saa
-# -Interactive KRAEVER et ClientId. Uden et gaar MSAL i gang mod en app,
-# tenanten ikke kender, og fejler med "User canceled authentication" -
-# hvilket lyder som om brugeren trykkede fortryd, men ikke er det.
-#
-# Appen nedenfor findes allerede i tenanten og bruges af de oevrige
-# scripts i mappen. Et client id er ikke en hemmelighed; det er et navn,
-# ikke en noegle - se docs/08-datamapning.md 6B.
-$PNP_APP = '9bc3ab49-b65d-410a-85ad-de819febfddc'
-if (-not $ClientId) { $ClientId = $PNP_APP }
-
-$conn = @{ Url = $SiteUrl; ClientId = $ClientId }
-if ($DeviceLogin) { $conn.DeviceLogin = $true } else { $conn.Interactive = $true }
-
-try {
-    Connect-PnPOnline @conn
-}
-catch {
-    Write-Host ""
-    Write-Host "Login mislykkedes: $($_.Exception.Message)" -ForegroundColor Red
-    Write-Host ""
-    Write-Host "'User canceled authentication' betyder EN af to ting:" -ForegroundColor Yellow
-    Write-Host "  1. Browservinduet blev lukket, foer login var faerdigt."
-    Write-Host "  2. Appen $ClientId er ikke godkendt i tenanten, saa"
-    Write-Host "     browseren viste 'Needs admin approval' i stedet for et login."
-    Write-Host ""
-    Write-Host "Virker browservinduet ikke, saa brug enhedslogin i stedet:" -ForegroundColor Yellow
-    Write-Host "  .\sharepoint\provision\Provision-EqMatLists.ps1 ``"
-    Write-Host "      -SiteUrl '$SiteUrl' -DeviceLogin"
-    Write-Host ""
-    Write-Host "Har du en anden app-registrering, saa giv den med:" -ForegroundColor Yellow
-    Write-Host "  -ClientId <app id>"
-    Write-Host ""
-    Write-Host "Har du ingen, kan du oprette en:" -ForegroundColor Yellow
-    Write-Host "  Register-PnPEntraIDAppForInteractiveLogin ``"
-    Write-Host "      -ApplicationName 'PnP Masterdata' ``"
-    Write-Host "      -Tenant <tenant>.onmicrosoft.com -Interactive"
-    throw
-}
-
-# ---------------------------------------------------------------------------
-# Hjaelpefunktioner
-# ---------------------------------------------------------------------------
-
-function New-MdList {
-    param([string]$Title, [string]$Description)
-    if (Get-PnPList -Identity $Title -ErrorAction SilentlyContinue) {
-        Write-Host "  = Liste '$Title' findes allerede" -ForegroundColor DarkGray
-    } else {
-        New-PnPList -Title $Title -Template GenericList -OnQuickLaunch:$false | Out-Null
-        Write-Host "  + Liste '$Title' oprettet" -ForegroundColor Green
-    }
-    Set-PnPList -Identity $Title -Description $Description
-}
-
-function New-MdField {
-    param(
-        [string]$List, [string]$Name, [string]$Type,
-        [string[]]$Choices, [switch]$Indexed, [switch]$Required, [switch]$Unique
-    )
-    if (Get-PnPField -List $List -Identity $Name -ErrorAction SilentlyContinue) {
-        Write-Host "    = $Name" -ForegroundColor DarkGray
-    } else {
-        $p = @{ List = $List; DisplayName = $Name; InternalName = $Name; Type = $Type }
-        if ($Choices) { $p.Choices = $Choices }
-        Add-PnPField @p -AddToDefaultView | Out-Null
-        Write-Host "    + $Name ($Type)" -ForegroundColor Green
-    }
-    # Unikhed kraever indeksering, og indekseringen skal vaere paa plads FOER
-    # listen passerer 5.000 elementer.
-    $values = @{}
-    if ($Indexed -or $Unique) { $values.Indexed = $true }
-    if ($Required)            { $values.Required = $true }
-    if ($values.Count)        { Set-PnPField -List $List -Identity $Name -Values $values }
-    if ($Unique) {
-        Set-PnPField -List $List -Identity $Name -Values @{ EnforceUniqueValues = $true }
-    }
-}
-
-# Flerlinjet tekst skal vaere PLAIN. Rich text goer JSON-payloaden ulaeselig,
-# fordi SharePoint indsaetter HTML-tags - og det er den tekst, der skal
-# videre til SAP's langtekstfelt.
-function New-MdNoteField {
-    param([string]$List, [string]$Name, [int]$Lines = 6)
-    if (-not (Get-PnPField -List $List -Identity $Name -ErrorAction SilentlyContinue)) {
-        Add-PnPField -List $List -DisplayName $Name -InternalName $Name -Type Note | Out-Null
-        Write-Host "    + $Name (Note, plain)" -ForegroundColor Green
-    } else {
-        Write-Host "    = $Name" -ForegroundColor DarkGray
-    }
-    Set-PnPField -List $List -Identity $Name -Values @{ RichText = $false; NumberOfLines = $Lines }
-}
-
-function Rename-TitleTo {
-    param([string]$List, [string]$NewName)
-    Set-PnPField -List $List -Identity 'Title' -Values @{ Title = $NewName; Indexed = $true }
-    Write-Host "    ~ Title -> $NewName" -ForegroundColor Green
-}
+# Login og de faelles hjaelpefunktioner (REVIEW.md E8).
+Import-Module (Join-Path $PSScriptRoot '_Common.psm1') -Force
+Connect-MdSite -SiteUrl $SiteUrl -ClientId $ClientId -DeviceLogin:$DeviceLogin
 
 # ---------------------------------------------------------------------------
 # Det der binder en portion raekker sammen
@@ -260,7 +165,7 @@ function New-EquipmentList {
     New-MdList 'EquipmentItems' 'Een raekke pr. udstyr. Skrives af appen Equipments (colEquipmentRows).'
 
     # Description er raekkens tekst og dermed Title.
-    Rename-TitleTo 'EquipmentItems' 'Description'
+    Rename-MdTitle 'EquipmentItems' 'Description'
     Add-BatchColumns 'EquipmentItems'
 
     # Dropdown mod colEqRequestTypeOptions. Den samling defineres ikke i
@@ -321,7 +226,7 @@ function New-MaterialList {
     Write-Host "`n=== MaterialItems ===" -ForegroundColor Cyan
     New-MdList 'MaterialItems' 'Een raekke pr. materiale. Skrives af appen Materials (colMaterialRows).'
 
-    Rename-TitleTo 'MaterialItems' 'MaterialDescription'
+    Rename-MdTitle 'MaterialItems' 'MaterialDescription'
     Add-BatchColumns 'MaterialItems'
 
     New-MdField 'MaterialItems' 'Plant'               Text -Indexed

@@ -64,7 +64,7 @@ def main():
     for dirpath, dirnames, filenames in os.walk(ROOT):
         dirnames[:] = [d for d in dirnames if d not in (".git", "__pycache__")]
         for fn in filenames:
-            if not fn.lower().endswith(".ps1"):
+            if not fn.lower().endswith((".ps1", ".psm1")):
                 continue
             path = os.path.join(dirpath, fn)
             rel = os.path.relpath(path, ROOT)
