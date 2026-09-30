@@ -926,8 +926,14 @@ def main():
     # en udregnet bredde (gen_screen._resolve_grow).
     for p, name, body in all_nodes:
         props = body.get("Properties") or {}
+        # Undtaget: en raekke med LayoutAlignItems.Stretch og intet andet.
+        # Boernene fylder hele hoejden, saa intet kan staa "en linje for
+        # lavt" - og det er Microsofts eget eksempel (to kort side om side,
+        # Align Stretch, FillPortions). Items/Item Editor bruger den (#78).
+        align = (props.get("LayoutAlignItems") or "").strip().lstrip("=").strip()
         if "Horizontal" not in (props.get("LayoutDirection") or "") or \
-                "true" in (props.get("LayoutWrap") or "").lower():
+                "true" in (props.get("LayoutWrap") or "").lower() or \
+                align == "LayoutAlignItems.Stretch":
             continue
         for k in body.get("Children") or []:
             (kn, kb), = k.items()
@@ -1401,9 +1407,13 @@ def main():
             if key not in props:
                 problems.append(f"[10c] {name}: {ctl} mangler {key} - Fluent-temaets "
                                 f"farve i moerk tilstand (brug build_helpers.input_theme)")
-        if "Outline" in str(props.get("Appearance", "")):
-            problems.append(f"[10c] {name}: Appearance.Outline har gennemsigtig baggrund "
-                            f"og tegner ikke Fill")
+        app = str(props.get("Appearance", "")).strip().lstrip("=").strip()
+        # Outline KUN i den laaste gren (input_theme): If(<redigerbar>,
+        # FilledDarker, Outline). Et redigerbart felt i Outline tegner ikke Fill.
+        if "Outline" in app and not (app.startswith("If(") and
+                                     app.endswith("Appearance.FilledDarker, Appearance.Outline)")):
+            problems.append(f"[10c] {name}: Appearance.Outline paa et redigerbart felt - "
+                            f"gennemsigtig baggrund, Fill tegnes ikke")
         dm = str(props.get("DisplayMode", "")).strip().lstrip("=").strip()
         wrapped = dm.startswith("If((") and dm.endswith(
             ", DisplayMode.Edit, DisplayMode.View)")

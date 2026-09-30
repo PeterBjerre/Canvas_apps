@@ -119,6 +119,13 @@ LIGHT = {
     'bg-modal': "RGBA(255, 255, 255, 0.98)",
     'overlay':  "RGBA(15, 23, 42, 0.35)",
 
+    # --- en klikbar raekkes hover og tryk (build_helpers.row_hit, issue
+    #     #79). Gennemsigtige: laget ligger OVEN PAA raekkens tekster, saa
+    #     det farver raekken uden at skjule den. Tekstfarven i ALLE tokens
+    #     ovenfor gaelder stadig, fordi tonen er under 10 % ---
+    'row-hover':   "RGBA(0, 95, 184, 0.06)",
+    'row-pressed': "RGBA(0, 95, 184, 0.12)",
+
     # --- de fem domaener paa landingssiden ---
     # Issue #70: fem tydeligt adskilte farver - se DOMAIN_MIN_DELTA_E.
     # -soft er domaenet blandet 8 % ind i bg-card: den valgte flises fyld.
@@ -210,6 +217,10 @@ DARK = {
     #     modalen fra en baggrund, der i forvejen er moerk ---
     'bg-modal': "RGBA(15, 23, 42, 0.98)",
     'overlay':  "RGBA(2, 6, 23, 0.72)",
+
+    # --- raekke-hover: lys tone paa moerkt, samme styrke som i lys tilstand ---
+    'row-hover':   "RGBA(148, 197, 255, 0.08)",
+    'row-pressed': "RGBA(148, 197, 255, 0.16)",
 
     # --- domaener. Lysere udgaver, saa striben kan ses mod det moerke kort ---
     # -soft: domaenet blandet 16 % ind i bg-card - den valgte flises fyld.

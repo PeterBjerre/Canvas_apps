@@ -5,8 +5,8 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQU
                         C_INFO_FG, C_INFO_BG, C_VALID_FG, C_VALID_BG, C_INVALID_FG, C_INVALID_BG,
                         C_NEUTRAL_FG, C_NEUTRAL_BG, C_INPUT_BG, FONT, SHELL_W, EDITOR_W, RAIL_W,
                         SPLIT_GAP, C_TRANSPARENT, C_MODAL_BG, C_PRIMARY_SOFT)
-from layout_tokens import if_below
-from build_helpers import (checkbox_theme, text_ctrl, group, button, button_row, text_input, number_input, dropdown,
+from layout_tokens import if_below, at_least
+from build_helpers import (checkbox_theme, row_hit, text_ctrl, group, button, button_row, text_input, number_input, dropdown,
                            label_row, field_cell, row_n, col_width, badge, card, combobox, poll_timer,
                            TWO_COL_MIN, HINTS_ON, grow, fit_button_width, column_grid,
                            ICON_SAVE, ICON_W, mark_done, bool_toggle)
@@ -300,45 +300,19 @@ def build_items_rail():
     # pegede paa den, er brudt. Den ligger OVER teksterne og UNDER Delete
     # (_OnTop), saa et klik paa Delete aldrig ogsaa aabner kortet.
     #
-    # Classic/Button og ikke ModernButton: den moderne knap har intet Fill,
-    # og dens hover-flade kommer fra Fluent-temaet og ville daekke teksten.
-    # Den klassiske tegner PRAECIS det, den faar: intet fyld, og en kant i
-    # primaerfarven, naar musen er over kortet eller det har fokus.
-    #
-    # Classic/Button har INGEN AccessibleLabel - compile afviste den (issue
-    # #57). Skaermlaeseren laeser knappens Text, saa teksten STAAR der, men
-    # i en gennemsigtig farve: den kan hoeres, ikke ses. Kortets egne
-    # tekster ligger under og er det, man ser.
-    btnOpen = Ctrl("btnVhpItemOpen", "Classic/Button", props={
-        "BorderColor": C_TRANSPARENT,
-        "BorderStyle": "BorderStyle.Solid",
-        "BorderThickness": "2",
-        "Color": C_TRANSPARENT,
-        "Fill": C_TRANSPARENT,
-        "FocusedBorderColor": C_PRIMARY,
-        "FocusedBorderThickness": "2",
-        "Height": f"Parent.TemplateHeight - {ITEM_GAP}",
-        "HoverBorderColor": C_PRIMARY,
-        "HoverColor": C_TRANSPARENT,
-        "HoverFill": C_TRANSPARENT,
-        "OnSelect": (
-            "Set(varVhpActiveItemId, ThisItem.ItemId);\n"
-            "Set(varVhpItemValidated, false);\n"
-            "Set(varVhpFlMeta, \"\");\n"
-            f"{SEED_FL_PICKER};\n"
-            f"{RESET_EDITOR_CONTROLS}"
-        ),
-        "PressedBorderColor": C_PRIMARY,
-        "PressedColor": C_TRANSPARENT,
-        "PressedFill": C_TRANSPARENT,
-        "RadiusBottomLeft": "10", "RadiusBottomRight": "10",
-        "RadiusTopLeft": "10", "RadiusTopRight": "10",
-        "TabIndex": "0",
-        "Text": "\"Open item \" & Text(ThisItem.ItemId) & \" \" & ThisItem.ShortText",
-        "Width": "Parent.TemplateWidth",
-        "X": "0",
-        "Y": "0",
-    }, h=f"Parent.TemplateHeight - {ITEM_GAP}")
+    # Det er det faelles moenster for klikbare raekker (build_helpers.row_hit,
+    # issue #79): tone ved hover og tryk, kant ved fokus - og her ogsaa en
+    # kant ved hover, fordi kortene staar hver for sig.
+    btnOpen = row_hit(
+        "btnVhpItemOpen",
+        ("Set(varVhpActiveItemId, ThisItem.ItemId);\n"
+         "Set(varVhpItemValidated, false);\n"
+         "Set(varVhpFlMeta, \"\");\n"
+         f"{SEED_FL_PICKER};\n"
+         f"{RESET_EDITOR_CONTROLS}"),
+        "\"Open item \" & Text(ThisItem.ItemId) & \" \" & ThisItem.ShortText",
+        "Parent.TemplateWidth", f"Parent.TemplateHeight - {ITEM_GAP}",
+        radius=10, hover_border=True)
 
     gallery = Ctrl(
         "galVhpItemsRail", "Gallery", variant="Vertical",
@@ -809,28 +783,33 @@ def build_items_section():
     # hoejden passer til ingen af delene. Derfor kommer de alle tre fra
     # tools/layout_tokens.py nu, hvor de foer havde 1000 skrevet i sig hver
     # for sig.
+    side = at_least("Desktop")
     h = if_below("Desktop",
                  f"({rail.h}) + {SPLIT_GAP} + ({editor.h})",
                  f"Max(({rail.h}), ({editor.h}))")
-    # SHELL_W, ikke Parent.Width: Parent.Width er splittets Width-EGENSKAB,
-    # som er hele kroppens - uden dens padding og scrollbar trukket fra.
+    # INGEN WRAP (issue #78). I #73 blev raekken LayoutWrap + Align Start +
+    # FillPortions paa editoren - og i Studio blev BEGGE kort ca. 100 px
+    # hoeje og klippede deres indhold. Microsoft: "If the container's Wrap
+    # property is enabled, the Align property setting is ignored on child
+    # controls." Nu er det flow_row's konstruktion: ENTEN side om side
+    # (Desktop og op) ELLER under hinanden - retningen skifter, linjeantallet
+    # goer ikke. Side om side er det Microsofts eget eksempel: Align
+    # Stretch, skinnen fast, editoren FillPortions 1, saa dens hoejre kant
+    # flugter med kortene over og under (issue #73) uden en haandregnet
+    # bredde. Under hinanden er begge Stretch i fuld bredde.
     rail.props["Width"] = if_below("Desktop", SHELL_W, str(RAIL_W))
+    rail.props["FillPortions"] = "0"
+    rail.props["LayoutMinWidth"] = f"If({side}, {RAIL_W}, 0)"
     editor.props["Width"] = EDITOR_W
-    # HOEJRE KANT FLUGTER MED DE ANDRE KORT (issue #72/#73). SHELL_W er en
-    # NEDRE graense (scrollbar og luft er trukket fra), mens kortene over og
-    # under straekkes til hele bredden - editoren endte op til 24 px foer
-    # deres hoejre kant. Nu tager editoren RESTEN af sin linje
-    # (FillPortions i en raekke, der ombryder - regel 28 undtager den), og
-    # under Desktop goer skinnen det samme paa sin egen linje. Bredderne
-    # ovenfor er mindstemaal, som afgoer, hvornaar raekken ombryder.
-    editor.props["FillPortions"] = "1"
-    editor.props["LayoutMinWidth"] = EDITOR_W
-    rail.props["FillPortions"] = if_below("Desktop", "1", "0")
-    rail.props["LayoutMinWidth"] = if_below("Desktop", SHELL_W, str(RAIL_W))
+    editor.props["FillPortions"] = f"If({side}, 1, 0)"
+    editor.props["LayoutMinWidth"] = f"If({side}, {EDITOR_W}, 0)"
     # 2 px under kortene: kanten, hjoernerne og fokusringen nederst paa
     # Items og Item Editor maa ikke klippes af raekkens LayoutOverflow.Hide
     # (issue #73) - heller ikke naar Studio tegner et kort en pixel hoejere,
     # end hoejde-algebraen regnede med.
-    return group("conVhpItemsSplit", [rail, editor], direction="Horizontal", gap=SPLIT_GAP,
-                 height=f"({h}) + {SECTION_SLACK}", pad=(0, 0, SECTION_SLACK, 0),
-                 wrap="true", align_items="Start")
+    split = group("conVhpItemsSplit", [rail, editor], direction="Horizontal", gap=SPLIT_GAP,
+                  height=f"({h}) + {SECTION_SLACK}", pad=(0, 0, SECTION_SLACK, 0),
+                  align_items="Stretch")
+    split.props["LayoutDirection"] = (f"If({side}, LayoutDirection.Horizontal, "
+                                      f"LayoutDirection.Vertical)")
+    return split

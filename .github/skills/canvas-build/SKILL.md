@@ -59,6 +59,17 @@ mørk tilstand blev det grå tekst på sort. `check_layout` regel 10c stopper
 byggeriet. Tabeller får `table_surface` / `row_rule` — ikke galleriets fyld
 i kantfarven. Se `docs/26-designtokens.md`.
 
+**Et låst felt er Outline** (gennemsigtigt, dæmpet tekst) — aflæst i
+Studio: i View tegnede tekstfelt og dropdown Fluents lyse baggrund under
+vores lyse tekst. `input_theme` gør det; regel 10c tillader kun Outline i
+den låste gren.
+
+**En klikbar række er `build_helpers.row_hit()`** (issue #79): et
+gennemsigtigt lag øverst i rækken med rækkens handling, tone ved hover og
+tryk (`row-hover`/`row-pressed`), kant ved fokus. Knapper under laget, der
+gør det samme (Open, pilen), får `TabIndex -1`. Bruges i hubbens liste,
+Closed-preview og VH-planens items.
+
 Temaknappen er `build_helpers.theme_button()` og er **den samme kontrol i
 alle apps**. Den står i sidebarens fod (`tools/side_nav.py`). Byg ikke en ny.
 

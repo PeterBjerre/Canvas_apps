@@ -2129,6 +2129,8 @@ Screens:
                                         =10
                                     Size: |-
                                         =13
+                                    TabIndex: |-
+                                        =-1
                                     Text: |-
                                         ="Open"
                                     VerticalAlign: |-
@@ -2186,7 +2188,7 @@ Screens:
                                     PressedFill: |-
                                         =RGBA(0, 0, 0, 0)
                                     TabIndex: |-
-                                        =0
+                                        =-1
                                     Width: |-
                                         =24
                                     X: |-
@@ -2216,6 +2218,76 @@ Screens:
                                         =0
                                     Y: |-
                                         =51
+                              - btnMdRowHit:
+                                  Control: Classic/Button
+                                  Properties:
+                                    BorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    BorderStyle: |-
+                                        =BorderStyle.Solid
+                                    BorderThickness: |-
+                                        =2
+                                    Color: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    FocusedBorderColor: |-
+                                        =C.'color-brand-primary'
+                                    FocusedBorderThickness: |-
+                                        =2
+                                    Height: |-
+                                        =51
+                                    HoverBorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    HoverColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    HoverFill: |-
+                                        =C.'row-hover'
+                                    OnSelect: |-
+                                        =If(
+                                            IsBlank(ThisItem.RequestGuid),
+                                            Notify("This request has no ID.", NotificationType.Error),
+                                            Switch(
+                                                ThisItem.Domain.Value,
+                                                "FunctionalLocation",
+                                                    Set(gblFlWant, "req:" & ThisItem.RequestGuid);
+                                                    Navigate(ScreenFunctionalLocation, ScreenTransition.None),
+                                                "Equipment",
+                                                    Set(gblEqWant, "req:" & ThisItem.RequestGuid);
+                                                    Navigate(ScreenEquipment, ScreenTransition.None),
+                                                "Material",
+                                                    Set(gblMatWant, "req:" & ThisItem.RequestGuid);
+                                                    Navigate(ScreenMaterial, ScreenTransition.None),
+                                                "MaintenancePlan",
+                                                    Set(gblVhpWant, "req:" & ThisItem.RequestGuid);
+                                                    Navigate(ScreenVhPlan, ScreenTransition.None),
+                                                Notify("This kind of request has no screen in the app yet.", NotificationType.Warning)
+                                            )
+                                        )
+                                    PressedBorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    PressedColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    PressedFill: |-
+                                        =C.'row-pressed'
+                                    RadiusBottomLeft: |-
+                                        =0
+                                    RadiusBottomRight: |-
+                                        =0
+                                    RadiusTopLeft: |-
+                                        =0
+                                    RadiusTopRight: |-
+                                        =0
+                                    TabIndex: |-
+                                        =0
+                                    Text: |-
+                                        ="Open " & ThisItem.RequestNo & " - " & ThisItem.ShortText
+                                    Width: |-
+                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40)
+                                    X: |-
+                                        =0
+                                    Y: |-
+                                        =0
                         - txtMdEmpty:
                             Control: ModernText
                             Properties:
@@ -3395,11 +3467,11 @@ Screens:
                         Height: |-
                             =48
                         HoverBorderColor: |-
-                            =C.'color-brand-primary'
+                            =RGBA(0, 0, 0, 0)
                         HoverColor: |-
                             =RGBA(0, 0, 0, 0)
                         HoverFill: |-
-                            =RGBA(0, 0, 0, 0)
+                            =C.'row-hover'
                         OnSelect: |-
                             =Set(gblClosedPeek, false);
                             If(
@@ -3423,11 +3495,11 @@ Screens:
                                 )
                             )
                         PressedBorderColor: |-
-                            =C.'color-brand-primary'
+                            =RGBA(0, 0, 0, 0)
                         PressedColor: |-
                             =RGBA(0, 0, 0, 0)
                         PressedFill: |-
-                            =RGBA(0, 0, 0, 0)
+                            =C.'row-pressed'
                         RadiusBottomLeft: |-
                             =8
                         RadiusBottomRight: |-
