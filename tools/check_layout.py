@@ -1378,6 +1378,39 @@ def main():
             problems.append(f"[10] {name}: {body['Control']} kender ikke "
                             f"egenskaben '{key}' - compile vil fejle")
 
+    # --- 10c. Inputfelter faar ALDRIG Fluent-temaets farver (issue #78) ----
+    #
+    # Appen saetter ikke Fluent-temaet - farverne er C (design_tokens). Et
+    # moderne felt, der mangler Color/Fill, staar i Outline (gennemsigtig
+    # baggrund) eller kan blive DisplayMode.Disabled, tegnes med temaets
+    # LYSE farver: i moerk tilstand graa tekst paa sort. Felterne bygges af
+    # build_helpers.input_theme / checkbox_theme; reglen fanger den, der
+    # bygges uden om dem.
+    THEMED_INPUTS = ("ModernTextInput", "ModernNumberInput", "ModernDropdown",
+                     "ModernDatePicker", "ModernCombobox")
+    for p_, name, body in all_nodes:
+        ctl = (body.get("Control") or "").strip().split("@")[0]
+        props = body.get("Properties") or {}
+        if ctl in THEMED_INPUTS:
+            need = ("Color", "Fill", "Appearance", "BasePaletteColor")
+        elif ctl == "ModernCheckbox":
+            need = ("Color", "BasePaletteColor")
+        else:
+            continue
+        for key in need:
+            if key not in props:
+                problems.append(f"[10c] {name}: {ctl} mangler {key} - Fluent-temaets "
+                                f"farve i moerk tilstand (brug build_helpers.input_theme)")
+        if "Outline" in str(props.get("Appearance", "")):
+            problems.append(f"[10c] {name}: Appearance.Outline har gennemsigtig baggrund "
+                            f"og tegner ikke Fill")
+        dm = str(props.get("DisplayMode", "")).strip().lstrip("=").strip()
+        wrapped = dm.startswith("If((") and dm.endswith(
+            ", DisplayMode.Edit, DisplayMode.View)")
+        if "DisplayMode.Disabled" in dm and not wrapped:
+            problems.append(f"[10c] {name}: {ctl} kan blive DisplayMode.Disabled - Fluent "
+                            f"ignorerer da Color og Fill. Brug build_helpers.readonly_mode (View)")
+
     # --- 10b. SetFocus kan ikke naa ind i en container -------------------
     #
     # "The specified control cannot be focused" - SetFocus virker ikke paa

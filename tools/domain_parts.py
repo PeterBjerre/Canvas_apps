@@ -52,7 +52,7 @@ from gen_screen import (Ctrl, SHELL_W, FONT,
                         C_VALID_FG, C_VALID_BG, C_WARN_FG, C_WARN_BG,
                         C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY)
 from layout_tokens import fits
-from build_helpers import (text_ctrl, group, button, text_input,
+from build_helpers import (text_ctrl, group, button, text_input, checkbox_theme,
                            date_picker, fit_button_row, fit_button_width,
                            number_input, themed_dropdown, card, field_cell,
                            pin_widths, badge, top_bar, grow, flow_row,
@@ -212,7 +212,7 @@ def _input_for(col, kind, choices):
         # Ja/nej. Samme ModernCheckbox som dokumentlisten bruger - den er
         # bevist i dette miljoe. En app kan ogsaa vise feltet paa sin egen
         # maade (Materials: No BOM Item er en knap i formularens hoved).
-        return Ctrl(name, "ModernCheckbox", props={
+        return Ctrl(name, "ModernCheckbox", props=checkbox_theme({
             "AccessibleLabel": f'"{name}"',
             "Default": v,
             "DisplayMode": DM_ROW,
@@ -221,7 +221,7 @@ def _input_for(col, kind, choices):
             "OnCheck": f"Set({v}, true)",
             "OnUncheck": f"Set({v}, false)",
             "Width": "Parent.Width",
-        }, h=36)
+        }), h=36)
     c = text_input(name, v, max_length=255, display_mode=DM_ROW,
                    onchange=f"Set({v}, Self.Text)")
     return c
@@ -633,7 +633,7 @@ def build_attachments():
                  danger=True, display_mode=DM_DOCS)
     actions = fit_button_row("conDomAttActions", [up, refresh, rem], DOCS_INNER_W)
 
-    chk = Ctrl("chkDomAttSel", "ModernCheckbox", props={
+    chk = Ctrl("chkDomAttSel", "ModernCheckbox", props=checkbox_theme({
         "AccessibleLabel": '"Select document"',
         "Default": "ThisItem.Selected",
         "Height": "24",
@@ -641,7 +641,7 @@ def build_attachments():
         "OnCheck": "Patch(colDomAttachments, ThisItem, { Selected: true })",
         "OnUncheck": "Patch(colDomAttachments, ThisItem, { Selected: false })",
         "Width": "30",
-    }, h=24)
+    }), h=24)
     name = grow(text_ctrl("txtDomAttName", "ThisItem.FileName", size=13, height=28,
                           wrap="false"))
     # NY fane her, og kun her. Navigation mellem apps bruger Replace, saa

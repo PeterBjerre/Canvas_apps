@@ -908,6 +908,99 @@ def border_rule(empty_test, required_formula="false"):
             f")")
 
 
+def readonly_mode(display_mode):
+    """Et felt, der ikke kan redigeres, er VIEW - aldrig Disabled (issue #78).
+
+    De moderne inputfelter tegner DisplayMode.Disabled med Fluent-temaets
+    egne "disabled"-farver og ignorerer baade Color og Fill. Appen saetter
+    ikke Fluent-temaet (farverne er C), saa i moerk tilstand blev et laast
+    felt graa tekst paa sort: Main Work Center, Control Key, Vendor, Cost,
+    Material Group, Plan Text, Scheduling Indicator, Statutory Sort Field
+    og FL-comboboksen - netop de felter, der kan vaere laaste.
+
+    View er dokumenteret som skrivebeskyttet ("renders as read-only rather
+    than looking disabled") og bruger vores egne farver. Feltets baggrund
+    siger stadig, at det er laast (input_fill -> input-bg-disabled), og
+    kontrasten mod den er efterproevet i design_tokens (CONTRAST).
+
+    Knapper roeres ikke: en deaktiveret knap SKAL se deaktiveret ud."""
+    if not display_mode:
+        return None
+    return (f"If(({display_mode}) = DisplayMode.Edit, DisplayMode.Edit, "
+            f"DisplayMode.View)")
+
+
+def input_theme(props, display_mode):
+    """DEN ENE stil for alle moderne inputfelter (issue #78): tekstfelt,
+    talfelt, datovaelger, dropdown og FL-comboboksen. Farverne kommer fra
+    tokens i begge tilstande - intet overlades til Fluent-temaets standard.
+
+    Appearance.FilledDarker, ikke Outline: Outline er dokumenteret som
+    "transparent background" og tegnede ikke vores Fill. Tekstfeltet havde
+    ingen Appearance (= FilledDarker) og var det ene felt, der saa rigtigt
+    ud i moerk tilstand - nu har alle den samme.
+
+    BasePaletteColor er brandfarven: den farver fokusringen, valgte
+    raekker i listen og kalenderen i datovaelgeren."""
+    props["Appearance"] = "Appearance.FilledDarker"
+    props["BasePaletteColor"] = C_PRIMARY
+    props["Color"] = C_TITLE
+    props["Fill"] = input_fill(display_mode)
+    props["Font"] = FONT
+    props["Size"] = "14"
+    if display_mode:
+        props["DisplayMode"] = readonly_mode(display_mode)
+    return props
+
+
+def checkbox_theme(props):
+    """ModernCheckbox med vores farver: etiketten i tekstfarven og boksen i
+    brandfarven. Uden dem var etiketten Fluent-temaets moerke tekst - paa
+    moerk baggrund i moerk tilstand (issue #78). Laast = View, som felterne."""
+    props["BasePaletteColor"] = C_PRIMARY
+    props["Color"] = C_TITLE
+    props["Font"] = FONT
+    props.setdefault("Size", "13")
+    if props.get("DisplayMode"):
+        props["DisplayMode"] = readonly_mode(props["DisplayMode"])
+    return props
+
+
+def row_rule(name, template_size):
+    """Stregen mellem to raekker i et galleri - SIN EGEN FIGUR nederst i
+    raekken (issue #70, #77, #78).
+
+    Flere tabeller lavede stregen med galleriets FYLD i kantfarven og 2 px
+    TemplatePadding. Raekkerne havde intet eget fyld, saa hele tabellen -
+    raekker, tom plads under dem og pladsen ved scrollbaren - stod i den
+    graa kantfarve. Nu er galleriet i fladens farve (table_surface), og
+    stregen er her."""
+    return Ctrl(name, "Rectangle", props={
+        "AccessibleLabel": '""', "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0", "Fill": C_DIVIDER, "Height": "1",
+        "OnSelect": "false", "TabIndex": "-1",
+        "Width": "Parent.TemplateWidth", "X": "0", "Y": str(template_size - 1),
+    }, h=1)
+
+
+def table_surface(gal, rule_name, surface=C_CARD_BG):
+    """Goer et galleri til en tabel med neutral flade og streger mellem
+    raekkerne: fyldet er fladens, TemplatePadding 0, og stregen er en
+    figur. TemplateSize vokser med den padding, der forsvinder, saa
+    galleriets hoejde og antal synlige raekker er de samme som foer.
+    Raekken (galleriets foerste barn) skal have hoejden
+    Parent.TemplateHeight - 2 eller - 1; den bliver - 1."""
+    pad = int(gal.props.get("TemplatePadding", "0"))
+    size = int(gal.props["TemplateSize"]) + pad
+    gal.props["Fill"] = surface
+    gal.props["TemplatePadding"] = "0"
+    gal.props["TemplateSize"] = str(size)
+    row = gal.children[0]
+    row.props["Height"] = "Parent.TemplateHeight - 1"
+    gal.children.append(row_rule(rule_name, size))
+    return gal
+
+
 def input_fill(display_mode):
     """Graat = kan ikke redigeres.
 
@@ -926,10 +1019,7 @@ def text_input(name, default, placeholder="\"\"", max_length=None, required_form
         "BorderColor": border_rule("IsBlank(Trim(Self.Text))", required_formula),
         "BorderStyle": "BorderStyle.Solid",
         "BorderThickness": "1",
-        "Color": C_TITLE,
         "Default": default,
-        "Fill": input_fill(display_mode),
-        "Font": FONT,
         "Height": str(height),
         "LayoutMinWidth": "0",
         "Placeholder": placeholder,
@@ -940,10 +1030,9 @@ def text_input(name, default, placeholder="\"\"", max_length=None, required_form
         "Width": width,
     }
 
+    input_theme(props, display_mode)
     if max_length is not None:
         props["MaxLength"] = str(max_length)
-    if display_mode is not None:
-        props["DisplayMode"] = display_mode
     if ttype is not None:
         props["Type"] = f"TextInputType.{ttype}"
     if onchange is not None:
@@ -955,14 +1044,10 @@ def number_input(name, default, min_v=None, max_v=None, required_formula="false"
                  width="Parent.Width", height=36, display_mode=None, label=None):
     props = {
         "AccessibleLabel": label if label else f"\"{name}\"",
-        "Appearance": "Appearance.Outline",
         "BorderColor": border_rule("IsBlank(Self.Value)", required_formula),
         "BorderStyle": "BorderStyle.Solid",
         "BorderThickness": "1",
-        "Color": C_TITLE,
         "Default": default,
-        "Fill": input_fill(display_mode),
-        "Font": FONT,
         "Height": str(height),
         "LayoutMinWidth": "0",
         "Precision": "DecimalPrecision.'0'",
@@ -972,12 +1057,11 @@ def number_input(name, default, min_v=None, max_v=None, required_formula="false"
         "ValidationState": f"If({required_formula} && IsBlank(Self.Value), ValidationState.Error, ValidationState.None)",
         "Width": width,
     }
+    input_theme(props, display_mode)
     if min_v is not None:
         props["Min"] = str(min_v)
     if max_v is not None:
         props["Max"] = str(max_v)
-    if display_mode is not None:
-        props["DisplayMode"] = display_mode
     return Ctrl(name, "ModernNumberInput", props=props, h=height)
 
 
@@ -997,13 +1081,10 @@ def date_picker(name, default_date, required_formula="false",
     mens DefaultDate faar variablen."""
     props = {
         "AccessibleLabel": label if label else f'"{name}"',
-        "Appearance": "Appearance.Outline",
         "BorderColor": border_rule("IsBlank(Self.SelectedDate)", required_formula),
         "BorderStyle": "BorderStyle.Solid",
         "BorderThickness": "1",
         "DefaultDate": default_date,
-        "Fill": input_fill(display_mode),
-        "Font": FONT,
         "Format": "DatePickerFormat.Short",
         "Height": str(height),
         "LayoutMinWidth": "0",
@@ -1013,8 +1094,9 @@ def date_picker(name, default_date, required_formula="false",
         "Size": "14",
         "Width": width,
     }
-    if display_mode is not None:
-        props["DisplayMode"] = display_mode
+    # Datovaelgeren havde hverken Color eller et tema - dens tekst var
+    # Fluent-temaets moerke paa vores moerke felt (issue #78).
+    input_theme(props, display_mode)
     if onchange is not None:
         props["OnChange"] = onchange
     return Ctrl(name, "ModernDatePicker", props=props, h=height)
@@ -1024,15 +1106,11 @@ def dropdown(name, items, default, item_display="ThisItem.Value", required_formu
              width="Parent.Width", height=36, display_mode=None, value_field="Value", label=None):
     props = {
         "AccessibleLabel": label if label else f"\"{name}\"",
-        "Appearance": "Appearance.Outline",
         "BorderColor": border_rule(f"IsBlank(Self.Selected.{value_field})",
                                    required_formula),
         "BorderStyle": "BorderStyle.Solid",
         "BorderThickness": "1",
-        "Color": C_TITLE,
         "Default": default,
-        "Fill": input_fill(display_mode),
-        "Font": FONT,
         "Height": str(height),
         "ItemDisplayText": item_display,
         "Items": items,
@@ -1043,8 +1121,7 @@ def dropdown(name, items, default, item_display="ThisItem.Value", required_formu
         "ValidationState": f"If({required_formula} && IsBlank(Self.Selected.{value_field}), ValidationState.Error, ValidationState.None)",
         "Width": width,
     }
-    if display_mode is not None:
-        props["DisplayMode"] = display_mode
+    input_theme(props, display_mode)
     return Ctrl(name, "ModernDropdown", props=props, h=height)
 
 

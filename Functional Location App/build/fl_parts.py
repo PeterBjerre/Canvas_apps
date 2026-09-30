@@ -31,7 +31,7 @@ from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED, C_WHITE,
 from design_tokens import ref_hex
 from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE, at_least, below
 from build_helpers import (text_ctrl, group, button, text_input, dropdown, card,
-                           pin_widths, top_bar, grow, badge, fit_button_width,
+                           pin_widths, top_bar, grow, badge, fit_button_width, row_rule,
                            loading_overlay, with_busy, confirm_modal, ICON_SAVE, ICON_SUBMIT,
                            ICON_W)
 
@@ -239,14 +239,9 @@ def table_gallery(name, label, items, count, cells, row_name, visible=None):
     tpl = group(row_name, pin_widths(cells), direction="Horizontal", gap=GAP,
                 height="Parent.TemplateHeight - 1", align_items="Center", justify="Start",
                 width="Parent.TemplateWidth")
-    # Stregen er sin egen figur nederst i raekken (build_hub.py, issue #70) -
+    # Stregen er sin egen figur nederst i raekken (build_helpers.row_rule) -
     # ikke galleriets fyld, der ogsaa ville ses under den sidste raekke.
-    rule = Ctrl(f"rct{row_name[3:]}Rule", "Rectangle", props={
-        "AccessibleLabel": '""', "BorderStyle": "BorderStyle.None",
-        "BorderThickness": "0", "Fill": C_DIVIDER, "Height": "1",
-        "OnSelect": "false", "TabIndex": "-1",
-        "Width": "Parent.TemplateWidth", "X": "0", "Y": str(ROW_H - 1),
-    }, h=1)
+    rule = row_rule(f"rct{row_name[3:]}Rule", ROW_H)
     gal_h = f"Min({count}, {GAL_MAX}) * {ROW_H}"
     props = {
         "AccessibleLabel": label,
