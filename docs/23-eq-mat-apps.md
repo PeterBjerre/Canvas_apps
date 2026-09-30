@@ -224,7 +224,7 @@ i Python.
 | FL-søgningen fyldte sin egen række i fuld bredde | To celler i gitteret: *Search functional location* og *Functional location* |
 | Stjernen stod ude ved cellens højre kant | Labelen er så bred som sin tekst (`text_px`), stjernen står 3 px efter |
 | Knapperne delte hele bredden | `fit_button_row`: hver knap så bred som sin tekst, venstrestillet |
-| Dropdown-listen var hvid/grå i mørk tilstand | `themed_dropdown` (Classic/DropDown) – listen farves af tokens |
+| Dropdown-listen var hvid/grå i mørk tilstand | Først Classic/DropDown; siden 2026-09-30 ModernDropdown med felttekst i `input-fg`, der kan læses på den lyse liste |
 | Intet skete synligt ved tryk på Search | Knappen deaktiveres og viser tre levende prikker (`varDomFlBusy`) |
 | Enter gjorde ingenting | Enter søger (`tmrDomFlEnter` – se `build_fl_cells`) |
 | "Selected: SSV13 HFC10AA005" under dropdownen | Fjernet. En hentet/kopieret række lægger sin FL i `colDomFl`, så dropdownen viser den |

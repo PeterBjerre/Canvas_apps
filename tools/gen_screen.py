@@ -116,6 +116,7 @@ C_WHITE = _t("text-on-primary")
 # 1,67-2,72:1. Derfor et eget navn - se CONTRAST i design_tokens.py.
 C_ON_DOMAIN = _t("text-on-domain")
 C_INPUT_BG = _t("input-bg")
+C_INPUT_FG = _t("input-fg")
 C_DISABLED_BG = _t("input-bg-disabled")
 C_DIVIDER = _t("border-subtle")
 C_MODAL_BG = _t("bg-modal")

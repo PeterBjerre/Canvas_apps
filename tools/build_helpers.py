@@ -14,7 +14,7 @@ import layout_tokens as lay
 from layout_tokens import at_least, fits, if_below, TWO_COL_MIN
 from gen_screen import (Ctrl, child_name, stack_height, row_height, C_APP_BG, C_CARD_BG,
                         C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED, C_PRIMARY,
-                        C_PRIMARY2, C_WHITE, C_TRANSPARENT, C_INPUT_BG,
+                        C_PRIMARY2, C_WHITE, C_TRANSPARENT, C_INPUT_BG, C_INPUT_FG,
                         C_DISABLED_BG, C_DIVIDER, C_VALID_FG, C_INVALID_FG,
                         C_BORDER_OK, C_BORDER_ERROR, C_PRIMARY_SOFT, C_OVERLAY,
                         C_MODAL_BG, C_ROW_HOVER, C_ROW_PRESSED, C_NEUTRAL_BG,
@@ -954,7 +954,7 @@ def input_theme(props, display_mode):
     props["Size"] = str(lay.SIZE_INPUT)
     if not display_mode:
         props["Appearance"] = "Appearance.FilledDarker"
-        props["Color"] = C_TITLE
+        props["Color"] = C_INPUT_FG
         return props
     # LAAST = OUTLINE (issue #78, anden runde). Aflaest i Studio i moerk
     # tilstand: i View tegnede ModernTextInput og ModernDropdown Fluents
@@ -966,7 +966,7 @@ def input_theme(props, display_mode):
     # ikke. Forskellen er synlig uden at vaere en farve, Fluent kan tage.
     editable = f"({display_mode}) = DisplayMode.Edit"
     props["Appearance"] = f"If({editable}, Appearance.FilledDarker, Appearance.Outline)"
-    props["Color"] = f"If({editable}, {C_TITLE}, {C_MUTED})"
+    props["Color"] = f"If({editable}, {C_INPUT_FG}, {C_MUTED})"
     props["DisplayMode"] = readonly_mode(display_mode)
     return props
 
@@ -1161,35 +1161,31 @@ def date_picker(name, default_date, required_formula="false",
     return Ctrl(name, "ModernDatePicker", props=props, h=height)
 
 
-# ---------------------------------------------------------------------------
-# DROPDOWN-FORSOEGET: Classic eller Modern?
-#
-# Classic/DropDown har ingen Radius-egenskaber - dens hjoerner er altid
-# firkantede, mens alle andre felter har RADIUS_INPUT. ModernDropdown har
-# runde hjoerner, men dens liste er en Fluent-flyout, der ifoelge Learn
-# farves af appens Fluent-tema og ikke af kontrollens egenskaber. Det
-# kostede en ulaeselig liste i moerk tilstand (e735d66).
-#
-# Kontrollen er siden opdateret, og om listen nu kan laeses i vores moerke
-# tema, kan kun Studio vise. Byg med
-#
-#     CANVAS_DROPDOWN=modern python3 tools/build_all.py --app equipment
-#
-# og deploy til DEV. Standarden er Classic; CI bygger kun den.
-# ---------------------------------------------------------------------------
-DROPDOWN_VARIANT = os.environ.get("CANVAS_DROPDOWN", "classic").strip().lower()
-if DROPDOWN_VARIANT not in ("classic", "modern"):
-    raise SystemExit("CANVAS_DROPDOWN skal vaere 'classic' eller 'modern', ikke '%s'"
-                     % DROPDOWN_VARIANT)
+def themed_dropdown(name, items, default_text, value_col="Value", required_formula="false",
+                    width="Parent.Width", height=36, display_mode=None, label=None,
+                    onchange=None, display_col=None):
+    """Appernes ENESTE dropdown - en ModernDropdown med runde hjoerner.
 
+    HVORFOR MODERN (2026-09-30)
+    ---------------------------
+    Classic/DropDown har ingen Radius-egenskaber, saa dropdowns var de
+    eneste felter med firkantede hjoerner. ModernDropdown har dem.
 
-def _modern_dropdown(name, items, default_text, value_col, required_formula,
-                     width, height, display_mode, label, onchange, display_col):
-    """themed_dropdown som ModernDropdown. Samme kald, samme Selected.
+    Dens liste er en Fluent-flyout med LYS baggrund i begge temaer - den
+    kan ikke farves. Color farver derimod baade feltets tekst og listens,
+    og derfor er feltteksten input-fg: en mellemgraa, der kan laeses paa
+    det sorte felt og paa den hvide liste (design_tokens.py). Foer stod
+    her Classic, fordi listen var ulaeselig med vores lyse tekst (e735d66).
 
-    Default er en RECORD fra Items: den raekke, hvis viste kolonne er lig
-    med den tekst, themed_dropdown ellers ville faa. 'As _dd' holder
-    kolonnenavnet fra at blive bundet i default_text's egne LookUp'er."""
+    Kaldet er det samme som foer:
+      default_text  TEKSTEN i den viste kolonne. Default bliver den RECORD
+                    fra Items, hvis viste kolonne er lig med teksten.
+                    'As _dd' holder kolonnenavnet fra at blive bundet i
+                    default_text's egne LookUp'er.
+      display_col   kolonnen, listen VISER (fx "Name"), naar den ikke er
+                    value_col. value_col er den, der kraeves udfyldt.
+
+    check_layout regel 16 afviser Classic/DropDown."""
     col = display_col or value_col
     props = {
         "AccessibleLabel": label if label else f"\"{name}\"",
@@ -1210,77 +1206,6 @@ def _modern_dropdown(name, items, default_text, value_col, required_formula,
     if onchange is not None:
         props["OnChange"] = onchange
     return Ctrl(name, "ModernDropdown", props=props, h=height)
-
-
-def themed_dropdown(name, items, default_text, value_col="Value", required_formula="false",
-                    width="Parent.Width", height=36, display_mode=None, label=None,
-                    onchange=None, display_col=None):
-    """Dropdown, hvis LISTE ogsaa foelger temaet.
-
-    HVORFOR IKKE ModernDropdown
-    ---------------------------
-    Den moderne dropdown aabner sin liste som en Fluent-flyout, og den
-    flyout farves af Fluent-temaet - ikke af kontrollens egne egenskaber.
-    Appen saetter ikke Fluent-temaet (farverne er C, se design_tokens.py),
-    saa listen var hvid/graa i moerk tilstand, med vores naesten-hvide
-    tekst ovenpaa. Man kunne ikke laese, hvad man valgte imellem.
-
-    Classic/DropDown tegner sin liste med Fill, Color, HoverFill og
-    SelectionFill - og dem giver vi tokens. Saa skifter listen med temaet
-    som alt andet.
-
-    Default er TEKSTEN i value_col - ikke en record, som ModernDropdown
-    ville have. Selected er stadig hele recorden, saa Self.Selected.Code
-    virker som foer.
-
-    display_col er den kolonne, listen VISER og Default matcher paa (fx
-    "Name"), naar den ikke er value_col. value_col er den, der kraeves
-    udfyldt (Self.Selected.<value_col>). Default er da teksten i display_col.
-
-    Det er appernes ENESTE dropdown (REVIEW.md A1). ModernDropdown afvises
-    af check_layout regel 16.
-
-    FORSOEG: CANVAS_DROPDOWN=modern bygger den samme dropdown som
-    ModernDropdown (runde hjoerner, input_theme). Se DROPDOWN_VARIANT."""
-    if DROPDOWN_VARIANT == "modern":
-        return _modern_dropdown(name, items, default_text, value_col, required_formula,
-                                width, height, display_mode, label, onchange, display_col)
-    props = {
-        "AccessibleLabel": label if label else f"\"{name}\"",
-        "AllowEmptySelection": "true",
-        "BorderColor": border_rule(f"IsBlank(Self.Selected.{value_col})", required_formula),
-        "BorderStyle": "BorderStyle.Solid",
-        "BorderThickness": "1",
-        "ChevronBackground": input_fill(display_mode),
-        "ChevronDisabledBackground": C_DISABLED_BG,
-        "ChevronDisabledFill": C_MUTED,
-        "ChevronFill": C_TITLE,
-        "ChevronHoverBackground": C_PRIMARY_SOFT,
-        "ChevronHoverFill": C_TITLE,
-        "Color": C_TITLE,
-        "Default": default_text,
-        "DisabledColor": C_MUTED,
-        "DisabledFill": C_DISABLED_BG,
-        "Fill": input_fill(display_mode),
-        "Font": FONT,
-        "Height": str(height),
-        "HoverColor": C_TITLE,
-        "HoverFill": C_PRIMARY_SOFT,
-        "Items": items,
-        "Items.Value": display_col or value_col,
-        "PaddingLeft": "12",
-        "PressedColor": C_WHITE,
-        "PressedFill": C_PRIMARY,
-        "SelectionColor": C_WHITE,
-        "SelectionFill": C_PRIMARY,
-        "Size": str(lay.SIZE_INPUT),
-        "Width": width,
-    }
-    if display_mode is not None:
-        props["DisplayMode"] = display_mode
-    if onchange is not None:
-        props["OnChange"] = onchange
-    return Ctrl(name, "Classic/DropDown", props=props, h=height)
 
 
 def combobox(name, items, display_field="Display", multi=False, default_items=None,

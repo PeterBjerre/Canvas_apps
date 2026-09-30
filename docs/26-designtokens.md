@@ -337,6 +337,26 @@ tal hører sammen.
 
 ---
 
+## Felttekst i mørk tilstand: `input-fg` (2026-09-30)
+
+Listen under en moderne dropdown, combobox og datovælger er Fluents lyse
+flade i begge temaer. Den kan ikke farves. `Color` farver både feltets tekst
+og listens, så med vores lyse `text-primary` var listen lys tekst på lys
+baggrund.
+
+Al redigerbar felttekst er derfor `input-fg`:
+
+| Tema | `input-fg` | På feltet (`input-bg`) | På listen (hvid) |
+|---|---|---|---|
+| Lys | RGB(26, 34, 49) | 15,9:1 | 15,9:1 |
+| Mørk | RGB(113, 118, 127) | 4,60:1 (sort) | 4,57:1 |
+
+Mørkt felt er ændret fra slate-950 til sort. Mod slate-950 kan ingen
+farve nå 4,5:1 mod både feltet og den hvide liste; mod sort kan en
+mellemgrå. Listens grå hover-række (#F5F5F5) giver ca. 4,2:1 — den er
+kortvarig og står ikke i kontrastvagten. Låste felter beholder
+`text-muted`: de er Outline og åbner ingen liste.
+
 ## Felterne arver aldrig Fluent-temaets farver (issue #78)
 
 Appen sætter ikke Fluent-temaet — farverne er `C`. Et moderne felt, der

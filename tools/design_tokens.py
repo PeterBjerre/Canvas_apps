@@ -94,6 +94,12 @@ LIGHT = {
     # --- inputfelter ---
     'input-bg':          "RGBA(255, 255, 255, 1)",
     'input-bg-disabled': "RGBA(240, 243, 248, 1)",
+    # Teksten i ALLE redigerbare felter. Lys tilstand: som text-primary.
+    'input-fg':          "RGBA(26, 34, 49, 1)",
+    # Fluents liste under en dropdown/combobox/datovaelger. Den kan IKKE
+    # saettes - den er lys i begge temaer. Tokenet findes kun, saa
+    # kontrastvagten kan holde input-fg op mod den.
+    'flyout-bg':         "RGBA(255, 255, 255, 1)",
 
     # --- tilstande. Bruges BAADE af feltkanter og af statuschips ---
     # KANTEN ER IKKE TEKSTEN. state-*-fg er valgt for at kunne LAESES
@@ -190,8 +196,19 @@ DARK = {
     'border-subtle':  "RGBA(51, 65, 85, 1)",
 
     # --- inputfelter ---
-    'input-bg':          "RGBA(2, 6, 23, 1)",
+    # SORT, ikke slate-950 (2, 6, 23). Feltteksten skal kunne laeses baade
+    # paa feltet og paa Fluents HVIDE liste (se input-fg). Mod slate-950
+    # kan ingen farve naa 4,5:1 mod begge; mod sort kan en mellemgraa.
+    'input-bg':          "RGBA(0, 0, 0, 1)",
     'input-bg-disabled': "RGBA(30, 41, 59, 1)",
+    # MELLEMGRAA (valgt 2026-09-30). Color paa en moderne dropdown eller
+    # combobox farver OGSAA teksten i dens liste, og listen er Fluents
+    # lyse flade, som vi ikke kan farve. Een farve skal derfor kunne
+    # laeses paa det sorte felt (4,60:1) og paa den hvide liste (4,57:1).
+    # Alle felter har den, saa de ser ens ud. Laaste felter beholder
+    # text-muted: de er Outline (kortets flade), og de aabner ingen liste.
+    'input-fg':          "RGBA(113, 118, 127, 1)",
+    'flyout-bg':         "RGBA(255, 255, 255, 1)",
 
     # --- tilstande ---
     # Emerald-600 og red-500 i stedet for -400 og -400. Kanten paa et
@@ -313,6 +330,8 @@ CONTRAST = (
     # -- tekst ------------------------------------------------------------
     [("text-primary", bg, TEXT_MIN) for bg in _TEXT_BG] +
     [("text-muted", bg, TEXT_MIN) for bg in _TEXT_BG] +
+    # Feltteksten paa feltet OG paa Fluents liste (se input-fg).
+    [("input-fg", bg, TEXT_MIN) for bg in ("input-bg", "flyout-bg")] +
     # Hvid tekst paa en farvet chip eller knap.
     [("text-on-primary", bg, TEXT_MIN) for bg in
      ("color-brand-primary", "color-brand-primary-hover")] +

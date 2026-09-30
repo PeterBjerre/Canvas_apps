@@ -1306,7 +1306,7 @@ Screens:
                                     BorderThickness: |-
                                         =1
                                     Color: |-
-                                        =If((If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
+                                        =If((If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                                     Default: |-
                                         =ThisItem.FL
                                     DisplayMode: |-
@@ -1359,7 +1359,7 @@ Screens:
                                     BorderThickness: |-
                                         =1
                                     Color: |-
-                                        =If((If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
+                                        =If((If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                                     Default: |-
                                         =ThisItem.Description
                                     DisplayMode: |-
@@ -2704,7 +2704,7 @@ Screens:
                                     BorderThickness: |-
                                         =1
                                     Color: |-
-                                        =If((If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
+                                        =If((If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                                     Default: |-
                                         =ThisItem.FL
                                     DisplayMode: |-
@@ -2757,7 +2757,7 @@ Screens:
                                     BorderThickness: |-
                                         =1
                                     Color: |-
-                                        =If((If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
+                                        =If((If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                                     Default: |-
                                         =ThisItem.Description
                                     DisplayMode: |-
@@ -4244,7 +4244,7 @@ Screens:
                         BorderThickness: |-
                             =1
                         Color: |-
-                            =If((If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
+                            =If((If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                         Default: |-
                             =ThisItem.Value
                         DisplayMode: |-
@@ -4295,32 +4295,22 @@ Screens:
                         Y: |-
                             =0 + 0 + ((((46) - 2) - 0 - 0) - (0 + If(ThisItem.Editable && IsBlank(ThisItem.List), 0 + (36), 0) + If(ThisItem.Editable && !IsBlank(ThisItem.List), 0 + (36), 0) + If(!ThisItem.Editable, 0 + (36), 0))) / 2 + 0 + 0
                   - drpFlDetVal:
-                      Control: Classic/DropDown
+                      Control: ModernDropdown
                       Properties:
                         AccessibleLabel: |-
                             =ThisItem.Column
-                        AllowEmptySelection: |-
-                            =true
+                        Appearance: |-
+                            =If((If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
                         BorderColor: |-
                             =If(!IsBlank(ThisItem.Issue), C.'border-error', !IsBlank(ThisItem.Value), C.'border-ok', C.'border-default')
                         BorderStyle: |-
                             =BorderStyle.Solid
                         BorderThickness: |-
                             =1
-                        ChevronBackground: |-
-                            =If(If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
-                        ChevronDisabledBackground: |-
-                            =C.'input-bg-disabled'
-                        ChevronDisabledFill: |-
-                            =C.'text-muted'
-                        ChevronFill: |-
-                            =C.'text-primary'
-                        ChevronHoverBackground: |-
-                            =C.'color-brand-primary-soft'
-                        ChevronHoverFill: |-
-                            =C.'text-primary'
                         Color: |-
-                            =C.'text-primary'
+                            =If((If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                         Default: |-
                             =LookUp(Ungroup(
                                 Table(
@@ -4330,23 +4320,25 @@ Screens:
                                     { G: ForAll(Sort(With({ lid: ThisItem.List }, Filter(colFlLists, List = lid)), Ord) As O, { Value: O.Value }) }
                                 ),
                                 G
-                            ), Upper(Value) = Upper(ThisItem.Value)).Value
-                        DisabledColor: |-
-                            =C.'text-muted'
-                        DisabledFill: |-
-                            =C.'input-bg-disabled'
+                            ) As _dd, _dd.Value = (LookUp(Ungroup(
+                                Table(
+                                    { G: Table({ Value: "" }) },
+                                    { G: Filter(Table({ Value: ThisItem.Value }), !IsBlank(Value) &&
+                                                !(Upper(Value) in With({ lid: ThisItem.List }, Filter(colFlLists, List = lid)).UValue)) },
+                                    { G: ForAll(Sort(With({ lid: ThisItem.List }, Filter(colFlLists, List = lid)), Ord) As O, { Value: O.Value }) }
+                                ),
+                                G
+                            ), Upper(Value) = Upper(ThisItem.Value)).Value))
                         DisplayMode: |-
-                            =If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)
+                            =If((If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                         Fill: |-
                             =If(If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                         Font: |-
                             =Font.'Segoe UI'
                         Height: |-
                             =36
-                        HoverColor: |-
-                            =C.'text-primary'
-                        HoverFill: |-
-                            =C.'color-brand-primary-soft'
+                        ItemDisplayText: |-
+                            =ThisItem.Value
                         Items: |-
                             =Ungroup(
                                 Table(
@@ -4357,8 +4349,6 @@ Screens:
                                 ),
                                 G
                             )
-                        Items.Value: |-
-                            =Value
                         OnChange: |-
                             =With(
                                 { f: ThisItem.Field, nv: Trim(Coalesce(Self.Selected.Value, "")) },
@@ -4374,18 +4364,18 @@ Screens:
                             );
                             Set(varFlStale, true);
                             Select(btnFlVerify)
-                        PaddingLeft: |-
-                            =12
-                        PressedColor: |-
-                            =C.'text-on-primary'
-                        PressedFill: |-
-                            =C.'color-brand-primary'
-                        SelectionColor: |-
-                            =C.'text-on-primary'
-                        SelectionFill: |-
-                            =C.'color-brand-primary'
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
                         Size: |-
                             =14
+                        ValidationState: |-
+                            =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                         Visible: |-
                             =ThisItem.Editable && !IsBlank(ThisItem.List)
                         Width: |-
