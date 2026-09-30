@@ -72,7 +72,7 @@ import attflows
 # domaeneudgave - samme tre flows, egne samlingsnavne.
 att = attflows.DomainPane()
 import build_flsearch as fl
-from fl_picker import fl_picker, known_fx as fl_known_fx
+from fl_picker import fl_picker, known_fx as fl_known_fx, reset_fx as fl_reset_fx
 
 # Raekkens felter i een flad liste - raekkefoelgen er sektionernes.
 FIELDS = [f for _sec, fields in cfg.SECTIONS for f in fields]
@@ -158,7 +158,7 @@ def build_bar():
     # Temaskiftet og vejen til hubben staar i sidebaren (tools/side_nav.py).
     return top_bar("Dom", f'"{cfg.TITLE}"', f'"{cfg.SUBTITLE}"',
                    [count, no],
-                   narrow_hide=("txtDomCount", "txtDomReqNo"))
+                   narrow_hide=("txtDomCount", "txtDomReqNo"), icon=cfg.APP_KEY)
 
 
 # ---------------------------------------------------------------------------
@@ -270,10 +270,17 @@ def build_fl_picker(cell_w, lock=None, required_formula="false"):
     return fl_picker(
         "Dom", combo=FL_COMBO, results="colDomFl", raw_var=fl.DEFAULT_RAW,
         msg_var="varDomFlMsg", busy_var=FL_BUSY_VAR, query_var=FL_QUERY_VAR,
-        last_var=FL_LAST_VAR, default_items=f"Filter(colDomFl, Code = {v})",
-        on_select=f'Set({v}, Coalesce(Self.Selected.Code, ""))',
+        last_var=FL_LAST_VAR, pick_var=v,
+        default_items=f"Filter(colDomFl, Code = {v})",
         on_clear=f'Set({v}, "")', display_mode=dm,
         required_formula=required_formula, width=cell_w)
+
+
+def fl_reset_fx_dom():
+    """Nulstil formularens FL-vaelger - og kun den (issue #72). Selve
+    feltvaerdien ryddes af clear_form_fx sammen med de andre felter."""
+    return fl_reset_fx(combo=FL_COMBO, results="colDomFl", msg_var="varDomFlMsg",
+                       query_var=FL_QUERY_VAR, last_var=FL_LAST_VAR)
 
 
 def build_fl_msg():
@@ -350,10 +357,7 @@ def clear_form_fx():
              'Set(varDomFPlant, "");']
     for col, _lab, kind, _ch in FIELDS:
         lines.append(f"Set({_var(col)}, {_blank(kind)});")
-    lines.append('Set(varDomFlMsg, "");')
-    lines.append(f'Set({FL_QUERY_VAR}, "");')
-    lines.append(f'Set({FL_LAST_VAR}, "");')
-    lines.append(f'Reset({FL_COMBO});')
+    lines.append(fl_reset_fx_dom() + ";")
     lines.append('Set(varDomInfo, "New row - fill in and save.")')
     return "\n".join(lines)
 

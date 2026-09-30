@@ -3,7 +3,7 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import Ctrl, SHELL_W, C_PRIMARY, C_CARD_BORDER
 from build_helpers import (button, group, fit_button_width, text_ctrl, text_px, grow,
-                           ICON_W)
+                           flow_row, flow_ok, page_icon, PAGE_ICON, ICON_W)
 from layout_tokens import if_below, at_least
 from design_tokens import ref_hex
 from build_items import FL_CODE
@@ -102,7 +102,11 @@ def focus_border(ctrl, steps, normal):
     return ctrl
 
 
-STEP_W, STEP_H, R = 120, 60, 13
+STEP_W, STEP_H, R = 120, 64, 13
+# Et trin maa ikke blive smallere end det her - saa kan navnet ikke laeses.
+# Er der ikke plads til fem af dem mellem titlen og knapperne, stables
+# bjaelken (issue #73): titel, trin i fuld bredde, knapper.
+STEP_MIN = 88
 
 # Submit er aktiv, naar planen kan indsendes - og intet i Item Editoren
 # venter paa at blive gemt.
@@ -121,40 +125,83 @@ def _hx(name):
 def _step_image(i, label, done, prev_done, current, action, width):
     """Eet trin: cirklen, dets navn og de to halve streger ud til naboerne.
 
-    Stregen til venstre er groen, naar det FORRIGE trin er faerdigt, stregen
-    til hoejre, naar DETTE er. Saa moedes de to halvdele midt imellem i
-    samme farve, som da trinene var eet billede."""
+    Stregen til venstre er faerdig, naar det FORRIGE trin er faerdigt,
+    stregen til hoejre, naar DETTE er. Saa moedes de to halvdele midt
+    imellem, som da trinene var eet billede.
+
+    ANIMERET, MEN STILLE (issue #73)
+    --------------------------------
+    - Den faerdige streg TEGNES frem (stroke-dashoffset) med en svag
+      gradient i ok-farven - venstre halvdel foerst, saa hoejre, saa
+      fremdriften loeber fra trin til trin.
+    - Det aktive trin har en ring, der langsomt pulserer.
+    - Tjekmaerket tegnes frem, naar et trin bliver faerdigt.
+    - Alt slaas fra under prefers-reduced-motion.
+    Animationen er CSS inde i SVG'en - Image-kontrollen tegner den som et
+    billede i browseren, saa der er ingen timer og ingen tilstand i appen.
+
+    Etiketten staar lige under sin cirkel, midt paa trinets bredde, og
+    billedet er hoejt nok til den (STEP_H) - den kan ikke skjules af
+    sektionen nedenunder."""
     n = len(STEPS)
-    cx, cy = STEP_W // 2, R + 4
-    ok, grey = ref_hex("state-ok-fg"), ref_hex("text-muted")
-    line, text = ref_hex("border-default"), ref_hex("text-primary")
+    cx, cy = STEP_W // 2, R + 6
+    grey = ref_hex("text-muted")
+    text = ref_hex("text-primary")
+    info = ref_hex("state-info-fg")
     surface = _hx("bg-surface")
     okc = _hx("state-ok-fg")
+    infoc = _hx("state-info-fg")
     font = "font-family='Segoe UI, sans-serif' text-anchor='middle'"
+    css = ("<style>"
+           ".d{stroke-dasharray:80;stroke-dashoffset:80;"
+           "animation:draw .6s ease-out forwards}"
+           ".r{animation-delay:.3s}"
+           ".c{stroke-dasharray:20;stroke-dashoffset:20;"
+           "animation:draw .35s .15s ease-out forwards}"
+           ".p{transform-origin:center;transform-box:fill-box;"
+           "animation:pulse 1.8s ease-in-out infinite}"
+           "@keyframes draw{to{stroke-dashoffset:0}}"
+           "@keyframes pulse{0%,100%{opacity:.35;transform:scale(.92)}"
+           "50%{opacity:.9;transform:scale(1.06)}}"
+           "@media (prefers-reduced-motion:reduce){.d,.c{animation:none;"
+           "stroke-dashoffset:0}.p{animation:none;opacity:.7}}"
+           "</style>")
+    grad = ("<defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='0'>"
+            f"<stop offset='0' stop-color='{okc}' stop-opacity='.75'/>"
+            f"<stop offset='1' stop-color='{okc}'/></linearGradient></defs>")
     fx = ['"<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'%d\' height=\'%d\' '
-          'viewBox=\'0 0 %d %d\'>"' % (STEP_W, STEP_H, STEP_W, STEP_H)]
+          'viewBox=\'0 0 %d %d\'>%s%s"' % (STEP_W, STEP_H, STEP_W, STEP_H, css, grad)]
+
+    def seg(x1, x2, is_done, cls):
+        # Sporet ligger altid under; den faerdige streg tegnes oven paa.
+        track = (f"<line x1='{x1}' y1='{cy}' x2='{x2}' y2='{cy}' stroke-width='4' "
+                 f"stroke-linecap='round' stroke='{_hx('border-default')}'/>")
+        fill = (f"<line class='d {cls}' x1='{x1}' y1='{cy}' x2='{x2}' y2='{cy}' "
+                f"stroke-width='4' stroke-linecap='round' stroke='url(#g)'/>")
+        return '"%s" & If(%s, "%s", "")' % (track, is_done, fill)
+
     if i > 0:
-        fx.append('"<line x1=\'0\' y1=\'%d\' x2=\'%d\' y2=\'%d\' stroke-width=\'3\' '
-                  'stroke=\'" & If(%s, %s, %s) & "\'/>"' % (cy, cx - R - 4, cy, prev_done, ok, line))
+        fx.append(seg(0, cx - R - 5, prev_done, "l"))
     if i < n - 1:
-        fx.append('"<line x1=\'%d\' y1=\'%d\' x2=\'%d\' y2=\'%d\' stroke-width=\'3\' '
-                  'stroke=\'" & If(%s, %s, %s) & "\'/>"' % (cx + R + 4, cy, STEP_W, cy, done, ok, line))
+        fx.append(seg(cx + R + 5, STEP_W, done, "r"))
     check = (f"<circle cx='{cx}' cy='{cy}' r='{R}' fill='{okc}'/>"
-             f"<path d='M{cx - 5} {cy} l3.5 3.5 l6.5 -7' fill='none' stroke='{surface}' "
-             f"stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/>")
-    cur = (f"<circle cx='{cx}' cy='{cy}' r='{R + 3}' fill='none' stroke='{okc}' "
-           f"stroke-width='2'/>"
-           f"<circle cx='{cx}' cy='{cy}' r='{R - 1}' fill='{surface}' stroke='{okc}' "
-           f"stroke-width='2'/>"
+             f"<path class='c' d='M{cx - 5} {cy} l3.5 3.5 l6.5 -7' fill='none' "
+             f"stroke='{surface}' stroke-width='2.4' stroke-linecap='round' "
+             f"stroke-linejoin='round'/>")
+    cur = (f"<circle class='p' cx='{cx}' cy='{cy}' r='{R + 4}' fill='none' "
+           f"stroke='{infoc}' stroke-width='2'/>"
+           f"<circle cx='{cx}' cy='{cy}' r='{R - 1}' fill='{surface}' stroke='{infoc}' "
+           f"stroke-width='2.5'/>"
            f"<text x='{cx}' y='{cy + 5}' {font} font-size='13' font-weight='700' "
-           f"fill='{okc}'>{i + 1}</text>")
-    later = (f"<circle cx='{cx}' cy='{cy}' r='{R}' fill='{_hx('text-muted')}'/>"
+           f"fill='{infoc}'>{i + 1}</text>")
+    later = (f"<circle cx='{cx}' cy='{cy}' r='{R - 1}' fill='{surface}' "
+             f"stroke='{_hx('border-default')}' stroke-width='2'/>"
              f"<text x='{cx}' y='{cy + 5}' {font} font-size='13' font-weight='700' "
-             f"fill='{surface}'>{i + 1}</text>")
+             f"fill='{_hx('text-muted')}'>{i + 1}</text>")
     fx.append('If(%s, "%s", %s, "%s", "%s")' % (done, check, current, cur, later))
     fx.append('"<text x=\'%d\' y=\'%d\' %s font-size=\'12\' font-weight=\'600\' '
-              'fill=\'" & If(%s || %s, %s, %s) & "\'>" & %s & "</text>"'
-              % (cx, STEP_H - 6, font, done, current, text, grey, label))
+              'fill=\'" & If(%s, %s, %s, %s, %s) & "\'>" & %s & "</text>"'
+              % (cx, STEP_H - 10, font, done, text, current, info, grey, label))
     fx.append('"</svg>"')
     img = '"data:image/svg+xml;utf8," & EncodeUrl(\n    ' + " &\n    ".join(fx) + "\n)"
     state = f'If({done}, "done", {current}, "current step", "not done")'
@@ -190,7 +237,8 @@ def _submit_tooltip():
 # bjaelkens to sider, saa progressbaren staar i midten.
 SAVE_W = fit_button_width('"Save draft"') + ICON_W
 SUB_W = fit_button_width('"Submit"', min_w=96) + ICON_W
-TITLE_W = text_px("VH-plan", 22) + 4
+# Titlen og domaeneikonet foran den (issue #74).
+TITLE_W = text_px("VH-plan", 22) + 4 + PAGE_ICON + 10
 # Hoejre side: begge knapper; under Tablet kun Submit (Save draft skjules).
 RIGHT_W = if_below("Tablet", str(SUB_W), str(SAVE_W + 8 + SUB_W))
 # Venstre side er lige saa bred som hoejre, saa trinene staar midt i
@@ -230,14 +278,22 @@ def build_top_bar():
     right.props["LayoutMinWidth"] = RIGHT_W
 
     title = text_ctrl("txtVhpTitle", '"VH-plan"', size=22, weight="Semibold",
-                      height=33, width=TITLE_W, wrap="false")
-    left = group("conVhpBarLeft", [title], direction="Horizontal", width=LEFT_W,
-                 align_items="Center")
+                      height=33, width=TITLE_W - PAGE_ICON - 10, wrap="false")
+    icon = page_icon("imgVhpTitleIcon", "vhplan")
+    left = group("conVhpBarLeft", [icon, title], direction="Horizontal", width=LEFT_W,
+                 align_items="Center", gap=10)
     left.props["LayoutMinWidth"] = LEFT_W
 
     n = len(STEPS)
+    # EN RAEKKE ELLER TRE (issue #73). Foer stod trinene ALTID mellem
+    # titlen og knapperne, og under Desktop blev de regnet til 10-16 px
+    # brede - progressbaren var i praksis vaek paa tablet og mobil. Nu
+    # stables bjaelken med flow_row, naar fem trin paa STEP_MIN ikke kan
+    # staa i midten: titel, trinene i fuld bredde, knapperne til hoejre.
+    kids = [left, None, right]
     avail = f"{SHELL_W} - ({LEFT_W}) - ({RIGHT_W}) - 24"
-    step_w = f"Min({STEP_W}, ({avail}) / {n})"
+    one_row = f"({avail}) >= {n * STEP_MIN}"
+    step_w = f"If({one_row}, Min({STEP_W}, ({avail}) / {n}), Min({STEP_W}, {SHELL_W} / {n}))"
     done = ["d%d" % (i + 1) for i in range(n)]
     imgs = []
     for i, (label, _d, action) in enumerate(STEPS):
@@ -245,7 +301,12 @@ def build_top_bar():
         current = f"(!{done[i]} && {before})"
         prev = done[i - 1] if i else "false"
         imgs.append(_step_image(i, label, done[i], prev, current, action, step_w))
-    steps = grow(group("conVhpSteps", imgs, direction="Horizontal", gap=0, height=STEP_H,
-                       justify="Center", align_items="Center"))
-    return group("conVhpBar", [left, steps, right], direction="Horizontal", gap=12,
-                 align_items="Center")
+    steps = group("conVhpSteps", imgs, direction="Horizontal", gap=0, height=STEP_H,
+                  justify="Center", align_items="Center")
+    kids[1] = steps
+    bar = flow_row("conVhpBar", kids, SHELL_W, gap=12, flex=steps,
+                   flex_min=n * STEP_MIN)
+    # Stablet: titlen og knapperne fylder ikke hele linjen.
+    left.props["AlignInContainer"] = "AlignInContainer.Start"
+    right.props["AlignInContainer"] = "AlignInContainer.End"
+    return bar

@@ -14,7 +14,8 @@ sys.path.insert(0, HERE)
 from gen_screen import render_screen, C_APP_BG, OUT_DIR
 from build_helpers import app_frame
 from side_nav import side_nav
-from build_hub import build_bar, build_tiles, build_filters, build_list, build_new_menu
+from build_hub import (build_bar, build_tiles, build_filters, build_list, build_new_menu,
+                       build_closed_peek)
 
 
 def build_screen():
@@ -26,7 +27,7 @@ def build_screen():
     # "New request"-menuen ligger oven paa rammen, men under den aabne
     # sidebar.
     return render_screen("ScreenMdHub", {"Fill": C_APP_BG},
-                         [root, *nav, *build_new_menu(), *overlay])
+                         [root, *nav, *build_new_menu(), *build_closed_peek(), *overlay])
 
 
 def main():

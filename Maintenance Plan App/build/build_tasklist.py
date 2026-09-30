@@ -860,13 +860,20 @@ def build_tasklist_section():
                   height="Parent.TemplateHeight - 2", align_items="Center", width="Parent.TemplateWidth")
 
     OPS_ROW_H = 38 + 2
-    gal_h = f"Max(CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)), 1) * {OPS_ROW_H}"
+    # INGEN TOM RAEKKE (issue #73). Hoejden var Max(n, 1) raekker, og
+    # galleriets fyld var kantfarven - uden operationer stod der derfor en
+    # farvet bjaelke under kolonneoverskrifterne. Nu er galleriet kun
+    # synligt, naar der ER raekker, og fyldet er kortets egen flade; saa
+    # staar der kun "No operation lines yet..." under overskrifterne.
+    n_ops = "CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId))"
+    has_ops = f"IfError(!IsBlank(varVhpActiveItemId) && {n_ops} > 0, false)"
+    gal_h = f"{n_ops} * {OPS_ROW_H}"
     gallery = Ctrl(
         "galVhpOps", "Gallery", variant="Vertical",
         props={
             "AccessibleLabel": "\"Tasklist operations for active item\"",
             "BorderStyle": "BorderStyle.None",
-            "Fill": C_CARD_BORDER,
+            "Fill": C_CARD_BG,
             "FillPortions": "0",
             "Height": gal_h,
             "Items": "Sort(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Value(OperationNo))",
@@ -880,13 +887,13 @@ def build_tasklist_section():
             # Tabellen + TemplatePadding + scrollbar. Var galleriet kun
             # tabellens bredde, laa sidste kolonne under scrollbaren.
             "Width": str(OPS_TABLE_W + 4 + SCROLLBAR_W),
+            "Visible": has_ops,
             "WrapCount": "1",
         },
-        children=[opRow], h=gal_h)
+        children=[opRow], h=gal_h, vis=has_ops)
 
-    opsEmpty = text_ctrl("txtVhpOpsEmpty", "\"No operation lines yet on this item.\"", size=13, color=C_MUTED,
-                         height=24, wrap="false",
-                         visible="IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) = 0, false)")
+    opsEmpty = text_ctrl("txtVhpOpsEmpty", "\"No operation lines yet...\"", size=13, color=C_MUTED,
+                         height=24, wrap="false", visible=f"!{has_ops}")
 
     opsTotalsDivider = group("conVhpOpsTotalsDivider", [], height=1, fill=C_DIVIDER,
                              direction="Horizontal", width=str(OPS_TABLE_W),

@@ -86,10 +86,11 @@ Set(varVhpFlMeta, "");
 Set(varVhpSavedJson, "");
 Set(varVhpPrevPlant, "");
 // FL-vaelgeren (tools/fl_picker.py): om flowet koerer, soegeteksten og
-// den sidste soegning - og Object List-popup'en.
+// den sidste soegning, det valgte resultat - og Object List-popup'en.
 Set(varVhpFlBusy, false);
 Set(varVhpFlQuery, "");
 Set(varVhpFlLast, "");
+Set(varVhpFlPick, "");
 Set(varVhpObjListOpen, false);
 // Trinet, der sidst er klikket i progressbaren - dets sektion har en tyk kant.
 Set(varVhpFocusStep, 0);

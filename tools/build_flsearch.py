@@ -118,10 +118,11 @@ def collect_results(target_collection, raw_var=DEFAULT_RAW):
 
 def search_action(query_ctrl, target_collection, msg_var,
                   label="Functional Locations", raw_var=DEFAULT_RAW,
-                  busy_var=None, query_expr=None, last_var=None, on_start=None):
+                  busy_var=None, query_expr=None, last_var=None, on_start=None,
+                  on_found=None):
     """Soegningen, som den ser ud bag en SOEGEKNAP.
 
-    Hvem der kalder den: Search-knappen og Enter i FL-vaelgeren
+    Hvem der kalder den: Search-knappen i FL-vaelgeren
     (tools/fl_picker.py). Soegningen koerer KUN der - naar brugeren
     filtrerer i svaret, sker det lokalt i comboboksen, uden nyt kald.
 
@@ -139,6 +140,9 @@ def search_action(query_ctrl, target_collection, msg_var,
     sidste svar eller skriver en ny soegning.
 
     on_start: koeres, naar soegningen starter - fx at rydde det valgte.
+
+    on_found: koeres, naar soegningen har fundet mindst een raekke - fx at
+    vaelge den foerste (issue #72).
 
     GAMLE RESULTATER RYDDES, NAAR EN NY SOEGNING STARTER (issue #63)
     ----------------------------------------------------------------
@@ -173,8 +177,9 @@ def search_action(query_ctrl, target_collection, msg_var,
         f"            );\n"
         f"            If(\n"
         f"                CountRows({target_collection}) = 0,\n"
-        f"                Notify(\"No {label.lower()} found for \" & q & \".\", NotificationType.Warning)\n"
-        f"            );\n"
+        f"                Notify(\"No {label.lower()} found for \" & q & \".\", NotificationType.Warning)"
+        + (f",\n                    {on_found}\n" if on_found else "\n")
+        + f"            );\n"
         f"            Set(\n"
         f"                {msg_var},\n"
         f"                With(\n"
