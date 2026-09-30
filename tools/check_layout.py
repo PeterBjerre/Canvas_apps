@@ -1375,6 +1375,9 @@ def main():
         # Den klassiske knap har ingen AccessibleLabel - skaermlaeseren
         # laeser Text. Kostede et deploy (issue #57).
         "Classic/Button": ("AccessibleLabel",),
+        # ModernButton har ingen TabIndex - compile: "Unknown property
+        # 'TabIndex' for control type 'ModernButton'" (issue #79).
+        "ModernButton": ("TabIndex",),
     }
     for p_, name, body in all_nodes:
         bad = UNSUPPORTED.get((body.get("Control") or "").strip())
