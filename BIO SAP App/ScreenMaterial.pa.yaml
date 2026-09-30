@@ -973,7 +973,7 @@ Screens:
                                                       AccessibleLabel: |-
                                                           ="Functional location - type at least 7 characters, then Search"
                                                       Appearance: |-
-                                                          =Appearance.FilledDarker
+                                                          =If((If(varMatFNoBomItem, DisplayMode.Disabled, If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit))) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                                       BasePaletteColor: |-
                                                           =C.'color-brand-primary'
                                                       BorderColor: |-
@@ -987,7 +987,7 @@ Screens:
                                                       BorderThickness: |-
                                                           =1
                                                       Color: |-
-                                                          =C.'text-primary'
+                                                          =If((If(varMatFNoBomItem, DisplayMode.Disabled, If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit))) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                                       DefaultSelectedItems: |-
                                                           =Filter(colMatFl, Code = varMatFFunctionalLocation)
                                                       DelayOutput: |-
@@ -1272,7 +1272,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Manufacturer"
                                           Appearance: |-
-                                              =Appearance.FilledDarker
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
@@ -1282,7 +1282,7 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                           Default: |-
                                               =varMatFManufacturer
                                           DisplayMode: |-
@@ -1385,7 +1385,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Model number"
                                           Appearance: |-
-                                              =Appearance.FilledDarker
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
@@ -1395,7 +1395,7 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                           Default: |-
                                               =varMatFModelNumber
                                           DisplayMode: |-
@@ -1498,7 +1498,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Manufacturer part no."
                                           Appearance: |-
-                                              =Appearance.FilledDarker
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
@@ -1508,7 +1508,7 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                           Default: |-
                                               =varMatFManufacturerPartNo
                                           DisplayMode: |-
@@ -1735,7 +1735,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Material description, required"
                                           Appearance: |-
-                                              =Appearance.FilledDarker
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
@@ -1749,7 +1749,7 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                           Default: |-
                                               =varMatFText
                                           DisplayMode: |-
@@ -1879,7 +1879,7 @@ Screens:
                                                 AccessibleLabel: |-
                                                     ="Documents on this row"
                                                 Appearance: |-
-                                                    =Appearance.FilledDarker
+                                                    =If((DisplayMode.View) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                                 BasePaletteColor: |-
                                                     =C.'color-brand-primary'
                                                 BorderColor: |-
@@ -1889,7 +1889,7 @@ Screens:
                                                 BorderThickness: |-
                                                     =1
                                                 Color: |-
-                                                    =C.'text-primary'
+                                                    =If((DisplayMode.View) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                                 Default: |-
                                                     =If(IsBlank(varMatActiveRowId), "Save the row first", Text(Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).FileCount, 0)) & " document(s)")
                                                 DisplayMode: |-
@@ -2072,7 +2072,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Stock unit"
                                           Appearance: |-
-                                              =Appearance.FilledDarker
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
@@ -2082,7 +2082,7 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                           Default: |-
                                               =varMatFStockUnit
                                           DisplayMode: |-
@@ -2185,7 +2185,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Price"
                                           Appearance: |-
-                                              =Appearance.FilledDarker
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
@@ -2195,7 +2195,7 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                           Default: |-
                                               =varMatFPrice
                                           DisplayMode: |-
@@ -2325,7 +2325,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Price unit"
                                           Appearance: |-
-                                              =Appearance.FilledDarker
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
@@ -2335,7 +2335,7 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                           Default: |-
                                               =varMatFPriceUnit
                                           DisplayMode: |-
@@ -2438,7 +2438,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Delivery time (days)"
                                           Appearance: |-
-                                              =Appearance.FilledDarker
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
@@ -2448,7 +2448,7 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                           Default: |-
                                               =varMatFDeliveringTime
                                           DisplayMode: |-
@@ -2549,7 +2549,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Recommended stock"
                                           Appearance: |-
-                                              =Appearance.FilledDarker
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
@@ -2559,7 +2559,7 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                           Default: |-
                                               =varMatFRecommendedStock
                                           DisplayMode: |-
@@ -2660,7 +2660,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Supplier"
                                           Appearance: |-
-                                              =Appearance.FilledDarker
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
@@ -2670,7 +2670,7 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                           Default: |-
                                               =varMatFSupplier
                                           DisplayMode: |-
@@ -2802,7 +2802,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Supplier part no."
                                           Appearance: |-
-                                              =Appearance.FilledDarker
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
@@ -2812,7 +2812,7 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                           Default: |-
                                               =varMatFSupplierPartNo
                                           DisplayMode: |-
@@ -2915,7 +2915,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Strategic part"
                                           Appearance: |-
-                                              =Appearance.FilledDarker
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
@@ -2925,7 +2925,7 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                           Default: |-
                                               =varMatFStrategicPart
                                           DisplayMode: |-
@@ -3028,7 +3028,7 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Wear part"
                                           Appearance: |-
-                                              =Appearance.FilledDarker
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
@@ -3038,7 +3038,7 @@ Screens:
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =C.'text-primary'
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                           Default: |-
                                               =varMatFWearPart
                                           DisplayMode: |-
@@ -3336,7 +3336,7 @@ Screens:
                                     AccessibleLabel: |-
                                         ="Long text"
                                     Appearance: |-
-                                        =Appearance.FilledDarker
+                                        =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                     BasePaletteColor: |-
                                         =C.'color-brand-primary'
                                     BorderColor: |-
@@ -3346,7 +3346,7 @@ Screens:
                                     BorderThickness: |-
                                         =1
                                     Color: |-
-                                        =C.'text-primary'
+                                        =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
                                     Default: |-
                                         =varMatFLongText
                                     DisplayMode: |-

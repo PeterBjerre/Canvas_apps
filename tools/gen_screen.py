@@ -109,6 +109,8 @@ C_DISABLED_BG = _t("input-bg-disabled")
 C_DIVIDER = _t("border-subtle")
 C_MODAL_BG = _t("bg-modal")
 C_OVERLAY = _t("overlay")
+C_ROW_HOVER = _t("row-hover")
+C_ROW_PRESSED = _t("row-pressed")
 
 # Gennemsigtig er IKKE en token: den er den samme i begge temaer, og der
 # er ingen beslutning at traeffe om den.
