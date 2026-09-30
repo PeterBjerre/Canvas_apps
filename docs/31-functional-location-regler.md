@@ -96,7 +96,7 @@ Filer i "Implementeret i" er under `Functional Location App/build/`.
 | FL26 | Valideringskolonnen viser første fejl, ellers første advarsel; statuschippen skjules ved en fejl | `:1547-1571` | – | Afledt | `FirstIssue`/`FirstWarning` | `fl_parts.py` `txtFlRowIssue` |
 | FL27 | Hjælpetekst pr. besked (nøglens position og værdi) | `:1573-1630` | Ordret, fx `Function key is FL position 7-9 (<key7>). It must exist in FunctionKeyDict lookup.` | Afledt | `Tooltip` på `txtFlRowIssue` | `fl_validation.py` `hint_fx`; `fl_parts.py` `btnFlRowHint` (Tooltip) |
 | FL28 | Klassefaner: rækker, der ikke er draft og har en klasse. `ALL (n)` + én fane pr. klasse, alfabetisk; rækker sorteret på FL; klasse-hjælpetekst som tooltip | `:1475-1495`, `:1632-1665`, `:2353-2357` | – | Afledt | `galFlTabs`, `galFlClassRows` | `fl_validation.py` `BUCKETS`, `TABS`; `fl_parts.py` `galFlTabs`, `galFlClassRows`, `VIEW_POS` |
-| FL29 | Feltmarkering: FL rødt ved en besked med FL/KKS/Plant/Function/Component/Equipment/BR18/Class; Description ved "Description" | `:2284-2318` | – | Afledt | `BorderColor` på de to inputs | `fl_validation.py` `fl_bad`, `desc_bad`, `is_fl_issue` (exactin); `fl_parts.py` `_field_border` |
+| FL29 | Feltmarkering: FL rødt ved en besked med FL/KKS/Plant/Function/Component/Equipment/BR18/Class; Description ved "Description" | `:2284-2318` | – | Afledt | `BorderColor` på de to inputs | `fl_validation.py` `status_fx` (kolonnerne FlBad/DescBad), `is_fl_issue` (exactin); `fl_parts.py` `_field_border` |
 
 ### Spool-felterne pr. klasse (klassefanerne og detaljeruden)
 
