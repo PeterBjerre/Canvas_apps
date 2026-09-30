@@ -44,7 +44,7 @@
 
 .NOTES
     Kraever PnP.PowerShell. ClientId findes i tenanten:
-        9bc3ab49-b65d-410a-85ad-de819febfddc
+        se MdDefaultClientId i _Common.psm1
 #>
 
 [CmdletBinding()]
@@ -58,16 +58,9 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$conn = @{ Url = $SiteUrl; Interactive = $true }
-# PnP.PowerShell 2.x har ingen faelles app-registrering, saa -Interactive
-# KRAEVER et ClientId. Uden et fejler MSAL med "User canceled
-# authentication" - hvilket lyder som om brugeren trykkede fortryd, men
-# ikke er det. Her stod "if ($ClientId) { ... }", saa scriptet koerte
-# videre uden. Nu er der en standard.
-# Et client id er ikke en hemmelighed - se docs/08-datamapning.md 6B.
-if (-not $ClientId) { $ClientId = '9bc3ab49-b65d-410a-85ad-de819febfddc' }
-$conn.ClientId = $ClientId
-Connect-PnPOnline @conn
+# Login og de faelles hjaelpefunktioner (REVIEW.md E8).
+Import-Module (Join-Path $PSScriptRoot '_Common.psm1') -Force
+Connect-MdSite -SiteUrl $SiteUrl -ClientId $ClientId
 
 function Add-Col {
     param([string]$List, [string]$Name, [string]$Type, [string]$Description,
@@ -111,6 +104,13 @@ Add-Col 'MaintenancePlans' 'StrategyKey' Text -Indexed `
 Write-Host "`n=== MaintenanceItems ===" -ForegroundColor Cyan
 Add-Col 'MaintenanceItems' 'OrstedResponsibleEmail' Text -Indexed `
     -Description 'Samme person som OrstedResponsible, men som indekseret tekst. Person-kolonner kan ikke filtreres delegerbart.'
+
+# Opslagskolonnerne, appen filtrerer paa (REVIEW.md B14). MaintenancePlanNo
+# og MaintenancePlanID findes i forvejen; de faar kun et indeks, saa
+# filtrene holder, naar listerne passerer 5.000 elementer.
+Write-Host "`n=== Indekser paa opslagskolonner ===" -ForegroundColor Cyan
+Set-MdIndexed -List 'MaintenanceItems' -Name 'MaintenancePlanNo' -WhatIfOnly:$WhatIfOnly
+Set-MdIndexed -List 'TaskListMain' -Name 'MaintenancePlanID' -WhatIfOnly:$WhatIfOnly
 
 # ---------------------------------------------------------------------------
 Write-Host "`n=== MaintenancePlans: navnerodet ===" -ForegroundColor Cyan

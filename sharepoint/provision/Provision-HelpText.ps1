@@ -71,9 +71,9 @@ $COL_KEY = 'HelpKey'
 
 if (-not $SeedPath) { $SeedPath = Join-Path $PSScriptRoot '..\seed\MD_HelpText.csv' }
 
-# Et client id er ikke en hemmelighed - se docs/08-datamapning.md 6B.
-if (-not $ClientId) { $ClientId = '9bc3ab49-b65d-410a-85ad-de819febfddc' }
-Connect-PnPOnline -Url $SiteUrl -Interactive -ClientId $ClientId
+# Login og de faelles hjaelpefunktioner (REVIEW.md E8).
+Import-Module (Join-Path $PSScriptRoot '_Common.psm1') -Force
+Connect-MdSite -SiteUrl $SiteUrl -ClientId $ClientId
 
 # --- listen ---------------------------------------------------------------
 if (Get-PnPList -Identity $LIST_NAME -ErrorAction SilentlyContinue) {

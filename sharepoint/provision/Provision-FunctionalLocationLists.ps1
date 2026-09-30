@@ -59,59 +59,15 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# PnP.PowerShell 2.x har ingen faelles app-registrering, saa -Interactive
-# KRAEVER et ClientId. Uden et fejler MSAL med "User canceled
-# authentication" - hvilket lyder som om brugeren trykkede fortryd.
-# Et client id er ikke en hemmelighed - se docs/08-datamapning.md 6B.
-if (-not $ClientId) { $ClientId = '9bc3ab49-b65d-410a-85ad-de819febfddc' }
-Connect-PnPOnline -Url $SiteUrl -Interactive -ClientId $ClientId
+# Login og de faelles hjaelpefunktioner (REVIEW.md E8).
+Import-Module (Join-Path $PSScriptRoot '_Common.psm1') -Force
+Connect-MdSite -SiteUrl $SiteUrl -ClientId $ClientId
 
 # ---------------------------------------------------------------------------
-# Hjaelpefunktioner - samme form som det arkiverede Provision-VHPlanLists.ps1 (archive/). Navnene
-# er repoets (New-MdList/New-MdField/New-MdNoteField): tools/check_datasources.py
-# laeser dem og ved derfor, at listerne og kolonnerne kommer herfra.
+# Hjaelpefunktioner. New-MdList/New-MdField/New-MdNoteField staar i
+# _Common.psm1; tools/check_datasources.py laeser kaldene her og ved derfor,
+# at listerne og kolonnerne kommer herfra.
 # ---------------------------------------------------------------------------
-
-function New-MdList {
-    param([string]$Title, [string]$Description)
-    if (Get-PnPList -Identity $Title -ErrorAction SilentlyContinue) {
-        Write-Host "  = Liste '$Title' findes allerede" -ForegroundColor DarkGray
-    } else {
-        New-PnPList -Title $Title -Template GenericList -OnQuickLaunch:$false | Out-Null
-        Set-PnPList -Identity $Title -Description $Description
-        Write-Host "  + Liste '$Title' oprettet" -ForegroundColor Green
-    }
-}
-
-function New-MdField {
-    param(
-        [string]$List, [string]$Name, [string]$Type,
-        [string[]]$Choices, [switch]$Indexed, [switch]$Required
-    )
-    $existing = Get-PnPField -List $List -Identity $Name -ErrorAction SilentlyContinue
-    if ($existing) {
-        Write-Host "    = $Name" -ForegroundColor DarkGray
-    } else {
-        $p = @{ List = $List; DisplayName = $Name; InternalName = $Name; Type = $Type }
-        if ($Choices) { $p.Choices = $Choices }
-        Add-PnPField @p -AddToDefaultView | Out-Null
-        Write-Host "    + $Name ($Type)" -ForegroundColor Green
-    }
-    # Indeksering skal ske FOER listen passerer 5.000 elementer.
-    if ($Indexed) { Set-PnPField -List $List -Identity $Name -Values @{ Indexed = $true } }
-    if ($Required) { Set-PnPField -List $List -Identity $Name -Values @{ Required = $true } }
-}
-
-# Flerlinjet tekst som REN tekst. Rich text ville lade SharePoint saette
-# HTML-tags ind i JSON'en, og saa kan hverken appen eller flowet laese den.
-function New-MdNoteField {
-    param([string]$List, [string]$Name)
-    if (-not (Get-PnPField -List $List -Identity $Name -ErrorAction SilentlyContinue)) {
-        Add-PnPField -List $List -DisplayName $Name -InternalName $Name -Type Note | Out-Null
-        Write-Host "    + $Name (Note, plain)" -ForegroundColor Green
-    }
-    Set-PnPField -List $List -Identity $Name -Values @{ RichText = $false; NumberOfLines = 6 }
-}
 
 # Note-kolonner maa ikke staa i standardvisningen - de goer hver
 # datahentning tungere.

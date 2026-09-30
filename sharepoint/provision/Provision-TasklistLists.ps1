@@ -35,7 +35,7 @@
 
 .NOTES
     Kraever PnP.PowerShell. ClientId findes i tenanten:
-        9bc3ab49-b65d-410a-85ad-de819febfddc
+        se MdDefaultClientId i _Common.psm1
     Saet PNP_CLIENT_ID som miljoevariabel, eller giv -ClientId.
 #>
 
@@ -47,44 +47,9 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$conn = @{ Url = $SiteUrl; Interactive = $true }
-# PnP.PowerShell 2.x har ingen faelles app-registrering, saa -Interactive
-# KRAEVER et ClientId. Uden et fejler MSAL med "User canceled
-# authentication" - hvilket lyder som om brugeren trykkede fortryd, men
-# ikke er det. Her stod "if ($ClientId) { ... }", saa scriptet koerte
-# videre uden. Nu er der en standard.
-# Et client id er ikke en hemmelighed - se docs/08-datamapning.md 6B.
-if (-not $ClientId) { $ClientId = '9bc3ab49-b65d-410a-85ad-de819febfddc' }
-$conn.ClientId = $ClientId
-Connect-PnPOnline @conn
-
-function New-MdList {
-    param([string]$Title, [string]$Description)
-    if (Get-PnPList -Identity $Title -ErrorAction SilentlyContinue) {
-        Write-Host "  = Liste '$Title' findes allerede" -ForegroundColor DarkGray
-    } else {
-        New-PnPList -Title $Title -Template GenericList -OnQuickLaunch:$false | Out-Null
-        Write-Host "  + Liste '$Title' oprettet" -ForegroundColor Green
-    }
-    Set-PnPList -Identity $Title -Description $Description
-}
-
-function New-MdField {
-    param([string]$List, [string]$Name, [string]$Type, [string[]]$Choices,
-          [switch]$Indexed, [switch]$Required)
-    if (Get-PnPField -List $List -Identity $Name -ErrorAction SilentlyContinue) {
-        Write-Host "    = $Name" -ForegroundColor DarkGray
-    } else {
-        $p = @{ List = $List; DisplayName = $Name; InternalName = $Name; Type = $Type }
-        if ($Choices) { $p.Choices = $Choices }
-        Add-PnPField @p -AddToDefaultView | Out-Null
-        Write-Host "    + $Name ($Type)" -ForegroundColor Green
-    }
-    $v = @{}
-    if ($Indexed)  { $v.Indexed  = $true }
-    if ($Required) { $v.Required = $true }
-    if ($v.Count) { Set-PnPField -List $List -Identity $Name -Values $v }
-}
+# Login og de faelles hjaelpefunktioner (REVIEW.md E8).
+Import-Module (Join-Path $PSScriptRoot '_Common.psm1') -Force
+Connect-MdSite -SiteUrl $SiteUrl -ClientId $ClientId
 
 # ---------------------------------------------------------------------------
 # MD_TasklistMaterial - een raekke pr. materialelinje
