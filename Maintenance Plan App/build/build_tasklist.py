@@ -5,7 +5,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQU
                         C_MODAL_BG, C_PRIMARY_SOFT,
                         C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, C_VALID_FG, C_INVALID_FG,
                         C_DIVIDER, C_TRANSPARENT, C_INPUT_BG, FONT, SHELL_W)
-from build_helpers import (flow_row, text_ctrl, group, button, button_row, text_input, number_input, dropdown,
+from build_helpers import (checkbox_theme, table_surface, flow_row, text_ctrl, group, button, button_row, text_input, number_input, dropdown,
                            label_row, field_cell, two_col_row, badge, card, pin_widths, grow,
                            fit_button_width, fit_button_row, ICON_W)
 from build_plan_header import section_header, help_panel
@@ -325,7 +325,7 @@ def _materials_modal():
     divider = group("conVhpMatDivider", [], height=1, fill=C_DIVIDER,
                     direction="Horizontal", width=str(MAT_TABLE_W))
 
-    chkSel = Ctrl("chkVhpMatSel", "ModernCheckbox", props={
+    chkSel = Ctrl("chkVhpMatSel", "ModernCheckbox", props=checkbox_theme({
         "AccessibleLabel": '"Select material line"',
         "Default": "ThisItem.Selected",
         "Height": "24",
@@ -333,7 +333,7 @@ def _materials_modal():
         "OnCheck": "Patch(colVhpMaterials, ThisItem, { Selected: true })",
         "OnUncheck": "Patch(colVhpMaterials, ThisItem, { Selected: false })",
         "Width": str(w["SEL"]),
-    }, h=24)
+    }), h=24)
     txtNo = text_input("txtVhpMatNo", "ThisItem.MaterialNo", width=w["MATERIAL"], height=30,
                        onchange="Patch(colVhpMaterials, ThisItem, { MaterialNo: Self.Text })", label="\"Materialenummer\"")
     # Kommer fra materialeopslaget, ikke fra brugeren.
@@ -355,7 +355,7 @@ def _materials_modal():
     gallery = Ctrl("galVhpMaterials", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Materials for this operation"',
         "BorderStyle": "BorderStyle.None",
-        "Fill": C_CARD_BORDER,
+        "Fill": C_CARD_BG,
         "FillPortions": "0",
         "Height": str(gal_h),
         "Items": f"Sort({MAT_OP}, LineId)",
@@ -369,6 +369,8 @@ def _materials_modal():
         "Width": str(MAT_TABLE_W + 4 + SCROLLBAR_W),
         "WrapCount": "1",
     }, children=[row], h=gal_h)
+    # Neutral flade og een streg pr. raekke - ikke graat fyld (issue #78).
+    table_surface(gallery, "rctVhpMatRule")
 
     empty = text_ctrl("txtVhpMatEmpty",
                       '"No materials on this operation yet. Use Add material to add one."',
@@ -451,7 +453,7 @@ def _attachments_modal():
     actions = group("conVhpAttActions", [btnUpload, btnRefresh, btnRemove],
                     direction="Horizontal", gap=8, height=36, align_items="Center")
 
-    chkSel = Ctrl("chkVhpAttSel", "ModernCheckbox", props={
+    chkSel = Ctrl("chkVhpAttSel", "ModernCheckbox", props=checkbox_theme({
         "AccessibleLabel": '"Select document"',
         "Default": "ThisItem.Selected",
         "Height": "24",
@@ -459,7 +461,7 @@ def _attachments_modal():
         "OnCheck": "Patch(colVhpAttachments, ThisItem, { Selected: true })",
         "OnUncheck": "Patch(colVhpAttachments, ThisItem, { Selected: false })",
         "Width": "30",
-    }, h=24)
+    }), h=24)
     txtName = text_ctrl("txtVhpAttName", "ThisItem.FileName", size=13, height=30,
                         width=190, wrap="false")
     txtScope = text_ctrl(
@@ -471,7 +473,7 @@ def _attachments_modal():
             "    \"Ops: \" & Substitute(Mid(ThisItem.OperationsKey, 2), \";\", \" \")\n"
             ")"
         ), size=12, color=C_MUTED, height=30, width=120, wrap="false")
-    chkLink = Ctrl("chkVhpAttOp", "ModernCheckbox", props={
+    chkLink = Ctrl("chkVhpAttOp", "ModernCheckbox", props=checkbox_theme({
         "AccessibleLabel": '"Attach to operation " & varVhpAttOpNo',
         "Default": ATT_LINKED,
         "Height": "24",
@@ -499,7 +501,7 @@ def _attachments_modal():
             ")"
         ),
         "Width": "130",
-    }, h=24)
+    }), h=24)
 
     row = group("conVhpAttRow", pin_widths([chkSel, txtName, txtScope, chkLink]),
                 direction="Horizontal", gap=10, height="Parent.TemplateHeight - 2",
@@ -510,7 +512,7 @@ def _attachments_modal():
     gallery = Ctrl("galVhpAttachments", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Documents for active item"',
         "BorderStyle": "BorderStyle.None",
-        "Fill": C_CARD_BORDER,
+        "Fill": C_CARD_BG,
         "FillPortions": "0",
         "Height": str(gal_h),
         # Filnavnet er noeglen paa raekken - der ER ingen LineId paa
@@ -526,6 +528,7 @@ def _attachments_modal():
         "Width": "Parent.Width",
         "WrapCount": "1",
     }, children=[row], h=gal_h)
+    table_surface(gallery, "rctVhpAttRule")
 
     empty = text_ctrl("txtVhpAttEmpty", att.empty_text_fx(),
                       size=13, color=C_MUTED, height=36, wrap="true",
@@ -714,7 +717,7 @@ def build_tasklist_section():
 
     # -- row template ---------------------------------------------------------
     w = {t: wd for t, wd in OPS_COLS}
-    chkSel = Ctrl("chkVhpOpSel", "ModernCheckbox", props={
+    chkSel = Ctrl("chkVhpOpSel", "ModernCheckbox", props=checkbox_theme({
         "AccessibleLabel": "\"Select operation line\"",
         "Default": "ThisItem.Selected",
         "Height": "24",
@@ -722,7 +725,7 @@ def build_tasklist_section():
         "OnCheck": "Patch(colVhpOperations, ThisItem, { Selected: true })",
         "OnUncheck": "Patch(colVhpOperations, ThisItem, { Selected: false })",
         "Width": str(w["SEL"]),
-    }, h=24)
+    }), h=24)
     txtOpNo = text_ctrl("txtVhpOpNo", "ThisItem.OperationNo", size=13, height=32, width=w["OP NO."], wrap="false")
     txtOpShort = text_input("txtVhpOpShortText", "ThisItem.OperationShortText", width=w["OPERATION SHORT TEXT"],
                             height=32,

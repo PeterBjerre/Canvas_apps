@@ -1883,7 +1883,9 @@ Screens:
                                                 AccessibleLabel: |-
                                                     ="Plan Type, required"
                                                 Appearance: |-
-                                                    =Appearance.Outline
+                                                    =Appearance.FilledDarker
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
                                                 BorderColor: |-
                                                     =If(
                                                         varVhpPlanValidated && IsBlank(Self.Selected.Key),
@@ -1899,7 +1901,7 @@ Screens:
                                                 Default: |-
                                                     =LookUp(colVhpPlanTypeOptions, Key = varVhpPlan.PlanType)
                                                 DisplayMode: |-
-                                                    =If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)
+                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
@@ -2035,7 +2037,9 @@ Screens:
                                                 AccessibleLabel: |-
                                                     ="Maintenance Strategy"
                                                 Appearance: |-
-                                                    =Appearance.Outline
+                                                    =Appearance.FilledDarker
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
                                                 BorderColor: |-
                                                     =If(
                                                         (varVhpPlanValidated && (drpVhpPlanType.Selected.Key = "Strategy")) && IsBlank(Self.Selected.Key),
@@ -2051,7 +2055,7 @@ Screens:
                                                 Default: |-
                                                     =LookUp(colVhpStrategyOptions, Key = varVhpPlan.Strategy)
                                                 DisplayMode: |-
-                                                    =If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key <> "Strategy"), DisplayMode.Disabled, DisplayMode.Edit)
+                                                    =If((If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key <> "Strategy"), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key <> "Strategy"), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
@@ -2243,7 +2247,9 @@ Screens:
                                                 AccessibleLabel: |-
                                                     ="Plant, required"
                                                 Appearance: |-
-                                                    =Appearance.Outline
+                                                    =Appearance.FilledDarker
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
                                                 BorderColor: |-
                                                     =If(
                                                         varVhpPlanValidated && IsBlank(Self.Selected.Value),
@@ -2259,7 +2265,7 @@ Screens:
                                                 Default: |-
                                                     =LookUp(colVhpPlantCodes, Value = varVhpPlan.Plant)
                                                 DisplayMode: |-
-                                                    =If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)
+                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
@@ -2486,7 +2492,9 @@ Screens:
                                                 AccessibleLabel: |-
                                                     ="Status, required"
                                                 Appearance: |-
-                                                    =Appearance.Outline
+                                                    =Appearance.FilledDarker
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
                                                 BorderColor: |-
                                                     =If(
                                                         varVhpPlanValidated && IsBlank(Self.Selected.Value),
@@ -2502,7 +2510,7 @@ Screens:
                                                 Default: |-
                                                     =LookUp(colVhpPlanStatusOptions, Value = varVhpPlan.Status)
                                                 DisplayMode: |-
-                                                    =If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)
+                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
@@ -2699,6 +2707,10 @@ Screens:
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Plan Text, required"
+                                                Appearance: |-
+                                                    =Appearance.FilledDarker
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
                                                 BorderColor: |-
                                                     =If(
                                                         varVhpPlanValidated && IsBlank(Trim(Self.Text)),
@@ -2714,7 +2726,7 @@ Screens:
                                                 Default: |-
                                                     =varVhpPlan.PlanText
                                                 DisplayMode: |-
-                                                    =If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)
+                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
@@ -2854,7 +2866,9 @@ Screens:
                                                 AccessibleLabel: |-
                                                     ="Sort Field"
                                                 Appearance: |-
-                                                    =Appearance.Outline
+                                                    =Appearance.FilledDarker
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
                                                 BorderColor: |-
                                                     =C.'border-default'
                                                 BorderStyle: |-
@@ -2866,7 +2880,7 @@ Screens:
                                                 Default: |-
                                                     =LookUp(colVhpSortFieldOptions, Value = varVhpPlan.SortField)
                                                 DisplayMode: |-
-                                                    =If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)
+                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
@@ -3101,7 +3115,9 @@ Screens:
                                                 AccessibleLabel: |-
                                                     ="Cycle, required"
                                                 Appearance: |-
-                                                    =Appearance.Outline
+                                                    =Appearance.FilledDarker
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
                                                 BorderColor: |-
                                                     =If(
                                                         (varVhpPlanValidated && (drpVhpPlanType.Selected.Key <> "Strategy")) && IsBlank(Self.Value),
@@ -3117,7 +3133,7 @@ Screens:
                                                 Default: |-
                                                     =varVhpPlan.Cycle
                                                 DisplayMode: |-
-                                                    =If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key = "Strategy"), DisplayMode.Disabled, DisplayMode.Edit)
+                                                    =If((If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key = "Strategy"), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key = "Strategy"), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
@@ -3315,7 +3331,9 @@ Screens:
                                                 AccessibleLabel: |-
                                                     ="Unit, required"
                                                 Appearance: |-
-                                                    =Appearance.Outline
+                                                    =Appearance.FilledDarker
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
                                                 BorderColor: |-
                                                     =If(
                                                         (varVhpPlanValidated && (drpVhpPlanType.Selected.Key <> "Strategy")) && IsBlank(Self.Selected.Value),
@@ -3331,7 +3349,7 @@ Screens:
                                                 Default: |-
                                                     =LookUp(colVhpUnitOptions, Value = varVhpPlan.Unit)
                                                 DisplayMode: |-
-                                                    =If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key = "Strategy"), DisplayMode.Disabled, DisplayMode.Edit)
+                                                    =If((If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key = "Strategy"), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key = "Strategy"), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
@@ -3467,7 +3485,9 @@ Screens:
                                                 AccessibleLabel: |-
                                                     ="Call Horizon"
                                                 Appearance: |-
-                                                    =Appearance.Outline
+                                                    =Appearance.FilledDarker
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
                                                 BorderColor: |-
                                                     =C.'border-default'
                                                 BorderStyle: |-
@@ -3479,7 +3499,7 @@ Screens:
                                                 Default: |-
                                                     =LookUp(colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon)
                                                 DisplayMode: |-
-                                                    =If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)
+                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
@@ -3653,6 +3673,10 @@ Screens:
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Scheduling Indicator"
+                                                Appearance: |-
+                                                    =Appearance.FilledDarker
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
                                                 BorderColor: |-
                                                     =C.'border-default'
                                                 BorderStyle: |-
@@ -3664,7 +3688,7 @@ Screens:
                                                 Default: |-
                                                     =varVhpPlan.SchedulingIndicator
                                                 DisplayMode: |-
-                                                    =If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)
+                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
@@ -3797,6 +3821,10 @@ Screens:
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Statutory Sort Field"
+                                                Appearance: |-
+                                                    =Appearance.FilledDarker
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
                                                 BorderColor: |-
                                                     =C.'border-default'
                                                 BorderStyle: |-
@@ -3808,7 +3836,7 @@ Screens:
                                                 Default: |-
                                                     =varVhpPlan.StatutorySortField
                                                 DisplayMode: |-
-                                                    =If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)
+                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
@@ -4031,7 +4059,9 @@ Screens:
                                                       AccessibleLabel: |-
                                                           ="Foerste kald, dag"
                                                       Appearance: |-
-                                                          =Appearance.Outline
+                                                          =Appearance.FilledDarker
+                                                      BasePaletteColor: |-
+                                                          =C.'color-brand-primary'
                                                       BorderColor: |-
                                                           =If(
                                                               varVhpPlanValidated && IsBlank(Self.Value),
@@ -4047,7 +4077,7 @@ Screens:
                                                       Default: |-
                                                           =varVhpPlan.FirstCallDay
                                                       DisplayMode: |-
-                                                          =If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)
+                                                          =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                       Fill: |-
                                                           =If(If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                       Font: |-
@@ -4082,7 +4112,9 @@ Screens:
                                                       AccessibleLabel: |-
                                                           ="Foerste kald, maaned"
                                                       Appearance: |-
-                                                          =Appearance.Outline
+                                                          =Appearance.FilledDarker
+                                                      BasePaletteColor: |-
+                                                          =C.'color-brand-primary'
                                                       BorderColor: |-
                                                           =If(
                                                               varVhpPlanValidated && IsBlank(Self.Value),
@@ -4098,7 +4130,7 @@ Screens:
                                                       Default: |-
                                                           =varVhpPlan.FirstCallMonth
                                                       DisplayMode: |-
-                                                          =If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)
+                                                          =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                       Fill: |-
                                                           =If(If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                       Font: |-
@@ -4133,7 +4165,9 @@ Screens:
                                                       AccessibleLabel: |-
                                                           ="Foerste kald, aar"
                                                       Appearance: |-
-                                                          =Appearance.Outline
+                                                          =Appearance.FilledDarker
+                                                      BasePaletteColor: |-
+                                                          =C.'color-brand-primary'
                                                       BorderColor: |-
                                                           =If(
                                                               varVhpPlanValidated && IsBlank(Self.Value),
@@ -4149,7 +4183,7 @@ Screens:
                                                       Default: |-
                                                           =varVhpPlan.FirstCallYear
                                                       DisplayMode: |-
-                                                          =If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)
+                                                          =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                       Fill: |-
                                                           =If(If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                       Font: |-
@@ -5927,6 +5961,10 @@ Screens:
                                                     Properties:
                                                       AccessibleLabel: |-
                                                           ="Item Short Text, required"
+                                                      Appearance: |-
+                                                          =Appearance.FilledDarker
+                                                      BasePaletteColor: |-
+                                                          =C.'color-brand-primary'
                                                       BorderColor: |-
                                                           =If(
                                                               varVhpItemValidated && IsBlank(Trim(Self.Text)),
@@ -5942,7 +5980,7 @@ Screens:
                                                       Default: |-
                                                           =LookUp(colVhpItems, ItemId = varVhpActiveItemId).ShortText
                                                       DisplayMode: |-
-                                                          =If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
+                                                          =If((If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                       Fill: |-
                                                           =If(If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                       Font: |-
@@ -6140,7 +6178,9 @@ Screens:
                                                       AccessibleLabel: |-
                                                           ="Main Work Center, required"
                                                       Appearance: |-
-                                                          =Appearance.Outline
+                                                          =Appearance.FilledDarker
+                                                      BasePaletteColor: |-
+                                                          =C.'color-brand-primary'
                                                       BorderColor: |-
                                                           =If(
                                                               varVhpItemValidated && IsBlank(Self.Selected.Value),
@@ -6163,7 +6203,7 @@ Screens:
                                                               Value
                                                           ), Value = LookUp(colVhpItems, ItemId = varVhpActiveItemId).MainWorkCenter)
                                                       DisplayMode: |-
-                                                          =If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
+                                                          =If((If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                       Fill: |-
                                                           =If(If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                       Font: |-
@@ -6368,7 +6408,9 @@ Screens:
                                                       AccessibleLabel: |-
                                                           ="Maintenance Activity Type, required"
                                                       Appearance: |-
-                                                          =Appearance.Outline
+                                                          =Appearance.FilledDarker
+                                                      BasePaletteColor: |-
+                                                          =C.'color-brand-primary'
                                                       BorderColor: |-
                                                           =If(
                                                               varVhpItemValidated && IsBlank(Self.Selected.Value),
@@ -6384,7 +6426,7 @@ Screens:
                                                       Default: |-
                                                           =LookUp(colVhpActivityTypeOptions, Value = LookUp(colVhpItems, ItemId = varVhpActiveItemId).ActivityType)
                                                       DisplayMode: |-
-                                                          =If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
+                                                          =If((If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                       Fill: |-
                                                           =If(If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                       Font: |-
@@ -6712,6 +6754,10 @@ Screens:
                                                     Properties:
                                                       AccessibleLabel: |-
                                                           ="Initials"
+                                                      Appearance: |-
+                                                          =Appearance.FilledDarker
+                                                      BasePaletteColor: |-
+                                                          =C.'color-brand-primary'
                                                       BorderColor: |-
                                                           =C.'border-default'
                                                       BorderStyle: |-
@@ -6723,7 +6769,7 @@ Screens:
                                                       Default: |-
                                                           =LookUp(colVhpItems, ItemId = varVhpActiveItemId).Initials
                                                       DisplayMode: |-
-                                                          =If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
+                                                          =If((If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                       Fill: |-
                                                           =If(If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                       Font: |-
@@ -7178,7 +7224,9 @@ Screens:
                                                       AccessibleLabel: |-
                                                           ="Functional location - type at least 7 characters, then Search"
                                                       Appearance: |-
-                                                          =Appearance.Outline
+                                                          =Appearance.FilledDarker
+                                                      BasePaletteColor: |-
+                                                          =C.'color-brand-primary'
                                                       BorderColor: |-
                                                           =If(
                                                               varVhpItemValidated && IsBlank(Self.Selected.Code),
@@ -7196,7 +7244,7 @@ Screens:
                                                       DelayOutput: |-
                                                           =false
                                                       DisplayMode: |-
-                                                          =If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
+                                                          =If((If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                       Fill: |-
                                                           =If(If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                       FillPortions: |-
@@ -8448,7 +8496,9 @@ Screens:
                                                 AccessibleLabel: |-
                                                     ="Tasklist For Active Item, required"
                                                 Appearance: |-
-                                                    =Appearance.Outline
+                                                    =Appearance.FilledDarker
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
                                                 BorderColor: |-
                                                     =C.'border-default'
                                                 BorderStyle: |-
@@ -8460,7 +8510,7 @@ Screens:
                                                 Default: |-
                                                     =LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey)
                                                 DisplayMode: |-
-                                                    =If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
+                                                    =If((If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
@@ -9012,8 +9062,14 @@ Screens:
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Select operation line"
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
+                                                Color: |-
+                                                    =C.'text-primary'
                                                 Default: |-
                                                     =ThisItem.Selected
+                                                Font: |-
+                                                    =Font.'Segoe UI'
                                                 Height: |-
                                                     =24
                                                 Label: |-
@@ -9022,6 +9078,8 @@ Screens:
                                                     =Patch(colVhpOperations, ThisItem, { Selected: true })
                                                 OnUncheck: |-
                                                     =Patch(colVhpOperations, ThisItem, { Selected: false })
+                                                Size: |-
+                                                    =13
                                                 Width: |-
                                                     =30
                                                 X: |-
@@ -9070,6 +9128,10 @@ Screens:
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Operationstekst"
+                                                Appearance: |-
+                                                    =Appearance.FilledDarker
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
                                                 BorderColor: |-
                                                     =C.'border-default'
                                                 BorderStyle: |-
@@ -9114,7 +9176,9 @@ Screens:
                                                 AccessibleLabel: |-
                                                     ="Arbejdstimer"
                                                 Appearance: |-
-                                                    =Appearance.Outline
+                                                    =Appearance.FilledDarker
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
                                                 BorderColor: |-
                                                     =C.'border-default'
                                                 BorderStyle: |-
@@ -9170,7 +9234,9 @@ Screens:
                                                 AccessibleLabel: |-
                                                     ="Number of people"
                                                 Appearance: |-
-                                                    =Appearance.Outline
+                                                    =Appearance.FilledDarker
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
                                                 BorderColor: |-
                                                     =C.'border-default'
                                                 BorderStyle: |-
@@ -9221,7 +9287,9 @@ Screens:
                                                 AccessibleLabel: |-
                                                     ="Varighed"
                                                 Appearance: |-
-                                                    =Appearance.Outline
+                                                    =Appearance.FilledDarker
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
                                                 BorderColor: |-
                                                     =C.'border-default'
                                                 BorderStyle: |-
@@ -9233,7 +9301,7 @@ Screens:
                                                 Default: |-
                                                     =ThisItem.DurationHours
                                                 DisplayMode: |-
-                                                    =DisplayMode.View
+                                                    =If((DisplayMode.View) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(DisplayMode.View = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
@@ -9265,6 +9333,10 @@ Screens:
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Plant"
+                                                Appearance: |-
+                                                    =Appearance.FilledDarker
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
                                                 BorderColor: |-
                                                     =C.'border-default'
                                                 BorderStyle: |-
@@ -9276,7 +9348,7 @@ Screens:
                                                 Default: |-
                                                     =ThisItem.MainWorkCenter
                                                 DisplayMode: |-
-                                                    =DisplayMode.View
+                                                    =If((DisplayMode.View) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(DisplayMode.View = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
@@ -9309,7 +9381,9 @@ Screens:
                                                 AccessibleLabel: |-
                                                     ="Styringsnoegle"
                                                 Appearance: |-
-                                                    =Appearance.Outline
+                                                    =Appearance.FilledDarker
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
                                                 BorderColor: |-
                                                     =C.'border-default'
                                                 BorderStyle: |-
@@ -9331,7 +9405,7 @@ Screens:
                                                         !IsBlank(Value)
                                                     ), Value = ThisItem.ControlKey)
                                                 DisplayMode: |-
-                                                    =If(EndsWith(Upper(Coalesce(ThisItem.MainWorkCenter, "")), "SUP"), DisplayMode.Edit, DisplayMode.View)
+                                                    =If((If(EndsWith(Upper(Coalesce(ThisItem.MainWorkCenter, "")), "SUP"), DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(If(EndsWith(Upper(Coalesce(ThisItem.MainWorkCenter, "")), "SUP"), DisplayMode.Edit, DisplayMode.View) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
@@ -9377,6 +9451,10 @@ Screens:
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Supplier"
+                                                Appearance: |-
+                                                    =Appearance.FilledDarker
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
                                                 BorderColor: |-
                                                     =C.'border-default'
                                                 BorderStyle: |-
@@ -9388,7 +9466,7 @@ Screens:
                                                 Default: |-
                                                     =ThisItem.Vendor
                                                 DisplayMode: |-
-                                                    =If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)
+                                                    =If((If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
@@ -9423,7 +9501,9 @@ Screens:
                                                 AccessibleLabel: |-
                                                     ="Price"
                                                 Appearance: |-
-                                                    =Appearance.Outline
+                                                    =Appearance.FilledDarker
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
                                                 BorderColor: |-
                                                     =C.'border-default'
                                                 BorderStyle: |-
@@ -9435,7 +9515,7 @@ Screens:
                                                 Default: |-
                                                     =ThisItem.Cost
                                                 DisplayMode: |-
-                                                    =If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)
+                                                    =If((If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
@@ -9469,6 +9549,10 @@ Screens:
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Materialegruppe"
+                                                Appearance: |-
+                                                    =Appearance.FilledDarker
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
                                                 BorderColor: |-
                                                     =C.'border-default'
                                                 BorderStyle: |-
@@ -9480,7 +9564,7 @@ Screens:
                                                 Default: |-
                                                     =ThisItem.MaterialGroup
                                                 DisplayMode: |-
-                                                    =If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)
+                                                    =If((If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
@@ -10692,8 +10776,14 @@ Screens:
                                                     Properties:
                                                       AccessibleLabel: |-
                                                           ="Package " & ThisItem.ShortCode & " on operation " & ThisItem.OpNo
+                                                      BasePaletteColor: |-
+                                                          =C.'color-brand-primary'
+                                                      Color: |-
+                                                          =C.'text-primary'
                                                       Default: |-
                                                           =";" & Text(ThisItem.PackageNo) & ";" in Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = ThisItem.OpNo).PackagesKey, ";")
+                                                      Font: |-
+                                                          =Font.'Segoe UI'
                                                       Height: |-
                                                           =24
                                                       OnCheck: |-
@@ -10721,6 +10811,8 @@ Screens:
                                                                   { PackagesKey: Substitute(Coalesce(PackagesKey, ";"), ";" & pkg & ";", ";") }
                                                               )
                                                           )
+                                                      Size: |-
+                                                          =13
                                                       Width: |-
                                                           =30
                                                       X: |-
@@ -11654,6 +11746,10 @@ Screens:
                       Properties:
                         AccessibleLabel: |-
                             ="Search operations"
+                        Appearance: |-
+                            =Appearance.FilledDarker
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
                         BorderColor: |-
                             =C.'border-default'
                         BorderStyle: |-
@@ -11695,6 +11791,10 @@ Screens:
                       Properties:
                         AccessibleLabel: |-
                             ="Select all visible"
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
+                        Color: |-
+                            =C.'text-primary'
                         Default: |-
                             =IfError(CountRows(Filter(
                                 LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
@@ -11706,6 +11806,8 @@ Screens:
                                 LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
                                 IsBlank(Trim(txtVhpPickerSearch.Text)) || Trim(txtVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
                             )), false)
+                        Font: |-
+                            =Font.'Segoe UI'
                         Height: |-
                             =36
                         Label: |-
@@ -11735,6 +11837,8 @@ Screens:
                             ) As VOP, VOP.OperationNo = SEL.OperationNo)) > 0
                                 )
                             )
+                        Size: |-
+                            =13
                         Width: |-
                             =200
             - txtVhpPickerInfo:
@@ -11863,7 +11967,7 @@ Screens:
                         BorderStyle: |-
                             =BorderStyle.None
                         Fill: |-
-                            =C.'border-default'
+                            =C.'bg-modal'
                         FillPortions: |-
                             =0
                         Height: |-
@@ -11884,9 +11988,9 @@ Screens:
                         TabIndex: |-
                             =0
                         TemplatePadding: |-
-                            =2
+                            =0
                         TemplateSize: |-
-                            =32
+                            =34
                         Width: |-
                             =636
                         WrapCount: |-
@@ -11897,20 +12001,28 @@ Screens:
                             Properties:
                               AccessibleLabel: |-
                                   ="Select line"
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
+                              Color: |-
+                                  =C.'text-primary'
                               Default: |-
                                   =CountRows(Filter(colVhpPickerSelected, OperationNo = ThisItem.OperationNo)) > 0
+                              Font: |-
+                                  =Font.'Segoe UI'
                               Height: |-
                                   =24
                               OnCheck: |-
                                   =Collect(colVhpPickerSelected, { OperationNo: ThisItem.OperationNo })
                               OnUncheck: |-
                                   =RemoveIf(colVhpPickerSelected, OperationNo = ThisItem.OperationNo)
+                              Size: |-
+                                  =13
                               Width: |-
                                   =26
                               X: |-
                                   =0 + 0 + 0
                               Y: |-
-                                  =0 + 0 + ((((32) - 2) - 0 - 0) - (24)) / 2
+                                  =0 + 0 + ((((34) - 1) - 0 - 0) - (24)) / 2
                         - txtVhpPickerOpNo:
                             Control: ModernText
                             Properties:
@@ -11947,7 +12059,7 @@ Screens:
                               X: |-
                                   =0 + 0 + 0 + (26) + 10
                               Y: |-
-                                  =0 + 0 + ((((32) - 2) - 0 - 0) - (28)) / 2
+                                  =0 + 0 + ((((34) - 1) - 0 - 0) - (28)) / 2
                         - txtVhpPickerShortText:
                             Control: ModernText
                             Properties:
@@ -11984,7 +12096,7 @@ Screens:
                               X: |-
                                   =0 + 0 + 0 + (26) + 10 + (54) + 10
                               Y: |-
-                                  =0 + 0 + ((((32) - 2) - 0 - 0) - (28)) / 2
+                                  =0 + 0 + ((((34) - 1) - 0 - 0) - (28)) / 2
                         - txtVhpPickerMwc:
                             Control: ModernText
                             Properties:
@@ -12021,7 +12133,7 @@ Screens:
                               X: |-
                                   =0 + 0 + 0 + (26) + 10 + (54) + 10 + (198) + 10
                               Y: |-
-                                  =0 + 0 + ((((32) - 2) - 0 - 0) - (28)) / 2
+                                  =0 + 0 + ((((34) - 1) - 0 - 0) - (28)) / 2
                         - txtVhpPickerCtrl:
                             Control: ModernText
                             Properties:
@@ -12058,7 +12170,7 @@ Screens:
                               X: |-
                                   =0 + 0 + 0 + (26) + 10 + (54) + 10 + (198) + 10 + (114) + 10
                               Y: |-
-                                  =0 + 0 + ((((32) - 2) - 0 - 0) - (28)) / 2
+                                  =0 + 0 + ((((34) - 1) - 0 - 0) - (28)) / 2
                         - txtVhpPickerWork:
                             Control: ModernText
                             Properties:
@@ -12095,7 +12207,7 @@ Screens:
                               X: |-
                                   =0 + 0 + 0 + (26) + 10 + (54) + 10 + (198) + 10 + (114) + 10 + (54) + 10
                               Y: |-
-                                  =0 + 0 + ((((32) - 2) - 0 - 0) - (28)) / 2
+                                  =0 + 0 + ((((34) - 1) - 0 - 0) - (28)) / 2
                         - txtVhpPickerDur:
                             Control: ModernText
                             Properties:
@@ -12132,7 +12244,30 @@ Screens:
                               X: |-
                                   =0 + 0 + 0 + (26) + 10 + (54) + 10 + (198) + 10 + (114) + 10 + (54) + 10 + (54) + 10
                               Y: |-
-                                  =0 + 0 + ((((32) - 2) - 0 - 0) - (28)) / 2
+                                  =0 + 0 + ((((34) - 1) - 0 - 0) - (28)) / 2
+                        - rctVhpPickerRule:
+                            Control: Rectangle
+                            Properties:
+                              AccessibleLabel: |-
+                                  =""
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Fill: |-
+                                  =C.'border-subtle'
+                              Height: |-
+                                  =1
+                              OnSelect: |-
+                                  =false
+                              TabIndex: |-
+                                  =-1
+                              Width: |-
+                                  =((((740) - 18 - 18)) - 2 * 0 - 18 - 40)
+                              X: |-
+                                  =0
+                              Y: |-
+                                  =33
             - conVhpPickerFooter:
                 Control: GroupContainer
                 Variant: AutoLayout
@@ -12468,6 +12603,10 @@ Screens:
                 Properties:
                   AccessibleLabel: |-
                       ="Long text"
+                  Appearance: |-
+                      =Appearance.FilledDarker
+                  BasePaletteColor: |-
+                      =C.'color-brand-primary'
                   BorderColor: |-
                       =C.'border-default'
                   BorderStyle: |-
@@ -12858,8 +12997,14 @@ Screens:
                       Properties:
                         AccessibleLabel: |-
                             ="Select object " & ThisItem.Code
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
+                        Color: |-
+                            =C.'text-primary'
                         Default: |-
                             =CountRows(Filter(colVhpObjDraft, Code = ThisItem.Code)) > 0
+                        Font: |-
+                            =Font.'Segoe UI'
                         Height: |-
                             =24
                         Label: |-
@@ -12871,6 +13016,8 @@ Screens:
                             )
                         OnUncheck: |-
                             =RemoveIf(colVhpObjDraft, Code = ThisItem.Code)
+                        Size: |-
+                            =13
                         Width: |-
                             =Max(0, ((((Min(640, App.Width - 40)) - 18 - 18) - 2 * 2 - 18 - 40) - 8 - 8) - 2)
                         X: |-
@@ -13475,7 +13622,7 @@ Screens:
                         BorderStyle: |-
                             =BorderStyle.None
                         Fill: |-
-                            =C.'border-default'
+                            =C.'bg-card'
                         FillPortions: |-
                             =0
                         Height: |-
@@ -13493,9 +13640,9 @@ Screens:
                         TabIndex: |-
                             =0
                         TemplatePadding: |-
-                            =2
+                            =0
                         TemplateSize: |-
-                            =34
+                            =36
                         Width: |-
                             =562
                         WrapCount: |-
@@ -13506,8 +13653,14 @@ Screens:
                             Properties:
                               AccessibleLabel: |-
                                   ="Select material line"
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
+                              Color: |-
+                                  =C.'text-primary'
                               Default: |-
                                   =ThisItem.Selected
+                              Font: |-
+                                  =Font.'Segoe UI'
                               Height: |-
                                   =24
                               Label: |-
@@ -13516,17 +13669,23 @@ Screens:
                                   =Patch(colVhpMaterials, ThisItem, { Selected: true })
                               OnUncheck: |-
                                   =Patch(colVhpMaterials, ThisItem, { Selected: false })
+                              Size: |-
+                                  =13
                               Width: |-
                                   =30
                               X: |-
                                   =0 + 0 + 0
                               Y: |-
-                                  =0 + 0 + ((((34) - 2) - 0 - 0) - (24)) / 2
+                                  =0 + 0 + ((((36) - 1) - 0 - 0) - (24)) / 2
                         - txtVhpMatNo:
                             Control: ModernTextInput
                             Properties:
                               AccessibleLabel: |-
                                   ="Materialenummer"
+                              Appearance: |-
+                                  =Appearance.FilledDarker
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
                               BorderColor: |-
                                   =C.'border-default'
                               BorderStyle: |-
@@ -13564,7 +13723,7 @@ Screens:
                               X: |-
                                   =0 + 0 + 0 + (30) + 10
                               Y: |-
-                                  =0 + 0 + ((((34) - 2) - 0 - 0) - (30)) / 2
+                                  =0 + 0 + ((((36) - 1) - 0 - 0) - (30)) / 2
                         - txtVhpMatDesc:
                             Control: ModernText
                             Properties:
@@ -13601,14 +13760,16 @@ Screens:
                               X: |-
                                   =0 + 0 + 0 + (30) + 10 + (110) + 10
                               Y: |-
-                                  =0 + 0 + ((((34) - 2) - 0 - 0) - (30)) / 2
+                                  =0 + 0 + ((((36) - 1) - 0 - 0) - (30)) / 2
                         - numVhpMatQty:
                             Control: ModernNumberInput
                             Properties:
                               AccessibleLabel: |-
                                   ="Number"
                               Appearance: |-
-                                  =Appearance.Outline
+                                  =Appearance.FilledDarker
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
                               BorderColor: |-
                                   =C.'border-default'
                               BorderStyle: |-
@@ -13646,7 +13807,7 @@ Screens:
                               X: |-
                                   =0 + 0 + 0 + (30) + 10 + (110) + 10 + (230) + 10
                               Y: |-
-                                  =0 + 0 + ((((34) - 2) - 0 - 0) - (30)) / 2
+                                  =0 + 0 + ((((36) - 1) - 0 - 0) - (30)) / 2
                         - txtVhpMatUnit:
                             Control: ModernText
                             Properties:
@@ -13683,7 +13844,30 @@ Screens:
                               X: |-
                                   =0 + 0 + 0 + (30) + 10 + (110) + 10 + (230) + 10 + (70) + 10
                               Y: |-
-                                  =0 + 0 + ((((34) - 2) - 0 - 0) - (30)) / 2
+                                  =0 + 0 + ((((36) - 1) - 0 - 0) - (30)) / 2
+                        - rctVhpMatRule:
+                            Control: Rectangle
+                            Properties:
+                              AccessibleLabel: |-
+                                  =""
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Fill: |-
+                                  =C.'border-subtle'
+                              Height: |-
+                                  =1
+                              OnSelect: |-
+                                  =false
+                              TabIndex: |-
+                                  =-1
+                              Width: |-
+                                  =((562) - 2 * 0 - 18)
+                              X: |-
+                                  =0
+                              Y: |-
+                                  =35
                   - txtVhpMatEmpty:
                       Control: ModernText
                       Properties:
@@ -14252,7 +14436,7 @@ Screens:
                   BorderStyle: |-
                       =BorderStyle.None
                   Fill: |-
-                      =C.'border-default'
+                      =C.'bg-card'
                   FillPortions: |-
                       =0
                   Height: |-
@@ -14270,9 +14454,9 @@ Screens:
                   TabIndex: |-
                       =0
                   TemplatePadding: |-
-                      =2
+                      =0
                   TemplateSize: |-
-                      =34
+                      =36
                   Width: |-
                       =Parent.Width
                   WrapCount: |-
@@ -14283,8 +14467,14 @@ Screens:
                       Properties:
                         AccessibleLabel: |-
                             ="Select document"
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
+                        Color: |-
+                            =C.'text-primary'
                         Default: |-
                             =ThisItem.Selected
+                        Font: |-
+                            =Font.'Segoe UI'
                         Height: |-
                             =24
                         Label: |-
@@ -14293,12 +14483,14 @@ Screens:
                             =Patch(colVhpAttachments, ThisItem, { Selected: true })
                         OnUncheck: |-
                             =Patch(colVhpAttachments, ThisItem, { Selected: false })
+                        Size: |-
+                            =13
                         Width: |-
                             =30
                         X: |-
                             =0 + 0 + 0
                         Y: |-
-                            =0 + 0 + ((((34) - 2) - 0 - 0) - (24)) / 2
+                            =0 + 0 + ((((36) - 1) - 0 - 0) - (24)) / 2
                   - txtVhpAttName:
                       Control: ModernText
                       Properties:
@@ -14335,7 +14527,7 @@ Screens:
                         X: |-
                             =0 + 0 + 0 + (30) + 10
                         Y: |-
-                            =0 + 0 + ((((34) - 2) - 0 - 0) - (30)) / 2
+                            =0 + 0 + ((((36) - 1) - 0 - 0) - (30)) / 2
                   - txtVhpAttScope:
                       Control: ModernText
                       Properties:
@@ -14380,14 +14572,20 @@ Screens:
                         X: |-
                             =0 + 0 + 0 + (30) + 10 + (190) + 10
                         Y: |-
-                            =0 + 0 + ((((34) - 2) - 0 - 0) - (30)) / 2
+                            =0 + 0 + ((((36) - 1) - 0 - 0) - (30)) / 2
                   - chkVhpAttOp:
                       Control: ModernCheckbox
                       Properties:
                         AccessibleLabel: |-
                             ="Attach to operation " & varVhpAttOpNo
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
+                        Color: |-
+                            =C.'text-primary'
                         Default: |-
                             =";" & varVhpAttOpNo & ";" in Coalesce(ThisItem.OperationsKey, ";")
+                        Font: |-
+                            =Font.'Segoe UI'
                         Height: |-
                             =24
                         Label: |-
@@ -14411,12 +14609,37 @@ Screens:
                                     { OperationsKey: Substitute(Coalesce(OperationsKey, ";"), ";" & varVhpAttOpNo & ";", ";") }
                                 )
                             )
+                        Size: |-
+                            =13
                         Width: |-
                             =130
                         X: |-
                             =0 + 0 + 0 + (30) + 10 + (190) + 10 + (120) + 10
                         Y: |-
-                            =0 + 0 + ((((34) - 2) - 0 - 0) - (24)) / 2
+                            =0 + 0 + ((((36) - 1) - 0 - 0) - (24)) / 2
+                  - rctVhpAttRule:
+                      Control: Rectangle
+                      Properties:
+                        AccessibleLabel: |-
+                            =""
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =C.'border-subtle'
+                        Height: |-
+                            =1
+                        OnSelect: |-
+                            =false
+                        TabIndex: |-
+                            =-1
+                        Width: |-
+                            =(((Min(620, App.Width - 40)) - 18 - 18) - 2 * 0 - 18 - 40)
+                        X: |-
+                            =0
+                        Y: |-
+                            =35
             - txtVhpAttEmpty:
                 Control: ModernText
                 Properties:

@@ -973,7 +973,9 @@ Screens:
                                                       AccessibleLabel: |-
                                                           ="Functional location - type at least 7 characters, then Search"
                                                       Appearance: |-
-                                                          =Appearance.Outline
+                                                          =Appearance.FilledDarker
+                                                      BasePaletteColor: |-
+                                                          =C.'color-brand-primary'
                                                       BorderColor: |-
                                                           =If(
                                                               varMatValidated && !varMatFNoBomItem && IsBlank(Self.Selected.Code),
@@ -991,7 +993,7 @@ Screens:
                                                       DelayOutput: |-
                                                           =false
                                                       DisplayMode: |-
-                                                          =If(varMatFNoBomItem, DisplayMode.Disabled, If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit))
+                                                          =If((If(varMatFNoBomItem, DisplayMode.Disabled, If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                       Fill: |-
                                                           =If(If(varMatFNoBomItem, DisplayMode.Disabled, If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                       FillPortions: |-
@@ -1269,6 +1271,10 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Manufacturer"
+                                          Appearance: |-
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -1280,7 +1286,7 @@ Screens:
                                           Default: |-
                                               =varMatFManufacturer
                                           DisplayMode: |-
-                                              =If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =If(If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
@@ -1378,6 +1384,10 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Model number"
+                                          Appearance: |-
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -1389,7 +1399,7 @@ Screens:
                                           Default: |-
                                               =varMatFModelNumber
                                           DisplayMode: |-
-                                              =If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =If(If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
@@ -1487,6 +1497,10 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Manufacturer part no."
+                                          Appearance: |-
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -1498,7 +1512,7 @@ Screens:
                                           Default: |-
                                               =varMatFManufacturerPartNo
                                           DisplayMode: |-
-                                              =If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =If(If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
@@ -1720,6 +1734,10 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Material description, required"
+                                          Appearance: |-
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =If(
                                                   varMatValidated && IsBlank(Trim(Self.Text)),
@@ -1735,7 +1753,7 @@ Screens:
                                           Default: |-
                                               =varMatFText
                                           DisplayMode: |-
-                                              =If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =If(If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
@@ -1860,6 +1878,10 @@ Screens:
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Documents on this row"
+                                                Appearance: |-
+                                                    =Appearance.FilledDarker
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
                                                 BorderColor: |-
                                                     =C.'border-default'
                                                 BorderStyle: |-
@@ -1871,7 +1893,7 @@ Screens:
                                                 Default: |-
                                                     =If(IsBlank(varMatActiveRowId), "Save the row first", Text(Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).FileCount, 0)) & " document(s)")
                                                 DisplayMode: |-
-                                                    =DisplayMode.View
+                                                    =If((DisplayMode.View) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(DisplayMode.View = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 FillPortions: |-
@@ -2049,6 +2071,10 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Stock unit"
+                                          Appearance: |-
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -2060,7 +2086,7 @@ Screens:
                                           Default: |-
                                               =varMatFStockUnit
                                           DisplayMode: |-
-                                              =If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =If(If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
@@ -2159,7 +2185,9 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Price"
                                           Appearance: |-
-                                              =Appearance.Outline
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -2171,7 +2199,7 @@ Screens:
                                           Default: |-
                                               =varMatFPrice
                                           DisplayMode: |-
-                                              =If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =If(If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
@@ -2296,6 +2324,10 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Price unit"
+                                          Appearance: |-
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -2307,7 +2339,7 @@ Screens:
                                           Default: |-
                                               =varMatFPriceUnit
                                           DisplayMode: |-
-                                              =If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =If(If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
@@ -2406,7 +2438,9 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Delivery time (days)"
                                           Appearance: |-
-                                              =Appearance.Outline
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -2418,7 +2452,7 @@ Screens:
                                           Default: |-
                                               =varMatFDeliveringTime
                                           DisplayMode: |-
-                                              =If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =If(If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
@@ -2515,7 +2549,9 @@ Screens:
                                           AccessibleLabel: |-
                                               ="Recommended stock"
                                           Appearance: |-
-                                              =Appearance.Outline
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -2527,7 +2563,7 @@ Screens:
                                           Default: |-
                                               =varMatFRecommendedStock
                                           DisplayMode: |-
-                                              =If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =If(If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
@@ -2623,6 +2659,10 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Supplier"
+                                          Appearance: |-
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -2634,7 +2674,7 @@ Screens:
                                           Default: |-
                                               =varMatFSupplier
                                           DisplayMode: |-
-                                              =If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =If(If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
@@ -2761,6 +2801,10 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Supplier part no."
+                                          Appearance: |-
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -2772,7 +2816,7 @@ Screens:
                                           Default: |-
                                               =varMatFSupplierPartNo
                                           DisplayMode: |-
-                                              =If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =If(If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
@@ -2870,6 +2914,10 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Strategic part"
+                                          Appearance: |-
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -2881,7 +2929,7 @@ Screens:
                                           Default: |-
                                               =varMatFStrategicPart
                                           DisplayMode: |-
-                                              =If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =If(If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
@@ -2979,6 +3027,10 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Wear part"
+                                          Appearance: |-
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =C.'border-default'
                                           BorderStyle: |-
@@ -2990,7 +3042,7 @@ Screens:
                                           Default: |-
                                               =varMatFWearPart
                                           DisplayMode: |-
-                                              =If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                              =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =If(If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                           Font: |-
@@ -3283,6 +3335,10 @@ Screens:
                                   Properties:
                                     AccessibleLabel: |-
                                         ="Long text"
+                                    Appearance: |-
+                                        =Appearance.FilledDarker
+                                    BasePaletteColor: |-
+                                        =C.'color-brand-primary'
                                     BorderColor: |-
                                         =C.'border-default'
                                     BorderStyle: |-
@@ -3294,7 +3350,7 @@ Screens:
                                     Default: |-
                                         =varMatFLongText
                                     DisplayMode: |-
-                                        =If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)
+                                        =If((If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                     Fill: |-
                                         =If(If(varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                     Font: |-
@@ -4094,6 +4150,10 @@ Screens:
                                   Properties:
                                     AccessibleLabel: |-
                                         ="Search the rows"
+                                    Appearance: |-
+                                        =Appearance.FilledDarker
+                                    BasePaletteColor: |-
+                                        =C.'color-brand-primary'
                                     BorderColor: |-
                                         =C.'border-default'
                                     BorderStyle: |-
@@ -10021,8 +10081,14 @@ Screens:
                       Properties:
                         AccessibleLabel: |-
                             ="Select document"
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
+                        Color: |-
+                            =C.'text-primary'
                         Default: |-
                             =ThisItem.Selected
+                        Font: |-
+                            =Font.'Segoe UI'
                         Height: |-
                             =24
                         Label: |-
@@ -10031,6 +10097,8 @@ Screens:
                             =Patch(colMatAttachments, ThisItem, { Selected: true })
                         OnUncheck: |-
                             =Patch(colMatAttachments, ThisItem, { Selected: false })
+                        Size: |-
+                            =13
                         Width: |-
                             =30
                         X: |-

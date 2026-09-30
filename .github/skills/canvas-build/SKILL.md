@@ -50,6 +50,15 @@ Skal en farve bruges inde i en **HTML-streng** (`HtmlViewer`), så brug
 `design_tokens.ref_hex()` — hex-værdierne afledes af de samme tokens og
 kan derfor ikke glide fra dem.
 
+**Felter arver aldrig Fluent-temaets farver** (issue #78). Byg dem med
+`text_input` / `number_input` / `date_picker` / `dropdown` — de går alle
+gennem `build_helpers.input_theme` — og afkrydsningsfelter med
+`checkbox_theme`. Et låst felt er `DisplayMode.View` (`readonly_mode`),
+aldrig `Disabled`: Fluent ignorerer vores `Color`/`Fill` i Disabled, og i
+mørk tilstand blev det grå tekst på sort. `check_layout` regel 10c stopper
+byggeriet. Tabeller får `table_surface` / `row_rule` — ikke galleriets fyld
+i kantfarven. Se `docs/26-designtokens.md`.
+
 Temaknappen er `build_helpers.theme_button()` og er **den samme kontrol i
 alle apps**. Den står i sidebarens fod (`tools/side_nav.py`). Byg ikke en ny.
 

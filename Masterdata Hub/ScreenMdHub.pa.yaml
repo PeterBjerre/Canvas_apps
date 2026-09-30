@@ -851,6 +851,10 @@ Screens:
                             Properties:
                               AccessibleLabel: |-
                                   ="Search number, text or plant"
+                              Appearance: |-
+                                  =Appearance.FilledDarker
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
                               BorderColor: |-
                                   =C.'border-default'
                               BorderStyle: |-
@@ -862,7 +866,7 @@ Screens:
                               Default: |-
                                   =""
                               Fill: |-
-                                  =C.'bg-card'
+                                  =C.'input-bg'
                               Font: |-
                                   =Font.'Segoe UI'
                               Height: |-
@@ -880,9 +884,11 @@ Screens:
                               RadiusTopRight: |-
                                   =10
                               Size: |-
-                                  =13
+                                  =14
                               Type: |-
                                   =TextInputType.Search
+                              ValidationState: |-
+                                  =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                               Width: |-
                                   =280
                         - btnMdStOpen:

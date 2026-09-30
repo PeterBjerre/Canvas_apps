@@ -571,7 +571,10 @@ HTML_TOKENS = ("text-primary", "text-muted",
                # Hubbens fliser og liste (Masterdata Hub/build/build_hub.py):
                # domaeneikonerne og statusikonerne er SVG'er i de samme farver.
                "domain-fl", "domain-eq", "domain-mp", "domain-mat", "domain-vhp",
-               "state-error-fg", "state-neutral-fg")
+               "state-error-fg", "state-neutral-fg",
+               # Skillelinjerne i FL-strukturens tabel (issue #77) - de samme
+               # som C_DIVIDER i galleriernes raekker.
+               "border-subtle")
 
 
 

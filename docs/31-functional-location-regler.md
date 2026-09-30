@@ -9,7 +9,8 @@ her uden en implementering er en fejl.
 
 `functional-location.html` er kun markup: en tabel (#, Functional Location,
 Description, KKS Type, Assigned Class, Validation, Action), knapperne
-**Verify**, **Export JSON**, **Add row** og et kort med klassefaner. Alle
+**Verify**, **Export JSON**, **Add row** og et kort med klassefaner (appen har
+hverken Verify eller Export JSON - valideringen er automatisk, issue #77). Alle
 regler står i de scripts, siden indlæser:
 
 | Fil (i `html/`) | Indhold | Brugt som |
@@ -135,13 +136,13 @@ ellers fra standardkolonnerne, ellers er det feltnavnet med versaler
 | FL57 | Afledte felter: StrIndicator = KKS-type, Long text = Description som standard, User status = status med versaler, System status = `LOCAL`, Info = første fejl/advarsel, SAP status | `:2079-2096`, `:2205-2242` | – | Afledt | `Switch` i `val_fx()` | `fl_parts.py` `_display_val` |
 | FL58 | Skrivebeskyttede kolonner: Class, SAP status, Info, StrIndicator, Str. Indicator, User status, System status | `:115-123`, `:2137-2139` | – | Afledt | `Editable` i `nfFlColumns` | `generate_app_onstart.py` `nfFlColumns` (`Editable`); `fl_parts.py` `txtFlDetRo` |
 | FL59 | Editor: dropdown når feltet har en liste (også de faste lister), ellers tekst med maks.-længde (Char, FL 40, Description 40). En ugyldig gemt værdi vises stadig | `:2098-2135`, `:2188-2197` | – | Afledt | `drpFlDetVal` / `inpFlDetVal`, `MaxLength` | `fl_parts.py` `inpFlDetVal`, `drpFlDetVal`, `DD_ITEMS` |
-| FL60 | Kolonnerne pr. klasse fra `FL_SPOOL_COLUMNS`. Kompakt visning: #, FL, Description, StrIndicator, Class, Info (SAP status skjult) | `:65-73`, `:1905-1958`, `:2036-2054` | – | Afledt | `nfFlColumns`; kompakt tabel | `generate_app_onstart.py` `nfFlColumns`; `fl_parts.py` `build_classes`, `C_COLS` |
+| FL60 | Kolonnerne pr. klasse fra `FL_SPOOL_COLUMNS`. Kompakt visning: #, FL, Description, StrIndicator, Class, Info (SAP status skjult) | `:65-73`, `:1905-1958`, `:2036-2054` | – | Afledt | `nfFlColumns`; kompakt tabel | `generate_app_onstart.py` `nfFlColumns`; `fl_parts.py` `build_classes`, `C_SPEC` |
 | FL61 | Detaljeruden: alle klassens kolonner med editor og besked; "Show empty"/"Hide empty" (standard: skjul tomme uden besked) | `:1960-2034` | – | Afledt | `galFlDetail`, `varFlShowEmpty` | `fl_parts.py` `build_detail`, `DET_ITEMS`, `btnFlDetEmpty` |
-| FL62 | Verify validerer alle rækker; ændring af FL/Description og af et spool-felt validerer igen | `:431-462`, `:570-580`, `:1014-1045` | – | Afledt | `Select(btnFlVerify)` i `OnChange` | `fl_parts.py` `REVERIFY`, `set_row_fx`; `fl_validation.py` `verify_fx` → `btnFlVerify` |
-| FL63 | Add row; Delete row (sidste række væk → ny tom række); siden starter med én tom række | `:399`, `:423-429`, `:464-479`, `:917-935` | – | Afledt | `btnFlAddRow`, `btnFlRowDelete`, `OnVisible` | `fl_parts.py` `add_row_fx`, `btnFlAddRow`, `btnFlRowDelete`; `assemble_screen.py` `on_visible` |
-| FL64 | Export JSON: `generatedAt`, `source`, `rows`, `classBuckets`, `ruleMeta` | `:2254-2276` | – | Afledt | `JSON()` → `Download` af data-URI + vist i ruden | `fl_save.py` `export_fx`, `payload_fx`; `fl_parts.py` `build_export` |
+| FL62 | Verify validerer alle rækker; ændring af FL/Description og af et spool-felt validerer igen. **Appen har ingen Verify-knap** (issue #77): valideringen kører automatisk ved ny række, rettet felt, slettet række og indlæst anmodning | `:431-462`, `:570-580`, `:1014-1045` | – | Afledt | Skjult `btnFlVerify`, kaldt med `Select(btnFlVerify)` | `fl_parts.py` `REVERIFY`, `set_row_fx`; `fl_validation.py` `verify_fx` → `btnFlVerify` |
+| FL63 | Add row; Delete row (sidste række væk → ny tom række, og rækkerne valideres igen - JS'en gør det ikke, men uden Verify-knap ville Submit ellers stå låst); siden starter med én tom række | `:399`, `:423-429`, `:464-479`, `:917-935` | – | Afledt | `btnFlAddRow`, `btnFlRowDelete`, `OnVisible` | `fl_parts.py` `add_row_fx`, `btnFlAddRow`, `btnFlRowDelete`; `assemble_screen.py` `on_visible` |
+| FL64 | Export JSON: `generatedAt`, `source`, `rows`, `classBuckets`, `ruleMeta` | `:2254-2276` | – | – | Bevidst fjernet (issue #77): knappen er væk. Samme form fryses stadig som snapshot ved Submit (`fl_save.py` `payload_fx`) | – |
 | FL65 | Klassernes hjælpetekster (`CLASS_HELP`) | `:75-113` | – | Afledt | `nfFlClassHelp` | `generate_app_onstart.py` `nfFlClassHelp`; `fl_parts.py` `btnFlTab` (Tooltip) |
-| FL66 | Tællere: rækker i alt, klar (valid+warning), med fejl | `:2244-2252` | – | Afledt | Badges i bjælken | `fl_parts.py` `COUNTS` → `txtFlCount` |
+| FL66 | Tællere: rækker i alt, klar (valid+warning), med fejl | `:2244-2252` | – | Afledt | Badge i bjælken ved siden af Save draft, Submit og New request | `fl_parts.py` `COUNTS` → `txtFlCount` |
 | FL67 | Uden virkning i originalen: `FIELD_REGEX_RULES` bruges ingen steder; trinet `VerifyFunctionalLocationClasses` gør intet; `FL_CLASSIFICATION_DATA` overskrives af `FL_LOOKUPS` | `:159-177`, `:182-200`, `fl-rule-engine.js:264` | – | – | Bevidst ikke implementeret: det ville give en regel, originalen ikke har | – (efterprøvet af differentialtesten: 0 afvigelser uden dem) |
 
 ### Regler, appen lægger til (fra opgaven, ikke fra HTML'en)
@@ -162,10 +163,10 @@ ellers fra standardkolonnerne, ellers er det feltnavnet med versaler
 | PX4 | `new Date(y, m-1, d)` i JS mod `Date()` i Power Fx: Power Fx lægger 1900 til år under 1900 | Datotjekket er ren aritmetik: år ≥ 100, måned 1-12, dag 1-dage i måneden (gregoriansk skudår). Det svarer præcis til JS' `getFullYear()`-sammenligning, også for år 100-1899, som JS accepterer. Efterprøvet i differentialtesten |
 | PX5 | `FunctionKeyDict` har 6.445 rækker (6.441 efter normalisering) - over SharePoints delegeringsgrænse (500/2000). Et `LookUp` mod SharePoint med en værdi fra en `ForAll` kan ikke delegeres (`check_layout` regel 30), så SharePoint ville kun lede i de første 500-2000 rækker, og en gyldig nøgle længere nede ville blive afvist i stilhed | Nøglerne ligger i appen, som siden har dem i `lookups.generated.js`: én streng `0ABA0ABB0…0` i `nfFlFunctionKeys`, slået op med `exactin` (forskel på store og små bogstaver, som `Set.has`). Separatoren er et ciffer, fordi nøglerne er rene bogstaver (byggeriet stopper, hvis det ændrer sig). Aggregat (146), komponent (139), BR18 (7) og værker (8) ligger som navngivne tabeller. `MD_FLKey` i SharePoint er seedet med de samme nøgler til flows og serverside-validering, men appen læser den ikke |
 | PX6 | SharePoint sammenligner tekst uden forskel på store og små bogstaver, `Set.has` i JS gør det med forskel | Alle nøgler i `FL_LOOKUPS` er versaler, og FL normaliseres til versaler før opslaget. Forskellen kan ikke opstå med de nuværende data |
-| PX7 | Ingen funktioner med parametre (UDF er ikke slået til) | Verify-formlen er genereret af Python ét sted (`fl_validation.py`) og kaldt ét sted (`btnFlVerify`). Alle andre steder bruger `Select(btnFlVerify)` |
+| PX7 | Ingen funktioner med parametre (UDF er ikke slået til) | Valideringsformlen er genereret af Python ét sted (`fl_validation.py`) og står ét sted: den skjulte `btnFlVerify`. Alle ændringer bruger `Select(btnFlVerify)` (issue #77) |
 | PX8 | Klassetabellen med 30-50 dynamiske kolonner (`mode-all`) kan ikke laves som et canvas-galleri med dynamiske kolonner uden en celle pr. felt | Kompakt tabel i fanen, og "All columns" er detaljeruden (FL61), som viser og redigerer hver kolonne. Samme felter, samme editorer, samme beskeder - kun layoutet er et andet. Se AQ4 |
 | PX9 | Hovertooltips (`data-hint`) | `Tooltip` findes kun på interaktive kontroller (`check_layout` regel 10). Hjælpeteksten sidder derfor på en lille `?`-knap ved beskeden (`btnFlRowHint`), der også viser teksten ved klik |
-| PX10 | `Blob` + `<a download>` kan ikke laves i en canvas app | Export JSON viser JSON'en i en popup, hvor den kan kopieres. Indholdet er det samme som snapshottet |
+| PX10 | `Blob` + `<a download>` kan ikke laves i en canvas app | Export JSON er fjernet (issue #77). Snapshottet ved Submit har samme indhold og ligger i `PayloadJson` |
 | PX11 | Opdatering af mange SharePoint-rækker med `LookUp(Liste, ID = X.ID)` i en `ForAll` kan ikke delegeres, og `{ ID: … }`-records afvises som base-rækker i `Patch`/`Remove` (issue #32) | Anmodningens rækker hentes én gang med et delegerbart filter på `varFlRequestGuid` (`With({ ex: … })`). Base-rækkerne slås op i den tabel. Nye rækker skrives med én `Collect` |
 | PX12 | `GroupBy`, `Ungroup`, `DropColumns` m.fl. kræver kolonnenavne som navne, ikke strenge (issue #32: 42 compile-fejl) | Skrevet som navne. `check_layout` regel 31 stopper byggeriet, hvis en streng sniger sig ind |
 | PX13 | `IfError` kræver, at værdi og fallback har samme type. `Patch` af én række giver en record, `Collect` en tabel (issue #32 - fejlen sad i `IfError(Patch(…), Collect(…))` om hovedet, og de to første rettelser ramte andre `IfError`) | Alle grene i gemmets `IfError` ender i `; true` / `; false`. `check_layout` regel 32 stopper byggeriet, når en gren ender i `Patch`, `Collect`, `ClearCollect` eller `Remove` |
@@ -326,11 +327,10 @@ De har deres egen matrix nedenfor og efterprøves i Studio efter deploy.
 | FL60 | MKP-fane → kolonnerne #, FL, Description, StrIndicator, Class, Info | SAP status vises ikke |
 | FL61 | Show empty → alle 45 MKP-kolonner | Hide empty → kun udfyldte og dem med besked |
 | FL62 | Ret FL → rækken valideres igen med det samme | Ret Remarks til 31 tegn i detaljeruden → rækken bliver straks `invalid` med `Remarks: Max 30 characters.` |
-| FL63 | Slet eneste række → én ny tom række | Slet den ene af to dubletter → den anden beholder `Duplicate FL.`, til Verify køres (som i JS, der ikke validerer ved sletning), og Submit er inaktiv imens |
-| FL64 | Export JSON → popup med `rows`, `classBuckets`, `ruleMeta` | Kun en tom række → `rows: []` |
+| FL63 | Slet eneste række → én ny tom række | Slet den ene af to dubletter → den anden mister `Duplicate FL.` med det samme (automatisk validering, issue #77) |
 | FL65 | Musen over fanen `GIV (1)` → `GIV: TRANSDUSERS` | Fanen `NO CLASS` → ingen hjælpetekst |
 | FL66 | 3 rækker, 1 med fejl → `Rows: 3`, `Ready: 2`, `Issues: 1` | En tom række → tæller i `Rows`, ikke i `Ready` eller `Issues` |
-| FL68 | Ingen fejl, Verify kørt → Submit aktiv | En række `invalid` → Submit inaktiv og beskeden vist |
+| FL68 | Ingen fejl → Submit aktiv, uden at noget skal trykkes | En række `invalid` → Submit inaktiv og beskeden vist |
 | FL69 | Indsendt → felterne er grå | Kladde → felterne kan redigeres |
 | FL70 | New request → én tom række, intet nummer | Efter Submit → New request giver en ny, tom anmodning; den indsendte er uændret i SharePoint |
 
