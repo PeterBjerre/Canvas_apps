@@ -49,10 +49,10 @@ def _fl_cell():
     picker = dp.build_fl_picker(
         CELL_W, lock=NOBOM, required_formula=f"{REQUIRED} && !{NOBOM}")
     label = "Functional location"
-    lbl = text_ctrl("conDomFlLbl", f'"{label}"', size=13, weight="Semibold",
+    lbl = text_ctrl("txtDomFlLbl", f'"{label}"', size=13, weight="Semibold",
                     height=20, width=f"Min({label_px(label)}, ({CELL_W}) - 13)",
                     wrap="false")
-    star = text_ctrl("conDomFlStar", '"*"', size=13, color=C_REQUIRED,
+    star = text_ctrl("txtDomFlStar", '"*"', size=13, color=C_REQUIRED,
                      weight="Semibold", height=20, width=10, wrap="false",
                      accessible='"Required"', visible=f"!{NOBOM}")
     head = group("conDomFlLblRow", [lbl, star], direction="Horizontal", gap=3,

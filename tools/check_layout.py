@@ -1166,8 +1166,8 @@ def main():
 
     # --- 5. HTML-overskriften skal flugte med kontrollerne i raekken -------
     by_name = {n: b for _, n, b in all_nodes}
-    for html_name, row_name in (("conVhpOpsHeaderHtml", "conVhpOpRow"),
-                                ("conVhpPickerHeaderHtml", "conVhpPickerRow")):
+    for html_name, row_name in (("htmVhpOpsHeader", "conVhpOpRow"),
+                                ("htmVhpPickerHeader", "conVhpPickerRow")):
         if html_name not in by_name or row_name not in by_name:
             continue
         html = (by_name[html_name].get("Properties") or {}).get("HtmlText", "")
@@ -1866,6 +1866,21 @@ def main():
     #
     # Elleve falske fund ville laere nogen at springe advarsler over, og
     # saa gaar regel 15's rigtige fund samme vej.
+
+    # --- 33. Navnets praefiks foelger kontroltypen (REVIEW.md A3/A4) -------
+    # "txt" var baade ModernText og tekstfelt, og 110 etiketter hed "con"
+    # efter den celle, de sad i. Standarden staar i SKILL.md; her holdes den.
+    PREFIX = {"GroupContainer": "con", "ModernText": "txt", "Gallery": "gal",
+              "HtmlViewer": "htm", "Rectangle": "rct",
+              "ModernTextInput": "inp", "ModernNumberInput": "num",
+              "ModernDatePicker": "dte", "Classic/DropDown": "drp",
+              "ModernCombobox": "cmb", "ModernCheckbox": "chk",
+              "ModernToggle": "tgl"}
+    for p_, name, body in all_nodes:
+        want = PREFIX.get((body.get("Control") or "").strip().split("@")[0])
+        if want and not re.match(want + r"[A-Z]", name):
+            problems.append(f"[33] {name}: en {body['Control'].split('@')[0]} "
+                            f"skal hedde {want}<App><Navn>")
 
     # --- 18. Enhver Gallery skal have TabIndex ----------------------------
     # En Gallery er en interaktiv kontrol for tastaturet - ogsaa naar

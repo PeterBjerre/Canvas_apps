@@ -207,7 +207,9 @@ def _var(col):
 
 
 def _input_for(col, kind, choices):
-    name = "inpDom" + col
+    # Praefikset foelger kontroltypen (REVIEW.md A4): inp = tekst,
+    # num = tal, dte = dato.
+    name = {"num": "numDom", "date": "dteDom"}.get(kind, "inpDom") + col
     v = _var(col)
     if kind == "num":
         c = number_input(name, v, display_mode=DM_ROW)
@@ -1224,7 +1226,7 @@ def docs_cell():
     den eksisterende dokumentpopup. Dokumenterne ligger i en mappe, der
     hedder raekkens noegle, saa knappen virker foerst efter Save."""
     info = grow(text_input(
-        "txtDomDocsInfo",
+        "inpDomDocsInfo",
         ('If(IsBlank(varDomActiveRowId), "Save the row first", '
          f'Text(Coalesce({ACTIVE}.FileCount, 0)) & " document(s)")'),
         display_mode="DisplayMode.View", label='"Documents on this row"'))
@@ -1331,11 +1333,11 @@ ALL_COLS = "varDomAllCols"
 # vaerdier i colDomRows.Status og maa ikke oversaettes.
 ALL_STATUS = "All status"
 ALL_PLANTS = "All plants"
-SEARCH = " || ".join(f"Trim(txtDomSearch.Text) in {c}" for c in cfg.SEARCH_FIELDS)
+SEARCH = " || ".join(f"Trim(inpDomSearch.Text) in {c}" for c in cfg.SEARCH_FIELDS)
 LIST_SCOPE = (
     "Filter(\n"
     "    colDomRows,\n"
-    f"    (IsBlank(Trim(txtDomSearch.Text)) || {SEARCH}),\n"
+    f"    (IsBlank(Trim(inpDomSearch.Text)) || {SEARCH}),\n"
     f'    (drpDomStatusFilter.Selected.Value = "{ALL_STATUS}" ||\n'
     "     Status = Lower(drpDomStatusFilter.Selected.Value)),\n"
     f'    (drpDomPlantFilter.Selected.Value = "{ALL_PLANTS}" ||\n'
@@ -1503,7 +1505,7 @@ def build_list(slots, badge_head, search_placeholder):
     # --- hovedet: titel, soegning og de to filtre ---------------------
     title = text_ctrl("txtDomRowsH", '"Saved Rows"', size=17, weight="Semibold",
                       height=26, wrap="false")
-    search = text_input("txtDomSearch", '""', width="240",
+    search = text_input("inpDomSearch", '""', width="240",
                         placeholder=f'"{search_placeholder}"',
                         label='"Search the rows"')
     status = themed_dropdown(

@@ -3,7 +3,7 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import Ctrl, C_MUTED, C_REQUIRED, C_INFO_BG, SHELL_W
 import build_help as bh
-from build_helpers import (text_ctrl, group, button, text_input, number_input,
+from build_helpers import (child_name, text_ctrl, group, button, text_input, number_input,
                            themed_dropdown, field_cell, col_width, badge, card, grow,
                            column_grid, text_px, fit_button_width, ICON_W)
 
@@ -57,13 +57,13 @@ def section_header(name, title, step_label, extra_right=(), extra_left=()):
 
     Beskrivelsen under titlen er fjernet (issue #54). Den gentog blot det,
     sektionen viser, og kostede en linje paa hvert kort."""
-    t = text_ctrl(f"{name}Title", f"\"{title}\"", size=19, weight="Semibold", height=29,
+    t = text_ctrl(child_name("txt", name, "Title"), f"\"{title}\"", size=19, weight="Semibold", height=29,
                   width=text_px(title, 19), wrap="false")
     t.props["LayoutMinWidth"] = t.props["Width"]
 
     right = list(extra_right)
     if step_label:
-        right.append(badge(f"{name}Badge", f"\"{step_label}\"", width=64))
+        right.append(badge(child_name("txt", name, "Badge"), f"\"{step_label}\"", width=64))
 
     # FLAD RAEKKE (issue #54 - titlerne manglede i Studio). Titlen staar
     # DIREKTE i overskriftens raekke, ikke i en indlejret gruppe, og en tom
@@ -99,15 +99,15 @@ def help_panel(name, section):
     Teksten kan dermed rettes af dem, der kender fagligheden, uden at
     nogen skal bygge appen. Se build_help.py."""
     v = help_var(section)
-    head = text_ctrl(f"{name}H", "ThisItem.Heading", size=13, weight="Semibold",
+    head = text_ctrl(child_name("txt", name, "H"), "ThisItem.Heading", size=13, weight="Semibold",
                      height=18, wrap="false",
                      visible='!IsBlank(ThisItem.Heading)')
-    body = text_ctrl(f"{name}B", "ThisItem.Body", size=12, color=C_MUTED,
+    body = text_ctrl(child_name("txt", name, "B"), "ThisItem.Body", size=12, color=C_MUTED,
                      height=HELP_LINE_H - 18 - 6, wrap="true")
     tmpl = group(f"{name}Row", [head, body], direction="Vertical", gap=2,
                  width="Parent.TemplateWidth",
                  height="Parent.TemplateHeight - 2")
-    gal = Ctrl(f"{name}Gal", "Gallery", variant="Vertical", props={
+    gal = Ctrl(child_name("gal", name), "Gallery", variant="Vertical", props={
         # Tilgaengelighedstjekket: en Gallery UDEN AccessibleLabel er fire
         # fejl i VH-plan - eet pr. hjaelpepanel. En skaermlaeser skal kunne
         # sige, hvad listen indeholder.
@@ -127,7 +127,7 @@ def help_panel(name, section):
     }, children=[tmpl],
         h=f"Max(CountRows({bh.panel(section)}), 1) * {HELP_LINE_H}")
     empty = text_ctrl(
-        f"{name}Empty",
+        child_name("txt", name, "Empty"),
         bh._q("No help text for this section yet - it is maintained in "
               "the SharePoint list MD_HelpText."),
         size=12, color=C_MUTED, height=32, wrap="true",
@@ -141,8 +141,8 @@ def help_panel(name, section):
 # alle varVhpPlan som Default. Reset() giver derfor den senest gemte plan
 # tilbage, eller appens startvaerdier, hvis planen aldrig er gemt.
 PLAN_CONTROLS = ("drpVhpPlanType", "drpVhpStrategy", "drpVhpPlant", "drpVhpStatus",
-                 "txtVhpPlanText", "drpVhpSortField", "numVhpCycle", "drpVhpUnit",
-                 "drpVhpCallHorizon", "txtVhpSchedInd", "txtVhpStatutorySortField",
+                 "inpVhpPlanText", "drpVhpSortField", "numVhpCycle", "drpVhpUnit",
+                 "drpVhpCallHorizon", "inpVhpSchedInd", "inpVhpStatutorySortField",
                  "numVhpFirstCallDay", "numVhpFirstCallMonth", "numVhpFirstCallYear")
 
 
@@ -176,7 +176,7 @@ def build_plan_header():
         display_mode=f"If(varVhpPlanLocked || {LIVE_NOT_STRATEGY}, DisplayMode.Disabled, DisplayMode.Edit)",
         value_col="Key", display_col="Value")
 
-    txtPlanText = text_input("txtVhpPlanText", "varVhpPlan.PlanText", max_length=40,
+    txtPlanText = text_input("inpVhpPlanText", "varVhpPlan.PlanText", max_length=40,
                              required_formula=REQ_PLAN, display_mode=DM_PLAN)
     drpSortField = themed_dropdown("drpVhpSortField", "colVhpSortFieldOptions",
                             "LookUp(colVhpSortFieldOptions, Value = varVhpPlan.SortField).Value",
@@ -188,14 +188,14 @@ def build_plan_header():
     drpCallHorizon = themed_dropdown("drpVhpCallHorizon", "colVhpCallHorizonOptions",
                               "LookUp(colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon).Value",
                               display_mode=DM_PLAN)
-    txtSchedInd = text_input("txtVhpSchedInd", "varVhpPlan.SchedulingIndicator", display_mode=DM_PLAN)
+    txtSchedInd = text_input("inpVhpSchedInd", "varVhpPlan.SchedulingIndicator", display_mode=DM_PLAN)
     numFirstCallDay = number_input("numVhpFirstCallDay", "varVhpPlan.FirstCallDay", min_v=1, max_v=31,
                                    required_formula=REQ_PLAN, display_mode=DM_PLAN, label="\"First call, day\"")
     numFirstCallMonth = number_input("numVhpFirstCallMonth", "varVhpPlan.FirstCallMonth", min_v=1, max_v=12,
                                      required_formula=REQ_PLAN, display_mode=DM_PLAN, label="\"First call, month\"")
     numFirstCallYear = number_input("numVhpFirstCallYear", "varVhpPlan.FirstCallYear", min_v=2020, max_v=2100,
                                     required_formula=REQ_PLAN, display_mode=DM_PLAN, label="\"First call, year\"")
-    txtStatutorySortField = text_input("txtVhpStatutorySortField", "varVhpPlan.StatutorySortField",
+    txtStatutorySortField = text_input("inpVhpStatutorySortField", "varVhpPlan.StatutorySortField",
                                        display_mode=DM_PLAN)
 
     # KOLONNE-ORDEN (issue #54). Felterne udfyldes oppefra og ned i hver
@@ -278,7 +278,7 @@ def build_plan_header():
             "            IsBlank(drpVhpStatus.Selected.Value) ||\n"
             "            IsBlank(drpVhpPlanType.Selected.Key) ||\n"
             "            (isStrat && IsBlank(drpVhpStrategy.Selected.Key)) ||\n"
-            "            IsBlank(Trim(txtVhpPlanText.Text)) || Len(Trim(txtVhpPlanText.Text)) > 40 ||\n"
+            "            IsBlank(Trim(inpVhpPlanText.Text)) || Len(Trim(inpVhpPlanText.Text)) > 40 ||\n"
             "            (!isStrat && (IsBlank(numVhpCycle.Value) || numVhpCycle.Value <= 0)) ||\n"
             "            (!isStrat && IsBlank(drpVhpUnit.Selected.Value)) ||\n"
             "            IsBlank(numVhpFirstCallDay.Value) || numVhpFirstCallDay.Value < 1 || numVhpFirstCallDay.Value > 31 ||\n"
@@ -295,16 +295,16 @@ def build_plan_header():
             "                    Status: drpVhpStatus.Selected.Value,\n"
             "                    PlanType: drpVhpPlanType.Selected.Key,\n"
             "                    Strategy: If(isStrat, drpVhpStrategy.Selected.Key, \"\"),\n"
-            "                    PlanText: Trim(txtVhpPlanText.Text),\n"
+            "                    PlanText: Trim(inpVhpPlanText.Text),\n"
             "                    SortField: drpVhpSortField.Selected.Value,\n"
             "                    Cycle: If(isStrat, 0, numVhpCycle.Value),\n"
             "                    Unit: If(isStrat, \"\", drpVhpUnit.Selected.Value),\n"
             "                    CallHorizon: drpVhpCallHorizon.Selected.Value,\n"
-            "                    SchedulingIndicator: Trim(txtVhpSchedInd.Text),\n"
+            "                    SchedulingIndicator: Trim(inpVhpSchedInd.Text),\n"
             "                    FirstCallDay: numVhpFirstCallDay.Value,\n"
             "                    FirstCallMonth: numVhpFirstCallMonth.Value,\n"
             "                    FirstCallYear: numVhpFirstCallYear.Value,\n"
-            "                    StatutorySortField: Trim(txtVhpStatutorySortField.Text)\n"
+            "                    StatutorySortField: Trim(inpVhpStatutorySortField.Text)\n"
             "                }\n"
             "            );\n"
             "            Set(varVhpPlanCommitted, true);\n"
@@ -327,7 +327,7 @@ def build_plan_header():
             "                )\n"
             "            );\n"
             "            Notify(\n"
-            "                \"Plan saved and locked: \" & drpVhpPlant.Selected.Value & \" \" & Trim(txtVhpPlanText.Text) &\n"
+            "                \"Plan saved and locked: \" & drpVhpPlant.Selected.Value & \" \" & Trim(inpVhpPlanText.Text) &\n"
             "                If(isStrat, \" (strategy \" & drpVhpStrategy.Selected.Key & \").\", \".\"),\n"
             "                NotificationType.Success\n"
             "            )\n"

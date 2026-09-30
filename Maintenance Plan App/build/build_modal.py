@@ -11,7 +11,7 @@ MUT_HEX = ref_hex("text-muted")
 VISIBLE_OPS = (
     "Filter(\n"
     "    LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,\n"
-    "    IsBlank(Trim(txtVhpPickerSearch.Text)) || Trim(txtVhpPickerSearch.Text) in (OperationNo & \" \" & OperationShortText & \" \" & MainWorkCenter & \" \" & ControlKey)\n"
+    "    IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & \" \" & OperationShortText & \" \" & MainWorkCenter & \" \" & ControlKey)\n"
     ")"
 )
 
@@ -59,7 +59,7 @@ def build_tasklist_picker_modal():
     headRow = group("conVhpPickerHeadRow", [title, btnClose], direction="Horizontal", gap=12, height=32,
                     justify="SpaceBetween", align_items="Center")
 
-    txtSearch = text_input("txtVhpPickerSearch", "\"\"", placeholder="\"Search operation no, text, work center\"",
+    txtSearch = text_input("inpVhpPickerSearch", "\"\"", placeholder="\"Search operation no, text, work center\"",
                             height=36, label="\"Search operations\"")
     grow(txtSearch)
     chkSelectAll = Ctrl("chkVhpPickerSelectAll", "ModernCheckbox", props=checkbox_theme({
@@ -117,7 +117,7 @@ def build_tasklist_picker_modal():
             f"Text(CountRows({VISIBLE_OPS})) & \" visible selected (\" & Text(CountRows(colVhpPickerSelected)) & \" total selected).\""
         ), size=12, color=C_MUTED, height=18, wrap="false")
 
-    headHtml = Ctrl("conVhpPickerHeaderHtml", "HtmlViewer", props={
+    headHtml = Ctrl("htmVhpPickerHeader", "HtmlViewer", props={
         "Fill": C_TRANSPARENT, "Height": "22", "HtmlText": PICKER_HEADER_HTML,
         "PaddingBottom": "0", "PaddingLeft": "0", "PaddingRight": "0", "PaddingTop": "0", "Width": "636",
     }, h=22)
@@ -264,7 +264,7 @@ def build_longtext_modal():
          'as the technician needs to read it - steps, safety notes and references."'),
         size=12, color=C_MUTED, height=32, wrap="true")
 
-    box = text_input("txtVhpLongTextBox", "varVhpLongTextDraft",
+    box = text_input("inpVhpLongTextBox", "varVhpLongTextDraft",
                      placeholder='"Instructions for this operation"',
                      width="Parent.Width", height=260, ttype="Multiline", label="\"Long text\"")
 
@@ -279,11 +279,11 @@ def build_longtext_modal():
             "If(\n"
             "    varVhpLongTextTarget = \"item\",\n"
             "    UpdateIf(colVhpItems, ItemId = varVhpLongTextItemId,\n"
-            "             { LongText: Trim(txtVhpLongTextBox.Text) }),\n"
+            "             { LongText: Trim(inpVhpLongTextBox.Text) }),\n"
             "    UpdateIf(\n"
             "        colVhpOperations,\n"
             f"        {LT_TARGET},\n"
-            "        { LongText: txtVhpLongTextBox.Text }\n"
+            "        { LongText: inpVhpLongTextBox.Text }\n"
             "    )\n"
             ");\n"
             "Set(varVhpLongTextOpen, false)"

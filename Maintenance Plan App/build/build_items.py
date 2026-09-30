@@ -110,9 +110,9 @@ FL_PICK_VAR = "varVhpFlPick"
 RESET_EDITOR_CONTROLS = (
     f"Set({FL_QUERY_VAR}, \"\"); Set({FL_LAST_VAR}, \"\"); Set({FL_PICK_VAR}, \"\"); "
     f"Reset({FL_COMBO}); "
-    "Reset(txtVhpItemShortText); "
+    "Reset(inpVhpItemShortText); "
     "Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(tglVhpItemRevision); "
-    "Reset(txtVhpItemInitials); "
+    "Reset(inpVhpItemInitials); "
     "Reset(drpVhpItemTasklist)"
 )
 
@@ -478,7 +478,7 @@ def build_item_editor():
     drpAct = themed_dropdown("drpVhpItemActivityType", "colVhpActivityTypeOptions",
                       "LookUp(colVhpActivityTypeOptions, Value = LookUp(colVhpItems, ItemId = varVhpActiveItemId).ActivityType).Value",
                       required_formula=REQ_ITEM, display_mode=DM_ITEM)
-    txtShort = text_input("txtVhpItemShortText",
+    txtShort = text_input("inpVhpItemShortText",
                           "LookUp(colVhpItems, ItemId = varVhpActiveItemId).ShortText", max_length=40,
                           required_formula=REQ_ITEM, display_mode=DM_ITEM)
     # REVISION ER EN TOGGLE (issue #54). SharePoint-kolonnen RevisionMark
@@ -502,7 +502,7 @@ def build_item_editor():
     # Kolonnen OrstedResponsible paa itemet bliver staaende: Save skriver
     # stadig indsenderen som ansvarlig i SharePoint (build_save.py), og en
     # gemt plan laeser den tilbage (build_load.py).
-    txtInitials = text_input("txtVhpItemInitials",
+    txtInitials = text_input("inpVhpItemInitials",
                              "LookUp(colVhpItems, ItemId = varVhpActiveItemId).Initials", max_length=12,
                              display_mode=DM_ITEM)
     # LANG TEKST ER EN POPUP (issue #54) - som paa operationerne. Feltet
@@ -522,7 +522,7 @@ def build_item_editor():
         ("Set(varVhpLongTextTarget, \"item\");\n"
          "Set(varVhpLongTextItemId, varVhpActiveItemId);\n"
          f"Set(varVhpLongTextDraft, Coalesce({LT}, \"\"));\n"
-         "Reset(txtVhpLongTextBox);\n"
+         "Reset(inpVhpLongTextBox);\n"
          "Set(varVhpLongTextOpen, true)"),
         width=fit_button_width('"Add long text"') + ICON_W, height=36,
         display_mode=DM_ITEM, icon="TextDescription",
@@ -583,7 +583,7 @@ def build_item_editor():
             "\n"
             "    Set(varVhpItemValidated, true);\n"
             "    If(\n"
-            "        IsBlank(Trim(txtVhpItemShortText.Text)) || Len(Trim(txtVhpItemShortText.Text)) > 40 ||\n"
+            "        IsBlank(Trim(inpVhpItemShortText.Text)) || Len(Trim(inpVhpItemShortText.Text)) > 40 ||\n"
             "        IsBlank(drpVhpItemMainWorkCenter.Selected.Value) ||\n"
             "        IsBlank(drpVhpItemActivityType.Selected.Value) ||\n"
             f"        IsBlank({FL_CODE}),\n"
@@ -600,14 +600,14 @@ def build_item_editor():
             "                colVhpItems,\n"
             "                ItemId = varVhpActiveItemId,\n"
             "                {\n"
-            "                    ShortText: Trim(txtVhpItemShortText.Text),\n"
+            "                    ShortText: Trim(inpVhpItemShortText.Text),\n"
             "                    FunctionalLocation: code,\n"
             f"                    FlDescription: {FL_COMBO}.Selected.Description,\n"
             "                    MainWorkCenter: drpVhpItemMainWorkCenter.Selected.Value,\n"
             "                    ActivityType: drpVhpItemActivityType.Selected.Value,\n"
             "                    ObjectList: Concat(Sort(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), Code), Code, \"; \"),\n"
             "                    Revision: If(tglVhpItemRevision.Value, First(colVhpRevisionOptions).Value, \"\"),\n"
-            "                    Initials: Trim(txtVhpItemInitials.Text),\n"
+            "                    Initials: Trim(inpVhpItemInitials.Text),\n"
 
             "                    Status: \"valid\"\n"
             "                }\n"
@@ -619,7 +619,7 @@ def build_item_editor():
             "                \"Item \" & Text(varVhpActiveItemId) & \" is not in the list - nothing was saved.\",\n"
             "                NotificationType.Error\n"
             "            ),\n"
-            "            Notify(\"Item saved: \" & Trim(txtVhpItemShortText.Text) & \".\", NotificationType.Success)\n"
+            "            Notify(\"Item saved: \" & Trim(inpVhpItemShortText.Text) & \".\", NotificationType.Success)\n"
             "        )\n"
             "    )\n"
             ")"

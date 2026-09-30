@@ -77,6 +77,20 @@ def test_layout_rule_31_string_column_name(tmp_path):
     assert rc == 1 and "[31]" in out
 
 
+def test_layout_rule_16_modern_dropdown(tmp_path):
+    def plant(t):
+        return t.replace("Control: Classic/DropDown", "Control: ModernDropdown", 1)
+    rc, out = _layout(tmp_path, plant)
+    assert rc == 1 and "[16]" in out
+
+
+def test_layout_rule_33_prefix_follows_type(tmp_path):
+    def plant(t):
+        return t.replace("inpDomText:", "txtDomTextX:", 1)
+    rc, out = _layout(tmp_path, plant)
+    assert rc == 1 and "[33]" in out
+
+
 def test_color_guard_finds_rgba(tmp_path, monkeypatch):
     import build_all
     app = tmp_path / "X" / "build"

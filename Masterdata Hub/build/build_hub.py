@@ -507,7 +507,7 @@ def build_filters():
     staar i bjaelken: det er et omfang, ikke et statusfilter."""
     # Det SAMME felt som alle andre (build_helpers.text_input -> input_theme,
     # issue #78) - ikke et haandbygget med sine egne farver.
-    search = text_input("txtMdSearch", '""', placeholder='"Search number, text or plant..."',
+    search = text_input("inpMdSearch", '""', placeholder='"Search number, text or plant..."',
                         width=str(SEARCH_W), ttype="Search",
                         label='"Search number, text or plant"')
     shown = scope_count('gblDomain = "" || Domain = gblDomain')
@@ -621,10 +621,10 @@ ITEMS = (
     "    Filter(\n"
     f"        {SCOPE},\n"
     '        gblDomain = "" || Domain.Value = gblDomain,\n'
-    '        IsBlank(Trim(txtMdSearch.Text)) ||\n'
-    f"            StartsWith({COL_NO}, Trim(txtMdSearch.Text)) ||\n"
-    "            StartsWith(ShortText, Trim(txtMdSearch.Text)) ||\n"
-    "            StartsWith(Plant, Trim(txtMdSearch.Text))\n"
+    '        IsBlank(Trim(inpMdSearch.Text)) ||\n'
+    f"            StartsWith({COL_NO}, Trim(inpMdSearch.Text)) ||\n"
+    "            StartsWith(ShortText, Trim(inpMdSearch.Text)) ||\n"
+    "            StartsWith(Plant, Trim(inpMdSearch.Text))\n"
     "    ),\n"
     '    "LastActionOn", SortOrder.Descending\n'
     ")"
