@@ -46,6 +46,16 @@ THEME_Q_AMP = theme_query("&")  # "Open" sender allerede ?reqid=
 NEW_ACTION = None
 OPEN_ACTION = None
 
+
+def use_actions(new_action, open_action):
+    """Den samlede app (BIO SAP App): "New" og "Open" navigerer til
+    skaerme. new_action(domaene) -> formel eller None; open_action -> formel."""
+    global NEW_ACTION, OPEN_ACTION
+    if not callable(new_action) or not isinstance(open_action, str):
+        raise SystemExit("build_hub.use_actions: new_action skal vaere en funktion, "
+                         "open_action en formel.")
+    NEW_ACTION, OPEN_ACTION = new_action, open_action
+
 # "New request"-menuen i bjaelken. Blank ved start = lukket.
 MENU_OPEN = "IfError(gblNewMenu, false)"
 MENU_CLOSE = "Set(gblNewMenu, false)"

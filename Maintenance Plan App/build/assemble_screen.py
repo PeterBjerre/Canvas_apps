@@ -30,7 +30,8 @@ from build_modal import (build_tasklist_picker_modal, build_longtext_modal,
                          build_modal_backdrop)
 
 
-def build_screen():
+def build_screen(render=render_screen):
+    """render: gen_screen.render_screen - eller BIO SAP App's opsamler."""
     # Sektionen, et klik i progressbaren peger paa, faar en tyk kant.
     items = build_items_section()
     for card in items.children:
@@ -53,7 +54,7 @@ def build_screen():
 
     # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
     nav, overlay = side_nav("Vhp", "vhplan", HELP_ON, HELP_ACTION)
-    return render_screen("ScreenVhPlan", {"Fill": C_APP_BG},
+    return render("ScreenVhPlan", {"Fill": C_APP_BG},
                          [root, *nav,
                           build_modal_backdrop(), build_tasklist_picker_modal(),
                           build_longtext_modal(), build_object_list_modal(),

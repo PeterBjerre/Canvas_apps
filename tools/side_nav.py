@@ -103,17 +103,24 @@ BRAND_H = 44
 # (noegle i canvas_apps.json, tekst, ikon). Raekkefoelgen er NAV_ITEMS i
 # html/shell.js; teksterne er appsenes egne navne. Ikonerne er de SAMME som
 # paa hubbens fliser og i sideoverskrifterne - tools/icons.py (issue #74).
-ITEMS = [
-    ("hub", "Masterdata Hub", icons.path("hub")),
-    ("functionallocation", "Functional Location", icons.path("functionallocation")),
-    ("vhplan", "VH-plan", icons.path("vhplan")),
-    ("material", "Materials", icons.path("material")),
-    ("equipment", "Equipments", icons.path("equipment")),
-]
+# Teksterne og raekkefoelgen staar i tools/canvas_apps.json (nav_label,
+# nav_order) - app-listen er eet sted.
+ITEMS = [(k, env.APPS[k]["nav_label"], icons.path(k)) for k in env.NAV_ORDER]
 
 # DEN SAMLEDE APP: {noegle: skaermnavn}. None = de fem enkelte apps, hvor
-# et punkt er Launch() af en anden app. Saettes af BIO SAP App/build.
+# et punkt er Launch() af en anden app. Saettes med use_screens().
 SCREENS = None
+
+
+def use_screens(screens):
+    """Sidebaren navigerer mellem SKAERME i stedet for at starte apps -
+    kun den samlede app (BIO SAP App). Hver noegle i ITEMS skal have en
+    skaerm; et hul ville ellers blive en Launch() midt i den samlede app."""
+    global SCREENS
+    missing = [k for k, _l, _i in ITEMS if k not in screens]
+    if missing:
+        raise SystemExit("side_nav.use_screens: ingen skaerm til %s" % ", ".join(missing))
+    SCREENS = dict(screens)
 
 ICON_EXPAND = "M6 6l6 6-6 6 M12 6l6 6-6 6"
 ICON_MENU = "M4 7h16M4 12h16M4 17h16"

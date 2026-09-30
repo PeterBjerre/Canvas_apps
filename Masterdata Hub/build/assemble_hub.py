@@ -19,7 +19,8 @@ from build_hub import (build_bar, build_tiles, build_filters, build_list, build_
                        build_closed_peek)
 
 
-def build_screen():
+def build_screen(render=render_screen):
+    """render: gen_screen.render_screen - eller BIO SAP App's opsamler."""
     # RAMMEN: bjaelken i en header, der ikke scroller, og resten i en
     # krop, der goer. Se build_helpers.app_frame.
     root = app_frame("Md", build_bar(), [build_tiles(), build_filters(), build_list()])
@@ -29,7 +30,7 @@ def build_screen():
     # sidebar.
     # Tallene paa fliserne taelles i colMdScope, som hentes her og ved
     # skift af visning/status (build_hub.SCOPE_REFRESH).
-    return render_screen("ScreenMdHub", {"Fill": C_APP_BG,
+    return render("ScreenMdHub", {"Fill": C_APP_BG,
                                          "OnVisible": build_hub.SCOPE_REFRESH},
                          [root, *nav, *build_new_menu(), *build_closed_peek(), *overlay])
 

@@ -41,19 +41,13 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # der bruges i dag: canvas_mcp.stage() kopierer KUN *.pa.yaml over til
 # serveren, saa hverken build/ eller tools/ naar nogensinde derud.
 
-# (app-mappe, [scripts der skal koeres, i raekkefoelge])
-APPS = [
-    ("Maintenance Plan App", ["generate_app_onstart.py", "assemble_screen.py"]),
-    ("Masterdata Hub",       ["generate_hub_onstart.py", "assemble_hub.py"]),
-    ("Equipment App",        ["generate_app_onstart.py", "assemble_screen.py"]),
-    ("Material App",         ["generate_app_onstart.py", "assemble_screen.py"]),
-    ("Functional Location App", ["generate_app_onstart.py", "assemble_screen.py"]),
-    # DEN SAMLEDE APP - de fem ovenfor som skaerme i een app. SIDST, fordi
-    # den bygges af deres byggere og laeser deres App.pa.yaml.
-    # generate_app.py foerst: den koerer de fem appers generatorer igen, og
-    # skaermene laeser deres OnStart. Se BIO SAP App/build/combined.py.
-    ("BIO SAP App",          ["generate_app.py", "build_screens.py", "check_combined.py"]),
-]
+# (app-mappe, [scripts der skal koeres, i raekkefoelge]) - fra
+# tools/canvas_apps.json ("apps"), i den raekkefoelge de staar der. DEN
+# SAMLEDE APP (BIO SAP App) staar SIDST: den bygges af de andres byggere
+# og laeser deres App.pa.yaml.
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import env_config as _env  # noqa: E402
+APPS = [(_env.APPS[k]["folder"], list(_env.APPS[k]["scripts"])) for k in _env.APP_ORDER]
 
 # EQUIPMENTS OG MATERIALS MAA AFVIGE
 #
@@ -181,10 +175,7 @@ def pick_apps(which):
     hoerte til."""
     if not which:
         return APPS
-    alias = {"vhplan": "Maintenance Plan App", "hub": "Masterdata Hub",
-             "equipment": "Equipment App", "material": "Material App",
-             "functionallocation": "Functional Location App",
-             "biosap": "BIO SAP App"}
+    alias = {k: _env.APPS[k]["folder"] for k in _env.APP_ORDER}
     want = alias.get(which.lower(), which)
     hit = [(a, s) for a, s in APPS if a.lower() == want.lower()]
     if not hit:
