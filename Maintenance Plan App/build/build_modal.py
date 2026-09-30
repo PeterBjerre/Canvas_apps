@@ -122,7 +122,8 @@ def build_tasklist_picker_modal():
         "Fill": C_TRANSPARENT, "Height": "22", "HtmlText": PICKER_HEADER_HTML,
         "PaddingBottom": "0", "PaddingLeft": "0", "PaddingRight": "0", "PaddingTop": "0", "Width": "636",
     }, h=22)
-    divider = group("conVhpPickerDivider", [], height=1, fill=C_DIVIDER, direction="Horizontal")
+    divider = group("conVhpPickerDivider", [], height=1, fill=C_DIVIDER, direction="Horizontal",
+                    width=636)
 
     chkRowSel = Ctrl("chkVhpPickerRowSel", "ModernCheckbox", props=checkbox_theme({
         "AccessibleLabel": "\"Select line\"",
@@ -174,7 +175,14 @@ def build_tasklist_picker_modal():
     # galleriet scroller selv. To scrollbarer oven i hinanden tog 18 px
     # ekstra af bredden, og sidste kolonne laa under dem.
     listWrap = group("conVhpPickerListWrap", [headHtml, divider, gallery], direction="Vertical", gap=4,
-                     width=636)
+                     width=636, align_items="Start")
+    # POPUPPEN FOELGER SKAERMEN (REVIEW.md A16). Den var fast 740 px og gik
+    # ud over en telefon. Nu er den Min(740, App.Width - 40) som de andre
+    # popups; listen beholder sine 636 px og scroller VANDRET i en smallere
+    # popup - i stedet for at kolonnerne klemmes.
+    listScroll = group("conVhpPickerListScroll", [listWrap], direction="Vertical", gap=0,
+                       align_items="Start",
+                       overflow_x="Scroll", width="Parent.Width")
 
     btnCancel = button("btnVhpPickerCancel", "\"Cancel\"",
                        "Set(varVhpTasklistPickerOpen, false); Clear(colVhpPickerSelected)", width=100, height=36)
@@ -223,9 +231,10 @@ def build_tasklist_picker_modal():
                   justify="End", align_items="Center")
 
     modal = group(
-        "conVhpPickerModal", [headRow, toolbar, infoText, listWrap, footer], direction="Vertical", gap=12,
+        "conVhpPickerModal", [headRow, toolbar, infoText, listScroll, footer], direction="Vertical", gap=12,
         fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
-        pad=(18, 18, 18, 18), width=740, drop_shadow="ExtraBold", visible="varVhpTasklistPickerOpen")
+        pad=(18, 18, 18, 18), width="Min(740, App.Width - 40)", drop_shadow="ExtraBold",
+        visible="varVhpTasklistPickerOpen")
     modal.props["X"] = "(App.Width - Self.Width) / 2"
     modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
     return modal
