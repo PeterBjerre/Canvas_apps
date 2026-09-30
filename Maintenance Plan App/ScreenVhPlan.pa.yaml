@@ -694,58 +694,84 @@ Screens:
                                     OnSelect: |-
                                         =If(
                                             !varVhpPlanCommitted || CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))) = 0,
+                                            Set(varVhpSubmitting, false);
                                             Notify("Create the plan and at least one item first.", NotificationType.Warning),
                                         
-                                            Set(varVhpSaving, true);
-                                            IfError(
+                                        Set(varVhpSaving, true);
+                                        Clear(colVhpSaveErrors);
+                                        IfError(
+                                            Concurrent(
+                                                Set(varVhpPlanOff, With(
+                                                { r: First(Sort(MaintenancePlans, ID, SortOrder.Descending)) },
+                                                If(
+                                                    IsBlank(r.ID), 0,
+                                                    IsNumeric(Mid(r.PlanID, 3)),
+                                                    r.ID - Value(Mid(r.PlanID, 3)),
+                                                    Blank()
+                                                )
+                                            )),
+                                                Set(varVhpItemOff, With(
+                                                { r: First(Sort(MaintenanceItems, ID, SortOrder.Descending)) },
+                                                If(
+                                                    IsBlank(r.ID), 0,
+                                                    IsNumeric(Mid(r.ItemID, 3)),
+                                                    r.ID - Value(Mid(r.ItemID, 3)),
+                                                    Blank()
+                                                )
+                                            )),
+                                                Set(varVhpTaskOff, With(
+                                                { r: First(Sort(TaskListMain, ID, SortOrder.Descending)) },
+                                                If(
+                                                    IsBlank(r.ID), 0,
+                                                    IsNumeric(Mid(r.TaskItemID, 3)),
+                                                    r.ID - Value(Mid(r.TaskItemID, 3)),
+                                                    Blank()
+                                                )
+                                            ))
+                                            );
+                                            If(
+                                                IsBlank(varVhpPlanOff) || IsBlank(varVhpItemOff) || IsBlank(varVhpTaskOff),
+                                                Collect(colVhpSaveErrors, {
+                                                    Where: "Keys",
+                                                    Msg: "Cannot derive the keys from the existing rows - contact SAP master data."
+                                                })
+                                            );
+                                            true,
+                                            Collect(colVhpSaveErrors, { Where: "Keys", Msg: FirstError.Message });
+                                            false
+                                        );
+                                        If(
+                                            CountRows(colVhpSaveErrors) = 0,
+                                        IfError(
+                                            If(
+                                                varVhpPlanSpId > 0 && !IsBlank(varVhpPlanModified),
                                                 With(
-                                                    {
-                                                        planOff: With(
-                                            { r: First(Sort(MaintenancePlans, ID, SortOrder.Descending)) },
-                                            If(
-                                                IsBlank(r.ID), 0,
-                                                IsNumeric(Mid(r.PlanID, 3)),
-                                                r.ID - Value(Mid(r.PlanID, 3)),
-                                                Blank()
-                                            )
-                                        ),
-                                                        itemOff: With(
-                                            { r: First(Sort(MaintenanceItems, ID, SortOrder.Descending)) },
-                                            If(
-                                                IsBlank(r.ID), 0,
-                                                IsNumeric(Mid(r.ItemID, 3)),
-                                                r.ID - Value(Mid(r.ItemID, 3)),
-                                                Blank()
-                                            )
-                                        ),
-                                                        taskOff: With(
-                                            { r: First(Sort(TaskListMain, ID, SortOrder.Descending)) },
-                                            If(
-                                                IsBlank(r.ID), 0,
-                                                IsNumeric(Mid(r.TaskItemID, 3)),
-                                                r.ID - Value(Mid(r.TaskItemID, 3)),
-                                                Blank()
-                                            )
-                                        )
-                                                    },
+                                                    { now: LookUp(MaintenancePlans, ID = varVhpPlanSpId) },
                                                     If(
-                                                        IsBlank(planOff) || IsBlank(itemOff) || IsBlank(taskOff),
-                                                        Notify(
-                                                            "Cannot derive the keys from the existing rows. " &
-                                                                "Saving stopped - contact SAP master data.",
-                                                            NotificationType.Error
-                                                        ),
-                                        
-                                                        Set(varVhpRequestGuid, Coalesce(varVhpRequestGuid, Text(GUID())));
-                                        
-                                                        // --- 1. planhovedet ---------------------------------
-                                                        With(
-                                                            {
-                                                                planRec: Patch(
-                                                                    MaintenancePlans,
-                                                                    If(varVhpPlanSpId > 0, LookUp(MaintenancePlans, ID = varVhpPlanSpId),
-                                                                        Defaults(MaintenancePlans)),
-                                                                    {
+                                                        !IsBlank(now.ID) && now.Modified <> varVhpPlanModified,
+                                                        Collect(colVhpSaveErrors, {
+                                                            Where: "Plan",
+                                                            Msg: "Someone else saved this plan after you opened it. " &
+                                                                "Open it again from the landing page, then make your changes."
+                                                        })
+                                                    )
+                                                )
+                                            );
+                                            true,
+                                            Collect(colVhpSaveErrors, { Where: "Plan", Msg: FirstError.Message });
+                                            false
+                                        )
+                                        );
+                                        If(
+                                            CountRows(colVhpSaveErrors) = 0,
+                                        IfError(
+                                            Set(
+                                                varVhpPlanRec,
+                                                Patch(
+                                                    MaintenancePlans,
+                                                    If(varVhpPlanSpId > 0, LookUp(MaintenancePlans, ID = varVhpPlanSpId),
+                                                        Defaults(MaintenancePlans)),
+                                                    {
                                                     Title: varVhpPlan.PlanText,
                                                     Status: { Value: "Draft" },
                                                     PlantsInitial: { Value: varVhpPlan.Plant },
@@ -763,272 +789,452 @@ Screens:
                                                         colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon
                                                     ).SchedPeriod,
                                                     SortField: With(
-                                                        { sf: LookUp(SortFieldList, Title = varVhpPlan.SortField) },
-                                                        If(IsBlank(sf.ID), Blank(), { Id: sf.ID, Value: sf.Title })
+                                                        { sf: LookUp(colVhpSortFieldOptions, Value = varVhpPlan.SortField) },
+                                                        If(IsBlank(sf.Id), Blank(), { Id: sf.Id, Value: sf.Value })
                                                     )
                                                 }
-                                                                )
-                                                            },
-                                                            With(
-                                                                {
-                                                                    planId: planRec.ID,
-                                                                    planKey: Coalesce(planRec.PlanID, "MP" & Text(planRec.ID - planOff, "0000"))
-                                                                },
-                                                                Patch(MaintenancePlans, planRec, { PlanID: planKey });
-                                                                Set(varVhpPlanSpId, planId);
-                                                                Set(varVhpPlanKey, planKey);
-                                        
-                                                                // --- 2. ryd det gamle -----------------------
-                                                                // Ved gensave er det enklere og sikrere at
-                                                                // skrive linjerne forfra end at finde ud af
-                                                                // hvilke der er tilfoejet, aendret og slettet.
-                                                                Remove(MD_TasklistMaterial,
-                                                                    Filter(MD_TasklistMaterial, PlanKey = varVhpPlanKey));
-                                                                Remove(MD_TasklistAttachment,
-                                                                    Filter(MD_TasklistAttachment, PlanKey = varVhpPlanKey));
-                                                                Remove(TaskListMain,
-                                                                    Filter(TaskListMain, MaintenancePlanID.Id = varVhpPlanSpId));
-                                                                Remove(MaintenanceItems,
-                                                                    Filter(MaintenanceItems, MaintenancePlanNo.Id = varVhpPlanSpId));
-                                        
-                                                                // --- 3. items ------------------------------
-                                                                With(
-                                                                    { srcItems: Filter(
-                                                                        colVhpItems,
-                                                                        !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)
-                                                                    ) },
-                                                                    If(
-                                                                        CountRows(srcItems) = 0,
-                                                                        Clear(colVhpSavedItems),
-                                        
-                                                                        With(
-                                                                            {
-                                                                                itemRecs: Patch(
-                                                                                    MaintenanceItems,
-                                                                                    ForAll(srcItems, Defaults(MaintenanceItems)),
-                                                                                    ForAll(srcItems As IT, {
-                                                                                        Title: IT.ShortText,
-                                                                                        Status: { Value: Coalesce(varVhpPlan.Status, "New") },
-                                                                                        MaintenancePlanNo: { Id: planId, Value: planKey },
-                                                                                        ItemDescription: Coalesce(IT.LongText, IT.ShortText),
-                                                                                        FunctionalLocation: IT.FunctionalLocation,
-                                                                                        ObjectList: IT.ObjectList,
-                                                                                        Priority: { Value: "Yellow (default)" },
-                                                                                        OrstedResponsible: {
-                                                                                            '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
-                                                                                            Claims: "i:0#.f|membership|" & varVhpMe,
-                                                                                            DisplayName: User().FullName,
-                                                                                            Email: User().Email,
-                                                                                            Department: "",
-                                                                                            JobTitle: "",
-                                                                                            Picture: ""
-                                                                                        },
-                                                                                        OrstedResponsibleEmail: varVhpMe,
-                                                                                        InitialOrstedResponsible: IT.Initials,
-                                                                                        MaintenanceActivityType: With(
-                                                                                            { a: LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType) },
-                                                                                            If(IsBlank(a.Id), Blank(), { Id: a.Id, Value: a.Value })
-                                                                                        ),
-                                                                                        MainWorkCenter: With(
-                                                                                            { w: LookUp(colVhpMainWorkCenters, Value = IT.MainWorkCenter) },
-                                                                                            If(IsBlank(w.Id), Blank(), { Id: w.Id, Value: w.Value })
-                                                                                        )
-                                                                                    })
-                                                                                )
-                                                                            },
-                                                                            ClearCollect(
-                                                                                colVhpSavedItems,
-                                                                                ForAll(
-                                                                                    Sequence(CountRows(itemRecs)) As N,
-                                                                                    {
-                                                                                        LocalId: Index(srcItems, N.Value).ItemId,
-                                                                                        SpId: Index(itemRecs, N.Value).ID,
-                                                                                        ItemKey: "MI" & Text(Index(itemRecs, N.Value).ID - itemOff, "0000")
-                                                                                    }
-                                                                                )
-                                                                            );
-                                                                            Patch(
-                                                                                MaintenanceItems,
-                                                                                itemRecs,
-                                                                                ForAll(colVhpSavedItems As S, { ItemID: S.ItemKey })
-                                                                            )
-                                                                        )
-                                                                    )
-                                                                );
-                                        
-                                                                // --- 4. operationer ------------------------
-                                                                With(
-                                                                    {
-                                                                        srcOps: Filter(
-                                                                            colVhpOperations As OP,
-                                                                            !IsBlank(LookUp(colVhpSavedItems, LocalId = OP.ItemId).SpId)
-                                                                        )
-                                                                    },
-                                                                    If(
-                                                                        CountRows(srcOps) = 0,
-                                                                        Clear(colVhpSavedOps),
-                                        
-                                                                        With(
-                                                                            {
-                                                                                opRecs: Patch(
-                                                                                    TaskListMain,
-                                                                                    ForAll(srcOps, Defaults(TaskListMain)),
-                                                                                    ForAll(srcOps As OP, {
-                                                                                        Title: LookUp(colVhpSavedItems, LocalId = OP.ItemId).ItemKey & " - " & OP.OperationShortText,
-                                                                                        OperationShortText: OP.OperationShortText,
-                                                                                        OperationNo: Value(OP.OperationNo),
-                                                                                        PackagesKey: OP.PackagesKey,
-                                                                                        Work: OP.WorkHours,
-                                                                                        Num: OP.Persons,
-                                                                                        Duration: OP.DurationHours,
-                                                                                        WorkCtr: OP.MainWorkCenter,
-                                                                                        Ctrl: OP.ControlKey,
-                                                                                        Vendor: OP.Vendor,
-                                                                                        Price: OP.Cost,
-                                                                                        Currency: OP.Currency,
-                                                                                        CostElem: OP.CostElement,
-                                                                                        MaterialGroup: OP.MaterialGroup,
-                                                                                        LongText: OP.LongText,
-                                                                                        PlantInitial: varVhpPlan.Plant,
-                                                                                        MaintenanceItemNo: { Id: LookUp(colVhpSavedItems, LocalId = OP.ItemId).SpId, Value: LookUp(colVhpSavedItems, LocalId = OP.ItemId).ItemKey },
-                                                                                        MaintenancePlanID: { Id: planId, Value: planKey }
-                                                                                    })
-                                                                                )
-                                                                            },
-                                                                            ClearCollect(
-                                                                                colVhpSavedOps,
-                                                                                ForAll(
-                                                                                    Sequence(CountRows(opRecs)) As N,
-                                                                                    {
-                                                                                        LocalItemId: Index(srcOps, N.Value).ItemId,
-                                                                                        OperationNo: Index(srcOps, N.Value).OperationNo,
-                                                                                        SpId: Index(opRecs, N.Value).ID,
-                                                                                        TaskKey: "TI" & Text(Index(opRecs, N.Value).ID - taskOff, "0000")
-                                                                                    }
-                                                                                )
-                                                                            );
-                                                                            Patch(
-                                                                                TaskListMain,
-                                                                                opRecs,
-                                                                                ForAll(colVhpSavedOps As S, { TaskItemID: S.TaskKey })
-                                                                            )
-                                                                        )
-                                                                    )
-                                                                );
-                                        
-                                                                // --- 5. materialer -------------------------
-                                                                // Peger paa operationens TaskItemID, ikke paa
-                                                                // itemet. Et materiale hoerer til EEN
-                                                                // operation - det er den relation SAP har.
-                                                                With(
-                                                                    { srcMats: Filter(colVhpMaterials As MT, !IsBlank(MT.MaterialNo)) },
-                                                                    If(
-                                                                        CountRows(srcMats) > 0,
-                                                                        Patch(
-                                                                            MD_TasklistMaterial,
-                                                                            ForAll(srcMats, Defaults(MD_TasklistMaterial)),
-                                                                            ForAll(
-                                                                                srcMats As MT,
-                                                                                {
-                                                                                    MaterialNo: MT.MaterialNo,
-                                                                                    PlanKey: planKey,
-                                                                                    ItemKey: LookUp(
-                                                                                        colVhpSavedItems, LocalId = MT.ItemId
-                                                                                    ).ItemKey,
-                                                                                    TaskItemID: LookUp(
-                                                                                        colVhpSavedOps,
-                                                                                        LocalItemId = MT.ItemId && OperationNo = MT.OperationNo
-                                                                                    ).TaskKey,
-                                                                                    OperationNo: MT.OperationNo,
-                                                                                    Quantity: MT.Quantity,
-                                                                                    MaterialText: MT.Description,
-                                                                                    Unit: MT.Unit,
-                                                                                    LineId: MT.LineId
-                                                                                }
-                                                                            )
-                                                                        )
-                                                                    )
-                                                                );
-                                        
-                                                                // --- 6. dokumenter -------------------------
-                                                                // OperationsKey er ';0010;0020;'. Tom (';')
-                                                                // betyder hele itemet.
-                                                                //
-                                                                // UploadStatus skrives som Pending.
-                                                                //
-                                                                // Her stod, at FLOWET retter den bagefter. Det
-                                                                // goer det ikke: BioSap-TaskListAttachment
-                                                                // bestaar af eet CreateFile og et svar, og
-                                                                // roerer aldrig denne liste. Raekken bliver
-                                                                // staaende som Pending, indtil appen selv
-                                                                // retter den - den kender flowets svar.
-                                                                // Se docs/18-materialer-og-attachments.md.
-                                                                With(
-                                                                    { srcAtt: Filter(colVhpAttachments As AT, !IsBlank(AT.FileName)) },
-                                                                    If(
-                                                                        CountRows(srcAtt) > 0,
-                                                                        Patch(
-                                                                            MD_TasklistAttachment,
-                                                                            ForAll(srcAtt, Defaults(MD_TasklistAttachment)),
-                                                                            ForAll(
-                                                                                srcAtt As AT,
-                                                                                {
-                                                                                    FileName: AT.FileName,
-                                                                                    PlanKey: planKey,
-                                                                                    ItemKey: LookUp(
-                                                                                        colVhpSavedItems, LocalId = AT.ItemId
-                                                                                    ).ItemKey,
-                                                                                    OperationsKey: Coalesce(AT.OperationsKey, ";"),
-                                                                                    FileSize: AT.FileSize,
-                                                                                    FileUrl: AT.FileUrl,
-                                                                                    UploadStatus: {
-                                                                                        Value: Coalesce(AT.Status, "Pending")
-                                                                                    }
-                                                                                }
-                                                                            )
-                                                                        )
-                                                                    )
-                                                                );
-                                        
-                                                                // --- 7. opsummering til landingssiden ------
-                                                                // Hubben laeser KUN denne raekke. Den skal
-                                                                // skrives hver gang status aendrer sig,
-                                                                // ellers viser oversigten noget forkert.
-                                                                Patch(
-                                                                    MD_RequestIndex,
-                                                                    Coalesce(
-                                                                        LookUp(MD_RequestIndex, RequestGuid = varVhpRequestGuid),
-                                                                        Defaults(MD_RequestIndex)
-                                                                    ),
-                                                                    {
-                                                        RequestNo: planKey,
-                                                        Domain: { Value: "MaintenancePlan" },
-                                                        Status: { Value: "Kladde" },
-                                                        StatusStep: 1,
-                                                        IsOpen: true,
-                                                        RequestGuid: varVhpRequestGuid,
-                                                        RequesterEmail: varVhpMe,
-                                                        RequesterName: User().FullName,
-                                                        ShortText: varVhpPlan.PlanText,
-                                                        Plant: varVhpPlan.Plant,
-                                                        ItemCount: CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))),
-                                                        SourceItemId: planId,
-                                                        AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/11fa8d90-868a-45a4-ba23-28f2cf0671a2?reqid=" & varVhpRequestGuid,
-                                                        LastActionOn: Now(),
-                                                        LastActionBy: varVhpMe
+                                                )
+                                            );
+                                            If(
+                                                IsBlank(varVhpPlanRec.PlanID),
+                                                Set(
+                                                    varVhpPlanRec,
+                                                    Patch(MaintenancePlans, varVhpPlanRec, { PlanID: "MP" & Text(varVhpPlanRec.ID - varVhpPlanOff, "0000") })
+                                                )
+                                            );
+                                            Set(varVhpPlanSpId, varVhpPlanRec.ID);
+                                            Set(varVhpPlanKey, varVhpPlanRec.PlanID);
+                                            Set(varVhpRequestGuid, Coalesce(varVhpRequestGuid, Text(GUID())));
+                                            true,
+                                            Collect(colVhpSaveErrors, { Where: "Plan", Msg: FirstError.Message });
+                                            false
+                                        )
+                                        );
+                                        If(
+                                            CountRows(colVhpSaveErrors) = 0,
+                                        IfError(
+                                            ClearCollect(
+                                                colVhpSpItems,
+                                                ForAll(Filter(MaintenanceItems, MaintenancePlanNo.Id = varVhpPlanSpId) As I, { ID: I.ID, ItemID: I.ItemID })
+                                            );
+                                            ClearCollect(
+                                                colVhpSavedItems,
+                                                ForAll(
+                                                    Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)), SpId in colVhpSpItems.ID) As IT,
+                                                    {
+                                                        LocalId: IT.ItemId,
+                                                        SpId: IT.SpId,
+                                                        ItemKey: Coalesce(
+                                                            LookUp(colVhpSpItems, ID = IT.SpId).ItemID,
+                                                            "MI" & Text(IT.SpId - varVhpItemOff, "0000")
+                                                        )
                                                     }
-                                                                );
-                                        
-                                                                Set(varVhpSavedJson, VhpStateJson);
-                                                                Notify("Saved as " & planKey & " - see it on the landing page.", NotificationType.Success)
+                                                )
+                                            );
+                                            With(
+                                                {
+                                                    ex: Filter(MaintenanceItems, MaintenancePlanNo.Id = varVhpPlanSpId),
+                                                    old: Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)), SpId in colVhpSpItems.ID)
+                                                },
+                                                If(
+                                                    CountRows(old) > 0,
+                                                    Patch(
+                                                        MaintenanceItems,
+                                                        ForAll(old As IT, LookUp(ex, ID = IT.SpId)),
+                                                        ForAll(old As IT, {
+                                                        ItemID: LookUp(colVhpSavedItems, LocalId = IT.ItemId).ItemKey,
+                                                        Title: IT.ShortText,
+                                                        Status: { Value: Coalesce(varVhpPlan.Status, "New") },
+                                                        MaintenancePlanNo: { Id: varVhpPlanSpId, Value: varVhpPlanKey },
+                                                        ItemDescription: Coalesce(IT.LongText, IT.ShortText),
+                                                        FunctionalLocation: IT.FunctionalLocation,
+                                                        ObjectList: IT.ObjectList,
+                                                        Priority: { Value: "Yellow (default)" },
+                                                        OrstedResponsible: {
+                                                            '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
+                                                            Claims: "i:0#.f|membership|" & varVhpMe,
+                                                            DisplayName: User().FullName,
+                                                            Email: User().Email,
+                                                            Department: "",
+                                                            JobTitle: "",
+                                                            Picture: ""
+                                                        },
+                                                        OrstedResponsibleEmail: varVhpMe,
+                                                        InitialOrstedResponsible: IT.Initials,
+                                                        MaintenanceActivityType: With(
+                                                            { a: LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType) },
+                                                            If(IsBlank(a.Id), Blank(), { Id: a.Id, Value: a.Value })
+                                                        ),
+                                                        MainWorkCenter: With(
+                                                            { w: LookUp(colVhpMainWorkCenters, Value = IT.MainWorkCenter) },
+                                                            If(IsBlank(w.Id), Blank(), { Id: w.Id, Value: w.Value })
+                                                        )
+                                                    })
+                                                    )
+                                                )
+                                            );
+                                            With(
+                                                { src: Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)), !(SpId in colVhpSpItems.ID)) },
+                                                If(
+                                                    CountRows(src) > 0,
+                                                    With(
+                                                        {
+                                                            recs: Patch(
+                                                                MaintenanceItems,
+                                                                ForAll(src, Defaults(MaintenanceItems)),
+                                                                ForAll(src As IT, {
+                                                        Title: IT.ShortText,
+                                                        Status: { Value: Coalesce(varVhpPlan.Status, "New") },
+                                                        MaintenancePlanNo: { Id: varVhpPlanSpId, Value: varVhpPlanKey },
+                                                        ItemDescription: Coalesce(IT.LongText, IT.ShortText),
+                                                        FunctionalLocation: IT.FunctionalLocation,
+                                                        ObjectList: IT.ObjectList,
+                                                        Priority: { Value: "Yellow (default)" },
+                                                        OrstedResponsible: {
+                                                            '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
+                                                            Claims: "i:0#.f|membership|" & varVhpMe,
+                                                            DisplayName: User().FullName,
+                                                            Email: User().Email,
+                                                            Department: "",
+                                                            JobTitle: "",
+                                                            Picture: ""
+                                                        },
+                                                        OrstedResponsibleEmail: varVhpMe,
+                                                        InitialOrstedResponsible: IT.Initials,
+                                                        MaintenanceActivityType: With(
+                                                            { a: LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType) },
+                                                            If(IsBlank(a.Id), Blank(), { Id: a.Id, Value: a.Value })
+                                                        ),
+                                                        MainWorkCenter: With(
+                                                            { w: LookUp(colVhpMainWorkCenters, Value = IT.MainWorkCenter) },
+                                                            If(IsBlank(w.Id), Blank(), { Id: w.Id, Value: w.Value })
+                                                        )
+                                                    })
                                                             )
+                                                        },
+                                                        Collect(
+                                                            colVhpSavedItems,
+                                                            ForAll(
+                                                                Sequence(CountRows(recs)) As N,
+                                                                {
+                                                                    LocalId: Index(src, N.Value).ItemId,
+                                                                    SpId: Index(recs, N.Value).ID,
+                                                                    ItemKey: "MI" & Text(Index(recs, N.Value).ID - varVhpItemOff, "0000")
+                                                                }
+                                                            )
+                                                        );
+                                                        Patch(
+                                                            MaintenanceItems,
+                                                            recs,
+                                                            ForAll(recs As R, { ItemID: "MI" & Text(R.ID - varVhpItemOff, "0000") })
                                                         )
                                                     )
-                                                ),
-                                        
-                                                Notify("Save failed: " & FirstError.Message, NotificationType.Error)
+                                                )
                                             );
-                                            Set(varVhpSaving, false)
+                                            UpdateIf(
+                                                colVhpItems,
+                                                ItemId in colVhpSavedItems.LocalId,
+                                                { SpId: LookUp(colVhpSavedItems, LocalId = ItemId).SpId }
+                                            );
+                                            true,
+                                            Collect(colVhpSaveErrors, { Where: "Items", Msg: FirstError.Message });
+                                            false
+                                        )
+                                        );
+                                        If(
+                                            CountRows(colVhpSaveErrors) = 0,
+                                        IfError(
+                                            ClearCollect(
+                                                colVhpSpOps,
+                                                ForAll(Filter(TaskListMain, MaintenancePlanID.Id = varVhpPlanSpId) As T, { ID: T.ID, TaskItemID: T.TaskItemID })
+                                            );
+                                            ClearCollect(
+                                                colVhpSavedOps,
+                                                ForAll(
+                                                    Filter(Filter(colVhpOperations As OP, !IsBlank(LookUp(colVhpSavedItems, LocalId = OP.ItemId).SpId)), SpId in colVhpSpOps.ID) As O,
+                                                    {
+                                                        LocalItemId: O.ItemId,
+                                                        OpNo: O.OperationNo,
+                                                        SpId: O.SpId,
+                                                        TaskKey: Coalesce(
+                                                            LookUp(colVhpSpOps, ID = O.SpId).TaskItemID,
+                                                            "TI" & Text(O.SpId - varVhpTaskOff, "0000")
+                                                        )
+                                                    }
+                                                )
+                                            );
+                                            With(
+                                                {
+                                                    ex: Filter(TaskListMain, MaintenancePlanID.Id = varVhpPlanSpId),
+                                                    old: Filter(Filter(colVhpOperations As OP, !IsBlank(LookUp(colVhpSavedItems, LocalId = OP.ItemId).SpId)), SpId in colVhpSpOps.ID)
+                                                },
+                                                If(
+                                                    CountRows(old) > 0,
+                                                    Patch(
+                                                        TaskListMain,
+                                                        ForAll(old As OP, LookUp(ex, ID = OP.SpId)),
+                                                        ForAll(old As OP, {
+                                                        TaskItemID: LookUp(colVhpSavedOps, SpId = OP.SpId).TaskKey,
+                                                        Title: LookUp(colVhpSavedItems, LocalId = OP.ItemId).ItemKey & " - " & OP.OperationShortText,
+                                                        OperationShortText: OP.OperationShortText,
+                                                        OperationNo: Value(OP.OperationNo),
+                                                        PackagesKey: OP.PackagesKey,
+                                                        Work: OP.WorkHours,
+                                                        Num: OP.Persons,
+                                                        Duration: OP.DurationHours,
+                                                        WorkCtr: OP.MainWorkCenter,
+                                                        Ctrl: OP.ControlKey,
+                                                        Vendor: OP.Vendor,
+                                                        Price: OP.Cost,
+                                                        Currency: OP.Currency,
+                                                        CostElem: OP.CostElement,
+                                                        MaterialGroup: OP.MaterialGroup,
+                                                        LongText: OP.LongText,
+                                                        PlantInitial: varVhpPlan.Plant,
+                                                        MaintenanceItemNo: { Id: LookUp(colVhpSavedItems, LocalId = OP.ItemId).SpId, Value: LookUp(colVhpSavedItems, LocalId = OP.ItemId).ItemKey },
+                                                        MaintenancePlanID: { Id: varVhpPlanSpId, Value: varVhpPlanKey }
+                                                    })
+                                                    )
+                                                )
+                                            );
+                                            With(
+                                                { src: Filter(Filter(colVhpOperations As OP, !IsBlank(LookUp(colVhpSavedItems, LocalId = OP.ItemId).SpId)), !(SpId in colVhpSpOps.ID)) },
+                                                If(
+                                                    CountRows(src) > 0,
+                                                    With(
+                                                        {
+                                                            recs: Patch(
+                                                                TaskListMain,
+                                                                ForAll(src, Defaults(TaskListMain)),
+                                                                ForAll(src As OP, {
+                                                        Title: LookUp(colVhpSavedItems, LocalId = OP.ItemId).ItemKey & " - " & OP.OperationShortText,
+                                                        OperationShortText: OP.OperationShortText,
+                                                        OperationNo: Value(OP.OperationNo),
+                                                        PackagesKey: OP.PackagesKey,
+                                                        Work: OP.WorkHours,
+                                                        Num: OP.Persons,
+                                                        Duration: OP.DurationHours,
+                                                        WorkCtr: OP.MainWorkCenter,
+                                                        Ctrl: OP.ControlKey,
+                                                        Vendor: OP.Vendor,
+                                                        Price: OP.Cost,
+                                                        Currency: OP.Currency,
+                                                        CostElem: OP.CostElement,
+                                                        MaterialGroup: OP.MaterialGroup,
+                                                        LongText: OP.LongText,
+                                                        PlantInitial: varVhpPlan.Plant,
+                                                        MaintenanceItemNo: { Id: LookUp(colVhpSavedItems, LocalId = OP.ItemId).SpId, Value: LookUp(colVhpSavedItems, LocalId = OP.ItemId).ItemKey },
+                                                        MaintenancePlanID: { Id: varVhpPlanSpId, Value: varVhpPlanKey }
+                                                    })
+                                                            )
+                                                        },
+                                                        Collect(
+                                                            colVhpSavedOps,
+                                                            ForAll(
+                                                                Sequence(CountRows(recs)) As N,
+                                                                {
+                                                                    LocalItemId: Index(src, N.Value).ItemId,
+                                                                    OpNo: Index(src, N.Value).OperationNo,
+                                                                    SpId: Index(recs, N.Value).ID,
+                                                                    TaskKey: "TI" & Text(Index(recs, N.Value).ID - varVhpTaskOff, "0000")
+                                                                }
+                                                            )
+                                                        );
+                                                        Patch(
+                                                            TaskListMain,
+                                                            recs,
+                                                            ForAll(recs As R, { TaskItemID: "TI" & Text(R.ID - varVhpTaskOff, "0000") })
+                                                        )
+                                                    )
+                                                )
+                                            );
+                                            UpdateIf(
+                                                colVhpOperations,
+                                                true,
+                                                {
+                                                    SpId: Coalesce(
+                                                        LookUp(colVhpSavedOps, LocalItemId = ItemId && OpNo = OperationNo).SpId,
+                                                        SpId
+                                                    )
+                                                }
+                                            );
+                                            true,
+                                            Collect(colVhpSaveErrors, { Where: "Operations", Msg: FirstError.Message });
+                                            false
+                                        )
+                                        );
+                                        If(
+                                            CountRows(colVhpSaveErrors) = 0,
+                                        IfError(
+                                            ClearCollect(
+                                                colVhpOldMats,
+                                                ForAll(Filter(MD_TasklistMaterial, PlanKey = varVhpPlanKey) As M, { ID: M.ID })
+                                            );
+                                            With(
+                                                { srcMats: Filter(colVhpMaterials As MT, !IsBlank(MT.MaterialNo)) },
+                                                If(
+                                                    CountRows(srcMats) > 0,
+                                                    Patch(
+                                                        MD_TasklistMaterial,
+                                                        ForAll(srcMats, Defaults(MD_TasklistMaterial)),
+                                                        ForAll(
+                                                            srcMats As MT,
+                                                            {
+                                                                MaterialNo: MT.MaterialNo,
+                                                                PlanKey: varVhpPlanKey,
+                                                                ItemKey: LookUp(colVhpSavedItems, LocalId = MT.ItemId).ItemKey,
+                                                                TaskItemID: LookUp(
+                                                                    colVhpSavedOps,
+                                                                    LocalItemId = MT.ItemId && OpNo = MT.OperationNo
+                                                                ).TaskKey,
+                                                                OperationNo: MT.OperationNo,
+                                                                Quantity: MT.Quantity,
+                                                                MaterialText: MT.Description,
+                                                                Unit: MT.Unit,
+                                                                LineId: MT.LineId
+                                                            }
+                                                        )
+                                                    )
+                                                )
+                                            );
+                                            true,
+                                            Collect(colVhpSaveErrors, { Where: "Materials", Msg: FirstError.Message });
+                                            false
+                                        )
+                                        );
+                                        If(
+                                            CountRows(colVhpSaveErrors) = 0,
+                                        IfError(
+                                            ClearCollect(
+                                                colVhpOldAtts,
+                                                ForAll(Filter(MD_TasklistAttachment, PlanKey = varVhpPlanKey) As A, { ID: A.ID })
+                                            );
+                                            With(
+                                                { srcAtt: Filter(colVhpAttachments As AT, !IsBlank(AT.FileName)) },
+                                                If(
+                                                    CountRows(srcAtt) > 0,
+                                                    Patch(
+                                                        MD_TasklistAttachment,
+                                                        ForAll(srcAtt, Defaults(MD_TasklistAttachment)),
+                                                        ForAll(
+                                                            srcAtt As AT,
+                                                            {
+                                                                FileName: AT.FileName,
+                                                                PlanKey: varVhpPlanKey,
+                                                                ItemKey: LookUp(colVhpSavedItems, LocalId = AT.ItemId).ItemKey,
+                                                                OperationsKey: Coalesce(AT.OperationsKey, ";"),
+                                                                FileSize: AT.FileSize,
+                                                                FileUrl: AT.FileUrl,
+                                                                UploadStatus: { Value: Coalesce(AT.Status, "Pending") }
+                                                            }
+                                                        )
+                                                    )
+                                                )
+                                            );
+                                            true,
+                                            Collect(colVhpSaveErrors, { Where: "Documents", Msg: FirstError.Message });
+                                            false
+                                        )
+                                        );
+                                        If(
+                                            CountRows(colVhpSaveErrors) = 0,
+                                        IfError(
+                                            With(
+                                                { ex: Filter(MD_TasklistMaterial, PlanKey = varVhpPlanKey) },
+                                                Remove(MD_TasklistMaterial, Filter(ex, ID in colVhpOldMats.ID))
+                                            );
+                                            With(
+                                                { ex: Filter(MD_TasklistAttachment, PlanKey = varVhpPlanKey) },
+                                                Remove(MD_TasklistAttachment, Filter(ex, ID in colVhpOldAtts.ID))
+                                            );
+                                            With(
+                                                { ex: Filter(TaskListMain, MaintenancePlanID.Id = varVhpPlanSpId) },
+                                                Remove(TaskListMain, Filter(ex, !(ID in colVhpSavedOps.SpId)))
+                                            );
+                                            With(
+                                                { ex: Filter(MaintenanceItems, MaintenancePlanNo.Id = varVhpPlanSpId) },
+                                                Remove(MaintenanceItems, Filter(ex, !(ID in colVhpSavedItems.SpId)))
+                                            );
+                                            true,
+                                            Collect(colVhpSaveErrors, { Where: "Clean-up", Msg: FirstError.Message });
+                                            false
+                                        )
+                                        );
+                                        If(
+                                            CountRows(colVhpSaveErrors) = 0,
+                                        IfError(
+                                            If(
+                                                varVhpSubmitting,
+                                                Set(
+                                                    varVhpPlanRec,
+                                                    Patch(MaintenancePlans, varVhpPlanRec, { Status: { Value: "In Progress" } })
+                                                )
+                                            );
+                                            If(
+                                                varVhpSubmitting,
+                                            Patch(
+                                                MD_RequestIndex,
+                                                Coalesce(
+                                                    LookUp(MD_RequestIndex, RequestGuid = varVhpRequestGuid),
+                                                    Defaults(MD_RequestIndex)
+                                                ),
+                                                {
+                                                    RequestNo: varVhpPlanKey,
+                                                    Domain: { Value: "MaintenancePlan" },
+                                                    Status: { Value: "Indsendt" },
+                                                    StatusStep: 2,
+                                                    IsOpen: true,
+                                                    RequestGuid: varVhpRequestGuid,
+                                                    RequesterEmail: varVhpMe,
+                                                    RequesterName: User().FullName,
+                                                    ShortText: varVhpPlan.PlanText,
+                                                    Plant: varVhpPlan.Plant,
+                                                    ItemCount: CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))),
+                                                    SourceItemId: varVhpPlanSpId,
+                                                    AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/11fa8d90-868a-45a4-ba23-28f2cf0671a2?reqid=" & varVhpRequestGuid,
+                                                    LastActionOn: Now(),
+                                                    LastActionBy: varVhpMe
+                                                }
+                                            ),
+                                            Patch(
+                                                MD_RequestIndex,
+                                                Coalesce(
+                                                    LookUp(MD_RequestIndex, RequestGuid = varVhpRequestGuid),
+                                                    Defaults(MD_RequestIndex)
+                                                ),
+                                                {
+                                                    RequestNo: varVhpPlanKey,
+                                                    Domain: { Value: "MaintenancePlan" },
+                                                    Status: { Value: "Kladde" },
+                                                    StatusStep: 1,
+                                                    IsOpen: true,
+                                                    RequestGuid: varVhpRequestGuid,
+                                                    RequesterEmail: varVhpMe,
+                                                    RequesterName: User().FullName,
+                                                    ShortText: varVhpPlan.PlanText,
+                                                    Plant: varVhpPlan.Plant,
+                                                    ItemCount: CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))),
+                                                    SourceItemId: varVhpPlanSpId,
+                                                    AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/11fa8d90-868a-45a4-ba23-28f2cf0671a2?reqid=" & varVhpRequestGuid,
+                                                    LastActionOn: Now(),
+                                                    LastActionBy: varVhpMe
+                                                }
+                                            )
+                                            );
+                                            Set(varVhpPlanModified, varVhpPlanRec.Modified);
+                                            true,
+                                            Collect(colVhpSaveErrors, { Where: "Status", Msg: FirstError.Message });
+                                            false
+                                        )
+                                        );
+                                        If(
+                                            CountRows(colVhpSaveErrors) = 0,
+                                            Set(varVhpSavedJson, VhpStateJson);
+                                            If(varVhpSubmitting, Notify("Submitted as " & varVhpPlanKey & " - see it on the landing page.", NotificationType.Success), Notify("Saved as " & varVhpPlanKey & " - see it on the landing page.", NotificationType.Success)),
+                                            If(varVhpSubmitting, Notify("Submit failed: " & First(colVhpSaveErrors).Where & ": " & First(colVhpSaveErrors).Msg, NotificationType.Error), Notify("Save failed: " & First(colVhpSaveErrors).Where & ": " & First(colVhpSaveErrors).Msg, NotificationType.Error))
+                                        );
+                                        Set(varVhpSubmitting, false);
+                                        Set(varVhpSaving, false)
                                         )
                                     RadiusBottomLeft: |-
                                         =10
@@ -1046,7 +1252,7 @@ Screens:
                                         =If(
                                             varVhpSaving, "Saving ...",
                                             IsBlank(varVhpPlanKey), "Not saved yet. Save as draft so you can come back to it.",
-                                            "Saved as " & varVhpPlanKey & ". The next save overwrites items and operations on the same plan."
+                                            "Saved as " & varVhpPlanKey & ". The next save updates the same plan, items and operations."
                                         )
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
@@ -4631,7 +4837,7 @@ Screens:
                                                           ItemId: varVhpNextItemId, ShortText: "", FunctionalLocation: "", FlDescription: "",
                                                           MainWorkCenter: "", ActivityType: "", ObjectList: "", Revision: "",
                                                           OrstedResponsible: "", Initials: "", LongText: "", TasklistKey: "", TasklistName: "",
-                                                          Status: "draft"
+                                                          Status: "draft", SpId: 0
                                                       }
                                                   );
                                                   Set(varVhpActiveItemId, varVhpNextItemId);
@@ -4711,7 +4917,8 @@ Screens:
                                                               FlDescription: "", MainWorkCenter: src.MainWorkCenter, ActivityType: src.ActivityType,
                                                               ObjectList: src.ObjectList, Revision: src.Revision,
                                                               OrstedResponsible: src.OrstedResponsible, Initials: src.Initials, LongText: src.LongText,
-                                                              TasklistKey: src.TasklistKey, TasklistName: src.TasklistName, Status: "draft"
+                                                              TasklistKey: src.TasklistKey, TasklistName: src.TasklistName, Status: "draft",
+                                                              SpId: 0
                                                           }
                                                       );
                                                       Collect(
@@ -4735,7 +4942,8 @@ Screens:
                                                                   UnitCost: SRC.UnitCost,
                                                                   Currency: SRC.Currency,
                                                                   CostElement: SRC.CostElement,
-                                                                  MaterialGroup: SRC.MaterialGroup
+                                                                  MaterialGroup: SRC.MaterialGroup,
+                                                                  SpId: 0
                                                               }
                                                           )
                                                       );
@@ -14535,344 +14743,8 @@ Screens:
                             =ButtonLayout.IconBefore
                         OnSelect: |-
                             =Set(varVhpConfirmSubmit, false);
-                            If(
-                                !varVhpPlanCommitted || CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))) = 0,
-                                Notify("Create the plan and at least one item first.", NotificationType.Warning),
-                            
-                                Set(varVhpSaving, true);
-                                IfError(
-                                    With(
-                                        {
-                                            planOff: With(
-                                { r: First(Sort(MaintenancePlans, ID, SortOrder.Descending)) },
-                                If(
-                                    IsBlank(r.ID), 0,
-                                    IsNumeric(Mid(r.PlanID, 3)),
-                                    r.ID - Value(Mid(r.PlanID, 3)),
-                                    Blank()
-                                )
-                            ),
-                                            itemOff: With(
-                                { r: First(Sort(MaintenanceItems, ID, SortOrder.Descending)) },
-                                If(
-                                    IsBlank(r.ID), 0,
-                                    IsNumeric(Mid(r.ItemID, 3)),
-                                    r.ID - Value(Mid(r.ItemID, 3)),
-                                    Blank()
-                                )
-                            ),
-                                            taskOff: With(
-                                { r: First(Sort(TaskListMain, ID, SortOrder.Descending)) },
-                                If(
-                                    IsBlank(r.ID), 0,
-                                    IsNumeric(Mid(r.TaskItemID, 3)),
-                                    r.ID - Value(Mid(r.TaskItemID, 3)),
-                                    Blank()
-                                )
-                            )
-                                        },
-                                        If(
-                                            IsBlank(planOff) || IsBlank(itemOff) || IsBlank(taskOff),
-                                            Notify(
-                                                "Cannot derive the keys from the existing rows. " &
-                                                    "Saving stopped - contact SAP master data.",
-                                                NotificationType.Error
-                                            ),
-                            
-                                            Set(varVhpRequestGuid, Coalesce(varVhpRequestGuid, Text(GUID())));
-                            
-                                            // --- 1. planhovedet ---------------------------------
-                                            With(
-                                                {
-                                                    planRec: Patch(
-                                                        MaintenancePlans,
-                                                        If(varVhpPlanSpId > 0, LookUp(MaintenancePlans, ID = varVhpPlanSpId),
-                                                            Defaults(MaintenancePlans)),
-                                                        {
-                                        Title: varVhpPlan.PlanText,
-                                        Status: { Value: "In Progress" },
-                                        PlantsInitial: { Value: varVhpPlan.Plant },
-                                        Cycle: varVhpPlan.Cycle,
-                                        Unit: { Value: varVhpPlan.Unit },
-                                        PlannedDate: Date(
-                                            varVhpPlan.FirstCallYear, varVhpPlan.FirstCallMonth, varVhpPlan.FirstCallDay
-                                        ),
-                                        StrategyKey: varVhpPlan.Strategy,
-                                        SchedulingIndicator: If(
-                                            IsBlank(varVhpPlan.SchedulingIndicator), Blank(),
-                                            { Value: varVhpPlan.SchedulingIndicator }
-                                        ),
-                                        SchedulingPeriod: LookUp(
-                                            colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon
-                                        ).SchedPeriod,
-                                        SortField: With(
-                                            { sf: LookUp(SortFieldList, Title = varVhpPlan.SortField) },
-                                            If(IsBlank(sf.ID), Blank(), { Id: sf.ID, Value: sf.Title })
-                                        )
-                                    }
-                                                    )
-                                                },
-                                                With(
-                                                    {
-                                                        planId: planRec.ID,
-                                                        planKey: Coalesce(planRec.PlanID, "MP" & Text(planRec.ID - planOff, "0000"))
-                                                    },
-                                                    Patch(MaintenancePlans, planRec, { PlanID: planKey });
-                                                    Set(varVhpPlanSpId, planId);
-                                                    Set(varVhpPlanKey, planKey);
-                            
-                                                    // --- 2. ryd det gamle -----------------------
-                                                    // Ved gensave er det enklere og sikrere at
-                                                    // skrive linjerne forfra end at finde ud af
-                                                    // hvilke der er tilfoejet, aendret og slettet.
-                                                    Remove(MD_TasklistMaterial,
-                                                        Filter(MD_TasklistMaterial, PlanKey = varVhpPlanKey));
-                                                    Remove(MD_TasklistAttachment,
-                                                        Filter(MD_TasklistAttachment, PlanKey = varVhpPlanKey));
-                                                    Remove(TaskListMain,
-                                                        Filter(TaskListMain, MaintenancePlanID.Id = varVhpPlanSpId));
-                                                    Remove(MaintenanceItems,
-                                                        Filter(MaintenanceItems, MaintenancePlanNo.Id = varVhpPlanSpId));
-                            
-                                                    // --- 3. items ------------------------------
-                                                    With(
-                                                        { srcItems: Filter(
-                                                            colVhpItems,
-                                                            !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)
-                                                        ) },
-                                                        If(
-                                                            CountRows(srcItems) = 0,
-                                                            Clear(colVhpSavedItems),
-                            
-                                                            With(
-                                                                {
-                                                                    itemRecs: Patch(
-                                                                        MaintenanceItems,
-                                                                        ForAll(srcItems, Defaults(MaintenanceItems)),
-                                                                        ForAll(srcItems As IT, {
-                                                                            Title: IT.ShortText,
-                                                                            Status: { Value: Coalesce(varVhpPlan.Status, "New") },
-                                                                            MaintenancePlanNo: { Id: planId, Value: planKey },
-                                                                            ItemDescription: Coalesce(IT.LongText, IT.ShortText),
-                                                                            FunctionalLocation: IT.FunctionalLocation,
-                                                                            ObjectList: IT.ObjectList,
-                                                                            Priority: { Value: "Yellow (default)" },
-                                                                            OrstedResponsible: {
-                                                                                '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
-                                                                                Claims: "i:0#.f|membership|" & varVhpMe,
-                                                                                DisplayName: User().FullName,
-                                                                                Email: User().Email,
-                                                                                Department: "",
-                                                                                JobTitle: "",
-                                                                                Picture: ""
-                                                                            },
-                                                                            OrstedResponsibleEmail: varVhpMe,
-                                                                            InitialOrstedResponsible: IT.Initials,
-                                                                            MaintenanceActivityType: With(
-                                                                                { a: LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType) },
-                                                                                If(IsBlank(a.Id), Blank(), { Id: a.Id, Value: a.Value })
-                                                                            ),
-                                                                            MainWorkCenter: With(
-                                                                                { w: LookUp(colVhpMainWorkCenters, Value = IT.MainWorkCenter) },
-                                                                                If(IsBlank(w.Id), Blank(), { Id: w.Id, Value: w.Value })
-                                                                            )
-                                                                        })
-                                                                    )
-                                                                },
-                                                                ClearCollect(
-                                                                    colVhpSavedItems,
-                                                                    ForAll(
-                                                                        Sequence(CountRows(itemRecs)) As N,
-                                                                        {
-                                                                            LocalId: Index(srcItems, N.Value).ItemId,
-                                                                            SpId: Index(itemRecs, N.Value).ID,
-                                                                            ItemKey: "MI" & Text(Index(itemRecs, N.Value).ID - itemOff, "0000")
-                                                                        }
-                                                                    )
-                                                                );
-                                                                Patch(
-                                                                    MaintenanceItems,
-                                                                    itemRecs,
-                                                                    ForAll(colVhpSavedItems As S, { ItemID: S.ItemKey })
-                                                                )
-                                                            )
-                                                        )
-                                                    );
-                            
-                                                    // --- 4. operationer ------------------------
-                                                    With(
-                                                        {
-                                                            srcOps: Filter(
-                                                                colVhpOperations As OP,
-                                                                !IsBlank(LookUp(colVhpSavedItems, LocalId = OP.ItemId).SpId)
-                                                            )
-                                                        },
-                                                        If(
-                                                            CountRows(srcOps) = 0,
-                                                            Clear(colVhpSavedOps),
-                            
-                                                            With(
-                                                                {
-                                                                    opRecs: Patch(
-                                                                        TaskListMain,
-                                                                        ForAll(srcOps, Defaults(TaskListMain)),
-                                                                        ForAll(srcOps As OP, {
-                                                                            Title: LookUp(colVhpSavedItems, LocalId = OP.ItemId).ItemKey & " - " & OP.OperationShortText,
-                                                                            OperationShortText: OP.OperationShortText,
-                                                                            OperationNo: Value(OP.OperationNo),
-                                                                            PackagesKey: OP.PackagesKey,
-                                                                            Work: OP.WorkHours,
-                                                                            Num: OP.Persons,
-                                                                            Duration: OP.DurationHours,
-                                                                            WorkCtr: OP.MainWorkCenter,
-                                                                            Ctrl: OP.ControlKey,
-                                                                            Vendor: OP.Vendor,
-                                                                            Price: OP.Cost,
-                                                                            Currency: OP.Currency,
-                                                                            CostElem: OP.CostElement,
-                                                                            MaterialGroup: OP.MaterialGroup,
-                                                                            LongText: OP.LongText,
-                                                                            PlantInitial: varVhpPlan.Plant,
-                                                                            MaintenanceItemNo: { Id: LookUp(colVhpSavedItems, LocalId = OP.ItemId).SpId, Value: LookUp(colVhpSavedItems, LocalId = OP.ItemId).ItemKey },
-                                                                            MaintenancePlanID: { Id: planId, Value: planKey }
-                                                                        })
-                                                                    )
-                                                                },
-                                                                ClearCollect(
-                                                                    colVhpSavedOps,
-                                                                    ForAll(
-                                                                        Sequence(CountRows(opRecs)) As N,
-                                                                        {
-                                                                            LocalItemId: Index(srcOps, N.Value).ItemId,
-                                                                            OperationNo: Index(srcOps, N.Value).OperationNo,
-                                                                            SpId: Index(opRecs, N.Value).ID,
-                                                                            TaskKey: "TI" & Text(Index(opRecs, N.Value).ID - taskOff, "0000")
-                                                                        }
-                                                                    )
-                                                                );
-                                                                Patch(
-                                                                    TaskListMain,
-                                                                    opRecs,
-                                                                    ForAll(colVhpSavedOps As S, { TaskItemID: S.TaskKey })
-                                                                )
-                                                            )
-                                                        )
-                                                    );
-                            
-                                                    // --- 5. materialer -------------------------
-                                                    // Peger paa operationens TaskItemID, ikke paa
-                                                    // itemet. Et materiale hoerer til EEN
-                                                    // operation - det er den relation SAP har.
-                                                    With(
-                                                        { srcMats: Filter(colVhpMaterials As MT, !IsBlank(MT.MaterialNo)) },
-                                                        If(
-                                                            CountRows(srcMats) > 0,
-                                                            Patch(
-                                                                MD_TasklistMaterial,
-                                                                ForAll(srcMats, Defaults(MD_TasklistMaterial)),
-                                                                ForAll(
-                                                                    srcMats As MT,
-                                                                    {
-                                                                        MaterialNo: MT.MaterialNo,
-                                                                        PlanKey: planKey,
-                                                                        ItemKey: LookUp(
-                                                                            colVhpSavedItems, LocalId = MT.ItemId
-                                                                        ).ItemKey,
-                                                                        TaskItemID: LookUp(
-                                                                            colVhpSavedOps,
-                                                                            LocalItemId = MT.ItemId && OperationNo = MT.OperationNo
-                                                                        ).TaskKey,
-                                                                        OperationNo: MT.OperationNo,
-                                                                        Quantity: MT.Quantity,
-                                                                        MaterialText: MT.Description,
-                                                                        Unit: MT.Unit,
-                                                                        LineId: MT.LineId
-                                                                    }
-                                                                )
-                                                            )
-                                                        )
-                                                    );
-                            
-                                                    // --- 6. dokumenter -------------------------
-                                                    // OperationsKey er ';0010;0020;'. Tom (';')
-                                                    // betyder hele itemet.
-                                                    //
-                                                    // UploadStatus skrives som Pending.
-                                                    //
-                                                    // Her stod, at FLOWET retter den bagefter. Det
-                                                    // goer det ikke: BioSap-TaskListAttachment
-                                                    // bestaar af eet CreateFile og et svar, og
-                                                    // roerer aldrig denne liste. Raekken bliver
-                                                    // staaende som Pending, indtil appen selv
-                                                    // retter den - den kender flowets svar.
-                                                    // Se docs/18-materialer-og-attachments.md.
-                                                    With(
-                                                        { srcAtt: Filter(colVhpAttachments As AT, !IsBlank(AT.FileName)) },
-                                                        If(
-                                                            CountRows(srcAtt) > 0,
-                                                            Patch(
-                                                                MD_TasklistAttachment,
-                                                                ForAll(srcAtt, Defaults(MD_TasklistAttachment)),
-                                                                ForAll(
-                                                                    srcAtt As AT,
-                                                                    {
-                                                                        FileName: AT.FileName,
-                                                                        PlanKey: planKey,
-                                                                        ItemKey: LookUp(
-                                                                            colVhpSavedItems, LocalId = AT.ItemId
-                                                                        ).ItemKey,
-                                                                        OperationsKey: Coalesce(AT.OperationsKey, ";"),
-                                                                        FileSize: AT.FileSize,
-                                                                        FileUrl: AT.FileUrl,
-                                                                        UploadStatus: {
-                                                                            Value: Coalesce(AT.Status, "Pending")
-                                                                        }
-                                                                    }
-                                                                )
-                                                            )
-                                                        )
-                                                    );
-                            
-                                                    // --- 7. opsummering til landingssiden ------
-                                                    // Hubben laeser KUN denne raekke. Den skal
-                                                    // skrives hver gang status aendrer sig,
-                                                    // ellers viser oversigten noget forkert.
-                                                    Patch(
-                                                        MD_RequestIndex,
-                                                        Coalesce(
-                                                            LookUp(MD_RequestIndex, RequestGuid = varVhpRequestGuid),
-                                                            Defaults(MD_RequestIndex)
-                                                        ),
-                                                        {
-                                            RequestNo: planKey,
-                                            Domain: { Value: "MaintenancePlan" },
-                                            Status: { Value: "Indsendt" },
-                                            StatusStep: 2,
-                                            IsOpen: true,
-                                            RequestGuid: varVhpRequestGuid,
-                                            RequesterEmail: varVhpMe,
-                                            RequesterName: User().FullName,
-                                            ShortText: varVhpPlan.PlanText,
-                                            Plant: varVhpPlan.Plant,
-                                            ItemCount: CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))),
-                                            SourceItemId: planId,
-                                            AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/11fa8d90-868a-45a4-ba23-28f2cf0671a2?reqid=" & varVhpRequestGuid,
-                                            LastActionOn: Now(),
-                                            LastActionBy: varVhpMe
-                                        }
-                                                    );
-                            
-                                                    Set(varVhpSavedJson, VhpStateJson);
-                                                    Notify("Submitted as " & planKey & " - see it on the landing page.", NotificationType.Success)
-                                                )
-                                            )
-                                        )
-                                    ),
-                            
-                                    Notify("Submit failed: " & FirstError.Message, NotificationType.Error)
-                                );
-                                Set(varVhpSaving, false)
-                            )
+                            Set(varVhpSubmitting, true);
+                            Select(btnVhpSaveDraft)
                         RadiusBottomLeft: |-
                             =10
                         RadiusBottomRight: |-

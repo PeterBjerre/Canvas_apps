@@ -22,12 +22,36 @@ Det er selvkorrigerende og miljoeuafhaengigt. Kan det ikke udledes
 (tom liste, eller et nummer der ikke er et tal), bruges 0 for en tom liste
 og ellers stoppes der - en forkert noegleserie er vaerre end en fejlbesked.
 
-REKKEFOELGEN
-------------
-Planen foerst, saa items, saa operationer: hvert trin har brug for ID'et fra
-det foregaaende til sit opslagsfelt. Ved gensave slettes de gamle items og
-operationer foerst - en halv opdatering er sværere at rydde op i end en
-gentagelse.
+REKKEFOELGEN OG SIKKERHED (REVIEW.md D7, D8)
+-------------------------------------------
+SharePoint har ingen transaktioner. Gemmet er derfor GENOPTAGELIGT, efter
+samme model som FL-appen (Functional Location App/build/fl_save.py):
+
+  1. Noeglerne. De tre offsets hentes paa een gang (Concurrent).
+  2. Konflikt. Er planen gemt af en anden, siden den blev aabnet
+     (Modified), stoppes der - foer der er skrevet noget.
+  3. Planhovedet - altid som kladde. Status saettes SIDST (trin 8).
+  4. Items. Et item, der ER i SharePoint (SpId), OPDATERES. Kun nye
+     oprettes. Et item beholder derfor sit ID og sin noegle (MI0112) ved
+     hvert gem - og dokumentmappen, der er opkaldt efter noeglen, bliver
+     ved med at passe (D7). Foer blev alle items slettet og oprettet
+     forfra, med nyt ID og ny noegle hver gang.
+  5. Operationer - samme model som items.
+  6. Materialer og dokumentraekker skrives forfra, men de GAMLE raekker
+     slettes foerst, naar de nye er skrevet.
+  7. Oprydning - KUN naar alt ovenfor lykkedes: operationer og items, der
+     ikke laengere er i appen, og de gamle materiale- og dokumentraekker.
+     En fejl giver altsaa i vaerste fald en raekke for meget, aldrig et
+     tab (foer: slet foerst, skriv bagefter).
+  8. Status og landingssiden.
+
+Hvert trin har sin egen IfError og skriver i colVhpSaveErrors. Et trin
+koeres kun, naar ingen af de foregaaende fejlede, og brugeren faar EEN
+samlet besked.
+
+Save draft og Submit er den SAMME gemning. Submit saetter
+varVhpSubmitting og vaelger Save draft-knappen (Select), saa formlen kun
+staar eet sted i appen (B7). Foer stod den to gange - 415 linjer hver.
 
 DET DER IKKE SKRIVES
 --------------------
@@ -85,44 +109,44 @@ DOMAIN = "MaintenancePlan"
 # blive valid, saa et item uden dem kan alligevel ikke gemmes meningsfuldt.
 # Operationer paa et udeladt item falder selv fra: de slaar itemet op i
 # colVhpSavedItems og springer over, naar det ikke er der.
-SAVEABLE_ITEMS = ('Filter(\n'
-                  '                            colVhpItems,\n'
-                  '                            !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)\n'
-                  '                        )')
-SAVEABLE_COUNT = ('CountRows(Filter(colVhpItems, '
-                  '!IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)))')
+SAVEABLE_ITEMS = ('Filter(colVhpItems, '
+                  '!IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))')
+SAVEABLE_COUNT = f"CountRows({SAVEABLE_ITEMS})"
 
-# Opslaget fra en operation til det item, der lige er skrevet. Stod foer
-# som et per-raekke With({ m: LookUp(...) }) inde i den ForAll, der ogsaa
-# skrev. Da skrivningen blev samlet i EET Patch-kald, kunne det With ikke
-# blive staaende - saa opslaget staar nu direkte i feltet. Det er to
-# opslag i stedet for eet, men de er i hukommelsen; det, der blev sparet,
-# var et netvaerkskald pr. operation.
+# Opslaget fra en operation til dens item. colVhpSavedItems har ALLE
+# gemte items - de opdaterede og de nye - naar operationerne skrives.
 M_LOOKUP = "LookUp(colVhpSavedItems, LocalId = OP.ItemId)"
 M_KEY = M_LOOKUP + ".ItemKey"
 M_SPID = M_LOOKUP + ".SpId"
 
-# Appens Status (Ny/AEndre/Slettes) er AENDRINGSTYPEN pr. item, ikke
+# Appens Status (New/Change/Deleted) er AENDRINGSTYPEN pr. item, ikke
 # arbejdsgangens status. De to maa ikke blandes sammen.
 PLAN_STATUS_DRAFT = "Draft"
 PLAN_STATUS_SUBMITTED = "In Progress"
+
+# Kun naar ingen af de foregaaende trin fejlede.
+OK = "CountRows(colVhpSaveErrors) = 0"
+
+# Knappen, begge veje ind i gemningen gaar igennem (se save_buttons).
+SAVE_BUTTON = "btnVhpSaveDraft"
 
 
 def _offset(list_name, key_field, prefix):
     """Offsettet mellem SharePoints ID og forretningsnoeglen.
 
     Udledt af den nyeste raekke i stedet for af AppSettings, som kun har
-    vaerdier for DEV. Blank paa en tom liste - saa starter serien paa ID."""
+    vaerdier for DEV. 0 paa en tom liste - saa starter serien paa ID.
+    Blank, naar nummeret ikke er et tal: saa stopper gemningen."""
     return (
         f"With(\n"
-        f"    {{ r: First(Sort({list_name}, ID, SortOrder.Descending)) }},\n"
-        f"    If(\n"
-        f"        IsBlank(r.ID), 0,\n"
-        f"        IsNumeric(Mid(r.{key_field}, {len(prefix) + 1})),\n"
-        f"        r.ID - Value(Mid(r.{key_field}, {len(prefix) + 1})),\n"
-        f"        Blank()\n"
-        f"    )\n"
-        f")"
+        f"        {{ r: First(Sort({list_name}, ID, SortOrder.Descending)) }},\n"
+        f"        If(\n"
+        f"            IsBlank(r.ID), 0,\n"
+        f"            IsNumeric(Mid(r.{key_field}, {len(prefix) + 1})),\n"
+        f"            r.ID - Value(Mid(r.{key_field}, {len(prefix) + 1})),\n"
+        f"            Blank()\n"
+        f"        )\n"
+        f"    )"
     )
 
 
@@ -130,39 +154,29 @@ def _key(prefix, id_expr, off_var):
     return f"\"{prefix}\" & Text({id_expr} - {off_var}, \"0000\")"
 
 
-def _reindent(block, spaces):
-    """Flyt en flerlinjet literal ind, saa den staar under det kald, den
-    interpoleres ind i.
+def _step(where, body):
+    """Eet trin: body, og fejler den, en raekke i colVhpSaveErrors.
 
-    Konstanterne her (item_fields, op_fields, SAVEABLE_ITEMS) er skrevet
-    med den indrykning, de havde DENGANG de blev skrevet. Da gemningen
-    blev lagt om til batch, rykkede kaldene to niveauer ind, og
-    konstanterne fulgte ikke med - den byggede formel fik en record, der
-    stod laengere til venstre end det ForAll, den var argument til.
-
-    Foerste linje bliver staaende (den staar allerede efter noget andet
-    paa samme linje); resten flyttes, saa den mindst indrykkede linje
-    lander paa 'spaces'."""
-    lines = block.split("\n")
-    body = [l for l in lines[1:] if l.strip()]
-    if not body:
-        return block
-    cur = min(len(l) - len(l.lstrip()) for l in body)
-    pad = " " * spaces
-    return lines[0] + "\n" + "\n".join(
-        (pad + l[cur:]) if l.strip() else l for l in lines[1:])
+    Begge grene slutter med en boolean (check_layout regel 32): Patch giver
+    en record, Collect en tabel, og IfError vil have samme type."""
+    return (f"IfError(\n{body};\n    true,\n"
+            f"    Collect(colVhpSaveErrors, {{ Where: \"{where}\", Msg: FirstError.Message }});\n"
+            f"    false\n)")
 
 
-def save_action(submit=False):
-    """Hele gemningen som eet Power Fx-udtryk."""
-    plan_status = PLAN_STATUS_SUBMITTED if submit else PLAN_STATUS_DRAFT
-    idx_status = ri.SUBMITTED if submit else ri.DRAFT
+def _when_ok(body):
+    return f"If(\n    {OK},\n{body}\n)"
 
-    # Planhovedets felter. PlannedDate samles af de tre First Call-felter.
-    plan_fields = (
+
+# ---------------------------------------------------------------------------
+# Felterne
+# ---------------------------------------------------------------------------
+def plan_fields():
+    """Planhovedet - altid som kladde. Status skrives af _step_status."""
+    return (
         "{\n"
         "            Title: varVhpPlan.PlanText,\n"
-        f"            Status: {{ Value: \"{plan_status}\" }},\n"
+        f"            Status: {{ Value: \"{PLAN_STATUS_DRAFT}\" }},\n"
         "            PlantsInitial: { Value: varVhpPlan.Plant },\n"
         "            Cycle: varVhpPlan.Cycle,\n"
         "            Unit: { Value: varVhpPlan.Unit },\n"
@@ -179,384 +193,503 @@ def save_action(submit=False):
         "            SchedulingPeriod: LookUp(\n"
         "                colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon\n"
         "            ).SchedPeriod,\n"
-        f"            SortField: With(\n"
-        f"                {{ sf: LookUp({cfg.L_SORTFIELDS}, Title = varVhpPlan.SortField) }},\n"
-        "                If(IsBlank(sf.ID), Blank(), { Id: sf.ID, Value: sf.Title })\n"
+        # Id baeres i den navngivne formel (B7) - foer et opslag mod
+        # SharePoint-listen ved hvert gem.
+        "            SortField: With(\n"
+        "                { sf: LookUp(colVhpSortFieldOptions, Value = varVhpPlan.SortField) },\n"
+        "                If(IsBlank(sf.Id), Blank(), { Id: sf.Id, Value: sf.Value })\n"
         "            )\n"
         "        }"
     )
 
-    item_fields = (
+
+def item_fields(key=None):
+    """Et items felter. key er ItemID for et item, der opdateres - saa det
+    ogsaa faar sin noegle, hvis et afbrudt gem manglede den. Nye items faar
+    noeglen bagefter, naar ID'et kendes."""
+    return (
         "{\n"
-        "                        Title: IT.ShortText,\n"
-        # DEN HER SWITCH RAMTE ALDRIG
-        #
-        # Noeglerne var danske - "Ny", "AEndre", "Slettes" - men
-        # varVhpPlan.Status kommer fra drpVhpStatus, hvis Items er
-        # Choices(MaintenanceItems.Status). SharePoints egne valg
-        # ER "New", "Change", "Deleted" (se schema.md). Ingen af de
-        # tre danske noegler kunne derfor matche, og HVERT item blev
-        # skrevet som "New" - ogsaa naar brugeren havde valgt Change
-        # eller Deleted. Fundet under oversaettelsen til engelsk.
-        #
-        # Vaerdien er allerede den rigtige; der skal ikke oversaettes
-        # noget. Coalesce daekker den tomme plan.
-        "                        Status: { Value: Coalesce(varVhpPlan.Status, \"New\") },\n"
-        "                        MaintenancePlanNo: { Id: planId, Value: planKey },\n"
-        "                        ItemDescription: Coalesce(IT.LongText, IT.ShortText),\n"
-        "                        FunctionalLocation: IT.FunctionalLocation,\n"
-        "                        ObjectList: IT.ObjectList,\n"
+        + (f"                ItemID: {key},\n" if key else "") +
+        "                Title: IT.ShortText,\n"
+        # Vaerdien er SharePoints egen (New/Change/Deleted) - se build_load.
+        "                Status: { Value: Coalesce(varVhpPlan.Status, \"New\") },\n"
+        "                MaintenancePlanNo: { Id: varVhpPlanSpId, Value: varVhpPlanKey },\n"
+        "                ItemDescription: Coalesce(IT.LongText, IT.ShortText),\n"
+        "                FunctionalLocation: IT.FunctionalLocation,\n"
+        "                ObjectList: IT.ObjectList,\n"
         # Priority er obligatorisk i listen, men appen har ikke feltet.
-        # Standardvaerdien hedder bogstaveligt "Yellow (default)".
-        "                        Priority: { Value: \"Yellow (default)\" },\n"
+        "                Priority: { Value: \"Yellow (default)\" },\n"
         # Person-kolonnen er obligatorisk. Indsenderen staar som ansvarlig,
         # indtil appen faar en rigtig personvaelger. Teksten ved siden af er
-        # den, der kan filtreres delegerbart.\n
-        "                        OrstedResponsible: {\n"
-        "                            '@odata.type': \"#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser\",\n"
-        "                            Claims: \"i:0#.f|membership|\" & varVhpMe,\n"
-        "                            DisplayName: User().FullName,\n"
-        "                            Email: User().Email,\n"
-        "                            Department: \"\",\n"
-        "                            JobTitle: \"\",\n"
-        "                            Picture: \"\"\n"
-        "                        },\n"
-        "                        OrstedResponsibleEmail: varVhpMe,\n"
-        "                        InitialOrstedResponsible: IT.Initials,\n"
-        # OPSLAG I SAMLINGEN, IKKE I LISTEN
-        #
-        # Her stod LookUp(MaintenanceActivityTypeList, ...) og
-        # LookUp(MainWorkCenters, Trim(Title) = ...) - inde i et ForAll,
-        # altsaa et SharePoint-opslag PR. ITEM. Begge er navngivne formler
-        # i forvejen (dovent hentet, cachet, og nu med Id), saa opslaget
-        # koster ingenting og kan ikke give en delegeringsadvarsel.
-        #
-        # Trim staar nu i den navngivne formel, hvor det udfoeres een gang
-        # pr. arbejdscenter - ikke een gang pr. item.
-        f"                        MaintenanceActivityType: With(\n"
-        f"                            {{ a: LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType) }},\n"
-        "                            If(IsBlank(a.Id), Blank(), { Id: a.Id, Value: a.Value })\n"
-        "                        ),\n"
-        f"                        MainWorkCenter: With(\n"
-        f"                            {{ w: LookUp(colVhpMainWorkCenters, Value = IT.MainWorkCenter) }},\n"
-        "                            If(IsBlank(w.Id), Blank(), { Id: w.Id, Value: w.Value })\n"
-        "                        )\n"
-        "                    }"
+        # den, der kan filtreres delegerbart.
+        "                OrstedResponsible: {\n"
+        "                    '@odata.type': \"#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser\",\n"
+        "                    Claims: \"i:0#.f|membership|\" & varVhpMe,\n"
+        "                    DisplayName: User().FullName,\n"
+        "                    Email: User().Email,\n"
+        "                    Department: \"\",\n"
+        "                    JobTitle: \"\",\n"
+        "                    Picture: \"\"\n"
+        "                },\n"
+        "                OrstedResponsibleEmail: varVhpMe,\n"
+        "                InitialOrstedResponsible: IT.Initials,\n"
+        # Opslag i de navngivne formler, ikke i listerne - de har Id.
+        "                MaintenanceActivityType: With(\n"
+        "                    { a: LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType) },\n"
+        "                    If(IsBlank(a.Id), Blank(), { Id: a.Id, Value: a.Value })\n"
+        "                ),\n"
+        "                MainWorkCenter: With(\n"
+        "                    { w: LookUp(colVhpMainWorkCenters, Value = IT.MainWorkCenter) },\n"
+        "                    If(IsBlank(w.Id), Blank(), { Id: w.Id, Value: w.Value })\n"
+        "                )\n"
+        "            }"
     )
 
-    op_fields = (
+
+def op_fields(key=None):
+    """Som item_fields: key er TaskItemID for en operation, der opdateres."""
+    return (
         "{\n"
-        f"                            Title: {M_KEY} & \" - \" & OP.OperationShortText,\n"
-        "                            OperationShortText: OP.OperationShortText,\n"
-        "                            OperationNo: Value(OP.OperationNo),\n"
-        "                            PackagesKey: OP.PackagesKey,\n"
-        "                            Work: OP.WorkHours,\n"
-        "                            Num: OP.Persons,\n"
-        "                            Duration: OP.DurationHours,\n"
-        "                            WorkCtr: OP.MainWorkCenter,\n"
-        "                            Ctrl: OP.ControlKey,\n"
-        "                            Vendor: OP.Vendor,\n"
-        "                            Price: OP.Cost,\n"
-        "                            Currency: OP.Currency,\n"
-        "                            CostElem: OP.CostElement,\n"
-        "                            MaterialGroup: OP.MaterialGroup,\n"
-        "                            LongText: OP.LongText,\n"
-        "                            PlantInitial: varVhpPlan.Plant,\n"
-        f"                            MaintenanceItemNo: {{ Id: {M_SPID}, Value: {M_KEY} }},\n"
-        "                            MaintenancePlanID: { Id: planId, Value: planKey }\n"
-        "                        }"
+        + (f"                TaskItemID: {key},\n" if key else "") +
+        f"                Title: {M_KEY} & \" - \" & OP.OperationShortText,\n"
+        "                OperationShortText: OP.OperationShortText,\n"
+        "                OperationNo: Value(OP.OperationNo),\n"
+        "                PackagesKey: OP.PackagesKey,\n"
+        "                Work: OP.WorkHours,\n"
+        "                Num: OP.Persons,\n"
+        "                Duration: OP.DurationHours,\n"
+        "                WorkCtr: OP.MainWorkCenter,\n"
+        "                Ctrl: OP.ControlKey,\n"
+        "                Vendor: OP.Vendor,\n"
+        "                Price: OP.Cost,\n"
+        "                Currency: OP.Currency,\n"
+        "                CostElem: OP.CostElement,\n"
+        "                MaterialGroup: OP.MaterialGroup,\n"
+        "                LongText: OP.LongText,\n"
+        "                PlantInitial: varVhpPlan.Plant,\n"
+        f"                MaintenanceItemNo: {{ Id: {M_SPID}, Value: {M_KEY} }},\n"
+        "                MaintenancePlanID: { Id: varVhpPlanSpId, Value: varVhpPlanKey }\n"
+        "            }"
     )
 
-    # Indeksraekken er den samme i alle apps - tools/request_index.py.
-    index_fields = ri.record(
-        DOMAIN, "vhplan", idx_status,
-        request_no="planKey", guid="varVhpRequestGuid", me="varVhpMe",
-        short_text="varVhpPlan.PlanText", plant="varVhpPlan.Plant",
-        item_count=SAVEABLE_COUNT, source_id="planId", indent=12)
 
+# ---------------------------------------------------------------------------
+# Trinene (C15: een funktion pr. trin i stedet for eet udtryk paa 415 linjer)
+# ---------------------------------------------------------------------------
+def _step_keys():
+    """1. De tre offsets - uafhaengige, saa paa een gang (B7)."""
+    return _step("Keys", (
+        "    Concurrent(\n"
+        f"        Set(varVhpPlanOff, {_offset(cfg.L_PLANS, 'PlanID', 'MP')}),\n"
+        f"        Set(varVhpItemOff, {_offset(cfg.L_ITEMS, 'ItemID', 'MI')}),\n"
+        f"        Set(varVhpTaskOff, {_offset(cfg.L_TASKS, 'TaskItemID', 'TI')})\n"
+        "    );\n"
+        # Hellere stoppe end at starte en ny noegleserie ved siden af den
+        # eksisterende, uden at nogen opdager det.
+        "    If(\n"
+        "        IsBlank(varVhpPlanOff) || IsBlank(varVhpItemOff) || IsBlank(varVhpTaskOff),\n"
+        "        Collect(colVhpSaveErrors, {\n"
+        "            Where: \"Keys\",\n"
+        "            Msg: \"Cannot derive the keys from the existing rows - contact SAP master data.\"\n"
+        "        })\n"
+        "    )"))
+
+
+def _step_conflict():
+    """2. Er planen gemt af en anden, siden den blev aabnet? (D8)
+
+    varVhpPlanModified saettes ved indlaesning og efter hvert gem. En ny
+    plan har ingen og springer tjekket over."""
+    return _step("Plan", (
+        "    If(\n"
+        "        varVhpPlanSpId > 0 && !IsBlank(varVhpPlanModified),\n"
+        "        With(\n"
+        f"            {{ now: LookUp({cfg.L_PLANS}, ID = varVhpPlanSpId) }},\n"
+        "            If(\n"
+        "                !IsBlank(now.ID) && now.Modified <> varVhpPlanModified,\n"
+        "                Collect(colVhpSaveErrors, {\n"
+        "                    Where: \"Plan\",\n"
+        "                    Msg: \"Someone else saved this plan after you opened it. \" &\n"
+        "                        \"Open it again from the landing page, then make your changes.\"\n"
+        "                })\n"
+        "            )\n"
+        "        )\n"
+        "    )"))
+
+
+def _step_plan():
+    """3. Planhovedet og dets noegle."""
+    return _step("Plan", (
+        "    Set(\n"
+        "        varVhpPlanRec,\n"
+        "        Patch(\n"
+        f"            {cfg.L_PLANS},\n"
+        f"            If(varVhpPlanSpId > 0, LookUp({cfg.L_PLANS}, ID = varVhpPlanSpId),\n"
+        f"                Defaults({cfg.L_PLANS})),\n"
+        f"            {plan_fields()}\n"
+        "        )\n"
+        "    );\n"
+        "    If(\n"
+        "        IsBlank(varVhpPlanRec.PlanID),\n"
+        "        Set(\n"
+        "            varVhpPlanRec,\n"
+        f"            Patch({cfg.L_PLANS}, varVhpPlanRec, "
+        f"{{ PlanID: {_key('MP', 'varVhpPlanRec.ID', 'varVhpPlanOff')} }})\n"
+        "        )\n"
+        "    );\n"
+        # Globale variabler, ikke With-felter: filtrene nedenfor sammenligner
+        # med dem, og SharePoint delegerer kun mod noget, der er ens for alle
+        # raekker.
+        "    Set(varVhpPlanSpId, varVhpPlanRec.ID);\n"
+        "    Set(varVhpPlanKey, varVhpPlanRec.PlanID);\n"
+        "    Set(varVhpRequestGuid, Coalesce(varVhpRequestGuid, Text(GUID())))"))
+
+
+def _step_items():
+    """4. Items: opdatér de eksisterende, opret de nye (D7)."""
+    ex = f"Filter({cfg.L_ITEMS}, MaintenancePlanNo.Id = varVhpPlanSpId)"
+    return _step("Items", (
+        # Hvad der er i SharePoint nu - ID og noegle.
+        "    ClearCollect(\n"
+        "        colVhpSpItems,\n"
+        f"        ForAll({ex} As I, {{ ID: I.ID, ItemID: I.ItemID }})\n"
+        "    );\n"
+        # De eksisterende foerst i oversaettelsen: operationerne,
+        # materialerne og dokumenterne slaar op i den.
+        "    ClearCollect(\n"
+        "        colVhpSavedItems,\n"
+        "        ForAll(\n"
+        f"            Filter({SAVEABLE_ITEMS}, SpId in colVhpSpItems.ID) As IT,\n"
+        "            {\n"
+        "                LocalId: IT.ItemId,\n"
+        "                SpId: IT.SpId,\n"
+        "                ItemKey: Coalesce(\n"
+        "                    LookUp(colVhpSpItems, ID = IT.SpId).ItemID,\n"
+        f"                    {_key('MI', 'IT.SpId', 'varVhpItemOff')}\n"
+        "                )\n"
+        "            }\n"
+        "        )\n"
+        "    );\n"
+        # OPDATERING. Base-raekkerne er RIGTIGE raekker fra listen, hentet
+        # een gang med et delegerbart filter (som fl_save.py) - ikke
+        # { ID: ... }, som FL-appens compile afviste (issue #32).
+        "    With(\n"
+        "        {\n"
+        f"            ex: {ex},\n"
+        f"            old: Filter({SAVEABLE_ITEMS}, SpId in colVhpSpItems.ID)\n"
+        "        },\n"
+        "        If(\n"
+        "            CountRows(old) > 0,\n"
+        "            Patch(\n"
+        f"                {cfg.L_ITEMS},\n"
+        "                ForAll(old As IT, LookUp(ex, ID = IT.SpId)),\n"
+        f"                ForAll(old As IT, {item_fields('LookUp(colVhpSavedItems, LocalId = IT.ItemId).ItemKey')})\n"
+        "            )\n"
+        "        )\n"
+        "    );\n"
+        # NYE: EET kald. Svaret staar een-til-een med kilden (Patch-
+        # dokumentationen, "Modify or create a set of records").
+        "    With(\n"
+        f"        {{ src: Filter({SAVEABLE_ITEMS}, !(SpId in colVhpSpItems.ID)) }},\n"
+        "        If(\n"
+        "            CountRows(src) > 0,\n"
+        "            With(\n"
+        "                {\n"
+        "                    recs: Patch(\n"
+        f"                        {cfg.L_ITEMS},\n"
+        f"                        ForAll(src, Defaults({cfg.L_ITEMS})),\n"
+        f"                        ForAll(src As IT, {item_fields()})\n"
+        "                    )\n"
+        "                },\n"
+        "                Collect(\n"
+        "                    colVhpSavedItems,\n"
+        "                    ForAll(\n"
+        "                        Sequence(CountRows(recs)) As N,\n"
+        "                        {\n"
+        "                            LocalId: Index(src, N.Value).ItemId,\n"
+        "                            SpId: Index(recs, N.Value).ID,\n"
+        f"                            ItemKey: {_key('MI', 'Index(recs, N.Value).ID', 'varVhpItemOff')}\n"
+        "                        }\n"
+        "                    )\n"
+        "                );\n"
+        "                Patch(\n"
+        f"                    {cfg.L_ITEMS},\n"
+        "                    recs,\n"
+        f"                    ForAll(recs As R, {{ ItemID: {_key('MI', 'R.ID', 'varVhpItemOff')} }})\n"
+        "                )\n"
+        "            )\n"
+        "        )\n"
+        "    );\n"
+        # Appen husker nu, hvilken raekke hvert item er - naeste gem
+        # opdaterer i stedet for at oprette. ItemId findes ikke i
+        # colVhpSavedItems, saa det er itemets eget.
+        "    UpdateIf(\n"
+        "        colVhpItems,\n"
+        "        ItemId in colVhpSavedItems.LocalId,\n"
+        "        { SpId: LookUp(colVhpSavedItems, LocalId = ItemId).SpId }\n"
+        "    )"))
+
+
+def _step_ops():
+    """5. Operationer - samme model som items."""
+    ex = f"Filter({cfg.L_TASKS}, MaintenancePlanID.Id = varVhpPlanSpId)"
+    live = f"Filter(colVhpOperations As OP, !IsBlank({M_SPID}))"
+    return _step("Operations", (
+        "    ClearCollect(\n"
+        "        colVhpSpOps,\n"
+        f"        ForAll({ex} As T, {{ ID: T.ID, TaskItemID: T.TaskItemID }})\n"
+        "    );\n"
+        "    ClearCollect(\n"
+        "        colVhpSavedOps,\n"
+        "        ForAll(\n"
+        f"            Filter({live}, SpId in colVhpSpOps.ID) As O,\n"
+        "            {\n"
+        "                LocalItemId: O.ItemId,\n"
+        "                OpNo: O.OperationNo,\n"
+        "                SpId: O.SpId,\n"
+        "                TaskKey: Coalesce(\n"
+        "                    LookUp(colVhpSpOps, ID = O.SpId).TaskItemID,\n"
+        f"                    {_key('TI', 'O.SpId', 'varVhpTaskOff')}\n"
+        "                )\n"
+        "            }\n"
+        "        )\n"
+        "    );\n"
+        "    With(\n"
+        "        {\n"
+        f"            ex: {ex},\n"
+        f"            old: Filter({live}, SpId in colVhpSpOps.ID)\n"
+        "        },\n"
+        "        If(\n"
+        "            CountRows(old) > 0,\n"
+        "            Patch(\n"
+        f"                {cfg.L_TASKS},\n"
+        "                ForAll(old As OP, LookUp(ex, ID = OP.SpId)),\n"
+        f"                ForAll(old As OP, {op_fields('LookUp(colVhpSavedOps, SpId = OP.SpId).TaskKey')})\n"
+        "            )\n"
+        "        )\n"
+        "    );\n"
+        "    With(\n"
+        f"        {{ src: Filter({live}, !(SpId in colVhpSpOps.ID)) }},\n"
+        "        If(\n"
+        "            CountRows(src) > 0,\n"
+        "            With(\n"
+        "                {\n"
+        "                    recs: Patch(\n"
+        f"                        {cfg.L_TASKS},\n"
+        f"                        ForAll(src, Defaults({cfg.L_TASKS})),\n"
+        f"                        ForAll(src As OP, {op_fields()})\n"
+        "                    )\n"
+        "                },\n"
+        "                Collect(\n"
+        "                    colVhpSavedOps,\n"
+        "                    ForAll(\n"
+        "                        Sequence(CountRows(recs)) As N,\n"
+        "                        {\n"
+        "                            LocalItemId: Index(src, N.Value).ItemId,\n"
+        "                            OpNo: Index(src, N.Value).OperationNo,\n"
+        "                            SpId: Index(recs, N.Value).ID,\n"
+        f"                            TaskKey: {_key('TI', 'Index(recs, N.Value).ID', 'varVhpTaskOff')}\n"
+        "                        }\n"
+        "                    )\n"
+        "                );\n"
+        "                Patch(\n"
+        f"                    {cfg.L_TASKS},\n"
+        "                    recs,\n"
+        f"                    ForAll(recs As R, {{ TaskItemID: {_key('TI', 'R.ID', 'varVhpTaskOff')} }})\n"
+        "                )\n"
+        "            )\n"
+        "        )\n"
+        "    );\n"
+        # OpNo, ikke OperationNo, i oversaettelsen: saa binder ItemId og
+        # OperationNo her til operationens egne felter.
+        "    UpdateIf(\n"
+        "        colVhpOperations,\n"
+        "        true,\n"
+        "        {\n"
+        "            SpId: Coalesce(\n"
+        "                LookUp(colVhpSavedOps, LocalItemId = ItemId && OpNo = OperationNo).SpId,\n"
+        "                SpId\n"
+        "            )\n"
+        "        }\n"
+        "    )"))
+
+
+def _step_materials():
+    """6a. Materialer. De gamle raekkers ID huskes, og de slettes foerst i
+    oprydningen - efter de nye er skrevet."""
+    return _step("Materials", (
+        "    ClearCollect(\n"
+        "        colVhpOldMats,\n"
+        f"        ForAll(Filter({cfg.L_MATERIALS}, PlanKey = varVhpPlanKey) As M, {{ ID: M.ID }})\n"
+        "    );\n"
+        # Peger paa operationens TaskItemID, ikke paa itemet. Et materiale
+        # hoerer til EEN operation - det er den relation SAP har.
+        "    With(\n"
+        "        { srcMats: Filter(colVhpMaterials As MT, !IsBlank(MT.MaterialNo)) },\n"
+        "        If(\n"
+        "            CountRows(srcMats) > 0,\n"
+        "            Patch(\n"
+        f"                {cfg.L_MATERIALS},\n"
+        f"                ForAll(srcMats, Defaults({cfg.L_MATERIALS})),\n"
+        "                ForAll(\n"
+        "                    srcMats As MT,\n"
+        "                    {\n"
+        f"                        {cfg.C_MATERIAL_NO}: MT.MaterialNo,\n"
+        "                        PlanKey: varVhpPlanKey,\n"
+        "                        ItemKey: LookUp(colVhpSavedItems, LocalId = MT.ItemId).ItemKey,\n"
+        "                        TaskItemID: LookUp(\n"
+        "                            colVhpSavedOps,\n"
+        "                            LocalItemId = MT.ItemId && OpNo = MT.OperationNo\n"
+        "                        ).TaskKey,\n"
+        "                        OperationNo: MT.OperationNo,\n"
+        "                        Quantity: MT.Quantity,\n"
+        "                        MaterialText: MT.Description,\n"
+        "                        Unit: MT.Unit,\n"
+        "                        LineId: MT.LineId\n"
+        "                    }\n"
+        "                )\n"
+        "            )\n"
+        "        )\n"
+        "    )"))
+
+
+def _step_attachments():
+    """6b. Dokumentraekker. OperationsKey er ';0010;0020;'; tom (';')
+    betyder hele itemet. UploadStatus skrives som Pending - flowet roerer
+    aldrig listen (docs/18-materialer-og-attachments.md).
+
+    Mappen i biblioteket er opkaldt efter ItemKey, og den er nu STABIL:
+    et item beholder sin noegle ved hvert gem (trin 4)."""
+    return _step("Documents", (
+        "    ClearCollect(\n"
+        "        colVhpOldAtts,\n"
+        f"        ForAll(Filter({cfg.L_ATTACHMENTS}, PlanKey = varVhpPlanKey) As A, {{ ID: A.ID }})\n"
+        "    );\n"
+        "    With(\n"
+        "        { srcAtt: Filter(colVhpAttachments As AT, !IsBlank(AT.FileName)) },\n"
+        "        If(\n"
+        "            CountRows(srcAtt) > 0,\n"
+        "            Patch(\n"
+        f"                {cfg.L_ATTACHMENTS},\n"
+        f"                ForAll(srcAtt, Defaults({cfg.L_ATTACHMENTS})),\n"
+        "                ForAll(\n"
+        "                    srcAtt As AT,\n"
+        "                    {\n"
+        f"                        {cfg.C_FILE_NAME}: AT.FileName,\n"
+        "                        PlanKey: varVhpPlanKey,\n"
+        "                        ItemKey: LookUp(colVhpSavedItems, LocalId = AT.ItemId).ItemKey,\n"
+        "                        OperationsKey: Coalesce(AT.OperationsKey, \";\"),\n"
+        "                        FileSize: AT.FileSize,\n"
+        "                        FileUrl: AT.FileUrl,\n"
+        "                        UploadStatus: { Value: Coalesce(AT.Status, \"Pending\") }\n"
+        "                    }\n"
+        "                )\n"
+        "            )\n"
+        "        )\n"
+        "    )"))
+
+
+def _step_cleanup():
+    """7. Oprydning - foerst naar alt er skrevet (D8).
+
+    Remove(kilde, Filter(...)) og ikke RemoveIf: RemoveIf delegeres ikke
+    paa en tekstkolonne eller et opslags underfelt. Filteret mod listen
+    er delegerbart (lighed mod en global variabel); 'in' tages bagefter i
+    hukommelsen paa planens egne raekker."""
+    def rm(lst, flt, keep):
+        return (f"    With(\n        {{ ex: Filter({lst}, {flt}) }},\n"
+                f"        Remove({lst}, Filter(ex, {keep}))\n    )")
+    return _step("Clean-up", ";\n".join([
+        rm(cfg.L_MATERIALS, "PlanKey = varVhpPlanKey", "ID in colVhpOldMats.ID"),
+        rm(cfg.L_ATTACHMENTS, "PlanKey = varVhpPlanKey", "ID in colVhpOldAtts.ID"),
+        # Operationer foer items: en operation peger paa sit item.
+        rm(cfg.L_TASKS, "MaintenancePlanID.Id = varVhpPlanSpId",
+           "!(ID in colVhpSavedOps.SpId)"),
+        rm(cfg.L_ITEMS, "MaintenancePlanNo.Id = varVhpPlanSpId",
+           "!(ID in colVhpSavedItems.SpId)"),
+    ]))
+
+
+def _index_patch(status):
+    rec = ri.record(
+        DOMAIN, "vhplan", status,
+        request_no="varVhpPlanKey", guid="varVhpRequestGuid", me="varVhpMe",
+        short_text="varVhpPlan.PlanText", plant="varVhpPlan.Plant",
+        item_count=SAVEABLE_COUNT, source_id="varVhpPlanSpId", indent=8)
+    return (f"Patch(\n        {cfg.L_INDEX},\n        Coalesce(\n"
+            f"            LookUp({cfg.L_INDEX}, RequestGuid = varVhpRequestGuid),\n"
+            f"            Defaults({cfg.L_INDEX})\n        ),\n        {rec}\n    )")
+
+
+def _step_status():
+    """8. Status SIDST, og landingssiden. Fejler noget foer, staar planen
+    stadig som kladde og kan gemmes igen."""
+    return _step("Status", (
+        "    If(\n"
+        "        varVhpSubmitting,\n"
+        "        Set(\n"
+        "            varVhpPlanRec,\n"
+        f"            Patch({cfg.L_PLANS}, varVhpPlanRec, "
+        f"{{ Status: {{ Value: \"{PLAN_STATUS_SUBMITTED}\" }} }})\n"
+        "        )\n"
+        "    );\n"
+        # Hubben laeser KUN indeksraekken.
+        "    If(\n"
+        "        varVhpSubmitting,\n"
+        f"    {_index_patch(ri.SUBMITTED)},\n"
+        f"    {_index_patch(ri.DRAFT)}\n"
+        "    );\n"
+        # Det, der nu staar i SharePoint - konflikttjekket (trin 2) maaler
+        # mod det ved naeste gem.
+        "    Set(varVhpPlanModified, varVhpPlanRec.Modified)"))
+
+
+def save_action():
+    """Hele gemningen. Om det er Save draft eller Submit, afgoer
+    varVhpSubmitting - den nulstilles, naar gemningen er faerdig."""
+    detail = 'First(colVhpSaveErrors).Where & ": " & First(colVhpSaveErrors).Msg'
+    report = (
+        "If(\n"
+        f"    {OK},\n"
+        # Save-trinnet er groent, saa laenge planen er den samme - se
+        # VhpStateJson i sp_config.py.
+        "    Set(varVhpSavedJson, VhpStateJson);\n"
+        f"    If(varVhpSubmitting, {msg.submitted('varVhpPlanKey')}, {msg.saved('varVhpPlanKey')}),\n"
+        f"    If(varVhpSubmitting, {msg.failed('Submit', detail)}, {msg.failed('Save', detail)})\n"
+        ")")
+    body = ";\n".join([
+        "Set(varVhpSaving, true)",
+        "Clear(colVhpSaveErrors)",
+        _step_keys(),
+        _when_ok(_step_conflict()),
+        _when_ok(_step_plan()),
+        _when_ok(_step_items()),
+        _when_ok(_step_ops()),
+        _when_ok(_step_materials()),
+        _when_ok(_step_attachments()),
+        _when_ok(_step_cleanup()),
+        _when_ok(_step_status()),
+        report,
+        # EET sted spinneren slukkes og tilstanden nulstilles.
+        "Set(varVhpSubmitting, false)",
+        "Set(varVhpSaving, false)",
+    ])
     return (
         "If(\n"
         f"    !varVhpPlanCommitted || {SAVEABLE_COUNT} = 0,\n"
+        "    Set(varVhpSubmitting, false);\n"
         "    Notify(\"Create the plan and at least one item first.\", NotificationType.Warning),\n"
         "\n"
-        "    Set(varVhpSaving, true);\n"
-        "    IfError(\n"
-        "        With(\n"
-        "            {\n"
-        f"                planOff: {_offset(cfg.L_PLANS, 'PlanID', 'MP')},\n"
-        f"                itemOff: {_offset(cfg.L_ITEMS, 'ItemID', 'MI')},\n"
-        f"                taskOff: {_offset(cfg.L_TASKS, 'TaskItemID', 'TI')}\n"
-        "            },\n"
-        "            If(\n"
-        "                IsBlank(planOff) || IsBlank(itemOff) || IsBlank(taskOff),\n"
-        # Hellere stoppe end at starte en ny noegleserie ved siden af den
-        # eksisterende, uden at nogen opdager det.
-        "                Notify(\n"
-        "                    \"Cannot derive the keys from the existing rows. \" &\n"
-        "                        \"Saving stopped - contact SAP master data.\",\n"
-        "                    NotificationType.Error\n"
-        "                ),\n"
-        "\n"
-        "                Set(varVhpRequestGuid, Coalesce(varVhpRequestGuid, Text(GUID())));\n"
-        "\n"
-        "                // --- 1. planhovedet ---------------------------------\n"
-        "                With(\n"
-        "                    {\n"
-        "                        planRec: Patch(\n"
-        f"                            {cfg.L_PLANS},\n"
-        f"                            If(varVhpPlanSpId > 0, LookUp({cfg.L_PLANS}, ID = varVhpPlanSpId),\n"
-        f"                                Defaults({cfg.L_PLANS})),\n"
-        f"                            {plan_fields}\n"
-        "                        )\n"
-        "                    },\n"
-        "                    With(\n"
-        "                        {\n"
-        "                            planId: planRec.ID,\n"
-        f"                            planKey: Coalesce(planRec.PlanID, {_key('MP', 'planRec.ID', 'planOff')})\n"
-        "                        },\n"
-        f"                        Patch({cfg.L_PLANS}, planRec, {{ PlanID: planKey }});\n"
-        "                        Set(varVhpPlanSpId, planId);\n"
-        "                        Set(varVhpPlanKey, planKey);\n"
-        "\n"
-        "                        // --- 2. ryd det gamle -----------------------\n"
-        "                        // Ved gensave er det enklere og sikrere at\n"
-        "                        // skrive linjerne forfra end at finde ud af\n"
-        "                        // hvilke der er tilfoejet, aendret og slettet.\n"
-        # Remove(kilde, Filter(...)) og IKKE RemoveIf.
-        #
-        # RemoveIf delegeres ikke til SharePoint paa en tekstkolonne, og
-        # heller ikke paa en opslagskolonnes underfelt. Dokumentationen
-        # modsiger endda sig selv om HVOR meget der hentes foerst: Remove-
-        # siden siger "all data matching the filter expression, up to 500 or
-        # 2000", UpdateIf-siden siger "only the initial portion of the data
-        # source". Den tvetydighed er ikke noget at bygge paa, naar den
-        # foerst bider paa en liste der er vokset.
-        #
-        # Filter ER delegerbart paa SharePoint for = paa tekst og paa et
-        # opslags underfelt, saa filtreringen sker paa serveren, og Remove
-        # faar praecis de raekker der skal vaek.
-        # VARIABLERNE, IKKE With-FELTERNE
-        #
-        # SharePoint delegerer kun en sammenligning mod noget, der er ENS
-        # for alle raekker: en global variabel, en kontrolegenskab eller en
-        # konstant. planKey og planId er felter i et With-scope, og
-        # compile svarede med fire delegeringsadvarsler. De to variabler
-        # saettes lige ovenfor og har praecis de samme vaerdier.
-        f"                        Remove({cfg.L_MATERIALS},\n"
-        f"                            Filter({cfg.L_MATERIALS}, PlanKey = varVhpPlanKey));\n"
-        f"                        Remove({cfg.L_ATTACHMENTS},\n"
-        f"                            Filter({cfg.L_ATTACHMENTS}, PlanKey = varVhpPlanKey));\n"
-        f"                        Remove({cfg.L_TASKS},\n"
-        f"                            Filter({cfg.L_TASKS}, MaintenancePlanID.Id = varVhpPlanSpId));\n"
-        f"                        Remove({cfg.L_ITEMS},\n"
-        f"                            Filter({cfg.L_ITEMS}, MaintenancePlanNo.Id = varVhpPlanSpId));\n"
-        "\n"
-        "                        // --- 3. items ------------------------------\n"
-        # BATCH, IKKE EEN AD GANGEN
-        #
-        # Her stod ForAll med to Patch indeni: een der oprettede raekken,
-        # og een der skrev noeglen tilbage. Det er TO netvaerkskald pr.
-        # item, sekventielt. Patch tager en TABEL af basisraekker og en
-        # tabel af aendringer og goer det i EET kald, og svaret er en
-        # tabel, der staar EEN-TIL-EEN med dem (Patch-dokumentationen,
-        # "Modify or create a set of records in a data source").
-        #
-        # Den een-til-een-garanti er det, der goer koblingen mulig:
-        # itemRecs[n] er raekken, srcItems[n] blev til. Uden den kunne
-        # colVhpSavedItems ikke bygges, og operationerne ville ikke vide,
-        # hvilket item de hoerer til.
-        "                        With(\n"
-        f"                            {{ srcItems: {_reindent(SAVEABLE_ITEMS, 28)} }},\n"
-        "                            If(\n"
-        "                                CountRows(srcItems) = 0,\n"
-        "                                Clear(colVhpSavedItems),\n"
-        "\n"
-        "                                With(\n"
-        "                                    {\n"
-        "                                        itemRecs: Patch(\n"
-        f"                                            {cfg.L_ITEMS},\n"
-        f"                                            ForAll(srcItems, Defaults({cfg.L_ITEMS})),\n"
-        f"                                            ForAll(srcItems As IT, {_reindent(item_fields, 44)})\n"
-        "                                        )\n"
-        "                                    },\n"
-        "                                    ClearCollect(\n"
-        "                                        colVhpSavedItems,\n"
-        "                                        ForAll(\n"
-        "                                            Sequence(CountRows(itemRecs)) As N,\n"
-        "                                            {\n"
-        "                                                LocalId: Index(srcItems, N.Value).ItemId,\n"
-        "                                                SpId: Index(itemRecs, N.Value).ID,\n"
-        f"                                                ItemKey: {_key('MI', 'Index(itemRecs, N.Value).ID', 'itemOff')}\n"
-        "                                            }\n"
-        "                                        )\n"
-        "                                    );\n"
-        "                                    Patch(\n"
-        f"                                        {cfg.L_ITEMS},\n"
-        "                                        itemRecs,\n"
-        "                                        ForAll(colVhpSavedItems As S, { ItemID: S.ItemKey })\n"
-        "                                    )\n"
-        "                                )\n"
-        "                            )\n"
-        "                        );\n"
-        "\n"
-        "                        // --- 4. operationer ------------------------\n"
-        # Samme batch som items. Filteret erstatter det If(IsBlank(m.SpId))
-        # der foer stod inde i loekken: en operation paa et item, der ikke
-        # blev gemt, skal ikke skrives - men den skal frasorteres FOER
-        # kaldet, ikke undervejs i det.
-        "                        With(\n"
-        "                            {\n"
-        "                                srcOps: Filter(\n"
-        "                                    colVhpOperations As OP,\n"
-        f"                                    !IsBlank({M_SPID})\n"
-        "                                )\n"
-        "                            },\n"
-        "                            If(\n"
-        "                                CountRows(srcOps) = 0,\n"
-        "                                Clear(colVhpSavedOps),\n"
-        "\n"
-        "                                With(\n"
-        "                                    {\n"
-        "                                        opRecs: Patch(\n"
-        f"                                            {cfg.L_TASKS},\n"
-        f"                                            ForAll(srcOps, Defaults({cfg.L_TASKS})),\n"
-        f"                                            ForAll(srcOps As OP, {_reindent(op_fields, 44)})\n"
-        "                                        )\n"
-        "                                    },\n"
-        "                                    ClearCollect(\n"
-        "                                        colVhpSavedOps,\n"
-        "                                        ForAll(\n"
-        "                                            Sequence(CountRows(opRecs)) As N,\n"
-        "                                            {\n"
-        "                                                LocalItemId: Index(srcOps, N.Value).ItemId,\n"
-        "                                                OperationNo: Index(srcOps, N.Value).OperationNo,\n"
-        "                                                SpId: Index(opRecs, N.Value).ID,\n"
-        f"                                                TaskKey: {_key('TI', 'Index(opRecs, N.Value).ID', 'taskOff')}\n"
-        "                                            }\n"
-        "                                        )\n"
-        "                                    );\n"
-        "                                    Patch(\n"
-        f"                                        {cfg.L_TASKS},\n"
-        "                                        opRecs,\n"
-        "                                        ForAll(colVhpSavedOps As S, { TaskItemID: S.TaskKey })\n"
-        "                                    )\n"
-        "                                )\n"
-        "                            )\n"
-        "                        );\n"
-        "\n"
-        "                        // --- 5. materialer -------------------------\n"
-        "                        // Peger paa operationens TaskItemID, ikke paa\n"
-        "                        // itemet. Et materiale hoerer til EEN\n"
-        "                        // operation - det er den relation SAP har.\n"
-        # Samme batch. De to opslag stod foer i et per-raekke With; de er
-        # flyttet ned i felterne, fordi der ikke laengere er en loekke at
-        # haenge dem paa. Begge er i hukommelsen.
-        "                        With(\n"
-        "                            { srcMats: Filter(colVhpMaterials As MT, !IsBlank(MT.MaterialNo)) },\n"
-        "                            If(\n"
-        "                                CountRows(srcMats) > 0,\n"
-        "                                Patch(\n"
-        f"                                    {cfg.L_MATERIALS},\n"
-        f"                                    ForAll(srcMats, Defaults({cfg.L_MATERIALS})),\n"
-        "                                    ForAll(\n"
-        "                                        srcMats As MT,\n"
-        "                                        {\n"
-        f"                                            {cfg.C_MATERIAL_NO}: MT.MaterialNo,\n"
-        "                                            PlanKey: planKey,\n"
-        "                                            ItemKey: LookUp(\n"
-        "                                                colVhpSavedItems, LocalId = MT.ItemId\n"
-        "                                            ).ItemKey,\n"
-        "                                            TaskItemID: LookUp(\n"
-        "                                                colVhpSavedOps,\n"
-        "                                                LocalItemId = MT.ItemId && "
-        "OperationNo = MT.OperationNo\n"
-        "                                            ).TaskKey,\n"
-        "                                            OperationNo: MT.OperationNo,\n"
-        "                                            Quantity: MT.Quantity,\n"
-        "                                            MaterialText: MT.Description,\n"
-        "                                            Unit: MT.Unit,\n"
-        "                                            LineId: MT.LineId\n"
-        "                                        }\n"
-        "                                    )\n"
-        "                                )\n"
-        "                            )\n"
-        "                        );\n"
-        "\n"
-        "                        // --- 6. dokumenter -------------------------\n"
-        "                        // OperationsKey er ';0010;0020;'. Tom (';')\n"
-        "                        // betyder hele itemet.\n"
-        "                        //\n"
-        "                        // UploadStatus skrives som Pending.\n"
-        "                        //\n"
-        "                        // Her stod, at FLOWET retter den bagefter. Det\n"
-        "                        // goer det ikke: BioSap-TaskListAttachment\n"
-        "                        // bestaar af eet CreateFile og et svar, og\n"
-        "                        // roerer aldrig denne liste. Raekken bliver\n"
-        "                        // staaende som Pending, indtil appen selv\n"
-        "                        // retter den - den kender flowets svar.\n"
-        "                        // Se docs/18-materialer-og-attachments.md.\n"
-        "                        With(\n"
-        "                            { srcAtt: Filter(colVhpAttachments As AT, !IsBlank(AT.FileName)) },\n"
-        "                            If(\n"
-        "                                CountRows(srcAtt) > 0,\n"
-        "                                Patch(\n"
-        f"                                    {cfg.L_ATTACHMENTS},\n"
-        f"                                    ForAll(srcAtt, Defaults({cfg.L_ATTACHMENTS})),\n"
-        "                                    ForAll(\n"
-        "                                        srcAtt As AT,\n"
-        "                                        {\n"
-        f"                                            {cfg.C_FILE_NAME}: AT.FileName,\n"
-        "                                            PlanKey: planKey,\n"
-        "                                            ItemKey: LookUp(\n"
-        "                                                colVhpSavedItems, LocalId = AT.ItemId\n"
-        "                                            ).ItemKey,\n"
-        "                                            OperationsKey: Coalesce(AT.OperationsKey, \";\"),\n"
-        "                                            FileSize: AT.FileSize,\n"
-        "                                            FileUrl: AT.FileUrl,\n"
-        "                                            UploadStatus: {\n"
-        "                                                Value: Coalesce(AT.Status, \"Pending\")\n"
-        "                                            }\n"
-        "                                        }\n"
-        "                                    )\n"
-        "                                )\n"
-        "                            )\n"
-        "                        );\n"
-        "\n"
-        "                        // --- 7. opsummering til landingssiden ------\n"
-        "                        // Hubben laeser KUN denne raekke. Den skal\n"
-        "                        // skrives hver gang status aendrer sig,\n"
-        "                        // ellers viser oversigten noget forkert.\n"
-        "                        Patch(\n"
-        f"                            {cfg.L_INDEX},\n"
-        "                            Coalesce(\n"
-        f"                                LookUp({cfg.L_INDEX}, RequestGuid = varVhpRequestGuid),\n"
-        f"                                Defaults({cfg.L_INDEX})\n"
-        "                            ),\n"
-        f"                            {index_fields}\n"
-        "                        );\n"
-        "\n"
-        # Det, der nu staar i SharePoint. Save-trinnet er groent, saa
-        # laenge planen er den samme - se VhpStateJson i sp_config.py.
-        "                        Set(varVhpSavedJson, VhpStateJson);\n"
-        f"                        {(msg.submitted if submit else msg.saved)('planKey')}\n"
-        "                    )\n"
-        "                )\n"
-        "            )\n"
-        "        ),\n"
-        "\n"
-        f"        {msg.failed('Submit' if submit else 'Save')}\n"
-        "    );\n"
-        # EET sted spinneren slukkes - samme form som build_helpers.with_busy
-        # i de andre apps. Foer stod Set(varVhpSaving, false) paa tre
-        # afslutningsstier hver for sig, og en ny sti kunne glemme den.
-        "    Set(varVhpSaving, false)\n"
-        ")"
+        + body + "\n)"
     )
 
 
 # Save draft kan bruges, saa snart der er noget at gemme. Samme maal som
 # selve gemningen: et tomt item taeller ikke med, saa knappen bliver ikke
 # aktiv af det item, appen selv aabnede med.
+#
+# Submit gaar ogsaa gennem den her knap (Select). Submit kan kun trykkes,
+# naar planen kan indsendes - og saa er den her knap altid aktiv.
 DRAFT_DM = ("If(\n"
             f"    varVhpSaving || !varVhpPlanCommitted || {SAVEABLE_COUNT} = 0,\n"
             "    DisplayMode.Disabled,\n"
@@ -568,20 +701,15 @@ def save_buttons(can_submit):
     """Save draft og Submit - de to knapper, der skriver planen i
     SharePoint - og Submits bekraeftelse.
 
-    Sektionen "Save to SharePoint" er fjernet (issue #54); knapperne og
-    hele gemningen bag dem er de samme. De staar samlet i hoejre side af
-    topbjaelken (build_hero.py).
-
     can_submit er betingelsen for, at planen kan indsendes. DisplayMode er
-    bundet til den, saa en graa Submit ikke kan klikkes - det er ikke kun
-    farven, der skifter.
+    bundet til den, saa en graa Submit ikke kan klikkes.
 
-    Submit aabner en bekraeftelse; foerst "Submit" dér indsender. Mens der
-    gemmes, er varVhpSaving sand, og ventespinneren (imgVhpSaving) staar
-    oven paa skaermen - save_action saetter og nulstiller den selv.
+    Submit aabner en bekraeftelse; foerst "Submit" dér indsender: den
+    saetter varVhpSubmitting og vaelger Save draft-knappen. Select koerer
+    knappens OnSelect, efter bekraeftelsens egen formel er faerdig.
 
     Returnerer (Save draft, Submit, [sloer, popup])."""
-    btnDraft = button("btnVhpSaveDraft", "\"Save draft\"", save_action(submit=False),
+    btnDraft = button(SAVE_BUTTON, "\"Save draft\"", save_action(),
                       display_mode=DRAFT_DM, icon=ICON_SAVE)
     btnSubmit = button("btnVhpSubmit", "\"Submit\"", "Set(varVhpConfirmSubmit, true)",
                        primary=True, icon=ICON_SUBMIT,
@@ -590,5 +718,6 @@ def save_buttons(can_submit):
         "Vhp", "varVhpConfirmSubmit", "Submit plan?",
         "\"The plan \" & varVhpPlan.Plant & \" \" & varVhpPlan.PlanText & "
         "\" is saved and marked as ready for processing on the landing page.\"",
-        "Submit", save_action(submit=True), "btnVhpSubmitConfirm")
+        "Submit", f"Set(varVhpSubmitting, true);\nSelect({SAVE_BUTTON})",
+        "btnVhpSubmitConfirm")
     return btnDraft, btnSubmit, confirm

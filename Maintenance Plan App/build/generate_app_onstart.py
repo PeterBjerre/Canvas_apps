@@ -118,6 +118,9 @@ Set(varVhpLongTextDraft, "");
 // saa opdateres den i stedet for at blive oprettet igen.
 Set(varVhpPlanSpId, 0);
 Set(varVhpPlanKey, "");
+// Gemmet (build_save.py): konflikttjek, Save draft/Submit og planens raekke.
+Set(varVhpPlanModified, Blank());
+Set(varVhpSubmitting, false);
 Set(varVhpRequestGuid, "");
 Set(varVhpSaving, false);
 

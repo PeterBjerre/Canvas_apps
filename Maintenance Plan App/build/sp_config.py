@@ -179,8 +179,10 @@ def named_formulas():
     add("colVhpPlantCodes",
         f"Sort({_forall(L_PLANTS, [('Value', 'R.Title')])}, Value)")
 
+    # Id baeres med, saa gem kan skrive opslaget uden at slaa op i
+    # listen (REVIEW.md B7).
     add("colVhpSortFieldOptions",
-        f"Sort({_forall(L_SORTFIELDS, [('Value', 'R.Title')])}, Value)")
+        f"Sort({_forall(L_SORTFIELDS, [('Id', 'R.ID'), ('Value', 'R.Title')])}, Value)")
 
     # Id baeres med. Gem skal skrive { Id, Value } i opslagskolonnen, og
     # slog det foer op i SharePoint EEN GANG PR. ITEM inde i et ForAll -
@@ -347,7 +349,10 @@ WORKING_COLLECTIONS = [
      {"ItemId": 0, "ShortText": '""', "FunctionalLocation": '""', "FlDescription": '""',
       "MainWorkCenter": '""', "ActivityType": '""', "ObjectList": '""', "Revision": '""',
       "OrstedResponsible": '""', "Initials": '""', "LongText": '""',
-      "TasklistKey": '""', "TasklistName": '""', "Status": '""'}),
+      "TasklistKey": '""', "TasklistName": '""', "Status": '""',
+      # Raekkens ID i MaintenanceItems; 0 = ikke gemt endnu. Gem opdaterer
+      # et item med SpId i stedet for at oprette det igen (REVIEW.md D7).
+      "SpId": 0}),
     ("colVhpOperations",
      {"ItemId": 0, "OperationNo": '""', "OperationShortText": '""', "WorkHours": 0,
       # Persons er SAP's "No." (ANZZL). DurationHours regnes af de to og
@@ -361,7 +366,9 @@ WORKING_COLLECTIONS = [
       # fra standardarbejdsplanen - saa beloebet kan regnes om, naar
       # timerne rettes. Se cost_expr() i build_tasklist.py.
       "ControlKey": '""', "Cost": 0, "UnitCost": 0, "Currency": '""',
-      "CostElement": 0, "MaterialGroup": '""'}),
+      "CostElement": 0, "MaterialGroup": '""',
+      # Raekkens ID i TaskListMain; 0 = ny. Se colVhpItems.SpId.
+      "SpId": 0}),
     ("colVhpFl",
      {"Code": '""', "Description": '""', "Display": '""',
       "Maintainable": "false", "Level": '""'}),
@@ -404,6 +411,16 @@ WORKING_COLLECTIONS = [
     ("colVhpSavedItems", {"LocalId": 0, "SpId": 0, "ItemKey": '""'}),
     # Samme aerinde for operationerne. Materialerne peger paa TaskItemID,
     # og den kan foerst kendes EFTER operationen er skrevet.
+    # OpNo, ikke OperationNo: saa kan UpdateIf(colVhpOperations, ...) slaa
+    # op i den uden at operationens eget felt skygges (build_save).
     ("colVhpSavedOps",
-     {"LocalItemId": 0, "OperationNo": '""', "SpId": 0, "TaskKey": '""'}),
+     {"LocalItemId": 0, "OpNo": '""', "SpId": 0, "TaskKey": '""'}),
+    # Gemmets arbejdssamlinger (build_save.py): hvad der er i SharePoint
+    # foer skrivningen, de gamle raekker, der slettes til sidst, og
+    # trinenes fejl.
+    ("colVhpSpItems", {"ID": 0, "ItemID": '""'}),
+    ("colVhpSpOps", {"ID": 0, "TaskItemID": '""'}),
+    ("colVhpOldMats", {"ID": 0}),
+    ("colVhpOldAtts", {"ID": 0}),
+    ("colVhpSaveErrors", {"Where": '""', "Msg": '""'}),
 ]
