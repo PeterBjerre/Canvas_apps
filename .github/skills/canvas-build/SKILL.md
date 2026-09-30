@@ -66,8 +66,9 @@ den låste gren.
 
 **En klikbar række er `build_helpers.row_hit()`** (issue #79): et
 gennemsigtigt lag øverst i rækken med rækkens handling, tone ved hover og
-tryk (`row-hover`/`row-pressed`), kant ved fokus. Knapper under laget, der
-gør det samme (Open, pilen), får `TabIndex -1`. Bruges i hubbens liste,
+tryk (`row-hover`/`row-pressed`), kant ved fokus. Kontroller under laget, der
+gør det samme, får `TabIndex -1`, hvor typen kender den — `ModernButton`
+gør ikke (regel 10). Bruges i hubbens liste,
 Closed-preview og VH-planens items.
 
 Temaknappen er `build_helpers.theme_button()` og er **den samme kontrol i

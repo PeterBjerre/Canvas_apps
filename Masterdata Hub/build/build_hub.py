@@ -691,10 +691,11 @@ def build_list():
     chevron = _image("imgMdRowGo", _svg_uri(_icon_svg(ICON_CHEVRON, _hx("text-muted"))),
                      24, 24, onselect=act,
                      label=f'"Open " & ThisItem.{COL_NO}')
-    # Open og pilen er TEGN paa, at raekken kan aabnes. Klikket og
-    # tastaturet er hele raekkens (row_hit nedenfor) - ellers moedte Tab
-    # den samme handling tre gange pr. raekke (issue #79).
-    open_btn.props["TabIndex"] = "-1"
+    # Open og pilen er TEGN paa, at raekken kan aabnes. Klikket er hele
+    # raekkens (row_hit nedenfor). Pilen tages ud af tab-raekkefoelgen, saa
+    # Tab ikke moeder den samme handling tre gange pr. raekke (issue #79).
+    # Open-knappen kan ikke: ModernButton kender ikke TabIndex - compile
+    # afviste den. Den bliver staaende som et ekstra tab-stop.
     chevron.props["TabIndex"] = "-1"
     actions = group("conMdRowActions", [open_btn, chevron], direction="Horizontal", gap=16,
                     width=COLS[5][1], align_items="Center")
