@@ -1849,7 +1849,11 @@ def main():
     # var listen lys med lys tekst. Dens Default er desuden en RECORD, hvor
     # Classic/DropDown tager TEKSTEN - to semantikker for det samme felt.
     # Alle dropdowns bygges derfor af build_helpers.themed_dropdown.
+    # Undtagen i dropdown-forsoeget (build_helpers.DROPDOWN_VARIANT).
+    modern_ok = os.environ.get("CANVAS_DROPDOWN", "").strip().lower() == "modern"
     for p_, name, body in all_nodes:
+        if modern_ok:
+            break
         if (body.get("Control") or "").strip().split("@")[0] == "ModernDropdown":
             problems.append(f"[16] {name}: ModernDropdown - byg den med "
                             f"build_helpers.themed_dropdown (Classic/DropDown)")

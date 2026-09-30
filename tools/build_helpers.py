@@ -1161,6 +1161,57 @@ def date_picker(name, default_date, required_formula="false",
     return Ctrl(name, "ModernDatePicker", props=props, h=height)
 
 
+# ---------------------------------------------------------------------------
+# DROPDOWN-FORSOEGET: Classic eller Modern?
+#
+# Classic/DropDown har ingen Radius-egenskaber - dens hjoerner er altid
+# firkantede, mens alle andre felter har RADIUS_INPUT. ModernDropdown har
+# runde hjoerner, men dens liste er en Fluent-flyout, der ifoelge Learn
+# farves af appens Fluent-tema og ikke af kontrollens egenskaber. Det
+# kostede en ulaeselig liste i moerk tilstand (e735d66).
+#
+# Kontrollen er siden opdateret, og om listen nu kan laeses i vores moerke
+# tema, kan kun Studio vise. Byg med
+#
+#     CANVAS_DROPDOWN=modern python3 tools/build_all.py --app equipment
+#
+# og deploy til DEV. Standarden er Classic; CI bygger kun den.
+# ---------------------------------------------------------------------------
+DROPDOWN_VARIANT = os.environ.get("CANVAS_DROPDOWN", "classic").strip().lower()
+if DROPDOWN_VARIANT not in ("classic", "modern"):
+    raise SystemExit("CANVAS_DROPDOWN skal vaere 'classic' eller 'modern', ikke '%s'"
+                     % DROPDOWN_VARIANT)
+
+
+def _modern_dropdown(name, items, default_text, value_col, required_formula,
+                     width, height, display_mode, label, onchange, display_col):
+    """themed_dropdown som ModernDropdown. Samme kald, samme Selected.
+
+    Default er en RECORD fra Items: den raekke, hvis viste kolonne er lig
+    med den tekst, themed_dropdown ellers ville faa. 'As _dd' holder
+    kolonnenavnet fra at blive bundet i default_text's egne LookUp'er."""
+    col = display_col or value_col
+    props = {
+        "AccessibleLabel": label if label else f"\"{name}\"",
+        "BorderColor": border_rule(f"IsBlank(Self.Selected.{value_col})", required_formula),
+        "BorderStyle": "BorderStyle.Solid",
+        "BorderThickness": "1",
+        "Default": f"LookUp({items} As _dd, _dd.{col} = ({default_text}))",
+        "Height": str(height),
+        "ItemDisplayText": f"ThisItem.{col}",
+        "Items": items,
+        "LayoutMinWidth": "0",
+        **lay.radius(lay.RADIUS_INPUT),
+        "ValidationState": (f"If({required_formula} && IsBlank(Self.Selected.{value_col}), "
+                            "ValidationState.Error, ValidationState.None)"),
+        "Width": width,
+    }
+    input_theme(props, display_mode)
+    if onchange is not None:
+        props["OnChange"] = onchange
+    return Ctrl(name, "ModernDropdown", props=props, h=height)
+
+
 def themed_dropdown(name, items, default_text, value_col="Value", required_formula="false",
                     width="Parent.Width", height=36, display_mode=None, label=None,
                     onchange=None, display_col=None):
@@ -1187,7 +1238,13 @@ def themed_dropdown(name, items, default_text, value_col="Value", required_formu
     udfyldt (Self.Selected.<value_col>). Default er da teksten i display_col.
 
     Det er appernes ENESTE dropdown (REVIEW.md A1). ModernDropdown afvises
-    af check_layout regel 16."""
+    af check_layout regel 16.
+
+    FORSOEG: CANVAS_DROPDOWN=modern bygger den samme dropdown som
+    ModernDropdown (runde hjoerner, input_theme). Se DROPDOWN_VARIANT."""
+    if DROPDOWN_VARIANT == "modern":
+        return _modern_dropdown(name, items, default_text, value_col, required_formula,
+                                width, height, display_mode, label, onchange, display_col)
     props = {
         "AccessibleLabel": label if label else f"\"{name}\"",
         "AllowEmptySelection": "true",
