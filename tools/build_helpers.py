@@ -18,6 +18,7 @@ from gen_screen import (
     C_PRIMARY, C_PRIMARY2, C_WHITE, C_TRANSPARENT, C_INPUT_BG, C_DISABLED_BG,
     C_DIVIDER, C_VALID_FG, C_VALID_BG, C_INVALID_FG, C_INVALID_BG,
     C_BORDER_OK, C_BORDER_ERROR, C_PRIMARY_SOFT, C_OVERLAY, C_MODAL_BG,
+    C_ROW_HOVER, C_ROW_PRESSED,
     C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, C_WARN_FG, FONT,
     SHELL_W, EDITOR_W, RAIL_W, SPLIT_GAP, OUT_DIR,
 )
@@ -935,21 +936,32 @@ def input_theme(props, display_mode):
     talfelt, datovaelger, dropdown og FL-comboboksen. Farverne kommer fra
     tokens i begge tilstande - intet overlades til Fluent-temaets standard.
 
-    Appearance.FilledDarker, ikke Outline: Outline er dokumenteret som
-    "transparent background" og tegnede ikke vores Fill. Tekstfeltet havde
-    ingen Appearance (= FilledDarker) og var det ene felt, der saa rigtigt
-    ud i moerk tilstand - nu har alle den samme.
+    Redigerbart: Appearance.FilledDarker - den tegner vores Fill (Outline
+    er "transparent background"). Laast: Outline og daempet tekst, se
+    nedenfor.
 
     BasePaletteColor er brandfarven: den farver fokusringen, valgte
     raekker i listen og kalenderen i datovaelgeren."""
-    props["Appearance"] = "Appearance.FilledDarker"
     props["BasePaletteColor"] = C_PRIMARY
-    props["Color"] = C_TITLE
     props["Fill"] = input_fill(display_mode)
     props["Font"] = FONT
     props["Size"] = "14"
-    if display_mode:
-        props["DisplayMode"] = readonly_mode(display_mode)
+    if not display_mode:
+        props["Appearance"] = "Appearance.FilledDarker"
+        props["Color"] = C_TITLE
+        return props
+    # LAAST = OUTLINE (issue #78, anden runde). Aflaest i Studio i moerk
+    # tilstand: i View tegnede ModernTextInput og ModernDropdown Fluents
+    # LYSE skrivebeskyttede baggrund og ignorerede Fill - med vores lyse
+    # tekst ovenpaa. Talfeltet fulgte Fill. Outline er dokumenteret som
+    # "transparent background" for alle fem feltyper, saa et laast felt er
+    # nu kortets egen flade med kant og daempet tekst - ens for alle typer
+    # og i begge temaer. Det redigerbare felt er udfyldt; det laaste er det
+    # ikke. Forskellen er synlig uden at vaere en farve, Fluent kan tage.
+    editable = f"({display_mode}) = DisplayMode.Edit"
+    props["Appearance"] = f"If({editable}, Appearance.FilledDarker, Appearance.Outline)"
+    props["Color"] = f"If({editable}, {C_TITLE}, {C_MUTED})"
+    props["DisplayMode"] = readonly_mode(display_mode)
     return props
 
 
@@ -981,6 +993,52 @@ def row_rule(name, template_size):
         "OnSelect": "false", "TabIndex": "-1",
         "Width": "Parent.TemplateWidth", "X": "0", "Y": str(template_size - 1),
     }, h=1)
+
+
+def row_hit(name, onselect, label, width, height, radius=0, hover_border=False):
+    """HELE RAEKKEN ER KLIKBAR - det ene moenster for alle klikbare lister
+    (issue #79): hubbens anmodninger, Closed-preview og VH-planens items.
+
+    Et gennemsigtigt lag OVEN PAA raekkens celler, med raekkens handling.
+    Det ligger oeverst, saa ingen tekst, ikon eller knap i raekken kan
+    snuppe klikket - Open-knappen og pilen under det bliver staaende som
+    synlige tegn paa, at raekken kan aabnes, men klikket er lagets, og det
+    goer PRAECIS det samme (samme onselect).
+
+    Tilstande - alle fra tokens, ens i lys og moerk tilstand:
+      standard   intet
+      hover      raekken tones (row-hover), som sidebarens punkter
+      tryk       staerkere tone (row-pressed) - det, en touchskaerm viser
+      fokus      2 px kant i primaerfarven (tastatur: Tab + Enter/mellemrum)
+    En blød overgang mellem dem kan Power Apps ikke tegne paa en kontrol;
+    tilstandene skifter med det samme.
+
+    Classic/Button, ikke ModernButton: den moderne knap har intet Fill, og
+    dens hover-flade er Fluent-temaets og ville daekke raekken. Den
+    klassiske har INGEN AccessibleLabel (issue #57) - skaermlaeseren laeser
+    Text, saa label staar i Text i en gennemsigtig farve: den hoeres, men
+    ses ikke. Scrolling paa en touchskaerm udloeser ikke OnSelect; kun et
+    tryk goer.
+
+    Cellerne under laget, der selv kan aabnes (Open, pilen), skal have
+    TabIndex -1, saa tastaturet ikke moeder den samme handling to gange."""
+    t = C_TRANSPARENT
+    edge = C_PRIMARY if hover_border else t
+    props = {
+        "BorderColor": t, "BorderStyle": "BorderStyle.Solid", "BorderThickness": "2",
+        "Color": t, "Fill": t,
+        "FocusedBorderColor": C_PRIMARY, "FocusedBorderThickness": "2",
+        "Height": str(height),
+        "HoverBorderColor": edge, "HoverColor": t, "HoverFill": C_ROW_HOVER,
+        "OnSelect": onselect,
+        "PressedBorderColor": edge, "PressedColor": t, "PressedFill": C_ROW_PRESSED,
+        "RadiusBottomLeft": str(radius), "RadiusBottomRight": str(radius),
+        "RadiusTopLeft": str(radius), "RadiusTopRight": str(radius),
+        "TabIndex": "0",
+        "Text": label,
+        "Width": str(width), "X": "0", "Y": "0",
+    }
+    return Ctrl(name, "Classic/Button", props=props, h=height)
 
 
 def table_surface(gal, rule_name, surface=C_CARD_BG):

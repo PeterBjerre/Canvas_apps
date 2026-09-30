@@ -356,6 +356,17 @@ dropdown, FL-comboboksen) og **`checkbox_theme`**. `check_layout` regel
 `Disabled` uden om `readonly_mode`. Knapper røres ikke: en deaktiveret knap
 skal se deaktiveret ud.
 
+**Anden runde, aflæst i Studio:** i `View` tegnede `ModernTextInput` og
+`ModernDropdown` Fluents *lyse* skrivebeskyttede baggrund og ignorerede
+`Fill` — med vores lyse tekst ovenpå. Talfeltet fulgte `Fill`. Et låst felt
+er derfor `Appearance.Outline` (gennemsigtigt: kortets flade) med
+`text-muted`. Det redigerbare er udfyldt, det låste er ikke — ens for alle
+feltyper og i begge temaer.
+
+`row-hover` og `row-pressed` er de to gennemsigtige toner, en klikbar række
+får (`build_helpers.row_hit`, issue #79). De ligger oven på rækkens tekster
+og er under 20 % dækkende, så tekstens kontrast er uændret.
+
 Tabeller har en neutral flade og en streg pr. række
 (`build_helpers.table_surface` / `row_rule`) — aldrig galleriets fyld i
 kantfarven, som gjorde hele tabellen grå.
