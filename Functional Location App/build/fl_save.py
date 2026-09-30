@@ -18,8 +18,14 @@ stedet for atomart:
      gang med et delegerbart filter paa den globale varFlRequestGuid (ex),
      og base-raekkerne slaas op i DEN tabel - ikke med et LookUp mod listen
      pr. raekke, som ikke kan delegeres (regel 30).
-  3. Raekker, der ikke laengere er i appen (slettet eller tomme), fjernes -
-     ogsaa dem en tidligere, afbrudt gemning efterlod.
+  3. Raekker, brugeren har slettet (colFlDeleted) eller toemt, fjernes -
+     KUN dem. En raekke, en anden har tilfoejet siden, roeres ikke
+     (REVIEW.md D24). colFlDeleted ryddes, naar gemmet lykkedes.
+
+     { ID: ... } som base-raekke: compile afviste det her (issue #32),
+     men Equipment/Material bruger netop den form (domain_parts.py). Hvem
+     der har ret, er IKKE afklaret i Studio (REVIEW.md D25) - derfor staar
+     FL og VH-plan paa den form, der beviseligt virker: rigtige raekker.
   4. Indeksraekken i MD_RequestIndex, fundet paa RequestGuid.
   5. Status SIDST. Fejler noget undervejs, staar anmodningen stadig som
      Kladde og kan gemmes igen.
@@ -177,11 +183,14 @@ If(
         false
     );
 
-    // 3. Raekker, der ikke laengere er i appen.
+    // 3. Raekker, brugeren har slettet eller toemt (REVIEW.md D24). Her
+    //    stod: alle raekker, appen ikke kender. Saa slettede den, der
+    //    gemte sidst, de raekker en anden havde tilfoejet imens.
     IfError(
         With(
             {{ ex: Filter({L}, RequestGuid = varFlRequestGuid) }},
-            Remove({L}, Filter(ex, !(RowGuid in {LIVE}.RowGuid)))
+            Remove({L}, Filter(ex, RowGuid in colFlDeleted.RowGuid ||
+                                   RowGuid in Filter(colFlRows, Status = "draft").RowGuid))
         );
         true,
         Collect(colFlSaveErrors, {{ Where: "Deleted rows", Msg: FirstError.Message }});
@@ -222,6 +231,7 @@ If(
 If(
     CountRows(colFlSaveErrors) = 0,
     Set(varFlStatus, "{status}");
+    Clear(colFlDeleted);
     Set(varFlInfo, "");
     {ok},
     Set(varFlInfo, "Saving failed (" & First(colFlSaveErrors).Where & "): " & First(colFlSaveErrors).Msg);
@@ -320,6 +330,7 @@ If(
     Set(varFlRequestGuid, ""),
     Set(varFlRequestNo, Coalesce(varFlReq.RequestNo, ""));
     Set(varFlStatus, Coalesce(varFlReq.Status.Value, "Kladde"));
+    Clear(colFlDeleted);
     ClearCollect(
         colFlLoad,
         ForAll(
@@ -342,7 +353,8 @@ If(
                 Description: I.Description, KksType: I.KksType,
                 AssignedClass: I.AssignedClass, Status: I.Status,
                 FirstIssue: I.FirstIssue, FirstWarning: "",
-                IssueCount: I.IssueCount, WarningCount: 0
+                IssueCount: I.IssueCount, WarningCount: 0,
+                Pos: 0, FlBad: false, DescBad: false, Hint: ""
             }}
         )
     );

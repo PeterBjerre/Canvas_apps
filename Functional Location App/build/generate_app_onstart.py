@@ -119,9 +119,12 @@ def formulas_block():
     return "\n\n".join(parts)
 
 
-ROW = {"RowGuid": '""', "RowNo": "0", "SpId": "0", "FL": '""', "Description": '""',
-       "KksType": '""', "AssignedClass": '""', "Status": '""', "FirstIssue": '""',
-       "FirstWarning": '""', "IssueCount": "0", "WarningCount": "0"}
+ROW_BASE = {"RowGuid": '""', "RowNo": "0", "SpId": "0", "FL": '""', "Description": '""',
+            "KksType": '""', "AssignedClass": '""', "Status": '""', "FirstIssue": '""',
+            "FirstWarning": '""', "IssueCount": "0", "WarningCount": "0"}
+# Det, galleriet foer regnede pr. raekke ved hver tegning - nu regnet een
+# gang i valideringen (fl_validation.status_fx, REVIEW.md B6).
+ROW = dict(ROW_BASE, Pos="0", FlBad="false", DescBad="false", Hint='""')
 ISSUE = {"RowGuid": '""', "Ord": "0", "Sev": '""', "Code": '""', "Field": '""',
          "Short": '""', "Msg": '""'}
 
@@ -138,13 +141,21 @@ COLLECTIONS = [
     ("colFlCalc", CALC_SCHEMA),
     ("colFlTmp", ROW),
     ("colFlTrm", {"RowGuid": '""', "AnyTrm": "false", "Ue": "false"}),
+    # FL5: de FL'er, der staar paa mere end een raekke (fl_validation.DUPS).
+    ("colFlDupFl", {"FL": '""'}),
+    # Detaljeruden - regnet ved aabning og efter validering (fl_parts).
+    ("colFlDet", {"Column": '""', "Field": '""', "Editable": "false", "List": '""',
+                  "MaxLen": "0", "Value": '""', "Issue": '""'}),
+    # Raekker, brugeren har slettet. Gem fjerner KUN dem (og tomme
+    # raekker) fra listen - ikke raekker, en anden har tilfoejet (D24).
+    ("colFlDeleted", {"RowGuid": '""'}),
     # Klassefanerne (FL28).
     ("colFlTabs", {"Key": '""', "Label": '""'}),
     # Gem: raekkerne i SharePoint paa RowGuid, og hvad der fejlede.
     ("colFlSp", {"RowGuid": '""', "ID": "0"}),
     ("colFlSaveErrors", {"Where": '""', "Msg": '""'}),
     # Dyblink: raekkerne, som de blev hentet.
-    ("colFlLoad", dict(ROW, Json='""')),
+    ("colFlLoad", dict(ROW_BASE, Json='""')),
     tok.prefs_schema(),
 ]
 

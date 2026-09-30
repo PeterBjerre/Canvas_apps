@@ -95,6 +95,19 @@ CALC_SCHEMA = dict(
     + [(c, '""') for c, _k, _f in ROW_MSGS])
 
 
+# FL5: dubletterne EEN gang for hele tabellen (REVIEW.md B5). Her stod
+# CountRows(Filter(colFlRows, FL = fl)) pr. raekke - n x n sammenligninger
+# ved hver eneste aendring. GroupBy er een gennemgang; bagefter er det et
+# opslag i en tabel, der kun har de FL'er, som faktisk gaar igen.
+DUPS = """ClearCollect(
+    colFlDupFl,
+    ForAll(
+        Filter(GroupBy(Filter(colFlRows, !IsBlank(FL)), FL, Grp), CountRows(Grp) > 1) As G,
+        { FL: G.FL }
+    )
+)"""
+
+
 def calc_rows():
     """colFlCalc: een record pr. raekke med alt, der er afledt af FL og
     Description. Beskederne staar som tekstkolonner; tom = ingen besked."""
@@ -144,7 +157,7 @@ def calc_rows():
                         With(
                             {{
                                 MFlReq: If(!blankRow && IsBlank(fl), "FL required.", ""),
-                                MDup: If(!blankRow && !IsBlank(fl) && CountRows(Filter(colFlRows As X, X.FL = fl)) > 1, "Duplicate FL.", ""),
+                                MDup: If(!blankRow && !IsBlank(fl) && fl in colFlDupFl.FL, "Duplicate FL.", ""),
                                 MDescReq: If(!blankRow && IsBlank(d), "Description required before Ready for SAP.", ""),
                                 MDescLen: If(!blankRow && Len(d) > 40, "Description > 40.", ""),
                                 MKks: If(!blankRow && !IsBlank(fl) && !ok && !legacy, "KKS invalid.", ""),
@@ -200,8 +213,11 @@ def calc_rows():
 # ---------------------------------------------------------------------------
 # Vaerdien af et felt, som getSpoolColumnValue (app-functional-location.js
 # :2205-2242) giver den for de felter, planen tjekker.
-def _val(r, field):
-    raw = f"LookUp(colFlVals, RowGuid = {r}.RowGuid && Field = {field}).Value"
+def _val(r, field, vals="colFlVals"):
+    """vals er raekkens egne vaerdier, naar de er slaaet op i forvejen
+    (spool_issues) - saa ledes der ikke i HELE colFlVals pr. tjek."""
+    raw = (f"LookUp({vals}, Field = {field}).Value" if vals != "colFlVals" else
+           f"LookUp(colFlVals, RowGuid = {r}.RowGuid && Field = {field}).Value")
     return (f"Trim(Switch({field},\n"
             f"    \"STRINDICATOR\", {r}.KksType,\n"
             f"    \"STR. INDICATOR\", {r}.KksType,\n"
@@ -265,11 +281,13 @@ def spool_issues():
         ForAll(
             Filter(colFlCalc, !IsBlankRow) As R,
             {{
-                Items: Filter(
+                // Raekkens vaerdier EEN gang (REVIEW.md B5) - tjekkene
+                // nedenfor leder kun i dem, ikke i hele colFlVals.
+                Items: With({{ rv: Filter(colFlVals, RowGuid = R.RowGuid) }}, Filter(
                     ForAll(
                         With({{ sc: R.SpoolCls }}, Filter(colFlPlan, Cls = sc && Ord > 0)) As P,
                         With(
-                            {{ v: {_val('R', 'P.Field')}, lid: P.List }},
+                            {{ v: {_val('R', 'P.Field', 'rv')}, lid: P.List }},
                             {{
                                 RowGuid: R.RowGuid,
                                 Ord: 100 + P.Ord,
@@ -283,7 +301,7 @@ def spool_issues():
                         )
                     ),
                     Bad
-                )
+                ))
             }}
         ),
         Items
@@ -322,30 +340,57 @@ DEDUPE = """ClearCollect(
 )"""
 
 # FL25/FL26: raekkens status og dens foerste fejl og advarsel.
-STATUS = """ClearCollect(
+#
+# Og det, galleriet foer regnede PR. RAEKKE ved hver tegning (REVIEW.md
+# B6): nummeret (Pos - foer CountRows(Filter(RowNo <= ...)), altsaa n x n),
+# de roede kanter (FlBad/DescBad - foer otte exactin-filtre mod hele
+# colFlIssues) og hjaelpeteksten bag "?" (Hint - foer fire gange pr.
+# raekke). Her regnes de EEN gang pr. validering, og kun mod raekkens egne
+# beskeder.
+def status_fx():
+    shown = 'If(st = "invalid", fi, fw)'
+    return f"""ClearCollect(
     colFlTmp,
-    ForAll(
-        colFlCalc As R,
-        With(
-            {
-                errs: Sort(Filter(colFlIssues, RowGuid = R.RowGuid && Sev = "Error"), Ord),
-                warns: Sort(Filter(colFlIssues, RowGuid = R.RowGuid && Sev = "Warning"), Ord)
-            },
-            {
-                RowGuid: R.RowGuid, RowNo: R.RowNo, SpId: R.SpId,
-                FL: R.FL, Description: R.Description,
-                KksType: R.KksType, AssignedClass: R.Cls,
-                Status: If(R.IsBlankRow, "draft", CountRows(errs) > 0, "invalid",
-                           CountRows(warns) > 0, "warning", "valid"),
-                FirstIssue: Coalesce(First(errs).Msg, ""),
-                FirstWarning: Coalesce(First(warns).Msg, ""),
-                IssueCount: CountRows(errs),
-                WarningCount: CountRows(warns)
-            }
+    With(
+        {{ s: Sort(colFlCalc, RowNo) }},
+        ForAll(
+            Sequence(CountRows(s)) As N,
+            With(
+                {{ R: Index(s, N.Value) }},
+                With(
+                    {{
+                        errs: Sort(Filter(colFlIssues, RowGuid = R.RowGuid && Sev = "Error"), Ord),
+                        warns: Sort(Filter(colFlIssues, RowGuid = R.RowGuid && Sev = "Warning"), Ord)
+                    }},
+                    With(
+                        {{
+                            st: If(R.IsBlankRow, "draft", CountRows(errs) > 0, "invalid",
+                                   CountRows(warns) > 0, "warning", "valid"),
+                            fi: Coalesce(First(errs).Msg, ""),
+                            fw: Coalesce(First(warns).Msg, "")
+                        }},
+                        {{
+                            RowGuid: R.RowGuid, RowNo: R.RowNo, SpId: R.SpId,
+                            FL: R.FL, Description: R.Description,
+                            KksType: R.KksType, AssignedClass: R.Cls,
+                            Status: st,
+                            FirstIssue: fi,
+                            FirstWarning: fw,
+                            IssueCount: CountRows(errs),
+                            WarningCount: CountRows(warns),
+                            Pos: N.Value,
+                            FlBad: st <> "draft" && CountRows(Filter(errs, {is_fl_issue("Msg")})) > 0,
+                            DescBad: st <> "draft" && CountRows(Filter(errs, {is_desc_issue("Msg")})) > 0,
+                            Hint: {hint_fx(shown, "R.FL").replace(chr(10), chr(10) + " " * 28)}
+                        }}
+                    )
+                )
+            )
         )
     )
 );
 ClearCollect(colFlRows, colFlTmp)"""
+
 
 # FL48/FL49: TRM-automatikken - EFTER tjekkene, ligesom i runTrmValidation
 # (TRM ASSIGNMENT og ABC INDIC. er tjekket med de gamle vaerdier).
@@ -381,17 +426,24 @@ TABS = f"""ClearCollect(
 If(varFlTab <> "ALL" && IsBlank(LookUp(colFlTabs, Key = varFlTab)), Set(varFlTab, "ALL"))"""
 
 
-def verify_fx():
+def verify_fx(det_items):
     """btnFlVerify.OnSelect - HELE valideringen. Knappen er skjult; hver
-    aendring kalder den med Select(btnFlVerify) (docs/31 PX7, issue #77)."""
+    aendring kalder den med Select(btnFlVerify) (docs/31 PX7, issue #77).
+
+    det_items er detaljerudens raekker (fl_parts.DET_ITEMS). De regnes om
+    her, naar ruden er aaben, fordi vaerdierne og beskederne lige er aendret."""
     return ";\n\n".join([
+        "// A. Dubletterne een gang (FL5)\n" + DUPS,
         "// B. Syntaks, klasse og raekkebeskeder (FL4-FL24)\n" + calc_rows(),
         "// C. Meddelelsestabellen - raekke + spool (FL30-FL53)\n" + issues_raw(),
         "// D. Samme besked een gang (FL55)\n" + DEDUPE,
-        "// E. Status og foerste besked (FL25, FL26)\n" + STATUS,
+        "// E. Status, foerste besked og galleriets kolonner (FL25, FL26)\n" + status_fx(),
         "// F. TRM og ABC (FL48, FL49)\n" + TRM_SET,
         "// G. Klassefanerne (FL28)\n" + TABS,
-        "// H. Faerdig. varFlStale styrer Submit (FL68).\n"
+        "// H. Detaljeruden, hvis den er aaben - den viser vaerdier og\n"
+        "// beskeder, der lige er regnet om (fl_parts.DET_ITEMS).\n"
+        "If(!IsBlank(varFlDetailRow), ClearCollect(colFlDet, " + det_items + "))",
+        "// I. Faerdig. varFlStale styrer Submit (FL68).\n"
         "Set(varFlStale, false)",
     ])
 
@@ -443,16 +495,6 @@ def is_fl_issue(msg):
 
 def is_desc_issue(msg):
     return f'("Description" exactin {msg})'
-
-
-def fl_bad(row):
-    return (f'({row}.Status <> "draft" && CountRows(Filter(colFlIssues, RowGuid = {row}.RowGuid && '
-            f'Sev = "Error" && {is_fl_issue("Msg")})) > 0)')
-
-
-def desc_bad(row):
-    return (f'({row}.Status <> "draft" && CountRows(Filter(colFlIssues, RowGuid = {row}.RowGuid && '
-            f'Sev = "Error" && {is_desc_issue("Msg")})) > 0)')
 
 
 def field_issue(row, field):

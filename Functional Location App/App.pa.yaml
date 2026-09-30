@@ -2043,7 +2043,7 @@ App:
       );
       Notify("Something went wrong: " & FirstError.Message, NotificationType.Error)
     OnStart: |
-      =ClearCollect(colFlRows, { RowGuid: "", RowNo: 0, SpId: 0, FL: "", Description: "", KksType: "", AssignedClass: "", Status: "", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0 });
+      =ClearCollect(colFlRows, { RowGuid: "", RowNo: 0, SpId: 0, FL: "", Description: "", KksType: "", AssignedClass: "", Status: "", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0, Pos: 0, FlBad: false, DescBad: false, Hint: "" });
       Clear(colFlRows);
 
       ClearCollect(colFlVals, { RowGuid: "", Field: "", Value: "" });
@@ -2058,11 +2058,20 @@ App:
       ClearCollect(colFlCalc, { RowGuid: "", RowNo: 0, SpId: 0, FL: "", Description: "", IsBlankRow: false, KksType: "", SynIssue: "", Legacy: false, K12: "", K17: "", Cls: "", SpoolCls: "", MFlReq: "", MDup: "", MDescReq: "", MDescLen: "", MKks: "", MRules: "", MPlant: "", MFunc: "", MU: "", MBrMiss: "", MBrK17: "", MComp: "", MEq18: "", MEq12: "", MNoCls: "" });
       Clear(colFlCalc);
 
-      ClearCollect(colFlTmp, { RowGuid: "", RowNo: 0, SpId: 0, FL: "", Description: "", KksType: "", AssignedClass: "", Status: "", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0 });
+      ClearCollect(colFlTmp, { RowGuid: "", RowNo: 0, SpId: 0, FL: "", Description: "", KksType: "", AssignedClass: "", Status: "", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0, Pos: 0, FlBad: false, DescBad: false, Hint: "" });
       Clear(colFlTmp);
 
       ClearCollect(colFlTrm, { RowGuid: "", AnyTrm: false, Ue: false });
       Clear(colFlTrm);
+
+      ClearCollect(colFlDupFl, { FL: "" });
+      Clear(colFlDupFl);
+
+      ClearCollect(colFlDet, { Column: "", Field: "", Editable: false, List: "", MaxLen: 0, Value: "", Issue: "" });
+      Clear(colFlDet);
+
+      ClearCollect(colFlDeleted, { RowGuid: "" });
+      Clear(colFlDeleted);
 
       ClearCollect(colFlTabs, { Key: "", Label: "" });
       Clear(colFlTabs);

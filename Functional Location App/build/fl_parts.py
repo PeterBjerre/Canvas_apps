@@ -53,7 +53,8 @@ def add_row_fx():
     """FL63: en ny, tom raekke."""
     return ("Collect(colFlRows, { RowGuid: Text(GUID()), RowNo: varFlNextRowNo, SpId: 0, "
             "FL: \"\", Description: \"\", KksType: \"\", AssignedClass: \"\", Status: \"draft\", "
-            "FirstIssue: \"\", FirstWarning: \"\", IssueCount: 0, WarningCount: 0 });\n"
+            "FirstIssue: \"\", FirstWarning: \"\", IssueCount: 0, WarningCount: 0, "
+            "Pos: 0, FlBad: false, DescBad: false, Hint: \"\" });\n"
             "Set(varFlNextRowNo, varFlNextRowNo + 1)")
 
 
@@ -289,7 +290,7 @@ def verify_button():
     """HELE valideringen - skjult. Alle aendringer kalder den med
     Select(btnFlVerify) (REVERIFY, docs/31 PX7). Select virker paa en
     skjult knap; den skal bare staa paa samme skaerm."""
-    b = button("btnFlVerify", '"Verify"', V.verify_fx(), width=100, visible="false",
+    b = button("btnFlVerify", '"Verify"', V.verify_fx(DET_ITEMS), width=100, visible="false",
                accessible='"Validate the rows"')
     return b
 
@@ -305,17 +306,18 @@ def build_rows():
     head = table_head("conFlRowsHead", V_SPEC)
 
     row = "ThisItem"
-    no = text_ctrl("txtFlRowNo", "Text(CountRows(Filter(colFlRows, RowNo <= ThisItem.RowNo)))",
+    # Pos, FlBad, DescBad og Hint regnes i valideringen (B6).
+    no = text_ctrl("txtFlRowNo", "Text(ThisItem.Pos)",
                    size=13, color=C_MUTED, height=20, wrap="false")
     fl = text_input("inpFlRowFl", "ThisItem.FL", max_length=40, width="160",
                     display_mode=DM_EDIT, label='"Functional Location"',
                     onchange=set_row_fx("ThisItem.RowGuid", "FL", norm_fl("Self.Text")))
-    fl.props["BorderColor"] = _field_border(V.fl_bad(row), f'{row}.Status <> "draft"')
+    fl.props["BorderColor"] = _field_border(f"{row}.FlBad", f'{row}.Status <> "draft"')
     desc = text_input("inpFlRowDesc", "ThisItem.Description", max_length=40, width="140",
                       display_mode=DM_EDIT, label='"Description"',
                       onchange=set_row_fx("ThisItem.RowGuid", "Description", "Trim(Self.Text)"))
     desc.props["BorderColor"] = _field_border(
-        V.desc_bad(row), f'{row}.Status <> "draft" && !IsBlank({row}.Description)')
+        f"{row}.DescBad", f'{row}.Status <> "draft" && !IsBlank({row}.Description)')
     kks = text_ctrl("txtFlRowKks", 'If(IsBlank(ThisItem.KksType), "-", ThisItem.KksType)',
                     size=13, height=20, wrap="false")
     cls = text_ctrl("txtFlRowCls",
@@ -328,7 +330,7 @@ def build_rows():
     msg = ('Switch(ThisItem.Status, "draft", "Draft", "valid", "Valid", '
            '"warning", "Warning" & If(IsBlank(ThisItem.FirstWarning), "", " - " & ThisItem.FirstWarning), '
            'If(IsBlank(ThisItem.FirstIssue), "Invalid", ThisItem.FirstIssue))')
-    hint_expr = V.hint_fx(shown, "ThisItem.FL")
+    hint_expr = "ThisItem.Hint"
     has_hint = f"!IsBlank({hint_expr})"
     val_txt = text_ctrl("txtFlRowIssue", msg, size=13, color=_status_color(row), height=20,
                         wrap="false", width=f"({VCOLS.rest}) - If({has_hint}, 36, 0)")
@@ -340,7 +342,8 @@ def build_rows():
                 height=30, align_items="Center")
 
     # Under Tablet er Delete et ikon, saa hele raekken kan staa (issue #77).
-    delete = button("btnFlRowDelete", '"Delete"', f"""Remove(colFlRows, LookUp(colFlRows, RowGuid = ThisItem.RowGuid));
+    delete = button("btnFlRowDelete", '"Delete"', f"""Collect(colFlDeleted, {{ RowGuid: ThisItem.RowGuid }});
+Remove(colFlRows, LookUp(colFlRows, RowGuid = ThisItem.RowGuid));
 RemoveIf(colFlVals, RowGuid = ThisItem.RowGuid);
 RemoveIf(colFlIssues, RowGuid = ThisItem.RowGuid);
 If(CountRows(colFlRows) = 0, {add_row_fx()});
@@ -381,7 +384,8 @@ VIEW_POS = ("With({ vw: " + VIEW + " },\n"
             "    ForAll(Sequence(CountRows(vw)) As S, With({ r: Index(vw, S.Value) },\n"
             "        { Pos: S.Value, RowGuid: r.RowGuid, FL: r.FL, Description: r.Description,\n"
             "          KksType: r.KksType, AssignedClass: r.AssignedClass, Status: r.Status,\n"
-            "          FirstIssue: r.FirstIssue, FirstWarning: r.FirstWarning })))")
+            "          FirstIssue: r.FirstIssue, FirstWarning: r.FirstWarning,\n"
+            "          FlBad: r.FlBad, DescBad: r.DescBad })))")
 TAB_W = 136
 
 
@@ -434,11 +438,11 @@ def build_classes():
     fl = text_input("inpFlCFl", "ThisItem.FL", max_length=40, width="160",
                     display_mode=DM_EDIT, label='"Functional Location"',
                     onchange=set_row_fx("ThisItem.RowGuid", "FL", norm_fl("Self.Text")))
-    fl.props["BorderColor"] = _field_border(V.fl_bad("ThisItem"), "true")
+    fl.props["BorderColor"] = _field_border("ThisItem.FlBad", "true")
     desc = text_input("inpFlCDesc", "ThisItem.Description", max_length=40, width="140",
                       display_mode=DM_EDIT, label='"Description"',
                       onchange=set_row_fx("ThisItem.RowGuid", "Description", "Trim(Self.Text)"))
-    desc.props["BorderColor"] = _field_border(V.desc_bad("ThisItem"),
+    desc.props["BorderColor"] = _field_border("ThisItem.DescBad",
                                               "!IsBlank(ThisItem.Description)")
     strc = text_ctrl("txtFlCStr", "ThisItem.KksType", size=13, height=20, wrap="false")
     clsc = text_ctrl("txtFlCCls", "ThisItem.AssignedClass", size=13, weight="Semibold",
@@ -449,7 +453,8 @@ def build_classes():
     open_ = button("btnFlCOpen", '"Open"',
                    'Set(varFlDetailRow, ThisItem.RowGuid);\n'
                    'Set(varFlDetailClass, Coalesce(ThisItem.AssignedClass, "NO CLASS"));\n'
-                   'Set(varFlShowEmpty, false)', width=72, height=30,
+                   'Set(varFlShowEmpty, false);\n'
+                   f'ClearCollect(colFlDet, {DET_ITEMS})', width=72, height=30,
                    accessible='"Open details for " & ThisItem.FL')
     cells = _cells(C_SPEC, [no, fl, desc, strc, clsc, info, open_])
     gal = table_gallery("galFlClassRows", '"Rows in the selected class"', VIEW_POS, VIEW_N,
@@ -529,7 +534,8 @@ def build_detail():
                     size=12, color=C_MUTED, height=18, wrap="false")
     left = grow(group("conFlDetHeadL", [title, sub], direction="Vertical", gap=2))
     empty = button("btnFlDetEmpty", 'If(varFlShowEmpty, "Hide empty", "Show empty")',
-                   "Set(varFlShowEmpty, !varFlShowEmpty)", width=120, height=32)
+                   f"Set(varFlShowEmpty, !varFlShowEmpty);\nClearCollect(colFlDet, {DET_ITEMS})",
+                   width=120, height=32)
     close = button("btnFlDetClose", '"Close"', 'Set(varFlDetailRow, "")', primary=True,
                    width=90, height=32)
     head = group("conFlDetHead", [left] + pin_widths([empty, close]), direction="Horizontal",
@@ -570,18 +576,20 @@ def build_detail():
     # som ville goere hoejden afhaengig af kontrollen selv.
     # TemplatePadding 0 og hoejden n x 46 - ingen scrollbar, foer der ER
     # flere felter end ruden kan vise (issue #77).
-    gal_h = f"Min(Max(CountRows({DET_ITEMS}), 1) * 46, App.Height - 220)"
+    # colFlDet, ikke DET_ITEMS: listen stod her fire gange og blev regnet
+    # fire gange pr. tegning (REVIEW.md B6).
+    gal_h = "Min(Max(CountRows(colFlDet), 1) * 46, App.Height - 220)"
     gal = Ctrl("galFlDetail", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Columns of the selected row"',
         "BorderStyle": "BorderStyle.None",
         "Fill": C_TRANSPARENT,
         "FillPortions": "0",
         "Height": gal_h,
-        "Items": DET_ITEMS,
+        "Items": "colFlDet",
         "LayoutMinWidth": "0",
         "LoadingSpinner": "LoadingSpinner.None",
         "Selectable": "false",
-        "ShowScrollbar": f"CountRows({DET_ITEMS}) * 46 > App.Height - 220",
+        "ShowScrollbar": "CountRows(colFlDet) * 46 > App.Height - 220",
         "TabIndex": "0",
         "TemplatePadding": "0",
         "TemplateSize": "46",
@@ -590,7 +598,7 @@ def build_detail():
     }, children=[tpl], h=gal_h)
     none = text_ctrl("txtFlDetNone", '"No populated fields for this row."', size=13,
                      color=C_MUTED, height=22, wrap="false",
-                     visible=f"IfError(CountRows({DET_ITEMS}) = 0, false)")
+                     visible="IfError(CountRows(colFlDet) = 0, false)")
     modal = group("conFlDetailModal", [head, gal, none], direction="Vertical", gap=12,
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(18, 18, 18, 18), width=DET_W, drop_shadow="ExtraBold",
@@ -683,6 +691,7 @@ def build_structure():
 # New request (FL70). Save draft, Submit og New request staar i bjaelken.
 # ---------------------------------------------------------------------------
 NEW_FX = """Clear(colFlRows);
+Clear(colFlDeleted);
 Clear(colFlVals);
 Clear(colFlIssues);
 Clear(colFlTabs);
