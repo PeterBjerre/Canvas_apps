@@ -4295,22 +4295,32 @@ Screens:
                         Y: |-
                             =0 + 0 + ((((46) - 2) - 0 - 0) - (0 + If(ThisItem.Editable && IsBlank(ThisItem.List), 0 + (36), 0) + If(ThisItem.Editable && !IsBlank(ThisItem.List), 0 + (36), 0) + If(!ThisItem.Editable, 0 + (36), 0))) / 2 + 0 + 0
                   - drpFlDetVal:
-                      Control: ModernDropdown
+                      Control: Classic/DropDown
                       Properties:
                         AccessibleLabel: |-
                             =ThisItem.Column
-                        Appearance: |-
-                            =If((If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                        BasePaletteColor: |-
-                            =C.'color-brand-primary'
+                        AllowEmptySelection: |-
+                            =true
                         BorderColor: |-
                             =If(!IsBlank(ThisItem.Issue), C.'border-error', !IsBlank(ThisItem.Value), C.'border-ok', C.'border-default')
                         BorderStyle: |-
                             =BorderStyle.Solid
                         BorderThickness: |-
                             =1
+                        ChevronBackground: |-
+                            =If(If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                        ChevronDisabledBackground: |-
+                            =C.'input-bg-disabled'
+                        ChevronDisabledFill: |-
+                            =C.'text-muted'
+                        ChevronFill: |-
+                            =C.'text-primary'
+                        ChevronHoverBackground: |-
+                            =C.'color-brand-primary-soft'
+                        ChevronHoverFill: |-
+                            =C.'text-primary'
                         Color: |-
-                            =If((If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
+                            =C.'text-primary'
                         Default: |-
                             =LookUp(Ungroup(
                                 Table(
@@ -4320,17 +4330,23 @@ Screens:
                                     { G: ForAll(Sort(With({ lid: ThisItem.List }, Filter(nfFlLists, List = lid)), Ord) As O, { Value: O.Value }) }
                                 ),
                                 G
-                            ), Upper(Value) = Upper(ThisItem.Value))
+                            ), Upper(Value) = Upper(ThisItem.Value)).Value
+                        DisabledColor: |-
+                            =C.'text-muted'
+                        DisabledFill: |-
+                            =C.'input-bg-disabled'
                         DisplayMode: |-
-                            =If((If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                            =If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)
                         Fill: |-
                             =If(If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                         Font: |-
                             =Font.'Segoe UI'
                         Height: |-
                             =36
-                        ItemDisplayText: |-
-                            =ThisItem.Value
+                        HoverColor: |-
+                            =C.'text-primary'
+                        HoverFill: |-
+                            =C.'color-brand-primary-soft'
                         Items: |-
                             =Ungroup(
                                 Table(
@@ -4341,6 +4357,8 @@ Screens:
                                 ),
                                 G
                             )
+                        Items.Value: |-
+                            =Value
                         OnChange: |-
                             =With(
                                 { f: ThisItem.Field, nv: Trim(Coalesce(Self.Selected.Value, "")) },
@@ -4356,18 +4374,18 @@ Screens:
                             );
                             Set(varFlStale, true);
                             Select(btnFlVerify)
-                        RadiusBottomLeft: |-
-                            =10
-                        RadiusBottomRight: |-
-                            =10
-                        RadiusTopLeft: |-
-                            =10
-                        RadiusTopRight: |-
-                            =10
+                        PaddingLeft: |-
+                            =12
+                        PressedColor: |-
+                            =C.'text-on-primary'
+                        PressedFill: |-
+                            =C.'color-brand-primary'
+                        SelectionColor: |-
+                            =C.'text-on-primary'
+                        SelectionFill: |-
+                            =C.'color-brand-primary'
                         Size: |-
                             =14
-                        ValidationState: |-
-                            =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                         Visible: |-
                             =ThisItem.Editable && !IsBlank(ThisItem.List)
                         Width: |-

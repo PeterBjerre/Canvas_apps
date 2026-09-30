@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import Ctrl, C_MUTED, C_REQUIRED, C_INFO_BG, SHELL_W
 import build_help as bh
 from build_helpers import (text_ctrl, group, button, text_input, number_input,
-                           dropdown, field_cell, col_width, badge, card, grow,
+                           themed_dropdown, field_cell, col_width, badge, card, grow,
                            column_grid, text_px, fit_button_width, ICON_W)
 
 DM_PLAN = "If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)"
@@ -157,36 +157,36 @@ def build_plan_header():
     # fjernet (issue #54). At planen er laast, ses paa de graa felter og paa
     # knappen, der hedder Edit i stedet for Save.
 
-    drpPlant = dropdown("drpVhpPlant", "colVhpPlantCodes", "LookUp(colVhpPlantCodes, Value = varVhpPlan.Plant)",
-                        item_display="ThisItem.Value", required_formula=REQ_PLAN, display_mode=DM_PLAN)
-    drpStatus = dropdown("drpVhpStatus", "colVhpPlanStatusOptions",
-                         "LookUp(colVhpPlanStatusOptions, Value = varVhpPlan.Status)",
+    drpPlant = themed_dropdown("drpVhpPlant", "colVhpPlantCodes",
+                               "LookUp(colVhpPlantCodes, Value = varVhpPlan.Plant).Value",
+                               required_formula=REQ_PLAN, display_mode=DM_PLAN)
+    drpStatus = themed_dropdown("drpVhpStatus", "colVhpPlanStatusOptions",
+                         "LookUp(colVhpPlanStatusOptions, Value = varVhpPlan.Status).Value",
                          required_formula=REQ_PLAN, display_mode=DM_PLAN)
 
     # --- Plantype og strategi ------------------------------------------------
-    drpPlanType = dropdown("drpVhpPlanType", "colVhpPlanTypeOptions",
-                           "LookUp(colVhpPlanTypeOptions, Key = varVhpPlan.PlanType)",
-                           item_display="ThisItem.Value", required_formula=REQ_PLAN,
-                           display_mode=DM_PLAN, value_field="Key")
-    drpStrategy = dropdown(
+    drpPlanType = themed_dropdown("drpVhpPlanType", "colVhpPlanTypeOptions",
+                           "LookUp(colVhpPlanTypeOptions, Key = varVhpPlan.PlanType).Value",
+                           required_formula=REQ_PLAN, display_mode=DM_PLAN,
+                           value_col="Key", display_col="Value")
+    drpStrategy = themed_dropdown(
         "drpVhpStrategy", "colVhpStrategyOptions",
-        "LookUp(colVhpStrategyOptions, Key = varVhpPlan.Strategy)",
-        item_display="ThisItem.Value",
+        "LookUp(colVhpStrategyOptions, Key = varVhpPlan.Strategy).Value",
         required_formula=f"(varVhpPlanValidated && {LIVE_IS_STRATEGY})",
         display_mode=f"If(varVhpPlanLocked || {LIVE_NOT_STRATEGY}, DisplayMode.Disabled, DisplayMode.Edit)",
-        value_field="Key")
+        value_col="Key", display_col="Value")
 
     txtPlanText = text_input("txtVhpPlanText", "varVhpPlan.PlanText", max_length=40,
                              required_formula=REQ_PLAN, display_mode=DM_PLAN)
-    drpSortField = dropdown("drpVhpSortField", "colVhpSortFieldOptions",
-                            "LookUp(colVhpSortFieldOptions, Value = varVhpPlan.SortField)",
+    drpSortField = themed_dropdown("drpVhpSortField", "colVhpSortFieldOptions",
+                            "LookUp(colVhpSortFieldOptions, Value = varVhpPlan.SortField).Value",
                             display_mode=DM_PLAN)
     numCycle = number_input("numVhpCycle", "varVhpPlan.Cycle", min_v=1, required_formula=REQ_CYCLE,
                             display_mode=DM_CYCLE)
-    drpUnit = dropdown("drpVhpUnit", "colVhpUnitOptions", "LookUp(colVhpUnitOptions, Value = varVhpPlan.Unit)",
+    drpUnit = themed_dropdown("drpVhpUnit", "colVhpUnitOptions", "LookUp(colVhpUnitOptions, Value = varVhpPlan.Unit).Value",
                        required_formula=REQ_CYCLE, display_mode=DM_CYCLE)
-    drpCallHorizon = dropdown("drpVhpCallHorizon", "colVhpCallHorizonOptions",
-                              "LookUp(colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon)",
+    drpCallHorizon = themed_dropdown("drpVhpCallHorizon", "colVhpCallHorizonOptions",
+                              "LookUp(colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon).Value",
                               display_mode=DM_PLAN)
     txtSchedInd = text_input("txtVhpSchedInd", "varVhpPlan.SchedulingIndicator", display_mode=DM_PLAN)
     numFirstCallDay = number_input("numVhpFirstCallDay", "varVhpPlan.FirstCallDay", min_v=1, max_v=31,

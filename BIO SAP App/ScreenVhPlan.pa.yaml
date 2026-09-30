@@ -2273,14 +2273,12 @@ Screens:
                                                       Wrap: |-
                                                           =false
                                           - drpVhpPlanType:
-                                              Control: ModernDropdown
+                                              Control: Classic/DropDown
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Plan Type, required"
-                                                Appearance: |-
-                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                                BasePaletteColor: |-
-                                                    =C.'color-brand-primary'
+                                                AllowEmptySelection: |-
+                                                    =true
                                                 BorderColor: |-
                                                     =If(
                                                         varVhpPlanValidated && IsBlank(Self.Selected.Key),
@@ -2291,36 +2289,54 @@ Screens:
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
                                                     =1
+                                                ChevronBackground: |-
+                                                    =If(If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                ChevronDisabledBackground: |-
+                                                    =C.'input-bg-disabled'
+                                                ChevronDisabledFill: |-
+                                                    =C.'text-muted'
+                                                ChevronFill: |-
+                                                    =C.'text-primary'
+                                                ChevronHoverBackground: |-
+                                                    =C.'color-brand-primary-soft'
+                                                ChevronHoverFill: |-
+                                                    =C.'text-primary'
                                                 Color: |-
-                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
+                                                    =C.'text-primary'
                                                 Default: |-
-                                                    =LookUp(colVhpPlanTypeOptions, Key = varVhpPlan.PlanType)
+                                                    =LookUp(colVhpPlanTypeOptions, Key = varVhpPlan.PlanType).Value
+                                                DisabledColor: |-
+                                                    =C.'text-muted'
+                                                DisabledFill: |-
+                                                    =C.'input-bg-disabled'
                                                 DisplayMode: |-
-                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                    =If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)
                                                 Fill: |-
                                                     =If(If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =36
-                                                ItemDisplayText: |-
-                                                    =ThisItem.Value
+                                                HoverColor: |-
+                                                    =C.'text-primary'
+                                                HoverFill: |-
+                                                    =C.'color-brand-primary-soft'
                                                 Items: |-
                                                     =colVhpPlanTypeOptions
-                                                LayoutMinWidth: |-
-                                                    =0
-                                                RadiusBottomLeft: |-
-                                                    =10
-                                                RadiusBottomRight: |-
-                                                    =10
-                                                RadiusTopLeft: |-
-                                                    =10
-                                                RadiusTopRight: |-
-                                                    =10
+                                                Items.Value: |-
+                                                    =Value
+                                                PaddingLeft: |-
+                                                    =12
+                                                PressedColor: |-
+                                                    =C.'text-on-primary'
+                                                PressedFill: |-
+                                                    =C.'color-brand-primary'
+                                                SelectionColor: |-
+                                                    =C.'text-on-primary'
+                                                SelectionFill: |-
+                                                    =C.'color-brand-primary'
                                                 Size: |-
                                                     =14
-                                                ValidationState: |-
-                                                    =If(varVhpPlanValidated && IsBlank(Self.Selected.Key), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =Parent.Width
                                           - conVhpCellPlanTypeHint:
@@ -2422,14 +2438,12 @@ Screens:
                                                 Wrap: |-
                                                     =false
                                           - drpVhpStrategy:
-                                              Control: ModernDropdown
+                                              Control: Classic/DropDown
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Maintenance Strategy"
-                                                Appearance: |-
-                                                    =If((If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key <> "Strategy"), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                                BasePaletteColor: |-
-                                                    =C.'color-brand-primary'
+                                                AllowEmptySelection: |-
+                                                    =true
                                                 BorderColor: |-
                                                     =If(
                                                         (varVhpPlanValidated && (drpVhpPlanType.Selected.Key = "Strategy")) && IsBlank(Self.Selected.Key),
@@ -2440,36 +2454,54 @@ Screens:
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
                                                     =1
+                                                ChevronBackground: |-
+                                                    =If(If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key <> "Strategy"), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                ChevronDisabledBackground: |-
+                                                    =C.'input-bg-disabled'
+                                                ChevronDisabledFill: |-
+                                                    =C.'text-muted'
+                                                ChevronFill: |-
+                                                    =C.'text-primary'
+                                                ChevronHoverBackground: |-
+                                                    =C.'color-brand-primary-soft'
+                                                ChevronHoverFill: |-
+                                                    =C.'text-primary'
                                                 Color: |-
-                                                    =If((If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key <> "Strategy"), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
+                                                    =C.'text-primary'
                                                 Default: |-
-                                                    =LookUp(colVhpStrategyOptions, Key = varVhpPlan.Strategy)
+                                                    =LookUp(colVhpStrategyOptions, Key = varVhpPlan.Strategy).Value
+                                                DisabledColor: |-
+                                                    =C.'text-muted'
+                                                DisabledFill: |-
+                                                    =C.'input-bg-disabled'
                                                 DisplayMode: |-
-                                                    =If((If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key <> "Strategy"), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                    =If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key <> "Strategy"), DisplayMode.Disabled, DisplayMode.Edit)
                                                 Fill: |-
                                                     =If(If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key <> "Strategy"), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =36
-                                                ItemDisplayText: |-
-                                                    =ThisItem.Value
+                                                HoverColor: |-
+                                                    =C.'text-primary'
+                                                HoverFill: |-
+                                                    =C.'color-brand-primary-soft'
                                                 Items: |-
                                                     =colVhpStrategyOptions
-                                                LayoutMinWidth: |-
-                                                    =0
-                                                RadiusBottomLeft: |-
-                                                    =10
-                                                RadiusBottomRight: |-
-                                                    =10
-                                                RadiusTopLeft: |-
-                                                    =10
-                                                RadiusTopRight: |-
-                                                    =10
+                                                Items.Value: |-
+                                                    =Value
+                                                PaddingLeft: |-
+                                                    =12
+                                                PressedColor: |-
+                                                    =C.'text-on-primary'
+                                                PressedFill: |-
+                                                    =C.'color-brand-primary'
+                                                SelectionColor: |-
+                                                    =C.'text-on-primary'
+                                                SelectionFill: |-
+                                                    =C.'color-brand-primary'
                                                 Size: |-
                                                     =14
-                                                ValidationState: |-
-                                                    =If((varVhpPlanValidated && (drpVhpPlanType.Selected.Key = "Strategy")) && IsBlank(Self.Selected.Key), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =Parent.Width
                                           - conVhpCellStrategyHint:
@@ -2630,14 +2662,12 @@ Screens:
                                                       Wrap: |-
                                                           =false
                                           - drpVhpPlant:
-                                              Control: ModernDropdown
+                                              Control: Classic/DropDown
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Plant, required"
-                                                Appearance: |-
-                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                                BasePaletteColor: |-
-                                                    =C.'color-brand-primary'
+                                                AllowEmptySelection: |-
+                                                    =true
                                                 BorderColor: |-
                                                     =If(
                                                         varVhpPlanValidated && IsBlank(Self.Selected.Value),
@@ -2648,36 +2678,54 @@ Screens:
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
                                                     =1
+                                                ChevronBackground: |-
+                                                    =If(If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                ChevronDisabledBackground: |-
+                                                    =C.'input-bg-disabled'
+                                                ChevronDisabledFill: |-
+                                                    =C.'text-muted'
+                                                ChevronFill: |-
+                                                    =C.'text-primary'
+                                                ChevronHoverBackground: |-
+                                                    =C.'color-brand-primary-soft'
+                                                ChevronHoverFill: |-
+                                                    =C.'text-primary'
                                                 Color: |-
-                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
+                                                    =C.'text-primary'
                                                 Default: |-
-                                                    =LookUp(colVhpPlantCodes, Value = varVhpPlan.Plant)
+                                                    =LookUp(colVhpPlantCodes, Value = varVhpPlan.Plant).Value
+                                                DisabledColor: |-
+                                                    =C.'text-muted'
+                                                DisabledFill: |-
+                                                    =C.'input-bg-disabled'
                                                 DisplayMode: |-
-                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                    =If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)
                                                 Fill: |-
                                                     =If(If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =36
-                                                ItemDisplayText: |-
-                                                    =ThisItem.Value
+                                                HoverColor: |-
+                                                    =C.'text-primary'
+                                                HoverFill: |-
+                                                    =C.'color-brand-primary-soft'
                                                 Items: |-
                                                     =colVhpPlantCodes
-                                                LayoutMinWidth: |-
-                                                    =0
-                                                RadiusBottomLeft: |-
-                                                    =10
-                                                RadiusBottomRight: |-
-                                                    =10
-                                                RadiusTopLeft: |-
-                                                    =10
-                                                RadiusTopRight: |-
-                                                    =10
+                                                Items.Value: |-
+                                                    =Value
+                                                PaddingLeft: |-
+                                                    =12
+                                                PressedColor: |-
+                                                    =C.'text-on-primary'
+                                                PressedFill: |-
+                                                    =C.'color-brand-primary'
+                                                SelectionColor: |-
+                                                    =C.'text-on-primary'
+                                                SelectionFill: |-
+                                                    =C.'color-brand-primary'
                                                 Size: |-
                                                     =14
-                                                ValidationState: |-
-                                                    =If(varVhpPlanValidated && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =Parent.Width
                                           - conVhpCellPlantHint:
@@ -2870,14 +2918,12 @@ Screens:
                                                       Wrap: |-
                                                           =false
                                           - drpVhpStatus:
-                                              Control: ModernDropdown
+                                              Control: Classic/DropDown
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Status, required"
-                                                Appearance: |-
-                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                                BasePaletteColor: |-
-                                                    =C.'color-brand-primary'
+                                                AllowEmptySelection: |-
+                                                    =true
                                                 BorderColor: |-
                                                     =If(
                                                         varVhpPlanValidated && IsBlank(Self.Selected.Value),
@@ -2888,36 +2934,54 @@ Screens:
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
                                                     =1
+                                                ChevronBackground: |-
+                                                    =If(If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                ChevronDisabledBackground: |-
+                                                    =C.'input-bg-disabled'
+                                                ChevronDisabledFill: |-
+                                                    =C.'text-muted'
+                                                ChevronFill: |-
+                                                    =C.'text-primary'
+                                                ChevronHoverBackground: |-
+                                                    =C.'color-brand-primary-soft'
+                                                ChevronHoverFill: |-
+                                                    =C.'text-primary'
                                                 Color: |-
-                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
+                                                    =C.'text-primary'
                                                 Default: |-
-                                                    =LookUp(colVhpPlanStatusOptions, Value = varVhpPlan.Status)
+                                                    =LookUp(colVhpPlanStatusOptions, Value = varVhpPlan.Status).Value
+                                                DisabledColor: |-
+                                                    =C.'text-muted'
+                                                DisabledFill: |-
+                                                    =C.'input-bg-disabled'
                                                 DisplayMode: |-
-                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                    =If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)
                                                 Fill: |-
                                                     =If(If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =36
-                                                ItemDisplayText: |-
-                                                    =ThisItem.Value
+                                                HoverColor: |-
+                                                    =C.'text-primary'
+                                                HoverFill: |-
+                                                    =C.'color-brand-primary-soft'
                                                 Items: |-
                                                     =colVhpPlanStatusOptions
-                                                LayoutMinWidth: |-
-                                                    =0
-                                                RadiusBottomLeft: |-
-                                                    =10
-                                                RadiusBottomRight: |-
-                                                    =10
-                                                RadiusTopLeft: |-
-                                                    =10
-                                                RadiusTopRight: |-
-                                                    =10
+                                                Items.Value: |-
+                                                    =Value
+                                                PaddingLeft: |-
+                                                    =12
+                                                PressedColor: |-
+                                                    =C.'text-on-primary'
+                                                PressedFill: |-
+                                                    =C.'color-brand-primary'
+                                                SelectionColor: |-
+                                                    =C.'text-on-primary'
+                                                SelectionFill: |-
+                                                    =C.'color-brand-primary'
                                                 Size: |-
                                                     =14
-                                                ValidationState: |-
-                                                    =If(varVhpPlanValidated && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =Parent.Width
                                           - conVhpCellStatusHint:
@@ -3232,50 +3296,66 @@ Screens:
                                                 Wrap: |-
                                                     =false
                                           - drpVhpSortField:
-                                              Control: ModernDropdown
+                                              Control: Classic/DropDown
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Sort Field"
-                                                Appearance: |-
-                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                                BasePaletteColor: |-
-                                                    =C.'color-brand-primary'
+                                                AllowEmptySelection: |-
+                                                    =true
                                                 BorderColor: |-
                                                     =C.'border-default'
                                                 BorderStyle: |-
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
                                                     =1
+                                                ChevronBackground: |-
+                                                    =If(If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                ChevronDisabledBackground: |-
+                                                    =C.'input-bg-disabled'
+                                                ChevronDisabledFill: |-
+                                                    =C.'text-muted'
+                                                ChevronFill: |-
+                                                    =C.'text-primary'
+                                                ChevronHoverBackground: |-
+                                                    =C.'color-brand-primary-soft'
+                                                ChevronHoverFill: |-
+                                                    =C.'text-primary'
                                                 Color: |-
-                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
+                                                    =C.'text-primary'
                                                 Default: |-
-                                                    =LookUp(colVhpSortFieldOptions, Value = varVhpPlan.SortField)
+                                                    =LookUp(colVhpSortFieldOptions, Value = varVhpPlan.SortField).Value
+                                                DisabledColor: |-
+                                                    =C.'text-muted'
+                                                DisabledFill: |-
+                                                    =C.'input-bg-disabled'
                                                 DisplayMode: |-
-                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                    =If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)
                                                 Fill: |-
                                                     =If(If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =36
-                                                ItemDisplayText: |-
-                                                    =ThisItem.Value
+                                                HoverColor: |-
+                                                    =C.'text-primary'
+                                                HoverFill: |-
+                                                    =C.'color-brand-primary-soft'
                                                 Items: |-
                                                     =colVhpSortFieldOptions
-                                                LayoutMinWidth: |-
-                                                    =0
-                                                RadiusBottomLeft: |-
-                                                    =10
-                                                RadiusBottomRight: |-
-                                                    =10
-                                                RadiusTopLeft: |-
-                                                    =10
-                                                RadiusTopRight: |-
-                                                    =10
+                                                Items.Value: |-
+                                                    =Value
+                                                PaddingLeft: |-
+                                                    =12
+                                                PressedColor: |-
+                                                    =C.'text-on-primary'
+                                                PressedFill: |-
+                                                    =C.'color-brand-primary'
+                                                SelectionColor: |-
+                                                    =C.'text-on-primary'
+                                                SelectionFill: |-
+                                                    =C.'color-brand-primary'
                                                 Size: |-
                                                     =14
-                                                ValidationState: |-
-                                                    =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =Parent.Width
                                           - conVhpCellSortFieldHint:
@@ -3683,14 +3763,12 @@ Screens:
                                                       Wrap: |-
                                                           =false
                                           - drpVhpUnit:
-                                              Control: ModernDropdown
+                                              Control: Classic/DropDown
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Unit, required"
-                                                Appearance: |-
-                                                    =If((If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key = "Strategy"), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                                BasePaletteColor: |-
-                                                    =C.'color-brand-primary'
+                                                AllowEmptySelection: |-
+                                                    =true
                                                 BorderColor: |-
                                                     =If(
                                                         (varVhpPlanValidated && (drpVhpPlanType.Selected.Key <> "Strategy")) && IsBlank(Self.Selected.Value),
@@ -3701,36 +3779,54 @@ Screens:
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
                                                     =1
+                                                ChevronBackground: |-
+                                                    =If(If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key = "Strategy"), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                ChevronDisabledBackground: |-
+                                                    =C.'input-bg-disabled'
+                                                ChevronDisabledFill: |-
+                                                    =C.'text-muted'
+                                                ChevronFill: |-
+                                                    =C.'text-primary'
+                                                ChevronHoverBackground: |-
+                                                    =C.'color-brand-primary-soft'
+                                                ChevronHoverFill: |-
+                                                    =C.'text-primary'
                                                 Color: |-
-                                                    =If((If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key = "Strategy"), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
+                                                    =C.'text-primary'
                                                 Default: |-
-                                                    =LookUp(colVhpUnitOptions, Value = varVhpPlan.Unit)
+                                                    =LookUp(colVhpUnitOptions, Value = varVhpPlan.Unit).Value
+                                                DisabledColor: |-
+                                                    =C.'text-muted'
+                                                DisabledFill: |-
+                                                    =C.'input-bg-disabled'
                                                 DisplayMode: |-
-                                                    =If((If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key = "Strategy"), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                    =If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key = "Strategy"), DisplayMode.Disabled, DisplayMode.Edit)
                                                 Fill: |-
                                                     =If(If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key = "Strategy"), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =36
-                                                ItemDisplayText: |-
-                                                    =ThisItem.Value
+                                                HoverColor: |-
+                                                    =C.'text-primary'
+                                                HoverFill: |-
+                                                    =C.'color-brand-primary-soft'
                                                 Items: |-
                                                     =colVhpUnitOptions
-                                                LayoutMinWidth: |-
-                                                    =0
-                                                RadiusBottomLeft: |-
-                                                    =10
-                                                RadiusBottomRight: |-
-                                                    =10
-                                                RadiusTopLeft: |-
-                                                    =10
-                                                RadiusTopRight: |-
-                                                    =10
+                                                Items.Value: |-
+                                                    =Value
+                                                PaddingLeft: |-
+                                                    =12
+                                                PressedColor: |-
+                                                    =C.'text-on-primary'
+                                                PressedFill: |-
+                                                    =C.'color-brand-primary'
+                                                SelectionColor: |-
+                                                    =C.'text-on-primary'
+                                                SelectionFill: |-
+                                                    =C.'color-brand-primary'
                                                 Size: |-
                                                     =14
-                                                ValidationState: |-
-                                                    =If((varVhpPlanValidated && (drpVhpPlanType.Selected.Key <> "Strategy")) && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =Parent.Width
                                           - conVhpCellUnitHint:
@@ -3832,50 +3928,66 @@ Screens:
                                                 Wrap: |-
                                                     =false
                                           - drpVhpCallHorizon:
-                                              Control: ModernDropdown
+                                              Control: Classic/DropDown
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Call Horizon"
-                                                Appearance: |-
-                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                                BasePaletteColor: |-
-                                                    =C.'color-brand-primary'
+                                                AllowEmptySelection: |-
+                                                    =true
                                                 BorderColor: |-
                                                     =C.'border-default'
                                                 BorderStyle: |-
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
                                                     =1
+                                                ChevronBackground: |-
+                                                    =If(If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                ChevronDisabledBackground: |-
+                                                    =C.'input-bg-disabled'
+                                                ChevronDisabledFill: |-
+                                                    =C.'text-muted'
+                                                ChevronFill: |-
+                                                    =C.'text-primary'
+                                                ChevronHoverBackground: |-
+                                                    =C.'color-brand-primary-soft'
+                                                ChevronHoverFill: |-
+                                                    =C.'text-primary'
                                                 Color: |-
-                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
+                                                    =C.'text-primary'
                                                 Default: |-
-                                                    =LookUp(colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon)
+                                                    =LookUp(colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon).Value
+                                                DisabledColor: |-
+                                                    =C.'text-muted'
+                                                DisabledFill: |-
+                                                    =C.'input-bg-disabled'
                                                 DisplayMode: |-
-                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                    =If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)
                                                 Fill: |-
                                                     =If(If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =36
-                                                ItemDisplayText: |-
-                                                    =ThisItem.Value
+                                                HoverColor: |-
+                                                    =C.'text-primary'
+                                                HoverFill: |-
+                                                    =C.'color-brand-primary-soft'
                                                 Items: |-
                                                     =colVhpCallHorizonOptions
-                                                LayoutMinWidth: |-
-                                                    =0
-                                                RadiusBottomLeft: |-
-                                                    =10
-                                                RadiusBottomRight: |-
-                                                    =10
-                                                RadiusTopLeft: |-
-                                                    =10
-                                                RadiusTopRight: |-
-                                                    =10
+                                                Items.Value: |-
+                                                    =Value
+                                                PaddingLeft: |-
+                                                    =12
+                                                PressedColor: |-
+                                                    =C.'text-on-primary'
+                                                PressedFill: |-
+                                                    =C.'color-brand-primary'
+                                                SelectionColor: |-
+                                                    =C.'text-on-primary'
+                                                SelectionFill: |-
+                                                    =C.'color-brand-primary'
                                                 Size: |-
                                                     =14
-                                                ValidationState: |-
-                                                    =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =Parent.Width
                                           - conVhpCellCallHorizonHint:
@@ -6498,14 +6610,12 @@ Screens:
                                                             Wrap: |-
                                                                 =false
                                                 - drpVhpItemMainWorkCenter:
-                                                    Control: ModernDropdown
+                                                    Control: Classic/DropDown
                                                     Properties:
                                                       AccessibleLabel: |-
                                                           ="Main Work Center, required"
-                                                      Appearance: |-
-                                                          =If((If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                                      BasePaletteColor: |-
-                                                          =C.'color-brand-primary'
+                                                      AllowEmptySelection: |-
+                                                          =true
                                                       BorderColor: |-
                                                           =If(
                                                               varVhpItemValidated && IsBlank(Self.Selected.Value),
@@ -6516,8 +6626,20 @@ Screens:
                                                           =BorderStyle.Solid
                                                       BorderThickness: |-
                                                           =1
+                                                      ChevronBackground: |-
+                                                          =If(If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                      ChevronDisabledBackground: |-
+                                                          =C.'input-bg-disabled'
+                                                      ChevronDisabledFill: |-
+                                                          =C.'text-muted'
+                                                      ChevronFill: |-
+                                                          =C.'text-primary'
+                                                      ChevronHoverBackground: |-
+                                                          =C.'color-brand-primary-soft'
+                                                      ChevronHoverFill: |-
+                                                          =C.'text-primary'
                                                       Color: |-
-                                                          =If((If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
+                                                          =C.'text-primary'
                                                       Default: |-
                                                           =LookUp(Sort(
                                                               If(
@@ -6526,17 +6648,23 @@ Screens:
                                                                   Filter(colVhpMainWorkCenters, Upper(Plant) = Upper(varVhpPlan.Plant))
                                                               ),
                                                               Value
-                                                          ), Value = LookUp(colVhpItems, ItemId = varVhpActiveItemId).MainWorkCenter)
+                                                          ), Value = LookUp(colVhpItems, ItemId = varVhpActiveItemId).MainWorkCenter).Value
+                                                      DisabledColor: |-
+                                                          =C.'text-muted'
+                                                      DisabledFill: |-
+                                                          =C.'input-bg-disabled'
                                                       DisplayMode: |-
-                                                          =If((If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                          =If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
                                                       Fill: |-
                                                           =If(If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                       Font: |-
                                                           =Font.'Segoe UI'
                                                       Height: |-
                                                           =36
-                                                      ItemDisplayText: |-
-                                                          =ThisItem.Value
+                                                      HoverColor: |-
+                                                          =C.'text-primary'
+                                                      HoverFill: |-
+                                                          =C.'color-brand-primary-soft'
                                                       Items: |-
                                                           =Sort(
                                                               If(
@@ -6546,20 +6674,20 @@ Screens:
                                                               ),
                                                               Value
                                                           )
-                                                      LayoutMinWidth: |-
-                                                          =0
-                                                      RadiusBottomLeft: |-
-                                                          =10
-                                                      RadiusBottomRight: |-
-                                                          =10
-                                                      RadiusTopLeft: |-
-                                                          =10
-                                                      RadiusTopRight: |-
-                                                          =10
+                                                      Items.Value: |-
+                                                          =Value
+                                                      PaddingLeft: |-
+                                                          =12
+                                                      PressedColor: |-
+                                                          =C.'text-on-primary'
+                                                      PressedFill: |-
+                                                          =C.'color-brand-primary'
+                                                      SelectionColor: |-
+                                                          =C.'text-on-primary'
+                                                      SelectionFill: |-
+                                                          =C.'color-brand-primary'
                                                       Size: |-
                                                           =14
-                                                      ValidationState: |-
-                                                          =If(varVhpItemValidated && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                                                       Width: |-
                                                           =Parent.Width
                                                 - conVhpCellItemMwcHint:
@@ -6723,14 +6851,12 @@ Screens:
                                                             Wrap: |-
                                                                 =false
                                                 - drpVhpItemActivityType:
-                                                    Control: ModernDropdown
+                                                    Control: Classic/DropDown
                                                     Properties:
                                                       AccessibleLabel: |-
                                                           ="Maintenance Activity Type, required"
-                                                      Appearance: |-
-                                                          =If((If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                                      BasePaletteColor: |-
-                                                          =C.'color-brand-primary'
+                                                      AllowEmptySelection: |-
+                                                          =true
                                                       BorderColor: |-
                                                           =If(
                                                               varVhpItemValidated && IsBlank(Self.Selected.Value),
@@ -6741,36 +6867,54 @@ Screens:
                                                           =BorderStyle.Solid
                                                       BorderThickness: |-
                                                           =1
+                                                      ChevronBackground: |-
+                                                          =If(If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                      ChevronDisabledBackground: |-
+                                                          =C.'input-bg-disabled'
+                                                      ChevronDisabledFill: |-
+                                                          =C.'text-muted'
+                                                      ChevronFill: |-
+                                                          =C.'text-primary'
+                                                      ChevronHoverBackground: |-
+                                                          =C.'color-brand-primary-soft'
+                                                      ChevronHoverFill: |-
+                                                          =C.'text-primary'
                                                       Color: |-
-                                                          =If((If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
+                                                          =C.'text-primary'
                                                       Default: |-
-                                                          =LookUp(colVhpActivityTypeOptions, Value = LookUp(colVhpItems, ItemId = varVhpActiveItemId).ActivityType)
+                                                          =LookUp(colVhpActivityTypeOptions, Value = LookUp(colVhpItems, ItemId = varVhpActiveItemId).ActivityType).Value
+                                                      DisabledColor: |-
+                                                          =C.'text-muted'
+                                                      DisabledFill: |-
+                                                          =C.'input-bg-disabled'
                                                       DisplayMode: |-
-                                                          =If((If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                          =If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
                                                       Fill: |-
                                                           =If(If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                       Font: |-
                                                           =Font.'Segoe UI'
                                                       Height: |-
                                                           =36
-                                                      ItemDisplayText: |-
-                                                          =ThisItem.Value
+                                                      HoverColor: |-
+                                                          =C.'text-primary'
+                                                      HoverFill: |-
+                                                          =C.'color-brand-primary-soft'
                                                       Items: |-
                                                           =colVhpActivityTypeOptions
-                                                      LayoutMinWidth: |-
-                                                          =0
-                                                      RadiusBottomLeft: |-
-                                                          =10
-                                                      RadiusBottomRight: |-
-                                                          =10
-                                                      RadiusTopLeft: |-
-                                                          =10
-                                                      RadiusTopRight: |-
-                                                          =10
+                                                      Items.Value: |-
+                                                          =Value
+                                                      PaddingLeft: |-
+                                                          =12
+                                                      PressedColor: |-
+                                                          =C.'text-on-primary'
+                                                      PressedFill: |-
+                                                          =C.'color-brand-primary'
+                                                      SelectionColor: |-
+                                                          =C.'text-on-primary'
+                                                      SelectionFill: |-
+                                                          =C.'color-brand-primary'
                                                       Size: |-
                                                           =14
-                                                      ValidationState: |-
-                                                          =If(varVhpItemValidated && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                                                       Width: |-
                                                           =Parent.Width
                                                 - conVhpCellItemActHint:
@@ -8762,38 +8906,54 @@ Screens:
                                                       Wrap: |-
                                                           =false
                                           - drpVhpItemTasklist:
-                                              Control: ModernDropdown
+                                              Control: Classic/DropDown
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Tasklist For Active Item, required"
-                                                Appearance: |-
-                                                    =If((If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                                BasePaletteColor: |-
-                                                    =C.'color-brand-primary'
+                                                AllowEmptySelection: |-
+                                                    =true
                                                 BorderColor: |-
                                                     =C.'border-default'
                                                 BorderStyle: |-
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
                                                     =1
+                                                ChevronBackground: |-
+                                                    =If(If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                ChevronDisabledBackground: |-
+                                                    =C.'input-bg-disabled'
+                                                ChevronDisabledFill: |-
+                                                    =C.'text-muted'
+                                                ChevronFill: |-
+                                                    =C.'text-primary'
+                                                ChevronHoverBackground: |-
+                                                    =C.'color-brand-primary-soft'
+                                                ChevronHoverFill: |-
+                                                    =C.'text-primary'
                                                 Color: |-
-                                                    =If((If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
+                                                    =C.'text-primary'
                                                 Default: |-
-                                                    =LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey)
+                                                    =LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Name
+                                                DisabledColor: |-
+                                                    =C.'text-muted'
+                                                DisabledFill: |-
+                                                    =C.'input-bg-disabled'
                                                 DisplayMode: |-
-                                                    =If((If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                    =If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
                                                 Fill: |-
                                                     =If(If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =36
-                                                ItemDisplayText: |-
-                                                    =ThisItem.Name
+                                                HoverColor: |-
+                                                    =C.'text-primary'
+                                                HoverFill: |-
+                                                    =C.'color-brand-primary-soft'
                                                 Items: |-
                                                     =Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))
-                                                LayoutMinWidth: |-
-                                                    =0
+                                                Items.Value: |-
+                                                    =Name
                                                 OnChange: |-
                                                     =If(
                                                         !IsBlank(varVhpActiveItemId) && !IsBlank(Self.Selected.Key) &&
@@ -8804,18 +8964,18 @@ Screens:
                                                         );
                                                         Notify("Tasklist " & drpVhpItemTasklist.Selected.Key & " selected for this item.", NotificationType.Success)
                                                     )
-                                                RadiusBottomLeft: |-
-                                                    =10
-                                                RadiusBottomRight: |-
-                                                    =10
-                                                RadiusTopLeft: |-
-                                                    =10
-                                                RadiusTopRight: |-
-                                                    =10
+                                                PaddingLeft: |-
+                                                    =12
+                                                PressedColor: |-
+                                                    =C.'text-on-primary'
+                                                PressedFill: |-
+                                                    =C.'color-brand-primary'
+                                                SelectionColor: |-
+                                                    =C.'text-on-primary'
+                                                SelectionFill: |-
+                                                    =C.'color-brand-primary'
                                                 Size: |-
                                                     =14
-                                                ValidationState: |-
-                                                    =If(false && IsBlank(Self.Selected.Key), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =Parent.Width
                                     - conVhpOpsToolbarGap:
@@ -9624,22 +9784,32 @@ Screens:
                                                 Y: |-
                                                     =0 + 0 + ((((38) - 2) - 0 - 0) - (32)) / 2
                                           - drpVhpOpCtrl:
-                                              Control: ModernDropdown
+                                              Control: Classic/DropDown
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Control key"
-                                                Appearance: |-
-                                                    =If((If(EndsWith(Upper(Coalesce(ThisItem.MainWorkCenter, "")), "SUP"), DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                                BasePaletteColor: |-
-                                                    =C.'color-brand-primary'
+                                                AllowEmptySelection: |-
+                                                    =true
                                                 BorderColor: |-
                                                     =C.'border-default'
                                                 BorderStyle: |-
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
                                                     =1
+                                                ChevronBackground: |-
+                                                    =If(If(EndsWith(Upper(Coalesce(ThisItem.MainWorkCenter, "")), "SUP"), DisplayMode.Edit, DisplayMode.View) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                ChevronDisabledBackground: |-
+                                                    =C.'input-bg-disabled'
+                                                ChevronDisabledFill: |-
+                                                    =C.'text-muted'
+                                                ChevronFill: |-
+                                                    =C.'text-primary'
+                                                ChevronHoverBackground: |-
+                                                    =C.'color-brand-primary-soft'
+                                                ChevronHoverFill: |-
+                                                    =C.'text-primary'
                                                 Color: |-
-                                                    =If((If(EndsWith(Upper(Coalesce(ThisItem.MainWorkCenter, "")), "SUP"), DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'text-primary', C.'text-muted')
+                                                    =C.'text-primary'
                                                 Default: |-
                                                     =LookUp(Filter(
                                                         Distinct(
@@ -9651,17 +9821,23 @@ Screens:
                                                             Value
                                                         ),
                                                         !IsBlank(Value)
-                                                    ), Value = ThisItem.ControlKey)
+                                                    ), Value = ThisItem.ControlKey).Value
+                                                DisabledColor: |-
+                                                    =C.'text-muted'
+                                                DisabledFill: |-
+                                                    =C.'input-bg-disabled'
                                                 DisplayMode: |-
-                                                    =If((If(EndsWith(Upper(Coalesce(ThisItem.MainWorkCenter, "")), "SUP"), DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                    =If(EndsWith(Upper(Coalesce(ThisItem.MainWorkCenter, "")), "SUP"), DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(If(EndsWith(Upper(Coalesce(ThisItem.MainWorkCenter, "")), "SUP"), DisplayMode.Edit, DisplayMode.View) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =32
-                                                ItemDisplayText: |-
-                                                    =ThisItem.Value
+                                                HoverColor: |-
+                                                    =C.'text-primary'
+                                                HoverFill: |-
+                                                    =C.'color-brand-primary-soft'
                                                 Items: |-
                                                     =Filter(
                                                         Distinct(
@@ -9674,20 +9850,22 @@ Screens:
                                                         ),
                                                         !IsBlank(Value)
                                                     )
+                                                Items.Value: |-
+                                                    =Value
                                                 OnChange: |-
                                                     =Patch(colVhpOperations, ThisItem, { ControlKey: Self.Selected.Value })
-                                                RadiusBottomLeft: |-
-                                                    =10
-                                                RadiusBottomRight: |-
-                                                    =10
-                                                RadiusTopLeft: |-
-                                                    =10
-                                                RadiusTopRight: |-
-                                                    =10
+                                                PaddingLeft: |-
+                                                    =12
+                                                PressedColor: |-
+                                                    =C.'text-on-primary'
+                                                PressedFill: |-
+                                                    =C.'color-brand-primary'
+                                                SelectionColor: |-
+                                                    =C.'text-on-primary'
+                                                SelectionFill: |-
+                                                    =C.'color-brand-primary'
                                                 Size: |-
                                                     =14
-                                                ValidationState: |-
-                                                    =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =90
                                                 X: |-

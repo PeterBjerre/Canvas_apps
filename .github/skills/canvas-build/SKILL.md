@@ -535,20 +535,22 @@ rødt.
 
 Det hele står i `docs/28-feltfarvning.md`.
 
-## Dropdown-`Default` er en RECORD, ikke en værdi
+## Én dropdown: `themed_dropdown` (Classic), `Default` er TEKSTEN
 
-`ModernDropdown.Default` vil have en **record fra kontrollens egen
-`Items`-tabel** — ikke værdien inde i den:
+Alle dropdowns bygges af `build_helpers.themed_dropdown` (Classic/DropDown).
+`ModernDropdown`s liste er en Fluent-flyout, der ikke følger vores tema, og
+den var ulæselig i mørk tilstand. **Regel 16** i `check_layout.py` afviser
+en `ModernDropdown`.
+
+`Default` er **teksten i den viste kolonne** — ikke en record:
 
 ```
-Default: =LookUp(colDomPlants, Value = varDomFPlant)     rigtigt
-Default: =varDomFPlant                                    compile-fejl
+Default: =LookUp(colVhpUnitOptions, Value = varVhpPlan.Unit).Value
 ```
 
-Fejlen lyder `[Control 'drpX', Property 'Default'] Expected a valid input
-matching Items`, og den koster en hel runde gennem Studio. **Regel 16** i
-`check_layout.py` fanger den lokalt: en `Default`, der ikke indeholder
-`LookUp(`, `First(`, `{`, `ThisItem` eller `Blank()`, er en skalar.
+Viser listen en anden kolonne end den, der gemmes (fx `Name` over `Key`),
+så giv `value_col="Key", display_col="Name"`. `Self.Selected` er stadig hele
+recorden.
 
 Og husk `OnChange`. En dropdown uden den lader brugeren vælge frit, mens
 variablen står stille — formlen er gyldig, så hverken compile eller App
@@ -815,7 +817,7 @@ egenskaber, builderne bevidst sætter.
    **i begge temaer**, aldrig i en builder. En ny token uden en mørk værdi
    bliver gennemsigtig — og det ses kun af de brugere, der har slået mørk
    tilstand til.
-5. **Brug konstruktioner, der allerede findes i skærmen.** `ModernDropdown`,
+5. **Brug konstruktioner, der allerede findes i skærmen.** `themed_dropdown`,
    `ModernCombobox` til søg-og-vælg (`tools/fl_picker.py`), gallery med `ModernCheckbox`, vandret
    gallery til dynamiske kolonner. Hver ubevist konstruktion i dette projekt
    har kostet en deploy-runde.
