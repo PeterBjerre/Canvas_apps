@@ -13,7 +13,7 @@ Dato: 2026-09-30 · Grundlag: branch `claude/power-app-mcp-script-0mr7uy` @ `764
 Repoet har **seks** app-mapper: de fire nævnte (Masterdata Hub, Maintenance Plan App/VH-plan, Equipment App, Material App) plus **Functional Location App** og **BIO SAP App**. BIO SAP App er de fem apps samlet som skærme i én test-app. Begge er medtaget.
 
 
-## Status efter fase 0 og 1 (2026-09-30)
+## Status efter fase 0, 1 og 2 (2026-09-30)
 
 Linjenumrene i fundene nedenfor henviser til udgangspunktet (`764fbcb`).
 
@@ -24,6 +24,15 @@ Linjenumrene i fundene nedenfor henviser til udgangspunktet (`764fbcb`).
 - *Equipment/Material:* D19, D20, D21, A2, A8, A15, A17, B17; BIO SAP's regex-omdøbning fjernet.
 - *Hub/FL/BIO SAP:* B2 (alle apps), B3, B9, D4 (Open ud fra domænet), D30 (blank RequestGuid), D16 (FL), D23, A6.
 - *Dokumentation:* E1, E2, E3, E4, E7, E12 (`archive/` + historiske docs markeret).
+- *Fase 2:*
+  - Test og CI: `tests/` (pytest, plantede fejl for regel 0, 1, 8c, 16, 31 og 33) og `.github/workflows/build.yml` (byg, 0 diff i `*.pa.yaml`, pytest) (E10); C9 (N=0/1).
+  - Data: dyblink `?reqid=` i Eq/Mat (D18), rækkespejl sorteret og med loftadvarsel (B4), hubtællinger fra `colMdScope` (B1).
+  - Fælles moduler: `request_index.py` og `messages.py` i alle fem apps (A13, A6); `domain_app.py`, én `app_yaml`-writer med `App.OnError` (C5, D26); `cfg` som parameter og import uden sideeffekter (C2, C3).
+  - App-listen ét sted i `canvas_apps.json` (C6); BIO SAP med eksplicitte kroge i stedet for monkeypatch (C4).
+  - Navngivning: én dropdown, `themed_dropdown` (A1, regel 16); præfiks efter kontroltype og `child_name` (A3, A4, regel 33); `colFl*`/`Fl*`, `varVhpFlMsg`, `colVhpFl`, `varVhpMe`, `varMd*` (A5, A10). Tabellen står i SKILL.md.
+  - Tokens: typeskala, radius, mål og `DATE_FMT` i `layout_tokens` (A9, A11, C8).
+  - `sharepoint/provision/_Common.psm1` (E8) og indeks på VH-opslagskolonnerne (B14).
+  - Udskudt fra fase 1: A16 for tasklist-vælgeren (vandret scroll) og D12 (SchedulingIndicator som JA/NEJ-dropdown, der gemmes; Statutory Sort Field fjernet).
 
 **Står tilbage**
 - **Kræver handling uden for repoet:**
@@ -31,13 +40,15 @@ Linjenumrene i fundene nedenfor henviser til udgangspunktet (`764fbcb`).
   - D2: ny trigger-signatur. `excel/artifact/BIO SAP VH-plan lister.xlsm`, som bar den gamle URL i VBA-projektet, er fjernet fra repoet (ligger stadig i historikken).
   - Omskrivning af git-historikken.
 - **Kræver adgang til SharePoint:** E9 (nyt skemaudtræk).
-- **Udskudt til fase 2:**
-  - A16 for tasklist-vælgeren: tabellen kræver vandret scroll.
-  - D12: SchedulingIndicator som dropdown.
+- **Ikke koert:** PowerShell findes ikke i byggemiljøet. `_Common.psm1` og de ni scripts er kun tjekket af `check_ps1` og `check_datasources`. Kør ét script med `-WhatIfOnly` (fx `Provision-VHPlanColumns.ps1`), før resten bruges.
+- **Fra E8 ikke gjort:** `-WhatIfOnly` i de scripts, der ikke har det. Deres øvrige PnP-kald (visninger, seed) respekterer det ikke, så et halvt tørløb ville skrive alligevel.
 - **Ikke efterprøvet i Studio:** alle Power Fx-ændringer er bygget og layout-tjekket, men ikke compilet mod Studio. Kør `python tools\canvas_mcp.py deploy --app <nøgle>` pr. app, og efterprøv især:
   - `Ungroup` i VH-planens dyblink;
   - hubbens flade filter (delegeringsadvarsler);
-  - slet-bekræftelsen i Equipment/Material.
+  - slet-bekræftelsen i Equipment/Material;
+  - Classic-dropdownene i VH-plan og FL (`Default` er nu teksten), og JA/NEJ-feltet ved gem;
+  - DatePicker med `Format = "yyyy-mm-dd"`;
+  - tasklist-vælgeren på en smal skærm (vandret scroll).
 
 ---
 
