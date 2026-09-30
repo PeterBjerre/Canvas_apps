@@ -68,10 +68,17 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from build_helpers import button, confirm_modal, ICON_SAVE, ICON_SUBMIT
 import sp_config as cfg
+import env_config as env
 
 # Appens play-URL. Hubben bruger den til at aabne indmeldingen igen.
-APP_URL = ("https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47"
-           "/a/11fa8d90-868a-45a4-ba23-28f2cf0671a2")
+#
+# Den stod her som en fast DEV-URL, saa "build_all.py --env prod" skrev
+# DEV-adressen i MD_RequestIndex.AppUrl. Nu kommer den fra
+# tools/canvas_apps.json som alle de andre apps' (se tools/env_config.py).
+APP_URL = env.play_url("vhplan")
+if not APP_URL:
+    raise SystemExit("VH-plan har intet app_id i miljoeet '%s' "
+                     "(tools/canvas_apps.json)." % env.ENV_NAME)
 
 DOMAIN = "MaintenancePlan"
 
@@ -303,10 +310,9 @@ def save_action(submit=False):
         # eksisterende, uden at nogen opdager det.
         "                Notify(\n"
         "                    \"Cannot derive the keys from the existing rows. \" &\n"
-        "                        \"Gemning afbrudt - kontakt SAP masterdata.\",\n"
+        "                        \"Saving stopped - contact SAP master data.\",\n"
         "                    NotificationType.Error\n"
-        "                );\n"
-        "                Set(varVhpSaving, false),\n"
+        "                ),\n"
         "\n"
         "                Set(varVhpRequestGuid, Coalesce(varVhpRequestGuid, Text(GUID())));\n"
         "\n"
@@ -549,23 +555,23 @@ def save_action(submit=False):
         # Det, der nu staar i SharePoint. Save-trinnet er groent, saa
         # laenge planen er den samme - se VhpStateJson i sp_config.py.
         "                        Set(varVhpSavedJson, VhpStateJson);\n"
-        "                        Set(varVhpSaving, false);\n"
-        "                        Set(\n"
-        "                            varVhpRuntimeInfo,\n"
+        f"                        Notify(\n"
         f"                            planKey & \" {verb}: \" & Text(CountRows(colVhpItems)) &\n"
         "                                \" item(s) and \" & Text(CountRows(colVhpOperations)) &\n"
-        "                                \" operation(s).\"\n"
-        "                        );\n"
-        f"                        Notify(planKey & \" {verb}.\", NotificationType.Success)\n"
+        "                                \" operation(s).\",\n"
+        "                            NotificationType.Success\n"
+        "                        )\n"
         "                    )\n"
         "                )\n"
         "            )\n"
         "        ),\n"
         "\n"
-        "        Set(varVhpSaving, false);\n"
-        "        Set(varVhpRuntimeInfo, \"Save failed: \" & FirstError.Message);\n"
         "        Notify(\"Save failed: \" & FirstError.Message, NotificationType.Error)\n"
-        "    )\n"
+        "    );\n"
+        # EET sted spinneren slukkes - samme form som build_helpers.with_busy
+        # i de andre apps. Foer stod Set(varVhpSaving, false) paa tre
+        # afslutningsstier hver for sig, og en ny sti kunne glemme den.
+        "    Set(varVhpSaving, false)\n"
         ")"
     )
 

@@ -71,7 +71,7 @@ def _pkg_cell_gallery(name, template, items=PKGS_SORTED, template_size=CELL_W, h
     return Ctrl(
         name, "Gallery", variant="Horizontal",
         props={
-            "AccessibleLabel": "\"Vedligeholdelsespakker\"",
+            "AccessibleLabel": "\"Maintenance packages\"",
             "BorderStyle": "BorderStyle.None",
             "Fill": C_TRANSPARENT,
             "FillPortions": "0",
@@ -137,12 +137,12 @@ def build_strategy_body():
         (
             "If(\n"
             "    IsBlank(varVhpActiveItemId),\n"
-            "    Set(varVhpRuntimeInfo, \"Select an item first.\"),\n"
+            "    Notify(\"Select an item first.\", NotificationType.Warning),\n"
             "    UpdateIf(\n"
             "        colVhpOperations, ItemId = varVhpActiveItemId,\n"
             f"        {{ PackagesKey: {allPkgKey} }}\n"
             "    );\n"
-            "    Set(varVhpRuntimeInfo, \"All packages ticked on every operation.\")\n"
+            "    Notify(\"All packages ticked on every operation.\", NotificationType.Success)\n"
             ")"
         ), display_mode="If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)")
 
@@ -155,7 +155,7 @@ def build_strategy_body():
         (
             "If(\n"
             "    IsBlank(varVhpActiveItemId),\n"
-            "    Set(varVhpRuntimeInfo, \"Select an item first.\"),\n"
+            "    Notify(\"Select an item first.\", NotificationType.Warning),\n"
             # EEN skrivning, ikke een pr. operation.
             #
             # Her stod ForAll(operationer, UpdateIf(colVhpOperations, ...)).
@@ -196,7 +196,7 @@ def build_strategy_body():
             "            )\n"
             "        )\n"
             "    );\n"
-            "    Set(varVhpRuntimeInfo, \"Packages filled in by hierarchy.\")\n"
+            "    Notify(\"Packages filled in by hierarchy.\", NotificationType.Success)\n"
             ")"
         ), primary=True,
         display_mode=(f"If(\n"
@@ -210,9 +210,9 @@ def build_strategy_body():
         (
             "If(\n"
             "    IsBlank(varVhpActiveItemId),\n"
-            "    Set(varVhpRuntimeInfo, \"Select an item first.\"),\n"
+            "    Notify(\"Select an item first.\", NotificationType.Warning),\n"
             "    UpdateIf(colVhpOperations, ItemId = varVhpActiveItemId, { PackagesKey: \";\" });\n"
-            "    Set(varVhpRuntimeInfo, \"Package selections cleared.\")\n"
+            "    Notify(\"Package selections cleared.\", NotificationType.Success)\n"
             ")"
         ), danger=True,
         display_mode="If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)")
@@ -309,7 +309,7 @@ def build_strategy_body():
     rowsGal = Ctrl(
         "galVhpPkgRows", "Gallery", variant="Vertical",
         props={
-            "AccessibleLabel": "\"Pakkematrix\"",
+            "AccessibleLabel": "\"Package matrix\"",
             "BorderStyle": "BorderStyle.None",
             "Fill": C_TRANSPARENT,
             "FillPortions": "0",

@@ -37,8 +37,15 @@ Et trin er GROENT, naar dets paakraevede felter er udfyldt OG gemt:
 SAVEABLE = ("Filter(colVhpItems, !IsBlank(Trim(ShortText)) || "
             "!IsBlank(FunctionalLocation))")
 
+# En strategi uden pakker i MD_StrategyPackage (IP11 er ikke indlaest endnu)
+# har intet at allokere. S4 og trin 4 kraever derfor kun en pakke pr.
+# operation, naar strategien HAR pakker - ellers kunne planen aldrig
+# indsendes, mens pakkekortet sagde, at den godt kunne (build_strategy.py).
+HAS_PKGS = ("!IsEmpty(Filter(colVhpStrategyPackages, "
+            "StrategyKey = varVhpPlan.Strategy))")
+
 VALIDATION = """With(
-    { isStrat: varVhpPlan.PlanType = "Strategy" },
+    { isStrat: varVhpPlan.PlanType = "Strategy", hasPkgs: """ + HAS_PKGS + """ },
     With(
         {
             itemErr:
@@ -61,7 +68,7 @@ VALIDATION = """With(
                         Char(10)
                     ), ""),
             s4:
-                If(isStrat,
+                If(isStrat && hasPkgs,
                     Concat(
                         Filter(colVhpOperations, Len(Coalesce(PackagesKey, ";")) <= 1),
                         "S4: Item " & Text(ItemId) & " operation " & OperationNo &
@@ -147,9 +154,10 @@ def formulas():
     add("VhpStepOpsDone",
         "CountRows(VhpSaveableItems) > 0 &&\n"
         "    CountRows(Filter(VhpSaveableItems, !(ItemId in colVhpOperations.ItemId))) = 0 &&\n"
-        "    (varVhpPlan.PlanType <> \"Strategy\" || "
+        "    (varVhpPlan.PlanType <> \"Strategy\" || !(" + HAS_PKGS + ") || "
         "CountRows(Filter(colVhpOperations, Len(Coalesce(PackagesKey, \";\")) <= 1)) = 0)",
-        "Trin 4: alle items har operationer - og paa en strategiplan en pakke pr. operation.")
+        "Trin 4: alle items har operationer - og paa en strategiplan med pakker "
+        "en pakke pr. operation.")
     # Selected er afkrydsningen i tabellerne - den er ikke en aendring af
     # planen, og en markering maa ikke goere Save-trinnet graat.
     add("VhpStateJson",

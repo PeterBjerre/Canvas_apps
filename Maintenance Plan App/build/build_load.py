@@ -28,15 +28,25 @@ Materialer og dokumenter peger derimod paa ItemKey ("MI0007"), ikke paa
 ID'et. Derfor fyldes colVhpSavedItems - den samme oversaettelse gemningen
 selv bygger - foerst, og de to slaar op i den.
 
-HVAD DER IKKE KAN LAESES TILBAGE
--------------------------------
-Gemningen skriver dem ikke, saa de staar tomme efter en indlaesning:
+HVAD DER LAESES TILBAGE UDEN AT VAERE GEMT
+-----------------------------------------
+Gemningen skriver dem ikke, saa de afledes efter hentningen:
 
-    TasklistKey / TasklistName   itemets valgte standardarbejdsplan
-    FlDescription                teksten ved funktionspladsen
+    TasklistKey / TasklistName   Der er EEN standardarbejdsplan pr. vaerk
+                                 (sp_config: Key = Plant & "-STD"). Et item
+                                 med operationer har derfor vaerkets.
+                                 Feltet er IKKE kun visning: trin 3 og S3
+                                 kraever det, og uden det kunne en genaabnet
+                                 kladde aldrig indsendes.
+    colVhpItemObjects            Objektlisten splittes ud af hvert items
+                                 ObjectList. Uden den skrev "Save item"
+                                 ObjectList = "" og slettede listen.
+    varVhpPlan.Status            Hentes fra planens foerste item (New/
+                                 Change/Deleted). Uden den blev alle items
+                                 skrevet som "New" ved naeste gemning.
 
-Ingen af delene bruges til andet end visning og til at hente nye
-operationslinjer. Operationerne selv kommer med.
+Kun FlDescription (teksten ved funktionspladsen) staar tom - den er ren
+visning og hentes igen ved naeste FL-soegning.
 """
 import sp_config as cfg
 from build_helpers import concurrent
@@ -56,7 +66,12 @@ EMPTY_ITEM_FIELDS = [
 # Power Fx afviser den. generate_app_onstart efterproever det ved byg.
 PLAN_FIELDS = [
     ("Plant", "pl.PlantsInitial.Value"),
-    ("Status", '""'),
+    # Status staar paa hvert item i MaintenanceItems, ikke paa planen.
+    # varVhpPlanSpId er sat lige foer (build_load: Set foer With), saa
+    # opslaget er delegerbart.
+    ("Status",
+     f"Coalesce(LookUp({cfg.L_ITEMS}, MaintenancePlanNo.Id = varVhpPlanSpId)"
+     ".Status.Value, \"\")"),
     ("PlanType", 'If(IsBlank(pl.StrategyKey), "SingleCycle", "Strategy")'),
     ("Strategy", 'Coalesce(pl.StrategyKey, "")'),
     ("PlanText", "pl.Title"),
@@ -267,14 +282,42 @@ def load_block():
             _collect('colVhpAttachments', att_src, 'AT', ATT_FIELDS, 20),
             indent=16) + ";\n"
         "\n"
+        "                // --- det, gemningen ikke skriver, afledes ---------\n"
+        "                // Objektlisten ligger som tekst paa itemet (\"A;B;C\").\n"
+        "                ClearCollect(\n"
+        "                    colVhpItemObjects,\n"
+        "                    Ungroup(\n"
+        "                        ForAll(\n"
+        "                            colVhpItems As I,\n"
+        "                            {\n"
+        "                                Objs: ForAll(\n"
+        "                                    Filter(Split(I.ObjectList, \";\"), !IsBlank(Trim(Value))) As S,\n"
+        "                                    { ItemId: I.ItemId, Code: Trim(S.Value), Description: \"\" }\n"
+        "                                )\n"
+        "                            }\n"
+        "                        ),\n"
+        "                        Objs\n"
+        "                    )\n"
+        "                );\n"
+        "                // Een standardarbejdsplan pr. vaerk: et item med\n"
+        "                // operationer har vaerkets (trin 3 og S3 kraever den).\n"
+        "                With(\n"
+        "                    { tl: LookUp(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)) },\n"
+        "                    UpdateIf(\n"
+        "                        colVhpItems,\n"
+        "                        ItemId in colVhpOperations.ItemId,\n"
+        "                        { TasklistKey: Coalesce(tl.Key, \"\"), TasklistName: Coalesce(tl.Name, \"\") }\n"
+        "                    )\n"
+        "                );\n"
+        "\n"
         "                // --- hvad der er valgt naar skaermen tegnes -------\n"
         "                Set(varVhpActiveItemId, First(colVhpItems).ItemId);\n"
         "                Set(varVhpNextItemId, Max(colVhpItems, ItemId));\n"
-        "                Set(\n"
-        "                    varVhpRuntimeInfo,\n"
+        "                Notify(\n"
         "                    \"Opened \" & idx.RequestNo & \" - \" &\n"
         "                        Text(CountRows(colVhpItems)) & \" item(s), \" &\n"
-        "                        Text(CountRows(colVhpOperations)) & \" operation line(s).\"\n"
+        "                        Text(CountRows(colVhpOperations)) & \" operation line(s).\",\n"
+        "                    NotificationType.Success\n"
         "                );\n"
         "                // Den indlaeste plan ER den gemte - Save-trinnet er groent,\n"
         "                // til noget aendres.\n"
@@ -313,9 +356,29 @@ def load_block():
         "                    \"Could not find the request behind this link. Opening a new plan.\",\n"
         "                    NotificationType.Warning\n"
         "                );\n"
+        # De to var sat FOER opslaget. Stod de tilbage, genbrugte naeste
+        # gemning den fremmede GUID og ramte LookUp(planer, ID = gammelt id).
+        "                Set(varVhpRequestGuid, \"\");\n"
+        "                Set(varVhpPlanSpId, 0);\n"
         f"                Collect(colVhpItems, {_record(EMPTY_ITEM_FIELDS, 16)}),\n"
         "\n"
-        f"                {load}\n"
+        # Manglende rettighed eller netvaerksfejl midt i hentningen: sig
+        # det, og slip planens id, saa en gemning ikke rammer en halvt
+        # indlaest plan. Begge grene slutter med en boolean (regel 32).
+        "                IfError(\n"
+        f"                {load};\n"
+        "                true,\n"
+        "                Notify(\n"
+        "                    \"Could not open the request: \" & FirstError.Message,\n"
+        "                    NotificationType.Error\n"
+        "                );\n"
+        "                Set(varVhpRequestGuid, \"\");\n"
+        "                Set(varVhpPlanSpId, 0);\n"
+        "                Set(varVhpPlanKey, \"\");\n"
+        "                Set(varVhpPlanCommitted, false);\n"
+        "                Set(varVhpPlanLocked, false);\n"
+        "                false\n"
+        "                )\n"
         "            )\n"
         "        )\n"
         "    )\n"

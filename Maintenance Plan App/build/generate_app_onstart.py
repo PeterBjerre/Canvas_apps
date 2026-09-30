@@ -79,7 +79,6 @@ Set(varVhpItemValidated, false);
 // taeller varVhpNextItemId een op foerst) fortsaetter ved 2.
 Set(varVhpActiveItemId, 1);
 Set(varVhpNextItemId, 1);
-Set(varVhpRuntimeInfo, "");
 Set(varVhpFlMeta, "");
 // Trinene og Submit regnes af navngivne formler (build_status.py).
 // varVhpSavedJson er planen, som den stod ved sidste gemning i SharePoint.

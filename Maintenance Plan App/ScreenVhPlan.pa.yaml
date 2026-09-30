@@ -732,10 +732,9 @@ Screens:
                                                         IsBlank(planOff) || IsBlank(itemOff) || IsBlank(taskOff),
                                                         Notify(
                                                             "Cannot derive the keys from the existing rows. " &
-                                                                "Gemning afbrudt - kontakt SAP masterdata.",
+                                                                "Saving stopped - contact SAP master data.",
                                                             NotificationType.Error
-                                                        );
-                                                        Set(varVhpSaving, false),
+                                                        ),
                                         
                                                         Set(varVhpRequestGuid, Coalesce(varVhpRequestGuid, Text(GUID())));
                                         
@@ -1017,23 +1016,20 @@ Screens:
                                                                 );
                                         
                                                                 Set(varVhpSavedJson, VhpStateJson);
-                                                                Set(varVhpSaving, false);
-                                                                Set(
-                                                                    varVhpRuntimeInfo,
+                                                                Notify(
                                                                     planKey & " saved: " & Text(CountRows(colVhpItems)) &
                                                                         " item(s) and " & Text(CountRows(colVhpOperations)) &
-                                                                        " operation(s)."
-                                                                );
-                                                                Notify(planKey & " saved.", NotificationType.Success)
+                                                                        " operation(s).",
+                                                                    NotificationType.Success
+                                                                )
                                                             )
                                                         )
                                                     )
                                                 ),
                                         
-                                                Set(varVhpSaving, false);
-                                                Set(varVhpRuntimeInfo, "Save failed: " & FirstError.Message);
                                                 Notify("Save failed: " & FirstError.Message, NotificationType.Error)
-                                            )
+                                            );
+                                            Set(varVhpSaving, false)
                                         )
                                     RadiusBottomLeft: |-
                                         =10
@@ -4057,7 +4053,7 @@ Screens:
                                                     Control: ModernNumberInput
                                                     Properties:
                                                       AccessibleLabel: |-
-                                                          ="Foerste kald, dag"
+                                                          ="First call, day"
                                                       Appearance: |-
                                                           =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                                       BasePaletteColor: |-
@@ -4110,7 +4106,7 @@ Screens:
                                                     Control: ModernNumberInput
                                                     Properties:
                                                       AccessibleLabel: |-
-                                                          ="Foerste kald, maaned"
+                                                          ="First call, month"
                                                       Appearance: |-
                                                           =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                                       BasePaletteColor: |-
@@ -4163,7 +4159,7 @@ Screens:
                                                     Control: ModernNumberInput
                                                     Properties:
                                                       AccessibleLabel: |-
-                                                          ="Foerste kald, aar"
+                                                          ="First call, year"
                                                       Appearance: |-
                                                           =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                                       BasePaletteColor: |-
@@ -4455,7 +4451,7 @@ Screens:
                                         =If(
                                             varVhpPlanLocked,
                                             Set(varVhpPlanLocked, false);
-                                            Set(varVhpRuntimeInfo, "Plan unlocked for editing."),
+                                            Notify("Plan unlocked for editing.", NotificationType.Success),
                                         
                                             Set(varVhpPlanValidated, true);
                                             With(
@@ -4471,7 +4467,7 @@ Screens:
                                                     IsBlank(numVhpFirstCallDay.Value) || numVhpFirstCallDay.Value < 1 || numVhpFirstCallDay.Value > 31 ||
                                                     IsBlank(numVhpFirstCallMonth.Value) || numVhpFirstCallMonth.Value < 1 || numVhpFirstCallMonth.Value > 12 ||
                                                     IsBlank(numVhpFirstCallYear.Value) || numVhpFirstCallYear.Value < 2020 || numVhpFirstCallYear.Value > 2100,
-                                                    Set(varVhpRuntimeInfo, "Plan contains issues. Fix plan fields before creating items."),
+                                                    Notify("Plan contains issues. Fix plan fields before creating items.", NotificationType.Warning),
                                         
                                                     Set(varVhpPrevPlant, varVhpPlan.Plant);
                                                     Set(
@@ -4505,10 +4501,10 @@ Screens:
                                                             NotificationType.Warning
                                                         )
                                                     );
-                                                    Set(
-                                                        varVhpRuntimeInfo,
+                                                    Notify(
                                                         "Plan saved and locked: " & drpVhpPlant.Selected.Value & " " & Trim(txtVhpPlanText.Text) &
-                                                        If(isStrat, " (strategy " & drpVhpStrategy.Selected.Key & ").", ".")
+                                                        If(isStrat, " (strategy " & drpVhpStrategy.Selected.Key & ").", "."),
+                                                        NotificationType.Success
                                                     )
                                                 )
                                             )
@@ -4854,7 +4850,7 @@ Screens:
                                           OnSelect: |-
                                               =If(
                                                   !varVhpPlanCommitted,
-                                                  Set(varVhpRuntimeInfo, "Save the plan before adding items."),
+                                                  Notify("Save the plan before adding items.", NotificationType.Warning),
                                               
                                                   Set(varVhpNextItemId, varVhpNextItemId + 1);
                                                   Collect(
@@ -4883,7 +4879,7 @@ Screens:
                                                   )
                                               );
                                                   Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(txtVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(tglVhpItemRevision); Reset(txtVhpItemInitials); Reset(drpVhpItemTasklist);
-                                                  Set(varVhpRuntimeInfo, "Item " & Text(varVhpNextItemId) & " added.")
+                                                  Notify("Item " & Text(varVhpNextItemId) & " added.", NotificationType.Success)
                                               )
                                           RadiusBottomLeft: |-
                                               =10
@@ -4931,7 +4927,7 @@ Screens:
                                           OnSelect: |-
                                               =If(
                                                   IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId)) = 0,
-                                                  Set(varVhpRuntimeInfo, "Select an item to copy first."),
+                                                  Notify("Select an item to copy first.", NotificationType.Warning),
                                               
                                                   With(
                                                       { src: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
@@ -4951,11 +4947,39 @@ Screens:
                                                           ForAll(
                                                               Filter(colVhpOperations, ItemId = varVhpActiveItemId) As SRC,
                                                               {
-                                                                  ItemId: varVhpNextItemId, OperationNo: SRC.OperationNo,
-                                                                  OperationShortText: SRC.OperationShortText, WorkHours: SRC.WorkHours,
-                                                                  DurationHours: SRC.DurationHours, MainWorkCenter: SRC.MainWorkCenter,
+                                                                  ItemId: varVhpNextItemId,
+                                                                  OperationNo: SRC.OperationNo,
+                                                                  OperationShortText: SRC.OperationShortText,
+                                                                  WorkHours: SRC.WorkHours,
+                                                                  Persons: SRC.Persons,
+                                                                  DurationHours: SRC.DurationHours,
+                                                                  MainWorkCenter: SRC.MainWorkCenter,
                                                                   Vendor: SRC.Vendor,
-                                                                  LongText: SRC.LongText, PackagesKey: SRC.PackagesKey, Selected: false
+                                                                  LongText: SRC.LongText,
+                                                                  PackagesKey: SRC.PackagesKey,
+                                                                  Selected: false,
+                                                                  ControlKey: SRC.ControlKey,
+                                                                  Cost: SRC.Cost,
+                                                                  UnitCost: SRC.UnitCost,
+                                                                  Currency: SRC.Currency,
+                                                                  CostElement: SRC.CostElement,
+                                                                  MaterialGroup: SRC.MaterialGroup
+                                                              }
+                                                          )
+                                                      );
+                                                      Collect(
+                                                          colVhpMaterials,
+                                                          ForAll(
+                                                              Filter(colVhpMaterials, ItemId = varVhpActiveItemId) As MSRC,
+                                                              {
+                                                                  ItemId: varVhpNextItemId,
+                                                                  LineId: MSRC.LineId,
+                                                                  MaterialNo: MSRC.MaterialNo,
+                                                                  Description: MSRC.Description,
+                                                                  Unit: MSRC.Unit,
+                                                                  Quantity: MSRC.Quantity,
+                                                                  OperationNo: MSRC.OperationNo,
+                                                                  Selected: false
                                                               }
                                                           )
                                                       );
@@ -4981,7 +5005,7 @@ Screens:
                                                   )
                                               );
                                                       Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(txtVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(tglVhpItemRevision); Reset(txtVhpItemInitials); Reset(drpVhpItemTasklist);
-                                                      Set(varVhpRuntimeInfo, "Item copied. Functional Location cleared on the copied item.")
+                                                      Notify("Item copied. Functional Location cleared on the copied item.", NotificationType.Success)
                                                   )
                                               )
                                           RadiusBottomLeft: |-
@@ -5368,13 +5392,15 @@ Screens:
                                                   { id: ThisItem.ItemId },
                                                   RemoveIf(colVhpOperations, ItemId = id);
                                                   RemoveIf(colVhpItemObjects, ItemId = id);
+                                                  RemoveIf(colVhpMaterials, ItemId = id);
+                                                  RemoveIf(colVhpAttachments, ItemId = id);
                                                   RemoveIf(colVhpItems, ItemId = id);
                                                   If(
                                                       varVhpActiveItemId = id,
                                                       Set(varVhpActiveItemId, If(CountRows(colVhpItems) > 0, First(colVhpItems).ItemId, Blank()));
                                                       Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(txtVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(tglVhpItemRevision); Reset(txtVhpItemInitials); Reset(drpVhpItemTasklist)
                                                   );
-                                                  Set(varVhpRuntimeInfo, "Item " & Text(id) & " deleted.")
+                                                  Notify("Item " & Text(id) & " deleted.", NotificationType.Success)
                                               )
                                           RadiusBottomLeft: |-
                                               =10
@@ -7724,8 +7750,7 @@ Screens:
                                           OnSelect: |-
                                               =If(
                                                   IsBlank(varVhpActiveItemId),
-                                                  Set(varVhpRuntimeInfo, "Select or add an item first.");
-                                                  Notify(varVhpRuntimeInfo, NotificationType.Warning),
+                                                  Notify("Select or add an item first.", NotificationType.Warning),
                                               
                                                   Set(varVhpItemValidated, true);
                                                   If(
@@ -7734,8 +7759,7 @@ Screens:
                                                       IsBlank(drpVhpItemActivityType.Selected.Value) ||
                                                       IsBlank(cmbVhpItemFL.Selected.Code),
                                                       UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { Status: "invalid" });
-                                                      Set(varVhpRuntimeInfo, "Item contains issues. Fix required fields (marked with *).");
-                                                      Notify(varVhpRuntimeInfo, NotificationType.Warning),
+                                                      Notify("Item contains issues. Fix required fields (marked with *).", NotificationType.Warning),
                                               
                                                       With(
                                                           { code: cmbVhpItemFL.Selected.Code },
@@ -7755,21 +7779,13 @@ Screens:
                                                               }
                                                           )
                                                       );
-                                                      Set(
-                                                          varVhpRuntimeInfo,
-                                                          If(
-                                                              CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId)) = 0,
+                                                      If(
+                                                          CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId)) = 0,
+                                                          Notify(
                                                               "Item " & Text(varVhpActiveItemId) & " is not in the list - nothing was saved.",
-                                                              "Item saved: " & Trim(txtVhpItemShortText.Text) & "."
-                                                          )
-                                                      );
-                                                      Notify(
-                                                          varVhpRuntimeInfo,
-                                                          If(
-                                                              CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId)) = 0,
-                                                              NotificationType.Error,
-                                                              NotificationType.Success
-                                                          )
+                                                              NotificationType.Error
+                                                          ),
+                                                          Notify("Item saved: " & Trim(txtVhpItemShortText.Text) & ".", NotificationType.Success)
                                                       )
                                                   )
                                               )
@@ -8529,7 +8545,7 @@ Screens:
                                                             colVhpItems, ItemId = varVhpActiveItemId,
                                                             { TasklistKey: drpVhpItemTasklist.Selected.Key, TasklistName: drpVhpItemTasklist.Selected.Name }
                                                         );
-                                                        Set(varVhpRuntimeInfo, "Tasklist " & drpVhpItemTasklist.Selected.Key & " selected for this item.")
+                                                        Notify("Tasklist " & drpVhpItemTasklist.Selected.Key & " selected for this item.", NotificationType.Success)
                                                     )
                                                 RadiusBottomLeft: |-
                                                     =10
@@ -8632,12 +8648,12 @@ Screens:
                                                 OnSelect: |-
                                                     =If(
                                                         IsBlank(varVhpActiveItemId) || IsBlank(drpVhpItemTasklist.Selected.Key),
-                                                        Set(varVhpRuntimeInfo, "Select an item and a tasklist first."),
+                                                        Notify("Select an item and a tasklist first.", NotificationType.Warning),
                                                         UpdateIf(
                                                             colVhpItems, ItemId = varVhpActiveItemId,
                                                             { TasklistKey: drpVhpItemTasklist.Selected.Key, TasklistName: drpVhpItemTasklist.Selected.Name }
                                                         );
-                                                        Set(varVhpRuntimeInfo, "Tasklist " & drpVhpItemTasklist.Selected.Key & " selected for this item.")
+                                                        Notify("Tasklist " & drpVhpItemTasklist.Selected.Key & " selected for this item.", NotificationType.Success)
                                                     )
                                                 RadiusBottomLeft: |-
                                                     =10
@@ -8683,10 +8699,10 @@ Screens:
                                                 OnSelect: |-
                                                     =If(
                                                         IsBlank(varVhpActiveItemId),
-                                                        Set(varVhpRuntimeInfo, "Select an item first."),
+                                                        Notify("Select an item first.", NotificationType.Warning),
                                                         If(
                                                             IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey),
-                                                            Set(varVhpRuntimeInfo, "Select a tasklist first."),
+                                                            Notify("Select a tasklist first.", NotificationType.Warning),
                                                             Clear(colVhpPickerSelected);
                                                             Reset(txtVhpPickerSearch);
                                                             Set(varVhpTasklistPickerOpen, true)
@@ -8740,7 +8756,7 @@ Screens:
                                                 OnSelect: |-
                                                     =If(
                                                         IsBlank(varVhpActiveItemId),
-                                                        Set(varVhpRuntimeInfo, "Select an item first."),
+                                                        Notify("Select an item first.", NotificationType.Warning),
                                                         Collect(
                                                             colVhpOperations,
                                                             {
@@ -8762,7 +8778,7 @@ Screens:
                                                                 Selected: false
                                                             }
                                                         );
-                                                        Set(varVhpRuntimeInfo, "Operation line added.")
+                                                        Notify("Operation line added.", NotificationType.Success)
                                                     )
                                                 RadiusBottomLeft: |-
                                                     =10
@@ -8812,12 +8828,17 @@ Screens:
                                                 OnSelect: |-
                                                     =If(
                                                         IsBlank(varVhpActiveItemId),
-                                                        Set(varVhpRuntimeInfo, "Select an item first."),
+                                                        Notify("Select an item first.", NotificationType.Warning),
                                                         If(
                                                             CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId, Selected = true)) = 0,
-                                                            Set(varVhpRuntimeInfo, "Select one or more operation lines to remove (Sel column)."),
+                                                            Notify("Select one or more operation lines to remove (Sel column).", NotificationType.Warning),
+                                                            RemoveIf(
+                                                                colVhpMaterials,
+                                                                ItemId = varVhpActiveItemId,
+                                                                OperationNo in Filter(colVhpOperations, ItemId = varVhpActiveItemId, Selected = true).OperationNo
+                                                            );
                                                             RemoveIf(colVhpOperations, ItemId = varVhpActiveItemId, Selected = true);
-                                                            Set(varVhpRuntimeInfo, "Removed selected operation line(s).")
+                                                            Notify("Removed selected operation line(s).", NotificationType.Success)
                                                         )
                                                     )
                                                 RadiusBottomLeft: |-
@@ -9125,7 +9146,7 @@ Screens:
                                               Control: ModernTextInput
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Operationstekst"
+                                                    ="Operation text"
                                                 Appearance: |-
                                                     =Appearance.FilledDarker
                                                 BasePaletteColor: |-
@@ -9172,7 +9193,7 @@ Screens:
                                               Control: ModernNumberInput
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Arbejdstimer"
+                                                    ="Work hours"
                                                 Appearance: |-
                                                     =Appearance.FilledDarker
                                                 BasePaletteColor: |-
@@ -9283,7 +9304,7 @@ Screens:
                                               Control: ModernNumberInput
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Varighed"
+                                                    ="Duration hours"
                                                 Appearance: |-
                                                     =If((DisplayMode.View) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                                 BasePaletteColor: |-
@@ -9330,7 +9351,7 @@ Screens:
                                               Control: ModernTextInput
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Plant"
+                                                    ="Main work center"
                                                 Appearance: |-
                                                     =If((DisplayMode.View) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                                 BasePaletteColor: |-
@@ -9377,7 +9398,7 @@ Screens:
                                               Control: ModernDropdown
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Styringsnoegle"
+                                                    ="Control key"
                                                 Appearance: |-
                                                     =If((If(EndsWith(Upper(Coalesce(ThisItem.MainWorkCenter, "")), "SUP"), DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                                 BasePaletteColor: |-
@@ -9546,7 +9567,7 @@ Screens:
                                               Control: ModernTextInput
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Materialegruppe"
+                                                    ="Material group"
                                                 Appearance: |-
                                                     =If((If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                                 BasePaletteColor: |-
@@ -10219,7 +10240,7 @@ Screens:
                                           OnSelect: |-
                                               =If(
                                                   IsBlank(varVhpActiveItemId),
-                                                  Set(varVhpRuntimeInfo, "Select an item first."),
+                                                  Notify("Select an item first.", NotificationType.Warning),
                                                   With(
                                                       { src: Filter(colVhpOperations, ItemId = varVhpActiveItemId) },
                                                       Patch(
@@ -10246,7 +10267,7 @@ Screens:
                                                           )
                                                       )
                                                   );
-                                                  Set(varVhpRuntimeInfo, "Packages filled in by hierarchy.")
+                                                  Notify("Packages filled in by hierarchy.", NotificationType.Success)
                                               )
                                           RadiusBottomLeft: |-
                                               =10
@@ -10296,12 +10317,12 @@ Screens:
                                           OnSelect: |-
                                               =If(
                                                   IsBlank(varVhpActiveItemId),
-                                                  Set(varVhpRuntimeInfo, "Select an item first."),
+                                                  Notify("Select an item first.", NotificationType.Warning),
                                                   UpdateIf(
                                                       colVhpOperations, ItemId = varVhpActiveItemId,
                                                       { PackagesKey: ";" & Concat(Sort(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy), PackageNo), Text(PackageNo) & ";") }
                                                   );
-                                                  Set(varVhpRuntimeInfo, "All packages ticked on every operation.")
+                                                  Notify("All packages ticked on every operation.", NotificationType.Success)
                                               )
                                           RadiusBottomLeft: |-
                                               =10
@@ -10351,9 +10372,9 @@ Screens:
                                           OnSelect: |-
                                               =If(
                                                   IsBlank(varVhpActiveItemId),
-                                                  Set(varVhpRuntimeInfo, "Select an item first."),
+                                                  Notify("Select an item first.", NotificationType.Warning),
                                                   UpdateIf(colVhpOperations, ItemId = varVhpActiveItemId, { PackagesKey: ";" });
-                                                  Set(varVhpRuntimeInfo, "Package selections cleared.")
+                                                  Notify("Package selections cleared.", NotificationType.Success)
                                               )
                                           RadiusBottomLeft: |-
                                               =10
@@ -10520,7 +10541,7 @@ Screens:
                                               Variant: Horizontal
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Vedligeholdelsespakker"
+                                                    ="Maintenance packages"
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 Fill: |-
@@ -10624,7 +10645,7 @@ Screens:
                                         Variant: Vertical
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Pakkematrix"
+                                              ="Package matrix"
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           Fill: |-
@@ -10733,7 +10754,7 @@ Screens:
                                               Variant: Horizontal
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Vedligeholdelsespakker"
+                                                    ="Maintenance packages"
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 Fill: |-
@@ -12362,7 +12383,7 @@ Screens:
                         OnSelect: |-
                             =If(
                                 CountRows(colVhpPickerSelected) = 0,
-                                Set(varVhpRuntimeInfo, "Select one or more lines first."),
+                                Notify("Select one or more lines first.", NotificationType.Warning),
                                 With(
                                     { tl: LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey) },
                                     Collect(
@@ -12370,7 +12391,8 @@ Screens:
                                         ForAll(
                                             Filter(
                                                 tl.Operations As TLOP,
-                                                CountRows(Filter(colVhpPickerSelected As SEL, SEL.OperationNo = TLOP.OperationNo)) > 0
+                                                CountRows(Filter(colVhpPickerSelected As SEL, SEL.OperationNo = TLOP.OperationNo)) > 0 &&
+                                                !(TLOP.OperationNo in Filter(colVhpOperations, ItemId = varVhpActiveItemId).OperationNo)
                                             ) As TLOP,
                                             {
                                                 ItemId: varVhpActiveItemId, OperationNo: TLOP.OperationNo,
@@ -12387,7 +12409,7 @@ Screens:
                                         )
                                     )
                                 );
-                                Set(varVhpRuntimeInfo, "Added " & Text(CountRows(colVhpPickerSelected)) & " operation line(s) from tasklist.");
+                                Notify("Added " & Text(CountRows(colVhpPickerSelected)) & " operation line(s) from tasklist.", NotificationType.Success);
                                 Clear(colVhpPickerSelected);
                                 Set(varVhpTasklistPickerOpen, false)
                             )
@@ -12454,7 +12476,7 @@ Screens:
             Visible: |-
                 =varVhpLongTextOpen
             Width: |-
-                =620
+                =Min(620, App.Width - 40)
             X: |-
                 =(App.Width - Self.Width) / 2
             Y: |-
@@ -13443,7 +13465,7 @@ Screens:
                                     Selected: false
                                 }
                             );
-                            Set(varVhpRuntimeInfo, "Material line added.")
+                            Notify("Material line added.", NotificationType.Success)
                         RadiusBottomLeft: |-
                             =10
                         RadiusBottomRight: |-
@@ -13489,7 +13511,7 @@ Screens:
                             =ButtonLayout.TextOnly
                         OnSelect: |-
                             =RemoveIf(colVhpMaterials, ItemId = varVhpActiveItemId, OperationNo = varVhpMatOpNo, Selected = true);
-                            Set(varVhpRuntimeInfo, "Removed selected material line(s).")
+                            Notify("Removed selected material line(s).", NotificationType.Success)
                         RadiusBottomLeft: |-
                             =10
                         RadiusBottomRight: |-
@@ -13679,7 +13701,7 @@ Screens:
                             Control: ModernTextInput
                             Properties:
                               AccessibleLabel: |-
-                                  ="Materialenummer"
+                                  ="Material number"
                               Appearance: |-
                                   =Appearance.FilledDarker
                               BasePaletteColor: |-
@@ -13763,7 +13785,7 @@ Screens:
                             Control: ModernNumberInput
                             Properties:
                               AccessibleLabel: |-
-                                  ="Number"
+                                  ="Quantity"
                               Appearance: |-
                                   =Appearance.FilledDarker
                               BasePaletteColor: |-
@@ -14955,10 +14977,9 @@ Screens:
                                             IsBlank(planOff) || IsBlank(itemOff) || IsBlank(taskOff),
                                             Notify(
                                                 "Cannot derive the keys from the existing rows. " &
-                                                    "Gemning afbrudt - kontakt SAP masterdata.",
+                                                    "Saving stopped - contact SAP master data.",
                                                 NotificationType.Error
-                                            );
-                                            Set(varVhpSaving, false),
+                                            ),
                             
                                             Set(varVhpRequestGuid, Coalesce(varVhpRequestGuid, Text(GUID())));
                             
@@ -15240,23 +15261,20 @@ Screens:
                                                     );
                             
                                                     Set(varVhpSavedJson, VhpStateJson);
-                                                    Set(varVhpSaving, false);
-                                                    Set(
-                                                        varVhpRuntimeInfo,
+                                                    Notify(
                                                         planKey & " submitted: " & Text(CountRows(colVhpItems)) &
                                                             " item(s) and " & Text(CountRows(colVhpOperations)) &
-                                                            " operation(s)."
-                                                    );
-                                                    Notify(planKey & " submitted.", NotificationType.Success)
+                                                            " operation(s).",
+                                                        NotificationType.Success
+                                                    )
                                                 )
                                             )
                                         )
                                     ),
                             
-                                    Set(varVhpSaving, false);
-                                    Set(varVhpRuntimeInfo, "Save failed: " & FirstError.Message);
                                     Notify("Save failed: " & FirstError.Message, NotificationType.Error)
-                                )
+                                );
+                                Set(varVhpSaving, false)
                             )
                         RadiusBottomLeft: |-
                             =10

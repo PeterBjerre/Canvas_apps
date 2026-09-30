@@ -141,7 +141,8 @@ def _forall(source, fields, alias="R"):
 # ---------------------------------------------------------------------------
 STATIC_TABLES = [
     ("colVhpYesNoOptions", [{"Value": "JA"}, {"Value": "NEJ"}],
-     "SAP-vaerdier for schedulering."),
+     "SAP-vaerdier for schedulering. Ingen kontrol bruger den endnu: "
+     "SchedulingIndicator er et tekstfelt og gemmes ikke (REVIEW.md D12)."),
     ("colVhpPlanTypeOptions",
      [{"Key": "SingleCycle", "Value": "Single cycle plan (IP41)"},
       {"Key": "Strategy", "Value": "Strategiplan (IP42)"}],
@@ -202,7 +203,6 @@ def named_formulas():
     add("colVhpPlanStatusOptions", f"Choices({L_ITEMS}.Status)")
     add("colVhpUnitOptions",       f"Choices({L_PLANS}.Unit)")
     add("colVhpRevisionOptions",   f"Choices({L_ITEMS}.RevisionMark)")
-    add("colVhpPriorityOptions",   f"Choices({L_ITEMS}.Priority)")
 
     # --- arbejdscentre: baeres med vaerk, saa listen kan afgraenses ---
     # 53 arbejdscentre for hele afdelingen, ~7 der er relevante for det
@@ -212,10 +212,6 @@ def named_formulas():
                                 ("Value", "Trim(R.Title)"),
                                 ("Plant", f"Trim(R.{C_WC_PLANT})")]),
         "Alle arbejdscentre med deres vaerk. Afgraenses i kontrollen.")
-
-    # --- styringsnoegler: findes ikke som egen liste, men staar paa
-    #     standardoperationerne. Distinct giver { Value }. ---
-    add("colVhpCtrlOptions", f"Sort(Distinct({L_STDOPS}, ControlKey), Value)")
 
     # --- strategier ---
     # ALLE strategier vises, ogsaa dem uden pakker. Det modsatte - kun at

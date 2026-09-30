@@ -182,7 +182,7 @@ def build_tasklist_picker_modal():
         (
             "If(\n"
             "    CountRows(colVhpPickerSelected) = 0,\n"
-            "    Set(varVhpRuntimeInfo, \"Select one or more lines first.\"),\n"
+            "    Notify(\"Select one or more lines first.\", NotificationType.Warning),\n"
             "    With(\n"
             "        { tl: LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey) },\n"
             # Collect UDEN OM ForAll - eet kald i stedet for eet pr. linje.
@@ -192,7 +192,11 @@ def build_tasklist_picker_modal():
             "                Filter(\n"
             "                    tl.Operations As TLOP,\n"
             "                    CountRows(Filter(colVhpPickerSelected As SEL, "
-            "SEL.OperationNo = TLOP.OperationNo)) > 0\n"
+            "SEL.OperationNo = TLOP.OperationNo)) > 0 &&\n"
+            # En linje, itemet allerede har, tilfoejes ikke igen. OperationNo
+            # antages unik pr. item i pakkematricen og materialekoblingen.
+            "                    !(TLOP.OperationNo in "
+            "Filter(colVhpOperations, ItemId = varVhpActiveItemId).OperationNo)\n"
             "                ) As TLOP,\n"
             "                {\n"
             "                    ItemId: varVhpActiveItemId, OperationNo: TLOP.OperationNo,\n"
@@ -209,7 +213,7 @@ def build_tasklist_picker_modal():
             "            )\n"
             "        )\n"
             "    );\n"
-            "    Set(varVhpRuntimeInfo, \"Added \" & Text(CountRows(colVhpPickerSelected)) & \" operation line(s) from tasklist.\");\n"
+            "    Notify(\"Added \" & Text(CountRows(colVhpPickerSelected)) & \" operation line(s) from tasklist.\", NotificationType.Success);\n"
             "    Clear(colVhpPickerSelected);\n"
             "    Set(varVhpTasklistPickerOpen, false)\n"
             ")"
@@ -290,7 +294,7 @@ def build_longtext_modal():
     modal = group(
         "conVhpLongTextModal", [headRow, hint, box, footer], direction="Vertical", gap=12,
         fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=16,
-        pad=(18, 18, 18, 18), width=620, drop_shadow="ExtraBold",
+        pad=(18, 18, 18, 18), width="Min(620, App.Width - 40)", drop_shadow="ExtraBold",
         visible="varVhpLongTextOpen")
     modal.props["X"] = "(App.Width - Self.Width) / 2"
     modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
