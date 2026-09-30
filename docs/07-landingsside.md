@@ -12,8 +12,9 @@
 >   — "New request" står i bjælken.
 > - Køen viser hele afdelingen; `AssignedToEmail` bruges ikke endnu.
 > - `AppUrl` er Text(255) i det provisionerede skema, ikke Text(500).
-> - Regel 6 (ingen fem `CountRows(Filter(...))`) og regel 7 (Refresh-knap) er
->   **ikke** overholdt endnu — se `REVIEW.md` B1 og B6.
+> - Regel 6 er overholdt: fliserne og tælleren tælles i én samling
+>   (`colMdScope`), hentet ved skærmvisning og ved skift af visning/status.
+>   Regel 7 (Refresh-knap) er ikke — se `REVIEW.md` B6.
 
 Afdelingen håndterer masterdata for **funktionspladser, udstyr, målepunkter,
 materialer og VH-planer**. Hver af dem får sin egen indmeldingsapp. Dette

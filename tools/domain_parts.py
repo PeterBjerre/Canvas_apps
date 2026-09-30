@@ -61,6 +61,11 @@ from build_helpers import (text_ctrl, group, button, text_input,
 
 # Mens en gemning koerer, staar ventespinneren oven paa skaermen (issue #54).
 SAVING_VAR = "varDomSaving"
+
+# Appens "Data row limit" (Studio -> Settings). Standard er 500. Rammer
+# raekkespejlet det, mangler de aeldste raekker - taelleren siger det.
+# Haeves graensen i Studio (maks 2000), skal tallet her foelge med.
+ROW_LIMIT = 500
 # Bekraeftelsen foer Submit.
 CONFIRM_VAR = "varDomConfirmSubmit"
 # Sletning sker bag en bekraeftelse: hvilken raekke, og om popuppen er aaben.
@@ -155,7 +160,14 @@ def build_bar():
     regnes af top_bar() ud af de fire kontroller herunder. Tidligere stod
     det som fem konstanter og en vagt; de passede sammen, men ikke med den
     bredde, platformen faktisk gav, naar der var en scrollbar."""
-    count = badge("txtDomCount", '"Rows: " & CountRows(colDomRows)', width=110)
+    count = badge("txtDomCount",
+                  f'"Rows: " & CountRows(colDomRows) & '
+                  f'If(CountRows(colDomRows) >= {ROW_LIMIT}, "+", "")', width=110)
+    # Ved loftet siger taelleren "500+" (ModernText har ingen Tooltip - en
+    # skaermlaeser faar forklaringen).
+    count.props["AccessibleLabel"] = (
+        f'If(CountRows(colDomRows) >= {ROW_LIMIT}, "Only your newest {ROW_LIMIT} rows are '
+        f'shown - older rows are in SharePoint.", "Your rows in SharePoint")')
     no = text_ctrl("txtDomReqNo",
                    'If(IsBlank(varDomRequestNo), "Not submitted", varDomRequestNo)',
                    size=15, weight="Semibold", height=24, width=150, wrap="false")
@@ -328,7 +340,9 @@ def refresh_rows_fx(indent=0):
         "ClearCollect(",
         "    colDomRows,",
         "    ForAll(",
-        f"        Filter({cfg.L_ROWS}, RequesterEmail = varDomMe) As R,",
+        # Nyeste foerst: rammer listen appens data row limit, er det de
+        # AELDSTE raekker, der ikke hentes - ikke tilfaeldige (REVIEW.md B4).
+        f'        SortByColumns(Filter({cfg.L_ROWS}, RequesterEmail = varDomMe), "Created", SortOrder.Descending) As R,',
         "        {",
         "            RowId: R.ID,",
         "            ItemKey: Coalesce(R.ItemKey, \"\"),",
@@ -351,6 +365,40 @@ def refresh_rows_fx(indent=0):
     lines[-1] = lines[-1].rstrip(",")
     lines += ["        }", "    )", ")"]
     return "\n".join(pad + l for l in lines)
+
+
+
+def open_request_fx():
+    """Dyblinket fra hubben (?reqid=): fortsaet DEN anmodning.
+
+    Her stod intet - Equipment og Material laeste aldrig Param("reqid").
+    "Open" fra hubben aabnede derfor en ny session med tom GUID, og naeste
+    kladde oprettede en NY indeksraekke, mens den gamle "Kladde" blev
+    staaende for evigt (REVIEW.md D18).
+
+    En indsendt anmodning genaabnes ikke: dens raekker er laast, og en ny
+    kladde skal vaere en ny anmodning (som efter Submit, D19).
+
+    Opslaget maaler mod varDomRequestGuid, der er sat lige foer - ikke mod
+    Param(), som ikke er "ens for alle raekker" i delegeringens forstand."""
+    return (
+        "If(\n"
+        '    !IsBlank(Param("reqid")) && varDomRequestGuid <> Param("reqid"),\n'
+        '    Set(varDomRequestGuid, Param("reqid"));\n'
+        f"    Set(varDomIdx, LookUp({cfg.L_INDEX}, RequestGuid = varDomRequestGuid));\n"
+        "    If(\n"
+        "        IsBlank(varDomIdx),\n"
+        '        Notify("Could not find the request behind this link. Rows you save start a new request.",\n'
+        "            NotificationType.Warning);\n"
+        '        Set(varDomRequestGuid, ""); Set(varDomRequestNo, ""),\n'
+        '        varDomIdx.Status.Value = "Indsendt",\n'
+        '        Notify("Request " & varDomIdx.RequestNo & " is already submitted. Rows you save start a new request.",\n'
+        "            NotificationType.Information);\n"
+        '        Set(varDomRequestGuid, ""); Set(varDomRequestNo, ""),\n'
+        "        Set(varDomRequestNo, varDomIdx.RequestNo)\n"
+        "    )\n"
+        ")"
+    )
 
 
 def clear_form_fx():

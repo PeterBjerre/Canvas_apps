@@ -35,7 +35,10 @@ Set(gblMe, Lower(User().Email));
 Set(gblView, "mine");
 Set(gblDomain, "");
 Set(gblStatusMode, "open");
-Set(gblClosedPeek, false)'''
+Set(gblClosedPeek, false);
+// Skemaet for flisernes taellesamling - hentes i skaermens OnVisible.
+ClearCollect(colMdScope, { Domain: "" });
+Clear(colMdScope)'''
 
 
 def _block(prop, text):

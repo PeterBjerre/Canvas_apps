@@ -139,6 +139,7 @@ To udtryk skal tjekkes i Studio, fordi de afgør, om siden skalerer:
    under 2.000 indmeldinger og køen er under 2.000 åbne sager. Sæt appens
    **Data row limit til 2000**.
 
-Flisernes og tællerens tal er `CountRows` mod listen og stopper ved data row
-limit (REVIEW.md B1, fase 2). Bliver køen større end det, skal den filtreres yderligere
+Flisernes og tællerens tal tælles i `colMdScope` (kun domænet), som hentes
+ved skærmvisning og når "My requests" eller Open/Closed/All skifter. Rammer
+den data row limit, står der "500+". Bliver køen større end det, skal den filtreres yderligere
 serverside — fx på `AssignedToEmail` eller på værk.

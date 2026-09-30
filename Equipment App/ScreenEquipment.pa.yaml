@@ -5,10 +5,26 @@ Screens:
           =C.'bg-app'
       OnVisible: |-
           =Set(varDomMe, Lower(User().Email));
+          If(
+              !IsBlank(Param("reqid")) && varDomRequestGuid <> Param("reqid"),
+              Set(varDomRequestGuid, Param("reqid"));
+              Set(varDomIdx, LookUp(MD_RequestIndex, RequestGuid = varDomRequestGuid));
+              If(
+                  IsBlank(varDomIdx),
+                  Notify("Could not find the request behind this link. Rows you save start a new request.",
+                      NotificationType.Warning);
+                  Set(varDomRequestGuid, ""); Set(varDomRequestNo, ""),
+                  varDomIdx.Status.Value = "Indsendt",
+                  Notify("Request " & varDomIdx.RequestNo & " is already submitted. Rows you save start a new request.",
+                      NotificationType.Information);
+                  Set(varDomRequestGuid, ""); Set(varDomRequestNo, ""),
+                  Set(varDomRequestNo, varDomIdx.RequestNo)
+              )
+          );
           ClearCollect(
               colDomRows,
               ForAll(
-                  Filter(EquipmentItems, RequesterEmail = varDomMe) As R,
+                  SortByColumns(Filter(EquipmentItems, RequesterEmail = varDomMe), "Created", SortOrder.Descending) As R,
                   {
                       RowId: R.ID,
                       ItemKey: Coalesce(R.ItemKey, ""),
@@ -272,6 +288,8 @@ Screens:
                         - txtDomCount:
                             Control: ModernText
                             Properties:
+                              AccessibleLabel: |-
+                                  =If(CountRows(colDomRows) >= 500, "Only your newest 500 rows are shown - older rows are in SharePoint.", "Your rows in SharePoint")
                               Align: |-
                                   =Align.Center
                               AlignInContainer: |-
@@ -311,7 +329,7 @@ Screens:
                               Size: |-
                                   =11
                               Text: |-
-                                  ="Rows: " & CountRows(colDomRows)
+                                  ="Rows: " & CountRows(colDomRows) & If(CountRows(colDomRows) >= 500, "+", "")
                               Visible: |-
                                   =LayoutRank >= 2
                               Width: |-
@@ -3475,7 +3493,7 @@ Screens:
                                             ClearCollect(
                                                 colDomRows,
                                                 ForAll(
-                                                    Filter(EquipmentItems, RequesterEmail = varDomMe) As R,
+                                                    SortByColumns(Filter(EquipmentItems, RequesterEmail = varDomMe), "Created", SortOrder.Descending) As R,
                                                     {
                                                         RowId: R.ID,
                                                         ItemKey: Coalesce(R.ItemKey, ""),
@@ -3617,7 +3635,7 @@ Screens:
                                             ClearCollect(
                                                 colDomRows,
                                                 ForAll(
-                                                    Filter(EquipmentItems, RequesterEmail = varDomMe) As R,
+                                                    SortByColumns(Filter(EquipmentItems, RequesterEmail = varDomMe), "Created", SortOrder.Descending) As R,
                                                     {
                                                         RowId: R.ID,
                                                         ItemKey: Coalesce(R.ItemKey, ""),
@@ -6226,7 +6244,7 @@ Screens:
                                         =ClearCollect(
                                             colDomRows,
                                             ForAll(
-                                                Filter(EquipmentItems, RequesterEmail = varDomMe) As R,
+                                                SortByColumns(Filter(EquipmentItems, RequesterEmail = varDomMe), "Created", SortOrder.Descending) As R,
                                                 {
                                                     RowId: R.ID,
                                                     ItemKey: Coalesce(R.ItemKey, ""),
@@ -6362,7 +6380,7 @@ Screens:
                                                 ClearCollect(
                                                     colDomRows,
                                                     ForAll(
-                                                        Filter(EquipmentItems, RequesterEmail = varDomMe) As R,
+                                                        SortByColumns(Filter(EquipmentItems, RequesterEmail = varDomMe), "Created", SortOrder.Descending) As R,
                                                         {
                                                             RowId: R.ID,
                                                             ItemKey: Coalesce(R.ItemKey, ""),
@@ -10637,7 +10655,7 @@ Screens:
                                     ClearCollect(
                                         colDomRows,
                                         ForAll(
-                                            Filter(EquipmentItems, RequesterEmail = varDomMe) As R,
+                                            SortByColumns(Filter(EquipmentItems, RequesterEmail = varDomMe), "Created", SortOrder.Descending) As R,
                                             {
                                                 RowId: R.ID,
                                                 ItemKey: Coalesce(R.ItemKey, ""),
@@ -10982,7 +11000,7 @@ Screens:
                                     ClearCollect(
                                         colDomRows,
                                         ForAll(
-                                            Filter(EquipmentItems, RequesterEmail = varDomMe) As R,
+                                            SortByColumns(Filter(EquipmentItems, RequesterEmail = varDomMe), "Created", SortOrder.Descending) As R,
                                             {
                                                 RowId: R.ID,
                                                 ItemKey: Coalesce(R.ItemKey, ""),
