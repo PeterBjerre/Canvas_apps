@@ -100,7 +100,11 @@ Public Const LO_DECISION_FACTS As String = "tbDecisionFacts"
 Public Const USE_PYTHON_COMPARE As Boolean = False   ' True = PY()-based (requires M365), False = pure VBA
 
 ' Integrations
-Public Const POWER_AUTOMATE_URL As String = "https://default100b3c99f3e24da09c8ab9d345742c.36.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/353df9ba00c44de69aac2c0e826043f8/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=1Tjx-wgJvL_EFkb8hZvx7wvoWC3BWv_tApbhsmGMBnQ"
+' POWER_AUTOMATE_URL stod her med flowets fulde trigger-URL inkl. sig=.
+' Signaturen ER adgangen: alle med URL'en kan starte flowet. Den hoerer
+' derfor ikke i kildekoden, men i Setup-arket (SETUP_FLOW_URL_ROW/COL,
+' dvs. Setup!D5), som modCockpit.GetPowerAutomateUrlForCockpit laeser.
+' Er cellen tom, stopper Push med "Power Automate URL mangler i Setup."
 Public Const SHAREPOINT_DEFAULT_PAGE_SIZE As Long = 500
 ' De fire SHAREPOINT_MAINTENANCE_*_URL-konstanter stod her og pegede alle
 ' paa BioSAP. De blev ubrugte, da modEnvironment.GetListUrl overtog, og er

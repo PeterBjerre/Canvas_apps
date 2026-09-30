@@ -239,6 +239,13 @@ def main(argv=None):
                       "kaldes tilbage.")
                 return r.returncode
 
+        # Og resten af repoet. scrub_solution ser kun solution/, og en
+        # signeret flow-URL stod i excel/ uden at noget saa den.
+        r = subprocess.run([sys.executable,
+                            os.path.join(ROOT, "tools", "check_secrets.py")])
+        if r.returncode:
+            return r.returncode
+
     # De to tjek nedenfor koerer ALTID, ogsaa maalrettet. De tager
     # millisekunder, og de handler netop om det, en maalrettet bygning
     # ellers ville springe over: at apperne ikke glider fra hinanden.

@@ -1684,11 +1684,9 @@ Private Function GetPowerAutomateUrlForCockpit() As String
     setupValue = Trim$(CStr(Worksheets(WS_SETUP).Cells(SETUP_FLOW_URL_ROW, SETUP_FLOW_URL_COL).Value2))
     On Error GoTo 0
 
-    If Len(setupValue) > 0 Then
-        GetPowerAutomateUrlForCockpit = setupValue
-    Else
-        GetPowerAutomateUrlForCockpit = Trim$(POWER_AUTOMATE_URL)
-    End If
+    ' Kun Setup-cellen. Der er ingen indbygget reserve-URL: trigger-URL'en
+    ' baerer en signatur og maa ikke staa i kildekoden (se Constants.bas).
+    GetPowerAutomateUrlForCockpit = setupValue
 End Function
 
 Private Function FormatForJsonDate(ByVal v As Variant) As String
