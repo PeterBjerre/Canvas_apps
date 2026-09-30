@@ -34,23 +34,37 @@ Kan offsettet ikke udledes — fordi en nøgle er misdannet — **gemmes der
 ikke**. Der kommer en fejl i stedet. En forkert nummerserie er værre end en
 fejlbesked.
 
-## Gensave overskriver
+## Gensave opdaterer (REVIEW.md D7, D8)
 
-Anden gang der gemmes, slettes planens items og operationer, og de skrives
-forfra:
+Før blev planens items og operationer slettet og skrevet forfra ved hvert
+gem. Det gav to fejl: items fik nyt ID og ny nøgle hver gang, så
+dokumentmappen (opkaldt efter `ItemKey`) ikke længere passede, og en fejl
+midt i gemmet efterlod planen uden items.
 
-```
-RemoveIf(TaskListMain, MaintenancePlanID.Id = planId);
-RemoveIf(MaintenanceItems, MaintenancePlanNo.Id = planId);
-```
+Nu husker appen hver rækkes ID (`SpId` på `colVhpItems` og
+`colVhpOperations`), og gemmet går i otte trin (`build_save.py`):
 
-Det er enklere og sikrere end at finde ud af hvilke linjer der er tilføjet,
-ændret og slettet. Planhovedet **opdateres** derimod, så `PlanID` og rækkens
-`ID` er de samme hele vejen.
+1. Nøglerne — de tre offsets på én gang (`Concurrent`).
+2. Konflikt — er planen gemt af en anden, siden den blev åbnet
+   (`Modified`), stopper gemmet, før noget er skrevet.
+3. Planhovedet — altid som kladde.
+4. Items — eksisterende **opdateres**, nye oprettes. Et item beholder sit
+   `ID` og sit `ItemKey`.
+5. Operationer — samme model.
+6. Materialer og dokumentrækker skrives forfra; de gamle rækkers ID huskes.
+7. Oprydning — **kun når alt ovenfor lykkedes**: operationer og items, der
+   ikke længere er i appen, og de gamle materiale- og dokumentrækker.
+8. Status (`In Progress` ved Submit) og `MD_RequestIndex`.
 
-> `RemoveIf` på et opslagsfelt kan ikke delegeres. Med 306 operationer i alt
-> er det uden betydning, men appens **Data row limit skal være 2000**. Runder
-> `TaskListMain` 2.000 rækker, skal oprydningen laves om.
+Hvert trin har sin egen `IfError` og skriver i `colVhpSaveErrors`, og et
+trin kører kun, når de foregående lykkedes. En fejl giver i værste fald en
+række for meget — aldrig et tab — og planen står stadig som kladde.
+
+Save draft og Submit er den samme gemning: Submit sætter
+`varVhpSubmitting` og vælger Save draft-knappen med `Select`.
+
+> Oprydningen filtrerer delegerbart på planen (`MaintenancePlanID.Id =
+> varVhpPlanSpId`) og tager `in` i hukommelsen på planens egne rækker.
 
 ## `MD_RequestIndex` — rækken hubben lever af
 

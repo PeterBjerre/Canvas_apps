@@ -165,7 +165,7 @@ App:
 
       colVhpPlantCodes = Sort(ForAll(PlantList As R, { Value: R.Title }), Value);
 
-      colVhpSortFieldOptions = Sort(ForAll(SortFieldList As R, { Value: R.Title }), Value);
+      colVhpSortFieldOptions = Sort(ForAll(SortFieldList As R, { Id: R.ID, Value: R.Title }), Value);
 
       colVhpActivityTypeOptions = Sort(ForAll(MaintenanceActivityTypeList As R, { Id: R.ID, Value: R.Title }), Value);
 
@@ -324,10 +324,10 @@ App:
       );
       Notify("Something went wrong: " & FirstError.Message, NotificationType.Error)
     OnStart: |
-      =ClearCollect(colVhpItems, { ItemId: 0, ShortText: "", FunctionalLocation: "", FlDescription: "", MainWorkCenter: "", ActivityType: "", ObjectList: "", Revision: "", OrstedResponsible: "", Initials: "", LongText: "", TasklistKey: "", TasklistName: "", Status: "" });
+      =ClearCollect(colVhpItems, { ItemId: 0, ShortText: "", FunctionalLocation: "", FlDescription: "", MainWorkCenter: "", ActivityType: "", ObjectList: "", Revision: "", OrstedResponsible: "", Initials: "", LongText: "", TasklistKey: "", TasklistName: "", Status: "", SpId: 0 });
       Clear(colVhpItems);
 
-      ClearCollect(colVhpOperations, { ItemId: 0, OperationNo: "", OperationShortText: "", WorkHours: 0, Persons: 0, DurationHours: 0, MainWorkCenter: "", Vendor: "", LongText: "", PackagesKey: ";", Selected: false, ControlKey: "", Cost: 0, UnitCost: 0, Currency: "", CostElement: 0, MaterialGroup: "" });
+      ClearCollect(colVhpOperations, { ItemId: 0, OperationNo: "", OperationShortText: "", WorkHours: 0, Persons: 0, DurationHours: 0, MainWorkCenter: "", Vendor: "", LongText: "", PackagesKey: ";", Selected: false, ControlKey: "", Cost: 0, UnitCost: 0, Currency: "", CostElement: 0, MaterialGroup: "", SpId: 0 });
       Clear(colVhpOperations);
 
       ClearCollect(colVhpFl, { Code: "", Description: "", Display: "", Maintainable: false, Level: "" });
@@ -360,8 +360,23 @@ App:
       ClearCollect(colVhpSavedItems, { LocalId: 0, SpId: 0, ItemKey: "" });
       Clear(colVhpSavedItems);
 
-      ClearCollect(colVhpSavedOps, { LocalItemId: 0, OperationNo: "", SpId: 0, TaskKey: "" });
+      ClearCollect(colVhpSavedOps, { LocalItemId: 0, OpNo: "", SpId: 0, TaskKey: "" });
       Clear(colVhpSavedOps);
+
+      ClearCollect(colVhpSpItems, { ID: 0, ItemID: "" });
+      Clear(colVhpSpItems);
+
+      ClearCollect(colVhpSpOps, { ID: 0, TaskItemID: "" });
+      Clear(colVhpSpOps);
+
+      ClearCollect(colVhpOldMats, { ID: 0 });
+      Clear(colVhpOldMats);
+
+      ClearCollect(colVhpOldAtts, { ID: 0 });
+      Clear(colVhpOldAtts);
+
+      ClearCollect(colVhpSaveErrors, { Where: "", Msg: "" });
+      Clear(colVhpSaveErrors);
 
       ClearCollect(colAppPrefs, { Dark: false });
       Clear(colAppPrefs);
@@ -452,6 +467,9 @@ App:
       // saa opdateres den i stedet for at blive oprettet igen.
       Set(varVhpPlanSpId, 0);
       Set(varVhpPlanKey, "");
+      // Gemmet (build_save.py): konflikttjek, Save draft/Submit og planens raekke.
+      Set(varVhpPlanModified, Blank());
+      Set(varVhpSubmitting, false);
       Set(varVhpRequestGuid, "");
       Set(varVhpSaving, false);
 
@@ -485,7 +503,8 @@ App:
               LongText: "",
               TasklistKey: "",
               TasklistName: "",
-              Status: "draft"
+              Status: "draft",
+              SpId: 0
           }),
 
           Set(varVhpRequestGuid, Param("reqid"));
@@ -506,6 +525,7 @@ App:
                       );
                       Set(varVhpRequestGuid, "");
                       Set(varVhpPlanSpId, 0);
+                      Set(varVhpPlanModified, Blank());
                       Collect(colVhpItems, {
                           ItemId: 1,
                           ShortText: "",
@@ -520,7 +540,8 @@ App:
                           LongText: "",
                           TasklistKey: "",
                           TasklistName: "",
-                          Status: "draft"
+                          Status: "draft",
+                          SpId: 0
                       }),
 
                       IfError(
@@ -547,6 +568,7 @@ App:
                       );
                       Set(varVhpPlanSpId, pl.ID);
                       Set(varVhpPlanKey, pl.PlanID);
+                      Set(varVhpPlanModified, pl.Modified);
                       Set(varVhpRequestGuid, idx.RequestGuid);
                       Set(varVhpPlanCommitted, true);
                       Set(varVhpPlanLocked, true);
@@ -581,7 +603,8 @@ App:
                                       LongText: IT.ItemDescription,
                                       TasklistKey: "",
                                       TasklistName: "",
-                                      Status: "valid"
+                                      Status: "valid",
+                                      SpId: IT.ID
                                   }
                               )
                           ),
@@ -613,7 +636,8 @@ App:
                                       UnitCost: If(Coalesce(OP.Work, 0) > 0, OP.Price / OP.Work, OP.Price),
                                       Currency: OP.Currency,
                                       CostElement: OP.CostElem,
-                                      MaterialGroup: OP.MaterialGroup
+                                      MaterialGroup: OP.MaterialGroup,
+                                      SpId: OP.ID
                                   }
                               )
                           )
@@ -704,6 +728,7 @@ App:
                       Set(varVhpRequestGuid, "");
                       Set(varVhpPlanSpId, 0);
                       Set(varVhpPlanKey, "");
+                      Set(varVhpPlanModified, Blank());
                       Set(varVhpPlanCommitted, false);
                       Set(varVhpPlanLocked, false);
                       false

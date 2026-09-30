@@ -154,6 +154,9 @@ def _copy_record(collection, alias, indent):
             fields.append("ItemId: varVhpNextItemId")
         elif k == "Selected":
             fields.append("Selected: false")
+        elif k == "SpId":
+            # En kopi er en NY raekke - den maa ikke opdatere originalen.
+            fields.append("SpId: 0")
         else:
             fields.append(f"{k}: {alias}.{k}")
     return "{\n" + pad + "    " + (",\n" + pad + "    ").join(fields) + "\n" + pad + "}"
@@ -182,7 +185,7 @@ def build_items_rail():
             "            ItemId: varVhpNextItemId, ShortText: \"\", FunctionalLocation: \"\", FlDescription: \"\",\n"
             "            MainWorkCenter: \"\", ActivityType: \"\", ObjectList: \"\", Revision: \"\",\n"
             "            OrstedResponsible: \"\", Initials: \"\", LongText: \"\", TasklistKey: \"\", TasklistName: \"\",\n"
-            "            Status: \"draft\"\n"
+            "            Status: \"draft\", SpId: 0\n"
             "        }\n"
             "    );\n"
             "    Set(varVhpActiveItemId, varVhpNextItemId);\n"
@@ -211,7 +214,8 @@ def build_items_rail():
             "                FlDescription: \"\", MainWorkCenter: src.MainWorkCenter, ActivityType: src.ActivityType,\n"
             "                ObjectList: src.ObjectList, Revision: src.Revision,\n"
             "                OrstedResponsible: src.OrstedResponsible, Initials: src.Initials, LongText: src.LongText,\n"
-            "                TasklistKey: src.TasklistKey, TasklistName: src.TasklistName, Status: \"draft\"\n"
+            "                TasklistKey: src.TasklistKey, TasklistName: src.TasklistName, Status: \"draft\",\n"
+            "                SpId: 0\n"
             "            }\n"
             "        );\n"
             # Collect UDEN OM ForAll. ForAll returnerer en tabel, og Collect

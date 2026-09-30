@@ -58,7 +58,7 @@ EMPTY_ITEM_FIELDS = [
     ("FlDescription", '""'), ("MainWorkCenter", '""'), ("ActivityType", '""'),
     ("ObjectList", '""'), ("Revision", '""'), ("OrstedResponsible", '""'),
     ("Initials", '""'), ("LongText", '""'), ("TasklistKey", '""'),
-    ("TasklistName", '""'), ("Status", '"draft"'),
+    ("TasklistName", '""'), ("Status", '"draft"'), ("SpId", "0"),
 ]
 
 # Planhovedet. Feltnavnene SKAL vaere de samme som i OnStart's foerste
@@ -106,6 +106,8 @@ ITEM_FIELDS = [
     ("TasklistName", '""'),
     # Raekken har vaeret gemt, saa den har bestaaet valideringen.
     ("Status", '"valid"'),
+    # Gem opdaterer netop den raekke (build_save, REVIEW.md D7).
+    ("SpId", "IT.ID"),
 ]
 
 OP_FIELDS = [
@@ -131,6 +133,7 @@ OP_FIELDS = [
     ("Currency", "OP.Currency"),
     ("CostElement", "OP.CostElem"),
     ("MaterialGroup", "OP.MaterialGroup"),
+    ("SpId", "OP.ID"),
 ]
 
 MAT_FIELDS = [
@@ -225,6 +228,8 @@ def load_block():
         "                );\n"
         "                Set(varVhpPlanSpId, pl.ID);\n"
         "                Set(varVhpPlanKey, pl.PlanID);\n"
+        # Konflikttjekket i build_save maaler mod den.
+        "                Set(varVhpPlanModified, pl.Modified);\n"
         "                Set(varVhpRequestGuid, idx.RequestGuid);\n"
         "                Set(varVhpPlanCommitted, true);\n"
         # Laast som efter Save i Plan Header: den indlaeste plan ER den
@@ -359,6 +364,7 @@ def load_block():
         # gemning den fremmede GUID og ramte LookUp(planer, ID = gammelt id).
         "                Set(varVhpRequestGuid, \"\");\n"
         "                Set(varVhpPlanSpId, 0);\n"
+        "                Set(varVhpPlanModified, Blank());\n"
         f"                Collect(colVhpItems, {_record(EMPTY_ITEM_FIELDS, 16)}),\n"
         "\n"
         # Manglende rettighed eller netvaerksfejl midt i hentningen: sig
@@ -374,6 +380,7 @@ def load_block():
         "                Set(varVhpRequestGuid, \"\");\n"
         "                Set(varVhpPlanSpId, 0);\n"
         "                Set(varVhpPlanKey, \"\");\n"
+        "                Set(varVhpPlanModified, Blank());\n"
         "                Set(varVhpPlanCommitted, false);\n"
         "                Set(varVhpPlanLocked, false);\n"
         "                false\n"

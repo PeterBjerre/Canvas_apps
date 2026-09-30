@@ -266,7 +266,7 @@ def build_top_bar():
         "If(\n"
         "    varVhpSaving, \"Saving ...\",\n"
         "    IsBlank(varVhpPlanKey), \"Not saved yet. Save as draft so you can come back to it.\",\n"
-        "    \"Saved as \" & varVhpPlanKey & \". The next save overwrites items and operations on the same plan.\"\n"
+        "    \"Saved as \" & varVhpPlanKey & \". The next save updates the same plan, items and operations.\"\n"
         ")")
     btnDraft.vis = at_least("Tablet")
     focus_border(btnDraft, (5,), C_CARD_BORDER)
