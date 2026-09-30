@@ -3,59 +3,22 @@
 Layout-tjek af en apps skaerm (Screen*.pa.yaml) - alle apps bruger denne
 fil via deres build/check_layout.py.
 
-Canvas-layout kan ikke koeres her, saa i stedet regnes hoejderne efter.
-De foerste kontroller (listen nedenfor er ikke udtoemmende - hver regel
-staar med sit nummer i koden og i SKILL.md "Hvad check_layout.py fanger"):
+Canvas-layout kan ikke koeres her, saa i stedet regnes hoejderne efter,
+og formlerne tjekkes for de fejl, der ellers foerst viser sig i Studio.
 
-  1. Ingen Height-formel maa referere en ANDEN kontrols .Height.
-     Det var rodaarsagen: i en AutoLayout-container saetter forelderen
-     boernenes stoerrelse, saa naar forelderen laeser barnets .Height,
-     laeser den sin egen udregning tilbage. Resultatet var enten en
-     formelfejl (der faldt tilbage til IfError-konstanten) eller den
-     kaskade-vaekst, hvor containerne voksede for hver genberegning.
+REGLERNE
+--------
+Hver regel er en funktion (rule_0, rule_4c ...) i registret RULES nederst
+i filen, i den raekkefoelge de koerer. Listen - nummer og titel - skrives
+af
 
-  2. Hver lodret container skal vaere hoej nok til sine boern plus gaps
-     plus sin egen polstring. Det er her hvert kort var 36 px for lavt,
-     fordi padding ikke var talt med.
+    python3 tools/check_layout.py --rules
 
-  3. Hver vandret container skal vaere hoej nok til sit hoejeste barn.
+og staar ordret i SKILL.md ("Hvad check_layout.py fanger"). tests/ holder
+de to op mod hinanden. Hver regels forklaring staar ved dens funktion.
 
-  4. Faste bredder i en vandret raekke maa ikke overstige raekkens bredde
-  4c. Hver wrap-raekke SPILLES: boernene pakkes i linjer, som autolayout
-     goer det, i den bredde containeren faktisk faar - med scrollbaren
-     trukket fra. Hoejden skal rumme de linjer, der kommer ud af det
-  4d. En raekke, der skifter retning, skal passe i sin vandrette tilstand
-  24. Parent.Width maa ikke indgaa i et regnestykke - den er foraelderens
-     Width-EGENSKAB, ikke pladsen inden i den
-  25. En knap er mindst 30 px hoej
-  26. Ingen Parent.Template* - og en gallerirakke skal rumme sine celler
-  27. En tekst er mindst 1,5 x sin skriftstoerrelse hoej
-  28. Ingen FillPortions i en vandret raekke, der ikke ombryder
-  29. Listens overskrift og dens raekke har de samme kolonnebredder
-  30. Et filter mod en SharePoint-liste sammenligner mod noget konstant -
-     ellers kan det ikke delegeres
-  23. Rammen: con<X>Root -> header med fast hoejde + een krop, der
-     scroller. Headerens hoejde maa ikke afhaenge af data, og padding +
-     scrollbar + luft skal vaere mindst SHELL_INSET. Se
-     docs/30-responsivt-layout.md
-  8. Enhver samling, skaermen bruger, findes i App.pa.yaml - som navngiven
-     formel eller som ClearCollect
-  8b. Enhver designtoken, skaermen bruger, findes i temaformlen C. En
-     token, der ikke findes, giver BLANK - og blank er gennemsigtig, saa
-     kontrollen ville forsvinde uden en fejlmeddelelse
-  8c. Ingen formel sammenligner App.Width med et tal. Braekpunkter staar i
-     tools/layout_tokens.py og laeses som LayoutRank/LayoutContext
-  18. Enhver Gallery har TabIndex og AccessibleLabel. Uden dem er den
-     hverken et tab stop eller laesbar for en skaermlaeser, og
-     App checker melder det foerst ved deploy
-  19. Ingen AccessibleLabel er kontrollens eget navn - en skaermlaeser
-     ville laese "inpManufacturer" op i stedet for "Fabrikat"
-  20. ADVARSEL: flere uafhaengige hentninger i kaede boer samles i
-     Concurrent() - uden den venter appen paa summen i stedet for paa
-     det laengste kald
-  9. Ingen LODRET container har et barn med FillPortions <> 0
-     (knapraekken var 336 px bred i et kort med 324 px indhold, ombroed til
-     to linjer og fik sin sidste knap klippet af).
+Power Fx-teksten laeses af tools/fx.py - EEN scanner, der kender strenge,
+navne i anfoerselstegn og kommentarer.
 
 Hoejdeudtrykkene evalueres for flere skaermbredder og datamaengder -
 bredderne kommer fra braekpunkterne i tools/layout_tokens.py, saa
@@ -71,6 +34,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
 import layout_tokens as lay
+import fx
 
 # Skaermen findes af sig selv ud fra arbejdsmappen. Er der mere end een
 # skaerm, angives den paa kommandolinjen.
@@ -125,22 +89,8 @@ def _iferror(a, b):
 
 
 def _balanced(expr, start):
-    """Slutindekset paa den parentes, der aabner ved 'start'."""
-    depth, i, in_str = 0, start, False
-    while i < len(expr):
-        c = expr[i]
-        if c == '"':
-            in_str = not in_str
-        elif not in_str:
-            if c == "(":
-                depth += 1
-            elif c == ")":
-                depth -= 1
-                if depth == 0:
-                    return i
-        i += 1
-    return -1
-
+    """Slutindekset paa den parentes, der aabner ved 'start' (tools/fx.py)."""
+    return fx.matching_paren(expr, start)
 
 def _sub_countrows(e, n):
     """Erstat ETHVERT CountRows(...) med et proevetal.
@@ -350,6 +300,14 @@ def collect(nodes, path="", out=None):
 #
 #     python3 tools/check_layout.py --rules
 # ---------------------------------------------------------------------------
+def _forall_bodies(expr):
+    """Indholdet af hvert ForAll( ... ) - parenteserne talt af tools/fx.py,
+    saa en parentes i en streng eller kommentar ikke taeller."""
+    for m in re.finditer(r"\bForAll\s*\(", expr):
+        end = fx.matching_paren(expr, m.end() - 1)
+        yield expr[m.end():len(expr) if end < 0 else end]
+
+
 class Ctx:
     """Det, reglerne deler. Attributterne saettes af _setup og af de regler,
     der definerer noget, en senere regel bruger."""
@@ -1292,27 +1250,8 @@ def rule_6(ctx):
             if not isinstance(val, str):
                 continue
             txt = val[1:] if val.startswith("=") else val
-            depth = 0
-            in_str = False
-            i = 0
-            while i < len(txt):
-                ch = txt[i]
-                if in_str:
-                    if ch == '"':
-                        if i + 1 < len(txt) and txt[i + 1] == '"':
-                            i += 1
-                        else:
-                            in_str = False
-                elif ch == '"':
-                    in_str = True
-                elif ch == "(":
-                    depth += 1
-                elif ch == ")":
-                    depth -= 1
-                    if depth < 0:
-                        break
-                i += 1
-            if depth != 0 or in_str:
+            depth, below = fx.paren_balance(txt)
+            if depth != 0 or below or fx.open_string(txt):
                 problems.append(f"[6] {name}.{key}: ubalancerede parenteser/anfoerselstegn")
 
 def rule_7(ctx):
@@ -1650,23 +1589,6 @@ def rule_32(ctx):
     # med '; true' / '; false'.
     MUT = re.compile(r"(Patch|Collect|ClearCollect|Remove|RemoveIf)\(")
 
-    def _split_top(txt, seps):
-        parts, depth, in_str, cur = [], 0, False, ""
-        for ch in txt:
-            if ch == '"':
-                in_str = not in_str
-            if not in_str and ch in "([{":
-                depth += 1
-            elif not in_str and ch in ")]}":
-                depth -= 1
-            if not in_str and depth == 0 and ch in seps:
-                parts.append(cur.strip())
-                cur = ""
-            else:
-                cur += ch
-        parts.append(cur.strip())
-        return parts
-
     for p_, name, body in all_nodes:
         for key, val in (body.get("Properties") or {}).items():
             if not isinstance(val, str):
@@ -1676,8 +1598,8 @@ def rule_32(ctx):
                 end = _balanced(val, par)
                 if end < 0:
                     continue
-                for arg in _split_top(val[par + 1:end], ","):
-                    last = _split_top(arg, ";")[-1]
+                for arg in fx.split_top(val[par + 1:end], ","):
+                    last = fx.split_top(arg, ";")[-1]
                     last = re.sub(r"^(//[^\n]*\n\s*)+", "", last)
                     if MUT.match(last):
                         problems.append(f"[32] {name}.{key}: en gren i IfError ender i "
@@ -1818,61 +1740,18 @@ def rule_15(ctx):
                 "UpdateIf", "Clear")
     MUT_RE = re.compile(r"\b(" + "|".join(MUTATORS) + r")\s*\(")
 
-    def mut_target(expr, at):
-        """FOERSTE argument til en mutator - altsaa det, der skrives I.
-
-        Reglen sagde foer "eet kald pr. raekke" om alle otte fund i
-        VH-plan. Det var kun sandt for de fire, der skriver i en
-        SharePoint-liste. De fire andre skriver i en samling i
-        hukommelsen, hvor der ikke er noget kald overhovedet - og en
-        advarsel, der overdriver fire ud af otte gange, bliver laest som
-        stoej i alle otte."""
-        i = expr.index("(", at)
-        depth, j, q = 0, i, None
-        while j < len(expr):
-            c = expr[j]
-            if q:
-                if c == q:
-                    q = None
-            elif c in "\"'":
-                q = c
-            elif c == "(":
-                depth += 1
-            elif c == ")":
-                depth -= 1
-                if depth == 0:
-                    return expr[i + 1:j].strip()
-            elif c == "," and depth == 1:
-                return expr[i + 1:j].strip()
-            j += 1
-        return ""
-
     # Navnekonventionen i hele repoet: en arbejdssamling hedder col + stort
     # bogstav. Alt andet, en mutator kan skrive i, er en datakilde.
     COL_RE = re.compile(r"^col[A-Z]\w*$")
-
-    def forall_bodies(expr):
-        """Indholdet af hvert ForAll( ... ), parenteserne talt efter."""
-        for m in re.finditer(r"\bForAll\s*\(", expr):
-            i, depth = m.end() - 1, 0
-            while i < len(expr):
-                if expr[i] == "(":
-                    depth += 1
-                elif expr[i] == ")":
-                    depth -= 1
-                    if depth == 0:
-                        break
-                i += 1
-            yield expr[m.end():i]
 
     for p_, name, body in all_nodes:
         for key, val in (body.get("Properties") or {}).items():
             if not isinstance(val, str) or "ForAll" not in val:
                 continue
-            for inner in forall_bodies(val):
+            for inner in _forall_bodies(val):
                 remote, local = {}, {}
                 for m in MUT_RE.finditer(inner):
-                    tgt = mut_target(inner, m.start())
+                    tgt = fx.first_arg(inner, m.start())
                     (local if COL_RE.match(tgt) else remote)[m.group(1)] = tgt
                 if remote:
                     warnings.append(
@@ -1941,30 +1820,6 @@ def rule_22(ctx):
     # Reglen deler Concurrent'ens argumenter paa komma i dybde 1 og
     # sammenligner: skriver eet argument i colX, maa ingen ANDEN naevne
     # colX. Det er en FEJL og ikke en advarsel - compile afviser den.
-    def split_args(text, at):
-        """Argumenterne i et kald, delt paa komma i dybde 1."""
-        i = text.index("(", at)
-        depth, j, q, start, out = 0, i, None, i + 1, []
-        while j < len(text):
-            c = text[j]
-            if q:
-                if c == q:
-                    q = None
-            elif c in "\"'":
-                q = c
-            elif c == "(":
-                depth += 1
-            elif c == ")":
-                depth -= 1
-                if depth == 0:
-                    out.append(text[start:j])
-                    return out
-            elif c == "," and depth == 1:
-                out.append(text[start:j])
-                start = j + 1
-            j += 1
-        return out
-
     WRITES = re.compile(r"\b(?:Clear)?Collect\(\s*(col[A-Z]\w*)\s*,|"
                         r"\bClear\(\s*(col[A-Z]\w*)\s*\)")
     # App.OnStart ligger i App.pa.yaml, ikke i skaermen - og det var
@@ -1979,7 +1834,7 @@ def rule_22(ctx):
             if not isinstance(val, str) or "Concurrent(" not in val:
                 continue
             for m in re.finditer(r"\bConcurrent\s*\(", val):
-                args = split_args(val, m.start())
+                args = fx.call_args(val, m.start())
                 if len(args) < 2:
                     continue
                 written = []
@@ -2120,53 +1975,6 @@ def rule_20(ctx):
     cc = re.compile(r"\b(?:Clear)?Collect\(\s*(col[A-Z]\w*)\s*,")
     setv = re.compile(r"\bSet\(\s*(var[A-Za-z0-9_]*)\s*,")
 
-    def arg2(text, at):
-        """KILDEN i ClearCollect(col, <KILDEN>) - altsaa ANDET argument.
-
-        Foerste udgave returnerede hele argumentlisten, samlingsnavnet
-        med. Enhver kilde saa dermed ud til at begynde med "col...", hvert
-        hit blev filtreret vaek som "laeser bare en anden samling", og
-        reglen kunne ALDRIG fyre. Den stod groen, fordi den var tom."""
-        i = text.index("(", at)
-        depth, j, q, comma = 0, i, None, -1
-        while j < len(text):
-            c = text[j]
-            if q:
-                if c == q:
-                    q = None
-            elif c in "\"'":
-                q = c
-            elif c == "(":
-                depth += 1
-            elif c == ")":
-                depth -= 1
-                if depth == 0:
-                    return text[comma + 1:j] if comma > 0 else ""
-            elif c == "," and depth == 1 and comma < 0:
-                comma = j
-            j += 1
-        return ""
-
-    def call_end(text, at):
-        """Positionen lige efter det kalds afsluttende parentes."""
-        i = text.index("(", at)
-        depth, j, q = 0, i, None
-        while j < len(text):
-            c = text[j]
-            if q:
-                if c == q:
-                    q = None
-            elif c in "\"'":
-                q = c
-            elif c == "(":
-                depth += 1
-            elif c == ")":
-                depth -= 1
-                if depth == 0:
-                    return j + 1
-            j += 1
-        return len(text)
-
     targets = [((b.get("Properties") or {}), n) for _p, n, b in all_nodes]
     targets.append((screen.get("Properties") or {}, "<skaermen>"))
     for props, owner in targets:
@@ -2176,7 +1984,7 @@ def rule_20(ctx):
                 continue
             hits = []
             for m in cc.finditer(val):
-                src = arg2(val, m.start())
+                src = fx.rest_args(val, m.start())
                 hits.append((m.group(1), src, m.start()))
             # KUN kilder, der kan naa nettet.
             #
@@ -2215,7 +2023,7 @@ def rule_20(ctx):
                 # egen maalangivelse ikke taeller som en laesning
                 here = val.index(name, pos) + len(name)
                 for later_name, later_src, lp in hits[i + 1:]:
-                    end = call_end(val, lp)
+                    end = fx.call_end(val, lp)
                     if re.search(r"\b%s\b" % re.escape(name), val[here:end]):
                         dependent = True
             for vm in setv.finditer(val):

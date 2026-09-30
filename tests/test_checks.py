@@ -198,3 +198,30 @@ def test_gen_screen_imports_outside_a_build_entry():
     import importlib
     import gen_screen
     importlib.reload(gen_screen)
+
+
+# --- tools/fx.py: den faelles Power Fx-scanner (REVIEW.md C7) -------------
+
+def test_fx_ignores_strings_names_and_comments():
+    import fx
+    t = 'Patch(colX, "a, (b)", \'odd,(name\', { c: 1 }) // don\'t ( count\n'
+    assert fx.call_args(t, 0) == ['colX', ' "a, (b)"', " 'odd,(name'", ' { c: 1 }']
+    assert fx.call_end(t, 0) == t.index(")", t.index("}")) + 1
+    assert fx.first_arg(t, 0) == "colX"
+    assert fx.rest_args("ClearCollect(col, Filter(a, b))", 0) == " Filter(a, b)"
+    assert fx.paren_balance("If(a, \"(\", b) /* ( */") == (0, False)
+    assert fx.open_string('Notify("say ""hi""")') is False
+    assert fx.open_string('Notify("oops)') is True
+    assert fx.split_top('a; If(x; y); "b;c"', ";") == ["a", "If(x; y)", '"b;c"']
+
+
+def test_skill_rules_table_matches_registry():
+    """SKILL.md's regeltabel er genereret af check_layout --rules."""
+    import check_layout
+    skill = open(os.path.join(ROOT, ".github", "skills", "canvas-build", "SKILL.md"),
+                 encoding="utf-8").read()
+    block = skill[skill.index("<!-- rules:start"):skill.index("<!-- rules:end -->")]
+    assert check_layout.rules_markdown() in block, \
+        "SKILL.md er ikke opdateret - koer python3 tools/check_layout.py --rules"
+    ids = [r.id for r in check_layout.RULES]
+    assert len(ids) == len(set(ids))
