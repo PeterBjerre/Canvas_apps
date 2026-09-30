@@ -52,9 +52,8 @@ TEXT_PLACEHOLDER = '"Short text, max 40 characters"'
 # foer skrevet af her, og build_all.py havde 60 linjers regex til at
 # tjekke, at de tre kopier ikke gled fra hinanden. Se tools/env_config.py.
 #
-# PLAY_URL skrives i MD_RequestIndex.AppUrl, saa hubbens "Open" lander paa
-# den rigtige indmelding.
-PLAY_URL = env.play_url("material")
+# MD_RequestIndex.AppUrl peger paa den SAMLEDE app - se
+# tools/request_index.py (COMBINED_APP).
 
 # Landingssiden. De to domaeneapps aabnes af hubben som en SELVSTAENDIG
 # app - ikke som en skaerm i den samme. Back() kan derfor ikke foere

@@ -8,8 +8,9 @@ Det samme miljoe-id og de samme app-id'er stod FIRE steder:
 
     tools/canvas_apps.json                        environment_id + 4 app_id
     Masterdata Hub/build/hub_config.py            ENV_ID + 5 app_id i DOMAINS
-    Equipment App/build/domain_config.py          PLAY_URL + HUB_URL
-    Material App/build/domain_config.py           PLAY_URL + HUB_URL
+    Equipment App/build/domain_config.py          HUB_URL
+    Material App/build/domain_config.py           HUB_URL
+    tools/request_index.py                        AppUrl (den samlede app)
     Maintenance Plan App/build/sp_config.py       HUB_URL
 
 Det var erkendt, og loesningen var check_app_ids() i build_all.py: 60

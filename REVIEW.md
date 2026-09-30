@@ -59,11 +59,9 @@ Linjenumrene i fundene nedenfor henviser til udgangspunktet (`764fbcb`).
 - **Fra fase 3 ikke gjort:**
   - FL-validering af KUN den ændrede række (B5). Dubletter, TRM og fanerne går på tværs af rækker; hele valideringen er nu O(n) i stedet for O(n²).
   - BIO SAP genbruger ikke enkeltappernes skærme (dobbeltbygningen). Det ville bryde isolationen mellem apps for ca. 3-4 s af 16.
-- **Beslutning om BIO SAP App (jeres):** af de fire ting, der blokerede, er to løst: D23 (fase 1) og C4 (fase 2). To står tilbage:
-  - `AppUrl` i indekset og mailflowets link peger på enkeltappen, også når anmodningen er gemt fra BIO SAP;
-  - der er intet testscenarie for FL i BIO SAP.
-  
-  Er den samlede app målet, er de to det næste, og derefter kan de fem enkeltapps udfases.
+- **BIO SAP App er den app, der skal bruges** (besluttet 2026-09-30). De fire ting, der blokerede, er løst i repoet: D23, C4, `AppUrl` i indekset (peger nu på den samlede app med `?domain=…&reqid=…`) og et FL-testscenarie i `BIO SAP App/README.md`. Tilbage står:
+  - mailflowet `BioSap-EmailNotification-NewPlanCreated`, der læser `AppUrl` fra `AppSettings` (uden for repoet — se BIO SAP-README'en);
+  - testplanen skal køres i Studio, før de fem enkeltapps udfases.
 
 ---
 

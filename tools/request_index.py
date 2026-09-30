@@ -49,6 +49,19 @@ _STEP = {k: step for k, _label, step in STATUS}
 DRAFT = "Kladde"
 SUBMITTED = "Indsendt"
 
+# AppUrl PEGER PAA DEN SAMLEDE APP (2026-09-30)
+#
+# BIO SAP App er den app, der skal bruges; de fem enkeltapps udfases. En
+# anmodning aabnes derfor i den samlede app, paa sin egen skaerm:
+#
+#     <BIO SAP play-URL>?domain=<appnoegle>&reqid=<RequestGuid>
+#
+# Det gaelder ogsaa en anmodning, der er gemt fra en af enkeltapperne,
+# mens de stadig findes. BIO SAP App/build/combined.py laeser samme
+# parameternavn.
+COMBINED_APP = "biosap"
+DOMAIN_PARAM = "domain"
+
 
 def step(status):
     """Trinnet for en statusvaerdi. Et ukendt navn er en fejl ved bygning -
@@ -70,14 +83,17 @@ def record(domain, app_key, status, *, request_no, guid, me, short_text,
     Argumenterne er Power Fx-udtryk (fx "varDomRequestGuid"), undtagen
     domain, app_key og status, som er Python-tekst og efterproeves her.
 
-    AppUrl er appens play-URL + ?reqid=. Hubben bygger selv "Open" af
-    domaenet (build_hub._open_action); AppUrl er reserven og mailflowenes
-    link."""
+    AppUrl er den SAMLEDE apps play-URL med ?domain=<app_key>&reqid= (se
+    COMBINED_APP). Hubben bygger selv "Open" af domaenet
+    (build_hub._open_action); AppUrl er reserven og linket til flows."""
     _check_domain(domain)
-    url = env.play_url(app_key)
+    if app_key not in env.screen_apps():
+        raise KeyError("'%s' er ikke en domaeneskaerm i den samlede app. Kendte: %s"
+                       % (app_key, ", ".join(env.screen_apps())))
+    url = env.play_url(COMBINED_APP)
     if not url:
         raise SystemExit("'%s' har intet app_id i miljoeet '%s' (tools/canvas_apps.json)."
-                         % (app_key, env.ENV_NAME))
+                         % (COMBINED_APP, env.ENV_NAME))
     fields = [
         f"{COL_NO}: {request_no}",
         f'Domain: {{ Value: "{domain}" }}',
@@ -96,7 +112,7 @@ def record(domain, app_key, status, *, request_no, guid, me, short_text,
     if source_id is not None:
         fields.append(f"SourceItemId: {source_id}")
     fields += [
-        f'AppUrl: "{url}?reqid=" & {guid}',
+        f'AppUrl: "{url}?{DOMAIN_PARAM}={app_key}&reqid=" & {guid}',
         "LastActionOn: Now()",
         f"LastActionBy: {me}",
     ]

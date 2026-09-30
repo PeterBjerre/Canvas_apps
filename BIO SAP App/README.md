@@ -6,9 +6,10 @@ De fem apps (hub, Functional Location, VH-plan, Equipments og Materials) som
 kold start, og det, man var i gang med, ligger der stadig, når man kommer
 tilbage.
 
-> **Status: til test.** De fem enkelte apps bliver, som de er, indtil den
-> samlede app er testet og godkendt. Begge dele bygges af de samme byggere,
-> så en rettelse i en af de fem apps kommer også med her ved næste build.
+> **Status: den app, der skal bruges (besluttet 2026-09-30).** At skifte
+> mellem fem apps var for klodset. De fem enkeltapps udfases, når den
+> samlede app har bestået testplanen nedenfor. Indtil da bygges begge dele
+> af de samme byggere, så en rettelse kommer med begge steder.
 
 Baggrunden for beslutningen står i
 [`../docs/07-landingsside.md`](../docs/07-landingsside.md) §9.
@@ -76,14 +77,18 @@ Apps' egen `LoadingSpinner`: den tegnede et hjul inden i hjulet (issue #64).
 `domain` er én af `functionallocation`, `vhplan`, `equipment` eller
 `material`. Uden `domain` åbner appen på hubben.
 
-> **Indekslisten peger stadig på de fem apps.** Når en indmelding gemmes,
-> skriver den sin `AppUrl` i `MD_RequestIndex`, og i testperioden er det de
-> fem appers URL'er. Den samlede hub bruger ikke `AppUrl`: den navigerer ud
-> fra `Domain`. Mailflowet og den gamle hub åbner derfor stadig de enkelte
-> apps. Når der skiftes over, skal `AppUrl` pege på den samlede app med
-> `?domain=…`. URL'en står i `PLAY_URL` i Equipments', Materials' og
-> Functional Locations `*_config.py` og i `APP_URL` i VH-planens
-> `build_save.py`.
+**Indekslisten peger på den samlede app.** Når en indmelding gemmes — også
+fra en af de fem enkeltapps — skriver den `AppUrl` =
+`<play-url>?domain=<domæne>&reqid=<RequestGuid>` i `MD_RequestIndex`
+(`tools/request_index.py`, `COMBINED_APP`). Den samlede hub bruger ikke
+`AppUrl`: den navigerer ud fra `Domain`.
+
+> **Mailflowet skal rettes uden for repoet.**
+> `BioSap-EmailNotification-NewPlanCreated` læser ikke indekset, men
+> `AppUrl` i SharePoint-listen `AppSettings` og tilføjer `&ID=<planens ID>`.
+> Rækkerne dér peger på den gamle VH-app i et andet miljø. Flowet skal slå
+> anmodningen op i `MD_RequestIndex` (`SourceItemId` = planens ID,
+> `Domain` = `MaintenancePlan`) og bruge dens `AppUrl`.
 
 ## Sådan oprettes den i Studio
 
@@ -129,7 +134,24 @@ Apps' egen `LoadingSpinner`: den tegnede et hjul inden i hjulet (issue #64).
 5. Equipments og Materials: udfyld formularen i den ene, skift til den anden
    og tilbage. Formularerne må ikke blande sig.
 6. Dyblink: `?domain=vhplan&reqid=<guid>` åbner direkte i planen.
-7. Mål: tid til hubben vises og første besøg på hvert domæne, sammenlignet
+7. **Functional Location:**
+   1. Hub → *New request* på Functional Location → tilføj tre rækker, heraf
+      én ugyldig. Rækkerne valideres af sig selv, nummeret og de røde kanter
+      står rigtigt, og Submit er spærret.
+   2. Ret rækken, åbn detaljeruden på en række, ret et felt dér, og luk.
+   3. *Save draft* → hubben viser anmodningen som kladde, og dens `AppUrl`
+      er `…?domain=functionallocation&reqid=…`.
+   4. Sidebar → VH-plan → sidebar → Functional Location: rækkerne står, som
+      man forlod dem (ingen genindlæsning, D23).
+   5. Hub → *New request* på Functional Location, mens en anmodning er
+      åben: en ny, tom anmodning — ikke den gamle.
+   6. Hub → *Open* på den gemte kladde: ventespinneren, og rækkerne og
+      spool-værdierne indlæses. Slet én række, gem igen, og tjek i listen,
+      at kun den række er væk.
+   7. Dyblink `?domain=functionallocation&reqid=<guid>` åbner direkte i
+      anmodningen.
+   8. Submit med gyldige rækker → status *Indsendt*, og formularen låses.
+8. Mål: tid til hubben vises og første besøg på hvert domæne, sammenlignet
    med de fem apps.
 
 ## Byg
