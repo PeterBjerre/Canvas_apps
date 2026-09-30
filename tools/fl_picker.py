@@ -60,8 +60,8 @@ til at vokse og blive skaaret af forneden, naar den blev aktiv.
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from gen_screen import Ctrl, C_TITLE, FONT
-from build_helpers import (button, group, grow, border_rule, input_fill,
+from gen_screen import Ctrl
+from build_helpers import (button, group, grow, border_rule, input_theme,
                            fit_button_width)
 import build_flsearch as fl
 
@@ -135,19 +135,18 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
     if on_select:
         select += f";\n{on_select}"
 
-    cmb = Ctrl(combo, "ModernCombobox", props={
+    # Farver, udseende og laast-tilstand er DE SAMME som alle andre felters
+    # (build_helpers.input_theme, issue #78). Comboboksen var Outline -
+    # "transparent background" - og deaktiveret tegnede Fluent den sort med
+    # graa tekst i moerk tilstand.
+    cmb = Ctrl(combo, "ModernCombobox", props=input_theme({
         "AccessibleLabel": (f'"{label} - type at least {fl.MIN_SEARCH_LEN} '
                             f'characters, then Search"'),
-        "Appearance": "Appearance.Outline",
         "BorderColor": border_rule("IsBlank(Self.Selected.Code)", required_formula),
         "BorderStyle": "BorderStyle.Solid",
         "BorderThickness": "1",
-        "Color": C_TITLE,
         "DefaultSelectedItems": default_items,
         "DelayOutput": "false",
-        "DisplayMode": display_mode,
-        "Fill": input_fill(display_mode),
-        "Font": FONT,
         "Height": str(HEIGHT),
         "InputTextPlaceholder": PLACEHOLDER,
         "IsSearchable": "true",
@@ -160,11 +159,10 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
         "RadiusBottomLeft": "10", "RadiusBottomRight": "10",
         "RadiusTopLeft": "10", "RadiusTopRight": "10",
         "SelectMultiple": "false",
-        "Size": "14",
         "ValidationState": (f"If({required_formula} && IsBlank(Self.Selected.Code), "
                             "ValidationState.Error, ValidationState.None)"),
         "Width": "0",
-    }, h=HEIGHT)
+    }, display_mode), h=HEIGHT)
     grow(cmb)
 
     too_short = f"Len(Trim({query})) < {fl.MIN_SEARCH_LEN}"

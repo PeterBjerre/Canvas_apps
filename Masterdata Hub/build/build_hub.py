@@ -17,7 +17,7 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_PRIMARY,
                         C_MUTED_BG, C_MODAL_BG, C_DIVIDER, C_TRANSPARENT, FONT, SHELL_W)
-from build_helpers import (text_ctrl, group, button, card, flow_row, top_bar,
+from build_helpers import (row_rule, text_input, text_ctrl, group, button, card, flow_row, top_bar,
                            fit_button_width, ICON_W)
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, STATUS_ICON, APP_TARGET
 from design_tokens import theme_query, ref_hex, ref as _t
@@ -478,16 +478,11 @@ def build_filters():
     vaerk, et par ord) - ikke resten af linjen. Taelleren staar til hoejre
     og tager resten, saa den flugter med listens hoejre kant. My requests
     staar i bjaelken: det er et omfang, ikke et statusfilter."""
-    search = Ctrl("txtMdSearch", "ModernTextInput", props={
-        "AccessibleLabel": '"Search number, text or plant"',
-        "BorderColor": C_CARD_BORDER, "BorderStyle": "BorderStyle.Solid", "BorderThickness": "1",
-        "Color": C_TITLE, "Default": '""', "Fill": C_CARD_BG, "Font": FONT, "Height": "36",
-        "LayoutMinWidth": "0", "Placeholder": '"Search number, text or plant..."',
-        "RadiusBottomLeft": "10", "RadiusBottomRight": "10",
-        "RadiusTopLeft": "10", "RadiusTopRight": "10",
-        "Size": "13", "Type": "TextInputType.Search",
-        "Width": str(SEARCH_W),
-    }, h=36)
+    # Det SAMME felt som alle andre (build_helpers.text_input -> input_theme,
+    # issue #78) - ikke et haandbygget med sine egne farver.
+    search = text_input("txtMdSearch", '""', placeholder='"Search number, text or plant..."',
+                        width=str(SEARCH_W), ttype="Search",
+                        label='"Search number, text or plant"')
     shown = f'CountRows(Filter({SCOPE}, gblDomain = "" || Domain.Value = gblDomain))'
     count = text_ctrl("txtMdCount", f'Text({shown}) & " requests"',
                       size=12, color=C_MUTED, height=36, align="Right", width=110, wrap="false")
@@ -726,12 +721,7 @@ def build_list():
     # ved siden af scrollbaren - et graat felt i en anden farve end
     # tabellen. Nu er galleriet i kortets farve, og stregen er en figur
     # nederst i hver raekke.
-    rule = Ctrl("rctMdRowRule", "Rectangle", props={
-        "AccessibleLabel": '""', "BorderStyle": "BorderStyle.None",
-        "BorderThickness": "0", "Fill": C_DIVIDER, "Height": "1",
-        "OnSelect": "false", "TabIndex": "-1",
-        "Width": "Parent.TemplateWidth", "X": "0", "Y": str(ROW_H - 1),
-    }, h=1)
+    rule = row_rule("rctMdRowRule", ROW_H)
     gal = Ctrl("galMdRequests", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Requests"',
         "BorderStyle": "BorderStyle.None", "Fill": C_CARD_BG, "FillPortions": "0",

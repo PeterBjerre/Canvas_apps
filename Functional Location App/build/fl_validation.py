@@ -382,8 +382,8 @@ If(varFlTab <> "ALL" && IsBlank(LookUp(colFlTabs, Key = varFlTab)), Set(varFlTab
 
 
 def verify_fx():
-    """btnFlVerify.OnSelect - HELE valideringen. Kaldes alle andre steder
-    med Select(btnFlVerify) (docs/31 PX7)."""
+    """btnFlVerify.OnSelect - HELE valideringen. Knappen er skjult; hver
+    aendring kalder den med Select(btnFlVerify) (docs/31 PX7, issue #77)."""
     return ";\n\n".join([
         "// B. Syntaks, klasse og raekkebeskeder (FL4-FL24)\n" + calc_rows(),
         "// C. Meddelelsestabellen - raekke + spool (FL30-FL53)\n" + issues_raw(),
@@ -392,9 +392,7 @@ def verify_fx():
         "// F. TRM og ABC (FL48, FL49)\n" + TRM_SET,
         "// G. Klassefanerne (FL28)\n" + TABS,
         "// H. Faerdig. varFlStale styrer Submit (FL68).\n"
-        "Set(varFlStale, false);\n"
-        'Set(varFlInfo, If(CountRows(Filter(colFlRows, Status <> "draft")) = 0, '
-        '"No rows to verify.", "Done."))',
+        "Set(varFlStale, false)",
     ])
 
 

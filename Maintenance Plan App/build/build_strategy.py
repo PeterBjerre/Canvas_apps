@@ -28,7 +28,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_PRIMARY, C_WHITE,
                         C_INFO_FG, C_INFO_BG, C_NEUTRAL_BG, C_DIVIDER, C_VALID_FG, C_INVALID_FG,
                         C_TRANSPARENT, FONT, SHELL_W)
-from build_helpers import text_ctrl, group, button, button_row, badge, card
+from build_helpers import text_ctrl, group, button, button_row, badge, card, checkbox_theme
 from build_plan_header import section_header, help_panel
 
 IS_STRATEGY = "(varVhpPlan.PlanType = \"Strategy\")"
@@ -252,7 +252,7 @@ def build_strategy_body():
 
     chkCell = Ctrl(
         "chkVhpPkgCell", "ModernCheckbox",
-        props={
+        props=checkbox_theme({
             "AccessibleLabel": ("\"Package \" & ThisItem.ShortCode & \" on operation \" & ThisItem.OpNo"),
             "AlignInContainer": "AlignInContainer.Center",
             "Default": f"\";\" & Text(ThisItem.PackageNo) & \";\" in {cur_key}",
@@ -285,7 +285,7 @@ def build_strategy_body():
                 ")"
             ),
             "Width": "30",
-        }, h=24)
+        }), h=24)
     cellWrap = group("conVhpPkgCell", [chkCell], direction="Horizontal", gap=0, height=ROW_H,
                      align_items="Center", justify="Center", width="Parent.TemplateWidth")
     cell_items = (

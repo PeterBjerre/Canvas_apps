@@ -31,13 +31,13 @@ BUILD = os.path.join(APP, "build")
 DOC = os.path.join(ROOT, "docs", "31-functional-location-regler.md")
 
 # Regler uden noget at implementere - med begrundelsen i docs/31.
-NO_IMPL = {"FL67"}
+NO_IMPL = {"FL67", "FL64"}   # FL64: Export JSON er fjernet (issue #77)
 # Regler, der ikke kan udloeses i appen, og derfor kun har et gyldigt
 # eksempel (docs/31, FL23 og FL24).
 ONE_SIDED = {"FL23", "FL24"}
 # UI-regler: efterproeves i Studio, har deres egen matrix i docs/31.
 UI = {"FL2", "FL26", "FL27", "FL28", "FL29", "FL57", "FL58", "FL59", "FL60",
-      "FL61", "FL62", "FL63", "FL64", "FL65", "FL66", "FL68", "FL69", "FL70"}
+      "FL61", "FL62", "FL63", "FL65", "FL66", "FL68", "FL69", "FL70"}
 
 
 def rule_rows(text):

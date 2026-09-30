@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED, C_PRIMARY, C_WHITE, \
     C_INFO_FG, C_INFO_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, C_TRANSPARENT, C_DIVIDER, \
     C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY, FONT
-from build_helpers import text_ctrl, group, button, text_input, grow, ICON_SAVE
+from build_helpers import text_ctrl, group, button, text_input, grow, ICON_SAVE, checkbox_theme, table_surface
 from design_tokens import ref_hex
 
 MUT_HEX = ref_hex("text-muted")
@@ -63,7 +63,7 @@ def build_tasklist_picker_modal():
     txtSearch = text_input("txtVhpPickerSearch", "\"\"", placeholder="\"Search operation no, text, work center\"",
                             height=36, label="\"Search operations\"")
     grow(txtSearch)
-    chkSelectAll = Ctrl("chkVhpPickerSelectAll", "ModernCheckbox", props={
+    chkSelectAll = Ctrl("chkVhpPickerSelectAll", "ModernCheckbox", props=checkbox_theme({
         "AccessibleLabel": "\"Select all visible\"",
         "Default": (
             f"IfError(CountRows({VISIBLE_OPS}) > 0 && "
@@ -107,7 +107,7 @@ def build_tasklist_picker_modal():
             ")"
         ),
         "Width": "200",
-    })
+    }))
     toolbar = group("conVhpPickerToolbar", [txtSearch, chkSelectAll], direction="Horizontal", gap=12, height=36,
                     align_items="Center")
 
@@ -124,14 +124,14 @@ def build_tasklist_picker_modal():
     }, h=22)
     divider = group("conVhpPickerDivider", [], height=1, fill=C_DIVIDER, direction="Horizontal")
 
-    chkRowSel = Ctrl("chkVhpPickerRowSel", "ModernCheckbox", props={
+    chkRowSel = Ctrl("chkVhpPickerRowSel", "ModernCheckbox", props=checkbox_theme({
         "AccessibleLabel": "\"Select line\"",
         "Default": "CountRows(Filter(colVhpPickerSelected, OperationNo = ThisItem.OperationNo)) > 0",
         "Height": "24",
         "OnCheck": "Collect(colVhpPickerSelected, { OperationNo: ThisItem.OperationNo })",
         "OnUncheck": "RemoveIf(colVhpPickerSelected, OperationNo = ThisItem.OperationNo)",
         "Width": "26",
-    })
+    }))
     txtRowOpNo = text_ctrl("txtVhpPickerOpNo", "ThisItem.OperationNo", size=13, height=28, width=54, wrap="false")
     txtRowShort = text_ctrl("txtVhpPickerShortText", "ThisItem.OperationShortText", size=13, height=28, width=dict(PICKER_COLS)["OPERATION SHORT TEXT"],
                             wrap="false")
@@ -152,7 +152,7 @@ def build_tasklist_picker_modal():
         props={
             "AccessibleLabel": "\"Tasklist line picker\"",
             "BorderStyle": "BorderStyle.None",
-            "Fill": C_CARD_BORDER,
+            "Fill": C_MODAL_BG,
             "FillPortions": "0",
             "Height": "280",
             "Items": VISIBLE_OPS,
@@ -167,6 +167,8 @@ def build_tasklist_picker_modal():
             "WrapCount": "1",
         },
         children=[pickerRow], h=280)
+    # Neutral flade og een streg pr. raekke - ikke graat fyld (issue #78).
+    table_surface(gallery, "rctVhpPickerRule", surface=C_MODAL_BG)
 
     # Ingen scroll her: beholderen er praecis saa hoej som sit indhold, og
     # galleriet scroller selv. To scrollbarer oven i hinanden tog 18 px
