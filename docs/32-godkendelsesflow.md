@@ -330,6 +330,15 @@ Fælles for dem:
   connection references (`orsted_BioSapPowerBIConn` findes allerede til
   Power BI).
 
+**Mails.** Alle mails i forløbet – sendt til godkendelse, sendt retur,
+påmindelse, klar til oprettelse i SAP og oprettet i SAP – bruger den samme
+HTML-skabelon, `flow/email-plan-submitted.html`, og sendes af ét child
+flow, `BioSap-VhPlan-SendMail`. Flowene nedenfor kalder det med planens
+`ID` og mailtypen. Hvilken mail der sendes hvornår, og til hvem, står i
+[`17-flow-email.md`](17-flow-email.md#samme-skabelon-i-alle-mails). Selve
+godkendelsesanmodningerne sendes af Approvals-connectoren og bruger ikke
+skabelonen.
+
 ### 7.1 F1 `BioSap-VhPlan-SystemApproval` – pr. item
 
 ```
