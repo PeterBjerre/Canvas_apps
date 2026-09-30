@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Layout-tjek af ScreenVhPlan.pa.yaml.
+Layout-tjek af en apps skaerm (Screen*.pa.yaml) - alle apps bruger denne
+fil via deres build/check_layout.py.
 
 Canvas-layout kan ikke koeres her, saa i stedet regnes hoejderne efter.
-Tjekket foretager fire kontroller:
+De foerste kontroller (listen nedenfor er ikke udtoemmende - hver regel
+staar med sit nummer i koden og i SKILL.md "Hvad check_layout.py fanger"):
 
   1. Ingen Height-formel maa referere en ANDEN kontrols .Height.
      Det var rodaarsagen: i en AutoLayout-container saetter forelderen
@@ -70,15 +72,14 @@ if HERE not in sys.path:
     sys.path.insert(0, HERE)
 import layout_tokens as lay
 
-# Skaermen findes af sig selv, saa denne fil er ordret ens i alle apps i
-# repoet (se .github/skills/canvas-build/SKILL.md). Er der mere end een
+# Skaermen findes af sig selv ud fra arbejdsmappen. Er der mere end een
 # skaerm, angives den paa kommandolinjen.
 def _find_screen():
     """Skaermen findes ud af HVOR TJEKKET KOERES FRA, ikke ud af hvor filen
     ligger.
 
     Foer laa en kopi af den her fil i hver app's build-mappe, saa HERE var
-    app'ens egen mappe. Nu ligger den i tools/ - een udgave for alle fire -
+    app'ens egen mappe. Nu ligger den i tools/ - een udgave for alle apps -
     og HERE ville pege paa tools/. Arbejdsmappen er app'ens build-mappe,
     baade naar tools/build_all.py koerer den (cwd=build) og naar nogen selv
     goer det."""

@@ -75,7 +75,7 @@ at_least("Wide"), og faar det rigtige udtryk.
 #       anden klynge (996-1024). Klyngen bliver dermed til EET tal.
 # 1600  Desktop vs. bredt. Den er ikke pyntetal: Equipment-listen har syv
 #       kolonner og knap 540 px faste bredder, saa den kan foerst staa ved
-#       siden af formularen her. Se build_domain.HALF_W.
+#       siden af formularen her (domain_parts, tidligere build_domain).
 #
 # Ingen tier flytter sig mere end 28 px i forhold til i dag.
 # ---------------------------------------------------------------------------
@@ -318,7 +318,7 @@ def formula():
         "//\n"
         "// LayoutContext er den, man kan LAESE. LayoutRank er den, man kan\n"
         "// SAMMENLIGNE med: \"desktop eller bredere\" er LayoutRank >= 3.\n"
-        "// Braekpunkterne staar eet sted for alle fire apps.\n"
+        "// Braekpunkterne staar eet sted for alle apps.\n"
         "%s = %s;\n\n"
         "%s = %s;" % (CONTEXT, _ladder(lambda n: '"%s"' % n),
                       RANK, _ladder(lambda n: str(_RANK[n])))

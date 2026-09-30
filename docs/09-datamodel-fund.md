@@ -1,5 +1,7 @@
 # Hvad listerne faktisk indeholder
 
+> **Status: historisk.** Fund fra skiftet til de rigtige lister (september 2026).
+
 Svar på de seks spørgsmål i [`08-datamapning.md`](08-datamapning.md) §5, baseret
 på udtrækket i [`../sharepoint/inspect/out/`](../sharepoint/inspect/out):
 21 lister, 452 kolonner, ingen fejlede. `FunctionalLocations` blev bevidst

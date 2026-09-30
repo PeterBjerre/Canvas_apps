@@ -1,5 +1,7 @@
 # SPOOL-arkets regler — kortlægning
 
+> **Status: historisk.** Afløst af docs/31. `MD_FLClass`/`MD_FLCharacteristic`/`MD_FLValueList` provisioneres ikke.
+
 Reglerne i `FL_indberetninger_udgave_SPOOL_V3.20.xlsm`, oversat fra VBA til
 noget der kan bygges. Kilden ligger i
 [`../excel/vba/spool-validation/`](../excel/vba/spool-validation/) — 13

@@ -24,21 +24,35 @@ Canvas apps og indmeldingsflow til SAP masterdata. **Fem apps:**
 > ændringen i dens egen `build/`-mappe, ikke i de fælles dele.
 
 Alle `.pa.yaml`-skærme er **genereret** af Python-builderne i den enkelte
-apps `build/`-mappe. Byg alle fire og efterregn layoutet med:
+apps `build/`-mappe og de fælles moduler i `tools/`. Byg og efterregn
+layoutet med:
 
 ```bash
-python3 tools/build_all.py       # alle fem + den samlede app
+pip install -r requirements.txt  # første gang
+python3 tools/build_all.py       # alle fem + den samlede app + alle tjek
 python3 tools/build_all.py --app equipment
 ```
 
-**Farver og breakpoints står ét sted for alle fire apps** og må ikke skrives
+### Forudsætninger
+
+| Værktøj | Bruges til |
+|---|---|
+| Python 3.10+ med `requirements.txt` (PyYAML, openpyxl) | Byggeri og tjek |
+| Node 22+ | Efterprøvning af Functional Location-reglerne mod `html/*.js` (uden Node bygges der, men reglerne er ikke efterprøvet) |
+| .NET 10 (`dnx`) | Canvas authoring MCP-serveren bag `tools/canvas_mcp.py` — se docs/21 |
+| PnP.PowerShell 2.x (Windows PowerShell 5.1) | `sharepoint/provision/*.ps1` |
+| pac CLI | `tools/export_solution.ps1` (hentes med `dnx`, hvis den mangler) |
+
+Status på kendte fund og den prioriterede plan står i [`REVIEW.md`](REVIEW.md).
+
+**Farver og breakpoints står ét sted for alle apps** og må ikke skrives
 i en builder — byggeriet stopper, hvis nogen gør:
 
 | Fil | Ejer |
 |---|---|
 | [`tools/design_tokens.py`](tools/design_tokens.py) | Alle farver, begge temaer. Mørk tilstand er den anden gren af samme `If`. Se [`docs/26-designtokens.md`](docs/26-designtokens.md) |
 | [`tools/layout_tokens.py`](tools/layout_tokens.py) | Alle breakpoints. `LayoutContext` / `LayoutRank`. Se [`docs/27-layouttokens.md`](docs/27-layouttokens.md) |
-| [`tools/build_helpers.py`](tools/build_helpers.py) `app_frame` / `top_bar` / `flow_row` | Rammen, bjælken og rækker der ombryder — ens i alle fire apps. Se [`docs/30-responsivt-layout.md`](docs/30-responsivt-layout.md) |
+| [`tools/build_helpers.py`](tools/build_helpers.py) `app_frame` / `top_bar` / `flow_row` | Rammen, bjælken og rækker der ombryder — ens i alle apps. Se [`docs/30-responsivt-layout.md`](docs/30-responsivt-layout.md) |
 
 Arbejdsgangen står i [`.github/skills/canvas-build/SKILL.md`](.github/skills/canvas-build/SKILL.md).
 
@@ -58,11 +72,11 @@ strategien.
 Backend: SharePoint-lister. Frontend: Canvas app i Power Apps, med
 HTML-komponenten brugt der hvor den faktisk hjælper.
 
-> Status: **oplæg til review.** Intet er besluttet. Åbne spørgsmål står i
-> `docs/01-loesningsoplaeg.md` §10 – især de to i `docs/05-implementeringsplan.md`
-> fase 0, som ændrer omfanget markant.
+> Dokumenterne 01–05 er det **oprindelige oplæg** og markeret som historiske
+> (den `VHP_*`-model, de beskriver, blev ikke bygget). Den byggede løsning
+> er beskrevet i SKILL.md, docs/07, docs/21 og docs/26–32.
 
-## Læs i denne rækkefølge
+## Oplægget (historisk) og de levende dokumenter
 
 | Fil | Indhold |
 |---|---|
@@ -81,19 +95,20 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 |---|---|
 | `tools/canvas_mcp.py` | Byg, compile og synk til Studio via canvas-authoring MCP-serveren — uden VS Code |
 | `tools/export_solution.ps1` | Hent solution BIO SAP ned som læsbare filer — flows, miljøvariabler, connection references |
+| `powerfx/*.fx` | **Designnoter** fra oplægget — ikke kode, der bygges. FL-builderne bruger 03/04 som mønster |
 | `powerfx/01-app-formulas.fx` | Named formulas, opstart, navigation |
 | `powerfx/02-pakkematrix.fx` | Pakkematricen – nested gallery, toggle, genveje |
 | `powerfx/03-validering.fx` | Regelsæt S1–S9 som én meddelelsestabel |
 | `powerfx/04-submit-patch.fx` | Genoptageligt gem + JSON-snapshot ved submit |
 | `powerfx/05-html-timeline.fx` | Formel, der bygger HTML-forfaldskalenderen |
-| `sharepoint/provision/Provision-VHPlanLists.ps1` | Idempotent PnP-provisionering af alle lister |
+| `sharepoint/provision/Provision-*.ps1` | Idempotent PnP-provisionering af de lister, apperne bruger (se Hurtig start) |
 | `sharepoint/provision/Provision-RequestIndex.ps1` | `MD_RequestIndex` — den fælles indeksliste bag landingssiden |
 | `sharepoint/provision/Provision-VHPlanApproval.ps1` | Godkendelsesflowets fase 1: kolonner på `MaintenancePlans`, `MD_Approver`, `MD_ApprovalLog`, grænsen i `AppSettings` — se `docs/32` |
-| `sharepoint/seed/*.csv` | Eksempelmasterdata: fire strategier med pakker |
+| `sharepoint/seed/*.csv` | Masterdata: strategier, pakker, hjælpetekster, godkendere, FL-nøgler |
 | `schema/vhplan-request.schema.json` | Kontrakten mod SAP |
 | `schema/example-strategy-request.json` | Udfyldt eksempel (kompressor, Z-MONTH) |
 | `html/cycle-timeline-reference.html` | Referenceoutput – åbn i en browser |
-| `excel/vba/*.bas` | Ni VBA-moduler: kilde, kontrakt, SAP GUI Scripting, batch |
+| `excel/vba/*.bas` | VBA-moduler: kilde, kontrakt, SAP GUI Scripting, batch |
 | `excel/powerquery/*.m` | SharePoint-lister → Excel-tabeller, inkl. pakkepivot |
 | `excel/VHPlan-SAP-skabelon.xlsx` | Projektmappe med de rigtige tabeller og eksempeldata |
 
@@ -140,18 +155,26 @@ ikke kan laves i native kontroller.
 
 ```powershell
 Install-Module PnP.PowerShell -Scope CurrentUser
+$site = "https://<tenant>.sharepoint.com/sites/<site>"
 
-# Listerne bag VH-plan-appen
-.\sharepoint\provision\Provision-VHPlanLists.ps1 `
-    -SiteUrl "https://<tenant>.sharepoint.com/sites/<site>" `
-    -SeedMasterData
+# Indekslisten bag landingssiden. -AddSampleRows giver fire prøverækker.
+.\sharepoint\provision\Provision-RequestIndex.ps1 -SiteUrl $site -AddSampleRows
 
-# Indekslisten bag landingssiden. -AddSampleRows giver fire prøverækker,
-# så hubben kan åbnes, før de fem submit-flows er bygget.
-.\sharepoint\provision\Provision-RequestIndex.ps1 `
-    -SiteUrl "https://<tenant>.sharepoint.com/sites/<site>" `
-    -AddSampleRows
+# Domænernes lister
+.\sharepoint\provision\Provision-EqMatLists.ps1              -SiteUrl $site
+.\sharepoint\provision\Provision-FunctionalLocationLists.ps1 -SiteUrl $site
+.\sharepoint\provision\Provision-StrategyLists.ps1           -SiteUrl $site
+.\sharepoint\provision\Provision-TasklistLists.ps1           -SiteUrl $site
+.\sharepoint\provision\Provision-StandardTaskOperations.ps1  -SiteUrl $site
+.\sharepoint\provision\Provision-VHPlanColumns.ps1           -SiteUrl $site
+.\sharepoint\provision\Provision-VHPlanApproval.ps1          -SiteUrl $site
+.\sharepoint\provision\Provision-HelpText.ps1                -SiteUrl $site
 ```
+
+VH-planens egne lister (`MaintenancePlans`, `MaintenanceItems`,
+`TaskListMain` …) findes i forvejen; scripterne ovenfor tilføjer kolonner og
+de nye `MD_*`-lister. Det tidligere `Provision-VHPlanLists.ps1` ligger i
+`archive/` — det oprettede den ubrugte `VHP_*`-model.
 
 Åbn derefter `html/cycle-timeline-reference.html` i en browser for at se,
 hvad forfaldskalenderen skal ende med at vise.

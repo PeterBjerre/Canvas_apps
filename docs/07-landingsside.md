@@ -1,5 +1,20 @@
 # Landingsside for SAP masterdata-indmeldinger
 
+> **Hvor den byggede hub afviger fra oplægget nedenfor** (se
+> `Masterdata Hub/README.md` og `build_hub.py` for det gældende):
+>
+> - Navigation sker i **samme fane** (`LaunchTarget.Replace`), ikke `New`.
+> - "Open" bygger URL'en af rækkens **domæne** (`tools/canvas_apps.json`);
+>   `AppUrl` er kun reserve.
+> - Domæneapperne skriver selv deres række i `MD_RequestIndex` ved kladde og
+>   indsendelse; flows skriver de senere statusændringer.
+> - UI'et er engelsk ("Queue", "Coming soon"); fliserne har ingen "Opret ny"
+>   — "New request" står i bjælken.
+> - Køen viser hele afdelingen; `AssignedToEmail` bruges ikke endnu.
+> - `AppUrl` er Text(255) i det provisionerede skema, ikke Text(500).
+> - Regel 6 (ingen fem `CountRows(Filter(...))`) og regel 7 (Refresh-knap) er
+>   **ikke** overholdt endnu — se `REVIEW.md` B1 og B6.
+
 Afdelingen håndterer masterdata for **funktionspladser, udstyr, målepunkter,
 materialer og VH-planer**. Hver af dem får sin egen indmeldingsapp. Dette
 dokument beslutter, hvordan de bindes sammen.

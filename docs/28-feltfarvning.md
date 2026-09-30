@@ -19,7 +19,7 @@ formular ved siden af hinanden.
 I Equipments formular stod fire af dem side om side:
 
 ```
-inpManufacturer    (tekst, ikke krævet)   ->  ingen farve, nogensinde
+inpDomManufacturer (tekst, ikke krævet)   ->  ingen farve, nogensinde
 inpWarrantyStart   (dato)                 ->  altid grå, og HVID i visningstilstand
 inpRequestType     (tekst, ikke krævet)   ->  ingen farve
 inpDomText         (tekst, krævet)        ->  rød fra appen åbnede

@@ -1,15 +1,16 @@
 ---
 name: canvas-build
-description: Arbejdsgang for de FIRE canvas apps i dette repo — "Maintenance Plan App" (VH-plan), "Masterdata Hub" (landingssiden), "Equipment App" (Equipments) og "Material App" (Materials). Brug den ved ENHVER ændring af en skærm, App.OnStart, layout, farver, breakpoints, Power Fx-formler, kontroller eller datakilder. Ret builderne i Python, generér .pa.yaml, kør layout-tjekket, og synkronisér først derefter til Power Apps Studio.
+description: Arbejdsgang for canvas apps i dette repo — "Maintenance Plan App" (VH-plan), "Masterdata Hub" (landingssiden), "Equipment App" (Equipments), "Material App" (Materials), "Functional Location App" og den samlede test-app "BIO SAP App". Brug den ved ENHVER ændring af en skærm, App.OnStart, layout, farver, breakpoints, Power Fx-formler, kontroller eller datakilder. Ret builderne i Python, generér .pa.yaml, kør layout-tjekket, og synkronisér først derefter til Power Apps Studio.
 ---
 
 # Canvas apps: byg og deploy
 
 ## Den ene regel
 
-`.pa.yaml`-filerne er **genereret**. `ScreenVhPlan.pa.yaml` er godt 15.000
-linjer, `ScreenEquipment.pa.yaml` og `ScreenMaterial.pa.yaml` knap 6.000 hver,
-`ScreenMdHub.pa.yaml` godt 3.000. `App.pa.yaml` er også genereret i alle fire. Retter du direkte i dem, er ændringen væk, næste gang nogen
+`.pa.yaml`-filerne er **genereret**. `ScreenVhPlan.pa.yaml` er knap 16.000
+linjer, `ScreenEquipment.pa.yaml` og `ScreenMaterial.pa.yaml` godt 11.000 hver,
+`ScreenFunctionalLocation.pa.yaml` godt 5.000 og `ScreenMdHub.pa.yaml` knap
+4.000. `App.pa.yaml` er også genereret i alle apps. Retter du direkte i dem, er ændringen væk, næste gang nogen
 kører builderen — og du efterlader en fil, der ikke længere matcher sin kilde.
 
 **Ret i `build/*.py`. Altid.**
@@ -23,7 +24,7 @@ ingen undtagelse.
 `#rrggbb`. `tools/build_all.py` nægter at bygge, hvis nogen skriver en, og
 den læser syntakstræet, så en kommentar må gerne nævne en farve.
 
-Alle farver står i `tools/design_tokens.py` — ét sted for alle fire
+Alle farver står i `tools/design_tokens.py` — ét sted for alle
 apps, i to udgaver. Builderne skriver en **tokenreference**:
 
 ```python
@@ -44,7 +45,7 @@ genberegner Power Fx formlen, og hver kontrol, der læser
 findes.
 
 Skal en farve ændres, rettes den **i begge temaer** i
-`tools/design_tokens.py`, og alle fire apps skifter sammen.
+`tools/design_tokens.py`, og alle apps skifter sammen.
 
 Skal en farve bruges inde i en **HTML-streng** (`HtmlViewer`), så brug
 `design_tokens.ref_hex()` — hex-værdierne afledes af de samme tokens og
@@ -142,7 +143,7 @@ alle tre er nu spærret af byggeriet. Hele forklaringen står i
    `build_helpers.flow_row()`: enten vandret på én linje, eller lodret med
    ét barn pr. linje (`LayoutDirection = If(...)`). Skriv aldrig
    `wrap="true"` med en håndregnet højde. Bjælken er
-   `build_helpers.top_bar()` i alle fire apps.
+   `build_helpers.top_bar()` i alle apps.
 4. **`Parent.Width` er forælderens Width-EGENSKAB, ikke pladsen inden i
    den.** Padding og scrollbar er ikke trukket fra. Regn aldrig med den:
    resten af en række er `build_helpers.grow(ctrl)` (FillPortions), en
@@ -216,7 +217,7 @@ markeret) og en fod med **Help**-kontakten (kun VH-plan) og **temaskiftet**.
 | Lade et felt tage resten af en række | `grow(ctrl)` — aldrig `Parent.Width - n` |
 | Regne en højde | Konstanter, `App.Width`/`LayoutRank`, `CountRows(col…)`. Aldrig en datakilde |
 
-## Fire apps — hver med sin selvstændige build-mappe
+## Apps — hver med sin egen build-mappe
 
 | App | Mappe | Skærm | Byg |
 |---|---|---|---|
@@ -224,6 +225,8 @@ markeret) og en fod med **Help**-kontakten (kun VH-plan) og **temaskiftet**.
 | Landingsside | `Masterdata Hub/` | `ScreenMdHub.pa.yaml` | `generate_hub_onstart.py` + `assemble_hub.py` |
 | Equipments | `Equipment App/` | `ScreenEquipment.pa.yaml` | `generate_app_onstart.py` + `assemble_screen.py` |
 | Materials | `Material App/` | `ScreenMaterial.pa.yaml` | `generate_app_onstart.py` + `assemble_screen.py` |
+| Functional Location | `Functional Location App/` | `ScreenFunctionalLocation.pa.yaml` | `generate_app_onstart.py` + `assemble_screen.py` (reglerne: `docs/31`) |
+| BIO SAP (test) | `BIO SAP App/` | alle fem | `generate_app.py` + `build_screens.py` + `check_combined.py` — se `BIO SAP App/README.md` |
 
 **De fælles filer ligger i `tools/` — i én udgave, ikke fire kopier.**
 
@@ -232,7 +235,7 @@ tools/gen_screen.py      DSL, højde-algebra, C_*-navnene der peger på tokens
 tools/build_helpers.py   byggeklodser: card, group, button_row, inputs, theme_button
 tools/side_nav.py        sidebaren - den samme i alle fem apps
 tools/check_layout.py    layout-tjekket
-tools/build_domain.py    Equipments og Materials' fælles skærm
+tools/domain_parts.py    Equipments og Materials' fælles byggeklodser
 tools/attflows.py        flow-kontrakten for dokumenter
 tools/build_flsearch.py  flow-kontrakten for FL-søgning
 tools/fl_picker.py       FL-vælgeren: én ModernCombobox + Search (VH-plan, Eq, Mat)
@@ -254,10 +257,12 @@ Hver `build/`-mappe indeholder nu kun det, der er appens eget:
 
 | App | Egne filer |
 |---|---|
-| VH-plan | `sp_config.py` + de ni `build_*.py`, der bygger dens skærm |
+| VH-plan | `sp_config.py` + de elleve `build_*.py`, der bygger dens skærm |
 | Masterdata Hub | `hub_config.py`, `build_hub.py` |
 | Equipments | `domain_config.py`, `equipment_parts.py` (felternes rækkefølge og listens kolonner) + de to indgange |
 | Materials | `domain_config.py`, `material_parts.py` (felternes rækkefølge, No BOM Item og listens kolonner) + de to indgange |
+| Functional Location | `fl_config.py`, `fl_parts.py`, `fl_validation.py`, `fl_save.py`, `fl_rules.generated.json` (genereret af `tools/fl/harness.js plan`) |
+| BIO SAP | Ingen skærmbyggere — kun kompositionen af de fem |
 
 > **To fælder, begge ramt under flytningen — og begge nu spærret:**
 >
@@ -275,21 +280,23 @@ Hver `build/`-mappe indeholder nu kun det, der er appens eget:
 ## `--app` bygger kun den ene
 
 ```
-python3 tools/build_all.py                 alle fire
+python3 tools/build_all.py                 alle apps
 python3 tools/build_all.py --app equipment kun den
 ```
 
-Nøglerne er `vhplan`, `hub`, `equipment`, `material`, eller mappenavnet.
+Nøglerne er `vhplan`, `hub`, `equipment`, `material`, `functionallocation`,
+`biosap`, eller mappenavnet.
 `deploy` bruger den selv, så et Equipment-deploy kun bygger Equipment.
 
-Det handler ikke om tid — hele byggeriet tager fire sekunder. Det handler
+Det handler ikke om tid — hele byggeriet tager godt ti sekunder. Det handler
 om, at de tre andre apps' output ikke skal rulle det væk, man faktisk
 skulle se: en advarsel i VH-plan midt i et Equipment-deploy ligner en, der
 hører til.
 
-**To ting kører altid, også målrettet:** at de fælles filer er ordret ens,
-og at app-id'erne ikke er gledet fra hinanden. De tager millisekunder, og
-de handler netop om det, en målrettet bygning ellers ville springe over.
+**Farvevagten kører altid, også målrettet** (builderne og `tools/`). Den
+tager millisekunder og handler netop om det, en målrettet bygning ellers
+ville springe over. (Vagterne over kopierede filer og app-id'er er væk:
+der er ikke længere kopier, og id'erne står ét sted.)
 Datakilde-tjekket læser også alle skærme — de øvrige ligger på disken i
 forvejen, og et kolonnenavn, der ændrer sig ét sted, kan brække en anden
 app.
@@ -306,8 +313,10 @@ Alt på én gang — bruger denne, medmindre du har en grund til andet:
 python3 tools/build_all.py
 ```
 
-Den tjekker først, at de tre kopierede filer er ens, bygger derefter begge
-apps og kører begge layout-tjek. Alt skal være grønt, før du synkroniserer.
+Den kører PowerShell-, solution- og hemmelighedstjekket, farvevagten og
+FL-regeltjekket, bygger derefter alle apps og kører deres layout-tjek, og
+slutter med datakilde-, sprog- og hjælpetekst-tjekket. Alt skal være grønt,
+før du synkroniserer.
 
 Én app ad gangen:
 
@@ -333,14 +342,14 @@ nævner kontrollen.
 | Builder | Ejer |
 |---|---|
 | `sp_config.py` | **Datakilde-kontrakten**: hvilke SharePoint-lister og kolonner appen læser. Ret HER, ikke i formlerne |
-| `gen_screen.py` | Kontroltræ-DSL, stylingkonstanter, **højde-algebra** (`stack_height`, `row_height`) |
-| `build_helpers.py` | Byggeklodser: `card`, `group`, `field_cell`, `button_row`, inputs, `combobox` |
+| `tools/gen_screen.py` | Kontroltræ-DSL, stylingkonstanter, **højde-algebra** (`stack_height`, `row_height`) — fælles |
+| `tools/build_helpers.py` | Byggeklodser: `card`, `group`, `field_cell`, `button_row`, inputs — fælles |
 | `build_hero.py` | Topbjælken med progressbaren: fem klikbare trin (Plan, Item, Task list, Operations/Packages, Save) og **Submit** til sidst, plus **Save draft** |
 | `build_status.py` | **Trinenes status og valideringen** som navngivne formler (`VhpStep*Done`, `VhpValidationErrors`, `VhpCanSubmit`, `VhpStateJson`) — reglerne fra den tidligere Validate-knap |
 | `build_plan_header.py` | Planhoved, plantype, strategivalg, `section_header` |
 | `build_items.py` | Items-skinne (klikbare kort med Delete), Item Editor, FL-felt, Object List-popup'en |
-| `build_flsearch.py` | **Flow-kontrakten for FL-søgning** — outputnavn og feltnavne ligger kun her |
-| `build_attflows.py` | **Flow-kontrakten for dokumenter** — de tre attachment-flows, mappenavnet og de to former af `text` |
+| `tools/build_flsearch.py` | **Flow-kontrakten for FL-søgning** — outputnavn og feltnavne ligger kun her (fælles) |
+| `build_attflows.py` | VH-planens udgave af dokumentruden — kun det, der afviger fra `tools/attflows.py` |
 | `build_tasklist.py` | Tasklist, operationstabel, materialer, dokumenter |
 | `build_strategy.py` | Pakkematricen (strategiplaner) |
 | `build_modal.py` | Tasklist-picker |
@@ -408,7 +417,7 @@ Se `docs/23-eq-mat-apps.md` og `docs/24-eq-mat-persistering.md`.
 
 | Builder | Ejer |
 |---|---|
-| `hub_config.py` | **Al tilpasning**: listenavn, `ENV_ID`, de fem domæner (navn, farve, `app_id`) og statusordforrådet |
+| `hub_config.py` | **Al tilpasning**: listenavn, de fem domæner (navn, farve, app-nøgle) og statusordforrådet. App-id'er og URL'er kommer fra `tools/canvas_apps.json` |
 | `build_hub.py` | Toplinje, domænefliser, filtre, listen |
 | `assemble_hub.py` | Samler skærmen → `../ScreenMdHub.pa.yaml` |
 | `generate_hub_onstart.py` | `App.OnStart` → `../App.pa.yaml` |
@@ -434,14 +443,14 @@ et andet sted.
    hver gang. Galleriet binder direkte til sit filter, og flisernes tal
    tælles på det samme, allerede afgrænsede sæt.
 
-Begge grene af `SCOPE` skal blive ved at være delegerbare: `RequesterEmail`
+`SCOPE` er ét fladt `Filter`, og hver betingelse skal blive ved at være delegerbar: `RequesterEmail`
 er indekseret **tekst** (ikke en Person-kolonne), og køen filtrerer på det
 indekserede boolske `IsOpen` — ikke på en række OR'ede statusværdier.
 
 ## Hvad check_layout.py fanger
 
 Canvas-layout kan ikke renderes uden for Studio, så det regnes efter i
-stedet, for 0–8 items og 0–12 operationer og for de skærmbredder,
+stedet, for de skærmbredder,
 `layout_tokens.test_widths()` giver — **hver breakpoint-grænse og pixlen
 under den** (420, 719, 720, 1023, 1024, 1366, 1599, 1600, 1920). Før stod
 der en håndplukket liste, der sprang henover 1023, og det er præcis dér,
@@ -520,7 +529,7 @@ har tastet noget".
 
 **Rød betyder "jeg har tjekket".** VH-plan gater på `varVhpPlanValidated`
 (Save i Plan Header og i Item Editor), Equipment og Material på `varDomValidated`, som sættes
-når brugeren trykker Gem eller Indsend. Ingen app viser rødt, før brugeren
+når brugeren trykker Gem. Ingen app viser rødt, før brugeren
 har bedt om et tjek — "rød fra første sekund" lærer brugeren at se bort fra
 rødt.
 
@@ -624,9 +633,9 @@ Patch(kilde, ForAll(raekker), ForAll(aendringer))
 Flowkald og anden adfærd pr. række må gerne blive i løkken — det er kun
 **skrivningen**, der skal ud.
 
-VH-plan-appen har otte af dem og kører. Derfor er den en advarsel: at gøre
-den til en stopklods ville betyde, at ingen kunne bygge noget, før de otte
-var lavet om. De to domæneapps er rene.
+Den er en advarsel, fordi VH-plan engang havde otte af dem. I dag har ingen
+app nogen (efterprøvet i `REVIEW.md`), så reglen kan gøres til en fejl.
+NB: den læser kun skærmen, ikke `App.pa.yaml`.
 
 ## Synkronisér til Studio
 
@@ -680,7 +689,7 @@ python3 tools/build_all.py --env prod
 ```
 
 Et nyt miljø er én blok mere under `environments`. `--env` sætter
-`CANVAS_ENV` for byggescripterne, så alle fire apps bygges mod **det samme**
+`CANVAS_ENV` for byggescripterne, så alle apps bygges mod **det samme**
 miljø — og `canvas_mcp.py` læser den samme fil, så man ikke kan bygge mod
 ét miljø og deploye til et andet.
 
@@ -737,15 +746,15 @@ genererede kilder — derfor arbejder `tools/canvas_mcp.py` på en kopi i
 `tools/export_solution.ps1`. Den findes, så flows, miljøvariabler og
 connection references kan læses her i repoet i stedet for i browseren.
 
-**De to canvas apps bygges stadig af Python-builderne.** Eksporten
+**Apperne bygges af Python-builderne.** Eksporten
 indeholder også appene som `.msapp` — de er *resultatet* af sidste deploy,
 ikke kilden til den næste. Retter nogen i en `.msapp` eller pakker
 solutionen tilbage, er ændringen væk ved næste `python3 tools/build_all.py`,
 og så er der to sandheder om den samme skærm.
 
-`.msapp`-filerne er derfor i `.gitignore`. Men så kunne YAML'en inde i dem
+`.msapp`-filerne er derfor i `.gitignore` (og ikke i git). Men så kunne YAML'en inde i dem
 heller ikke læses fra repoet, og en app, der *kun* findes i solutionen —
-Equipment, Materialer, KKS — var dermed en sort kasse for alle andre end
+fx de ældre KKS- og BIOSAP-apps — var dermed en sort kasse for alle andre end
 den, der sad ved maskinen. Derfor pakker `tools/unpack_msapp.py` hver
 `.msapp` ud som tekst i en mappe ved siden af:
 
@@ -946,8 +955,8 @@ ikke er tilføjet appen som datakilde. Det kan ikke gøres fra YAML.
 Bruger din ændring et nyt flow, en ny liste eller en ny connector, så **bed
 brugeren tilføje den i Studio først**, og gå ikke videre før det er bekræftet.
 
-- VH-plan bruger flowet `BioSapIntegrationFunctionalLocations`. Svarer flowet
-  anderledes end forventet, rettes de fire konstanter i `build_flsearch.py` —
+- VH-plan, Equipment og Material bruger flowet `BioSap-Integration-FunctionalLocations`. Svarer flowet
+  anderledes end forventet, rettes konstanterne i `tools/build_flsearch.py` —
   ikke formlerne ude i skærmen.
 - Masterdata Hub bruger SharePoint-listen `MD_RequestIndex`. Den oprettes med
   `sharepoint/provision/Provision-RequestIndex.ps1`.

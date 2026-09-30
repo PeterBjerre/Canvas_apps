@@ -1,5 +1,7 @@
 # SharePoint-datamodel
 
+> **Status: historisk.** Beskriver den oprindelige `VHP_*`-model (bl.a. "relationer er Number"). De rigtige lister bruger Lookup-kolonner — se `sharepoint/inspect/out/schema.md`.
+
 Konventioner:
 
 - **Intern navn = vist navn uden mellemrum.** Opret altid kolonnen med det

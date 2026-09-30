@@ -1,5 +1,7 @@
 # Løsningsoplæg – VH-plans app med strategiplaner og pakker
 
+> **Status: historisk.** Oplægget bag VH-plan-delen, skrevet før de rigtige SharePoint-lister. `VHP_*`-modellen blev ikke bygget; apperne kører mod listerne i docs/09–11.
+
 > Status: oplæg til review. Alt i dette dokument er forslag, ikke besluttet.
 > Åbne spørgsmål er samlet i afsnit 10.
 

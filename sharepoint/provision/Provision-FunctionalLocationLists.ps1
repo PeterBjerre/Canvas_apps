@@ -67,7 +67,7 @@ if (-not $ClientId) { $ClientId = '9bc3ab49-b65d-410a-85ad-de819febfddc' }
 Connect-PnPOnline -Url $SiteUrl -Interactive -ClientId $ClientId
 
 # ---------------------------------------------------------------------------
-# Hjaelpefunktioner - samme form som Provision-VHPlanLists.ps1. Navnene
+# Hjaelpefunktioner - samme form som det arkiverede Provision-VHPlanLists.ps1 (archive/). Navnene
 # er repoets (New-MdList/New-MdField/New-MdNoteField): tools/check_datasources.py
 # laeser dem og ved derfor, at listerne og kolonnerne kommer herfra.
 # ---------------------------------------------------------------------------
