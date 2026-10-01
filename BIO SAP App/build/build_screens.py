@@ -326,12 +326,37 @@ def build_vhplan():
 
 
 # ---------------------------------------------------------------------------
+# KKS-opslaget
+# ---------------------------------------------------------------------------
+def build_kks():
+    """En OPSLAGSSKAERM (combined.LOOKUPS): ingen anmodning at aabne, saa
+    ingen open_block. Skaermens egen OnVisible saetter tilstanden og henter
+    noeglerne foerste gang - ogsaa i den samlede app. Domaenets OnStart
+    (kun skemaerne for samlingerne) staar foran den, som i de andre
+    domaener, og ventespinneren har skaermen i forvejen."""
+    d = cb.BY_KEY["kks"]
+    _navigation()
+    asm = _load(d, "assemble_screen.py")
+    seen, fake = _capture()
+    asm.build_screen(render=fake)
+    if seen["props"].get("OnVisible") != asm.P.on_visible():
+        raise SystemExit("KKS: OnVisible er ikke laengere kks_parts.on_visible() - "
+                         "ret build_kks().")
+    seen["props"]["OnVisible"] = (cb.domain_onstart(d) + ";\n\n"
+                                  + seen["props"]["OnVisible"])
+    from gen_screen import render_screen
+    _write(d["screen"], render_screen(d["screen"], screen_props(seen["props"]),
+                                      seen["children"]))
+
+
+# ---------------------------------------------------------------------------
 BUILDERS = {
     "hub": build_hub,
     "functionallocation": build_functionallocation,
     "vhplan": build_vhplan,
     "equipment": lambda: build_domain_app("equipment"),
     "material": lambda: build_domain_app("material"),
+    "kks": build_kks,
 }
 
 

@@ -17,6 +17,7 @@ navnerum. Det her fanger det, der gaar galt, naar de flyttes sammen:
   5. Param("reqid") laeses kun dér, hvor skaermen klargoeres
      (build_screens.open_block). Alle andre steder er det domaenets egen
      variabel - Param() er det samme hele sessionen og for alle skaerme.
+     Hubben og opslagsskaermene (combined.LOOKUPS) laeser den slet ikke.
 
 Til sidst en optaelling af kontroller pr. skaerm.
 """
@@ -131,7 +132,8 @@ def main():
         if "Launch(\"https://apps.powerapps.com" in text:
             problems.append("[4] %s starter en anden app med Launch()" % s)
         n = text.count('Param("reqid")')
-        want = 0 if s == cb.SCREENS["hub"] else 1
+        # Hubben og opslagsskaermene (KKS) aabner ingen anmodning.
+        want = 0 if s in {cb.SCREENS[k] for k in ("hub", *cb.LOOKUPS)} else 1
         if n != want:
             problems.append('[5] %s laeser Param("reqid") %d gang(e), forventet %d'
                             % (s, n, want))

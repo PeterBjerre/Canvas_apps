@@ -23,6 +23,7 @@ Baggrunden for beslutningen står i
 | `ScreenVhPlan` | VH-plan |
 | `ScreenEquipment` | Equipments |
 | `ScreenMaterial` | Materials |
+| `ScreenKks` | KKS-opslaget. En **opslagsskærm**: ingen anmodninger, så hubben åbner den ikke, og den har intet `?reqid=`. Den henter nøglerne én gang, første gang den vises. Se [`../KKS App/README.md`](../KKS%20App/README.md) |
 
 Hver domæneskærm har én kontrol mere end i den enkelte app: ventespinneren.
 Antallet pr. skærm skrives ud af `build/check_combined.py` ved hvert build
@@ -99,8 +100,9 @@ fra en af de fem enkeltapps — skriver den `AppUrl` =
    `.github/skills/canvas-build/SKILL.md`, "Datakilder skal findes i appen
    først"). Det er foreningsmængden af de fem appers:
 
-   *SharePoint-lister (19):* `CallHorizonMatrix`, `EquipmentItems`,
-   `FunctionalLocationItems`, `FunctionalLocationRequests`, `MD_HelpText`,
+   *SharePoint-lister (21):* `CallHorizonMatrix`, `EquipmentItems`,
+   `FunctionalLocationItems`, `FunctionalLocationRequests`, `MD_FLKey`,
+   `MD_HelpText`, `MD_KksFunctionKey`,
    `MD_RequestIndex`, `MD_StandardTaskOperations`, `MD_Strategy`,
    `MD_StrategyPackage`, `MD_TasklistAttachment`, `MD_TasklistMaterial`,
    `MainWorkCenters`, `MaintenanceActivityTypeList`, `MaintenanceItems`,
@@ -165,7 +167,7 @@ python3 tools/build_all.py --app biosap # kun den samlede
 |---|---|
 | `build/combined.py` | Domænerne, omdøbningen og indlæsningen af de fem appers `App.pa.yaml` |
 | `build/generate_app.py` | → `../App.pa.yaml`: formlerne flettet, slank OnStart, StartScreen |
-| `build/build_screens.py` | → de fem skærme. Hver app i sin egen proces |
+| `build/build_screens.py` | → de seks skærme. Hver app i sin egen proces |
 | `build/check_combined.py` | Unikke navne i hele appen, ingen referencer på tværs af skærme, ingen delte variabler |
 | `build/check_layout.py` | `tools/check_layout.py` på hver skærm |
 
