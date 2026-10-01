@@ -277,16 +277,18 @@ Hver `build/`-mappe indeholder nu kun det, der er appens eget:
 >    kiggede aldrig på den fil. Variabelnavnet er nu en parameter
 >    (`raw_var=`), så der ikke er en linje tilbage, der kan skille to apps.
 
-## `--app` bygger kun den ene
+## Én app: BIO SAP
+
+De fem enkeltapps er udfaset (`"single_apps": "retired"` i
+`tools/canvas_apps.json`, docs/33). Byggeriet og deploy arbejder kun med
+`biosap`; `--app equipment` og de andre afvises med en besked. Skærmene
+bygges stadig af byggerne i de fem mapper, og deres `App.pa.yaml` er
+mellemprodukter, som ikke ligger i git.
 
 ```
-python3 tools/build_all.py                 alle apps
-python3 tools/build_all.py --app equipment kun den
+python3 tools/build_all.py                 BIO SAP App + alle tjek
+python3 tools/build_all.py --app biosap    det samme
 ```
-
-Nøglerne er `vhplan`, `hub`, `equipment`, `material`, `functionallocation`,
-`biosap`, eller mappenavnet.
-`deploy` bruger den selv, så et Equipment-deploy kun bygger Equipment.
 
 Det handler ikke om tid — hele byggeriet tager godt ti sekunder. Det handler
 om, at de tre andre apps' output ikke skal rulle det væk, man faktisk
@@ -689,7 +691,7 @@ NB: den læser kun skærmen, ikke `App.pa.yaml`.
 Uden agent, i en terminal — samme MCP-server, uden credits:
 
 ```powershell
-python tools\canvas_mcp.py deploy --app vhplan
+python tools\canvas_mcp.py deploy --app biosap
 ```
 
 Den bygger, forbinder, compiler, synkroniserer og kører begge tjek i den
@@ -757,7 +759,7 @@ ikke — efterprøvet mod en rigtig servereksport: 0 fund. Er der fund,
 stopper den og siger:
 
 ```powershell
-python tools\canvas_mcp.py deploy --app equipment --clean
+python tools\canvas_mcp.py deploy --app biosap --clean
 ```
 
 `--clean` sender først en tom skærm og derefter den rigtige, så hele

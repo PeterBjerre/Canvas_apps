@@ -6,10 +6,10 @@ er ét Python-script, der taler JSON-RPC over stdio med serveren.
 
 ```powershell
 # alt på én gang: byg -> compile -> sync -> app checker
-python tools\canvas_mcp.py deploy --app vhplan
+python tools\canvas_mcp.py deploy --app biosap
 
 # eller, med forudsætningstjek først
-.\tools\Deploy-CanvasApp.ps1 -App vhplan
+.\tools\Deploy-CanvasApp.ps1 -App biosap
 ```
 
 ## Før du kører
