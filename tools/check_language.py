@@ -34,6 +34,7 @@ en Switch, eller i ALLOW nedenfor.
 import io
 import os
 import re
+import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -100,10 +101,15 @@ SKIP = re.compile(r"^(#|RGBA|Font\.|https?:|[A-Za-z]+\.[A-Za-z]|@odata|[\d\s,.:;
 
 
 def screens():
+    # Udfasede enkeltapps springes over: deres .pa.yaml ignoreres af git og
+    # kan vaere gamle (docs/33-udfasning.md).
+    sys.path.insert(0, os.path.join(ROOT, "tools"))
+    import env_config
+    skip = set(env_config.retired_folders())
     out = []
     for d in sorted(os.listdir(ROOT)):
         p = os.path.join(ROOT, d)
-        if not os.path.isdir(p):
+        if not os.path.isdir(p) or d in skip:
             continue
         for f in sorted(os.listdir(p)):
             if f.endswith(".pa.yaml") and not f.startswith("_"):
