@@ -8,6 +8,7 @@ det byggede output (eller i en midlertidig fil), og tjekket skal melde den.
 
     python3 -m pytest tests
 """
+import contextlib
 import io
 import os
 import re
@@ -85,6 +86,23 @@ def test_layout_rule_30_column_against_expression(tmp_path):
         return t.replace("=LayoutRank", '=CountRows(Filter(EquipmentItems, IsOpen = (varEqView = "open"))) * 0 + LayoutRank', 1)
     rc, out = _layout(tmp_path, plant)
     assert rc == 1 and "[30]" in out and "The query is not valid" in out
+
+
+def test_layout_rule_34_onstart_clears_what_onvisible_fills(tmp_path):
+    """Issue #84: OnStart toemte hubbens taelling, OnVisible lige havde hentet."""
+    import check_layout
+    shutil.copy(os.path.join(APP, "App.pa.yaml"), tmp_path / "App.pa.yaml")
+    with open(tmp_path / "App.pa.yaml", "a", encoding="utf-8") as f:
+        f.write("# Clear(colMdScope)\n")
+    shutil.copy(os.path.join(APP, "ScreenMdHub.pa.yaml"), tmp_path / "ScreenMdHub.pa.yaml")
+    old_argv, sys.argv = sys.argv, ["check_layout.py", str(tmp_path / "ScreenMdHub.pa.yaml")]
+    buf = io.StringIO()
+    try:
+        with contextlib.redirect_stdout(buf):
+            rc = check_layout.main()
+    finally:
+        sys.argv = old_argv
+    assert rc == 1 and "[34]" in buf.getvalue()
 
 
 def test_layout_rule_16_classic_dropdown(tmp_path):

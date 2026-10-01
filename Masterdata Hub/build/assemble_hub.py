@@ -31,7 +31,7 @@ def build_screen(render=render_screen):
     # Tallene paa fliserne taelles i colMdScope, som hentes her og ved
     # skift af visning/status (build_hub.SCOPE_REFRESH).
     return render("ScreenMdHub", {"Fill": C_APP_BG,
-                                         "OnVisible": build_hub.SCOPE_REFRESH},
+                                         "OnVisible": build_hub.HUB_ON_VISIBLE},
                          [root, *nav, *build_new_menu(), *build_closed_peek(), *overlay])
 
 

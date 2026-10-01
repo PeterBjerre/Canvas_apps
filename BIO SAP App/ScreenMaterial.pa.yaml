@@ -22,17 +22,13 @@ Screens:
                       If(StartsWith(wantKey, "req:"), Mid(wantKey, 5),
                          StartsWith(wantKey, "link:"), Mid(wantKey, 6), "")
                   );
-                  ClearCollect(colMatRows, { RowId: 0, ItemKey: "", RequestNo: "", Status: "", FileCount: 0, MaterialDescription: "", Plant: "", FunctionalLocation: "", NoBomItem: false, Manufacturer: "", ModelNumber: "", ManufacturerPartNo: "", Supplier: "", SupplierPartNo: "", DeliveringTime: 0, Price: 0, PriceUnit: "", StockUnit: "", RecommendedStock: 0, StrategicPart: "", WearPart: "", LongText: "" });
-                  Clear(colMatRows);
+                  If(false, ClearCollect(colMatRows, { RowId: 0, ItemKey: "", RequestNo: "", Status: "", FileCount: 0, MaterialDescription: "", Plant: "", FunctionalLocation: "", NoBomItem: false, Manufacturer: "", ModelNumber: "", ManufacturerPartNo: "", Supplier: "", SupplierPartNo: "", DeliveringTime: 0, Price: 0, PriceUnit: "", StockUnit: "", RecommendedStock: 0, StrategicPart: "", WearPart: "", LongText: "" }));
           
-                  ClearCollect(colMatAttachments, { RowId: 0, FileName: "", FileUrl: "", Identifier: "", Selected: false });
-                  Clear(colMatAttachments);
+                  If(false, ClearCollect(colMatAttachments, { RowId: 0, FileName: "", FileUrl: "", Identifier: "", Selected: false }));
           
-                  ClearCollect(colMatAttUp, { Name: "", Ok: false });
-                  Clear(colMatAttUp);
+                  If(false, ClearCollect(colMatAttUp, { Name: "", Ok: false }));
           
-                  ClearCollect(colMatFl, { Code: "", Description: "", Display: "", Maintainable: false, Level: "" });
-                  Clear(colMatFl);
+                  If(false, ClearCollect(colMatFl, { Code: "", Description: "", Display: "", Maintainable: false, Level: "" }));
           
                   Set(varMatMe, Lower(User().Email));
                   Set(varMatRequestNo, "");

@@ -218,6 +218,21 @@ ROW_LIMIT = 500   # appens Data row limit (Studio -> Settings)
 SCOPE_REFRESH = f"ClearCollect(colMdScope, ForAll({SCOPE} As R, {{ Domain: R.Domain.Value }}))"
 SCOPE_FULL = f"CountRows(colMdScope) >= {ROW_LIMIT}"
 
+# SKAERMENS OnVisible - IKKE AFHAENGIG AF App.OnStart
+#
+# App.OnStart koerer SAMTIDIG med foerste skaerms OnVisible (non-blocking
+# OnStart). Taellingen ovenfor stod alene i OnVisible og laeste varMdView og
+# varMdMe, som OnStart saetter. Kom OnVisible foerst, var varMdView tom, og
+# fliserne talte HELE afdelingen under overskriften "my requests" - til man
+# trykkede paa en knap. Skaermen saetter derfor selv det, den taeller med,
+# hvis det ikke er sat endnu.
+HUB_ON_VISIBLE = (
+    "Set(varMdMe, Lower(User().Email));\n"
+    "If(IsBlank(varMdView), Set(varMdView, \"mine\"));\n"
+    "If(IsBlank(varMdStatusMode), Set(varMdStatusMode, \"open\"));\n"
+    + SCOPE_REFRESH
+)
+
 
 def scope_count(pred=None):
     """Antal i colMdScope (evt. afgraenset) som tekst - med "+" ved loftet."""

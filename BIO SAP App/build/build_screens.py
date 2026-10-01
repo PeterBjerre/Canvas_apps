@@ -218,7 +218,7 @@ def build_hub():
     # Hubbens OnVisible henter flisernes taellesamling (colMdScope). Den
     # skal koere ved hvert besoeg - ogsaa her, hvor man kommer tilbage fra
     # et domaene, der netop har gemt.
-    if seen["props"].get("OnVisible") != build_hub.SCOPE_REFRESH:
+    if seen["props"].get("OnVisible") != build_hub.HUB_ON_VISIBLE:
         raise SystemExit("Masterdata Hub's OnVisible er aendret - byg den ind her.")
     _write(d["screen"], render_screen(d["screen"], screen_props(seen["props"]),
                                       seen["children"]))

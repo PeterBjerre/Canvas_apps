@@ -38,8 +38,10 @@ Set(varMdDomain, "");
 Set(varMdStatusMode, "open");
 Set(varMdClosedPeek, false);
 // Skemaet for flisernes taellesamling - hentes i skaermens OnVisible.
-ClearCollect(colMdScope, { Domain: "" });
-Clear(colMdScope)'''
+// If(false, ...): kun skemaet, ingen handling. OnStart koerer samtidig med
+// OnVisible, og en Clear her kunne toemme taellingen, OnVisible lige havde
+// hentet - saa stod alle fliser paa 0.
+If(false, ClearCollect(colMdScope, { Domain: "" }))'''
 
 
 def main():

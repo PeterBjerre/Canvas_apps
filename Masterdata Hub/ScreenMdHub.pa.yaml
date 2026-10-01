@@ -4,7 +4,10 @@ Screens:
       Fill: |-
           =C.'bg-app'
       OnVisible: |-
-          =ClearCollect(colMdScope, ForAll(If(
+          =Set(varMdMe, Lower(User().Email));
+          If(IsBlank(varMdView), Set(varMdView, "mine"));
+          If(IsBlank(varMdStatusMode), Set(varMdStatusMode, "open"));
+          ClearCollect(colMdScope, ForAll(If(
                   varMdView = "mine",
                   If(
                       varMdStatusMode = "open", Filter(Filter('MD_RequestIndex', RequesterEmail = varMdMe), IsOpen = true),
