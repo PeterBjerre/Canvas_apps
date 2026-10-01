@@ -42,8 +42,19 @@ python3 tools/build.py           # det samme i én proces
 | Python 3.10+ med `requirements.txt` (PyYAML, openpyxl) | Byggeri og tjek |
 | Node 22+ | Efterprøvning af Functional Location-reglerne mod `html/*.js` (uden Node bygges der, men reglerne er ikke efterprøvet) |
 | .NET 10 (`dnx`) | Canvas authoring MCP-serveren bag `tools/canvas_mcp.py` — se docs/21 |
-| PnP.PowerShell 2.x (Windows PowerShell 5.1) | `sharepoint/provision/*.ps1` |
+| PowerShell 7 (`pwsh`) med PnP.PowerShell 2.x+ — virker **ikke** i Windows PowerShell 5.1 (`Connect-PnPOnline` findes ikke dér) | `sharepoint/provision/*.ps1`, `sharepoint/inspect/*.ps1` |
 | pac CLI | `tools/export_solution.ps1` (hentes med `dnx`, hvis den mangler) |
+
+**Tjek en ny pc i én kommando** (også Windows — CI kan ikke køre i
+Ørsteds repo, fordi hostede runnere er slået fra):
+
+```powershell
+python tools\doctor.py          # forudsætninger, byg, git-tjek, tests
+python tools\doctor.py --fix    # sletter desuden gamle filer fra før udfasningen
+```
+
+Den gør det samme som `.github/workflows/build.yml` og siger præcis,
+hvad der mangler (Python-pakker, Node, PowerShell 7, PnP.PowerShell).
 
 Status på kendte fund og den prioriterede plan står i [`REVIEW.md`](REVIEW.md).
 
