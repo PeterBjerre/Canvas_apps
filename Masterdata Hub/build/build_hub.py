@@ -183,24 +183,36 @@ def _domain_switch(field, fallback):
 # soegefiltret ovenpaa (ITEMS) er uaendret - det var ogsaa deployet.
 #
 # Stadig kun indekserede felter: RequesterEmail (tekst) og IsOpen (ja/nej).
-_MINE = f"Filter('{LIST}', RequesterEmail = varMdMe)"
-_ALL = f"'{LIST}'"
+# ET Filter MED ALLE BETINGELSER - IKKE Filter INDE I Filter (issue #84)
+#
+# "Mine" stod som Filter(Filter(liste, RequesterEmail = varMdMe), IsOpen =
+# true). Med de rigtige data i listen (alle Peters raekker har
+# RequesterEmail = pkbje@orsted.com og IsOpen = ja) kom der EEN raekke
+# tilbage - en afvist. Alle-grenen, som er eet Filter, var rigtig. Hver
+# gren er nu eet Filter, hvor betingelserne staar side om side.
+def _scope(mine, status):
+    cond = []
+    if mine:
+        cond.append("RequesterEmail = varMdMe")
+    if status is not None:
+        cond.append(f"IsOpen = {status}")
+    return f"Filter('{LIST}', {', '.join(cond)})" if cond else f"'{LIST}'"
 
 
-def _by_status(base, indent=4):
+def _by_status(mine, indent=4):
     pad = " " * indent
     return ("If(\n"
-            f"{pad}    varMdStatusMode = \"open\", Filter({base}, IsOpen = true),\n"
-            f"{pad}    varMdStatusMode = \"done\", Filter({base}, IsOpen = false),\n"
-            f"{pad}    {base}\n"
+            f"{pad}    varMdStatusMode = \"open\", {_scope(mine, 'true')},\n"
+            f"{pad}    varMdStatusMode = \"done\", {_scope(mine, 'false')},\n"
+            f"{pad}    {_scope(mine, None)}\n"
             f"{pad})")
 
 
 SCOPE = (
     "If(\n"
     "        varMdView = \"mine\",\n"
-    f"        {_by_status(_MINE, 8)},\n"
-    f"        {_by_status(_ALL, 8)}\n"
+    f"        {_by_status(True, 8)},\n"
+    f"        {_by_status(False, 8)}\n"
     "    )"
 )
 

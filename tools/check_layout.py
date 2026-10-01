@@ -901,6 +901,20 @@ def rule_30(ctx):
                         f"(udtryk) - SharePoint afviser det (\"The query is not valid\", "
                         f"issue #84). Sammenlign med en variabel eller konstant, og lad "
                         f"If vaelge mellem filtrene")
+            # Filter(Filter(liste, A), B) - issue #84. Hubbens "mine"-gren
+            # gav EEN forkert raekke tilbage, mens dataene var rigtige. Skriv
+            # Filter(liste, A, B).
+            for nm in re.finditer(r"\bFilter\(\s*Filter\(\s*('?[A-Z][\w ]*'?)\s*,", val):
+                src = nm.group(1).strip("'")
+                if src.startswith("col"):
+                    continue
+                hit = (owner, key, src, "Filter(Filter(")
+                if hit in seen:
+                    continue
+                seen.add(hit)
+                problems.append(
+                    f"[30] {owner}.{key}: Filter(Filter({src}, ...), ...) - SharePoint gav "
+                    f"forkerte raekker tilbage (issue #84). Skriv Filter({src}, A, B)")
 
 def rule_29(ctx):
     """Overskriften og raekken skal have SAMME kolonnebredder"""
