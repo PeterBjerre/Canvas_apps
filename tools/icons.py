@@ -52,6 +52,11 @@ MAINTENANCE_PLAN = (
 
 HUB = "M3 10.5 12 3l9 7.5M5.5 9.5V20h13V9.5"
 
+# KKS-opslaget: tre linjer tekst og et forstoerrelsesglas - en
+# kodevejledning, man soeger i. Ikke et domaene med anmodninger, saa det
+# deler farve med hubben.
+KKS = "M3 6h11M3 11h7M3 16h5M15.5 11.5a3.5 3.5 0 1 1 0 7a3.5 3.5 0 1 1 0-7ZM18.1 18.1 21 21"
+
 # Et ikon, der skal spejles vandret, tegnes med denne transform om
 # stien (viewBox 24). Bruges af Measuring Points lineal, saa den peger
 # samme vej som Equipments skruenoegle (issue #70).
@@ -65,6 +70,7 @@ DOMAIN = {
     "measuringpoint":     (MEASURING_POINT,     "domain-mp",           True),
     "material":           (MATERIAL,            "domain-mat",          False),
     "vhplan":             (MAINTENANCE_PLAN,    "domain-vhp",          False),
+    "kks":                (KKS,                 "color-brand-primary", False),
 }
 
 

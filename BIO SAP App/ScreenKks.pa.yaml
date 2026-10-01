@@ -1,0 +1,3042 @@
+Screens:
+  ScreenKks:
+    Properties:
+      Fill: |-
+          =C.'bg-app'
+      OnVisible: |-
+          =If(false, ClearCollect(colKksFunction, { L1: "", Code: "", Description: "", P2: "", P3: "" }));
+          If(false, ClearCollect(colKksAggregate, { L1: "", Code: "", Description: "", P2: "", P3: "" }));
+          If(false, ClearCollect(colKksComponent, { L1: "", Code: "", Description: "", P2: "", P3: "" }));
+          If(false, ClearCollect(colKksAggregateRaw, { Code: "", Description: "" }));
+          If(false, ClearCollect(colKksComponentRaw, { Code: "", Description: "" }));
+          If(false, ClearCollect(colKksFnAll, { Ord: 0, Section: "", Code: "", Description: "" }));
+          If(false, ClearCollect(colKksFn1, { Ord: 0, Section: "", Code: "", Description: "" }));
+          If(false, ClearCollect(colKksFn2, { Ord: 0, Section: "", Code: "", Description: "" }));
+          If(false, ClearCollect(colKksFn3, { Ord: 0, Section: "", Code: "", Description: "" }));
+          If(false, ClearCollect(colKksFn4, { Ord: 0, Section: "", Code: "", Description: "" }));
+          If(false, ClearCollect(colKksFn5, { Ord: 0, Section: "", Code: "", Description: "" }));
+          If(false, ClearCollect(colKksFn6, { Ord: 0, Section: "", Code: "", Description: "" }));
+          If(false, ClearCollect(colKksFn7, { Ord: 0, Section: "", Code: "", Description: "" }));
+          
+          If(
+              IsBlank(varKksKey),
+              Set(varKksKey, "function");
+              Set(varKksL1, "ALL");
+              Set(varKksL2, "");
+              Set(varKksL3, "");
+              Set(varKksQuery, "")
+          );
+          // Noeglerne hentes EEN gang - se KKS App/build/kks_parts.py, load_fx().
+          If(
+              !varKksLoaded,
+              Set(varKksLoading, true);
+              Concurrent(
+                  ClearCollect(colKksFn1, ForAll(Filter(MD_KksFunctionKey, SortNo >= 1 && SortNo <= 500) As r,
+                      { Ord: r.SortNo, Section: r.Section, Code: r.Code, Description: r.Description })),
+                  ClearCollect(colKksFn2, ForAll(Filter(MD_KksFunctionKey, SortNo >= 501 && SortNo <= 1000) As r,
+                      { Ord: r.SortNo, Section: r.Section, Code: r.Code, Description: r.Description })),
+                  ClearCollect(colKksFn3, ForAll(Filter(MD_KksFunctionKey, SortNo >= 1001 && SortNo <= 1500) As r,
+                      { Ord: r.SortNo, Section: r.Section, Code: r.Code, Description: r.Description })),
+                  ClearCollect(colKksFn4, ForAll(Filter(MD_KksFunctionKey, SortNo >= 1501 && SortNo <= 2000) As r,
+                      { Ord: r.SortNo, Section: r.Section, Code: r.Code, Description: r.Description })),
+                  ClearCollect(colKksFn5, ForAll(Filter(MD_KksFunctionKey, SortNo >= 2001 && SortNo <= 2500) As r,
+                      { Ord: r.SortNo, Section: r.Section, Code: r.Code, Description: r.Description })),
+                  ClearCollect(colKksFn6, ForAll(Filter(MD_KksFunctionKey, SortNo >= 2501 && SortNo <= 3000) As r,
+                      { Ord: r.SortNo, Section: r.Section, Code: r.Code, Description: r.Description })),
+                  ClearCollect(colKksFn7, ForAll(Filter(MD_KksFunctionKey, SortNo >= 3001) As r,
+                      { Ord: r.SortNo, Section: r.Section, Code: r.Code, Description: r.Description })),
+                  ClearCollect(colKksAggregateRaw, ForAll(Filter(MD_FLKey, KeyType = "Aggregate") As r,
+                      { Code: r.KeyValue, Description: r.Description })),
+                  ClearCollect(colKksComponentRaw, ForAll(Filter(MD_FLKey, KeyType = "Component") As r,
+                      { Code: r.KeyValue, Description: r.Description }))
+              );
+              ClearCollect(colKksFnAll, colKksFn1, colKksFn2, colKksFn3, colKksFn4, colKksFn5, colKksFn6, colKksFn7);
+              ClearCollect(
+                  colKksFunction,
+                  ForAll(Sort(colKksFnAll, Ord) As r,
+                      { L1: r.Section, Code: r.Code, Description: r.Description,
+                        P2: If(r.Section = "HOME" || Len(r.Code) < 2, "", Left(r.Code, 2)),
+                        P3: If(r.Section = "HOME" || Len(r.Code) < 3, "", Left(r.Code, 3)) })
+              );
+              ClearCollect(
+                  colKksAggregate,
+                  SortByColumns(
+                      ForAll(Filter(colKksAggregateRaw, !IsBlank(Description)) As r,
+                          { L1: Left(r.Code, 1), Code: r.Code, Description: r.Description, P2: r.Code, P3: "" }),
+                      "L1", SortOrder.Ascending, "Code", SortOrder.Ascending
+                  )
+              );
+              ClearCollect(
+                  colKksComponent,
+                  SortByColumns(
+                      ForAll(Filter(colKksComponentRaw, !IsBlank(Description)) As r,
+                          { L1: If(StartsWith(r.Code, "-"), Mid(r.Code, 2, 1), Left(r.Code, 1)), Code: r.Code, Description: r.Description, P2: r.Code, P3: "" }),
+                      "L1", SortOrder.Ascending, "Code", SortOrder.Ascending
+                  )
+              );
+              Set(varKksLoaded, !IsEmpty(colKksFunction));
+              Set(varKksLoading, false)
+          )
+    Children:
+      - conKksRoot:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderStyle: |-
+                =BorderStyle.None
+            DropShadow: |-
+                =DropShadow.None
+            Fill: |-
+                =C.'bg-app'
+            FillPortions: |-
+                =0
+            Height: |-
+                =Parent.Height - If(LayoutRank >= 2, 0, 52)
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Stretch
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =0
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            Width: |-
+                =Parent.Width - If(LayoutRank >= 2, 56, 0)
+            X: |-
+                =If(LayoutRank >= 2, 56, 0)
+            Y: |-
+                =If(LayoutRank >= 2, 0, 52)
+          Children:
+            - conKksHeader:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  Fill: |-
+                      =C.'bg-app'
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =25 + (0 + (Max((32), (55))) * 1 + 0)
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Stretch
+                  LayoutDirection: |-
+                      =LayoutDirection.Vertical
+                  LayoutGap: |-
+                      =10
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =24
+                  PaddingRight: |-
+                      =34
+                  PaddingTop: |-
+                      =14
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - conKksBar:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =0 + (Max((32), (55))) * 1 + 0
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Center
+                        LayoutDirection: |-
+                            =LayoutDirection.Horizontal
+                        LayoutGap: |-
+                            =10
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        Width: |-
+                            =Parent.Width
+                      Children:
+                        - imgKksTitleIcon:
+                            Control: Image
+                            Properties:
+                              AccessibleLabel: |-
+                                  =""
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Height: |-
+                                  =32
+                              Image: |-
+                                  ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='" & C.'hex-color-brand-primary' & "' fill-opacity='0.12'/><g transform='translate(6 6)'><svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><g fill='none' stroke='" & C.'hex-color-brand-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M3 6h11M3 11h7M3 16h5M15.5 11.5a3.5 3.5 0 1 1 0 7a3.5 3.5 0 1 1 0-7ZM18.1 18.1 21 21'/></g></svg></g></svg>")
+                              ImagePosition: |-
+                                  =ImagePosition.Fit
+                              LayoutMinWidth: |-
+                                  =32
+                              OnSelect: |-
+                                  =false
+                              TabIndex: |-
+                                  =-1
+                              Width: |-
+                                  =32
+                        - conKksBarLeft:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =55
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Stretch
+                              LayoutDirection: |-
+                                  =LayoutDirection.Vertical
+                              LayoutGap: |-
+                                  =2
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              Width: |-
+                                  =Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - ((32) + 10) - 2)
+                            Children:
+                              - txtKksTitle:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="KKS lookup"
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =33
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =22
+                                    Text: |-
+                                        ="KKS lookup"
+                                    Wrap: |-
+                                        =false
+                              - txtKksSub:
+                                  Control: ModernText
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =20
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        =Switch(
+                                            varKksKey,
+                                            "aggregate", "Aggregate keys - KKS positions 12-13. Pick a letter, or search.",
+                                            "component", "Component keys - KKS positions 18-19. Pick a letter, or search.",
+                                            "Function keys - KKS positions 7-9. Pick a letter, a group and a subgroup, or search."
+                                        )
+                                    Wrap: |-
+                                        =false
+                  - conKksHeaderRule:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        Fill: |-
+                            =C.'border-subtle'
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =1
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Stretch
+                        LayoutDirection: |-
+                            =LayoutDirection.Horizontal
+                        LayoutGap: |-
+                            =8
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        Width: |-
+                            =Parent.Width
+            - conKksBody:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  Fill: |-
+                      =C.'bg-app'
+                  FillPortions: |-
+                      =1
+                  Height: |-
+                      =Parent.Height - (25 + (0 + (Max((32), (55))) * 1 + 0))
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Stretch
+                  LayoutDirection: |-
+                      =LayoutDirection.Vertical
+                  LayoutGap: |-
+                      =16
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Scroll
+                  PaddingBottom: |-
+                      =40
+                  PaddingLeft: |-
+                      =24
+                  PaddingRight: |-
+                      =16
+                  PaddingTop: |-
+                      =16
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - conKksBrowseCard:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderColor: |-
+                            =C.'border-default'
+                        BorderThickness: |-
+                            =1
+                        DropShadow: |-
+                            =DropShadow.None
+                        Fill: |-
+                            =C.'bg-card'
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =36 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= (133) + (142) + (145) + 16, 36, (36) + 8 + (36) + 8 + (36))) + 12 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= (340) + (101) + 10, 36, (36) + 10 + (36))) + 12 + (18 + 6 + (RoundUp(CountRows(colKksL1Items) / Max(1, RoundDown(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) / 64, 0)), 0) * 40)) + 12 + (18 + If(KksNote2 <> "", 6 + (20), 0) + If(KksNote2 = "", 6 + (RoundUp(CountRows(colKksL2Items) / Max(1, RoundDown(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) / 64, 0)), 0) * 40), 0)) + If(KksHasL3, 12 + (18 + If(KksNote3 <> "", 6 + (20), 0) + If(KksNote3 = "", 6 + (RoundUp(CountRows(colKksL3Items) / Max(1, RoundDown(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) / 64, 0)), 0) * 40), 0)), 0)
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Stretch
+                        LayoutDirection: |-
+                            =LayoutDirection.Vertical
+                        LayoutGap: |-
+                            =12
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        PaddingBottom: |-
+                            =18
+                        PaddingLeft: |-
+                            =18
+                        PaddingRight: |-
+                            =18
+                        PaddingTop: |-
+                            =18
+                        RadiusBottomLeft: |-
+                            =14
+                        RadiusBottomRight: |-
+                            =14
+                        RadiusTopLeft: |-
+                            =14
+                        RadiusTopRight: |-
+                            =14
+                        Width: |-
+                            =Parent.Width
+                      Children:
+                        - conKksKeys:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= (133) + (142) + (145) + 16, 36, (36) + 8 + (36) + 8 + (36))
+                              LayoutAlignItems: |-
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= (133) + (142) + (145) + 16, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                              LayoutDirection: |-
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= (133) + (142) + (145) + 16, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                              LayoutGap: |-
+                                  =8
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              Width: |-
+                                  =Parent.Width
+                            Children:
+                              - btnKksKeyFunction:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Show function keys"
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =If(varKksKey = "function", C.'color-brand-primary', C.'border-default')
+                                    BorderThickness: |-
+                                        =If(varKksKey = "function", 2, 1)
+                                    Color: |-
+                                        =If(varKksKey = "function", C.'color-brand-primary', C.'text-primary')
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =36
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    LayoutMinWidth: |-
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= (133) + (142) + (145) + 16, 133, 0)
+                                    OnSelect: |-
+                                        =Set(varKksKey, "function");
+                                        Set(varKksL1, "ALL");
+                                        Set(varKksL2, "");
+                                        Set(varKksL3, "");
+                                        Set(varKksQuery, "");
+                                        Reset(inpKksSearch)
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="Function key"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =133
+                              - btnKksKeyAggregate:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Show aggregate keys"
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =If(varKksKey = "aggregate", C.'color-brand-primary', C.'border-default')
+                                    BorderThickness: |-
+                                        =If(varKksKey = "aggregate", 2, 1)
+                                    Color: |-
+                                        =If(varKksKey = "aggregate", C.'color-brand-primary', C.'text-primary')
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =36
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    LayoutMinWidth: |-
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= (133) + (142) + (145) + 16, 142, 0)
+                                    OnSelect: |-
+                                        =Set(varKksKey, "aggregate");
+                                        Set(varKksL1, "ALL");
+                                        Set(varKksL2, "");
+                                        Set(varKksL3, "");
+                                        Set(varKksQuery, "");
+                                        Reset(inpKksSearch)
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="Aggregate key"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =142
+                              - btnKksKeyComponent:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Show component keys"
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =If(varKksKey = "component", C.'color-brand-primary', C.'border-default')
+                                    BorderThickness: |-
+                                        =If(varKksKey = "component", 2, 1)
+                                    Color: |-
+                                        =If(varKksKey = "component", C.'color-brand-primary', C.'text-primary')
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =36
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    LayoutMinWidth: |-
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= (133) + (142) + (145) + 16, 145, 0)
+                                    OnSelect: |-
+                                        =Set(varKksKey, "component");
+                                        Set(varKksL1, "ALL");
+                                        Set(varKksL2, "");
+                                        Set(varKksL3, "");
+                                        Set(varKksQuery, "");
+                                        Reset(inpKksSearch)
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="Component key"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =145
+                        - conKksSearchRow:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= (340) + (101) + 10, 36, (36) + 10 + (36))
+                              LayoutAlignItems: |-
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= (340) + (101) + 10, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                              LayoutDirection: |-
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= (340) + (101) + 10, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                              LayoutGap: |-
+                                  =10
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              Width: |-
+                                  =Parent.Width
+                            Children:
+                              - inpKksSearch:
+                                  Control: ModernTextInput
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Search KKS codes and descriptions"
+                                    Appearance: |-
+                                        =Appearance.FilledDarker
+                                    BasePaletteColor: |-
+                                        =C.'color-brand-primary'
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderStyle: |-
+                                        =BorderStyle.Solid
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'input-fg'
+                                    Default: |-
+                                        =""
+                                    Fill: |-
+                                        =C.'input-bg'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =36
+                                    LayoutMinWidth: |-
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= (340) + (101) + 10, 340, 0)
+                                    OnChange: |-
+                                        =Set(varKksQuery, Trim(Self.Text))
+                                    Placeholder: |-
+                                        ="Search code or description"
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    TriggerOutput: |-
+                                        =TriggerOutput.Delayed
+                                    Type: |-
+                                        =TextInputType.Search
+                                    ValidationState: |-
+                                        =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                                    Width: |-
+                                        =340
+                              - btnKksReset:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Reset letter, group and search"
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    DisplayMode: |-
+                                        =If(varKksL1 = "ALL" && IsBlank(varKksQuery) && IsBlank(inpKksSearch.Text), DisplayMode.Disabled, DisplayMode.Edit)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =36
+                                    Icon: |-
+                                        ="ArrowReset"
+                                    Layout: |-
+                                        =ButtonLayout.IconBefore
+                                    LayoutMinWidth: |-
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= (340) + (101) + 10, 101, 0)
+                                    OnSelect: |-
+                                        =Set(varKksL1, "ALL");
+                                        Set(varKksL2, "");
+                                        Set(varKksL3, "");
+                                        Set(varKksQuery, "");
+                                        Reset(inpKksSearch)
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="Reset"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =101
+                        - conKksLane1:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =18 + 6 + (RoundUp(CountRows(colKksL1Items) / Max(1, RoundDown(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) / 64, 0)), 0) * 40)
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Stretch
+                              LayoutDirection: |-
+                                  =LayoutDirection.Vertical
+                              LayoutGap: |-
+                                  =6
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              Width: |-
+                                  =Parent.Width
+                            Children:
+                              - txtKksLane1:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="LETTER"
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =18
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =11
+                                    Text: |-
+                                        ="LETTER"
+                                    Wrap: |-
+                                        =false
+                              - galKksL1:
+                                  Control: Gallery
+                                  Variant: Vertical
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Letter"
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    Fill: |-
+                                        =C.'bg-card'
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =RoundUp(CountRows(colKksL1Items) / Max(1, RoundDown(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) / 64, 0)), 0) * 40
+                                    Items: |-
+                                        =colKksL1Items
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LoadingSpinner: |-
+                                        =LoadingSpinner.None
+                                    Selectable: |-
+                                        =false
+                                    ShowScrollbar: |-
+                                        =false
+                                    TabIndex: |-
+                                        =0
+                                    TemplatePadding: |-
+                                        =0
+                                    TemplateSize: |-
+                                        =40
+                                    Width: |-
+                                        =Parent.Width
+                                    WrapCount: |-
+                                        =Max(1, RoundDown(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) / 64, 0))
+                                  Children:
+                                    - btnKksL1Chip:
+                                        Control: ModernButton
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Letter " & ThisItem.Value
+                                          Align: |-
+                                              =Align.Center
+                                          Appearance: |-
+                                              =ButtonAppearance.Outline
+                                          BorderColor: |-
+                                              =If(varKksL1 = ThisItem.Value, C.'color-brand-primary', C.'border-default')
+                                          BorderThickness: |-
+                                              =If(varKksL1 = ThisItem.Value, 2, 1)
+                                          Color: |-
+                                              =If(varKksL1 = ThisItem.Value, C.'color-brand-primary', C.'text-primary')
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =32
+                                          Layout: |-
+                                              =ButtonLayout.TextOnly
+                                          OnSelect: |-
+                                              =Set(varKksL1, ThisItem.Value);
+                                              Set(varKksL2, "");
+                                              Set(varKksL3, "")
+                                          RadiusBottomLeft: |-
+                                              =10
+                                          RadiusBottomRight: |-
+                                              =10
+                                          RadiusTopLeft: |-
+                                              =10
+                                          RadiusTopRight: |-
+                                              =10
+                                          Size: |-
+                                              =14
+                                          Text: |-
+                                              =ThisItem.Value
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Width: |-
+                                              =56
+                                          X: |-
+                                              =0
+                                          Y: |-
+                                              =4
+                        - conKksLane2:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =18 + If(KksNote2 <> "", 6 + (20), 0) + If(KksNote2 = "", 6 + (RoundUp(CountRows(colKksL2Items) / Max(1, RoundDown(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) / 64, 0)), 0) * 40), 0)
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Stretch
+                              LayoutDirection: |-
+                                  =LayoutDirection.Vertical
+                              LayoutGap: |-
+                                  =6
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              Width: |-
+                                  =Parent.Width
+                            Children:
+                              - txtKksLane2:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="GROUP"
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =18
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =11
+                                    Text: |-
+                                        ="GROUP"
+                                    Wrap: |-
+                                        =false
+                              - txtKksNote2:
+                                  Control: ModernText
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =20
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =12
+                                    Text: |-
+                                        =KksNote2
+                                    Visible: |-
+                                        =KksNote2 <> ""
+                                    Wrap: |-
+                                        =false
+                              - galKksL2:
+                                  Control: Gallery
+                                  Variant: Vertical
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Group"
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    Fill: |-
+                                        =C.'bg-card'
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =RoundUp(CountRows(colKksL2Items) / Max(1, RoundDown(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) / 64, 0)), 0) * 40
+                                    Items: |-
+                                        =colKksL2Items
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LoadingSpinner: |-
+                                        =LoadingSpinner.None
+                                    Selectable: |-
+                                        =false
+                                    ShowScrollbar: |-
+                                        =false
+                                    TabIndex: |-
+                                        =0
+                                    TemplatePadding: |-
+                                        =0
+                                    TemplateSize: |-
+                                        =40
+                                    Visible: |-
+                                        =KksNote2 = ""
+                                    Width: |-
+                                        =Parent.Width
+                                    WrapCount: |-
+                                        =Max(1, RoundDown(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) / 64, 0))
+                                  Children:
+                                    - btnKksL2Chip:
+                                        Control: ModernButton
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Group " & ThisItem.Value
+                                          Align: |-
+                                              =Align.Center
+                                          Appearance: |-
+                                              =ButtonAppearance.Outline
+                                          BorderColor: |-
+                                              =If(If(ThisItem.Value = "ALL", IsBlank(varKksL2), varKksL2 = ThisItem.Value), C.'color-brand-primary', C.'border-default')
+                                          BorderThickness: |-
+                                              =If(If(ThisItem.Value = "ALL", IsBlank(varKksL2), varKksL2 = ThisItem.Value), 2, 1)
+                                          Color: |-
+                                              =If(If(ThisItem.Value = "ALL", IsBlank(varKksL2), varKksL2 = ThisItem.Value), C.'color-brand-primary', C.'text-primary')
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =32
+                                          Layout: |-
+                                              =ButtonLayout.TextOnly
+                                          OnSelect: |-
+                                              =Set(varKksL2, If(ThisItem.Value = "ALL", "", ThisItem.Value));
+                                              Set(varKksL3, "")
+                                          RadiusBottomLeft: |-
+                                              =10
+                                          RadiusBottomRight: |-
+                                              =10
+                                          RadiusTopLeft: |-
+                                              =10
+                                          RadiusTopRight: |-
+                                              =10
+                                          Size: |-
+                                              =14
+                                          Text: |-
+                                              =ThisItem.Value
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Width: |-
+                                              =56
+                                          X: |-
+                                              =0
+                                          Y: |-
+                                              =4
+                        - conKksLane3:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =18 + If(KksNote3 <> "", 6 + (20), 0) + If(KksNote3 = "", 6 + (RoundUp(CountRows(colKksL3Items) / Max(1, RoundDown(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) / 64, 0)), 0) * 40), 0)
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Stretch
+                              LayoutDirection: |-
+                                  =LayoutDirection.Vertical
+                              LayoutGap: |-
+                                  =6
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              Visible: |-
+                                  =KksHasL3
+                              Width: |-
+                                  =Parent.Width
+                            Children:
+                              - txtKksLane3:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="SUBGROUP"
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =18
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =11
+                                    Text: |-
+                                        ="SUBGROUP"
+                                    Wrap: |-
+                                        =false
+                              - txtKksNote3:
+                                  Control: ModernText
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =20
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =12
+                                    Text: |-
+                                        =KksNote3
+                                    Visible: |-
+                                        =KksNote3 <> ""
+                                    Wrap: |-
+                                        =false
+                              - galKksL3:
+                                  Control: Gallery
+                                  Variant: Vertical
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Subgroup"
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    Fill: |-
+                                        =C.'bg-card'
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =RoundUp(CountRows(colKksL3Items) / Max(1, RoundDown(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) / 64, 0)), 0) * 40
+                                    Items: |-
+                                        =colKksL3Items
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LoadingSpinner: |-
+                                        =LoadingSpinner.None
+                                    Selectable: |-
+                                        =false
+                                    ShowScrollbar: |-
+                                        =false
+                                    TabIndex: |-
+                                        =0
+                                    TemplatePadding: |-
+                                        =0
+                                    TemplateSize: |-
+                                        =40
+                                    Visible: |-
+                                        =KksNote3 = ""
+                                    Width: |-
+                                        =Parent.Width
+                                    WrapCount: |-
+                                        =Max(1, RoundDown(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) / 64, 0))
+                                  Children:
+                                    - btnKksL3Chip:
+                                        Control: ModernButton
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Subgroup " & ThisItem.Value
+                                          Align: |-
+                                              =Align.Center
+                                          Appearance: |-
+                                              =ButtonAppearance.Outline
+                                          BorderColor: |-
+                                              =If(If(ThisItem.Value = "ALL", IsBlank(varKksL3), varKksL3 = ThisItem.Value), C.'color-brand-primary', C.'border-default')
+                                          BorderThickness: |-
+                                              =If(If(ThisItem.Value = "ALL", IsBlank(varKksL3), varKksL3 = ThisItem.Value), 2, 1)
+                                          Color: |-
+                                              =If(If(ThisItem.Value = "ALL", IsBlank(varKksL3), varKksL3 = ThisItem.Value), C.'color-brand-primary', C.'text-primary')
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =32
+                                          Layout: |-
+                                              =ButtonLayout.TextOnly
+                                          OnSelect: |-
+                                              =Set(varKksL3, If(ThisItem.Value = "ALL", "", ThisItem.Value))
+                                          RadiusBottomLeft: |-
+                                              =10
+                                          RadiusBottomRight: |-
+                                              =10
+                                          RadiusTopLeft: |-
+                                              =10
+                                          RadiusTopRight: |-
+                                              =10
+                                          Size: |-
+                                              =14
+                                          Text: |-
+                                              =ThisItem.Value
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Width: |-
+                                              =56
+                                          X: |-
+                                              =0
+                                          Y: |-
+                                              =4
+                  - conKksResultsCard:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderColor: |-
+                            =C.'border-default'
+                        BorderThickness: |-
+                            =1
+                        DropShadow: |-
+                            =DropShadow.None
+                        Fill: |-
+                            =C.'bg-card'
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =73 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= (96) + (56) + (56) + (64) + (72) + (90) + 30, 32, (32) + 6 + (32) + If(varKksL1 <> "ALL", 6 + (32), 0) + If(!IsBlank(varKksL2), 6 + (32), 0) + If(!IsBlank(varKksL3), 6 + (32), 0) + 6 + (32))) + 8 + (Max(20, RoundUp(Len(KksTitle) / Max(24, RoundDown(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) / 7.5, 0)), 0) * 20)) + If(CountRows(colKksResults) > 0, 8 + (If(CountRows(colKksResults) = 0, 0, Min(560, Sum(colKksResults, Max(1, RoundUp(Len(Description) / Max(14, RoundDown(((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) - 18 - 40) - 24 - 96 - 12) / 7.5, 0)), 0)) * 19 + 1 + 22) + 2))), 0) + If(CountRows(colKksResults) = 0, 8 + (40), 0)
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Stretch
+                        LayoutDirection: |-
+                            =LayoutDirection.Vertical
+                        LayoutGap: |-
+                            =8
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        PaddingBottom: |-
+                            =18
+                        PaddingLeft: |-
+                            =18
+                        PaddingRight: |-
+                            =18
+                        PaddingTop: |-
+                            =18
+                        RadiusBottomLeft: |-
+                            =14
+                        RadiusBottomRight: |-
+                            =14
+                        RadiusTopLeft: |-
+                            =14
+                        RadiusTopRight: |-
+                            =14
+                        Width: |-
+                            =Parent.Width
+                      Children:
+                        - conKksCrumbs:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= (96) + (56) + (56) + (64) + (72) + (90) + 30, 32, (32) + 6 + (32) + If(varKksL1 <> "ALL", 6 + (32), 0) + If(!IsBlank(varKksL2), 6 + (32), 0) + If(!IsBlank(varKksL3), 6 + (32), 0) + 6 + (32))
+                              LayoutAlignItems: |-
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= (96) + (56) + (56) + (64) + (72) + (90) + 30, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                              LayoutDirection: |-
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= (96) + (56) + (56) + (64) + (72) + (90) + 30, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                              LayoutGap: |-
+                                  =6
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              Width: |-
+                                  =Parent.Width
+                            Children:
+                              - btnKksUp:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Up one level"
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    DisplayMode: |-
+                                        =If(varKksL1 = "ALL", DisplayMode.Disabled, DisplayMode.Edit)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =32
+                                    Icon: |-
+                                        ="ArrowLeft"
+                                    Layout: |-
+                                        =ButtonLayout.IconBefore
+                                    LayoutMinWidth: |-
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= (96) + (56) + (56) + (64) + (72) + (90) + 30, 96, 0)
+                                    OnSelect: |-
+                                        =If(
+                                            !IsBlank(varKksL3), Set(varKksL3, ""),
+                                            !IsBlank(varKksL2), Set(varKksL2, ""),
+                                            Set(varKksL1, "ALL")
+                                        )
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="Back"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =96
+                              - btnKksCrumbAll:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="All sections"
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =If(varKksL1 = "ALL", C.'color-brand-primary', C.'border-default')
+                                    BorderThickness: |-
+                                        =If(varKksL1 = "ALL", 2, 1)
+                                    Color: |-
+                                        =If(varKksL1 = "ALL", C.'color-brand-primary', C.'text-primary')
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =32
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    LayoutMinWidth: |-
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= (96) + (56) + (56) + (64) + (72) + (90) + 30, 56, 0)
+                                    OnSelect: |-
+                                        =Set(varKksL1, "ALL");
+                                        Set(varKksL2, "");
+                                        Set(varKksL3, "")
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        ="All"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =56
+                              - btnKksCrumbL1:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Letter " & varKksL1
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =If(IsBlank(varKksL2), C.'color-brand-primary', C.'border-default')
+                                    BorderThickness: |-
+                                        =If(IsBlank(varKksL2), 2, 1)
+                                    Color: |-
+                                        =If(IsBlank(varKksL2), C.'color-brand-primary', C.'text-primary')
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =32
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    LayoutMinWidth: |-
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= (96) + (56) + (56) + (64) + (72) + (90) + 30, 56, 0)
+                                    OnSelect: |-
+                                        =Set(varKksL2, "");
+                                        Set(varKksL3, "")
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        ="› " & varKksL1
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Visible: |-
+                                        =varKksL1 <> "ALL"
+                                    Width: |-
+                                        =56
+                              - btnKksCrumbL2:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Group " & varKksL2
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =If(IsBlank(varKksL3), C.'color-brand-primary', C.'border-default')
+                                    BorderThickness: |-
+                                        =If(IsBlank(varKksL3), 2, 1)
+                                    Color: |-
+                                        =If(IsBlank(varKksL3), C.'color-brand-primary', C.'text-primary')
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =32
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    LayoutMinWidth: |-
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= (96) + (56) + (56) + (64) + (72) + (90) + 30, 64, 0)
+                                    OnSelect: |-
+                                        =Set(varKksL3, "")
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        ="› " & varKksL2
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Visible: |-
+                                        =!IsBlank(varKksL2)
+                                    Width: |-
+                                        =64
+                              - btnKksCrumbL3:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Subgroup " & varKksL3
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =If(true, C.'color-brand-primary', C.'border-default')
+                                    BorderThickness: |-
+                                        =If(true, 2, 1)
+                                    Color: |-
+                                        =If(true, C.'color-brand-primary', C.'text-primary')
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =32
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    LayoutMinWidth: |-
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= (96) + (56) + (56) + (64) + (72) + (90) + 30, 72, 0)
+                                    OnSelect: |-
+                                        =false
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        ="› " & varKksL3
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Visible: |-
+                                        =!IsBlank(varKksL3)
+                                    Width: |-
+                                        =72
+                              - txtKksCount:
+                                  Control: ModernText
+                                  Properties:
+                                    Align: |-
+                                        =Align.Right
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    FillPortions: |-
+                                        =0
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =32
+                                    LayoutMinWidth: |-
+                                        =0
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =12
+                                    Text: |-
+                                        =CountRows(colKksResults) & If(CountRows(colKksResults) = 1, " row", " rows")
+                                    Width: |-
+                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18)) - ((96) + 6) - ((56) + 6) - (If(varKksL1 <> "ALL", (56) + 6, 0)) - (If(!IsBlank(varKksL2), (64) + 6, 0)) - (If(!IsBlank(varKksL3), (72) + 6, 0)) - 2)
+                                    Wrap: |-
+                                        =false
+                        - txtKksPath:
+                            Control: ModernText
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'color-brand-primary'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =Max(20, RoundUp(Len(KksTitle) / Max(24, RoundDown(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) / 7.5, 0)), 0) * 20)
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =13
+                              Text: |-
+                                  =KksTitle
+                              Wrap: |-
+                                  =true
+                        - conKksTableHead:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =20
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Center
+                              LayoutDirection: |-
+                                  =LayoutDirection.Horizontal
+                              LayoutGap: |-
+                                  =12
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =12
+                              PaddingRight: |-
+                                  =12
+                              PaddingTop: |-
+                                  =0
+                              Width: |-
+                                  =Parent.Width
+                            Children:
+                              - txtKksHeadCode:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="CODE"
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =20
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =11
+                                    Text: |-
+                                        ="CODE"
+                                    Width: |-
+                                        =96
+                                    Wrap: |-
+                                        =false
+                              - txtKksHeadDesc:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="DESCRIPTION"
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =20
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =11
+                                    Text: |-
+                                        ="DESCRIPTION"
+                                    Width: |-
+                                        =((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) - 18 - 40) - 24 - 96 - 12)
+                                    Wrap: |-
+                                        =false
+                        - conKksTableRule:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              Fill: |-
+                                  =C.'border-subtle'
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =1
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Stretch
+                              LayoutDirection: |-
+                                  =LayoutDirection.Horizontal
+                              LayoutGap: |-
+                                  =8
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              Width: |-
+                                  =Parent.Width
+                        - galKksRows:
+                            Control: Gallery
+                            Variant: VariableHeight
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="KKS codes. Select a row to go to its place."
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              Fill: |-
+                                  =C.'bg-card'
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =If(CountRows(colKksResults) = 0, 0, Min(560, Sum(colKksResults, Max(1, RoundUp(Len(Description) / Max(14, RoundDown(((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) - 18 - 40) - 24 - 96 - 12) / 7.5, 0)), 0)) * 19 + 1 + 22) + 2))
+                              Items: |-
+                                  =colKksResults
+                              LayoutMinWidth: |-
+                                  =0
+                              LoadingSpinner: |-
+                                  =LoadingSpinner.None
+                              Selectable: |-
+                                  =false
+                              ShowScrollbar: |-
+                                  =true
+                              TabIndex: |-
+                                  =0
+                              TemplatePadding: |-
+                                  =0
+                              TemplateSize: |-
+                                  =42
+                              Visible: |-
+                                  =CountRows(colKksResults) > 0
+                              Width: |-
+                                  =Parent.Width
+                              WrapCount: |-
+                                  =1
+                            Children:
+                              - rctKksRowBg:
+                                  Control: Rectangle
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =""
+                                    BorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Fill: |-
+                                        =C.'bg-card'
+                                    Height: |-
+                                        =Max(1, RoundUp(Len(ThisItem.Description) / Max(14, RoundDown(((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) - 18 - 40) - 24 - 96 - 12) / 7.5, 0)), 0)) * 19 + 1 + 22
+                                    OnSelect: |-
+                                        =false
+                                    TabIndex: |-
+                                        =-1
+                                    Width: |-
+                                        =(((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40
+                                    X: |-
+                                        =0
+                                    Y: |-
+                                        =0
+                              - txtKksRowCode:
+                                  Control: ModernText
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =20
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        =ThisItem.Code
+                                    Width: |-
+                                        =96
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 12 + 0
+                                    Y: |-
+                                        =0 + 11
+                              - txtKksRowDesc:
+                                  Control: ModernText
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =Max(1, RoundUp(Len(ThisItem.Description) / Max(14, RoundDown(((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) - 18 - 40) - 24 - 96 - 12) / 7.5, 0)), 0)) * 19 + 1
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        =ThisItem.Description
+                                    Width: |-
+                                        =((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) - 18 - 40) - 24 - 96 - 12)
+                                    Wrap: |-
+                                        =true
+                                    X: |-
+                                        =0 + 12 + 0 + (96) + 12
+                                    Y: |-
+                                        =0 + 11
+                              - rctKksRowRule:
+                                  Control: Rectangle
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =""
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Fill: |-
+                                        =C.'border-subtle'
+                                    Height: |-
+                                        =1
+                                    OnSelect: |-
+                                        =false
+                                    TabIndex: |-
+                                        =-1
+                                    Width: |-
+                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40)
+                                    X: |-
+                                        =0
+                                    Y: |-
+                                        =(Max(1, RoundUp(Len(ThisItem.Description) / Max(14, RoundDown(((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) - 18 - 40) - 24 - 96 - 12) / 7.5, 0)), 0)) * 19 + 1 + 22) - 1
+                              - btnKksRowHit:
+                                  Control: Classic/Button
+                                  Properties:
+                                    BorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    BorderStyle: |-
+                                        =BorderStyle.Solid
+                                    BorderThickness: |-
+                                        =2
+                                    Color: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    FocusedBorderColor: |-
+                                        =C.'color-brand-primary'
+                                    FocusedBorderThickness: |-
+                                        =2
+                                    Height: |-
+                                        =(Max(1, RoundUp(Len(ThisItem.Description) / Max(14, RoundDown(((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) - 18 - 40) - 24 - 96 - 12) / 7.5, 0)), 0)) * 19 + 1 + 22) - 1
+                                    HoverBorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    HoverColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    HoverFill: |-
+                                        =C.'row-hover'
+                                    OnSelect: |-
+                                        =With(
+                                            {c: Upper(ThisItem.Code), s: ThisItem.L1},
+                                            With(
+                                                {isTop: Len(c) = 1 && !IsBlank(LookUp(colKksL1Keys, Value = c))},
+                                                With(
+                                                    {l1: If(isTop, c, If(s = "HOME", If(!IsBlank(LookUp(colKksL1Keys, Value = Left(c, 1))), Left(c, 1), "ALL"), s))},
+                                                    Set(varKksL1, l1);
+                                                    Set(varKksL2, If(l1 = "ALL" || isTop || Len(c) < 2, "", Left(c, 2)));
+                                                    Set(varKksL3, If(l1 = "ALL" || isTop || !KksHasL3 || Len(c) < 3, "", Left(c, 3)));
+                                                    Set(varKksQuery, "");
+                                                    Reset(inpKksSearch)
+                                                )
+                                            )
+                                        )
+                                    PressedBorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    PressedColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    PressedFill: |-
+                                        =C.'row-pressed'
+                                    RadiusBottomLeft: |-
+                                        =0
+                                    RadiusBottomRight: |-
+                                        =0
+                                    RadiusTopLeft: |-
+                                        =0
+                                    RadiusTopRight: |-
+                                        =0
+                                    TabIndex: |-
+                                        =0
+                                    Text: |-
+                                        ="Go to " & ThisItem.Code & " - " & ThisItem.Description
+                                    Width: |-
+                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40)
+                                    X: |-
+                                        =0
+                                    Y: |-
+                                        =0
+                        - txtKksEmpty:
+                            Control: ModernText
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =If(IsEmpty(colKksScope), C.'state-error-fg', C.'text-muted')
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =40
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =13
+                              Text: |-
+                                  =If(IsEmpty(colKksScope), "The KKS lists could not be loaded. Check access to MD_KksFunctionKey and MD_FLKey.", "No codes match.")
+                              Visible: |-
+                                  =CountRows(colKksResults) = 0
+                              Wrap: |-
+                                  =true
+      - conKksNav:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'border-subtle'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.None
+            Fill: |-
+                =C.'bg-surface'
+            FillPortions: |-
+                =0
+            Height: |-
+                =App.Height + 2
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Start
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =12
+            LayoutJustifyContent: |-
+                =LayoutJustifyContent.SpaceBetween
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =15
+            PaddingLeft: |-
+                =0
+            PaddingRight: |-
+                =0
+            PaddingTop: |-
+                =13
+            Visible: |-
+                =LayoutRank >= 2
+            Width: |-
+                =57
+            X: |-
+                =-1
+            Y: |-
+                =-1
+          Children:
+            - conKksNavTop:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =338
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Start
+                  LayoutDirection: |-
+                      =LayoutDirection.Vertical
+                  LayoutGap: |-
+                      =2
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =56
+                Children:
+                  - imgKksNavBrand:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="BIO SAP - Masterdata Hub"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =44
+                        HoverFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='44' viewBox='0 0 56 44'><rect x='15' y='9' width='26' height='26' rx='7' fill='" & C.'hex-color-brand-primary' & "'/><text x='28' y='26' text-anchor='middle' font-family='Consolas, monospace' font-size='11' font-weight='700' fill='" & C.'hex-text-on-primary' & "'>BS</text></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false); Navigate(ScreenMdHub, ScreenTransition.None)
+                        PressedFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =56
+                  - imgKksNavToggle:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Expand menu"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =40
+                        HoverFill: |-
+                            =C.'bg-muted'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l6 6-6 6 M12 6l6 6-6 6'/></g></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, true)
+                        PressedFill: |-
+                            =C.'bg-muted'
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            ="Expand menu"
+                        Width: |-
+                            =56
+                  - imgKksNavHub:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Masterdata Hub"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =40
+                        HoverFill: |-
+                            =C.'bg-muted'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5 12 3l9 7.5M5.5 9.5V20h13V9.5'/></g></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false); Navigate(ScreenMdHub, ScreenTransition.None)
+                        PressedFill: |-
+                            =C.'bg-muted'
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            ="Masterdata Hub"
+                        Width: |-
+                            =56
+                  - imgKksNavFunctionallocation:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Functional Location"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =40
+                        HoverFill: |-
+                            =C.'bg-muted'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false); Navigate(ScreenFunctionalLocation, ScreenTransition.None)
+                        PressedFill: |-
+                            =C.'bg-muted'
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            ="Functional Location"
+                        Width: |-
+                            =56
+                  - imgKksNavVhplan:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="VH-plan"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =40
+                        HoverFill: |-
+                            =C.'bg-muted'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false); Navigate(ScreenVhPlan, ScreenTransition.None)
+                        PressedFill: |-
+                            =C.'bg-muted'
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            ="VH-plan"
+                        Width: |-
+                            =56
+                  - imgKksNavMaterial:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Materials"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =40
+                        HoverFill: |-
+                            =C.'bg-muted'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false); Navigate(ScreenMaterial, ScreenTransition.None)
+                        PressedFill: |-
+                            =C.'bg-muted'
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            ="Materials"
+                        Width: |-
+                            =56
+                  - imgKksNavEquipment:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Equipments"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =40
+                        HoverFill: |-
+                            =C.'bg-muted'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false); Navigate(ScreenEquipment, ScreenTransition.None)
+                        PressedFill: |-
+                            =C.'bg-muted'
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            ="Equipments"
+                        Width: |-
+                            =56
+                  - imgKksNavKks:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="KKS lookup (current app)"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =40
+                        HoverFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><rect x='8' y='0' width='40' height='40' rx='8' fill='" & C.'hex-state-info-bg' & "'/><rect x='0' y='10' width='3' height='20' rx='1.5' fill='" & C.'hex-color-brand-primary' & "'/><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M3 6h11M3 11h7M3 16h5M15.5 11.5a3.5 3.5 0 1 1 0 7a3.5 3.5 0 1 1 0-7ZM18.1 18.1 21 21'/></g></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false)
+                        PressedFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            ="KKS lookup"
+                        Width: |-
+                            =56
+            - conKksNavFoot:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =47
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Start
+                  LayoutDirection: |-
+                      =LayoutDirection.Vertical
+                  LayoutGap: |-
+                      =10
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =10
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Width: |-
+                      =56
+                Children:
+                  - conKksNavRule:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        Fill: |-
+                            =C.'border-subtle'
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =1
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Stretch
+                        LayoutDirection: |-
+                            =LayoutDirection.Horizontal
+                        LayoutGap: |-
+                            =8
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        Width: |-
+                            =36
+                  - imgKksTheme:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            =If(darkModeEnabled, "Dark theme is on - switch to light theme", "Light theme is on - switch to dark theme")
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =36
+                        HoverFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl(If(darkModeEnabled,
+                                "<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'><rect x='1' y='1' width='34' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='18' cy='18' r='14' fill='" & C.'hex-text-primary' & "'/><path d='M21 11 A7 7 0 1 0 25 21 A5.5 5.5 0 1 1 21 11 Z' fill='" & C.'hex-bg-app' & "'/></svg>",
+                                "<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'><rect x='1' y='1' width='34' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='18' cy='18' r='14' fill='" & C.'hex-bg-surface' & "'/><circle cx='18' cy='18' r='4' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8'/><line x1='24.5' y1='18.0' x2='27.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='22.6' y1='22.6' x2='24.4' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='18.0' y1='24.5' x2='18.0' y2='27.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='13.4' y1='22.6' x2='11.6' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='11.5' y1='18.0' x2='9.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='13.4' y1='13.4' x2='11.6' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='18.0' y1='11.5' x2='18.0' y2='9.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='22.6' y1='13.4' x2='24.4' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/></svg>"
+                            ))
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(darkModeEnabled, !darkModeEnabled);
+                            ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
+                            IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                        PressedFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =36
+      - conKksMobileBar:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'border-subtle'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.None
+            Fill: |-
+                =C.'bg-surface'
+            FillPortions: |-
+                =0
+            Height: |-
+                =52
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Center
+            LayoutDirection: |-
+                =LayoutDirection.Horizontal
+            LayoutGap: |-
+                =0
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =0
+            PaddingLeft: |-
+                =0
+            PaddingRight: |-
+                =16
+            PaddingTop: |-
+                =0
+            Visible: |-
+                =!(LayoutRank >= 2)
+            Width: |-
+                =App.Width + 2
+            X: |-
+                =-1
+            Y: |-
+                =-1
+          Children:
+            - imgKksNavMenu:
+                Control: Image
+                Properties:
+                  AccessibleLabel: |-
+                      ="Open menu"
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  FocusedBorderColor: |-
+                      =C.'color-brand-primary'
+                  FocusedBorderThickness: |-
+                      =2
+                  Height: |-
+                      =40
+                  HoverFill: |-
+                      =C.'bg-muted'
+                  Image: |-
+                      ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M4 7h16M4 12h16M4 17h16'/></g></svg>")
+                  ImagePosition: |-
+                      =ImagePosition.Fit
+                  OnSelect: |-
+                      =Set(gblNavOpen, true)
+                  PressedFill: |-
+                      =C.'bg-muted'
+                  TabIndex: |-
+                      =0
+                  Tooltip: |-
+                      ="Open menu"
+                  Width: |-
+                      =56
+            - imgKksNavBrandMobile:
+                Control: Image
+                Properties:
+                  AccessibleLabel: |-
+                      ="BIO SAP - Masterdata Hub"
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  FocusedBorderColor: |-
+                      =C.'color-brand-primary'
+                  FocusedBorderThickness: |-
+                      =2
+                  Height: |-
+                      =44
+                  HoverFill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Image: |-
+                      ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='136' height='44' viewBox='0 0 136 44'><rect x='15' y='9' width='26' height='26' rx='7' fill='" & C.'hex-color-brand-primary' & "'/><text x='28' y='26' text-anchor='middle' font-family='Consolas, monospace' font-size='11' font-weight='700' fill='" & C.'hex-text-on-primary' & "'>BS</text><text x='56' y='28' font-family='Segoe UI, sans-serif' font-size='16' font-weight='600' fill='" & C.'hex-text-primary' & "'>BIO SAP</text></svg>")
+                  ImagePosition: |-
+                      =ImagePosition.Fit
+                  OnSelect: |-
+                      =Set(gblNavOpen, false); Navigate(ScreenMdHub, ScreenTransition.None)
+                  PressedFill: |-
+                      =RGBA(0, 0, 0, 0)
+                  TabIndex: |-
+                      =0
+                  Width: |-
+                      =136
+            - txtKksNavTitle:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      ="KKS lookup"
+                  Align: |-
+                      =Align.Right
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-primary'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  FillPortions: |-
+                      =0
+                  Font: |-
+                      =Font.'Segoe UI'
+                  FontWeight: |-
+                      =FontWeight.Semibold
+                  Height: |-
+                      =22
+                  LayoutMinWidth: |-
+                      =0
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =14
+                  Text: |-
+                      ="KKS lookup"
+                  Width: |-
+                      =Max(0, ((App.Width + 2) - 16) - ((56) + 0) - ((136) + 0) - 2)
+                  Wrap: |-
+                      =false
+      - imgKksNavScrim:
+          Control: Image
+          Properties:
+            AccessibleLabel: |-
+                ="Close menu"
+            BorderStyle: |-
+                =BorderStyle.None
+            BorderThickness: |-
+                =0
+            Fill: |-
+                =RGBA(0, 0, 0, 0)
+            Height: |-
+                =App.Height
+            HoverFill: |-
+                =RGBA(0, 0, 0, 0)
+            Image: |-
+                =""
+            OnSelect: |-
+                =Set(gblNavOpen, false)
+            PressedFill: |-
+                =RGBA(0, 0, 0, 0)
+            TabIndex: |-
+                =-1
+            Visible: |-
+                =gblNavOpen
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - conKksNavOpen:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'border-subtle'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.Bold
+            Fill: |-
+                =C.'bg-surface'
+            FillPortions: |-
+                =0
+            Height: |-
+                =App.Height + 2
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Start
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =12
+            LayoutJustifyContent: |-
+                =LayoutJustifyContent.SpaceBetween
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =15
+            PaddingLeft: |-
+                =0
+            PaddingRight: |-
+                =0
+            PaddingTop: |-
+                =13
+            Visible: |-
+                =gblNavOpen
+            Width: |-
+                =233
+            X: |-
+                =-1
+            Y: |-
+                =-1
+          Children:
+            - conKksNavTopOpen:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =338
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Start
+                  LayoutDirection: |-
+                      =LayoutDirection.Vertical
+                  LayoutGap: |-
+                      =2
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =232
+                Children:
+                  - imgKksNavBrandOpen:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="BIO SAP - Masterdata Hub"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =44
+                        HoverFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='44' viewBox='0 0 232 44'><rect x='15' y='9' width='26' height='26' rx='7' fill='" & C.'hex-color-brand-primary' & "'/><text x='28' y='26' text-anchor='middle' font-family='Consolas, monospace' font-size='11' font-weight='700' fill='" & C.'hex-text-on-primary' & "'>BS</text><text x='56' y='28' font-family='Segoe UI, sans-serif' font-size='16' font-weight='600' fill='" & C.'hex-text-primary' & "'>BIO SAP</text></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false); Navigate(ScreenMdHub, ScreenTransition.None)
+                        PressedFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =232
+                  - imgKksNavToggleOpen:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Collapse menu"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =40
+                        HoverFill: |-
+                            =C.'bg-muted'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M18 6l-6 6 6 6 M12 6l-6 6 6 6'/></g></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false)
+                        PressedFill: |-
+                            =C.'bg-muted'
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            ="Collapse menu"
+                        Width: |-
+                            =232
+                  - imgKksNavHubOpen:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Masterdata Hub"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =40
+                        HoverFill: |-
+                            =C.'bg-muted'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5 12 3l9 7.5M5.5 9.5V20h13V9.5'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Masterdata Hub</text></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false); Navigate(ScreenMdHub, ScreenTransition.None)
+                        PressedFill: |-
+                            =C.'bg-muted'
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =232
+                  - imgKksNavFunctionallocationOpen:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Functional Location"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =40
+                        HoverFill: |-
+                            =C.'bg-muted'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Functional Location</text></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false); Navigate(ScreenFunctionalLocation, ScreenTransition.None)
+                        PressedFill: |-
+                            =C.'bg-muted'
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =232
+                  - imgKksNavVhplanOpen:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="VH-plan"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =40
+                        HoverFill: |-
+                            =C.'bg-muted'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>VH-plan</text></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false); Navigate(ScreenVhPlan, ScreenTransition.None)
+                        PressedFill: |-
+                            =C.'bg-muted'
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =232
+                  - imgKksNavMaterialOpen:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Materials"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =40
+                        HoverFill: |-
+                            =C.'bg-muted'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Materials</text></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false); Navigate(ScreenMaterial, ScreenTransition.None)
+                        PressedFill: |-
+                            =C.'bg-muted'
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =232
+                  - imgKksNavEquipmentOpen:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Equipments"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =40
+                        HoverFill: |-
+                            =C.'bg-muted'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>Equipments</text></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false); Navigate(ScreenEquipment, ScreenTransition.None)
+                        PressedFill: |-
+                            =C.'bg-muted'
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =232
+                  - imgKksNavKksOpen:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="KKS lookup (current app)"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =40
+                        HoverFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><rect x='8' y='0' width='216' height='40' rx='8' fill='" & C.'hex-state-info-bg' & "'/><rect x='0' y='10' width='3' height='20' rx='1.5' fill='" & C.'hex-color-brand-primary' & "'/><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M3 6h11M3 11h7M3 16h5M15.5 11.5a3.5 3.5 0 1 1 0 7a3.5 3.5 0 1 1 0-7ZM18.1 18.1 21 21'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-state-info-fg' & "'>KKS lookup</text></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(gblNavOpen, false)
+                        PressedFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =232
+            - conKksNavFootOpen:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =47
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Start
+                  LayoutDirection: |-
+                      =LayoutDirection.Vertical
+                  LayoutGap: |-
+                      =10
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =10
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Width: |-
+                      =232
+                Children:
+                  - conKksNavRuleOpen:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        Fill: |-
+                            =C.'border-subtle'
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =1
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Stretch
+                        LayoutDirection: |-
+                            =LayoutDirection.Horizontal
+                        LayoutGap: |-
+                            =8
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        Width: |-
+                            =212
+                  - imgKksThemeOpen:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            =If(darkModeEnabled, "Dark theme is on - switch to light theme", "Light theme is on - switch to dark theme")
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =36
+                        HoverFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl(If(darkModeEnabled,
+                                "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='36' viewBox='0 0 104 36'><rect x='1' y='1' width='102' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='18' cy='18' r='14' fill='" & C.'hex-text-primary' & "'/><path d='M21 11 A7 7 0 1 0 25 21 A5.5 5.5 0 1 1 21 11 Z' fill='" & C.'hex-bg-app' & "'/><text x='90' y='22' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='12' font-weight='700' letter-spacing='0.5' fill='" & C.'hex-text-primary' & "'>DARK</text></svg>",
+                                "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='36' viewBox='0 0 104 36'><rect x='1' y='1' width='102' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='86' cy='18' r='14' fill='" & C.'hex-bg-surface' & "'/><circle cx='86' cy='18' r='4' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8'/><line x1='92.5' y1='18.0' x2='95.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='90.6' y1='22.6' x2='92.4' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='86.0' y1='24.5' x2='86.0' y2='27.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='81.4' y1='22.6' x2='79.6' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='79.5' y1='18.0' x2='77.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='81.4' y1='13.4' x2='79.6' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='86.0' y1='11.5' x2='86.0' y2='9.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='90.6' y1='13.4' x2='92.4' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><text x='14' y='22' text-anchor='start' font-family='Segoe UI, sans-serif' font-size='12' font-weight='700' letter-spacing='0.5' fill='" & C.'hex-text-primary' & "'>LIGHT</text></svg>"
+                            ))
+                        ImagePosition: |-
+                            =ImagePosition.Fit
+                        OnSelect: |-
+                            =Set(darkModeEnabled, !darkModeEnabled);
+                            ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
+                            IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                        PressedFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =104
+      - imgKksLoading:
+          Control: Image
+          Properties:
+            AccessibleLabel: |-
+                ="Loading KKS keys, please wait"
+            BorderStyle: |-
+                =BorderStyle.None
+            BorderThickness: |-
+                =0
+            Fill: |-
+                =C.'overlay'
+            Height: |-
+                =App.Height
+            Image: |-
+                ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><g opacity='0'><animate attributeName='opacity' from='0' to='1' begin='0.15s' dur='0.2s' fill='freeze'/><circle cx='32' cy='32' r='22' fill='none' stroke-width='6' stroke='" & C.'hex-state-neutral-bg' & "'/><path d='M32 10 a22 22 0 0 1 22 22' fill='none' stroke-width='6' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'><animateTransform attributeName='transform' type='rotate' from='0 32 32' to='360 32 32' dur='0.9s' repeatCount='indefinite'/></path></g></svg>")
+            ImagePosition: |-
+                =ImagePosition.Center
+            TabIndex: |-
+                =-1
+            Visible: |-
+                =IfError(varKksLoading, false)
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0

@@ -1,9 +1,9 @@
 # SAP masterdata – canvas apps og indmeldinger
 
 Canvas app og indmeldingsflow til SAP masterdata. **Én app:
-[`BIO SAP App/`](BIO%20SAP%20App)**, med fem skærme — hub, VH-plan,
-Equipments, Materials og Functional Location. Sidebaren og hubben navigerer
-mellem skærmene. Se [`BIO SAP App/README.md`](BIO%20SAP%20App/README.md).
+[`BIO SAP App/`](BIO%20SAP%20App)**, med seks skærme — hub, VH-plan,
+Equipments, Materials, Functional Location og KKS-opslaget. Sidebaren og
+hubben navigerer mellem skærmene. Se [`BIO SAP App/README.md`](BIO%20SAP%20App/README.md).
 
 De fem enkeltapps er udfaset (2026-10-01, [`docs/33`](docs/33-udfasning.md)).
 Deres mapper indeholder stadig **byggerne** til hver skærm — BIO SAP bygges
@@ -16,6 +16,7 @@ af dem:
 | **Equipments** | [`Equipment App/`](Equipment%20App) | Indmelding af udstyr |
 | **Materials** | [`Material App/`](Material%20App) | Indmelding af reservedele |
 | **Functional Location** | [`Functional Location App/`](Functional%20Location%20App) | Functional Locations (SPOOL): KKS-syntaks, klasse og spool-felter pr. klasse. Reglerne er HTML-sidens (`html/functional-location.html` + JS) - se [`docs/31`](docs/31-functional-location-regler.md) |
+| **KKS lookup** | [`KKS App/`](KKS%20App) | Opslag i KKS-vejledningen: funktions-, aggregat- og komponentnøgler. Kun en skærm i BIO SAP - den var aldrig en af de fem enkeltapps. Data i SharePoint; aggregat og komponent genbruger `MD_FLKey`. Se [`KKS App/README.md`](KKS%20App/README.md) |
 
 > **Equipments og Materials deler byggeklodser, men er to apps.** De var
 > engang den samme app med to konfigurationsfiler; nu skal de kunne to
@@ -170,6 +171,8 @@ $site = "https://<tenant>.sharepoint.com/sites/<site>"
 .\sharepoint\provision\Provision-VHPlanColumns.ps1           -SiteUrl $site
 .\sharepoint\provision\Provision-VHPlanApproval.ps1          -SiteUrl $site
 .\sharepoint\provision\Provision-HelpText.ps1                -SiteUrl $site
+# KKS-opslaget (efter FunctionalLocationLists - MD_FLKey genbruges)
+.\sharepoint\provision\Provision-KksLists.ps1                 -SiteUrl $site -SeedMasterData
 ```
 
 VH-planens egne lister (`MaintenancePlans`, `MaintenanceItems`,

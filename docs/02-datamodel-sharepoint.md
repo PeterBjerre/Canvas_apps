@@ -344,13 +344,36 @@ Tomme rækker (FL3) gemmes ikke.
 Seedet fra `sharepoint/seed/MD_FLKey.csv` (6.733 rækker), som genereres af
 `node tools/fl/harness.js seed` ud af `html/lookups.generated.js`.
 
-**Appen læser ikke listen.** Nøglerne er bygget ind i appen fra de samme
+**FL-skærmen læser ikke listen.** Nøglerne er bygget ind i appen fra de samme
 data, som HTML-siden har dem i klienten (`lookups.generated.js`): et opslag
 pr. række mod 6.441 funktionsnøgler i SharePoint kan ikke delegeres, og
 SharePoint ville så kun lede i de første 500-2000 rækker (docs/31, PX5).
 Listen er seedet til flows, Excel og en serverside-gentagelse af
 valideringen - den "ene sandhed", `powerfx/03-validering.fx` siger skal
 kunne genimplementeres.
+
+**KKS-skærmen genbruger listen** til aggregat- og komponentnøglerne: den
+henter `KeyType = "Aggregate"` og `"Component"` (146 og 139 rækker, under
+datagrænsen) og viser dem, der har en `Description` - ordret de 98 og 60
+rækker, KKS-vejledningen har (`html/kks-*.generated.js`).
+`tools/gen_kks_seed.py --check` holder de to i trit ved hver bygning.
+
+### `MD_KksFunctionKey` – KKS-vejledningens funktionsnøgler
+
+| Kolonne | Type | Bemærkning |
+|---|---|---|
+| `Title` → `Code` | Text Ⓘ | Koden, som den står i vejledningen (`A`, `AB`, `ABA` … og noterne `*`, `**`) |
+| `Section` | Text Ⓘ, påkrævet | `HOME` (de 25 overordnede bogstaver) eller bogstavet `A`-`Z` |
+| `SortNo` | Number Ⓘ, påkrævet | Visningsrækkefølgen 1, 2, 3 … uden huller. Appen henter i bidder på 500 efter den |
+| `Description` | Note (plain) | 48 beskrivelser er over 255 tegn |
+
+Seedet fra `sharepoint/seed/MD_KksFunctionKey.csv` (2.913 rækker), som
+skrives af `python3 tools/gen_kks_seed.py` ud af `html/kks.generated.js`.
+Provisioneres af `Provision-KksLists.ps1 -SeedMasterData`.
+
+Den kan ikke slås sammen med `MD_FLKey`'s `Function`-rækker: de er de 6.441
+gyldige nøgler uden tekst, vejledningen er 2.913 rækker med tekst, dubletter,
+noter og O-grupper, der ikke er nøgler.
 
 ### Landingssiden
 

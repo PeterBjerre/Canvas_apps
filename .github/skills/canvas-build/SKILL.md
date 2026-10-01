@@ -226,7 +226,8 @@ markeret) og en fod med **Help**-kontakten (kun VH-plan) og **temaskiftet**.
 | Equipments | `Equipment App/` | `ScreenEquipment.pa.yaml` | `generate_app_onstart.py` + `assemble_screen.py` |
 | Materials | `Material App/` | `ScreenMaterial.pa.yaml` | `generate_app_onstart.py` + `assemble_screen.py` |
 | Functional Location | `Functional Location App/` | `ScreenFunctionalLocation.pa.yaml` | `generate_app_onstart.py` + `assemble_screen.py` (reglerne: `docs/31`) |
-| BIO SAP (test) | `BIO SAP App/` | alle fem | `generate_app.py` + `build_screens.py` + `check_combined.py` — se `BIO SAP App/README.md` |
+| KKS-opslag | `KKS App/` | `ScreenKks.pa.yaml` (kun i BIO SAP) | `generate_app_onstart.py` + `assemble_screen.py` — se `KKS App/README.md` |
+| BIO SAP (test) | `BIO SAP App/` | alle seks | `generate_app.py` + `build_screens.py` + `check_combined.py` — se `BIO SAP App/README.md` |
 
 **De fælles filer ligger i `tools/` — i én udgave, ikke fire kopier.**
 
@@ -262,6 +263,7 @@ Hver `build/`-mappe indeholder nu kun det, der er appens eget:
 | Equipments | `domain_config.py`, `equipment_parts.py` (felternes rækkefølge og listens kolonner) + de to indgange |
 | Materials | `domain_config.py`, `material_parts.py` (felternes rækkefølge, No BOM Item og listens kolonner) + de to indgange |
 | Functional Location | `fl_config.py`, `fl_parts.py`, `fl_validation.py`, `fl_save.py`, `fl_rules.generated.json` (genereret af `tools/fl/harness.js plan`) |
+| KKS-opslag | `kks_config.py` (lister, nøgleområder, bidder), `kks_parts.py` (skærmen, formlerne, hentningen). Data: `tools/gen_kks_seed.py` |
 | BIO SAP | Ingen skærmbyggere — kun kompositionen af de fem |
 
 > **To fælder, begge ramt under flytningen — og begge nu spærret:**

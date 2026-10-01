@@ -11,7 +11,8 @@ Repoet indeholder fem Power Apps canvas apps og én samlet test-app:
 | Equipments (udstyr) | `Equipment App/` | `ScreenEquipment.pa.yaml` |
 | Materials (reservedele) | `Material App/` | `ScreenMaterial.pa.yaml` |
 | Functional Location (SPOOL) | `Functional Location App/` | `ScreenFunctionalLocation.pa.yaml` |
-| BIO SAP (de fem som skærme i én app – til test) | `BIO SAP App/` | alle fem |
+| KKS-opslag (kun som skærm i BIO SAP) | `KKS App/` | `ScreenKks.pa.yaml` |
+| BIO SAP (de seks som skærme i én app) | `BIO SAP App/` | alle seks |
 
 **Alle `.pa.yaml`-filer er genereret** af Python-builderne i den enkelte
 apps `build/`-mappe og af de fælles moduler i `tools/`. Retter du direkte i

@@ -262,3 +262,44 @@ def test_skill_rules_table_matches_registry():
         "SKILL.md er ikke opdateret - koer python3 tools/check_layout.py --rules"
     ids = [r.id for r in check_layout.RULES]
     assert len(ids) == len(set(ids))
+
+
+# ---------------------------------------------------------------------------
+# KKS: seedet og den genbrugte MD_FLKey skal vaere KKS-vejledningens raekker
+# ---------------------------------------------------------------------------
+def _kks_check(monkeypatch, tmp_path, csv_name, mutate):
+    """Koer gen_kks_seed --check paa en kopi af et seed, hvor mutate() har
+    aendret en raekke. Returnerer (exitkode, output)."""
+    import gen_kks_seed as g
+    src = os.path.join(ROOT, "sharepoint", "seed", csv_name)
+    text = open(src, encoding="utf-8-sig").read()
+    new = mutate(text)
+    assert new != text, "mutationen ramte ikke noget - testen er forkert"
+    dst = tmp_path / csv_name
+    dst.write_text(new, encoding="utf-8-sig")
+    attr = "FLKEY_CSV" if csv_name == "MD_FLKey.csv" else "FUNCTION_CSV"
+    monkeypatch.setattr(g, attr, str(dst))
+    buf = io.StringIO()
+    with redirect_stdout(buf):
+        rc = g.check()
+    return rc, buf.getvalue()
+
+
+def test_kks_seed_is_in_step_with_html():
+    import gen_kks_seed as g
+    buf = io.StringIO()
+    with redirect_stdout(buf):
+        assert g.check() == 0, buf.getvalue()
+
+
+def test_kks_check_finds_stale_function_seed(monkeypatch, tmp_path):
+    rc, out = _kks_check(monkeypatch, tmp_path, "MD_KksFunctionKey.csv",
+                         lambda t: t.replace('"SAMLET PROJEKT"', '"SAMLET"', 1))
+    assert rc == 1 and "MD_KksFunctionKey.csv" in out
+
+
+def test_kks_check_finds_flkey_drifting_from_kks(monkeypatch, tmp_path):
+    """Aendres en aggregatbeskrivelse i MD_FLKey, er genbruget forkert."""
+    rc, out = _kks_check(monkeypatch, tmp_path, "MD_FLKey.csv",
+                         lambda t: t.replace('"Transformere."', '"Transformer."', 1))
+    assert rc == 1 and "Aggregate" in out

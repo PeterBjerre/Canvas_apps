@@ -2202,6 +2202,48 @@ App:
       // Vaerkerne. Eneste opslagsliste appen laeser, og den laeses foerst,
       // naar dropdownen aabnes.
       colMatPlants = Sort(ForAll(PlantList As R, { Value: R.Title }), Value);
+
+      // KKS-opslaget (KKS App/build/kks_parts.py). Samlingerne hentes i
+      // skaermens OnVisible; alt herunder regnes i hukommelsen.
+      colKksScope = Switch(varKksKey, "aggregate", colKksAggregate, "component", colKksComponent, colKksFunction);
+
+      KksHasL3 = varKksKey = "function";
+
+      colKksBase = If(varKksL1 = "ALL", colKksScope, Filter(colKksScope, L1 = varKksL1));
+
+      colKksBaseQ = If(IsBlank(varKksQuery), colKksBase, Filter(colKksBase, varKksQuery in Code || varKksQuery in Description));
+
+      // Bogstaverne: funktionsnoeglens er HOME-sektionens 25 koder, de to andres
+      // de bogstaver, der har raekker.
+      colKksL1Keys = If(KksHasL3, Sort(Distinct(Filter(colKksScope, L1 = "HOME"), Code), Value), Sort(Distinct(colKksScope, L1), Value));
+
+      colKksL1Items = Ungroup(Table({T: Table({Value: "ALL"})}, {T: colKksL1Keys}), T);
+
+      colKksL2Keys = Sort(Distinct(Filter(colKksBaseQ, varKksL1 <> "ALL" && Len(P2) = 2 && StartsWith(P2, varKksL1)), P2), Value);
+
+      colKksL2Items = Ungroup(Table({T: Table({Value: "ALL"})}, {T: colKksL2Keys}), T);
+
+      colKksL2Rows = If(IsBlank(varKksL2), colKksBaseQ, Filter(colKksBaseQ, P2 = varKksL2));
+
+      colKksL3Keys = Sort(Distinct(Filter(colKksL2Rows, KksHasL3 && !IsBlank(varKksL2) && Len(P3) = 3 && StartsWith(P3, varKksL2)), P3), Value);
+
+      colKksL3Items = Ungroup(Table({T: Table({Value: "ALL"})}, {T: colKksL3Keys}), T);
+
+      colKksL3Rows = If(!KksHasL3 || IsBlank(varKksL3), colKksL2Rows, Filter(colKksL2Rows, P3 = varKksL3));
+
+      colKksResults = If(varKksL1 = "ALL" && IsBlank(varKksQuery) && KksHasL3, Filter(colKksScope, L1 = "HOME"), colKksL3Rows);
+
+      KksNote2 = If(varKksL1 = "ALL", "Pick a letter to see its groups.", CountRows(colKksL2Keys) = 0, If(IsBlank(varKksQuery), "No groups under this letter.", "No groups match the search."), "");
+
+      KksNote3 = If(!KksHasL3, "", varKksL1 = "ALL", "Pick a letter to see its subgroups.", IsBlank(varKksL2), "Pick a group to see its subgroups.", CountRows(colKksL3Keys) = 0, If(IsBlank(varKksQuery), "No subgroups under this group.", "No subgroups match the search."), "");
+
+      KksHeadL1 = If(varKksL1 = "ALL", "", Coalesce(LookUp(colKksScope, L1 = "HOME" && Upper(Code) = varKksL1, Description), LookUp(colKksBase, Upper(Code) = varKksL1, Description), LookUp(colKksBase, Len(P2) = 2 && Upper(Code) = P2 && StartsWith(P2, varKksL1), Description), ""));
+
+      KksHeadL2 = If(IsBlank(varKksL2), "", Coalesce(LookUp(colKksScope, Upper(Code) = varKksL2, Description), ""));
+
+      KksHeadL3 = If(IsBlank(varKksL3), "", Coalesce(LookUp(colKksScope, Upper(Code) = varKksL3, Description), ""));
+
+      KksTitle = If(varKksL1 = "ALL", "All sections" & If(IsBlank(varKksQuery), "", " - search results"), varKksL1 & If(IsBlank(varKksL2) && IsBlank(varKksL3) && !IsBlank(KksHeadL1), " - " & Upper(Left(Lower(KksHeadL1), 1)) & Mid(Lower(KksHeadL1), 2), "") & If(IsBlank(varKksL2), "", " / " & varKksL2 & If(IsBlank(varKksL3) && !IsBlank(KksHeadL2), " - " & Upper(Left(Lower(KksHeadL2), 1)) & Mid(Lower(KksHeadL2), 2), "")) & If(IsBlank(varKksL3), "", " / " & varKksL3 & If(!IsBlank(KksHeadL3), " - " & Upper(Left(Lower(KksHeadL3), 1)) & Mid(Lower(KksHeadL3), 2), "")) & If(IsBlank(varKksQuery), "", " - search results"));
     OnError: |
       =Trace(
           "Unhandled error",
@@ -2248,6 +2290,7 @@ App:
           "vhplan", ScreenVhPlan,
           "equipment", ScreenEquipment,
           "material", ScreenMaterial,
+          "kks", ScreenKks,
           ScreenMdHub
       )
     Theme: |-

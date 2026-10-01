@@ -64,7 +64,12 @@ _OWN = [
     ("vhplan", "Vhp", None),
     ("equipment", "Eq", "Dom"),
     ("material", "Mat", "Dom"),
+    ("kks", "Kks", None),
 ]
+# OPSLAGSSKAERME: ingen anmodninger, intet MD_RequestIndex, intet ?reqid=.
+# Hubben aabner dem ikke, og de klargoeres ikke af open_block - de henter
+# deres data een gang, foerste gang de vises (KKS App/build/kks_parts.py).
+LOOKUPS = {"kks"}
 DOMAINS = []
 for _key, _tag, _rename in _OWN:
     _d = {"key": _key, "folder": env.APPS[_key]["folder"],

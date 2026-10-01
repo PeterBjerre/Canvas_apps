@@ -357,6 +357,18 @@ def main(argv=None):
     else:
         doc_check = False
 
+    # KKS: SEEDET OG DEN GENBRUGTE LISTE SKAL VAERE I TRIT MED HTML'EN
+    #
+    # KKS-skaermen laeser aggregat- og komponentnoeglerne fra MD_FLKey
+    # (Functional Location-appens liste) og funktionsnoeglerne fra
+    # MD_KksFunctionKey. tools/gen_kks_seed.py --check fejler, hvis seedet
+    # ikke er det, html/kks.generated.js giver - eller hvis MD_FLKey ikke
+    # laengere er de raekker, KKS-vejledningen har.
+    if any(a in ("KKS App", _env.APPS[_env.COMBINED]["folder"]) for a, _ in apps):
+        r = _py([os.path.join(ROOT, "tools", "gen_kks_seed.py"), "--check"])
+        if r.returncode:
+            return r.returncode
+
     rc = 0
     for app, scripts in apps:
         d = os.path.join(ROOT, app, "build")
