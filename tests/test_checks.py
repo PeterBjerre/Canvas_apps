@@ -105,6 +105,14 @@ def test_layout_rule_34_onstart_clears_what_onvisible_fills(tmp_path):
     assert rc == 1 and "[34]" in buf.getvalue()
 
 
+def test_layout_rule_30_nested_filter_on_list(tmp_path):
+    """Issue #84: Filter(Filter(liste, A), B) gav forkerte raekker."""
+    def plant(t):
+        return t.replace("=LayoutRank", '=CountRows(Filter(Filter(EquipmentItems, Title = varEqMe), Status = "x")) * 0 + LayoutRank', 1)
+    rc, out = _layout(tmp_path, plant)
+    assert rc == 1 and "Filter(Filter(EquipmentItems" in out
+
+
 def test_layout_rule_16_classic_dropdown(tmp_path):
     def plant(t):
         return t.replace("Control: ModernDropdown", "Control: Classic/DropDown", 1)
