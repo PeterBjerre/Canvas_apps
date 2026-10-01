@@ -79,6 +79,14 @@ def test_layout_rule_31_string_column_name(tmp_path):
     assert rc == 1 and "[31]" in out
 
 
+def test_layout_rule_30_column_against_expression(tmp_path):
+    """Issue #84: IsOpen = (udtryk) i et filter mod en SharePoint-liste."""
+    def plant(t):
+        return t.replace("=LayoutRank", '=CountRows(Filter(EquipmentItems, IsOpen = (varEqView = "open"))) * 0 + LayoutRank', 1)
+    rc, out = _layout(tmp_path, plant)
+    assert rc == 1 and "[30]" in out and "The query is not valid" in out
+
+
 def test_layout_rule_16_classic_dropdown(tmp_path):
     def plant(t):
         return t.replace("Control: ModernDropdown", "Control: Classic/DropDown", 1)

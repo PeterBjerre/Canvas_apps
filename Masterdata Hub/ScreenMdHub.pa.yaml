@@ -4,10 +4,18 @@ Screens:
       Fill: |-
           =C.'bg-app'
       OnVisible: |-
-          =ClearCollect(colMdScope, ForAll(Filter(
-                  'MD_RequestIndex',
-                  varMdView <> "mine" || RequesterEmail = varMdMe,
-                  varMdStatusMode = "all" || IsOpen = (varMdStatusMode = "open")
+          =ClearCollect(colMdScope, ForAll(If(
+                  varMdView = "mine",
+                  If(
+                      varMdStatusMode = "open", Filter(Filter('MD_RequestIndex', RequesterEmail = varMdMe), IsOpen = true),
+                      varMdStatusMode = "done", Filter(Filter('MD_RequestIndex', RequesterEmail = varMdMe), IsOpen = false),
+                      Filter('MD_RequestIndex', RequesterEmail = varMdMe)
+                  ),
+                  If(
+                      varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
+                      varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
+                      'MD_RequestIndex'
+                  )
               ) As R, { Domain: R.Domain.Value }))
     Children:
       - conMdRoot:
@@ -252,10 +260,18 @@ Screens:
                                   =148
                               OnSelect: |-
                                   =Set(varMdView, If(varMdView = "mine", "queue", "mine")); Set(varMdDomain, "");
-                                  ClearCollect(colMdScope, ForAll(Filter(
-                                          'MD_RequestIndex',
-                                          varMdView <> "mine" || RequesterEmail = varMdMe,
-                                          varMdStatusMode = "all" || IsOpen = (varMdStatusMode = "open")
+                                  ClearCollect(colMdScope, ForAll(If(
+                                          varMdView = "mine",
+                                          If(
+                                              varMdStatusMode = "open", Filter(Filter('MD_RequestIndex', RequesterEmail = varMdMe), IsOpen = true),
+                                              varMdStatusMode = "done", Filter(Filter('MD_RequestIndex', RequesterEmail = varMdMe), IsOpen = false),
+                                              Filter('MD_RequestIndex', RequesterEmail = varMdMe)
+                                          ),
+                                          If(
+                                              varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
+                                              varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
+                                              'MD_RequestIndex'
+                                          )
                                       ) As R, { Domain: R.Domain.Value }))
                               RadiusBottomLeft: |-
                                   =10
@@ -871,10 +887,18 @@ Screens:
                                   =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= (280) + (96) + (110) + (36) + (96) + (110) + 50, 96, 0)
                               OnSelect: |-
                                   =Set(varMdStatusMode, "open");
-                                  ClearCollect(colMdScope, ForAll(Filter(
-                                          'MD_RequestIndex',
-                                          varMdView <> "mine" || RequesterEmail = varMdMe,
-                                          varMdStatusMode = "all" || IsOpen = (varMdStatusMode = "open")
+                                  ClearCollect(colMdScope, ForAll(If(
+                                          varMdView = "mine",
+                                          If(
+                                              varMdStatusMode = "open", Filter(Filter('MD_RequestIndex', RequesterEmail = varMdMe), IsOpen = true),
+                                              varMdStatusMode = "done", Filter(Filter('MD_RequestIndex', RequesterEmail = varMdMe), IsOpen = false),
+                                              Filter('MD_RequestIndex', RequesterEmail = varMdMe)
+                                          ),
+                                          If(
+                                              varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
+                                              varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
+                                              'MD_RequestIndex'
+                                          )
                                       ) As R, { Domain: R.Domain.Value }))
                               RadiusBottomLeft: |-
                                   =10
@@ -923,10 +947,18 @@ Screens:
                                   =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= (280) + (96) + (110) + (36) + (96) + (110) + 50, 110, 0)
                               OnSelect: |-
                                   =Set(varMdStatusMode, "done");
-                                  ClearCollect(colMdScope, ForAll(Filter(
-                                          'MD_RequestIndex',
-                                          varMdView <> "mine" || RequesterEmail = varMdMe,
-                                          varMdStatusMode = "all" || IsOpen = (varMdStatusMode = "open")
+                                  ClearCollect(colMdScope, ForAll(If(
+                                          varMdView = "mine",
+                                          If(
+                                              varMdStatusMode = "open", Filter(Filter('MD_RequestIndex', RequesterEmail = varMdMe), IsOpen = true),
+                                              varMdStatusMode = "done", Filter(Filter('MD_RequestIndex', RequesterEmail = varMdMe), IsOpen = false),
+                                              Filter('MD_RequestIndex', RequesterEmail = varMdMe)
+                                          ),
+                                          If(
+                                              varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
+                                              varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
+                                              'MD_RequestIndex'
+                                          )
                                       ) As R, { Domain: R.Domain.Value }))
                               RadiusBottomLeft: |-
                                   =10
@@ -1026,10 +1058,18 @@ Screens:
                                   =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= (280) + (96) + (110) + (36) + (96) + (110) + 50, 96, 0)
                               OnSelect: |-
                                   =Set(varMdStatusMode, "all");
-                                  ClearCollect(colMdScope, ForAll(Filter(
-                                          'MD_RequestIndex',
-                                          varMdView <> "mine" || RequesterEmail = varMdMe,
-                                          varMdStatusMode = "all" || IsOpen = (varMdStatusMode = "open")
+                                  ClearCollect(colMdScope, ForAll(If(
+                                          varMdView = "mine",
+                                          If(
+                                              varMdStatusMode = "open", Filter(Filter('MD_RequestIndex', RequesterEmail = varMdMe), IsOpen = true),
+                                              varMdStatusMode = "done", Filter(Filter('MD_RequestIndex', RequesterEmail = varMdMe), IsOpen = false),
+                                              Filter('MD_RequestIndex', RequesterEmail = varMdMe)
+                                          ),
+                                          If(
+                                              varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
+                                              varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
+                                              'MD_RequestIndex'
+                                          )
                                       ) As R, { Domain: R.Domain.Value }))
                               RadiusBottomLeft: |-
                                   =10
@@ -1527,10 +1567,18 @@ Screens:
                               Items: |-
                                   =SortByColumns(
                                       Filter(
-                                          Filter(
-                                          'MD_RequestIndex',
-                                          varMdView <> "mine" || RequesterEmail = varMdMe,
-                                          varMdStatusMode = "all" || IsOpen = (varMdStatusMode = "open")
+                                          If(
+                                          varMdView = "mine",
+                                          If(
+                                              varMdStatusMode = "open", Filter(Filter('MD_RequestIndex', RequesterEmail = varMdMe), IsOpen = true),
+                                              varMdStatusMode = "done", Filter(Filter('MD_RequestIndex', RequesterEmail = varMdMe), IsOpen = false),
+                                              Filter('MD_RequestIndex', RequesterEmail = varMdMe)
+                                          ),
+                                          If(
+                                              varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
+                                              varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
+                                              'MD_RequestIndex'
+                                          )
                                       ),
                                           varMdDomain = "" || Domain.Value = varMdDomain,
                                           IsBlank(Trim(inpMdSearch.Text)) ||
@@ -3159,7 +3207,11 @@ Screens:
                   Items: |-
                       =FirstN(
                           SortByColumns(
-                              Filter('MD_RequestIndex', varMdView <> "mine" || RequesterEmail = varMdMe, IsOpen = false),
+                              If(
+                                  varMdView = "mine",
+                                  Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
+                                  Filter('MD_RequestIndex', IsOpen = false)
+                              ),
                               "LastActionOn", SortOrder.Descending
                           ),
                           5
