@@ -437,7 +437,8 @@ def main():
     prov_choices = provisioned_choices()
     screens = []
     import env_config
-    for app in [env_config.APPS[k]["folder"] for k in env_config.APP_ORDER]:
+    # Kun de apps, der bygges - ikke gamle filer i en udfaset apps mappe.
+    for app in [env_config.APPS[k]["folder"] for k in env_config.build_targets()]:
         d = os.path.join(ROOT, app)
         if not os.path.isdir(d):
             continue

@@ -388,6 +388,18 @@ def main(argv=None):
                       f"saa tjekkene ikke svarer paa en gammel skaerm.")
                 break
 
+    # Gamle skaerme i en udfaset apps mappe (docs/33). Git ignorerer dem,
+    # saa de bliver liggende efter en pull - og de er ikke laengere med i
+    # tjekkene. Sig det, saa ingen tror, de er i brug.
+    stale = sorted(os.path.join(f, fn) for f in _env.retired_folders()
+                   if os.path.isdir(os.path.join(ROOT, f))
+                   for fn in os.listdir(os.path.join(ROOT, f))
+                   if fn.endswith(".pa.yaml") and fn != "App.pa.yaml")
+    if stale:
+        print("\nNB: gamle filer fra de udfasede enkeltapps - bruges ikke, kan slettes:")
+        for f in stale:
+            print("  " + f)
+
     # Landede der en skaerm det forkerte sted?
     #
     # Den her fandtes ikke, og det kostede: da gen_screen.py flyttede fra

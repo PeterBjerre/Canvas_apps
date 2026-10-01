@@ -173,6 +173,13 @@ def is_retired(key):
     return RETIRED and key != COMBINED
 
 
+def retired_folders():
+    """Mapperne for de udfasede enkeltapps. Deres .pa.yaml er
+    mellemprodukter eller gamle filer, som git ignorerer - tjekkene laeser
+    dem ikke (en gammel skaerm der gav fund, ingen kunne se hos andre)."""
+    return [APPS[k]["folder"] for k in APP_ORDER if is_retired(k)]
+
+
 def play_url(key):
     """Play-URL'en til en app. Tom streng, hvis appen ikke findes endnu."""
     aid = app_id(key)
