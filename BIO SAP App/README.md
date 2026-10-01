@@ -6,11 +6,10 @@ De fem apps (hub, Functional Location, VH-plan, Equipments og Materials) som
 kold start, og det, man var i gang med, ligger der stadig, når man kommer
 tilbage.
 
-> **Status: den app, der skal bruges (besluttet 2026-09-30).** At skifte
-> mellem fem apps var for klodset. De fem enkeltapps udfases, når den
-> samlede app har bestået testplanen nedenfor. Indtil da bygges begge dele
-> af de samme byggere, så en rettelse kommer med begge steder. Udfasningen er
-> forberedt som ét flag — se [`docs/33-udfasning.md`](../docs/33-udfasning.md).
+> **Status: den app, der bruges.** De fem enkeltapps er udfaset
+> (2026-10-01): repoet bygger og deployer kun denne app
+> (`"single_apps": "retired"` i `tools/canvas_apps.json`). Skærmene bygges
+> stadig af de fem appers byggere. Se [`docs/33-udfasning.md`](../docs/33-udfasning.md).
 
 Baggrunden for beslutningen står i
 [`../docs/07-landingsside.md`](../docs/07-landingsside.md) §9.

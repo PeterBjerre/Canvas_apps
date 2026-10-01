@@ -1,20 +1,21 @@
 # SAP masterdata – canvas apps og indmeldinger
 
-Canvas apps og indmeldingsflow til SAP masterdata. **Fem apps:**
+Canvas app og indmeldingsflow til SAP masterdata. **Én app:
+[`BIO SAP App/`](BIO%20SAP%20App)**, med fem skærme — hub, VH-plan,
+Equipments, Materials og Functional Location. Sidebaren og hubben navigerer
+mellem skærmene. Se [`BIO SAP App/README.md`](BIO%20SAP%20App/README.md).
 
-| App | Mappe | Rolle |
+De fem enkeltapps er udfaset (2026-10-01, [`docs/33`](docs/33-udfasning.md)).
+Deres mapper indeholder stadig **byggerne** til hver skærm — BIO SAP bygges
+af dem:
+
+| Skærm | Byggere i | Rolle |
 |---|---|---|
 | **Masterdata Hub** | [`Masterdata Hub/`](Masterdata%20Hub) | Landingssiden. Alle indmeldinger på tværs af de fem domæner, med status. Én datakilde |
 | **VH-plan** | [`Maintenance Plan App/`](Maintenance%20Plan%20App) | Indmelding af vedligeholdsplaner, inkl. strategiplaner med pakker |
 | **Equipments** | [`Equipment App/`](Equipment%20App) | Indmelding af udstyr |
 | **Materials** | [`Material App/`](Material%20App) | Indmelding af reservedele |
 | **Functional Location** | [`Functional Location App/`](Functional%20Location%20App) | Functional Locations (SPOOL): KKS-syntaks, klasse og spool-felter pr. klasse. Reglerne er HTML-sidens (`html/functional-location.html` + JS) - se [`docs/31`](docs/31-functional-location-regler.md) |
-
-> **Til test: [`BIO SAP App/`](BIO%20SAP%20App)** er de fem apps som skærme i
-> **én** app. Sidebaren navigerer mellem skærme i stedet for at starte en ny
-> app, og en ventespinner viser, når et domæne indlæses. Den bygges af de fem appers egne
-> byggere, så de fem apps er uændrede, indtil den samlede er testet og
-> godkendt. Se [`BIO SAP App/README.md`](BIO%20SAP%20App/README.md).
 
 > **Equipments og Materials deler byggeklodser, men er to apps.** De var
 > engang den samme app med to konfigurationsfiler; nu skal de kunne to
@@ -29,8 +30,8 @@ layoutet med:
 
 ```bash
 pip install -r requirements.txt  # første gang
-python3 tools/build_all.py       # alle fem + den samlede app + alle tjek
-python3 tools/build_all.py --app equipment
+python3 tools/build_all.py       # BIO SAP App + alle tjek
+python3 tools/build.py           # det samme i én proces
 ```
 
 ### Forudsætninger
@@ -60,7 +61,7 @@ Synkroniseringen til Power Apps Studio kan køres fra en terminal — samme
 MCP-server som VS Code bruger, bare uden VS Code:
 
 ```powershell
-python tools\canvas_mcp.py deploy --app vhplan
+python tools\canvas_mcp.py deploy --app biosap
 ```
 
 Se [`docs/21-mcp-uden-vscode.md`](docs/21-mcp-uden-vscode.md).

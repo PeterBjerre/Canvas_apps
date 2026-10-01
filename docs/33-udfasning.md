@@ -6,7 +6,10 @@ VH-plan, Equipments, Materials og Functional Location — udfases, når den
 samlede app har bestået testplanen i
 [`BIO SAP App/README.md`](../BIO%20SAP%20App/README.md#testplan).
 
-Repoet er gjort klar: udfasningen er **ét flag** og nogle få git-kommandoer.
+**Udført i repoet 2026-10-01** (afsnit 2): `"single_apps": "retired"`,
+enkeltappernes `.pa.yaml` og `_EditorState.pa.yaml` er ude af git og i
+`.gitignore`. Afsnit 3 (Power Platform) er jeres.
+
 Byggerne bliver stående. BIO SAP bygges af de fem appers egne byggere.
 
 ## 1. Forudsætninger
