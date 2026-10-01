@@ -886,6 +886,21 @@ def rule_30(ctx):
                         f"[30] {owner}.{key}: {src} filtreres mod {root}.{cm.group(2)} "
                         f"- et scope-felt kan ikke delegeres. Saet vaerdien i en "
                         f"global variabel foerst, eller slaa op i den navngivne formel")
+                # KOLONNE = (UDTRYK) - issue #84. Hubbens filter havde
+                # IsOpen = (varMdStatusMode = "open"), og SharePoint svarede
+                # "The query is not valid" ved foerste deploy. Sammenlign
+                # med true/false, en variabel eller en konstant, og lad If
+                # vaelge mellem filtrene.
+                for cm in re.finditer(r"\b([A-Z][\w]*)\s*(=|<>)\s*\(", fx.split_top(cond, "")[0]):
+                    hit = (owner, key, src, cm.group(1), "(")
+                    if hit in seen:
+                        continue
+                    seen.add(hit)
+                    problems.append(
+                        f"[30] {owner}.{key}: {src} filtreres paa {cm.group(1)} {cm.group(2)} "
+                        f"(udtryk) - SharePoint afviser det (\"The query is not valid\", "
+                        f"issue #84). Sammenlign med en variabel eller konstant, og lad "
+                        f"If vaelge mellem filtrene")
 
 def rule_29(ctx):
     """Overskriften og raekken skal have SAMME kolonnebredder"""

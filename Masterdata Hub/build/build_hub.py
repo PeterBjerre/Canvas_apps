@@ -167,21 +167,40 @@ def _domain_switch(field, fallback):
 # SCOPE er BAADE listens, flisernes og taellerens grundlag, saa de tre
 # aldrig kan vaere uenige om, hvad der er valgt.
 # ---------------------------------------------------------------------------
-# ET FLADT FILTER, IKKE If(...) OMKRING SEKS FILTRE
+# If OMKRING ENKLE FILTRE - IKKE ET FLADT FILTER (issue #84)
 #
-# Her stod If(varMdView = "mine", If(varMdStatusMode = ...)) med et Filter i
-# hver gren. Om Power Apps delegerer det ydre Filter/SortByColumns GENNEM
-# en If, var aldrig efterproevet (README bad selv om at tjekke det). Et
-# enkelt Filter, hvor hver betingelse er "konstant ELLER delegerbar
-# sammenligning", er samme moenster som soegningen nedenfor
-# (IsBlank(...) || StartsWith(...)) - og det staar kun een gang i YAML'en.
+# I fase 1 stod her eet fladt Filter:
+#     Filter(liste, varMdView <> "mine" || RequesterEmail = varMdMe,
+#                   varMdStatusMode = "all" || IsOpen = (varMdStatusMode = "open"))
+# Ved foerste deploy af den samlede app svarede SharePoint:
+#     [MD_RequestIndex] The query is not valid.
+# og alle tal stod paa 0. Den sandsynlige aarsag er IsOpen = (udtryk): en
+# Ja/Nej-kolonne sammenlignet med et UDTRYK i stedet for true/false.
+#
+# Formen nedenfor er den, der var deployet og virkede: If vaelger mellem
+# filtre, hvor hver betingelse er EEN kolonne mod en variabel eller en
+# konstant (RequesterEmail = varMdMe, IsOpen = true). Domaene- og
+# soegefiltret ovenpaa (ITEMS) er uaendret - det var ogsaa deployet.
 #
 # Stadig kun indekserede felter: RequesterEmail (tekst) og IsOpen (ja/nej).
+_MINE = f"Filter('{LIST}', RequesterEmail = varMdMe)"
+_ALL = f"'{LIST}'"
+
+
+def _by_status(base, indent=4):
+    pad = " " * indent
+    return ("If(\n"
+            f"{pad}    varMdStatusMode = \"open\", Filter({base}, IsOpen = true),\n"
+            f"{pad}    varMdStatusMode = \"done\", Filter({base}, IsOpen = false),\n"
+            f"{pad}    {base}\n"
+            f"{pad})")
+
+
 SCOPE = (
-    "Filter(\n"
-    f"        '{LIST}',\n"
-    '        varMdView <> "mine" || RequesterEmail = varMdMe,\n'
-    '        varMdStatusMode = "all" || IsOpen = (varMdStatusMode = "open")\n'
+    "If(\n"
+    "        varMdView = \"mine\",\n"
+    f"        {_by_status(_MINE, 8)},\n"
+    f"        {_by_status(_ALL, 8)}\n"
     "    )"
 )
 
@@ -214,7 +233,11 @@ SCOPE_WORDS = ('Switch(varMdStatusMode, "open", "Open", "done", "Closed", "All")
 CLOSED_LATEST = (
     "FirstN(\n"
     "    SortByColumns(\n"
-    f"        Filter('{LIST}', varMdView <> \"mine\" || RequesterEmail = varMdMe, IsOpen = false),\n"
+    "        If(\n"
+    "            varMdView = \"mine\",\n"
+    f"            Filter('{LIST}', RequesterEmail = varMdMe, IsOpen = false),\n"
+    f"            Filter('{LIST}', IsOpen = false)\n"
+    "        ),\n"
     "        \"LastActionOn\", SortOrder.Descending\n"
     "    ),\n"
     "    5\n"
