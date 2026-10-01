@@ -2076,6 +2076,24 @@ def _report(ctx):
     return 0
 
 
+def rule_34(ctx):
+    """OnStart maa ikke toemme en samling, skaermens OnVisible fylder"""
+    screen = ctx.screen
+    problems = ctx.problems
+    # App.OnStart koerer SAMTIDIG med foerste skaerms OnVisible
+    # (non-blocking OnStart). ClearCollect(col, {...}); Clear(col) i
+    # OnStart - skemaet - kunne derfor toemme det, OnVisible lige havde
+    # hentet: hubbens fliser stod paa 0 (issue #84). Skemaet skrives som
+    # If(false, ClearCollect(col, {...})).
+    app = getattr(ctx, "app", "") or ""
+    cleared = set(re.findall(r"\bClear\(\s*(col\w+)\s*\)", app))
+    ov = str((screen.get("Properties") or {}).get("OnVisible", ""))
+    filled = set(re.findall(r"\b(?:ClearCollect|Collect)\(\s*(col\w+)", ov))
+    for col in sorted(cleared & filled):
+        problems.append(f"[34] App.OnStart toemmer {col}, som skaermens OnVisible fylder - "
+                        f"de koerer samtidig. Skriv skemaet som If(false, ClearCollect({col}, ...))")
+
+
 RULES = [
     Rule('0', 'Hvert kontrolnavn findes kun een gang', rule_0),
     Rule('1', 'Ingen kontrol-til-kontrol hoejdereferencer', rule_1),
@@ -2117,6 +2135,7 @@ RULES = [
     Rule('18', 'Enhver Gallery skal have TabIndex', rule_18),
     Rule('19', 'AccessibleLabel maa ikke vaere kontrollens navn', rule_19),
     Rule('20', 'Flere UAFHAENGIGE hentninger i kaede -> Concurrent', rule_20),
+    Rule('34', 'OnStart maa ikke toemme en samling, skaermens OnVisible fylder', rule_34),
 ]
 
 

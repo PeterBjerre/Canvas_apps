@@ -508,6 +508,7 @@ layoutfejl bor:
 | 18 | Enhver Gallery skal have TabIndex |
 | 19 | AccessibleLabel maa ikke vaere kontrollens navn |
 | 20 | Flere UAFHAENGIGE hentninger i kaede -> Concurrent |
+| 34 | OnStart maa ikke toemme en samling, skaermens OnVisible fylder |
 <!-- rules:end -->
 
 Punkt 7 fanger den klassiske: du sletter en kontrol og glemmer en

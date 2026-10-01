@@ -68,7 +68,15 @@ def _collection_block(cfg):
     out = []
     for name, schema in collections(cfg):
         fields = ", ".join(f"{k}: {v}" for k, v in schema.items())
-        out.append(f"ClearCollect({name}, {{ {fields} }});\nClear({name});")
+        # If(false, ...): kun skemaet. OnStart koerer samtidig med foerste
+        # skaerms OnVisible, og ClearCollect+Clear her kunne toemme det,
+        # OnVisible lige havde hentet (som hubbens fliser, issue #84).
+        # Temaets samling (SaveData) er undtaget: den fyldes af LoadData i
+        # selve OnStart, og BIO SAP fjerner blokken som ordret tekst.
+        if name == tok.prefs_schema()[0]:
+            out.append(f"ClearCollect({name}, {{ {fields} }});\nClear({name});")
+        else:
+            out.append(f"If(false, ClearCollect({name}, {{ {fields} }}));")
     return "\n\n".join(out)
 
 
