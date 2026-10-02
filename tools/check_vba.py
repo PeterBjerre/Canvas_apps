@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Statisk kontrol af VBA-modulerne i excel/src.
+"""Statisk kontrol af VBA-modulerne i excel/src og excel/opretter.
 
 Regnearket kan kun kompileres i Excel, og hver kompilering koster en runde
 frem og tilbage. Det her fanger de fejl, der ellers foerst dukker op der:
@@ -18,6 +18,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "excel" / "src"
+
+# Hver mappe er sit eget VBA-projekt: modulnavnene maa gerne gaa igen paa
+# tvaers (begge har fx et modul, der hedder noget med Config), men ikke inde
+# i en mappe. Opretteren faar de strenge tjek i tools/vba_strict.py.
+PROJECTS = [
+    (SRC, False),                              # det gamle regneark (eksport)
+    (ROOT / "excel" / "opretter", True),       # VH-plan Opretter
+]
 
 PROC_START = re.compile(
     r"^\s*(?:(Public|Private|Friend)\s+)?(?:Static\s+)?"
@@ -188,24 +196,40 @@ def check_qualified_calls(mods: dict[str, Module], problems: list[str]):
                         f"Public i {target.name}")
 
 
-def main() -> int:
-    if not SRC.is_dir():
-        print(f"fandt ikke {SRC}")
-        return 2
-
-    paths = sorted(SRC.rglob("*.bas")) + sorted(SRC.rglob("*.cls"))
-    problems: list[str] = []
+def check_project(src: Path, strict: bool, problems: list[str]) -> tuple[int, int]:
+    paths = sorted(src.rglob("*.bas")) + sorted(src.rglob("*.cls"))
     mods: dict[str, Module] = {}
 
     for p in paths:
         mod = Module(p)
+        if mod.name in mods:
+            problems.append(f"{p}: modulnavnet {mod.name} findes ogsaa i {mods[mod.name].path}")
         mods[mod.name] = mod
         parse(mod, problems)
 
     check_qualified_calls(mods, problems)
 
-    print(f"{len(paths)} moduler, "
-          f"{sum(len(m.procs) for m in mods.values())} procedurer")
+    if strict:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import vba_strict
+        vba_strict.run([(m.path, m.raw, m.name) for m in mods.values()],
+                       {m.name: m.public for m in mods.values()}, problems)
+
+    return len(paths), sum(len(m.procs) for m in mods.values())
+
+
+def main() -> int:
+    if not SRC.is_dir():
+        print(f"fandt ikke {SRC}")
+        return 2
+
+    problems: list[str] = []
+    for src, strict in PROJECTS:
+        if not src.is_dir():
+            continue
+        n_mods, n_procs = check_project(src, strict, problems)
+        print(f"{src.relative_to(ROOT)}: {n_mods} moduler, {n_procs} procedurer"
+              + (" (strenge tjek)" if strict else ""))
 
     if problems:
         print(f"\n{len(problems)} problemer:\n")

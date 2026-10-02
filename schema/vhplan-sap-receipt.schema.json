@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orsted.example/schemas/vhplan-sap-receipt-1.json",
+  "title": "VH-plan - kvittering fra oprettelsen i SAP",
+  "description": "Skrives af VH-plan Opretter. Under koerslen ligger den som '<ordrefil>.status.json' ved siden af ordren og opdateres efter HVERT objekt, SAP har gemt - det er den, der goer en afbrudt koersel genoptagelig. Naar planen er oprettet, skrives den med state = Created i mappen Kvitteringer, og flowet BioSap-VhPlan-SapReceipt skriver numrene tilbage paa planen og items. Flowet accepterer KUN state = Created og en orderGuid, der svarer til planens SapOrderGuid. Se docs/34-sap-oprettelse.md.",
+  "type": "object",
+  "required": ["kind", "version", "orderGuid", "orderFile", "planSpId", "planId", "state", "items"],
+  "additionalProperties": false,
+  "properties": {
+    "kind": { "const": "vhplan-sap-receipt" },
+    "version": { "const": 1 },
+    "orderGuid": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+    },
+    "orderFile": { "type": "string", "description": "Ordrefilens navn, fx MP0133_20261002-104233.json" },
+    "planSpId": { "type": "integer", "description": "MaintenancePlans.ID" },
+    "planId": { "type": "string", "pattern": "^MP[0-9]+$" },
+    "state": {
+      "enum": ["InProgress", "Partial", "Failed", "NeedsCheck", "Created"],
+      "description": "InProgress: en koersel er i gang. Partial: noget er oprettet, resten mangler - koer igen. Failed: intet er oprettet. NeedsCheck: SAP svarede uklart efter et gem, og en person skal se efter i SAP, foer der koeres igen. Created: alt er oprettet."
+    },
+    "sapSystem": { "type": ["string", "null"], "description": "Fx GQ1 eller GP1, laest af den SAP-session der blev brugt" },
+    "sapClient": { "type": ["string", "null"], "description": "Fx 450" },
+    "sapPlanNo": { "type": ["string", "null"], "pattern": "^[0-9]*$", "description": "Vedligeholdsplanens nummer fra IP01. Kun cifre." },
+    "lockedBy": { "type": ["string", "null"], "description": "Windows-brugernavnet paa den, der koerer eller sidst koerte planen" },
+    "lockedOn": { "type": ["string", "null"], "description": "Hvornaar koerslen startede (lokal tid, ISO)" },
+    "updatedOn": { "type": ["string", "null"], "description": "Sidst filen blev skrevet (lokal tid, ISO)" },
+    "finishedOn": { "type": ["string", "null"], "description": "Hvornaar planen blev faerdig (lokal tid, ISO)" },
+    "items": {
+      "type": "array",
+      "description": "Een raekke pr. item i ordren, i ordrens raekkefoelge.",
+      "items": {
+        "type": "object",
+        "required": ["spId"],
+        "additionalProperties": false,
+        "properties": {
+          "spId": { "type": "integer", "description": "MaintenanceItems.ID" },
+          "itemId": { "type": ["string", "null"], "description": "MaintenanceItems.ItemID" },
+          "taskListType": { "type": ["string", "null"], "description": "A = generel arbejdsplan" },
+          "taskListGroup": { "type": ["string", "null"], "pattern": "^[0-9]*$", "description": "Arbejdsplanens gruppe fra IA05. Kun cifre." },
+          "taskListCounter": { "type": ["string", "null"], "pattern": "^[0-9]*$", "description": "Arbejdsplanens taeller fra IA05" },
+          "sapItemNo": { "type": ["string", "null"], "pattern": "^[0-9]*$", "description": "Vedligeholdspositionens nummer fra IP04. Kun cifre." },
+          "longTextDone": { "type": ["boolean", "null"], "description": "Itemets langtekst er uploadet i IP05" }
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Det, der ikke blev oprettet automatisk, fx materialer, som skal tilfoejes i haanden."
+    },
+    "lastError": { "type": ["string", "null"] },
+    "log": {
+      "type": "array",
+      "description": "Koerslens log, nyeste sidst. Til fejlsoegning.",
+      "items": {
+        "type": "object",
+        "required": ["at", "text"],
+        "additionalProperties": false,
+        "properties": {
+          "at": { "type": "string" },
+          "text": { "type": "string" }
+        }
+      }
+    }
+  }
+}

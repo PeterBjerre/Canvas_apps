@@ -1,0 +1,8 @@
+and(
+  equals(outputs('Receipt')?['kind'], 'vhplan-sap-receipt'),
+  equals(outputs('Receipt')?['state'], 'Created'),
+  not(empty(outputs('Receipt')?['sapPlanNo'])),
+  equals(outputs('Receipt')?['orderGuid'], body('Get_plan')?['SapOrderGuid']),
+  equals(body('Get_plan')?['Status']?['Value'], 'Ready for creation in SAP'),
+  equals(outputs('Receipt')?['sapSystem'], parameters('BioSap-SapSystem (orsted_BioSapSapSystem)'))
+)
