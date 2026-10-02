@@ -87,7 +87,7 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 
 > Dokumenterne 01–05 er det **oprindelige oplæg** og markeret som historiske
 > (den `VHP_*`-model, de beskriver, blev ikke bygget). Den byggede løsning
-> er beskrevet i SKILL.md, docs/07, docs/21 og docs/26–32.
+> er beskrevet i SKILL.md, docs/07, docs/21 og docs/26–35.
 
 ## Oplægget (historisk) og de levende dokumenter
 
@@ -98,9 +98,11 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 | [`docs/03-canvas-app-design.md`](docs/03-canvas-app-design.md) | Skærme, komponenter, tilstand, gem/submit |
 | [`docs/04-integration-sap.md`](docs/04-integration-sap.md) | Fire veje til SAP – kontrakt, idempotens, fejlhåndtering |
 | [`docs/05-implementeringsplan.md`](docs/05-implementeringsplan.md) | Faser, risici, hvad der kan skæres væk |
-| [`docs/06-excel-gui-scripting.md`](docs/06-excel-gui-scripting.md) | **Den valgte vej til SAP:** Excel + GUI Scripting |
+| [`docs/06-excel-gui-scripting.md`](docs/06-excel-gui-scripting.md) | Oplæggets Excel + GUI Scripting. Den byggede vej er docs/34 |
 | [`docs/07-landingsside.md`](docs/07-landingsside.md) | Landingsside for alle fem masterdata-domæner: hub vs. monolit, indekslisten, performanceregler |
 | [`docs/32-godkendelsesflow.md`](docs/32-godkendelsesflow.md) | **Oplæg:** godkendelsesflow for nye VH-planer — system- og omkostningsgodkendelse pr. item (Power BI Plant Section Key + MD_Approver, 300.000 kr.), kvalitet pr. værk; statusmodel, kolonner, flows |
+| [`docs/34-sap-oprettelse.md`](docs/34-sap-oprettelse.md) | **Vejen til SAP:** VH-plan Opretter (Excel + GUI Scripting), én JSON-ordre pr. plan i et synkroniseret bibliotek, kvittering tilbage; sikkerhed, fejl, afprøvning |
+| [`docs/35-flow-sap-ordre.md`](docs/35-flow-sap-ordre.md) | De to flows til docs/34, trin for trin: ordren ud, kvitteringen tilbage, rettigheder |
 
 ## Kode og artefakter
 
@@ -117,33 +119,41 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 | `sharepoint/provision/Provision-*.ps1` | Idempotent PnP-provisionering af de lister, apperne bruger (se Hurtig start) |
 | `sharepoint/provision/Provision-RequestIndex.ps1` | `MD_RequestIndex` — den fælles indeksliste bag landingssiden |
 | `sharepoint/provision/Provision-VHPlanApproval.ps1` | Godkendelsesflowets fase 1: kolonner på `MaintenancePlans`, `MD_Approver`, `MD_ApprovalLog`, grænsen i `AppSettings` — se `docs/32` |
+| `sharepoint/provision/Provision-SapCreation.ps1` | Biblioteket `SAP-oprettelse` og kolonnerne til numrene fra SAP — se `docs/34` |
 | `sharepoint/seed/*.csv` | Masterdata: strategier, pakker, hjælpetekster, godkendere, FL-nøgler |
-| `schema/vhplan-request.schema.json` | Kontrakten mod SAP |
+| `schema/vhplan-sap-order.schema.json`, `vhplan-sap-receipt.schema.json` | Ordren til opretteren og kvitteringen tilbage, med eksempler |
+| `schema/vhplan-request.schema.json` | Oplæggets kontrakt mod SAP (historisk) |
 | `schema/example-strategy-request.json` | Udfyldt eksempel (kompressor, Z-MONTH) |
 | `html/cycle-timeline-reference.html` | Referenceoutput – åbn i en browser |
-| `excel/vba/*.bas` | VBA-moduler: kilde, kontrakt, SAP GUI Scripting, batch |
-| `excel/powerquery/*.m` | SharePoint-lister → Excel-tabeller, inkl. pakkepivot |
-| `excel/VHPlan-SAP-skabelon.xlsx` | Projektmappe med de rigtige tabeller og eksempeldata |
+| `excel/opretter/` | **VH-plan Opretter**: VBA-modulerne, `Build-Opretter.ps1` og teamets vejledning |
+| `flow/sap-ordre/` | Udtrykkene til de to flows i `docs/35` |
+| `excel/vba/*.bas` | Oplæggets VBA-moduler (afløst af `excel/opretter`) |
+| `excel/powerquery/*.m` | Oplæggets Power Query (afløst: opretteren læser JSON) |
+| `excel/VHPlan-SAP-skabelon.xlsx` | Oplæggets projektmappe med tabeller og eksempeldata (historisk) |
 
 ## Vejen til SAP
 
 SharePoint er backend, fordi godkendelsesflowet hører hjemme der. Oprettelsen
-i SAP sker med en **Excel-makro, der kører SAP GUI Scripting**.
-
-Lagdelingen holder de tre ting adskilt, så hver kan skiftes for sig:
+i SAP sker med **VH-plan Opretter**: en lille Excel-projektmappe med SAP GUI
+Scripting, bygget på felt-ID'erne fra det gamle regneark
+([`docs/34`](docs/34-sap-oprettelse.md)).
 
 ```
-KILDE (vælg én)                FÆLLES KONTRAKT I VBA      UDFØRELSE
-Power Query → arktabeller  ┐
-JSON-fil (VBA-JSON)        ├─► Collection af         ──►  IA01 (arbejdsplan)
-Manuelt udfyldt ark        ┘   Dictionary-poster          IP42 (plan)
+plan godkendt ─► flow skriver én JSON-ordre pr. plan ─► SAP-oprettelse/Til oprettelse
+                                                              │ OneDrive
+                                                              ▼
+                 VH-plan Opretter: Opdater liste → Vis plan → Opret i SAP
+                 IA05 arbejdsplan → IP04 position → IP05 langtekst → IP01 plan
+                                                              │ kvittering
+                                                              ▼
+                 flow skriver SAPNum og numrene tilbage ─► Published ─► mail
 ```
 
-JSON er den rigtige **kontrakt** — ét frosset dokument pr. anmodning, der
-viser præcis hvad der blev godkendt. JSON er derimod det forkerte
-**arbejdsformat for VBA**: der er ingen indbygget parser, og `ScriptControl`
-findes kun i 32-bit Office. Power Query flader data ud til tabeller formet som
-SAP-skærmene, og VBA laver kun det, VBA er god til: at trykke på knapper.
+Ordren er en JSON-fil med et skema, frosset ved godkendelsen. Biblioteket er
+synkroniseret til teamets pc'er, så der er ingen Power Query, intet login i
+Excel og ingen hemmelig URL. Al oversættelse til SAP sker ét sted, i
+opretteren. Flowene står trin for trin i [`docs/35`](docs/35-flow-sap-ordre.md),
+og teamets vejledning i [`excel/opretter/README.md`](excel/opretter/README.md).
 
 ## De tre beslutninger, det hele hænger på
 
@@ -181,6 +191,7 @@ $site = "https://<tenant>.sharepoint.com/sites/<site>"
 .\sharepoint\provision\Provision-StandardTaskOperations.ps1  -SiteUrl $site
 .\sharepoint\provision\Provision-VHPlanColumns.ps1           -SiteUrl $site
 .\sharepoint\provision\Provision-VHPlanApproval.ps1          -SiteUrl $site
+.\sharepoint\provision\Provision-SapCreation.ps1             -SiteUrl $site
 .\sharepoint\provision\Provision-HelpText.ps1                -SiteUrl $site
 # KKS-opslaget (efter FunctionalLocationLists - MD_FLKey genbruges)
 .\sharepoint\provision\Provision-KksLists.ps1                 -SiteUrl $site -SeedMasterData

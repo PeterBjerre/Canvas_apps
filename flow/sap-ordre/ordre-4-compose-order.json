@@ -1,0 +1,28 @@
+{
+  "kind": "vhplan-sap-order",
+  "version": 1,
+  "orderGuid": "@{variables('OrderGuid')}",
+  "createdOn": "@{utcNow()}",
+  "environment": "@{parameters('BioSap-Environment (orsted_BioSapEnvironment)')}",
+  "site": "@{parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')}",
+  "plan": {
+    "spId": "@triggerBody()?['ID']",
+    "planId": "@triggerBody()?['PlanID']",
+    "status": "@triggerBody()?['Status']?['Value']",
+    "title": "@triggerBody()?['Title']",
+    "plant": "@triggerBody()?['PlantsInitial']?['Value']",
+    "strategyKey": "@triggerBody()?['StrategyKey']",
+    "cycle": "@triggerBody()?['Cycle']",
+    "unit": "@triggerBody()?['Unit']?['Value']",
+    "plannedDate": "@{formatDateTime(convertFromUtc(triggerBody()?['PlannedDate'], 'Romance Standard Time'), 'yyyy-MM-dd')}",
+    "sortField": "@triggerBody()?['SortField']?['Value']",
+    "sortFieldId": "@triggerBody()?['SortField']?['Id']",
+    "schedulingPeriod": "@triggerBody()?['SchedulingPeriod']",
+    "requesterName": "@triggerBody()?['Author']?['DisplayName']",
+    "requesterEmail": "@triggerBody()?['Author']?['Email']",
+    "appLink": "@triggerBody()?['EditLink']"
+  },
+  "items": "@body('Select_items')",
+  "operations": "@body('Select_operations')",
+  "materials": "@body('Select_materials')"
+}

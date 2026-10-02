@@ -1,5 +1,11 @@
 # Excel → SAP via GUI Scripting
 
+> **Afløst.** VH-planer oprettes nu med **VH-plan Opretter** i
+> [`opretter/`](opretter) — se [`opretter/README.md`](opretter/README.md) og
+> [`../docs/34-sap-oprettelse.md`](../docs/34-sap-oprettelse.md). Modulerne i
+> `vba/` og `powerquery/` herunder er oplæggets skabelon og blev ikke taget i
+> brug. `src/` er det gamle regneark, som opretterens felt-ID'er kommer fra.
+
 Modulerne her er skrevet til at blive **importeret i en eksisterende
 projektmappe**, ikke til at være en færdig løsning. Ingen af dem afhænger af
 den medfølgende skabelon; de afhænger kun af, at tabellerne hedder det, der
