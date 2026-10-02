@@ -335,20 +335,64 @@ tilbage til *Kvitteringer*. Alt, flowet skriver, kan skrives igen uden skade.
 
 ## Rettigheder
 
-Biblioteket `SAP-oprettelse` får sine egne rettigheder (stop nedarvningen):
+Biblioteket `SAP-oprettelse` får sine egne rettigheder. Kun dem, der opretter
+i SAP, og flowenes servicekonto må se og skrive:
 
-| Hvem | Rettighed |
-|---|---|
-| Master Data, der opretter i SAP | Bidrag (Contribute) |
-| Flowenes servicekonto | Bidrag |
-| Sitets ejere | Fuld kontrol, som i dag |
-| Alle andre | Ingen adgang |
+| Hvem | Niveau | Hvorfor |
+|---|---|---|
+| Master Data, der opretter i SAP (en gruppe, se nedenfor) | **Bidrag** (Contribute) | Opretteren skriver statusfiler og kvitteringer og flytter ordrer til *Oprettet*. Det sker via OneDrive, altså som brugeren selv |
+| Flowenes servicekonto, dvs. ejeren af forbindelsen bag `orsted_BioSapSharePointConn` i hvert miljø | **Bidrag** | Flow A lægger ordrer i *Til oprettelse*. Flow B læser kvitteringer og flytter dem til *Behandlet* eller *Afvist* |
+| Sitets ejere | Fuld kontrol | Som i dag |
+| Medlemmer, besøgende, rekvirenter, godkendere | **Ingen adgang** | Grupperne fjernes fra biblioteket |
 
-En fil i *Kvitteringer* kan sætte en plan til *Published* med et SAP-nummer.
-Flowet tjekker `SapOrderGuid`, status og SAP-system, så en tilfældig fil
-kommer ikke igennem. Men den, der kan læse ordrefilen, kan også se dens
-`orderGuid`. Derfor er biblioteket forbeholdt dem, der alligevel opretter
-planerne.
+**Bidrag og ikke Rediger.** *Rediger* (Edit), som sitets medlemmer har, giver
+også lov til at administrere lister, dvs. slette biblioteket eller ændre dets
+kolonner. *Bidrag* er nok: tilføje, ændre og slette filer.
+
+**Hvorfor så stramt.** Filerne er ikke hemmelige, men de bestemmer, hvad der
+oprettes i SAP:
+
+- Den, der kan skrive i *Til oprettelse*, kan ændre en godkendt ordre, før
+  Master Data kører den. Så havner noget i SAP, som ingen har godkendt.
+- Den, der kan læse en ordre og skrive i *Kvitteringer*, kan lave en
+  kvittering, som flowet godtager, fordi den bærer den rigtige `orderGuid`.
+  Så bliver planen *Published* med et forkert nummer.
+
+Opretteren rører ikke listerne, kun filerne. Master Data skal derfor ikke
+have flere rettigheder på `MaintenancePlans` eller `MaintenanceItems` for at
+oprette. Det er flow B, der skriver numrene tilbage.
+
+**Projektmappen.** Ligger *VH-plan Opretter.xlsm* i biblioteket, får netop den
+fil sine egne rettigheder: Master Data **Læse**, og kun den, der
+vedligeholder opretteren, kan skrive. Ellers kan alle i gruppen overskrive
+de makroer, som de andre kører.
+
+### Sådan
+
+På DEV-sitet og på PROD-sitet:
+
+1. **Gruppen.** *Indstillinger* (tandhjulet) → *Webstedstilladelser* →
+   *Avancerede tilladelsesindstillinger* → *Opret gruppe*, fx *SAP-oprettelse
+   – Master Data*, med dem, der opretter i SAP. Så kan folk komme og gå uden
+   at røre biblioteket.
+2. **Stop nedarvningen.** I biblioteket: tandhjulet → *Biblioteksindstillinger*
+   → *Tilladelser for dette dokumentbibliotek* → *Stop nedarvning af
+   tilladelser*. De nuværende grupper kopieres med.
+3. **Fjern** sitets medlemmer og besøgende og andre grupper, der ikke står i
+   tabellen: markér dem → *Fjern brugertilladelser*. Sitets ejere bliver.
+4. **Tildel** gruppen fra 1 og servicekontoen **Bidrag**: *Tildel
+   tilladelser*.
+5. **Projektmappen:** filen → *Administrer adgang* → *Avanceret* → *Stop
+   nedarvning af tilladelser* → sæt gruppen fra 1 til *Læse*.
+
+Lad bibliotekets øvrige indstillinger stå: versionshistorikken viser, hvem
+der har ændret en ordre eller kvittering, og *Kræv udtjekning* skal være
+slået fra, ellers kan OneDrive og flowene ikke skrive.
+
+Biblioteket beskytter ikke listerne. Den, der kan redigere `MaintenancePlans`,
+kan i princippet selv sætte en plan til *Ready for creation in SAP*. Det er
+godkendelsesflowets spærre (docs/32) og Master Datas gennemsyn i *Vis plan*,
+der fanger det.
 
 ## Afprøvning
 
