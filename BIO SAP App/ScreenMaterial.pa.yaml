@@ -30,6 +30,10 @@ Screens:
           
                   If(false, ClearCollect(colMatFl, { Code: "", Description: "", Display: "", Maintainable: false, Level: "" }));
           
+                  If(false, ClearCollect(colMatInvLines, { Selected: false, LineNo: 0, Description: "", ExtraText: "", SupplierPartNo: "", Manufacturer: "", ManufacturerPartNo: "", Model: "", Gtin: "", Quantity: 0, Unit: "", UnitPrice: 0, PriceUnit: 0, DiscountPct: 0, Amount: 0, IsCharge: false, Check: "" }));
+          
+                  If(false, ClearCollect(colMatInvUp, { RowId: 0, Ok: false }));
+          
                   Set(varMatMe, Lower(User().Email));
                   Set(varMatRequestNo, "");
                   Set(varMatRequestGuid, "");
@@ -57,6 +61,15 @@ Screens:
                   // roed. false ved opstart: en tom formular, ingen har roert, skal ikke
                   // staa og lyse roedt. Saettes af Gem/Indsend - se domain_parts.REQUIRED.
                   Set(varMatValidated, false);
+          
+                  // Fakturaimporten (Material App/build/invoice_parts.py): popuppen, om
+                  // fakturaen er laest, og dens hoved.
+                  Set(varMatInvOpen, false);
+                  Set(varMatInvRead, false);
+                  // Fakturaen som dokument paa hver ny raekke (kan slaas fra i popuppen).
+                  Set(varMatInvAttach, true);
+                  Set(varMatInvJson, "");
+                  Set(varMatInvHead, { Ok: false, Error: "", Warnings: "", FileName: "", Format: "", Supplier: "", VatNo: "", InvoiceNo: "", InvoiceDate: "", OrderNo: "", Currency: "", Plant: "" });
                   Set(varMatActiveRowId, Blank());
                   Set(varMatRowStatus, "valid");
                   Set(varMatValidated, false);
@@ -516,7 +529,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =68 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (164) + (228) + 12, 32, (26) + 12 + (32))) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (20 + 6 + (40 + If(false, 0 + (1), 0))) + (62) + (62) + (62) + 60, (Max((20 + 6 + (40 + If(false, 0 + (1), 0))), (62))) + (Max((62), (62))) + 20), (Max((20 + 6 + (40 + If(false, 0 + (1), 0))), (62), (62), (62))) + 0)) + If(!IsBlank(varMatFlMsg), 14 + (18), 0) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (62) + (62) + (62) + (62) + 60, (Max((62), (62))) + (Max((62), (62))) + 20), (Max((62), (62), (62), (62))) + 0)) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (62) + (62) + (62) + (62) + 60, (Max((62), (62))) + (Max((62), (62))) + 20), (Max((62), (62), (62), (62))) + 0)) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (62) + (62) + (62) + (62) + 60, (Max((62), (62))) + (Max((62), (62))) + 20), (Max((62), (62), (62), (62))) + 0)) + 14 + (98) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (164) + (124) + (91) + (428) + 32, 36, (28) + 8 + (36) + 8 + (36) + 8 + (36) + 8 + (36)))
+                            =68 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (136) + (164) + (228) + 24, 32, (26) + 12 + (32) + 12 + (32))) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (20 + 6 + (40 + If(false, 0 + (1), 0))) + (62) + (62) + (62) + 60, (Max((20 + 6 + (40 + If(false, 0 + (1), 0))), (62))) + (Max((62), (62))) + 20), (Max((20 + 6 + (40 + If(false, 0 + (1), 0))), (62), (62), (62))) + 0)) + If(!IsBlank(varMatFlMsg), 14 + (18), 0) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (62) + (62) + (62) + (62) + 60, (Max((62), (62))) + (Max((62), (62))) + 20), (Max((62), (62), (62), (62))) + 0)) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (62) + (62) + (62) + (62) + 60, (Max((62), (62))) + (Max((62), (62))) + 20), (Max((62), (62), (62), (62))) + 0)) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (62) + (62) + (62) + (62) + 60, (Max((62), (62))) + (Max((62), (62))) + 20), (Max((62), (62), (62), (62))) + 0)) + 14 + (98) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (111) + (164) + (124) + (91) + (428) + 32, 36, (28) + 8 + (36) + 8 + (36) + 8 + (36) + 8 + (36)))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -559,11 +572,11 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (164) + (228) + 12, 32, (26) + 12 + (32))
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (136) + (164) + (228) + 24, 32, (26) + 12 + (32) + 12 + (32))
                               LayoutAlignItems: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (164) + (228) + 12, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (136) + (164) + (228) + 24, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                               LayoutDirection: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (164) + (228) + 12, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (136) + (164) + (228) + 24, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =12
                               LayoutMinWidth: |-
@@ -600,7 +613,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18)) - ((164) + 12) - 2)
+                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18)) - ((136) + 12) - ((164) + 12) - 2)
                                   Children:
                                     - txtMatFormH:
                                         Control: ModernText
@@ -705,6 +718,53 @@ Screens:
                                               =55
                                           Wrap: |-
                                               =false
+                              - btnMatInvOpen:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Import an invoice: its lines become draft rows in a new request"
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =32
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    LayoutMinWidth: |-
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (136) + (164) + (228) + 24, 136, 0)
+                                    OnSelect: |-
+                                        =Set(varMatInvOpen, true)
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        ="Import invoice"
+                                    Tooltip: |-
+                                        ="Read a supplier invoice (PDF or XML) into a new request"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =136
                               - btnMatNoBom:
                                   Control: ModernButton
                                   Properties:
@@ -735,7 +795,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (164) + (228) + 12, 164, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (136) + (164) + (228) + 24, 164, 0)
                                     OnSelect: |-
                                         =Set(varMatFNoBomItem, !varMatFNoBomItem);
                                         If(
@@ -10012,6 +10072,1533 @@ Screens:
                       =IfError(CountRows(Filter(colMatAttachments, RowId = varMatDocsId)) = 0, false)
                   Wrap: |-
                       =true
+      - conMatInvBackdrop:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderStyle: |-
+                =BorderStyle.None
+            DropShadow: |-
+                =DropShadow.None
+            Fill: |-
+                =C.'overlay'
+            Height: |-
+                =App.Height
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            Visible: |-
+                =IfError(varMatInvOpen, false)
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - conMatInvModal:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'color-brand-primary-soft'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.ExtraBold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =68 + If(!varMatInvRead, 12 + (40), 0) + If(!varMatInvRead, 12 + (80), 0) + If(!varMatInvRead, 12 + (36), 0) + If(!IsBlank(If(!varMatInvHead.Ok && !IsBlank(varMatInvHead.Error), varMatInvHead.Error, varMatInvHead.Warnings)), 12 + (54), 0) + If(varMatInvRead, 12 + (40), 0) + If(varMatInvRead, 12 + (28 + (Min(Max(CountRows(colMatInvLines), 1), 7) * 34)), 0) + If(varMatInvRead, 12 + (28), 0) + If(varMatInvRead, 12 + (If((((Min(920, App.Width - 32)) - 36)) >= (107) + (124) + (104) + (144) + (0) + 32, 32, (20) + 8 + (32) + 8 + (32) + 8 + (32) + 8 + (32))), 0)
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Stretch
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =12
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =18
+            PaddingLeft: |-
+                =18
+            PaddingRight: |-
+                =18
+            PaddingTop: |-
+                =18
+            RadiusBottomLeft: |-
+                =16
+            RadiusBottomRight: |-
+                =16
+            RadiusTopLeft: |-
+                =16
+            RadiusTopRight: |-
+                =16
+            Visible: |-
+                =IfError(varMatInvOpen, false)
+            Width: |-
+                =Min(920, App.Width - 32)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =Max(20, (App.Height - Self.Height) / 3)
+          Children:
+            - conMatInvHead:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =32
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =12
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - txtMatInvH:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Import invoice"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FillPortions: |-
+                            =0
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =26
+                        LayoutMinWidth: |-
+                            =0
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =17
+                        Text: |-
+                            ="Import invoice"
+                        Width: |-
+                            =Max(0, (((Min(920, App.Width - 32)) - 18 - 18)) - ((84) + 12) - 2)
+                        Wrap: |-
+                            =false
+                  - btnMatInvClose:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-default'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =32
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varMatInvOpen, false)
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =14
+                        Text: |-
+                            ="Close"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =84
+            - txtMatInvIntro:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      ="Read a supplier invoice - a PDF with text, or an OIOUBL/Peppol XML file. Its lines become draft rows in a new request; you fill in what the invoice does not say."
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =40
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =13
+                  Text: |-
+                      ="Read a supplier invoice - a PDF with text, or an OIOUBL/Peppol XML file. Its lines become draft rows in a new request; you fill in what the invoice does not say."
+                  Visible: |-
+                      =!varMatInvRead
+                  Wrap: |-
+                      =true
+            - attMatInvPicker:
+                Control: Attachments@2.3.0
+                Properties:
+                  AccessibleLabel: |-
+                      ="Choose the invoice file"
+                  BorderColor: |-
+                      =C.'border-default'
+                  BorderThickness: |-
+                      =1
+                  Height: |-
+                      =80
+                  MaxAttachmentSize: |-
+                      =3
+                  MaxAttachments: |-
+                      =1
+                  NoAttachmentsText: |-
+                      ="Drop the invoice here (PDF or XML), or browse"
+                  PaddingBottom: |-
+                      =5
+                  PaddingLeft: |-
+                      =5
+                  PaddingRight: |-
+                      =5
+                  PaddingTop: |-
+                      =5
+                  Visible: |-
+                      =!varMatInvRead
+                  Width: |-
+                      =Parent.Width
+            - conMatInvReadRow:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =36
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =8
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Visible: |-
+                      =!varMatInvRead
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - btnMatInvRead:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Read invoice"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
+                        Color: |-
+                            =C.'text-on-primary'
+                        DisplayMode: |-
+                            =If(CountRows(attMatInvPicker.Attachments) = 0, DisplayMode.Disabled, DisplayMode.Edit)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        LayoutMinWidth: |-
+                            =133
+                        OnSelect: |-
+                            =Set(varMatSaving, true);
+                            If(
+                                CountRows(attMatInvPicker.Attachments) = 0,
+                                Notify("Choose the invoice file first - a PDF or an XML file.", NotificationType.Warning),
+                            
+                                IfError(
+                                    Set(
+                                        varMatInvJson,
+                                        'BioSap-Material-ReadInvoice'.Run(
+                                            First(attMatInvPicker.Attachments).Name,
+                                            { file: { contentBytes: First(attMatInvPicker.Attachments).Value, name: First(attMatInvPicker.Attachments).Name } }
+                                        ).result
+                                    );
+                                    With(
+                                        { r: ParseJSON(Coalesce(varMatInvJson, "{}")) },
+                                        Set(
+                                            varMatInvHead,
+                                            {
+                                                Ok: Coalesce(Boolean(r.ok), false),
+                                                Error: Coalesce(Text(r.error), ""),
+                                                Warnings: Concat(Table(r.warnings) As W, Text(W.Value), " "),
+                                                FileName: First(attMatInvPicker.Attachments).Name,
+                                                Format: Coalesce(Text(r.format), ""),
+                                                Supplier: Coalesce(Text(r.supplierName), ""),
+                                                VatNo: Coalesce(Text(r.supplierVatNo), ""),
+                                                InvoiceNo: Coalesce(Text(r.invoiceNo), ""),
+                                                InvoiceDate: Coalesce(Text(r.invoiceDate), ""),
+                                                OrderNo: Coalesce(Text(r.orderNo), ""),
+                                                Currency: Coalesce(Text(r.currency), ""),
+                                                Plant: Coalesce(Text(r.plantHint), "")
+                                            }
+                                        );
+                                        ClearCollect(
+                                            colMatInvLines,
+                                            ForAll(
+                                                Table(r.lines) As L,
+                                                {
+                                                    Selected: !Coalesce(Boolean(L.Value.isCharge), false),
+                                                    LineNo: Value(L.Value.lineNo),
+                                                    Description: Coalesce(Text(L.Value.description), ""),
+                                                    ExtraText: Coalesce(Text(L.Value.extraText), ""),
+                                                    SupplierPartNo: Coalesce(Text(L.Value.supplierPartNo), ""),
+                                                    Manufacturer: Coalesce(Text(L.Value.manufacturer), ""),
+                                                    ManufacturerPartNo: Coalesce(Text(L.Value.manufacturerPartNo), ""),
+                                                    Model: Coalesce(Text(L.Value.model), ""),
+                                                    Gtin: Coalesce(Text(L.Value.gtin), ""),
+                                                    Quantity: Value(L.Value.quantity),
+                                                    Unit: Coalesce(Text(L.Value.unit), ""),
+                                                    UnitPrice: Value(L.Value.unitPrice),
+                                                    PriceUnit: Value(L.Value.priceUnit),
+                                                    DiscountPct: Value(L.Value.discountPct),
+                                                    Amount: Value(L.Value.amount),
+                                                    IsCharge: Coalesce(Boolean(L.Value.isCharge), false),
+                                                    Check: Coalesce(Text(L.Value.check), "")
+                                                }
+                                            )
+                                        )
+                                    );
+                                    Set(varMatInvRead, varMatInvHead.Ok && CountRows(colMatInvLines) > 0),
+                            
+                                    Set(
+                                        varMatInvHead,
+                                        Patch(varMatInvHead, { Ok: false, Error: "The invoice could not be read: " & FirstError.Message })
+                                    );
+                                    Clear(colMatInvLines);
+                                    Set(varMatInvRead, false)
+                                )
+                            );
+                            Set(varMatSaving, false)
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =14
+                        Text: |-
+                            ="Read invoice"
+                        Tooltip: |-
+                            ="Send the invoice through the invoice reader"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =133
+            - txtMatInvMsg:
+                Control: ModernText
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =If(varMatInvHead.Ok, C.'state-warn-fg', C.'state-error-fg')
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =54
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =12
+                  Text: |-
+                      =If(!varMatInvHead.Ok && !IsBlank(varMatInvHead.Error), varMatInvHead.Error, varMatInvHead.Warnings)
+                  Visible: |-
+                      =!IsBlank(If(!varMatInvHead.Ok && !IsBlank(varMatInvHead.Error), varMatInvHead.Error, varMatInvHead.Warnings))
+                  Wrap: |-
+                      =true
+            - txtMatInvSummary:
+                Control: ModernText
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-primary'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  FontWeight: |-
+                      =FontWeight.Semibold
+                  Height: |-
+                      =40
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =13
+                  Text: |-
+                      =varMatInvHead.Format & " invoice " & varMatInvHead.InvoiceNo &
+                      If(!IsBlank(varMatInvHead.InvoiceDate), " of " & varMatInvHead.InvoiceDate) &
+                      " from " & Coalesce(varMatInvHead.Supplier, "an unknown supplier") &
+                      If(!IsBlank(varMatInvHead.OrderNo), " - order " & varMatInvHead.OrderNo) &
+                      If(!IsBlank(varMatInvHead.Currency), " - " & varMatInvHead.Currency) &
+                      If(!IsBlank(varMatInvHead.Plant), " - plant " & varMatInvHead.Plant & " (from the delivery address)")
+                  Visible: |-
+                      =varMatInvRead
+                  Wrap: |-
+                      =true
+            - conMatInvTable:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =28 + (Min(Max(CountRows(colMatInvLines), 1), 7) * 34)
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Start
+                  LayoutDirection: |-
+                      =LayoutDirection.Vertical
+                  LayoutGap: |-
+                      =0
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Visible: |-
+                      =varMatInvRead
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - conMatInvListHead:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        Fill: |-
+                            =C.'bg-muted'
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =28
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Center
+                        LayoutDirection: |-
+                            =LayoutDirection.Horizontal
+                        LayoutGap: |-
+                            =8
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Width: |-
+                            =(((Min(920, App.Width - 32)) - 36) - 4 - 18)
+                      Children:
+                        - txtMatInvHeadSel:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Selected"
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-primary'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =18
+                              LayoutMinWidth: |-
+                                  =30
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =11
+                              Text: |-
+                                  =""
+                              Width: |-
+                                  =30
+                              Wrap: |-
+                                  =false
+                        - txtMatInvHeadNo:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="ITEM NO."
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-muted'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =17
+                              LayoutMinWidth: |-
+                                  =110
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =11
+                              Text: |-
+                                  ="ITEM NO."
+                              Visible: |-
+                                  =LayoutRank >= 2
+                              Width: |-
+                                  =110
+                              Wrap: |-
+                                  =false
+                        - txtMatInvHeadDesc:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="DESCRIPTION"
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-muted'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              FillPortions: |-
+                                  =0
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =17
+                              LayoutMinWidth: |-
+                                  =80
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =11
+                              Text: |-
+                                  ="DESCRIPTION"
+                              Width: |-
+                                  =Max(80, (((((Min(920, App.Width - 32)) - 36) - 4 - 18))) - ((30) + 8) - (If(LayoutRank >= 2, (110) + 8, 0)) - ((64) + 8) - (If(LayoutRank >= 2, (56) + 8, 0)) - (If(LayoutRank >= 2, (90) + 8, 0)) - ((96) + 8) - 2)
+                              Wrap: |-
+                                  =false
+                        - txtMatInvHeadQty:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="QTY"
+                              Align: |-
+                                  =Align.Right
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-muted'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =17
+                              LayoutMinWidth: |-
+                                  =64
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =11
+                              Text: |-
+                                  ="QTY"
+                              Width: |-
+                                  =64
+                              Wrap: |-
+                                  =false
+                        - txtMatInvHeadUnit:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="UNIT"
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-muted'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =17
+                              LayoutMinWidth: |-
+                                  =56
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =11
+                              Text: |-
+                                  ="UNIT"
+                              Visible: |-
+                                  =LayoutRank >= 2
+                              Width: |-
+                                  =56
+                              Wrap: |-
+                                  =false
+                        - txtMatInvHeadPrice:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="PRICE"
+                              Align: |-
+                                  =Align.Right
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-muted'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =17
+                              LayoutMinWidth: |-
+                                  =90
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =11
+                              Text: |-
+                                  ="PRICE"
+                              Visible: |-
+                                  =LayoutRank >= 2
+                              Width: |-
+                                  =90
+                              Wrap: |-
+                                  =false
+                        - txtMatInvHeadAmount:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="AMOUNT"
+                              Align: |-
+                                  =Align.Right
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-muted'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =17
+                              LayoutMinWidth: |-
+                                  =96
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =11
+                              Text: |-
+                                  ="AMOUNT"
+                              Width: |-
+                                  =96
+                              Wrap: |-
+                                  =false
+                  - galMatInvLines:
+                      Control: Gallery
+                      Variant: Vertical
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Invoice lines"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =Min(Max(CountRows(colMatInvLines), 1), 7) * 34
+                        Items: |-
+                            =Sort(colMatInvLines, LineNo)
+                        LayoutMinWidth: |-
+                            =0
+                        LoadingSpinner: |-
+                            =LoadingSpinner.None
+                        Selectable: |-
+                            =false
+                        ShowScrollbar: |-
+                            =true
+                        TabIndex: |-
+                            =0
+                        TemplatePadding: |-
+                            =2
+                        TemplateSize: |-
+                            =32
+                        Width: |-
+                            =((((Min(920, App.Width - 32)) - 36) - 4 - 18)) + 4 + 18
+                        WrapCount: |-
+                            =1
+                      Children:
+                        - chkMatInvSel:
+                            Control: ModernCheckbox
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Include line " & ThisItem.LineNo
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
+                              Color: |-
+                                  =C.'text-primary'
+                              Default: |-
+                                  =ThisItem.Selected
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =24
+                              Label: |-
+                                  =""
+                              OnCheck: |-
+                                  =Patch(colMatInvLines, ThisItem, { Selected: true })
+                              OnUncheck: |-
+                                  =Patch(colMatInvLines, ThisItem, { Selected: false })
+                              Size: |-
+                                  =13
+                              Width: |-
+                                  =30
+                              X: |-
+                                  =0 + 0 + 0
+                              Y: |-
+                                  =0 + 0 + ((((32) - 2) - 0 - 0) - (24)) / 2
+                        - txtMatInvCellNo:
+                            Control: ModernText
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-primary'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =20
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =13
+                              Text: |-
+                                  =ThisItem.SupplierPartNo
+                              Visible: |-
+                                  =LayoutRank >= 2
+                              Width: |-
+                                  =110
+                              Wrap: |-
+                                  =false
+                              X: |-
+                                  =0 + 0 + 0 + (30) + 8
+                              Y: |-
+                                  =0 + 0 + ((((32) - 2) - 0 - 0) - (20)) / 2
+                        - txtMatInvCellDesc:
+                            Control: ModernText
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-primary'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =20
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =13
+                              Text: |-
+                                  =ThisItem.Description & If(ThisItem.IsCharge, "  (fee / charge)", "")
+                              Width: |-
+                                  =Max(80, (((((((Min(920, App.Width - 32)) - 36) - 4 - 18)) + 4 + 18) - 2 * 2 - 18)) - ((30) + 8) - (If(LayoutRank >= 2, (110) + 8, 0)) - ((64) + 8) - (If(LayoutRank >= 2, (56) + 8, 0)) - (If(LayoutRank >= 2, (90) + 8, 0)) - ((96) + 8) - 2)
+                              Wrap: |-
+                                  =false
+                              X: |-
+                                  =0 + 0 + 0 + (30) + 8 + If(LayoutRank >= 2, (110) + 8, 0)
+                              Y: |-
+                                  =0 + 0 + ((((32) - 2) - 0 - 0) - (20)) / 2
+                        - txtMatInvCellQty:
+                            Control: ModernText
+                            Properties:
+                              Align: |-
+                                  =Align.Right
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-primary'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =20
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =13
+                              Text: |-
+                                  =If(IsBlank(ThisItem.Quantity), "-", Text(ThisItem.Quantity))
+                              Width: |-
+                                  =64
+                              Wrap: |-
+                                  =false
+                              X: |-
+                                  =0 + 0 + 0 + (30) + 8 + If(LayoutRank >= 2, (110) + 8, 0) + (Max(80, (((((((Min(920, App.Width - 32)) - 36) - 4 - 18)) + 4 + 18) - 2 * 2 - 18)) - ((30) + 8) - (If(LayoutRank >= 2, (110) + 8, 0)) - ((64) + 8) - (If(LayoutRank >= 2, (56) + 8, 0)) - (If(LayoutRank >= 2, (90) + 8, 0)) - ((96) + 8) - 2)) + 8
+                              Y: |-
+                                  =0 + 0 + ((((32) - 2) - 0 - 0) - (20)) / 2
+                        - txtMatInvCellUnit:
+                            Control: ModernText
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-primary'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =20
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =13
+                              Text: |-
+                                  =ThisItem.Unit
+                              Visible: |-
+                                  =LayoutRank >= 2
+                              Width: |-
+                                  =56
+                              Wrap: |-
+                                  =false
+                              X: |-
+                                  =0 + 0 + 0 + (30) + 8 + If(LayoutRank >= 2, (110) + 8, 0) + (Max(80, (((((((Min(920, App.Width - 32)) - 36) - 4 - 18)) + 4 + 18) - 2 * 2 - 18)) - ((30) + 8) - (If(LayoutRank >= 2, (110) + 8, 0)) - ((64) + 8) - (If(LayoutRank >= 2, (56) + 8, 0)) - (If(LayoutRank >= 2, (90) + 8, 0)) - ((96) + 8) - 2)) + 8 + (64) + 8
+                              Y: |-
+                                  =0 + 0 + ((((32) - 2) - 0 - 0) - (20)) / 2
+                        - txtMatInvCellPrice:
+                            Control: ModernText
+                            Properties:
+                              Align: |-
+                                  =Align.Right
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-primary'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =20
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =13
+                              Text: |-
+                                  =If(IsBlank(ThisItem.UnitPrice), "-", Text(ThisItem.UnitPrice, "#,##0.00##"))
+                              Visible: |-
+                                  =LayoutRank >= 2
+                              Width: |-
+                                  =90
+                              Wrap: |-
+                                  =false
+                              X: |-
+                                  =0 + 0 + 0 + (30) + 8 + If(LayoutRank >= 2, (110) + 8, 0) + (Max(80, (((((((Min(920, App.Width - 32)) - 36) - 4 - 18)) + 4 + 18) - 2 * 2 - 18)) - ((30) + 8) - (If(LayoutRank >= 2, (110) + 8, 0)) - ((64) + 8) - (If(LayoutRank >= 2, (56) + 8, 0)) - (If(LayoutRank >= 2, (90) + 8, 0)) - ((96) + 8) - 2)) + 8 + (64) + 8 + If(LayoutRank >= 2, (56) + 8, 0)
+                              Y: |-
+                                  =0 + 0 + ((((32) - 2) - 0 - 0) - (20)) / 2
+                        - txtMatInvCellAmount:
+                            Control: ModernText
+                            Properties:
+                              Align: |-
+                                  =Align.Right
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =If(ThisItem.Check = "mismatch", C.'state-warn-fg', C.'text-primary')
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =20
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =13
+                              Text: |-
+                                  =If(IsBlank(ThisItem.Amount), "-", Text(ThisItem.Amount, "#,##0.00"))
+                              Width: |-
+                                  =96
+                              Wrap: |-
+                                  =false
+                              X: |-
+                                  =0 + 0 + 0 + (30) + 8 + If(LayoutRank >= 2, (110) + 8, 0) + (Max(80, (((((((Min(920, App.Width - 32)) - 36) - 4 - 18)) + 4 + 18) - 2 * 2 - 18)) - ((30) + 8) - (If(LayoutRank >= 2, (110) + 8, 0)) - ((64) + 8) - (If(LayoutRank >= 2, (56) + 8, 0)) - (If(LayoutRank >= 2, (90) + 8, 0)) - ((96) + 8) - 2)) + 8 + (64) + 8 + If(LayoutRank >= 2, (56) + 8, 0) + If(LayoutRank >= 2, (90) + 8, 0)
+                              Y: |-
+                                  =0 + 0 + ((((32) - 2) - 0 - 0) - (20)) / 2
+            - chkMatInvAttach:
+                Control: ModernCheckbox
+                Properties:
+                  AccessibleLabel: |-
+                      ="Attach the invoice to each new row"
+                  BasePaletteColor: |-
+                      =C.'color-brand-primary'
+                  Color: |-
+                      =C.'text-primary'
+                  Default: |-
+                      =varMatInvAttach
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =28
+                  Label: |-
+                      ="Attach the invoice to each new row as a document (one upload per row)"
+                  OnCheck: |-
+                      =Set(varMatInvAttach, true)
+                  OnUncheck: |-
+                      =Set(varMatInvAttach, false)
+                  Size: |-
+                      =13
+                  Visible: |-
+                      =varMatInvRead
+                  Width: |-
+                      =Parent.Width
+            - conMatInvFooter:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =If((((Min(920, App.Width - 32)) - 36)) >= (107) + (124) + (104) + (144) + (0) + 32, 32, (20) + 8 + (32) + 8 + (32) + 8 + (32) + 8 + (32))
+                  LayoutAlignItems: |-
+                      =If((((Min(920, App.Width - 32)) - 36)) >= (107) + (124) + (104) + (144) + (0) + 32, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                  LayoutDirection: |-
+                      =If((((Min(920, App.Width - 32)) - 36)) >= (107) + (124) + (104) + (144) + (0) + 32, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                  LayoutGap: |-
+                      =8
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Visible: |-
+                      =varMatInvRead
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - txtMatInvCount:
+                      Control: ModernText
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-muted'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FillPortions: |-
+                            =0
+                        Font: |-
+                            =Font.'Segoe UI'
+                        Height: |-
+                            =20
+                        LayoutMinWidth: |-
+                            =0
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =13
+                        Text: |-
+                            =CountRows(Filter(colMatInvLines, Selected)) & " of " & CountRows(colMatInvLines) & " lines selected"
+                        Width: |-
+                            =Max(0, (((Min(920, App.Width - 32)) - 18 - 18)) - ((107) + 8) - ((124) + 8) - ((104) + 8) - ((144) + 8) - 2)
+                        Wrap: |-
+                            =false
+                  - btnMatInvAll:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Select all"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-default'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =32
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        LayoutMinWidth: |-
+                            =If((((Min(920, App.Width - 32)) - 36)) >= (107) + (124) + (104) + (144) + (0) + 32, 107, 0)
+                        OnSelect: |-
+                            =UpdateIf(colMatInvLines, true, { Selected: true })
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =13
+                        Text: |-
+                            ="Select all"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =107
+                  - btnMatInvNone:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Select none"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-default'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =32
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        LayoutMinWidth: |-
+                            =If((((Min(920, App.Width - 32)) - 36)) >= (107) + (124) + (104) + (144) + (0) + 32, 124, 0)
+                        OnSelect: |-
+                            =UpdateIf(colMatInvLines, true, { Selected: false })
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =13
+                        Text: |-
+                            ="Select none"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =124
+                  - btnMatInvAgain:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Other file"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-default'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =32
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        LayoutMinWidth: |-
+                            =If((((Min(920, App.Width - 32)) - 36)) >= (107) + (124) + (104) + (144) + (0) + 32, 104, 0)
+                        OnSelect: |-
+                            =Clear(colMatInvLines);
+                            Set(varMatInvRead, false);
+                            Set(varMatInvHead, { Ok: false, Error: "", Warnings: "", FileName: "", Format: "", Supplier: "", VatNo: "", InvoiceNo: "", InvoiceDate: "", OrderNo: "", Currency: "", Plant: "" });
+                            Reset(attMatInvPicker)
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =13
+                        Text: |-
+                            ="Other file"
+                        Tooltip: |-
+                            ="Start again with another invoice file"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =104
+                  - btnMatInvCreate:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Create request"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
+                        Color: |-
+                            =C.'text-on-primary'
+                        DisplayMode: |-
+                            =If(CountRows(Filter(colMatInvLines, Selected)) = 0, DisplayMode.Disabled, DisplayMode.Edit)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =32
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        LayoutMinWidth: |-
+                            =If((((Min(920, App.Width - 32)) - 36)) >= (107) + (124) + (104) + (144) + (0) + 32, 144, 0)
+                        OnSelect: |-
+                            =Set(varMatSaving, true);
+                            With(
+                                {
+                                    sel: Filter(colMatInvLines, Selected),
+                                    H: varMatInvHead,
+                                    plant: If(
+                                        IsBlank(LookUp(colMatPlants, Value = varMatInvHead.Plant)),
+                                        "",
+                                        varMatInvHead.Plant
+                                    )
+                                },
+                                If(
+                                    CountRows(sel) = 0,
+                                    Notify("Select at least one invoice line.", NotificationType.Warning),
+                            
+                                    IfError(
+                                        Set(varMatRequestGuid, Text(GUID()));
+                                        Set(varMatRequestNo, "");
+                                        Set(
+                                            varMatIdx,
+                                            Patch(MD_RequestIndex, Defaults(MD_RequestIndex), {
+                                                    RequestNo: Coalesce(varMatRequestNo, varMatRequestGuid),
+                                                    Domain: { Value: "Material" },
+                                                    Status: { Value: "Kladde" },
+                                                    StatusStep: 1,
+                                                    IsOpen: true,
+                                                    RequestGuid: varMatRequestGuid,
+                                                    RequesterEmail: varMatMe,
+                                                    RequesterName: User().FullName,
+                                                    ShortText: "Materials: " & CountRows(sel) & " row(s) from invoice " & H.InvoiceNo,
+                                                    Plant: plant,
+                                                    ItemCount: CountRows(sel),
+                                                    AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/17f6f493-203d-40a1-9fe4-2c99b04b85a5?domain=material&reqid=" & varMatRequestGuid,
+                                                    LastActionOn: Now(),
+                                                    LastActionBy: varMatMe
+                                                })
+                                        );
+                                        Set(varMatRequestNo, "MAT-" & Text(varMatIdx.ID, "000000"));
+                                        Patch(MD_RequestIndex, varMatIdx, { RequestNo: varMatRequestNo });
+                            
+                                        Set(
+                                            varMatInvNew,
+                                            Patch(
+                                                MaterialItems,
+                                                ForAll(sel, Defaults(MaterialItems)),
+                                                ForAll(
+                                                    sel As L,
+                                                    {
+                                                        MaterialDescription: Left(Coalesce(L.Description, L.SupplierPartNo, "Invoice line " & L.LineNo), 40),
+                                                        Plant: plant,
+                                                        FunctionalLocation: "",
+                                                        NoBomItem: false,
+                                                        Manufacturer: Left(L.Manufacturer, 255),
+                                                        ModelNumber: Left(L.Model, 255),
+                                                        ManufacturerPartNo: Left(L.ManufacturerPartNo, 255),
+                                                        Supplier: Left(H.Supplier, 255),
+                                                        SupplierPartNo: Left(L.SupplierPartNo, 255),
+                                                        DeliveringTime: Blank(),
+                                                        Price: L.UnitPrice,
+                                                        PriceUnit: Left(If(IsBlank(L.PriceUnit), "", Text(L.PriceUnit)), 255),
+                                                        StockUnit: Left(L.Unit, 255),
+                                                        RecommendedStock: Blank(),
+                                                        StrategicPart: "",
+                                                        WearPart: "",
+                                                        LongText: "Imported from invoice " & H.InvoiceNo & If(!IsBlank(H.InvoiceDate), " of " & H.InvoiceDate) & If(!IsBlank(H.Supplier), " from " & H.Supplier) & If(!IsBlank(H.OrderNo), ", order " & H.OrderNo) & "." & Char(10) & "Invoice line " & L.LineNo & ": " & If(IsBlank(L.Quantity), "", Text(L.Quantity) & " " & L.Unit & " x ") & If(IsBlank(L.UnitPrice), "", Text(L.UnitPrice, "0.00##") & " " & H.Currency) & If(!IsBlank(L.PriceUnit), " per " & Text(L.PriceUnit)) & If(!IsBlank(L.DiscountPct), ", discount " & Text(L.DiscountPct) & " %") & If(IsBlank(L.Amount), "", " = " & Text(L.Amount, "0.00") & " " & H.Currency) & "." & If(!IsBlank(L.Gtin), Char(10) & "GTIN: " & L.Gtin) & If(Len(L.Description) > 40, Char(10) & L.Description) & If(!IsBlank(L.ExtraText), Char(10) & L.ExtraText),
+                                                        RowStatus: { Value: "draft" },
+                                                        RequestNo: varMatRequestNo,
+                                                        RequestGuid: varMatRequestGuid,
+                                                        RequesterEmail: varMatMe,
+                                                        RequesterName: User().FullName
+                                                    }
+                                                )
+                                            )
+                                        );
+                                        Patch(
+                                            MaterialItems,
+                                            ForAll(varMatInvNew As C, { ID: C.ID }),
+                                            ForAll(
+                                                varMatInvNew As C,
+                                                {
+                                                    RowId: C.ID,
+                                                    ItemKey: "MAT-" & Text(C.ID, "000000"),
+                                                    AttachmentFolder: "TaskListDocuments/" & "MAT-" & Text(C.ID, "000000")
+                                                }
+                                            )
+                                        );
+                            
+                                        If(
+                                            varMatInvAttach && CountRows(attMatInvPicker.Attachments) > 0,
+                                            ClearCollect(
+                                                colMatInvUp,
+                                                ForAll(
+                                                    varMatInvNew As C,
+                                                    {
+                                                        RowId: C.ID,
+                                                        Ok: IfError(
+                                                            Lower(Text('BioSap-TaskListAttachment'.Run(
+                                                                "MAT-" & Text(C.ID, "000000"),
+                                                                { file: { contentBytes: First(attMatInvPicker.Attachments).Value, name: First(attMatInvPicker.Attachments).Name } }
+                                                            ).flowrunsuccess)) = "true",
+                                                            false
+                                                        )
+                                                    }
+                                                )
+                                            );
+                                            Patch(
+                                                MaterialItems,
+                                                ForAll(Filter(colMatInvUp, Ok) As U, { ID: U.RowId }),
+                                                ForAll(Filter(colMatInvUp, Ok), { FileCount: 1 })
+                                            ),
+                                            Clear(colMatInvUp)
+                                        );
+                            
+                                        ClearCollect(
+                                            colMatRows,
+                                            ForAll(
+                                                SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe), "Created", SortOrder.Descending) As R,
+                                                {
+                                                    RowId: R.ID,
+                                                    ItemKey: Coalesce(R.ItemKey, ""),
+                                                    RequestNo: Coalesce(R.RequestNo, ""),
+                                                    Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                    FileCount: Coalesce(R.FileCount, 0),
+                                                    MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                                    Plant: Coalesce(R.Plant, ""),
+                                                    FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                    NoBomItem: Coalesce(R.NoBomItem, false),
+                                                    Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                    ModelNumber: Coalesce(R.ModelNumber, ""),
+                                                    ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                                    Supplier: Coalesce(R.Supplier, ""),
+                                                    SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                                    DeliveringTime: R.DeliveringTime,
+                                                    Price: R.Price,
+                                                    PriceUnit: Coalesce(R.PriceUnit, ""),
+                                                    StockUnit: Coalesce(R.StockUnit, ""),
+                                                    RecommendedStock: R.RecommendedStock,
+                                                    StrategicPart: Coalesce(R.StrategicPart, ""),
+                                                    WearPart: Coalesce(R.WearPart, ""),
+                                                    LongText: Coalesce(R.LongText, "")
+                                                }
+                                            )
+                                        );
+                            
+                                        Set(
+                                            varMatInfo,
+                                            "Request " & varMatRequestNo & ": " & CountRows(varMatInvNew) &
+                                            " draft row(s) from invoice " & H.InvoiceNo &
+                                            ". Open each row, fill in what is missing and save it." &
+                                            If(
+                                                CountRows(Filter(colMatInvUp, !Ok)) > 0,
+                                                " The invoice could not be attached to " &
+                                                CountRows(Filter(colMatInvUp, !Ok)) & " row(s)."
+                                            )
+                                        );
+                                        Notify(varMatInfo, NotificationType.Success);
+                                        Clear(colMatInvLines);
+                                        Set(varMatInvRead, false);
+                                        Set(varMatInvHead, { Ok: false, Error: "", Warnings: "", FileName: "", Format: "", Supplier: "", VatNo: "", InvoiceNo: "", InvoiceDate: "", OrderNo: "", Currency: "", Plant: "" });
+                                        Reset(attMatInvPicker);
+                                        Set(varMatInvOpen, false),
+                            
+                                        Set(varMatInfo, "Import failed: " & FirstError.Message);
+                                        Notify("Import failed: " & FirstError.Message, NotificationType.Error)
+                                    )
+                                )
+                            );
+                            Set(varMatSaving, false)
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =13
+                        Text: |-
+                            ="Create request"
+                        Tooltip: |-
+                            ="Create a new request with the selected lines as draft rows"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =144
       - imgMatNavScrim:
           Control: Image
           Properties:

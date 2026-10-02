@@ -11,7 +11,7 @@ felter, i hvilken raekkefoelge, og hvilke kolonner listen viser.
 
 FORMULAREN
 ----------
-    Spare Parts Form  * Required                    [No BOM Item: OFF]
+    Spare Parts Form  * Required   [Import invoice] [No BOM Item: OFF]
     [ FL          ][ Manufacturer ][ Model number ][ Manuf. part no.  ]
     [ Description ][ Documentation][ Stock unit   ][ Price            ]
     [ Price unit  ][ Delivery time][ Rec. stock   ][ Supplier         ]
@@ -28,6 +28,7 @@ gem, hent, kopier og detaljer tager den med af sig selv.
 """
 import domain_config as cfg
 import domain_parts as dp
+import invoice_parts as inv
 from gen_screen import C_REQUIRED
 from build_helpers import text_ctrl, group, button, text_input, card, field_cell, label_px
 
@@ -125,7 +126,7 @@ def _cell(key):
 
 def build_form():
     dp.check_form_order(FORM_ORDER, SPECIAL, NOT_IN_GRID)
-    head = dp.form_head("Spare Parts Form", right=[_nobom_button()])
+    head = dp.form_head("Spare Parts Form", right=[inv.import_button(), _nobom_button()])
     rows = dp.grid_rows("conDomGrid", [_cell(k) for k in FORM_ORDER])
     # Soegningens svar under den foerste raekke - den med FL i.
     rows.insert(1, dp.build_fl_msg())
@@ -178,3 +179,10 @@ SLOTS = [
 
 def build_rows():
     return dp.build_list(SLOTS, "STATUS", "Search FL, supplier, part no., material")
+
+
+# ---------------------------------------------------------------------------
+# Fakturaimporten - popuppen staar i invoice_parts.py (docs/34)
+# ---------------------------------------------------------------------------
+def build_popups():
+    return inv.build_popups()

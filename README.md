@@ -14,7 +14,7 @@ af dem:
 | **Masterdata Hub** | [`Masterdata Hub/`](Masterdata%20Hub) | Landingssiden. Alle indmeldinger på tværs af de fem domæner, med status. Én datakilde |
 | **VH-plan** | [`Maintenance Plan App/`](Maintenance%20Plan%20App) | Indmelding af vedligeholdsplaner, inkl. strategiplaner med pakker |
 | **Equipments** | [`Equipment App/`](Equipment%20App) | Indmelding af udstyr |
-| **Materials** | [`Material App/`](Material%20App) | Indmelding af reservedele |
+| **Materials** | [`Material App/`](Material%20App) | Indmelding af reservedele — også ud fra en leverandørfaktura (PDF eller OIOUBL/Peppol-XML), se [`docs/34`](docs/34-faktura-import.md) |
 | **Functional Location** | [`Functional Location App/`](Functional%20Location%20App) | Functional Locations (SPOOL): KKS-syntaks, klasse og spool-felter pr. klasse. Reglerne er HTML-sidens (`html/functional-location.html` + JS) - se [`docs/31`](docs/31-functional-location-regler.md) |
 | **KKS lookup** | [`KKS App/`](KKS%20App) | Opslag i KKS-vejledningen: funktions-, aggregat- og komponentnøgler. Kun en skærm i BIO SAP - den var aldrig en af de fem enkeltapps. Data i SharePoint; aggregat og komponent genbruger `MD_FLKey`. Se [`KKS App/README.md`](KKS%20App/README.md) |
 
@@ -101,12 +101,15 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 | [`docs/06-excel-gui-scripting.md`](docs/06-excel-gui-scripting.md) | **Den valgte vej til SAP:** Excel + GUI Scripting |
 | [`docs/07-landingsside.md`](docs/07-landingsside.md) | Landingsside for alle fem masterdata-domæner: hub vs. monolit, indekslisten, performanceregler |
 | [`docs/32-godkendelsesflow.md`](docs/32-godkendelsesflow.md) | **Oplæg:** godkendelsesflow for nye VH-planer — system- og omkostningsgodkendelse pr. item (Power BI Plant Section Key + MD_Approver, 300.000 kr.), kvalitet pr. værk; statusmodel, kolonner, flows |
+| [`docs/34-faktura-import.md`](docs/34-faktura-import.md) | **Fakturaimport i Materials:** en faktura bliver til kladderækker i en ny anmodning. Uden premium: et Office Script via Excel Online (Business). Opsætning af script og flow trin for trin |
 
 ## Kode og artefakter
 
 | Sti | Indhold |
 |---|---|
 | `tools/canvas_mcp.py` | Byg, compile og synk til Studio via canvas-authoring MCP-serveren — uden VS Code |
+| `flow/invoice-import/ReadInvoice.ts` | Fakturalæseren (Office Script): PDF-tekst og OIOUBL/Peppol-XML → fakturalinjer som JSON. Køres af flowet `BioSap-Material-ReadInvoice` |
+| `tools/invoice/` | Testfakturaerne og `harness.mjs`, der kører læseren på dem ved hver bygning (kræver Node 22.13+) |
 | `tools/export_solution.ps1` | Hent solution BIO SAP ned som læsbare filer — flows, miljøvariabler, connection references |
 | `powerfx/*.fx` | **Designnoter** fra oplægget — ikke kode, der bygges. FL-builderne bruger 03/04 som mønster |
 | `powerfx/01-app-formulas.fx` | Named formulas, opstart, navigation |

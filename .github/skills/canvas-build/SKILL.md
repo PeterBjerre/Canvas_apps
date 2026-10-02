@@ -261,7 +261,7 @@ Hver `build/`-mappe indeholder nu kun det, der er appens eget:
 | VH-plan | `sp_config.py` + de elleve `build_*.py`, der bygger dens skærm |
 | Masterdata Hub | `hub_config.py`, `build_hub.py` |
 | Equipments | `domain_config.py`, `equipment_parts.py` (felternes rækkefølge og listens kolonner) + de to indgange |
-| Materials | `domain_config.py`, `material_parts.py` (felternes rækkefølge, No BOM Item og listens kolonner) + de to indgange |
+| Materials | `domain_config.py`, `material_parts.py` (felternes rækkefølge, No BOM Item og listens kolonner), `invoice_parts.py` (fakturaimporten: popuppen, flow-kontrakten og oprettelsen af anmodningen, docs/34) + de to indgange |
 | Functional Location | `fl_config.py`, `fl_parts.py`, `fl_validation.py`, `fl_save.py`, `fl_rules.generated.json` (genereret af `tools/fl/harness.js plan`) |
 | KKS-opslag | `kks_config.py` (lister, nøgleområder, bidder), `kks_parts.py` (skærmen, formlerne, hentningen). Data: `tools/gen_kks_seed.py` |
 | BIO SAP | Ingen skærmbyggere — kun kompositionen af de fem |
@@ -1009,6 +1009,10 @@ brugeren tilføje den i Studio først**, og gå ikke videre før det er bekræft
 - VH-plan, Equipment og Material bruger flowet `BioSap-Integration-FunctionalLocations`. Svarer flowet
   anderledes end forventet, rettes konstanterne i `tools/build_flsearch.py` —
   ikke formlerne ude i skærmen.
+- Material bruger desuden `BioSap-Material-ReadInvoice` (fakturaimporten). Flowet
+  og dets Office Script oprettes efter `docs/34-faktura-import.md`; svarets
+  feltnavne står i `Material App/build/invoice_parts.py` (`CONTRACT_*`) og
+  efterprøves mod scriptet af `tools/invoice/harness.mjs` ved hver bygning.
 - Masterdata Hub bruger SharePoint-listen `MD_RequestIndex`. Den oprettes med
   `sharepoint/provision/Provision-RequestIndex.ps1`.
 

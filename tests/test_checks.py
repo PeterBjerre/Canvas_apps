@@ -303,3 +303,54 @@ def test_kks_check_finds_flkey_drifting_from_kks(monkeypatch, tmp_path):
     rc, out = _kks_check(monkeypatch, tmp_path, "MD_FLKey.csv",
                          lambda t: t.replace('"Transformere."', '"Transformer."', 1))
     assert rc == 1 and "Aggregate" in out
+
+
+# ---------------------------------------------------------------------------
+# Materials: fakturalaeseren (flow/invoice-import/ReadInvoice.ts, docs/34)
+# ---------------------------------------------------------------------------
+HARNESS = os.path.join(ROOT, "tools", "invoice", "harness.mjs")
+INVOICE_PARTS = os.path.join(ROOT, "Material App", "build", "invoice_parts.py")
+
+
+def _harness(cmd, **env):
+    import shutil
+    import subprocess
+    node = shutil.which("node")
+    if not node:
+        pytest.skip("node findes ikke")
+    r = subprocess.run([node, HARNESS, cmd], capture_output=True, text=True,
+                       env={**os.environ, **env})
+    return r.returncode, r.stdout + r.stderr
+
+
+def test_invoice_reader_reads_its_fixtures():
+    rc, out = _harness("test")
+    if "ikke koert" in out:
+        pytest.skip("Node er for gammel til at koere TypeScript (kraever 22.13+)")
+    assert rc == 0, out
+
+
+def test_invoice_contract_finds_field_missing_in_app(tmp_path):
+    """Fjernes et felt fra appens kontrakt, men ikke fra scriptet, skal det
+    meldes - ellers ville appen ParseJSON'e et felt, der ikke kommer."""
+    text = open(INVOICE_PARTS, encoding="utf-8").read()
+    bad = text.replace('"gtin", ', "", 1)
+    assert bad != text, "mutationen ramte ikke noget - testen er forkert"
+    p = tmp_path / "invoice_parts.py"
+    p.write_text(bad, encoding="utf-8")
+    rc, out = _harness("contract", INVOICE_PARTS=str(p))
+    assert rc == 1 and "gtin" in out, out
+
+
+def test_invoice_reader_finds_wrong_expectation(tmp_path):
+    """Et forkert facit skal give en fejl - ellers tjekker testen intet."""
+    import json
+    src = os.path.join(ROOT, "tools", "invoice", "expected.json")
+    exp = json.load(open(src, encoding="utf-8"))
+    exp["peppol.xml"]["invoiceNo"] = "BVC-0000"
+    p = tmp_path / "expected.json"
+    p.write_text(json.dumps(exp), encoding="utf-8")
+    rc, out = _harness("test", INVOICE_EXPECTED=str(p))
+    if "ikke koert" in out:
+        pytest.skip("Node er for gammel til at koere TypeScript (kraever 22.13+)")
+    assert rc == 1 and "BVC-0000" in out, out

@@ -14,10 +14,14 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), "tools")
 
 import domain_config as cfg
 import domain_app
+import invoice_parts
 
 
 def main():
-    domain_app.write_app(cfg, os.path.join(HERE, ".."))
+    # Fakturaimporten er Materials' egen (invoice_parts.py, docs/34).
+    domain_app.write_app(cfg, os.path.join(HERE, ".."),
+                         extra_collections=invoice_parts.collections(),
+                         extra_state=invoice_parts.STATE)
 
 
 if __name__ == "__main__":

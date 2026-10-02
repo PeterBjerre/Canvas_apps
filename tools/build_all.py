@@ -7,7 +7,8 @@ Bygger alle canvas apps i repoet og efterregner layoutet.
     python3 tools/build_all.py --app equipment
 
 Raekkefoelgen: PowerShell-, solution- og hemmelighedstjek (kun fuld
-bygning), farvevagten, FL-reglerne mod html/*.js (kraever Node), saa pr.
+bygning), farvevagten, FL-reglerne mod html/*.js og fakturalaeseren mod
+dens testfakturaer (begge kraever Node), saa pr.
 app generate -> assemble -> check_layout, og til sidst datakilde-, sprog-
 og hjaelpetekst-tjekket over ALLE skaerme.
 
@@ -368,6 +369,24 @@ def main(argv=None):
         r = _py([os.path.join(ROOT, "tools", "gen_kks_seed.py"), "--check"])
         if r.returncode:
             return r.returncode
+
+    # MATERIALS: FAKTURALAESEREN
+    #
+    # flow/invoice-import/ReadInvoice.ts er et Office Script - det koerer i
+    # Excel, kaldt af et flow, ikke i appen. tools/invoice/harness.mjs koerer
+    # den UAENDREDE fil paa testfakturaerne og holder svarets feltnavne op
+    # mod appens kontrakt (Material App/build/invoice_parts.py). Uden Node
+    # siges det hoejt, men byggeriet stopper ikke - som FL-reglerne.
+    if any(a in ("Material App", _env.APPS[_env.COMBINED]["folder"]) for a, _ in apps):
+        node = shutil.which("node")
+        if node:
+            print("\n=== Materials: fakturalaeseren (docs/34) ===")
+            r = subprocess.run([node, os.path.join(ROOT, "tools", "invoice", "harness.mjs"), "test"])
+            if r.returncode:
+                print("  -> se tools/invoice/harness.mjs dump <fil>")
+                return r.returncode
+        else:
+            print("\nNB: node findes ikke - fakturalaeseren er IKKE efterproevet.")
 
     rc = 0
     for app, scripts in apps:
