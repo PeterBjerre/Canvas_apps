@@ -106,7 +106,8 @@ Kræver Excel og at *Tillid til adgang til VBA-projektobjektmodellen* er slået
 til (Excel → *Filer* → *Indstillinger* → *Center for sikkerhed og
 rettighedsadministration* → *Makroindstillinger*). Den kan slås fra igen
 bagefter. Læg den færdige fil øverst i biblioteket *SAP-oprettelse* og sig til
-teamet, at der er en ny version.
+teamet, at der er en ny version. Filen har sine egne rettigheder: teamet kan
+kun læse den (docs/35, *Rettigheder*).
 
 ### Arket Opslag
 
