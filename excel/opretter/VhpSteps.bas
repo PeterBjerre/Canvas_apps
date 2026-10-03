@@ -600,8 +600,9 @@ Private Function SaveAndReadNumber(ByVal sess As Object, ByVal what As String, B
 End Function
 
 ' Bekraeft hvert gem (indstillingen ConfirmSave). Ja gemmer. Nej springer
-' planen over uden at gemme. Annuller stopper hele koerslen.
-Private Sub ConfirmSave(ByVal ctx As Object, ByVal text As String)
+' planen eller anmodningen over uden at gemme. Annuller stopper hele
+' koerslen. Bruges ogsaa af VhpFlSteps.
+Public Sub ConfirmSave(ByVal ctx As Object, ByVal text As String)
     Dim answer As VbMsgBoxResult
 
     If Not CBool(ctx("confirmSave")) Then Exit Sub
@@ -609,7 +610,7 @@ Private Sub ConfirmSave(ByVal ctx As Object, ByVal text As String)
     answer = MsgBox(text & vbLf & vbLf & _
         VhpUtil.Dk("Se SAP-vinduet igennem. Skal det gemmes nu?") & vbLf & vbLf & _
         VhpUtil.Dk("Ja = gem i SAP") & vbLf & _
-        VhpUtil.Dk("Nej = spring denne plan over (der gemmes ikke)") & vbLf & _
+        VhpUtil.Dk("Nej = spring denne plan/anmodning over (der gemmes ikke)") & vbLf & _
         VhpUtil.Dk("Annuller = stop hele k{oe}rslen"), _
         vbYesNoCancel + vbQuestion + vbSystemModal, VHP_APP_NAME)
 

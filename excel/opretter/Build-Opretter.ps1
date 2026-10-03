@@ -1,6 +1,7 @@
 ﻿<#
 .SYNOPSIS
-    Bygger "VH-plan Opretter.xlsm" ud af modulerne i denne mappe.
+    Bygger "SAP Opretter.xlsm" ud af modulerne i denne mappe. Version 1.0
+    hed "VH-plan Opretter.xlsm"; -From tager gerne den gamle fil.
 
 .DESCRIPTION
     Opretteren er kildekode (*.bas) i git. Projektmappen er et produkt af
@@ -21,7 +22,7 @@
     bagefter.
 
 .PARAMETER OutFile
-    Standard: VH-plan Opretter.xlsm i denne mappe.
+    Standard: SAP Opretter.xlsm i denne mappe.
 
 .PARAMETER From
     En eksisterende Opretter-projektmappe, der skal have nye moduler.
@@ -31,12 +32,12 @@
     .\Build-Opretter.ps1
 
 .EXAMPLE
-    .\Build-Opretter.ps1 -From "C:\Users\pkbje\Oersted\BioSAP - SAP-oprettelse\VH-plan Opretter.xlsm"
+    .\Build-Opretter.ps1 -From "C:\Users\pkbje\Oersted\BioSAP - SAP-oprettelse\VH-plan Opretter.xlsm" -OutFile "C:\Users\pkbje\Oersted\BioSAP - SAP-oprettelse\SAP Opretter.xlsm"
 #>
 
 [CmdletBinding()]
 param(
-    [string] $OutFile = (Join-Path $PSScriptRoot 'VH-plan Opretter.xlsm'),
+    [string] $OutFile = (Join-Path $PSScriptRoot 'SAP Opretter.xlsm'),
     [string] $From
 )
 

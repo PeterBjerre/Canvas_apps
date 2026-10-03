@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orsted.example/schemas/fl-sap-receipt-1.json",
+  "title": "Functional Location - kvittering fra oprettelsen i SAP",
+  "description": "Skrives af SAP Opretter. Under koerslen ligger den som '<ordrefil>.status.json' ved siden af ordren og opdateres efter HVER functional location, SAP har gemt. Naar alle raekker er gemt, skrives den med state = Created i mappen Kvitteringer/FL, og flowet BioSap-FL-SapReceipt skriver resultatet tilbage paa raekkerne og saetter anmodningen til OprettetISAP. Se docs/36-fl-sap-oprettelse.md.",
+  "type": "object",
+  "required": [
+    "kind",
+    "version",
+    "orderGuid",
+    "orderFile",
+    "requestSpId",
+    "requestNo",
+    "state",
+    "rows"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "const": "fl-sap-receipt"
+    },
+    "version": {
+      "const": 1
+    },
+    "orderGuid": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+    },
+    "orderFile": {
+      "type": "string",
+      "description": "Ordrefilens navn, fx FL-000012_20261003-101500.json"
+    },
+    "requestSpId": {
+      "type": "integer",
+      "description": "FunctionalLocationRequests.ID"
+    },
+    "requestNo": {
+      "type": "string",
+      "pattern": "^FL-[0-9]{6}$"
+    },
+    "state": {
+      "enum": [
+        "InProgress",
+        "Partial",
+        "Failed",
+        "Created"
+      ],
+      "description": "InProgress: en koersel er i gang. Partial: nogle raekker er gemt, andre fejlede - ret og koer igen. Failed: ingen raekker er gemt. Created: alle raekker er gemt i SAP."
+    },
+    "sapSystem": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "sapClient": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "lockedBy": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Windows-brugernavnet paa den, der koerer eller sidst koerte anmodningen"
+    },
+    "lockedOn": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "updatedOn": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "finishedOn": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "rows": {
+      "type": "array",
+      "description": "Een raekke pr. functional location i ordren.",
+      "items": {
+        "type": "object",
+        "required": [
+          "spId",
+          "functionalLocation",
+          "done"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "spId": {
+            "type": "integer",
+            "description": "FunctionalLocationItems.ID"
+          },
+          "rowNo": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "functionalLocation": {
+            "type": "string"
+          },
+          "done": {
+            "type": "boolean",
+            "description": "Raekken er gemt i SAP. En ny koersel springer den over."
+          },
+          "result": {
+            "enum": [
+              "Created",
+              "Updated",
+              null
+            ],
+            "description": "Created: oprettet med IL01. Updated: fandtes i forvejen og blev aendret med IL02 (som i SPOOL-arket)."
+          },
+          "sapMessage": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Statuslinjen i SAP efter Gem, fx 'Functional location SSV10 LAC10AB001 -B01 created'"
+          },
+          "lastError": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Hvorfor raekken ikke blev gemt i sidste koersel"
+          }
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Fx en karakteristik, der ikke fandtes paa skaermen"
+    },
+    "lastError": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "log": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "at",
+          "text"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "at": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -8,19 +8,22 @@ Option Explicit
 '                     modelydelsesspecifikation
 '   tblKaldshorisont  cyklus (1 WK) -> kaldshorisont og planlaegningsperiode
 '   tblYdelser        arbejdscentrets endelse (XSTIL) -> ydelsesnummer til PM03
+'   tblKarakteristikker  FL-klasse (GIV) -> karakteristikkerne paa SAP-skaermen
+'                     (SPOOL-arkets DictionaryTable)
 '
 ' Det svarer til fanen Call_Horizon_Table i det gamle regneark. Kolonnerne
 ' laeses efter PLADS, ikke efter overskrift, saa en omdoebt overskrift ikke
 ' faar opslaget til at give tomt.
 '==============================================================================
 
-' Alle tre tabeller som Dictionaries i en Dictionary.
+' Alle tabeller som Dictionaries i en Dictionary.
 Public Function Load() As Object
     Dim lk As Object
     Set lk = VhpUtil.NewDict()
     lk.Add "plants", ReadPlants()
     lk.Add "horizons", ReadHorizons()
     lk.Add "services", ReadServices()
+    lk.Add "flChars", ReadFlChars()
     Set Load = lk
 End Function
 
@@ -58,6 +61,22 @@ Public Function Service(ByVal lk As Object, ByVal workCenterText As String) As O
     ElseIf d.Exists(suffix) Then
         Set Service = d(suffix)
     End If
+End Function
+
+' Karakteristikkerne for en FL-klasse (eller TRM, GIV_EXT), som de hedder paa
+' SAP-skaermen. Tom, hvis klassen ikke staar i tabellen.
+Public Function FlCharacteristics(ByVal lk As Object, ByVal cls As String) As Collection
+    Dim d As Object
+    Set FlCharacteristics = New Collection
+    If Not lk.Exists("flChars") Then Exit Function
+    Set d = lk("flChars")
+    cls = UCase$(Trim$(cls))
+    If d.Exists(cls) Then Set FlCharacteristics = d(cls)
+End Function
+
+Public Function FlClassKnown(ByVal lk As Object, ByVal cls As String) As Boolean
+    If Not lk.Exists("flChars") Then Exit Function
+    FlClassKnown = lk("flChars").Exists(UCase$(Trim$(cls)))
 End Function
 
 '==============================================================================
@@ -146,6 +165,32 @@ Private Function ReadServices() As Object
         End If
     Next r
     Set ReadServices = d
+End Function
+
+' Klasse (versaler) -> Collection af karakteristikker, i tabellens raekkefoelge.
+Private Function ReadFlChars() As Object
+    Dim d As Object
+    Dim vals As Variant
+    Dim r As Long
+    Dim cls As String
+    Dim nm As String
+
+    Set d = VhpUtil.NewDict()
+    vals = TableValues(LO_FL_CHARS, 2)
+    If IsEmpty(vals) Then
+        Set ReadFlChars = d
+        Exit Function
+    End If
+
+    For r = LBound(vals, 1) To UBound(vals, 1)
+        cls = UCase$(Cell(vals, r, 1))
+        nm = Cell(vals, r, 2)
+        If Len(cls) > 0 And Len(nm) > 0 Then
+            If Not d.Exists(cls) Then d.Add cls, New Collection
+            d(cls).Add nm
+        End If
+    Next r
+    Set ReadFlChars = d
 End Function
 
 ' Tabellens data som 2D-array (raekke, kolonne), mindst minCols kolonner.

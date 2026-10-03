@@ -1,0 +1,7 @@
+and(
+  equals(outputs('Receipt')?['kind'], 'fl-sap-receipt'),
+  equals(outputs('Receipt')?['state'], 'Created'),
+  equals(outputs('Receipt')?['orderGuid'], body('Get_request')?['SapOrderGuid']),
+  contains(createArray('Indsendt', 'UnderBehandling', 'KlarTilSAP'), body('Get_request')?['Status']?['Value']),
+  equals(outputs('Receipt')?['sapSystem'], parameters('BioSap-SapSystem (orsted_BioSapSapSystem)'))
+)

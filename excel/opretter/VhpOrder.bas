@@ -3,6 +3,11 @@ Option Explicit
 '==============================================================================
 ' VhpOrder - ordrefilen: indlaesning, gruppering og validering.
 '
+' To slags ordrer (feltet "kind"):
+'   vhplan-sap-order   en VH-plan - herunder
+'   fl-sap-order       en FL-anmodning - reglerne staar i VhpFl
+' LoadOrder, OrderKey og Validate kender begge; resten af modulet er VH-planer.
+'
 ' Ordren er flad, som SharePoint-listerne (schema/vhplan-sap-order.schema.json):
 ' plan, items, operations og materials hver for sig. Prepare haenger
 ' operationerne og materialerne paa deres item, saa resten af koden kan
@@ -23,22 +28,53 @@ Public Function LoadOrder(ByVal path As String) As Object
 
     If o Is Nothing Then Err.Raise ERR_ORDER, "VhpOrder", VhpUtil.Dk("Filen er tom.")
     If TypeName(o) <> "Dictionary" Then Err.Raise ERR_ORDER, "VhpOrder", VhpUtil.Dk("Filen er ikke en ordre.")
-    If VhpUtil.JStr(o, "kind") <> ORDER_KIND Then
-        Err.Raise ERR_ORDER, "VhpOrder", VhpUtil.Dk("Filen er ikke en VH-plan-ordre (kind er '") & _
-            VhpUtil.JStr(o, "kind") & "')."
+    If VhpUtil.JStr(o, "kind") <> ORDER_KIND And VhpUtil.JStr(o, "kind") <> FL_ORDER_KIND Then
+        Err.Raise ERR_ORDER, "VhpOrder", VhpUtil.Dk("Filen er ikke en ordre, opretteren kender (kind er '") & _
+            VhpUtil.JStr(o, "kind") & VhpUtil.Dk("'). Den kender ") & ORDER_KIND & " og " & FL_ORDER_KIND & "."
     End If
     If VhpUtil.JLng(o, "version") <> 1 Then
         Err.Raise ERR_ORDER, "VhpOrder", VhpUtil.Dk("Ordren har version ") & VhpUtil.JStr(o, "version") & _
             VhpUtil.Dk(". Denne udgave af opretteren kender kun version 1 {-} hent den nyeste.")
     End If
 
-    Prepare o
+    If IsFl(o) Then
+        VhpFl.Prepare o
+    Else
+        Prepare o
+    End If
     Set LoadOrder = o
     Exit Function
 
 BadJson:
     msg = Err.Description
     Err.Raise ERR_ORDER, "VhpOrder", VhpUtil.Dk("Filen kunne ikke l{ae}ses som JSON: ") & msg
+End Function
+
+' En FL-anmodning (fl-sap-order)?
+Public Function IsFl(ByVal order As Object) As Boolean
+    IsFl = (VhpUtil.JStr(order, "kind") = FL_ORDER_KIND)
+End Function
+
+' Er filen en FL-ordre? False ogsaa, hvis den ikke kan laeses - saa melder
+' VH-vejen fejlen, som foer.
+Public Function IsFlFile(ByVal path As String) As Boolean
+    Dim o As Object
+    On Error Resume Next
+    Set o = VhpFiles.ReadJson(path)
+    On Error GoTo 0
+    If o Is Nothing Then Exit Function
+    If TypeName(o) <> "Dictionary" Then Exit Function
+    IsFlFile = IsFl(o)
+End Function
+
+' Det, en ordre hedder: planens nummer (MP0133) eller anmodningens (FL-000012).
+' Den nyeste ordre pr. noegle er den, der gaelder.
+Public Function OrderKey(ByVal order As Object) As String
+    If IsFl(order) Then
+        OrderKey = VhpUtil.JStr(VhpUtil.JObj(order, "request"), "requestNo")
+    Else
+        OrderKey = VhpUtil.JStr(VhpUtil.JObj(order, "plan"), "planId")
+    End If
 End Function
 
 ' Operationer og materialer paa deres item. Operationerne sorteres efter
@@ -166,6 +202,14 @@ End Function
 ' Resultat: Dictionary med "errors" og "warnings" (Collections af tekster).
 ' En fejl stopper planen. En advarsel vises, men planen kan oprettes.
 Public Function Validate(ByVal order As Object, ByVal lk As Object) As Object
+    If IsFl(order) Then
+        Set Validate = VhpFl.Validate(order, lk)
+        Exit Function
+    End If
+    Set Validate = ValidatePlan(order, lk)
+End Function
+
+Private Function ValidatePlan(ByVal order As Object, ByVal lk As Object) As Object
     Dim res As Object
     Dim plan As Object
     Dim item As Object
@@ -182,7 +226,7 @@ Public Function Validate(ByVal order As Object, ByVal lk As Object) As Object
     Set res = VhpUtil.NewDict()
     res.Add "errors", New Collection
     res.Add "warnings", New Collection
-    Set Validate = res
+    Set ValidatePlan = res
 
     Set plan = VhpUtil.JObj(order, "plan")
     If plan Is Nothing Then

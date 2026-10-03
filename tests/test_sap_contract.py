@@ -205,7 +205,9 @@ J_CALL = re.compile(r'\bJ(?:Str|Num|Lng|Bool|Obj|List|Has)\(\s*[^,()]+(?:\([^()]
 
 
 def test_vba_reads_only_contract_fields():
-    allowed = all_property_names(ORDER) | all_property_names(RECEIPT) | INTERNAL
+    allowed = all_property_names(ORDER) | all_property_names(RECEIPT) | INTERNAL | \
+        all_property_names(load(SCHEMA, "fl-sap-order.schema.json")) | \
+        all_property_names(load(SCHEMA, "fl-sap-receipt.schema.json"))
     used = {}
     for path in glob.glob(os.path.join(RUNNER, "Vhp*.bas")):
         text = open(path, encoding="utf-8").read()
@@ -238,3 +240,225 @@ def test_folder_names_agree():
     for key in ("FOLDER_ORDERS", "FOLDER_RECEIPTS", "FOLDER_DONE"):
         assert f"'{const[key]}'" in folders, key
     assert const["SUFFIX_RECEIPT"] in _expressions()["kvittering-0-filter.txt"]
+
+
+#==============================================================================
+# FL-anmodninger (docs/36): ordre, kvittering, flows og SPOOL-arket
+#==============================================================================
+FL_ORDER = load(SCHEMA, "fl-sap-order.schema.json")
+FL_RECEIPT = load(SCHEMA, "fl-sap-receipt.schema.json")
+SPOOL_XLSM = os.path.join(ROOT, "excel", "artifact", "FL indberetninger udgave SPOOL V3.xlsm")
+SPOOL_GUI = os.path.join(ROOT, "excel", "vba", "spool-gui", "GUI_SCRIPT.bas")
+
+
+@pytest.mark.parametrize("schema,example", [
+    ("fl-sap-order.schema.json", "example-fl-sap-order.json"),
+    ("fl-sap-receipt.schema.json", "example-fl-sap-receipt.json"),
+])
+def test_fl_example_matches_schema(schema, example):
+    test_example_matches_schema(schema, example)
+
+
+def test_fl_flow_select_has_exactly_the_schema_fields():
+    keys = set(load(FLOW, "fl-ordre-1-select-rows.json"))
+    want = set(props(FL_ORDER, "rows")["properties"])
+    assert keys == want, f"mangler: {sorted(want - keys)}, ukendte: {sorted(keys - want)}"
+
+
+def test_fl_flow_compose_matches_schema():
+    order = load(FLOW, "fl-ordre-2-compose-order.json")
+    assert set(order) <= set(FL_ORDER["properties"])
+    assert set(FL_ORDER["required"]) <= set(order)
+    assert set(order["request"]) == set(props(FL_ORDER, "request")["properties"])
+    assert order["rows"] == "@body('Select_rows')"
+    assert order["kind"] == FL_ORDER["properties"]["kind"]["const"]
+    assert order["version"] == FL_ORDER["properties"]["version"]["const"]
+
+
+def _fl_receipt_snippets():
+    return "\n".join(open(p, encoding="utf-8").read()
+                     for p in glob.glob(os.path.join(FLOW, "fl-kvittering-*")))
+
+
+def test_fl_receipt_flow_reads_only_receipt_fields():
+    text = _fl_receipt_snippets()
+    top = set(re.findall(r"outputs\('Receipt'\)\?\['(\w+)'\]", text))
+    row = set(re.findall(r"items\('Each_row'\)\?\['(\w+)'\]", text)) | \
+        set(re.findall(r"item\(\)\?\['(\w+)'\]", text))
+    assert top and row, "ingen felter fundet - er handlingerne omdoebt?"
+    assert top <= set(FL_RECEIPT["properties"]), sorted(top - set(FL_RECEIPT["properties"]))
+    assert row <= set(props(FL_RECEIPT, "rows")["properties"]), \
+        sorted(row - set(props(FL_RECEIPT, "rows")["properties"]))
+
+
+def test_fl_flows_write_known_columns():
+    import check_datasources as cds
+    schema = cds.load_schema() or {}
+    provisioned = cds.provisioned_columns()
+
+    def known(lst, col):
+        return col in schema.get(lst, {}).get("cols", {}) or (lst, col) in provisioned
+
+    writes = {
+        "FunctionalLocationRequests": set(load(FLOW, "fl-ordre-3-merge-request.json")) |
+                                      set(load(FLOW, "fl-ordre-4-merge-request-reset.json")) |
+                                      set(load(FLOW, "fl-kvittering-4-merge-request.json")),
+        "FunctionalLocationItems": set(load(FLOW, "fl-kvittering-3-merge-row.json")),
+        "MD_RequestIndex": set(load(FLOW, "fl-kvittering-5-merge-index.json")),
+    }
+    missing = [(l, c) for l, cols in writes.items() for c in sorted(cols) if not known(l, c)]
+    assert not missing, missing
+
+
+def test_fl_status_values_are_known():
+    """FL-anmodningernes status er MD_RequestIndex-ordforraadet
+    (tools/request_index.py). En stavefejl giver en betingelse, der aldrig
+    er sand - eller en anmodning, hubben ikke kan farve."""
+    import request_index as ri
+    known = {name for name, _label, _step in ri.STATUS}
+    text = "\n".join(open(os.path.join(FLOW, f), encoding="utf-8").read()
+                     for f in ("fl-ordre-0-trigger.txt", "fl-kvittering-2-betingelse.txt"))
+    used = set()
+    for arr in re.findall(r"createArray\(([^)]*)\)", text):
+        used |= set(re.findall(r"'([^']+)'", arr))
+    used.add(load(FLOW, "fl-kvittering-4-merge-request.json")["Status"])
+    index = load(FLOW, "fl-kvittering-5-merge-index.json")
+    used.add(index["Status"])
+    assert {"Indsendt", "OprettetISAP"} <= used
+    assert used <= known, sorted(used - known)
+    assert index["StatusStep"] == ri.step(index["Status"])
+
+
+def test_fl_order_trigger_and_reset():
+    trigger = _expressions()["fl-ordre-0-trigger.txt"]
+    assert trigger.startswith("@")
+    assert trigger.count("SapOrderGuid") == 2
+    assert set(load(FLOW, "fl-ordre-4-merge-request-reset.json")) == set(load(FLOW, "fl-ordre-3-merge-request.json"))
+    assert all(v == "" for v in load(FLOW, "fl-ordre-4-merge-request-reset.json").values())
+    # Det, der aabner for en ordre, er ogsaa det, kvitteringen godkendes i.
+    open_states = re.findall(r"createArray\(([^)]*)\)", trigger)[0]
+    assert open_states in _expressions()["fl-kvittering-2-betingelse.txt"]
+
+
+def test_vba_fl_status_matches_receipt_schema():
+    text = open(os.path.join(RUNNER, "VhpFlRun.bas"), encoding="utf-8").read()
+    status = set(re.findall(r'\bs\.Add "(\w+)"', text))
+    row = set(re.findall(r'\bst\.Add "(\w+)"', text))
+    assert status == set(FL_RECEIPT["properties"]), \
+        f"mangler: {sorted(set(FL_RECEIPT['properties']) - status)}, ukendte: {sorted(status - set(FL_RECEIPT['properties']))}"
+    assert row == set(props(FL_RECEIPT, "rows")["properties"])
+
+
+def test_vba_reads_only_fl_contract_fields():
+    """Det samme som test_vba_reads_only_contract_fields, for FL-modulerne:
+    hvert J*-opslag er et felt i FL-ordren, FL-kvitteringen eller et af
+    opretterens egne."""
+    allowed = all_property_names(FL_ORDER) | all_property_names(FL_RECEIPT) | INTERNAL
+    used = {}
+    for name in ("VhpFl.bas", "VhpFlSteps.bas", "VhpFlRun.bas"):
+        text = open(os.path.join(RUNNER, name), encoding="utf-8").read()
+        for m in J_CALL.finditer(text):
+            used.setdefault(m.group(1), name)
+    assert used
+    unknown = {k: v for k, v in used.items() if k not in allowed}
+    assert not unknown, unknown
+
+
+def _vba_string_consts():
+    """Strengkonstanterne i VhpConfig, med & mellem konstanter regnet ud."""
+    src = open(os.path.join(RUNNER, "VhpConfig.bas"), encoding="utf-8").read()
+    consts = {}
+    for m in re.finditer(r'^(?:Public|Private) Const (\w+) As String = (.+)$', src, re.M):
+        parts = [p.strip() for p in m.group(2).split("&")]
+        value = ""
+        for p in parts:
+            if p.startswith('"'):
+                value += p.strip('"')
+            elif p in consts:
+                value += consts[p]
+            else:
+                break
+        else:
+            consts[m.group(1)] = value
+    return consts
+
+
+def test_fl_app_fields_exist():
+    """Feltnavnene i VhpConfig (FLF_*) er appens - ellers er vaerdien bare tom."""
+    rules = load(ROOT, "Functional Location App", "build", "fl_rules.generated.json")
+    fields = {c["Field"] for c in rules["columns"]}
+    consts = {k: v for k, v in _vba_string_consts().items() if k.startswith("FLF_")}
+    assert len(consts) >= 16
+    missing = {k: v for k, v in consts.items() if v not in fields}
+    assert not missing, missing
+
+
+def test_fl_screen_ids_are_spools():
+    """Hvert FL-felt-ID i VhpConfig staar ordret i SPOOL-arkets GUI_SCRIPT.bas.
+    En tastefejl i et ID ville foerst vise sig midt i SAP."""
+    spool = open(SPOOL_GUI, encoding="utf-8").read()
+    ids = {k: v for k, v in _vba_string_consts().items()
+           if re.match(r"(FL_|IL0|POPUP)", k) and v.startswith("wnd[")}
+    assert len(ids) >= 40
+    missing = {k: v for k, v in ids.items() if v not in spool}
+    assert not missing, missing
+
+
+def _vba_characteristic_seed():
+    text = open(os.path.join(RUNNER, "VhpFl.bas"), encoding="utf-8").read()
+    body = "".join(re.findall(r'^\s*s = s & "([^"]*)"\s*$', text, re.M))
+    return [tuple(r.split("|")) for r in body.split(";") if r]
+
+
+def test_fl_characteristic_seed_is_spools():
+    """Tabellen Karakteristikker (VhpFl.CharacteristicSeed) er SPOOL-arkets
+    DictionaryTable, raekke for raekke."""
+    openpyxl = pytest.importorskip("openpyxl")
+    if not os.path.exists(SPOOL_XLSM):
+        pytest.skip("SPOOL-arket findes ikke i excel/artifact")
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        wb = openpyxl.load_workbook(SPOOL_XLSM, read_only=True, data_only=True)
+    spool = []
+    for r in wb["DictionaryTable"].iter_rows(min_row=2, max_col=3, values_only=True):
+        if r[0] is None and r[1] is None:
+            continue
+        spool.append(tuple("" if x is None else str(x).strip() for x in r))
+    assert _vba_characteristic_seed() == spool
+
+
+def test_fl_characteristics_are_app_fields():
+    """Hver karakteristik i tabellen er et felt, appen har for klassen. TRM,
+    GIV_EXT og WCM er ekstra klasser - deres felter skal findes i mindst een."""
+    rules = load(ROOT, "Functional Location App", "build", "fl_rules.generated.json")
+    by_class = {}
+    for c in rules["columns"]:
+        by_class.setdefault(c["Cls"], set()).add(c["Field"])
+    every = set().union(*by_class.values())
+    extra = {"TRM", "GIV_EXT", "WCM"}
+    missing = []
+    not_in_app = set()
+    for cls, field, _sap in _vba_characteristic_seed():
+        if cls in extra:
+            fields = every
+        elif cls in by_class:
+            fields = by_class[cls]
+        else:
+            # SPOOL kender klassen, appen goer ikke (RBR). Raekkerne er
+            # ufarlige - appen sender aldrig klassen.
+            not_in_app.add(cls)
+            continue
+        if field.upper() not in fields:
+            missing.append((cls, field))
+    assert not missing, missing
+    assert not_in_app <= {"RBR"}, sorted(not_in_app)
+
+
+def test_fl_receipt_folder_is_provisioned():
+    const = _vba_string_consts()
+    ps1 = open(os.path.join(ROOT, "sharepoint", "provision", "Provision-SapCreation.ps1"),
+               encoding="utf-8-sig").read()
+    folder = f"{const['FOLDER_RECEIPTS']}/{const['FOLDER_FL_RECEIPTS']}"
+    for sub in ("", "/Behandlet", "/Afvist"):
+        assert f"'{folder}{sub}'" in ps1, folder + sub

@@ -87,7 +87,7 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 
 > Dokumenterne 01–05 er det **oprindelige oplæg** og markeret som historiske
 > (den `VHP_*`-model, de beskriver, blev ikke bygget). Den byggede løsning
-> er beskrevet i SKILL.md, docs/07, docs/21 og docs/26–35.
+> er beskrevet i SKILL.md, docs/07, docs/21 og docs/26–36.
 
 ## Oplægget (historisk) og de levende dokumenter
 
@@ -101,8 +101,9 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 | [`docs/06-excel-gui-scripting.md`](docs/06-excel-gui-scripting.md) | Oplæggets Excel + GUI Scripting. Den byggede vej er docs/34 |
 | [`docs/07-landingsside.md`](docs/07-landingsside.md) | Landingsside for alle fem masterdata-domæner: hub vs. monolit, indekslisten, performanceregler |
 | [`docs/32-godkendelsesflow.md`](docs/32-godkendelsesflow.md) | **Oplæg:** godkendelsesflow for nye VH-planer — system- og omkostningsgodkendelse pr. item (Power BI Plant Section Key + MD_Approver, 300.000 kr.), kvalitet pr. værk; statusmodel, kolonner, flows |
-| [`docs/34-sap-oprettelse.md`](docs/34-sap-oprettelse.md) | **Vejen til SAP:** VH-plan Opretter (Excel + GUI Scripting), én JSON-ordre pr. plan i et synkroniseret bibliotek, kvittering tilbage; sikkerhed, fejl, afprøvning |
+| [`docs/34-sap-oprettelse.md`](docs/34-sap-oprettelse.md) | **Vejen til SAP:** SAP Opretter (Excel + GUI Scripting), én JSON-ordre pr. plan i et synkroniseret bibliotek, kvittering tilbage; sikkerhed, fejl, afprøvning |
 | [`docs/35-flow-sap-ordre.md`](docs/35-flow-sap-ordre.md) | De to flows til docs/34, trin for trin: ordren ud, kvitteringen tilbage, rettigheder |
+| [`docs/36-fl-sap-oprettelse.md`](docs/36-fl-sap-oprettelse.md) | FL-anmodninger i samme opretter: SPOOL-arkets GUI-script porteret, JSON-ordre pr. anmodning, de to FL-flows |
 
 ## Kode og artefakter
 
@@ -122,11 +123,13 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 | `sharepoint/provision/Provision-SapCreation.ps1` | Biblioteket `SAP-oprettelse` og kolonnerne til numrene fra SAP — se `docs/34` |
 | `sharepoint/seed/*.csv` | Masterdata: strategier, pakker, hjælpetekster, godkendere, FL-nøgler |
 | `schema/vhplan-sap-order.schema.json`, `vhplan-sap-receipt.schema.json` | Ordren til opretteren og kvitteringen tilbage, med eksempler |
+| `schema/fl-sap-order.schema.json`, `fl-sap-receipt.schema.json` | Det samme for FL-anmodninger |
 | `schema/vhplan-request.schema.json` | Oplæggets kontrakt mod SAP (historisk) |
 | `schema/example-strategy-request.json` | Udfyldt eksempel (kompressor, Z-MONTH) |
 | `html/cycle-timeline-reference.html` | Referenceoutput – åbn i en browser |
-| `excel/opretter/` | **VH-plan Opretter**: VBA-modulerne, `Build-Opretter.ps1` og teamets vejledning |
-| `flow/sap-ordre/` | Udtrykkene til de to flows i `docs/35` |
+| `excel/opretter/` | **SAP Opretter** (VH-planer og FL): VBA-modulerne, `Build-Opretter.ps1` og teamets vejledning |
+| `excel/vba/spool-gui/` | SPOOL-arkets GUI-script til FL, trukket ud som reference for porten |
+| `flow/sap-ordre/` | Udtrykkene til flowene i `docs/35` (VH-planer) og `docs/36` (FL, `fl-*`) |
 | `excel/vba/*.bas` | Oplæggets VBA-moduler (afløst af `excel/opretter`) |
 | `excel/powerquery/*.m` | Oplæggets Power Query (afløst: opretteren læser JSON) |
 | `excel/VHPlan-SAP-skabelon.xlsx` | Oplæggets projektmappe med tabeller og eksempeldata (historisk) |
@@ -134,26 +137,28 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 ## Vejen til SAP
 
 SharePoint er backend, fordi godkendelsesflowet hører hjemme der. Oprettelsen
-i SAP sker med **VH-plan Opretter**: en lille Excel-projektmappe med SAP GUI
-Scripting, bygget på felt-ID'erne fra det gamle regneark
-([`docs/34`](docs/34-sap-oprettelse.md)).
+i SAP sker med **SAP Opretter**: en lille Excel-projektmappe med SAP GUI
+Scripting, bygget på felt-ID'erne fra de scripts, der virker i dag: det gamle
+regneark til VH-planer ([`docs/34`](docs/34-sap-oprettelse.md)) og SPOOL-arket
+til FL ([`docs/36`](docs/36-fl-sap-oprettelse.md)).
 
 ```
-plan godkendt ─► flow skriver én JSON-ordre pr. plan ─► SAP-oprettelse/Til oprettelse
+plan godkendt / FL indsendt ─► flow skriver én JSON-ordre ─► SAP-oprettelse/Til oprettelse
                                                               │ OneDrive
                                                               ▼
-                 VH-plan Opretter: Opdater liste → Vis plan → Opret i SAP
-                 IA05 arbejdsplan → IP04 position → IP05 langtekst → IP01 plan
+                 SAP Opretter: Opdater liste → Vis detaljer → Opret i SAP
+                 VH-plan: IA05 → IP04 → IP05 → IP01      FL: IL01/IL02 + klasser
                                                               │ kvittering
                                                               ▼
-                 flow skriver SAPNum og numrene tilbage ─► Published ─► mail
+                 flow skriver resultatet tilbage ─► Published / OprettetISAP ─► mail
 ```
 
-Ordren er en JSON-fil med et skema, frosset ved godkendelsen. Biblioteket er
+Ordren er en JSON-fil med et skema, frosset ved godkendelsen eller indsendelsen. Biblioteket er
 synkroniseret til teamets pc'er, så der er ingen Power Query, intet login i
 Excel og ingen hemmelig URL. Al oversættelse til SAP sker ét sted, i
-opretteren. Flowene står trin for trin i [`docs/35`](docs/35-flow-sap-ordre.md),
-og teamets vejledning i [`excel/opretter/README.md`](excel/opretter/README.md).
+opretteren. Flowene står trin for trin i [`docs/35`](docs/35-flow-sap-ordre.md)
+og [`docs/36`](docs/36-fl-sap-oprettelse.md), og teamets vejledning i
+[`excel/opretter/README.md`](excel/opretter/README.md).
 
 ## De tre beslutninger, det hele hænger på
 
