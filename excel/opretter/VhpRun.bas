@@ -3,6 +3,10 @@ Option Explicit
 '==============================================================================
 ' VhpRun - koerslen: de valgte ordrer, een ad gangen, med statusfil.
 '
+' VH-planer koeres her (ProcessOrder), FL-anmodninger i VhpFlRun. De deler
+' kontrollerne foer SAP (miljoe, nyere ordre, laas) og statusfilens
+' hjaelpere, som derfor er Public.
+'
 ' GENOPTAGELIG, IKKE ATOMAR. GUI scripting kan fejle midt i en plan - en
 ' laast funktionsplads, en dialog, et netvaerk der hakker. Derfor skrives
 ' statusfilen (<ordre>.status.json) efter HVERT objekt, SAP har gemt:
@@ -45,7 +49,7 @@ Public Sub CreateOrders(ByVal paths As Collection)
 
     If paths Is Nothing Then Exit Sub
     If paths.Count = 0 Then
-        MsgBox VhpUtil.Dk("Der er ikke valgt nogen planer. S{ae}t et x i kolonnen V{ae}lg."), vbInformation, VHP_APP_NAME
+        MsgBox VhpUtil.Dk("Der er ikke valgt noget. S{ae}t et x i kolonnen V{ae}lg."), vbInformation, VHP_APP_NAME
         Exit Sub
     End If
 
@@ -63,7 +67,7 @@ Public Sub CreateOrders(ByVal paths As Collection)
     On Error GoTo 0
 
     mProdConfirmed = False
-    VhpUi.LogLine "", VhpUtil.Dk("Start: ") & paths.Count & VhpUtil.Dk(" plan(er), SAP ") & _
+    VhpUi.LogLine "", VhpUtil.Dk("Start: ") & paths.Count & VhpUtil.Dk(" ordre(r), SAP ") & _
         VhpSap.SystemName(sess) & "/" & VhpSap.ClientOf(sess) & ", " & VhpUtil.UserName()
 
     For Each p In paths
@@ -101,14 +105,19 @@ NoSap:
     MsgBox Err.Description, vbExclamation, VHP_APP_NAME
 End Sub
 
-' ProcessOrder fanger selv fejlene fra SAP. Det her er nettet under: en fejl,
-' ingen havde forudset (en fil, OneDrive holder laast, et ark, der er
-' slettet), maa stoppe EEN plan, ikke hele koerslen med en VBA-fejldialog.
+' ProcessOrder og VhpFlRun.ProcessFlOrder fanger selv fejlene fra SAP. Det her
+' er nettet under: en fejl, ingen havde forudset (en fil, OneDrive holder
+' laast, et ark, der er slettet), maa stoppe EEN ordre, ikke hele koerslen
+' med en VBA-fejldialog.
 Private Function SafeProcessOrder(ByVal path As String, ByVal root As String, _
                                   ByVal sess As Object, ByVal lk As Object) As String
     Dim msg As String
     On Error GoTo Unexpected
-    SafeProcessOrder = ProcessOrder(path, root, sess, lk)
+    If VhpOrder.IsFlFile(path) Then
+        SafeProcessOrder = VhpFlRun.ProcessFlOrder(path, root, sess, lk)
+    Else
+        SafeProcessOrder = ProcessOrder(path, root, sess, lk)
+    End If
     Exit Function
 
 Unexpected:
@@ -161,7 +170,7 @@ Private Function ProcessOrder(ByVal path As String, ByVal root As String, _
     If v("errors").Count > 0 Then
         VhpUi.LogLine planId, VhpUtil.Dk("Kan ikke oprettes: ") & v("errors")(1)
         ProcessOrder = "FE:" & planId & VhpUtil.Dk(": kan ikke oprettes {-} ") & v("errors")(1) & _
-            IIf(v("errors").Count > 1, VhpUtil.Dk(" (og ") & (v("errors").Count - 1) & VhpUtil.Dk(" mere {-} se Vis plan)"), "")
+            IIf(v("errors").Count > 1, VhpUtil.Dk(" (og ") & (v("errors").Count - 1) & VhpUtil.Dk(" mere {-} se Vis detaljer)"), "")
         Exit Function
     End If
 
@@ -173,7 +182,7 @@ Private Function ProcessOrder(ByVal path As String, ByVal root As String, _
         Exit Function
     End If
 
-    reason = CheckOtherOrders(root, path, planId, VhpUtil.JStr(order, "createdOn"))
+    reason = CheckOtherOrders(root, path, planId, VhpUtil.JStr(order, "createdOn"), False)
     If Len(reason) > 0 Then
         VhpUi.LogLine planId, reason
         ProcessOrder = "SK:" & planId & ": " & reason
@@ -192,7 +201,7 @@ Private Function ProcessOrder(ByVal path As String, ByVal root As String, _
         On Error GoTo LoadFailed
         Set status = VhpFiles.ReadJson(statusPath)
         On Error GoTo 0
-        reason = CheckStatus(status, order, VhpSap.SystemName(sess))
+        reason = CheckStatus(status, order, VhpSap.SystemName(sess), planId)
         If Len(reason) > 0 Then
             VhpUi.LogLine planId, reason
             ProcessOrder = IIf(VhpUtil.JStr(status, "state") = "NeedsCheck", "CK:", "SK:") & planId & ": " & reason
@@ -349,8 +358,8 @@ End Function
 ' Kontroller foer SAP
 '==============================================================================
 
-' "" = ok. "!tekst" = stop hele koerslen. "-tekst" = spring planen over.
-Private Function CheckEnvironment(ByVal order As Object, ByVal systemName As String) As String
+' "" = ok. "!tekst" = stop hele koerslen. "-tekst" = spring ordren over.
+Public Function CheckEnvironment(ByVal order As Object, ByVal systemName As String) As String
     Dim env As String
     Dim isProd As Boolean
 
@@ -365,7 +374,7 @@ Private Function CheckEnvironment(ByVal order As Object, ByVal systemName As Str
 
     If env = "PROD" And Not isProd Then
         CheckEnvironment = "-" & VhpUtil.Dk("Sp{ae}rret: ordren er fra PROD, men SAP er ") & systemName & _
-            VhpUtil.Dk(" (test). En PROD-plan oprettes i produktion {-} ellers ville SharePoint f{aa} et testnummer.")
+            VhpUtil.Dk(" (test). En PROD-ordre oprettes i produktion {-} ellers ville SharePoint f{aa} et testresultat.")
         Exit Function
     End If
 
@@ -380,11 +389,13 @@ Private Function CheckEnvironment(ByVal order As Object, ByVal systemName As Str
     End If
 End Function
 
-' Er der en nyere ordre for samme plan, er denne erstattet. Er en AELDRE
-' delvist oprettet, skal den afklares foerst - ellers kunne planen ende i SAP
-' to gange.
-Private Function CheckOtherOrders(ByVal root As String, ByVal path As String, _
-                                  ByVal planId As String, ByVal createdOn As String) As String
+' Er der en nyere ordre for samme plan eller anmodning, er denne erstattet.
+' Er en AELDRE delvist oprettet, skal den afklares foerst - ellers kunne en
+' VH-plan ende i SAP to gange. For FL (allowOlderPartial) er det ufarligt: en
+' FL, der findes, aendres. Der stoppes kun, mens en aeldre koerer.
+Public Function CheckOtherOrders(ByVal root As String, ByVal path As String, _
+                                 ByVal key As String, ByVal createdOn As String, _
+                                 ByVal allowOlderPartial As Boolean) As String
     Dim other As Variant
     Dim o As Object
     Dim s As Object
@@ -398,7 +409,7 @@ Private Function CheckOtherOrders(ByVal root As String, ByVal path As String, _
             Set o = VhpFiles.ReadJson(CStr(other))
             On Error GoTo 0
             If Not o Is Nothing Then
-                If StrComp(VhpUtil.JStr(VhpUtil.JObj(o, "plan"), "planId"), planId, vbTextCompare) = 0 Then
+                If StrComp(VhpOrder.OrderKey(o), key, vbTextCompare) = 0 Then
                     otherCreated = VhpUtil.JStr(o, "createdOn")
                     If otherCreated > createdOn Then
                         CheckOtherOrders = VhpUtil.Dk("erstattet af en nyere ordre (") & VhpFiles.FileNameOf(CStr(other)) & _
@@ -411,9 +422,10 @@ Private Function CheckOtherOrders(ByVal root As String, ByVal path As String, _
                         Set s = VhpFiles.ReadJson(VhpFiles.StatusPathFor(CStr(other)))
                         On Error GoTo 0
                         state = VhpUtil.JStr(s, "state")
-                        If state = "Partial" Or state = "InProgress" Or state = "NeedsCheck" Then
-                            CheckOtherOrders = VhpUtil.Dk("en {ae}ldre ordre for samme plan (") & _
-                                VhpFiles.FileNameOf(CStr(other)) & VhpUtil.Dk(") er delvist oprettet. Afklar den f{oe}rst.")
+                        If state = "InProgress" Or (Not allowOlderPartial And (state = "Partial" Or state = "NeedsCheck")) Then
+                            CheckOtherOrders = VhpUtil.Dk("en {ae}ldre ordre for samme ") & _
+                                IIf(VhpOrder.IsFl(o), "anmodning", "plan") & " (" & _
+                                VhpFiles.FileNameOf(CStr(other)) & VhpUtil.Dk(") er delvist oprettet eller i gang. Afklar den f{oe}rst.")
                             Exit Function
                         End If
                     End If
@@ -461,8 +473,10 @@ Private Function CheckAlreadyCreated(ByVal root As String, ByVal planId As Strin
     Next f
 End Function
 
-' Kan en eksisterende statusfil koeres videre? "" = ja.
-Private Function CheckStatus(ByVal status As Object, ByVal order As Object, ByVal systemName As String) As String
+' Kan en eksisterende statusfil koeres videre? "" = ja. label er planens
+' eller anmodningens nummer, til beskederne.
+Public Function CheckStatus(ByVal status As Object, ByVal order As Object, ByVal systemName As String, _
+                            ByVal label As String) As String
     Dim state As String
     Dim who As String
     Dim minutes As Double
@@ -480,7 +494,7 @@ Private Function CheckStatus(ByVal status As Object, ByVal order As Object, ByVa
 
     If VhpUtil.JHas(status, "sapSystem") And AnythingCreated(status) Then
         If StrComp(VhpUtil.JStr(status, "sapSystem"), systemName, vbTextCompare) <> 0 Then
-            CheckStatus = VhpUtil.Dk("planen er p{aa}begyndt i ") & VhpUtil.JStr(status, "sapSystem") & _
+            CheckStatus = VhpUtil.Dk("den er p{aa}begyndt i ") & VhpUtil.JStr(status, "sapSystem") & _
                 VhpUtil.Dk(", men du er logget p{aa} ") & systemName & "."
             Exit Function
         End If
@@ -495,7 +509,7 @@ Private Function CheckStatus(ByVal status As Object, ByVal order As Object, ByVa
                     VhpUtil.JStr(status, "updatedOn") & VhpUtil.Dk("). Vent, eller sp{oe}rg ") & who & "."
                 Exit Function
             End If
-            If MsgBox(VhpUtil.JStr(status, "planId") & VhpUtil.Dk(" blev startet af ") & who & _
+            If MsgBox(label & VhpUtil.Dk(" blev startet af ") & who & _
                       VhpUtil.Dk(" og har ikke r{oe}rt sig i ") & CLng(minutes) & VhpUtil.Dk(" minutter.") & vbLf & vbLf & _
                       VhpUtil.Dk("Tag over og forts{ae}t, hvor den slap?"), vbYesNo + vbQuestion + vbSystemModal, _
                       VHP_APP_NAME) <> vbYes Then
@@ -581,7 +595,8 @@ Private Function StatusItem(ByVal status As Object, ByVal item As Object) As Obj
     Set StatusItem = st
 End Function
 
-Private Function AnythingCreated(ByVal status As Object) As Boolean
+' Er noget gemt i SAP? VH: plan, arbejdsplan eller position. FL: en raekke.
+Public Function AnythingCreated(ByVal status As Object) As Boolean
     Dim st As Object
     If VhpUtil.JHas(status, "sapPlanNo") Then
         AnythingCreated = True
@@ -593,16 +608,22 @@ Private Function AnythingCreated(ByVal status As Object) As Boolean
             Exit Function
         End If
     Next st
+    For Each st In VhpUtil.JList(status, "rows")
+        If VhpUtil.JBool(st, "done") Then
+            AnythingCreated = True
+            Exit Function
+        End If
+    Next st
 End Function
 
-Private Sub SaveStatus(ByVal status As Object, ByVal statusPath As String)
+Public Sub SaveStatus(ByVal status As Object, ByVal statusPath As String)
     status("updatedOn") = VhpUtil.IsoNow()
     VhpFiles.WriteJson statusPath, status
 End Sub
 
 ' Loggen i statusfilen holdes under 300 linjer, saa en plan, der er koert
 ' mange gange, ikke vokser uden graense.
-Private Sub AddLog(ByVal status As Object, ByVal planId As String, ByVal text As String)
+Public Sub AddLog(ByVal status As Object, ByVal planId As String, ByVal text As String)
     Dim entry As Object
     Dim lg As Collection
 
@@ -618,7 +639,7 @@ Private Sub AddLog(ByVal status As Object, ByVal planId As String, ByVal text As
     VhpUi.LogLine planId, text
 End Sub
 
-Private Sub MergeStepWarnings(ByVal status As Object, ByVal ctx As Object)
+Public Sub MergeStepWarnings(ByVal status As Object, ByVal ctx As Object)
     Dim w As Variant
     If ctx Is Nothing Then Exit Sub
     For Each w In ctx("warnings")
@@ -631,6 +652,29 @@ End Sub
 Private Sub FinishOrder(ByVal root As String, ByVal path As String, ByVal status As Object)
     VhpFiles.WriteJson VhpFiles.ReceiptPathFor(root, path), status
     VhpFiles.MoveToDone root, path
+End Sub
+
+' AEldre ordrer for samme noegle (fx en FL-anmodning, der blev sendt retur og
+' indsendt igen) flyttes til Oprettet, naar den nyeste er gemt. Ellers ville
+' de staa i listen som Erstattet eller Delvist oprettet for altid.
+Public Sub RetireOlderOrders(ByVal root As String, ByVal path As String, ByVal key As String, _
+                             ByVal createdOn As String)
+    Dim other As Variant
+    Dim o As Object
+
+    For Each other In VhpFiles.ListOrderFiles(root)
+        If StrComp(CStr(other), path, vbTextCompare) <> 0 Then
+            Set o = Nothing
+            On Error Resume Next
+            Set o = VhpFiles.ReadJson(CStr(other))
+            On Error GoTo 0
+            If Not o Is Nothing Then
+                If StrComp(VhpOrder.OrderKey(o), key, vbTextCompare) = 0 Then
+                    If VhpUtil.JStr(o, "createdOn") < createdOn Then VhpFiles.MoveToDone root, CStr(other)
+                End If
+            End If
+        End If
+    Next other
 End Sub
 
 '==============================================================================
@@ -659,7 +703,7 @@ Private Function BuildContext(ByVal order As Object, ByVal lk As Object) As Obje
     Set BuildContext = ctx
 End Function
 
-Private Sub Progress(ByVal planId As String, ByVal text As String)
+Public Sub Progress(ByVal planId As String, ByVal text As String)
     Application.StatusBar = VHP_APP_NAME & ": " & planId & " " & ChrW$(8211) & " " & text & ChrW$(8230)
     DoEvents
 End Sub

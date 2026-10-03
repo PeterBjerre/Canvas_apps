@@ -1,0 +1,18 @@
+{
+  "kind": "fl-sap-order",
+  "version": 1,
+  "orderGuid": "@{variables('OrderGuid')}",
+  "createdOn": "@{utcNow()}",
+  "environment": "@{parameters('BioSap-Environment (orsted_BioSapEnvironment)')}",
+  "site": "@{parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')}",
+  "request": {
+    "spId": "@triggerBody()?['ID']",
+    "requestNo": "@triggerBody()?['Title']",
+    "requestGuid": "@triggerBody()?['RequestGuid']",
+    "status": "@triggerBody()?['Status']?['Value']",
+    "requesterName": "@triggerBody()?['RequesterName']",
+    "requesterEmail": "@triggerBody()?['RequesterEmail']",
+    "submittedOn": "@triggerBody()?['SubmittedOn']"
+  },
+  "rows": "@body('Select_rows')"
+}

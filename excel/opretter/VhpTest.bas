@@ -129,6 +129,29 @@ Public Function SelfTestPure() As String
     Set body = VhpItf.ItfBody("<br>Tekst", True)
     Check "ItfBody beholdt linjeskift", body(1), "*"
 
+    '--- VhpFl (FL-reglerne fra SPOOL-arket) -----------------------------------
+    Check "Fl dato YYYYMMDD", VhpFl.SapDateText("20281231"), "31.12.2028"
+    Check "Fl dato DD.MM.YYYY", VhpFl.SapDateText(" 01.01.2026 "), "01.01.2026"
+    Check "Fl dato tom", VhpFl.SapDateText(""), ""
+    Check "Fl dato gyldig skuddag", VhpFl.IsFlDate("29.02.2024"), True
+    Check "Fl dato ugyldig skuddag", VhpFl.IsFlDate("20230229"), False
+    Check "Fl dato ISO afvist", VhpFl.IsFlDate("2024-12-31"), False
+    Check "Fl dato 31. april", VhpFl.IsFlDate("31.04.2026"), False
+    Check "Fl dato tom er ok", VhpFl.IsFlDate(""), True
+    Set c = VhpFl.SplitValues("a| b ||c")
+    Check "Fl vaerdier, antal", c.Count, 3
+    Check "Fl vaerdier, 2", c(2), "b"
+    Check "Fl vaerdier, tom", VhpFl.SplitValues("").Count, 0
+    Set c = VhpFl.ChunkText(String$(65, "x"), 30)
+    Check "Fl stykker, antal", c.Count, 3
+    Check "Fl stykker, sidste", Len(c(3)), 5
+    Check "Fl saerlig Remarks", VhpFl.IsSpecialCharacteristic("remarks"), True
+    Check "Fl saerlig SCE", VhpFl.IsSpecialCharacteristic("Safety Critical Equipment"), True
+    Check "Fl ikke saerlig", VhpFl.IsSpecialCharacteristic("Power [kW]"), False
+    Set c = VhpFl.CharacteristicSeed()
+    Check "Fl tabel, antal", c.Count, 130
+    Check "Fl tabel, foerste", c(1)(0) & "|" & c(1)(1) & "|" & c(1)(2), "ELF|Full load current [A]|K0535"
+
     SelfTestPure = Result("Funktioner")
 End Function
 
@@ -142,6 +165,8 @@ Public Function SelfTestJson() As String
     Dim item As Object
     Dim back As Object
     Dim s As String
+    Dim row As Object
+    Dim m As Object
 
     mFails = vbNullString
     mCount = 0
@@ -173,6 +198,36 @@ Public Function SelfTestJson() As String
     Set back = JsonConverter.ParseJson(s)
     Check "JSON frem og tilbage", VhpUtil.JStr(back, "title"), VhpUtil.JStr(VhpUtil.JObj(o, "plan"), "title")
 
+    '--- FL ---------------------------------------------------------------------
+    Set o = JsonConverter.ParseJson(SampleFlJson(True))
+    Check "FL er FL", VhpOrder.IsFl(o), True
+    VhpFl.Prepare o
+    Check "FL noegle", VhpOrder.OrderKey(o), "FL-000012"
+    Set row = VhpUtil.JList(o, "rows")(1)
+    Check "FL sorteret paa RowNo", VhpUtil.JLng(row, "rowNo"), 1
+    Check "FL felt uden hensyn til store bogstaver", VhpFl.FieldValue(row, "operating pressure"), "16"
+    Check "FL ekstra klasser GIV", VhpFl.ExtraClasses(row).Count, 2
+    Check "FL ekstra klasse 2", VhpFl.ExtraClasses(row)(2), "GIV_EXT"
+    Set m = VhpFl.CharacteristicMap(row, lk)
+    Check "FL karakteristikker, antal", m.Count, 4
+    Check "FL karakteristikker, foerst TRM", m.Keys()(0), "EX-Marking"
+    Check "FL karakteristik GIV_EXT", m.Exists("Owner"), True
+    Check "FL karakteristik klasse", m("Operating pressure"), "16"
+    Check "FL tilladelser", VhpFl.Permits(row).Count, 2
+    Check "FL tilladelse 2", VhpFl.Permits(row)(2), "PTW"
+    Check "FL overfoeres ikke", VhpFl.UnusedFields(row, lk).Count, 1
+    Set row = VhpUtil.JList(o, "rows")(3)
+    Check "FL ekstra klasse ELF", VhpFl.ExtraClasses(row)(1), "WCM"
+    Check "FL ELF uden TRM", VhpFl.CharacteristicMap(row, lk).Count, 1
+    Set v = VhpOrder.Validate(o, lk)
+    Check "FL gyldig: fejl", v("errors").Count, 0
+    Check "FL gyldig: advarsel fra appen", v("warnings").Count, 1
+
+    Set o = JsonConverter.ParseJson(SampleFlJson(False))
+    VhpFl.Prepare o
+    Set v = VhpOrder.Validate(o, lk)
+    Check "FL ugyldig: fejl", v("errors").Count, 2
+
     SelfTestJson = Result("JSON og validering")
     Exit Function
 
@@ -202,10 +257,35 @@ Private Function SampleOrderJson(ByVal valid As Boolean) As String
     SampleOrderJson = Replace(s, "'", """")
 End Function
 
+' En lille FL-anmodning som i schema/example-fl-sap-order.json, med raekkerne
+' i forkert orden. valid = False giver to fejl: en raekke uden beskrivelse og
+' en garantidato i ISO-format.
+Private Function SampleFlJson(ByVal valid As Boolean) As String
+    Dim s As String
+    s = "{'kind':'fl-sap-order','version':1,'orderGuid':'6f1c2a9e-4b7d-4e2a-9c1f-2d8e5a3b7c40'," & _
+        "'createdOn':'2026-10-03T08:15:00Z','environment':'DEV'," & _
+        "'request':{'spId':12,'requestNo':'FL-000012','status':'Indsendt'},'rows':[" & _
+        "{'spId':103,'rowNo':2,'functionalLocation':'SSV10 BFA01GH001 -W01','description':'Kabel'," & _
+        "'strIndicator':'KKS','assignedClass':'KAB','rowStatus':'warning','firstIssue':'Check the cable type.'," & _
+        "'values':[{'field':'CABLE TYPE','value':'NOIKLX'},{'field':'SUPERIOR FL','value':'SSV10 BFA01'}," & _
+        "{'field':'WARRANTY END','value':'" & IIf(valid, "20281231", "2028-12-31") & "'}]}," & _
+        "{'spId':101,'rowNo':1,'functionalLocation':'SSV10 LAC10AB001 -B01','description':'" & _
+        IIf(valid, "Tryktransmitter", "") & "','strIndicator':'KKS','assignedClass':'GIV','rowStatus':'valid'," & _
+        "'values':[{'field':'OPERATING PRESSURE','value':'16'},{'field':'EX-MARKING','value':'Ex d'}," & _
+        "{'field':'TRM ASSIGNMENT','value':'X'},{'field':'GIV_EXT ASSIGNMENT','value':'X'},{'field':'OWNER','value':'Energinet'}," & _
+        "{'field':'SAFETY CRITICAL EQUIPMENT','value':'3.1 TRIP-kedelbeskyttelse|4.1 Sikker forsyning'}," & _
+        "{'field':'ATEX','value':'X'},{'field':'PTW','value':'x'},{'field':'LONG TEXT','value':'Tryk'}]}," & _
+        "{'spId':102,'rowNo':3,'functionalLocation':'SSV10 LAC10AP001 -M01','description':'Pumpemotor'," & _
+        "'strIndicator':'KKS','assignedClass':'ELF','rowStatus':'valid'," & _
+        "'values':[{'field':'POWER [KW]','value':'15'},{'field':'EX-MARKING','value':'Ex d'}]}]}"
+    SampleFlJson = Replace(s, "'", """")
+End Function
+
 Private Function SampleLookups() As Object
     Dim lk As Object
     Dim d As Object
     Dim rec As Object
+    Dim seedRow As Variant
 
     Set lk = VhpUtil.NewDict()
 
@@ -231,6 +311,14 @@ Private Function SampleLookups() As Object
     rec.Add "matGroup", "F01.02"
     d.Add "XSTIL", rec
     lk.Add "services", d
+
+    ' Karakteristikkerne som i Opslag, fra SPOOL-tabellen.
+    Set d = VhpUtil.NewDict()
+    For Each seedRow In VhpFl.CharacteristicSeed()
+        If Not d.Exists(UCase$(seedRow(0))) Then d.Add UCase$(seedRow(0)), New Collection
+        d(UCase$(seedRow(0))).Add seedRow(1)
+    Next seedRow
+    lk.Add "flChars", d
 
     Set SampleLookups = lk
 End Function

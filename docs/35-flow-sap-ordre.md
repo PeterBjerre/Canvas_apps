@@ -1,6 +1,6 @@
 # 35 — Flowene til oprettelse i SAP
 
-To flows i solution BIO SAP flytter data mellem SharePoint og VH-plan Opretter
+To flows i solution BIO SAP flytter data mellem SharePoint og SAP Opretter
 ([`34-sap-oprettelse.md`](34-sap-oprettelse.md)):
 
 | Flow | Starter | Gør |
@@ -265,7 +265,9 @@ ligeglad med, hvordan filen kom dertil. Planen bliver altså *Published* senest
 *Filter array* **Receipt files**: *From*
 `body('Get_files_(properties_only)')?['value']`. Betingelsen er udtrykket i
 `kvittering-0-filter.txt` *is equal to* `true`. Det sorterer mapperne
-*Behandlet* og *Afvist* fra og alt andet end `*.kvittering.json`.
+*Behandlet*, *Afvist* og *FL* fra og alt andet end `*.kvittering.json`.
+FL-anmodningernes kvitteringer ligger i *Kvitteringer/FL* og har deres eget
+flow (docs/36).
 
 ### 2. Én kvittering ad gangen
 
@@ -319,7 +321,7 @@ det mailen igen ved hver senere ændring af planen.
 **Nej-grenen:** *Move file* til `/SAP-oprettelse/Kvitteringer/Afvist` og
 *Send an email (V2)* til `BioSap-ErrorNotifiers`:
 
-- *Subject*: `VH-plan Opretter: kvittering afvist - @{items('Each_receipt')?['{FilenameWithExtension}']}`
+- *Subject*: `SAP Opretter: kvittering afvist - @{items('Each_receipt')?['{FilenameWithExtension}']}`
 - *Body*: kvitteringens `planId`, `state`, `sapSystem` og `orderGuid`, planens
   `SapOrderGuid` og `Status`, og `FlowRunHistoryLink`. Så kan modtageren se,
   hvilket tjek der fejlede.
@@ -362,7 +364,7 @@ Opretteren rører ikke listerne, kun filerne. Master Data skal derfor ikke
 have flere rettigheder på `MaintenancePlans` eller `MaintenanceItems` for at
 oprette. Det er flow B, der skriver numrene tilbage.
 
-**Projektmappen.** Ligger *VH-plan Opretter.xlsm* i biblioteket, får netop den
+**Projektmappen.** Ligger *SAP Opretter.xlsm* i biblioteket, får netop den
 fil sine egne rettigheder: Master Data **Læse**, og kun den, der
 vedligeholder opretteren, kan skrive. Ellers kan alle i gruppen overskrive
 de makroer, som de andre kører.
@@ -391,7 +393,7 @@ slået fra, ellers kan OneDrive og flowene ikke skrive.
 
 Biblioteket beskytter ikke listerne. Den, der kan redigere `MaintenancePlans`,
 kan i princippet selv sætte en plan til *Ready for creation in SAP*. Det er
-godkendelsesflowets spærre (docs/32) og Master Datas gennemsyn i *Vis plan*,
+godkendelsesflowets spærre (docs/32) og Master Datas gennemsyn i *Vis detaljer*,
 der fanger det.
 
 ## Afprøvning
@@ -401,7 +403,7 @@ Med en DEV-plan, før opretteren bruges mod SAP:
 1. Sæt planen til *Ready for creation in SAP*. Inden for et par minutter
    ligger `MP…_….json` i *Til oprettelse*, og planen har `SapOrderGuid` og
    `SapOrderFile`. Flowet har kørt én gang.
-2. I opretteren: *Opdater liste* og *Vis plan*. Antallet af items, operationer
+2. I opretteren: *Opdater liste* og *Vis detaljer*. Antallet af items, operationer
    og materialer er det samme som i appen, og æ, ø og å ser rigtige ud.
 3. Sæt planen til *Draft*. `SapOrderGuid` bliver tom. Sæt den til *Ready*
    igen. Der kommer en ny fil, og opretteren viser den gamle som *Erstattet*.

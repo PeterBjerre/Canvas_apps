@@ -109,6 +109,7 @@ End Sub
 Public Sub EnsureSubfolders(ByVal root As String)
     EnsureFolder OrdersFolder(root)
     EnsureFolder ReceiptsFolder(root)
+    EnsureFolder FlReceiptsFolder(root)
     EnsureFolder DoneFolder(root)
 End Sub
 
@@ -118,6 +119,11 @@ End Function
 
 Public Function ReceiptsFolder(ByVal root As String) As String
     ReceiptsFolder = StripSlash(root) & "\" & FOLDER_RECEIPTS
+End Function
+
+' FL-kvitteringerne har deres egen mappe og deres eget flow (docs/36).
+Public Function FlReceiptsFolder(ByVal root As String) As String
+    FlReceiptsFolder = ReceiptsFolder(root) & "\" & FOLDER_FL_RECEIPTS
 End Function
 
 Public Function DoneFolder(ByVal root As String) As String
@@ -200,6 +206,10 @@ End Function
 
 Public Function ReceiptPathFor(ByVal root As String, ByVal orderPath As String) As String
     ReceiptPathFor = ReceiptsFolder(root) & "\" & BaseNameOf(orderPath) & SUFFIX_RECEIPT
+End Function
+
+Public Function FlReceiptPathFor(ByVal root As String, ByVal orderPath As String) As String
+    FlReceiptPathFor = FlReceiptsFolder(root) & "\" & BaseNameOf(orderPath) & SUFFIX_RECEIPT
 End Function
 
 Public Function FileExists(ByVal path As String) As Boolean

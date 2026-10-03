@@ -1,8 +1,9 @@
 Attribute VB_Name = "VhpUi"
 Option Explicit
 '==============================================================================
-' VhpUi - det, brugeren ser: arket Start med knapperne og listen over planer,
-' arket "Vis plan", opslagene, indstillingerne og loggen.
+' VhpUi - det, brugeren ser: arket Start med knapperne og listen over ordrer
+' (VH-planer og FL-anmodninger), arket Detaljer, opslagene, indstillingerne
+' og loggen.
 '
 ' Setup bygger det hele i en tom projektmappe. Den kan koeres igen: knapperne
 ' og Start-arket bygges forfra, men tabellerne i Opslag og Indstillinger
@@ -31,7 +32,7 @@ Public Sub BtnPreview()
     Dim path As String
     path = ActiveOrderPath()
     If Len(path) = 0 Then
-        MsgBox VhpUtil.Dk("Klik p{aa} en plan i listen f{oe}rst."), vbInformation, VHP_APP_NAME
+        MsgBox VhpUtil.Dk("Klik p{aa} en r{ae}kke i listen f{oe}rst."), vbInformation, VHP_APP_NAME
         Exit Sub
     End If
     ShowPreview path
@@ -44,7 +45,7 @@ Public Sub BtnCreate()
 
     Set paths = SelectedOrderPaths()
     If paths.Count = 0 Then
-        MsgBox VhpUtil.Dk("S{ae}t et x i kolonnen V{ae}lg ud for de planer, der skal oprettes {-} eller klik p{aa} en plan."), _
+        MsgBox VhpUtil.Dk("S{ae}t et x i kolonnen V{ae}lg ud for det, der skal oprettes {-} eller klik p{aa} en r{ae}kke."), _
             vbInformation, VHP_APP_NAME
         Exit Sub
     End If
@@ -53,7 +54,7 @@ Public Sub BtnCreate()
         names = names & "  " & VhpFiles.BaseNameOf(CStr(p)) & vbLf
     Next p
 
-    If MsgBox(VhpUtil.Dk("Opret ") & paths.Count & VhpUtil.Dk(" plan(er) i SAP ") & _
+    If MsgBox(VhpUtil.Dk("Opret ") & paths.Count & VhpUtil.Dk(" ordre(r) i SAP ") & _
               VhpConfig.Setting(SET_SAP_SYSTEM) & "?" & vbLf & vbLf & names & vbLf & _
               VhpUtil.Dk("Opretteren arbejder nu i et SAP-vindue. R{oe}r ikke SAP eller Excel, f{oe}r den er f{ae}rdig.") & _
               IIf(VhpConfig.SettingIsYes(SET_CONFIRM_SAVE), vbLf & vbLf & _
@@ -171,11 +172,12 @@ Public Sub RefreshList()
     Set files = VhpFiles.ListOrderFiles(root)
     Set newest = VhpUtil.NewDict()
 
-    ' Foerste gennemloeb: laes alle, og find den nyeste ordre pr. plan.
+    ' Foerste gennemloeb: laes alle, og find den nyeste ordre pr. plan eller
+    ' anmodning.
     For Each f In files
         Set info = ReadOrderInfo(CStr(f), lk)
         infos.Add info
-        key = UCase$(CStr(info("planId")))
+        key = UCase$(CStr(info("id")))
         If Len(key) > 0 Then
             If Not newest.Exists(key) Then
                 newest.Add key, CStr(info("createdOn"))
@@ -186,16 +188,17 @@ Public Sub RefreshList()
     Next f
 
     For Each info In infos
-        key = UCase$(CStr(info("planId")))
+        key = UCase$(CStr(info("id")))
         If Len(key) > 0 And CStr(info("state")) = VhpUtil.Dk("Klar") Then
             If CStr(info("createdOn")) < CStr(newest(key)) Then
                 info("state") = "Erstattet"
-                info("message") = VhpUtil.Dk("Der er en nyere ordre for samme plan {-} brug den.")
+                info("message") = VhpUtil.Dk("Der er en nyere ordre for samme ") & _
+                    IIf(info("type") = "FL", "anmodning", "plan") & VhpUtil.Dk(" {-} brug den.")
             End If
         End If
         Set lr = lo.ListRows.Add
-        lr.Range.Value = Array("", info("planId"), info("title"), info("plant"), info("items"), _
-            info("operations"), info("environment"), info("received"), info("state"), info("message"), info("file"))
+        lr.Range.Value = Array("", info("type"), info("id"), info("title"), info("plant"), _
+            info("content"), info("environment"), info("received"), info("state"), info("message"), info("file"))
         ColorState lr.Range.Cells(1, 9), CStr(info("state"))
     Next info
 
@@ -213,17 +216,19 @@ Private Function ReadOrderInfo(ByVal path As String, ByVal lk As Object) As Obje
     Dim info As Object
     Dim order As Object
     Dim plan As Object
+    Dim rows As Collection
+    Dim first As Object
     Dim v As Object
     Dim status As Object
     Dim errText As String
 
     Set info = VhpUtil.NewDict()
     info.Add "file", VhpFiles.FileNameOf(path)
-    info.Add "planId", ""
+    info.Add "type", ""
+    info.Add "id", ""
     info.Add "title", ""
     info.Add "plant", ""
-    info.Add "items", ""
-    info.Add "operations", ""
+    info.Add "content", ""
     info.Add "environment", ""
     info.Add "received", ""
     info.Add "createdOn", ""
@@ -241,12 +246,25 @@ Private Function ReadOrderInfo(ByVal path As String, ByVal lk As Object) As Obje
         Exit Function
     End If
 
-    Set plan = VhpUtil.JObj(order, "plan")
-    info("planId") = VhpUtil.JStr(plan, "planId")
-    info("title") = VhpUtil.JStr(plan, "title")
-    info("plant") = VhpUtil.JStr(plan, "plant")
-    info("items") = VhpUtil.JList(order, "items").Count
-    info("operations") = VhpUtil.JList(order, "operations").Count
+    info("id") = VhpOrder.OrderKey(order)
+    If VhpOrder.IsFl(order) Then
+        info("type") = "FL"
+        Set rows = VhpUtil.JList(order, "rows")
+        If rows.Count > 0 Then
+            Set first = rows(1)
+            info("title") = VhpUtil.JStr(first, "functionalLocation") & "  " & VhpUtil.JStr(first, "description") & _
+                IIf(rows.Count > 1, "  (+" & (rows.Count - 1) & ")", "")
+            info("plant") = UCase$(Left$(VhpUtil.JStr(first, "functionalLocation"), 3))
+        End If
+        info("content") = rows.Count & " FL"
+    Else
+        info("type") = "VH-plan"
+        Set plan = VhpUtil.JObj(order, "plan")
+        info("title") = VhpUtil.JStr(plan, "title")
+        info("plant") = VhpUtil.JStr(plan, "plant")
+        info("content") = VhpUtil.JList(order, "items").Count & " items, " & _
+            VhpUtil.JList(order, "operations").Count & " operationer"
+    End If
     info("environment") = VhpUtil.JStr(order, "environment")
     info("createdOn") = VhpUtil.JStr(order, "createdOn")
     info("received") = VhpUtil.IsoToDisplay(VhpUtil.JStr(order, "createdOn"))
@@ -272,7 +290,7 @@ Private Function ReadOrderInfo(ByVal path As String, ByVal lk As Object) As Obje
                 info("state") = VhpUtil.Dk("Kr{ae}ver kontrol")
                 info("message") = VhpUtil.JStr(status, "lastError")
             Case "Created"
-                info("state") = VhpUtil.Dk("Oprettet ") & VhpUtil.JStr(status, "sapPlanNo")
+                info("state") = Trim$(VhpUtil.Dk("Oprettet ") & VhpUtil.JStr(status, "sapPlanNo"))
                 info("message") = VhpUtil.Dk("Flyttes til Oprettet ved n{ae}ste k{oe}rsel.")
         End Select
         If Len(CStr(info("state"))) > 0 Then Exit Function
@@ -283,7 +301,7 @@ Private Function ReadOrderInfo(ByVal path As String, ByVal lk As Object) As Obje
         info("state") = VhpUtil.Dk("Kan ikke oprettes")
         info("message") = v("errors")(1)
         If v("errors").Count > 1 Then
-            info("message") = info("message") & VhpUtil.Dk(" (+") & (v("errors").Count - 1) & VhpUtil.Dk(" {-} se Vis plan)")
+            info("message") = info("message") & VhpUtil.Dk(" (+") & (v("errors").Count - 1) & VhpUtil.Dk(" {-} se Vis detaljer)")
         End If
     Else
         info("state") = VhpUtil.Dk("Klar")
@@ -365,41 +383,19 @@ Private Function ActiveOrderPath() As String
 End Function
 
 '==============================================================================
-' Vis plan - det, der kommer til at staa i SAP, felt for felt
+' Detaljer - det, der kommer til at staa i SAP, felt for felt
 '==============================================================================
 Public Sub ShowPreview(ByVal path As String)
     Dim ws As Worksheet
     Dim order As Object
-    Dim plan As Object
     Dim lk As Object
     Dim v As Object
-    Dim r As Long
-    Dim msg As Variant
-    Dim item As Object
-    Dim op As Object
-    Dim m As Object
-    Dim plantRec As Object
-    Dim hz As Object
-    Dim firstDue As Date
-    Dim cycle As Double
-    Dim unitText As String
-    Dim svc As Object
-    Dim fl As Variant
-    Dim flText As String
     Dim status As Object
-    Dim st As Object
-    Dim cand As Object
-    Dim n As Long
 
     On Error GoTo Failed
     Set order = VhpOrder.LoadOrder(path)
     Set lk = VhpLookup.Load()
     Set v = VhpOrder.Validate(order, lk)
-    Set plan = VhpUtil.JObj(order, "plan")
-    Set plantRec = VhpLookup.Plant(lk, VhpUtil.JStr(plan, "plant"))
-    cycle = VhpUtil.JNum(plan, "cycle")
-    unitText = VhpMap.NormalizeUnit(VhpUtil.JStr(plan, "unit"))
-    Set hz = VhpLookup.Horizon(lk, cycle, unitText)
     If VhpFiles.FileExists(VhpFiles.StatusPathFor(path)) Then
         On Error Resume Next
         Set status = VhpFiles.ReadJson(VhpFiles.StatusPathFor(path))
@@ -410,20 +406,34 @@ Public Sub ShowPreview(ByVal path As String)
     Application.ScreenUpdating = False
     ws.Cells.Clear
 
-    r = 1
-    ws.Cells(r, 1).Value = VhpUtil.JStr(plan, "planId") & "  " & ChrW$(8211) & "  " & VhpUtil.JStr(plan, "title")
-    ws.Cells(r, 1).Font.Size = 16
-    ws.Cells(r, 1).Font.Bold = True
-    r = r + 1
-    ws.Cells(r, 1).Value = VhpUtil.Dk("Fil: ") & VhpFiles.FileNameOf(path) & VhpUtil.Dk("    Milj{oe}: ") & _
-        VhpUtil.JStr(order, "environment") & VhpUtil.Dk("    Modtaget: ") & VhpUtil.IsoToDisplay(VhpUtil.JStr(order, "createdOn")) & _
-        VhpUtil.Dk("    Indmeldt af: ") & VhpUtil.JStr(plan, "requesterName")
-    r = r + 2
+    If VhpOrder.IsFl(order) Then
+        PreviewFl ws, path, order, lk, v, status
+    Else
+        PreviewPlan ws, path, order, lk, v, status
+    End If
 
-    '--- Kontrol --------------------------------------------------------------
+    ws.Columns("A").ColumnWidth = 24
+    ws.Columns("B").ColumnWidth = 44
+    ws.Columns("C:K").ColumnWidth = 14
+    ws.Columns("B").WrapText = False
+    Application.ScreenUpdating = True
+    ws.Activate
+    ws.Range("A1").Select
+    Exit Sub
+
+Failed:
+    Application.ScreenUpdating = True
+    MsgBox VhpUtil.Dk("Ordren kan ikke vises: ") & Err.Description, vbExclamation, VHP_APP_NAME
+End Sub
+
+' Fejl, advarsler og status fra statusfilen.
+Private Sub WriteChecks(ByVal ws As Worksheet, ByRef r As Long, ByVal v As Object, ByVal status As Object, _
+                        ByVal okText As String)
+    Dim msg As Variant
+
     Section ws, r, "Kontrol"
     If v("errors").Count = 0 And v("warnings").Count = 0 Then
-        ws.Cells(r, 1).Value = VhpUtil.Dk("Ingen fejl. Planen kan oprettes.")
+        ws.Cells(r, 1).Value = okText
         r = r + 1
     End If
     For Each msg In v("errors")
@@ -444,6 +454,45 @@ Public Sub ShowPreview(ByVal path As String)
         r = r + 1
     End If
     r = r + 1
+End Sub
+
+'--- VH-plan ------------------------------------------------------------------
+Private Sub PreviewPlan(ByVal ws As Worksheet, ByVal path As String, ByVal order As Object, _
+                        ByVal lk As Object, ByVal v As Object, ByVal status As Object)
+    Dim plan As Object
+    Dim r As Long
+    Dim item As Object
+    Dim op As Object
+    Dim m As Object
+    Dim plantRec As Object
+    Dim hz As Object
+    Dim firstDue As Date
+    Dim cycle As Double
+    Dim unitText As String
+    Dim svc As Object
+    Dim fl As Variant
+    Dim flText As String
+    Dim st As Object
+    Dim cand As Object
+    Dim n As Long
+
+    Set plan = VhpUtil.JObj(order, "plan")
+    Set plantRec = VhpLookup.Plant(lk, VhpUtil.JStr(plan, "plant"))
+    cycle = VhpUtil.JNum(plan, "cycle")
+    unitText = VhpMap.NormalizeUnit(VhpUtil.JStr(plan, "unit"))
+    Set hz = VhpLookup.Horizon(lk, cycle, unitText)
+
+    r = 1
+    ws.Cells(r, 1).Value = VhpUtil.JStr(plan, "planId") & "  " & ChrW$(8211) & "  " & VhpUtil.JStr(plan, "title")
+    ws.Cells(r, 1).Font.Size = 16
+    ws.Cells(r, 1).Font.Bold = True
+    r = r + 1
+    ws.Cells(r, 1).Value = VhpUtil.Dk("Fil: ") & VhpFiles.FileNameOf(path) & VhpUtil.Dk("    Milj{oe}: ") & _
+        VhpUtil.JStr(order, "environment") & VhpUtil.Dk("    Modtaget: ") & VhpUtil.IsoToDisplay(VhpUtil.JStr(order, "createdOn")) & _
+        VhpUtil.Dk("    Indmeldt af: ") & VhpUtil.JStr(plan, "requesterName")
+    r = r + 2
+
+    WriteChecks ws, r, v, status, VhpUtil.Dk("Ingen fejl. Planen kan oprettes.")
 
     '--- Planen ---------------------------------------------------------------
     Section ws, r, VhpUtil.Dk("Planen {-} IP01")
@@ -537,19 +586,114 @@ Public Sub ShowPreview(ByVal path As String)
         r = r + 1
     Next item
 
-    ws.Columns("A").ColumnWidth = 24
-    ws.Columns("B").ColumnWidth = 44
-    ws.Columns("C:K").ColumnWidth = 14
-    ws.Columns("B").WrapText = False
-    Application.ScreenUpdating = True
-    ws.Activate
-    ws.Range("A1").Select
-    Exit Sub
-
-Failed:
-    Application.ScreenUpdating = True
-    MsgBox VhpUtil.Dk("Planen kan ikke vises: ") & Err.Description, vbExclamation, VHP_APP_NAME
 End Sub
+
+'--- FL-anmodning -------------------------------------------------------------
+Private Sub PreviewFl(ByVal ws As Worksheet, ByVal path As String, ByVal order As Object, _
+                      ByVal lk As Object, ByVal v As Object, ByVal status As Object)
+    Dim req As Object
+    Dim rows As Collection
+    Dim row As Object
+    Dim r As Long
+    Dim st As Object
+    Dim cand As Object
+    Dim cls As String
+    Dim chars As Object
+    Dim k As Variant
+    Dim extras As String
+    Dim x As Variant
+    Dim warranty As String
+
+    Set req = VhpUtil.JObj(order, "request")
+    Set rows = VhpUtil.JList(order, "rows")
+
+    r = 1
+    ws.Cells(r, 1).Value = VhpUtil.JStr(req, "requestNo") & "  " & ChrW$(8211) & "  " & rows.Count & " functional location(s)"
+    ws.Cells(r, 1).Font.Size = 16
+    ws.Cells(r, 1).Font.Bold = True
+    r = r + 1
+    ws.Cells(r, 1).Value = VhpUtil.Dk("Fil: ") & VhpFiles.FileNameOf(path) & VhpUtil.Dk("    Milj{oe}: ") & _
+        VhpUtil.JStr(order, "environment") & VhpUtil.Dk("    Modtaget: ") & VhpUtil.IsoToDisplay(VhpUtil.JStr(order, "createdOn")) & _
+        VhpUtil.Dk("    Indmeldt af: ") & VhpUtil.JStr(req, "requesterName")
+    r = r + 1
+    ws.Cells(r, 1).Value = VhpUtil.Dk("Hver FL oprettes med IL01. Findes den allerede, {ae}ndres den med IL02 {-} som i SPOOL-arket. ") & _
+        VhpUtil.Dk("Et tomt felt bliver ogs{aa} tomt i SAP.")
+    ws.Cells(r, 1).Font.Color = RGB(96, 94, 92)
+    r = r + 2
+
+    WriteChecks ws, r, v, status, VhpUtil.Dk("Ingen fejl. Anmodningen kan oprettes.")
+
+    For Each row In rows
+        Set st = Nothing
+        If Not status Is Nothing Then
+            For Each cand In VhpUtil.JList(status, "rows")
+                If VhpUtil.JLng(cand, "spId") = VhpUtil.JLng(row, "spId") Then
+                    Set st = cand
+                    Exit For
+                End If
+            Next cand
+        End If
+
+        cls = VhpFl.ClassOf(row)
+        extras = ""
+        For Each x In VhpFl.ExtraClasses(row)
+            extras = extras & " + " & CStr(x)
+        Next x
+
+        Section ws, r, VhpFl.RowLabel(row) & "  " & ChrW$(8211) & "  " & VhpUtil.JStr(row, "description")
+        Pair ws, r, "Strukturindikator", UCase$(VhpUtil.JStr(row, "strIndicator"))
+        Pair ws, r, "Klasse", cls & extras & IIf(VhpFl.HasClassAssignment(cls) Or Len(extras) > 0, "", VhpUtil.Dk("  (ingen klassetildeling)"))
+        Pair ws, r, "Beskrivelse", VhpUtil.JStr(row, "description")
+        Pair ws, r, "Producent", VhpFl.FieldValue(row, FLF_MANUFACTURER)
+        Pair ws, r, "Model", VhpFl.FieldValue(row, FLF_MODEL)
+        Pair ws, r, "Partnummer", VhpFl.FieldValue(row, FLF_PARTNO)
+        Pair ws, r, "Serienummer", VhpFl.FieldValue(row, FLF_SERIAL)
+        Pair ws, r, "Rum", VhpFl.FieldValue(row, FLF_ROOM)
+        Pair ws, r, "ABC", VhpFl.FieldValue(row, FLF_ABC)
+        Pair ws, r, "Sorteringsfelt", VhpFl.FieldValue(row, FLF_SORTFIELD)
+        warranty = VhpFl.SapDateText(VhpFl.FieldValue(row, FLF_WARRANTY_START))
+        If Len(VhpFl.FieldValue(row, FLF_WARRANTY_END)) > 0 Then
+            warranty = warranty & "  " & ChrW$(8211) & "  " & VhpFl.SapDateText(VhpFl.FieldValue(row, FLF_WARRANTY_END))
+        End If
+        Pair ws, r, "Garanti", warranty
+        If cls = "KAB" Then Pair ws, r, "Overordnet FL", VhpFl.FieldValue(row, FLF_SUPERIOR)
+        Pair ws, r, "Tilladelser", JoinItems(VhpFl.Permits(row), ", ")
+
+        Set chars = VhpFl.CharacteristicMap(row, lk)
+        If chars.Count > 0 Then
+            Header ws, r, Array("Karakteristik", VhpUtil.Dk("V{ae}rdi"), "")
+            For Each k In chars.Keys
+                ws.Cells(r, 1).Value = CStr(k)
+                ws.Cells(r, 2).Value = "'" & Replace(CStr(chars(k)), "|", "; ")
+                If VhpFl.IsSpecialCharacteristic(CStr(k)) And VhpFl.SplitValues(CStr(chars(k))).Count > 1 Then
+                    ws.Cells(r, 3).Value = VhpUtil.Dk("v{ae}lges i v{ae}rdidialogen (F4)")
+                End If
+                r = r + 1
+            Next k
+        Else
+            Pair ws, r, "Karakteristikker", VhpUtil.Dk("(ingen)")
+        End If
+
+        If VhpFl.UnusedFields(row, lk).Count > 0 Then
+            Pair ws, r, VhpUtil.Dk("Overf{oe}res ikke"), JoinItems(VhpFl.UnusedFields(row, lk), "; ")
+        End If
+        If Not st Is Nothing Then
+            If VhpUtil.JBool(st, "done") Then
+                Pair ws, r, "I SAP", VhpUtil.JStr(st, "result") & ": " & VhpUtil.JStr(st, "sapMessage")
+            ElseIf Len(VhpUtil.JStr(st, "lastError")) > 0 Then
+                Pair ws, r, "Sidste fejl", VhpUtil.JStr(st, "lastError")
+            End If
+        End If
+        r = r + 1
+    Next row
+End Sub
+
+Private Function JoinItems(ByVal c As Collection, ByVal sep As String) As String
+    Dim x As Variant
+    For Each x In c
+        JoinItems = JoinItems & IIf(Len(JoinItems) > 0, sep, "") & CStr(x)
+    Next x
+End Function
 
 Private Sub Section(ByVal ws As Worksheet, ByRef r As Long, ByVal title As String)
     ws.Cells(r, 1).Value = title
@@ -601,7 +745,8 @@ Public Sub Setup()
     RefreshList
 
     MsgBox VhpUtil.Dk("Ops{ae}tningen er f{ae}rdig.") & vbLf & vbLf & _
-        VhpUtil.Dk("1. Udfyld de tomme felter i arket Opslag (ydelsesnumre og de v{ae}rker, der mangler).") & vbLf & _
+        VhpUtil.Dk("1. Udfyld de tomme felter i arket Opslag (ydelsesnumre og de v{ae}rker, der mangler). ") & _
+        VhpUtil.Dk("Tabellen Karakteristikker er SPOOL-arkets og kan bruges, som den er.") & vbLf & _
         VhpUtil.Dk("2. Tjek arket Indstillinger.") & vbLf & _
         VhpUtil.Dk("3. Gem projektmappen som Excel-projektmappe med makroer (.xlsm).") & vbLf & _
         VhpUtil.Dk("4. Tryk Selvtest i arket Indstillinger."), vbInformation, VHP_APP_NAME
@@ -613,6 +758,7 @@ End Sub
 Public Sub SetupQuiet()
     Application.ScreenUpdating = False
 
+    RenameOldSheet SH_PREVIEW_OLD, SH_PREVIEW
     EnsureSheet SH_START, 1
     EnsureSheet SH_PREVIEW, 2
     EnsureSheet SH_LOOKUP, 3
@@ -626,6 +772,18 @@ Public Sub SetupQuiet()
     BuildLog
 
     Application.ScreenUpdating = True
+End Sub
+
+' Et ark, der har skiftet navn mellem to udgaver, beholder sin plads.
+Private Sub RenameOldSheet(ByVal oldName As String, ByVal newName As String)
+    Dim ws As Worksheet
+    Dim wsNew As Worksheet
+    On Error Resume Next
+    Set ws = ThisWorkbook.Worksheets(oldName)
+    Set wsNew = ThisWorkbook.Worksheets(newName)
+    On Error GoTo 0
+    If ws Is Nothing Or Not wsNew Is Nothing Then Exit Sub
+    ws.Name = newName
 End Sub
 
 Private Sub EnsureSheet(ByVal sheetName As String, ByVal position As Long)
@@ -670,10 +828,10 @@ Private Sub BuildStart()
     Set ws = ThisWorkbook.Worksheets(SH_START)
     DeleteShapes ws
 
-    ws.Range("A1").Value = "VH-plan " & ChrW$(8594) & " SAP"
+    ws.Range("A1").Value = VhpUtil.Dk("VH-planer og FL ") & ChrW$(8594) & " SAP"
     ws.Range("A1").Font.Size = 20
     ws.Range("A1").Font.Bold = True
-    ws.Range("A2").Value = VhpUtil.Dk("Planer, der er godkendt og klar til oprettelse. Klik p{aa} en plan og tryk Vis plan for at se, hvad der kommer i SAP. ") & _
+    ws.Range("A2").Value = VhpUtil.Dk("VH-planer og FL-anmodninger, der er klar til oprettelse. Klik p{aa} en r{ae}kke og tryk Vis detaljer for at se, hvad der kommer i SAP. ") & _
         VhpUtil.Dk("S{ae}t x i V{ae}lg og tryk Opret i SAP.")
     ws.Range("A2").Font.Color = RGB(96, 94, 92)
     ws.Range("A6").Value = "Mappe:"
@@ -684,7 +842,7 @@ Private Sub BuildStart()
     y = ws.Range("A4").Top
     AddButton ws, "btnVhpRefresh", VhpUtil.Dk("Opdater liste"), "VhpUi.BtnRefresh", x, y, 110, RGB(0, 120, 212)
     x = x + 116
-    AddButton ws, "btnVhpPreview", VhpUtil.Dk("Vis plan"), "VhpUi.BtnPreview", x, y, 100, RGB(0, 120, 212)
+    AddButton ws, "btnVhpPreview", VhpUtil.Dk("Vis detaljer"), "VhpUi.BtnPreview", x, y, 100, RGB(0, 120, 212)
     x = x + 106
     AddButton ws, "btnVhpCreate", VhpUtil.Dk("Opret i SAP"), "VhpUi.BtnCreate", x, y, 120, RGB(16, 124, 16)
     x = x + 136
@@ -701,27 +859,34 @@ Private Sub BuildStart()
     Set lo = ws.ListObjects(LO_ORDERS)
     On Error GoTo 0
     If lo Is Nothing Then
-        ws.Range(ws.Cells(ORDERS_FIRST_ROW, 1), ws.Cells(ORDERS_FIRST_ROW, ORDER_COLS)).Value = Array( _
-            VhpUtil.Dk("V{ae}lg"), "Plan", "Titel", VhpUtil.Dk("V{ae}rk"), "Items", "Operationer", _
-            VhpUtil.Dk("Milj{oe}"), "Modtaget", "Status", "Besked", "Fil")
+        ws.Range(ws.Cells(ORDERS_FIRST_ROW, 1), ws.Cells(ORDERS_FIRST_ROW, ORDER_COLS)).Value = OrderHeaders()
         Set lo = ws.ListObjects.Add(xlSrcRange, ws.Range(ws.Cells(ORDERS_FIRST_ROW, 1), _
             ws.Cells(ORDERS_FIRST_ROW + 1, ORDER_COLS)), , xlYes)
         lo.Name = LO_ORDERS
         lo.TableStyle = "TableStyleLight9"
+    Else
+        ' Overskrifterne fra version 1.0 (Plan, Items, Operationer) skiftes ud.
+        lo.HeaderRowRange.Value = OrderHeaders()
     End If
 
     ws.Columns(1).ColumnWidth = 7
-    ws.Columns(2).ColumnWidth = 10
-    ws.Columns(3).ColumnWidth = 42
-    ws.Columns(4).ColumnWidth = 7
+    ws.Columns(2).ColumnWidth = 9
+    ws.Columns(3).ColumnWidth = 11
+    ws.Columns(4).ColumnWidth = 42
     ws.Columns(5).ColumnWidth = 7
-    ws.Columns(6).ColumnWidth = 11
+    ws.Columns(6).ColumnWidth = 20
     ws.Columns(7).ColumnWidth = 8
     ws.Columns(8).ColumnWidth = 19
     ws.Columns(9).ColumnWidth = 20
     ws.Columns(10).ColumnWidth = 70
     ws.Columns(11).ColumnWidth = 36
 End Sub
+
+' Listens kolonner. Fil skal vaere den sidste (ORDER_COLS), Status nr. 9.
+Private Function OrderHeaders() As Variant
+    OrderHeaders = Array(VhpUtil.Dk("V{ae}lg"), "Type", "ID", "Titel", VhpUtil.Dk("V{ae}rk"), "Indhold", _
+        VhpUtil.Dk("Milj{oe}"), "Modtaget", "Status", "Besked", "Fil")
+End Function
 
 ' Baglaens: sletter man i en For Each, springes hver anden figur over.
 Private Sub DeleteShapes(ByVal ws As Worksheet)
@@ -797,8 +962,30 @@ Private Sub BuildLookups()
         ws.Range("N2").Font.Color = RGB(196, 49, 75)
     End If
 
-    ws.Columns("A:R").AutoFit
+    If Not TableExists(ws, LO_FL_CHARS) Then
+        CreateTable ws, "S3", LO_FL_CHARS, _
+            Array("Klasse", "Karakteristik (navnet i SAP)", "SAP-navn", VhpUtil.Dk("Bem{ae}rkning")), _
+            CharacteristicRows()
+        ws.Range("S2").Value = VhpUtil.Dk("FL: hvilke felter der er karakteristikker for hvilken klasse {-} fra SPOOL-arkets DictionaryTable.")
+        ws.Range("S2").Font.Color = RGB(96, 94, 92)
+    End If
+
+    ws.Columns("A:W").AutoFit
 End Sub
+
+' SPOOL-arkets DictionaryTable som raekker til CreateTable.
+Private Function CharacteristicRows() As Variant
+    Dim seed As Collection
+    Dim rowsData() As Variant
+    Dim i As Long
+
+    Set seed = VhpFl.CharacteristicSeed()
+    ReDim rowsData(0 To seed.Count - 1)
+    For i = 1 To seed.Count
+        rowsData(i - 1) = Array(seed(i)(0), seed(i)(1), seed(i)(2), "")
+    Next i
+    CharacteristicRows = rowsData
+End Function
 
 Private Sub BuildSettings()
     Dim ws As Worksheet
@@ -872,8 +1059,11 @@ Private Sub BuildLog()
     Dim ws As Worksheet
     Dim lo As ListObject
     Set ws = ThisWorkbook.Worksheets(SH_LOG)
-    If TableExists(ws, LO_LOG) Then Exit Sub
-    ws.Range("A1:D1").Value = Array("Tidspunkt", "Plan", "Bruger", "Besked")
+    If TableExists(ws, LO_LOG) Then
+        ws.ListObjects(LO_LOG).HeaderRowRange.Value = Array("Tidspunkt", "ID", "Bruger", "Besked")
+        Exit Sub
+    End If
+    ws.Range("A1:D1").Value = Array("Tidspunkt", "ID", "Bruger", "Besked")
     Set lo = ws.ListObjects.Add(xlSrcRange, ws.Range("A1:D2"), , xlYes)
     lo.Name = LO_LOG
     lo.TableStyle = "TableStyleLight9"

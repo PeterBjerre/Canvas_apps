@@ -3,18 +3,23 @@ Option Explicit
 '==============================================================================
 ' VhpConfig - alt, der beskriver SAP-skaermene og projektmappen, staar HER.
 '
-' Felt-ID'erne er IKKE pladsholdere. De er flyttet ordret fra det gamle
-' GUI-script (excel/src/Modules/GUI_Script.bas: CreateTLH, AddOperations,
-' CreateItems, CreatePlans), som har oprettet planer i jeres SAP. Aendrer SAP
-' et skaermbillede, er det her, der rettes - ikke i VhpSteps.
+' Felt-ID'erne er IKKE pladsholdere. De er flyttet ordret fra de scripts, der
+' har oprettet i jeres SAP:
+'   VH-planer   det gamle regneark, excel/src/Modules/GUI_Script.bas
+'               (CreateTLH, AddOperations, CreateItems, CreatePlans)
+'   FL          SPOOL-arket, excel/vba/spool-gui/GUI_SCRIPT.bas
+'               (FillMasterdataFields, GoToClassAssignment, FillCharacteristicsBatch,
+'               SaveFLAndGetStatus)
+' Aendrer SAP et skaermbillede, er det her, der rettes - ikke i VhpSteps eller
+' VhpFlSteps.
 '
 ' Ord i kommentarer og tekster skrives uden ae/oe/aa-bogstaver: VBA-editoren
 ' laeser .bas-filer i Windows' tegnsaet, og et UTF-8-bogstav bliver til to
 ' tegn. Det, brugeren SER, laves med VhpUtil.Dk("{ae}{oe}{aa}").
 '==============================================================================
 
-Public Const VHP_VERSION As String = "1.0"
-Public Const VHP_APP_NAME As String = "VH-plan Opretter"
+Public Const VHP_VERSION As String = "1.1"
+Public Const VHP_APP_NAME As String = "SAP Opretter"
 
 '--- Filer og mapper ----------------------------------------------------------
 ' Biblioteket i SharePoint hedder SAP-oprettelse og synkroniseres med OneDrive.
@@ -26,6 +31,11 @@ Public Const FOLDER_DONE As String = "Oprettet"
 
 Public Const ORDER_KIND As String = "vhplan-sap-order"
 Public Const RECEIPT_KIND As String = "vhplan-sap-receipt"
+Public Const FL_ORDER_KIND As String = "fl-sap-order"
+Public Const FL_RECEIPT_KIND As String = "fl-sap-receipt"
+' FL-kvitteringerne har deres egen mappe (Kvitteringer\FL) og deres eget flow,
+' saa VH-planernes kvitteringsflow ikke ser dem.
+Public Const FOLDER_FL_RECEIPTS As String = "FL"
 Public Const SUFFIX_STATUS As String = ".status.json"
 Public Const SUFFIX_RECEIPT As String = ".kvittering.json"
 
@@ -34,14 +44,17 @@ Public Const SUFFIX_RECEIPT As String = ".kvittering.json"
 Public Const LOCK_STALE_MINUTES As Long = 120
 
 ' Mappen huskes pr. bruger i registreringsdatabasen (GetSetting), fordi
-' OneDrive-stien indeholder brugernavnet og er forskellig paa hver pc.
+' OneDrive-stien indeholder brugernavnet og er forskellig paa hver pc. Navnet
+' er det fra version 1.0, saa den valgte mappe huskes efter opdateringen.
 Public Const REG_APP As String = "VH-plan Opretter"
 Public Const REG_SECTION As String = "Indstillinger"
 Public Const REG_FOLDER As String = "Mappe"
 
 '--- Ark og tabeller ----------------------------------------------------------
 Public Const SH_START As String = "Start"
-Public Const SH_PREVIEW As String = "Vis plan"
+Public Const SH_PREVIEW As String = "Detaljer"
+' Arket hed "Vis plan" i version 1.0. Setup omdoeber det.
+Public Const SH_PREVIEW_OLD As String = "Vis plan"
 Public Const SH_LOOKUP As String = "Opslag"
 Public Const SH_SETTINGS As String = "Indstillinger"
 Public Const SH_LOG As String = "Log"
@@ -50,6 +63,7 @@ Public Const LO_ORDERS As String = "tblOrdrer"
 Public Const LO_PLANTS As String = "tblVaerker"
 Public Const LO_HORIZON As String = "tblKaldshorisont"
 Public Const LO_SERVICES As String = "tblYdelser"
+Public Const LO_FL_CHARS As String = "tblKarakteristikker"
 Public Const LO_SETTINGS As String = "tblIndstillinger"
 Public Const LO_LOG As String = "tblLog"
 
@@ -218,6 +232,124 @@ Public Const IP01_KEY_DATE As String = IP01_SCHED_BASE & "radRMIPM-STICH"
 
 Public Const IP01_TAB_SORT As String = "wnd[0]/usr/subSUBSCREEN_MPLAN:SAPLIWP3:8001/tabsTABSTRIP_HEAD/tabpT\03"
 Public Const IP01_SORT_FIELD As String = "wnd[0]/usr/subSUBSCREEN_MPLAN:SAPLIWP3:8001/tabsTABSTRIP_HEAD/tabpT\03/ssubSUBSCREEN_BODY1:SAPLIWP3:8012/subSUBSCREEN_PARAMETER:SAPLIWP3:0113/cmbRMIPM-PLAN_SORT"
+
+
+'==============================================================================
+' FUNCTIONAL LOCATIONS - fra SPOOL-arket (excel/vba/spool-gui/GUI_SCRIPT.bas)
+'==============================================================================
+
+'--- Felterne i ordren --------------------------------------------------------
+' Appens feltnavne: SPOOL-arkets kolonneoverskrifter med versaler. Karakteris-
+' tikkerne staar ikke her - de staar i tabellen Karakteristikker i Opslag.
+Public Const FLF_MANUFACTURER As String = "MANUFACTURER"
+Public Const FLF_MODEL As String = "MODEL NUMBER"
+Public Const FLF_PARTNO As String = "MANUFACTURER PART NUMBER"
+Public Const FLF_SERIAL As String = "MANUFACTURER SERIAL NUMBER"
+Public Const FLF_ROOM As String = "ROOM"
+Public Const FLF_ABC As String = "ABC INDIC."
+Public Const FLF_SORTFIELD As String = "SORT FIELD"
+Public Const FLF_WARRANTY_START As String = "WARRANTY START"
+Public Const FLF_WARRANTY_END As String = "WARRANTY END"
+Public Const FLF_ATEX As String = "ATEX"
+Public Const FLF_RISIKO As String = "RISIKO"
+Public Const FLF_ASBESTOS As String = "ASBESTOS"
+Public Const FLF_PTW As String = "PTW"
+Public Const FLF_SUPERIOR As String = "SUPERIOR FL"
+Public Const FLF_TRM As String = "TRM ASSIGNMENT"
+Public Const FLF_GIVEXT As String = "GIV_EXT ASSIGNMENT"
+
+' Klasser uden klassetildeling (SPOOL: Class <> "NO CLASS" And <> "SIGNAL").
+Public Const FL_CLASS_NONE As String = "NO CLASS"
+Public Const FL_CLASS_SIGNAL As String = "SIGNAL"
+
+'--- Transaktioner ------------------------------------------------------------
+Public Const TX_FL_CREATE As String = "/nIL01"
+Public Const TX_FL_CHANGE As String = "/nIL02"
+Public Const TX_FL_DISPLAY As String = "/nIL03"
+
+' Statuslinjen i IL01, naar maerket findes: "Functional location <FL> already
+' exists" (SPOOL sammenligner hele teksten). Engelsk logon som i dag.
+Public Const FL_MSG_EXISTS As String = "already exists"
+
+'--- Indgangsbilledet (FillMasterdataFields) ----------------------------------
+Public Const IL01_FL As String = "wnd[0]/usr/txtIFLOS-STRNO"
+Public Const IL01_STRIND As String = "wnd[0]/usr/ctxtRILO0-TPLKZ"
+Public Const IL02_FL As String = "wnd[0]/usr/ctxtIFLO-TPLNR"
+Public Const IL02_STRIND As String = "wnd[0]/usr/ctxtRILO0-TPLKZ"
+' IL03 bruges kun til at se efter, om en FL findes (SPOOL: ExtractMasterdataFields).
+Public Const IL03_FL As String = "wnd[0]/usr/ctxtIFLO-TPLNR"
+
+'--- Hovedbilledet -----------------------------------------------------------
+Public Const FL_DESCRIPTION As String = "wnd[0]/usr/txtIFLO-PLTXT"
+Private Const FL_TABS As String = "wnd[0]/usr/tabsTABSTRIP/"
+
+' Fanen General
+Private Const FL_GEN As String = FL_TABS & "tabpT\01/ssubSUB_DATA:SAPLITO0:0102/"
+Public Const FL_CLASS_SHOWN As String = FL_GEN & "subSUB_0102A:SAPLITO0:1020/txtITOBATTR-KLASSE"
+Public Const FL_OBJECT_TYPE As String = FL_GEN & "subSUB_0102A:SAPLITO0:1020/subSUB_1020A:SAPLITO0:1025/ctxtITOB-EQART"
+Public Const FL_MANUFACTURER As String = FL_GEN & "subSUB_0102C:SAPLITO0:1022/txtITOB-HERST"
+Public Const FL_MODEL As String = FL_GEN & "subSUB_0102C:SAPLITO0:1022/txtITOB-TYPBZ"
+Public Const FL_PARTNO As String = FL_GEN & "subSUB_0102C:SAPLITO0:1022/txtITOB-MAPAR"
+Public Const FL_SERIAL As String = FL_GEN & "subSUB_0102C:SAPLITO0:1022/txtITOB-SERGE"
+' SPOOL skriver altid "s" i objekttypen.
+Public Const FL_OBJECT_TYPE_VALUE As String = "s"
+
+' Fanen Location
+Public Const FL_TAB_LOCATION As String = FL_TABS & "tabpT\02"
+Private Const FL_LOC As String = FL_TABS & "tabpT\02/ssubSUB_DATA:SAPLITO0:0102/"
+Public Const FL_ROOM As String = FL_LOC & "subSUB_0102A:SAPLITO0:1050/txtITOB-MSGRP"
+Public Const FL_ABC As String = FL_LOC & "subSUB_0102A:SAPLITO0:1050/ctxtITOB-ABCKZ"
+Public Const FL_SORTFIELD As String = FL_LOC & "subSUB_0102A:SAPLITO0:1050/txtITOB-EQFNR"
+Private Const FL_WARRANTY As String = FL_LOC & "subSUB_0102B:SAPLITO0:1098/subSUB_1098A:SAPLBG00:3400/"
+Public Const FL_WARRANTY_START As String = FL_WARRANTY & "ctxtWCHECK_V_H-GWLDT_I"
+Public Const FL_WARRANTY_END As String = FL_WARRANTY & "ctxtWCHECK_V_H-GWLEN_I"
+Public Const FL_WARRANTY_INHERIT As String = FL_WARRANTY & "chkWCHECK_V_H-WAGET_I"
+Public Const FL_WARRANTY_PASSON As String = FL_WARRANTY & "chkWCHECK_V_H-GAERB_I"
+
+' Fanen Structure - overordnet FL (kun KAB, som i SPOOL)
+Public Const FL_TAB_STRUCTURE As String = FL_TABS & "tabpT\04"
+Private Const FL_STRUCT As String = FL_TABS & "tabpT\04/ssubSUB_DATA:SAPLITO0:0102/subSUB_0102A:SAPLITO0:1060/subSUB_1060A:SAPLITO0:1066/"
+Public Const FL_SUPERIOR As String = FL_STRUCT & "txtITOB-TPLMA"
+Public Const FL_SUPERIOR_CHANGE As String = FL_STRUCT & "btnFCODE_CHM"
+Public Const FL_SUPERIOR_POPUP As String = "wnd[1]/usr/ctxtIFLO-TPLMA"
+
+' Tilladelser (Permits): menuen og tabellen i dialogen
+Public Const FL_MENU_PERMITS As String = "wnd[0]/mbar/menu[2]/menu[6]"
+Public Const FL_PERMIT_BTN_8 As String = "wnd[1]/tbar[0]/btn[8]"
+Public Const FL_PERMIT_BTN_14 As String = "wnd[1]/tbar[0]/btn[14]"
+Public Const FL_PERMIT_CELL As String = "wnd[1]/usr/tblSAPLIMSPTCTRL_1000/ctxtRM63S-PMSOG[0,"
+Public Const FL_PERMIT_DONE As String = "wnd[1]/tbar[0]/btn[11]"
+
+' Klassetildeling. Ekstra klasser (TRM, WCM, GIV_EXT) skrives i linje 1 efter
+' et tryk paa knappen, der giver en ny linje - som i SPOOL.
+Public Const FL_BTN_CLASSES As String = "wnd[0]/tbar[1]/btn[20]"
+Public Const FL_CLASS_CELL As String = "wnd[0]/usr/subSUBSCR_ZUORD:SAPLCLFM:1600/tblSAPLCLFMTC_OBJ_CLASS/ctxtRMCLF-CLASS[0,"
+Public Const FL_CLASS_NEWLINE As String = "wnd[0]/usr/btn%#AUTOTEXT003"
+Public Const FL_CLASS_MARKALL As String = "wnd[0]/usr/btnICON_MARKALL"
+Public Const FL_CLASS_DELETE As String = "wnd[0]/usr/btnICON_DELETE"
+
+' Fanen med karakteristikkerne
+Public Const FL_TAB_CHARS As String = FL_TABS & "tabpT\06"
+Public Const FL_CHAR_CONTAINER As String = FL_TABS & "tabpT\06/ssubSUB_DATA:SAPLITO0:0109/subSUB_0109A:SAPLITO0:1090/subSUB_1090A:SAPLCTMS:5110/sub:SAPLCTMS:5110"
+Public Const FL_CHAR_NEXT_PAGE As String = FL_TABS & "tabpT\06/ssubSUB_DATA:SAPLITO0:0109/subSUB_0109A:SAPLITO0:1090/subSUB_1090A:SAPLCTMS:5110/btnOES_PDOWN"
+' Vaerdidialogen (F4) til Remarks, Supply from og Safety Critical Equipment
+' med flere vaerdier
+Public Const FL_VALUE_CELL As String = "wnd[1]/usr/tblSAPLCTMSVALUE_S/txtRCTMS-ATWRT[1,0]"
+Public Const FL_VALUE_TABLE As String = "wnd[1]/usr/tblSAPLCTMSVALUE_S"
+Public Const FL_VALUE_TEXT As String = "wnd[1]/usr/tblSAPLCTMSVALUE_S/txtRCTMS-ATWTB[3,"
+Public Const FL_VALUE_CHECK As String = "wnd[1]/usr/tblSAPLCTMSVALUE_S/chkRCTMS-SEL01[0,"
+Public Const FL_VALUE_OK As String = "wnd[1]/tbar[0]/btn[8]"
+
+'--- Gem (SaveFLAndGetStatus) og dialoger -------------------------------------
+' En dialog efter Gem betyder, at FL'en IKKE blev gemt. SPOOL lukker den med
+' OK, gaar ud med Exit og svarer Nej til at gemme.
+Public Const FL_BTN_EXIT As String = "wnd[0]/tbar[0]/btn[15]"
+Public Const POPUP_WINDOW As String = "wnd[1]"
+Public Const POPUP_W1_BTN0 As String = "wnd[1]/tbar[0]/btn[0]"
+Public Const POPUP_W1_BTN1 As String = "wnd[1]/tbar[0]/btn[1]"
+Public Const POPUP_W2_BTN0 As String = "wnd[2]/tbar[0]/btn[0]"
+Public Const POPUP_OPTION1 As String = "wnd[1]/usr/btnSPOP-OPTION1"
+Public Const POPUP_OPTION2 As String = "wnd[1]/usr/btnSPOP-OPTION2"
 
 '==============================================================================
 ' Indstillinger

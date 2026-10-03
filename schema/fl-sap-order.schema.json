@@ -1,0 +1,197 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orsted.example/schemas/fl-sap-order-1.json",
+  "title": "Functional Location - ordre til oprettelse i SAP",
+  "description": "Een fil pr. indsendt FL-anmodning. Skrives af flowet BioSap-FL-SapOrder, naar anmodningen i FunctionalLocationRequests er indsendt, og laeses af SAP Opretter (excel/opretter). Raekkerne er FunctionalLocationItems, som appen gemte dem: spool-felterne staar som felt/vaerdi-par med appens feltnavne (versaler, som kolonnerne i SPOOL-arket). Al SAP-specifik oversaettelse - hvilke felter der er karakteristikker for hvilken klasse, tilladelser, datoformat - sker i opretteren. Se docs/36-fl-sap-oprettelse.md.",
+  "type": "object",
+  "required": [
+    "kind",
+    "version",
+    "orderGuid",
+    "createdOn",
+    "environment",
+    "request",
+    "rows"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "const": "fl-sap-order"
+    },
+    "version": {
+      "const": 1
+    },
+    "orderGuid": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+      "description": "Dannes af flowet (guid()) og skrives ogsaa paa anmodningen i FunctionalLocationRequests.SapOrderGuid. Kvitteringen skal baere den samme vaerdi, ellers afviser kvitteringsflowet den."
+    },
+    "createdOn": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Hvornaar flowet byggede ordren (UTC)."
+    },
+    "environment": {
+      "enum": [
+        "DEV",
+        "TEST",
+        "PROD"
+      ],
+      "description": "Hvilket SharePoint-miljoe data kommer fra. Opretteren spaerrer DEV og TEST mod produktions-SAP (GP1)."
+    },
+    "site": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "SharePoint-sitet, til fejlsoegning."
+    },
+    "request": {
+      "type": "object",
+      "required": [
+        "spId",
+        "requestNo"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "spId": {
+          "type": "integer",
+          "description": "FunctionalLocationRequests.ID"
+        },
+        "requestNo": {
+          "type": "string",
+          "pattern": "^FL-[0-9]{6}$",
+          "description": "FunctionalLocationRequests.RequestNo (Title), fx FL-000012"
+        },
+        "requestGuid": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "FunctionalLocationRequests.RequestGuid - appens idempotensnoegle"
+        },
+        "status": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "FunctionalLocationRequests.Status paa det tidspunkt, ordren blev bygget, fx Indsendt"
+        },
+        "requesterName": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "requesterEmail": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "submittedOn": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "FunctionalLocationRequests.SubmittedOn (UTC)"
+        }
+      }
+    },
+    "rows": {
+      "type": "array",
+      "description": "Een raekke pr. functional location, fra FunctionalLocationItems, sorteret paa RowNo.",
+      "items": {
+        "type": "object",
+        "required": [
+          "spId",
+          "functionalLocation",
+          "assignedClass",
+          "values"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "spId": {
+            "type": "integer",
+            "description": "FunctionalLocationItems.ID - kvitteringsflowet skriver SAP-resultatet tilbage her"
+          },
+          "rowGuid": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "FunctionalLocationItems.RowGuid (Title)"
+          },
+          "rowNo": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "functionalLocation": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40,
+            "description": "FL-maerket som i SAP, fx 'SSV10 LAC10AB001 -B01' -> IL01 (eller IL02, hvis den findes)"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "-> IL01 beskrivelse (40 tegn)"
+          },
+          "strIndicator": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "FunctionalLocationItems.KksType: KKS, KKSKV eller KKSKA -> strukturindikator i IL01"
+          },
+          "assignedClass": {
+            "type": "string",
+            "description": "Klassen, appen har bestemt, fx GIV, MKP_PU, NO CLASS eller SIGNAL"
+          },
+          "rowStatus": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Appens status for raekken: valid eller warning (en invalid raekke kan ikke indsendes)"
+          },
+          "firstIssue": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Appens foerste besked for raekken, fx en advarsel"
+          },
+          "values": {
+            "type": "array",
+            "description": "Spool-felterne fra SpoolValuesJson: feltnavn som i appen (versaler) og vaerdien som tekst.",
+            "items": {
+              "type": "object",
+              "required": [
+                "field",
+                "value"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "value": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

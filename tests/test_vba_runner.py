@@ -11,10 +11,11 @@ To lag:
      med at virke, bliver opdaget.
   2. LibreOffice - kun hvor soffice og python3-uno findes (ellers skip).
      Hvert modul oversaettes for sig (syntaksfejl), og selvtestens rene del
-     (VhpTest.SelfTestPure: oversaettelser og langtekst) koeres for alvor.
+     (VhpTest.SelfTestPure: oversaettelser, langtekst og FL-regler) koeres
+     for alvor.
 
-SAP-delen (VhpSap, VhpSteps) kan ingen af delene koere. Den afproeves i
-SAP efter tjeklisten i docs/34-sap-oprettelse.md.
+SAP-delen (VhpSap, VhpSteps, VhpFlSteps) kan ingen af delene koere. Den
+afproeves i SAP efter tjeklisterne i docs/34 og docs/36.
 """
 import glob
 import os
@@ -131,7 +132,7 @@ def lo():
     if not vba_lo.available():
         pytest.skip("LibreOffice/python3-uno findes ikke")
     pure = [os.path.join(RUNNER, m) for m in
-            ("VhpUtil.bas", "VhpMap.bas", "VhpItf.bas", "VhpTest.bas")]
+            ("VhpUtil.bas", "VhpMap.bas", "VhpItf.bas", "VhpFl.bas", "VhpTest.bas")]
     with vba_lo.VbaRunner(pure) as runner:
         yield runner
 

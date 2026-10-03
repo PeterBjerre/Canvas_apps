@@ -1,6 +1,6 @@
 # Excel → SAP via GUI Scripting
 
-> **Afløst.** VH-planer oprettes nu med **VH-plan Opretter** i
+> **Afløst.** VH-planer og FL oprettes nu med **SAP Opretter** i
 > [`opretter/`](opretter) — se [`opretter/README.md`](opretter/README.md) og
 > [`../docs/34-sap-oprettelse.md`](../docs/34-sap-oprettelse.md). Modulerne i
 > `vba/` og `powerquery/` herunder er oplæggets skabelon og blev ikke taget i
