@@ -96,10 +96,16 @@ def text_ctrl(name, text, size=14, color=C_TITLE, weight=None, wrap="false",
     # Text op i forvejen. Her stod ALTID "accessible or text", saa en tung
     # tekstformel (hubbens CountRows mod SharePoint, Switch/DateDiff pr.
     # galleriraekke) blev regnet ud to gange (REVIEW.md B2).
+    # Men uden AccessibleLabel melder tilgaengelighedstjekket
+    # AccessibleLabelNeeded for hver eneste tekst med en formel (issue #86).
+    # Self.Text laeser den allerede beregnede vaerdi - formlen koerer ikke
+    # igen.
     if accessible:
         props["AccessibleLabel"] = accessible
     elif re.fullmatch(r'"(?:[^"]|"")*"', text.strip()):
         props["AccessibleLabel"] = text
+    else:
+        props["AccessibleLabel"] = "Self.Text"
     if weight:
         props["FontWeight"] = f"FontWeight.{weight}"
     if align:
