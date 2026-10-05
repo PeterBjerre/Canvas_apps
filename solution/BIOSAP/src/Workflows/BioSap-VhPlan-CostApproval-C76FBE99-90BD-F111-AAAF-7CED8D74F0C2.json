@@ -1,0 +1,1272 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapSharePointConn"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_office365": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapOutlookConn"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      },
+      "shared_office365users": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapOffice365UsersConn"
+        },
+        "api": {
+          "name": "shared_office365users"
+        }
+      },
+      "shared_approvals": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapApprovalsConn"
+        },
+        "api": {
+          "name": "shared_approvals"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "BioSap-SiteUrl (orsted_BioSapSiteUrl)": {
+          "defaultValue": "https://orsted.sharepoint.com/teams/BioSAPDev",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapSiteUrl"
+          }
+        },
+        "BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)": {
+          "defaultValue": "pkbje@orsted.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapErrorNotifiers"
+          }
+        },
+        "BioSap-List-MaintenancePlans (orsted_BioSapListMaintenancePlans)": {
+          "defaultValue": "55c96ba9-52b8-4018-8945-f736b001d6a2",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapListMaintenancePlans"
+          }
+        },
+        "BioSap-List-MaintenancePlansName (orsted_BioSapListMaintenancePlansName)": {
+          "defaultValue": "MaintenancePlans",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapListMaintenancePlansName"
+          }
+        },
+        "BioSap-ListItemEntityTypeMaintenancePlan (orsted_BioSapListItemEntityTypeMaintenancePlan)": {
+          "defaultValue": "SP.Data.MaintenancePlansListItem",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapListItemEntityTypeMaintenancePlan"
+          }
+        },
+        "MD_RequestIndex (orsted_shared_sharepointonline_9f0c6e07f15d4509a3ecab4d20b7fff7)": {
+          "defaultValue": "3d945b5b-bd5b-43eb-be27-3f0c2416b08a",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_shared_sharepointonline_9f0c6e07f15d4509a3ecab4d20b7fff7"
+          }
+        },
+        "BioSap-EmailDomain (orsted_BioSapEmailDomain)": {
+          "defaultValue": "orsted.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapEmailDomain"
+          }
+        },
+        "BioSap-List-MaintenanceItems (orsted_BioSapListMaintenanceItems)": {
+          "defaultValue": "d0b2538e-c702-4375-b766-caf342259495",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapListMaintenanceItems"
+          }
+        },
+        "BioSap-List-TaskListMain (orsted_BioSapListTaskListMain)": {
+          "defaultValue": "c01b8d71-a304-4d5c-a84a-4644b87f8f28",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapListTaskListMain"
+          }
+        },
+        "MD_Approver (orsted_shared_sharepointonline_ab9256f0efcb4239aa6e323d92c078ff)": {
+          "defaultValue": "60248b38-a544-43ed-aa86-5abfd28c1090",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_shared_sharepointonline_ab9256f0efcb4239aa6e323d92c078ff"
+          }
+        },
+        "MD_ApprovalLog (orsted_shared_sharepointonline_ec07acb417e14a7c999704263844acb9)": {
+          "defaultValue": "f80b05d7-06f9-4cf5-b6a7-45ed8a3c4ee3",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_shared_sharepointonline_ec07acb417e14a7c999704263844acb9"
+          }
+        },
+        "BioSap-List-AppSettings (orsted_BioSapListAppSettings)": {
+          "defaultValue": "97ec3f9c-8f7b-4a22-a1e6-7cad07f9431e",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapListAppSettings"
+          }
+        }
+      },
+      "triggers": {
+        "When_an_item_is_created_or_modified": {
+          "type": "OpenApiConnection",
+          "recurrence": {
+            "frequency": "Minute",
+            "interval": 1
+          },
+          "splitOn": "@triggerOutputs()?['body/value']",
+          "runtimeConfiguration": {
+            "concurrency": {
+              "runs": 1
+            }
+          },
+          "inputs": {
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+              "connectionName": "shared_sharepointonline",
+              "operationId": "GetOnUpdatedItems"
+            },
+            "parameters": {
+              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+              "table": "@parameters('BioSap-List-MaintenancePlans (orsted_BioSapListMaintenancePlans)')"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "conditions": [
+            {
+              "expression": "@equals(triggerBody()?['Status/Value'],'In Progress')"
+            },
+            {
+              "expression": "@equals(triggerBody()?['ApprovalStage/Value'],'Cost')"
+            },
+            {
+              "expression": "@empty(triggerBody()?['StageRunId'])"
+            }
+          ]
+        }
+      },
+      "actions": {
+        "Initialize_FlowRunHistoryLink": {
+          "type": "InitializeVariable",
+          "runAfter": {},
+          "inputs": {
+            "variables": [
+              {
+                "name": "FlowRunHistoryLink",
+                "type": "string",
+                "value": "<a href=\"@{concat('https://make.powerautomate.com/environments/', workflow()?['tags']['environmentName'], '/flows/', workflow()?['name'], '/runs/', workflow()?['run']['name'])}\">Link to Run History</a>"
+              }
+            ]
+          }
+        },
+        "Try": {
+          "type": "Scope",
+          "runAfter": {
+            "Initialize_FlowRunHistoryLink": [
+              "Succeeded"
+            ]
+          },
+          "actions": {
+            "Claim_stage": {
+              "type": "OpenApiConnection",
+              "runAfter": {},
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "connectionName": "shared_sharepointonline",
+                  "operationId": "HttpRequest"
+                },
+                "parameters": {
+                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                  "parameters/method": "POST",
+                  "parameters/uri": "_api/web/lists/GetByTitle('@{parameters('BioSap-List-MaintenancePlansName (orsted_BioSapListMaintenancePlansName)')}')/items(@{triggerBody()?['ID']})",
+                  "parameters/headers": {
+                    "Content-Type": "application/json;odata=verbose",
+                    "If-Match": "*",
+                    "X-HTTP-Method": "MERGE"
+                  },
+                  "parameters/body": "{\"__metadata\": {\"type\": \"@{parameters('BioSap-ListItemEntityTypeMaintenancePlan (orsted_BioSapListItemEntityTypeMaintenancePlan)')}\"}, \"StageRunId\": \"@{workflow()?['run']?['name']}\"}"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Get_request_index": {
+              "type": "OpenApiConnection",
+              "runAfter": {
+                "Claim_stage": [
+                  "Succeeded"
+                ]
+              },
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "connectionName": "shared_sharepointonline",
+                  "operationId": "GetItems"
+                },
+                "parameters": {
+                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                  "table": "@parameters('MD_RequestIndex (orsted_shared_sharepointonline_9f0c6e07f15d4509a3ecab4d20b7fff7)')",
+                  "$filter": "SourceItemId eq @{triggerBody()?['ID']} and Domain eq 'MaintenancePlan'",
+                  "$top": 1
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Get_items_MaintenanceItems": {
+              "type": "OpenApiConnection",
+              "runAfter": {
+                "Get_request_index": [
+                  "Succeeded"
+                ]
+              },
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "connectionName": "shared_sharepointonline",
+                  "operationId": "GetItems"
+                },
+                "parameters": {
+                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                  "table": "@parameters('BioSap-List-MaintenanceItems (orsted_BioSapListMaintenanceItems)')",
+                  "$filter": "MaintenancePlanNo/Id eq @{triggerBody()?['ID']}",
+                  "$top": 500
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Has_items": {
+              "type": "If",
+              "expression": {
+                "greater": [
+                  "@length(outputs('Get_items_MaintenanceItems')?['body/value'])",
+                  0
+                ]
+              },
+              "actions": {
+                "Get_settings": {
+                  "type": "OpenApiConnection",
+                  "runAfter": {},
+                  "inputs": {
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "connectionName": "shared_sharepointonline",
+                      "operationId": "GetItems"
+                    },
+                    "parameters": {
+                      "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                      "table": "@parameters('BioSap-List-AppSettings (orsted_BioSapListAppSettings)')",
+                      "$filter": "Option eq 'CostApprovalThresholdDkk'",
+                      "$top": 1
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Threshold": {
+                  "type": "Compose",
+                  "inputs": "@int(coalesce(first(outputs('Get_settings')?['body/value'])?['Value'], 300000))",
+                  "runAfter": {
+                    "Get_settings": [
+                      "Succeeded"
+                    ]
+                  }
+                },
+                "Get_tasks": {
+                  "type": "OpenApiConnection",
+                  "runAfter": {
+                    "Threshold": [
+                      "Succeeded"
+                    ]
+                  },
+                  "inputs": {
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "connectionName": "shared_sharepointonline",
+                      "operationId": "GetItems"
+                    },
+                    "parameters": {
+                      "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                      "table": "@parameters('BioSap-List-TaskListMain (orsted_BioSapListTaskListMain)')",
+                      "$filter": "MaintenancePlanID/Id eq @{triggerBody()?['ID']}",
+                      "$top": 5000
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Get_approver_row": {
+                  "type": "OpenApiConnection",
+                  "runAfter": {
+                    "Get_tasks": [
+                      "Succeeded"
+                    ]
+                  },
+                  "inputs": {
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "connectionName": "shared_sharepointonline",
+                      "operationId": "GetItems"
+                    },
+                    "parameters": {
+                      "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                      "table": "@parameters('MD_Approver (orsted_shared_sharepointonline_ab9256f0efcb4239aa6e323d92c078ff)')",
+                      "$filter": "Title eq 'COST'",
+                      "$top": 1
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Get_log_Cost": {
+                  "type": "OpenApiConnection",
+                  "runAfter": {
+                    "Get_approver_row": [
+                      "Succeeded"
+                    ]
+                  },
+                  "inputs": {
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "connectionName": "shared_sharepointonline",
+                      "operationId": "GetItems"
+                    },
+                    "parameters": {
+                      "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                      "table": "@parameters('MD_ApprovalLog (orsted_shared_sharepointonline_ec07acb417e14a7c999704263844acb9)')",
+                      "$filter": "PlanId eq @{triggerBody()?['ID']} and Stage eq 'Cost'",
+                      "$top": 5000
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "RequestGuid": {
+                  "type": "Compose",
+                  "inputs": "@coalesce(first(outputs('Get_request_index')?['body/value'])?['RequestGuid'], '')",
+                  "runAfter": {
+                    "Get_log_Cost": [
+                      "Succeeded"
+                    ]
+                  }
+                },
+                "Approver_initials1": {
+                  "type": "Compose",
+                  "inputs": "@trim(coalesce(first(outputs('Get_approver_row')?['body/value'])?['Approver1'], ''))",
+                  "runAfter": {
+                    "RequestGuid": [
+                      "Succeeded"
+                    ]
+                  }
+                },
+                "Approver_initials2": {
+                  "type": "Compose",
+                  "inputs": "@trim(coalesce(first(outputs('Get_approver_row')?['body/value'])?['Approver2'], ''))",
+                  "runAfter": {
+                    "Approver_initials1": [
+                      "Succeeded"
+                    ]
+                  }
+                },
+                "Approver_email1": {
+                  "type": "Compose",
+                  "inputs": "@if(empty(outputs('Approver_initials1')), '', toLower(concat(outputs('Approver_initials1'), '@', parameters('BioSap-EmailDomain (orsted_BioSapEmailDomain)'))))",
+                  "runAfter": {
+                    "Approver_initials2": [
+                      "Succeeded"
+                    ]
+                  }
+                },
+                "Approver_email2": {
+                  "type": "Compose",
+                  "inputs": "@if(empty(outputs('Approver_initials2')), '', toLower(concat(outputs('Approver_initials2'), '@', parameters('BioSap-EmailDomain (orsted_BioSapEmailDomain)'))))",
+                  "runAfter": {
+                    "Approver_email1": [
+                      "Succeeded"
+                    ]
+                  }
+                },
+                "Approver1_absent": {
+                  "type": "Compose",
+                  "inputs": "@equals(first(outputs('Get_approver_row')?['body/value'])?['Approver1Absent'], true)",
+                  "runAfter": {
+                    "Approver_email2": [
+                      "Succeeded"
+                    ]
+                  }
+                },
+                "Resolve_primary": {
+                  "type": "OpenApiConnection",
+                  "runAfter": {
+                    "Approver1_absent": [
+                      "Succeeded"
+                    ]
+                  },
+                  "inputs": {
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365users",
+                      "connectionName": "shared_office365users",
+                      "operationId": "UserProfile_V2"
+                    },
+                    "parameters": {
+                      "id": "@if(outputs('Approver1_absent'), outputs('Approver_email2'), outputs('Approver_email1'))"
+                    },
+                    "authentication": "@parameters('$authentication')",
+                    "retryPolicy": {
+                      "type": "none"
+                    }
+                  }
+                },
+                "Resolve_secondary": {
+                  "type": "OpenApiConnection",
+                  "runAfter": {
+                    "Resolve_primary": [
+                      "Failed"
+                    ]
+                  },
+                  "inputs": {
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365users",
+                      "connectionName": "shared_office365users",
+                      "operationId": "UserProfile_V2"
+                    },
+                    "parameters": {
+                      "id": "@if(outputs('Approver1_absent'), outputs('Approver_email1'), outputs('Approver_email2'))"
+                    },
+                    "authentication": "@parameters('$authentication')",
+                    "retryPolicy": {
+                      "type": "none"
+                    }
+                  }
+                },
+                "Final_approver": {
+                  "type": "Compose",
+                  "inputs": "@coalesce(actions('Resolve_primary')?['outputs']?['body']?['mail'], actions('Resolve_primary')?['outputs']?['body']?['userPrincipalName'], actions('Resolve_secondary')?['outputs']?['body']?['mail'], actions('Resolve_secondary')?['outputs']?['body']?['userPrincipalName'], '')",
+                  "runAfter": {
+                    "Resolve_primary": [
+                      "Succeeded",
+                      "Failed"
+                    ],
+                    "Resolve_secondary": [
+                      "Succeeded",
+                      "Failed",
+                      "Skipped"
+                    ]
+                  }
+                },
+                "Has_approver": {
+                  "type": "If",
+                  "expression": {
+                    "not": {
+                      "equals": [
+                        "@outputs('Final_approver')",
+                        ""
+                      ]
+                    }
+                  },
+                  "actions": {
+                    "For_each_item": {
+                      "type": "Foreach",
+                      "foreach": "@outputs('Get_items_MaintenanceItems')?['body/value']",
+                      "runtimeConfiguration": {
+                        "concurrency": {
+                          "repetitions": 10
+                        }
+                      },
+                      "actions": {
+                        "ItemGuid": {
+                          "type": "Compose",
+                          "inputs": "@coalesce(items('For_each_item')?['ItemGuid'], concat('legacy-', string(items('For_each_item')?['ID'])))",
+                          "runAfter": {}
+                        },
+                        "Filter_ops": {
+                          "type": "Query",
+                          "inputs": {
+                            "from": "@outputs('Get_tasks')?['body/value']",
+                            "where": "@equals(item()?['MaintenanceItemNo']?['Id'], items('For_each_item')?['ID'])"
+                          },
+                          "runAfter": {
+                            "ItemGuid": [
+                              "Succeeded"
+                            ]
+                          }
+                        },
+                        "Select_prices": {
+                          "type": "Select",
+                          "inputs": {
+                            "from": "@body('Filter_ops')",
+                            "select": "@coalesce(item()?['Price'], 0)"
+                          },
+                          "runAfter": {
+                            "Filter_ops": [
+                              "Succeeded"
+                            ]
+                          }
+                        },
+                        "Total": {
+                          "type": "Compose",
+                          "inputs": "@if(empty(body('Select_prices')), 0, xpath(xml(json(concat('{\"r\":{\"w\":', string(body('Select_prices')), '}}'))), 'sum(/r/w)'))",
+                          "runAfter": {
+                            "Select_prices": [
+                              "Succeeded"
+                            ]
+                          }
+                        },
+                        "Filter_prev_rows": {
+                          "type": "Query",
+                          "inputs": {
+                            "from": "@outputs('Get_log_Cost')?['body/value']",
+                            "where": "@and(equals(item()?['ItemGuid'], outputs('ItemGuid')), equals(item()?['Decision'], 'Approve'), greaterOrEquals(coalesce(item()?['Amount'], 0), outputs('Total')))"
+                          },
+                          "runAfter": {
+                            "Total": [
+                              "Succeeded"
+                            ]
+                          }
+                        },
+                        "Select_op_lines": {
+                          "type": "Select",
+                          "inputs": {
+                            "from": "@body('Filter_ops')",
+                            "select": "@concat('- ', coalesce(item()?['OperationShortText'], ''), ': ', string(coalesce(item()?['Price'], 0)), ' kr.')"
+                          },
+                          "runAfter": {
+                            "Filter_prev_rows": [
+                              "Succeeded"
+                            ]
+                          }
+                        },
+                        "Path": {
+                          "type": "Compose",
+                          "inputs": "@if(lessOrEquals(outputs('Total'), outputs('Threshold')), 'Under', if(greater(length(body('Filter_prev_rows')), 0), 'Prev', 'Ask'))",
+                          "runAfter": {
+                            "Select_op_lines": [
+                              "Succeeded"
+                            ]
+                          }
+                        },
+                        "Switch_path": {
+                          "type": "Switch",
+                          "expression": "@outputs('Path')",
+                          "runAfter": {
+                            "Path": [
+                              "Succeeded"
+                            ]
+                          },
+                          "cases": {
+                            "Under": {
+                              "case": "Under",
+                              "actions": {
+                                "Log_skipped_under": {
+                                  "type": "OpenApiConnection",
+                                  "runAfter": {},
+                                  "inputs": {
+                                    "host": {
+                                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                      "connectionName": "shared_sharepointonline",
+                                      "operationId": "PostItem"
+                                    },
+                                    "parameters": {
+                                      "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                      "table": "@parameters('MD_ApprovalLog (orsted_shared_sharepointonline_ec07acb417e14a7c999704263844acb9)')",
+                                      "item/Title": "@workflow()?['run']?['name']",
+                                      "item/RequestGuid": "@outputs('RequestGuid')",
+                                      "item/PlanId": "@triggerBody()?['ID']",
+                                      "item/Stage": "Cost",
+                                      "item/Decision": "Skipped",
+                                      "item/DecidedByEmail": "system",
+                                      "item/DecidedOn": "@utcNow()",
+                                      "item/Detail": "@concat(string(outputs('Total')), ' kr. (grænse ', string(outputs('Threshold')), ' kr.)')",
+                                      "item/ItemGuid": "@outputs('ItemGuid')",
+                                      "item/ItemText": "@concat(coalesce(items('For_each_item')?['Title'], ''), ' - ', coalesce(items('For_each_item')?['FunctionalLocation'], ''))",
+                                      "item/Amount": "@outputs('Total')"
+                                    },
+                                    "authentication": "@parameters('$authentication')"
+                                  }
+                                }
+                              }
+                            },
+                            "Prev": {
+                              "case": "Prev",
+                              "actions": {
+                                "Log_skipped_previous": {
+                                  "type": "OpenApiConnection",
+                                  "runAfter": {},
+                                  "inputs": {
+                                    "host": {
+                                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                      "connectionName": "shared_sharepointonline",
+                                      "operationId": "PostItem"
+                                    },
+                                    "parameters": {
+                                      "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                      "table": "@parameters('MD_ApprovalLog (orsted_shared_sharepointonline_ec07acb417e14a7c999704263844acb9)')",
+                                      "item/Title": "@workflow()?['run']?['name']",
+                                      "item/RequestGuid": "@outputs('RequestGuid')",
+                                      "item/PlanId": "@triggerBody()?['ID']",
+                                      "item/Stage": "Cost",
+                                      "item/Decision": "Skipped",
+                                      "item/DecidedByEmail": "system",
+                                      "item/DecidedOn": "@utcNow()",
+                                      "item/Detail": "godkendt tidligere",
+                                      "item/ItemGuid": "@outputs('ItemGuid')",
+                                      "item/ItemText": "@concat(coalesce(items('For_each_item')?['Title'], ''), ' - ', coalesce(items('For_each_item')?['FunctionalLocation'], ''))",
+                                      "item/Amount": "@outputs('Total')"
+                                    },
+                                    "authentication": "@parameters('$authentication')"
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "default": {
+                            "actions": {
+                              "Start_and_wait_for_an_approval": {
+                                "type": "OpenApiConnectionWebhook",
+                                "runAfter": {},
+                                "inputs": {
+                                  "host": {
+                                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_approvals",
+                                    "connectionName": "shared_approvals",
+                                    "operationId": "StartAndWaitForAnApproval"
+                                  },
+                                  "parameters": {
+                                    "approvalType": "CustomResponse",
+                                    "WebhookApprovalCreationInput/title": "@concat('Omkostningsgodkendelse - ', triggerBody()?['PlanID'], ' - ', coalesce(items('For_each_item')?['Title'], ''))",
+                                    "WebhookApprovalCreationInput/assignedTo": "@outputs('Final_approver')",
+                                    "WebhookApprovalCreationInput/details": "@concat('**Plan:** ', triggerBody()?['PlanID'], ' - ', coalesce(triggerBody()?['Title'], ''), '\n\n**Værk:** ', coalesce(triggerBody()?['PlantsInitial/Value'], ''), '\n\n**Item:** ', coalesce(items('For_each_item')?['Title'], ''), '\n\n**Funktionsplads:** ', coalesce(items('For_each_item')?['FunctionalLocation'], ''), '\n\n**Omkostning pr. udførelse:** ', string(outputs('Total')), ' kr. (grænse ', string(outputs('Threshold')), ' kr.)', '\n\n**Operationer:**\n', join(take(body('Select_op_lines'), 15), decodeUriComponent('%0A')), '\n\n**Rekvirent:** ', coalesce(triggerBody()?['Author/DisplayName'], ''))",
+                                    "WebhookApprovalCreationInput/responseOptions": [
+                                      "Godkend",
+                                      "Send retur"
+                                    ],
+                                    "WebhookApprovalCreationInput/enableNotifications": true,
+                                    "WebhookApprovalCreationInput/enableReassignment": true,
+                                    "WebhookApprovalCreationInput/itemLink": "@coalesce(first(outputs('Get_request_index')?['body/value'])?['AppUrl'], parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)'))",
+                                    "WebhookApprovalCreationInput/itemLinkDescription": "Åbn planen i appen"
+                                  },
+                                  "authentication": "@parameters('$authentication')"
+                                },
+                                "limit": {
+                                  "timeout": "P14D"
+                                }
+                              },
+                              "Approval_outcome": {
+                                "type": "If",
+                                "expression": {
+                                  "equals": [
+                                    "@body('Start_and_wait_for_an_approval')?['outcome']",
+                                    "Godkend"
+                                  ]
+                                },
+                                "actions": {
+                                  "Log_approve": {
+                                    "type": "OpenApiConnection",
+                                    "runAfter": {},
+                                    "inputs": {
+                                      "host": {
+                                        "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                        "connectionName": "shared_sharepointonline",
+                                        "operationId": "PostItem"
+                                      },
+                                      "parameters": {
+                                        "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                        "table": "@parameters('MD_ApprovalLog (orsted_shared_sharepointonline_ec07acb417e14a7c999704263844acb9)')",
+                                        "item/Title": "@workflow()?['run']?['name']",
+                                        "item/RequestGuid": "@outputs('RequestGuid')",
+                                        "item/PlanId": "@triggerBody()?['ID']",
+                                        "item/Stage": "Cost",
+                                        "item/Decision": "Approve",
+                                        "item/DecidedByEmail": "@first(body('Start_and_wait_for_an_approval')?['responses'])?['responder']?['email']",
+                                        "item/DecidedOn": "@utcNow()",
+                                        "item/Detail": "omkostning",
+                                        "item/Comment": "@first(body('Start_and_wait_for_an_approval')?['responses'])?['comments']",
+                                        "item/ItemGuid": "@outputs('ItemGuid')",
+                                        "item/ItemText": "@concat(coalesce(items('For_each_item')?['Title'], ''), ' - ', coalesce(items('For_each_item')?['FunctionalLocation'], ''))",
+                                        "item/Amount": "@outputs('Total')"
+                                      },
+                                      "authentication": "@parameters('$authentication')"
+                                    }
+                                  }
+                                },
+                                "runAfter": {
+                                  "Start_and_wait_for_an_approval": [
+                                    "Succeeded"
+                                  ]
+                                },
+                                "else": {
+                                  "actions": {
+                                    "Log_return_by_approver": {
+                                      "type": "OpenApiConnection",
+                                      "runAfter": {},
+                                      "inputs": {
+                                        "host": {
+                                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                          "connectionName": "shared_sharepointonline",
+                                          "operationId": "PostItem"
+                                        },
+                                        "parameters": {
+                                          "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                          "table": "@parameters('MD_ApprovalLog (orsted_shared_sharepointonline_ec07acb417e14a7c999704263844acb9)')",
+                                          "item/Title": "@workflow()?['run']?['name']",
+                                          "item/RequestGuid": "@outputs('RequestGuid')",
+                                          "item/PlanId": "@triggerBody()?['ID']",
+                                          "item/Stage": "Cost",
+                                          "item/Decision": "Return",
+                                          "item/DecidedByEmail": "@first(body('Start_and_wait_for_an_approval')?['responses'])?['responder']?['email']",
+                                          "item/DecidedOn": "@utcNow()",
+                                          "item/Detail": "omkostning",
+                                          "item/Comment": "@first(body('Start_and_wait_for_an_approval')?['responses'])?['comments']",
+                                          "item/ItemGuid": "@outputs('ItemGuid')",
+                                          "item/ItemText": "@concat(coalesce(items('For_each_item')?['Title'], ''), ' - ', coalesce(items('For_each_item')?['FunctionalLocation'], ''))",
+                                          "item/Amount": "@outputs('Total')"
+                                        },
+                                        "authentication": "@parameters('$authentication')"
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "Log_timeout": {
+                                "type": "OpenApiConnection",
+                                "runAfter": {
+                                  "Start_and_wait_for_an_approval": [
+                                    "TimedOut"
+                                  ]
+                                },
+                                "inputs": {
+                                  "host": {
+                                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                    "connectionName": "shared_sharepointonline",
+                                    "operationId": "PostItem"
+                                  },
+                                  "parameters": {
+                                    "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                    "table": "@parameters('MD_ApprovalLog (orsted_shared_sharepointonline_ec07acb417e14a7c999704263844acb9)')",
+                                    "item/Title": "@workflow()?['run']?['name']",
+                                    "item/RequestGuid": "@outputs('RequestGuid')",
+                                    "item/PlanId": "@triggerBody()?['ID']",
+                                    "item/Stage": "Cost",
+                                    "item/Decision": "Timeout",
+                                    "item/DecidedByEmail": "system",
+                                    "item/DecidedOn": "@utcNow()",
+                                    "item/Detail": "@concat('intet svar fra ', outputs('Final_approver'))",
+                                    "item/ItemGuid": "@outputs('ItemGuid')",
+                                    "item/ItemText": "@concat(coalesce(items('For_each_item')?['Title'], ''), ' - ', coalesce(items('For_each_item')?['FunctionalLocation'], ''))",
+                                    "item/Amount": "@outputs('Total')"
+                                  },
+                                  "authentication": "@parameters('$authentication')"
+                                }
+                              },
+                              "Send_reminder": {
+                                "type": "OpenApiConnection",
+                                "runAfter": {
+                                  "Log_timeout": [
+                                    "Succeeded"
+                                  ]
+                                },
+                                "inputs": {
+                                  "host": {
+                                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                                    "connectionName": "shared_office365",
+                                    "operationId": "SendEmailV2"
+                                  },
+                                  "parameters": {
+                                    "emailMessage/To": "@outputs('Final_approver')",
+                                    "emailMessage/Subject": "@concat('Påmindelse: VH-plan ', triggerBody()?['PlanID'], ' venter på din godkendelse')",
+                                    "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">Omkostningsgodkendelsen af item '@{items('For_each_item')?['Title']}' i VH-plan @{triggerBody()?['PlanID']} er ikke besvaret. Svar i Teams under Approvals eller i mailen fra Power Automate.</p>",
+                                    "emailMessage/Importance": "Normal"
+                                  },
+                                  "authentication": "@parameters('$authentication')"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "runAfter": {}
+                    },
+                    "Get_log_results": {
+                      "type": "OpenApiConnection",
+                      "runAfter": {
+                        "For_each_item": [
+                          "Succeeded"
+                        ]
+                      },
+                      "inputs": {
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                          "connectionName": "shared_sharepointonline",
+                          "operationId": "GetItems"
+                        },
+                        "parameters": {
+                          "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                          "table": "@parameters('MD_ApprovalLog (orsted_shared_sharepointonline_ec07acb417e14a7c999704263844acb9)')",
+                          "$filter": "PlanId eq @{triggerBody()?['ID']} and Stage eq 'Cost' and Title eq '@{workflow()?['run']?['name']}'",
+                          "$top": 5000
+                        },
+                        "authentication": "@parameters('$authentication')"
+                      }
+                    },
+                    "Return_rows": {
+                      "type": "Query",
+                      "runAfter": {
+                        "Get_log_results": [
+                          "Succeeded"
+                        ]
+                      },
+                      "inputs": {
+                        "from": "@outputs('Get_log_results')?['body/value']",
+                        "where": "@equals(item()?['Decision'], 'Return')"
+                      }
+                    },
+                    "Timeout_rows": {
+                      "type": "Query",
+                      "runAfter": {
+                        "Return_rows": [
+                          "Succeeded"
+                        ]
+                      },
+                      "inputs": {
+                        "from": "@outputs('Get_log_results')?['body/value']",
+                        "where": "@equals(item()?['Decision'], 'Timeout')"
+                      }
+                    },
+                    "Any_timeout": {
+                      "type": "If",
+                      "expression": {
+                        "greater": [
+                          "@length(body('Timeout_rows'))",
+                          0
+                        ]
+                      },
+                      "actions": {
+                        "Release_stage_after_timeout": {
+                          "type": "OpenApiConnection",
+                          "runAfter": {},
+                          "inputs": {
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                              "connectionName": "shared_sharepointonline",
+                              "operationId": "HttpRequest"
+                            },
+                            "parameters": {
+                              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                              "parameters/method": "POST",
+                              "parameters/uri": "_api/web/lists/GetByTitle('@{parameters('BioSap-List-MaintenancePlansName (orsted_BioSapListMaintenancePlansName)')}')/items(@{triggerBody()?['ID']})",
+                              "parameters/headers": {
+                                "Content-Type": "application/json;odata=verbose",
+                                "If-Match": "*",
+                                "X-HTTP-Method": "MERGE"
+                              },
+                              "parameters/body": "{\"__metadata\": {\"type\": \"@{parameters('BioSap-ListItemEntityTypeMaintenancePlan (orsted_BioSapListItemEntityTypeMaintenancePlan)')}\"}, \"StageRunId\": \"\"}"
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        }
+                      },
+                      "runAfter": {
+                        "Timeout_rows": [
+                          "Succeeded"
+                        ]
+                      },
+                      "else": {
+                        "actions": {
+                          "Any_return": {
+                            "type": "If",
+                            "expression": {
+                              "greater": [
+                                "@length(body('Return_rows'))",
+                                0
+                              ]
+                            },
+                            "actions": {
+                              "Select_return_lines": {
+                                "type": "Select",
+                                "inputs": {
+                                  "from": "@body('Return_rows')",
+                                  "select": "@concat(coalesce(item()?['ItemText'], ''), ' - ', coalesce(item()?['Comment'], item()?['Detail'], ''))"
+                                },
+                                "runAfter": {}
+                              },
+                              "Return_comment": {
+                                "type": "Compose",
+                                "inputs": "@join(body('Select_return_lines'), decodeUriComponent('%0A'))",
+                                "runAfter": {
+                                  "Select_return_lines": [
+                                    "Succeeded"
+                                  ]
+                                }
+                              },
+                              "Body_return": {
+                                "type": "Compose",
+                                "inputs": {
+                                  "__metadata": {
+                                    "type": "@parameters('BioSap-ListItemEntityTypeMaintenancePlan (orsted_BioSapListItemEntityTypeMaintenancePlan)')"
+                                  },
+                                  "Status": "Returned",
+                                  "ApprovalStage": null,
+                                  "StageRunId": "",
+                                  "ReturnComment": "@outputs('Return_comment')"
+                                },
+                                "runAfter": {
+                                  "Return_comment": [
+                                    "Succeeded"
+                                  ]
+                                }
+                              },
+                              "Set_plan_returned": {
+                                "type": "OpenApiConnection",
+                                "runAfter": {
+                                  "Body_return": [
+                                    "Succeeded"
+                                  ]
+                                },
+                                "inputs": {
+                                  "host": {
+                                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                    "connectionName": "shared_sharepointonline",
+                                    "operationId": "HttpRequest"
+                                  },
+                                  "parameters": {
+                                    "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                    "parameters/method": "POST",
+                                    "parameters/uri": "_api/web/lists/GetByTitle('@{parameters('BioSap-List-MaintenancePlansName (orsted_BioSapListMaintenancePlansName)')}')/items(@{triggerBody()?['ID']})",
+                                    "parameters/headers": {
+                                      "Content-Type": "application/json;odata=verbose",
+                                      "If-Match": "*",
+                                      "X-HTTP-Method": "MERGE"
+                                    },
+                                    "parameters/body": "@string(outputs('Body_return'))"
+                                  },
+                                  "authentication": "@parameters('$authentication')"
+                                }
+                              },
+                              "Index_returned": {
+                                "type": "If",
+                                "expression": {
+                                  "greater": [
+                                    "@length(outputs('Get_request_index')?['body/value'])",
+                                    0
+                                  ]
+                                },
+                                "actions": {
+                                  "Patch_index_returned": {
+                                    "type": "OpenApiConnection",
+                                    "runAfter": {},
+                                    "inputs": {
+                                      "host": {
+                                        "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                        "connectionName": "shared_sharepointonline",
+                                        "operationId": "PatchItem"
+                                      },
+                                      "parameters": {
+                                        "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                        "table": "@parameters('MD_RequestIndex (orsted_shared_sharepointonline_9f0c6e07f15d4509a3ecab4d20b7fff7)')",
+                                        "id": "@first(outputs('Get_request_index')?['body/value'])?['ID']",
+                                        "item/Title": "@first(outputs('Get_request_index')?['body/value'])?['Title']",
+                                        "item/Domain": {
+                                          "Value": "MaintenancePlan"
+                                        },
+                                        "item/RequesterEmail": "@first(outputs('Get_request_index')?['body/value'])?['RequesterEmail']",
+                                        "item/Status": {
+                                          "Value": "AfventerInfo"
+                                        },
+                                        "item/StatusStep": 3,
+                                        "item/LastActionBy": "omkostningsgodkendelsen",
+                                        "item/LastActionOn": "@utcNow()"
+                                      },
+                                      "authentication": "@parameters('$authentication')"
+                                    }
+                                  }
+                                },
+                                "runAfter": {
+                                  "Set_plan_returned": [
+                                    "Succeeded"
+                                  ]
+                                },
+                                "else": {
+                                  "actions": {}
+                                }
+                              },
+                              "Send_returned_mail": {
+                                "type": "OpenApiConnection",
+                                "runAfter": {
+                                  "Index_returned": [
+                                    "Succeeded",
+                                    "Failed",
+                                    "Skipped"
+                                  ]
+                                },
+                                "inputs": {
+                                  "host": {
+                                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                                    "connectionName": "shared_office365",
+                                    "operationId": "SendEmailV2"
+                                  },
+                                  "parameters": {
+                                    "emailMessage/To": "@triggerBody()?['Author/Email']",
+                                    "emailMessage/Subject": "@concat('VH-plan ', triggerBody()?['PlanID'], ' sendt retur - ret og indsend igen')",
+                                    "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">VH-plan @{triggerBody()?['PlanID']} (@{triggerBody()?['Title']}) er sendt retur fra omkostningsgodkendelsen:</p><p style=\"font-family: Arial, sans-serif; white-space: pre-line;\">@{replace(replace(replace(outputs('Return_comment'), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</p><p style=\"font-family: Arial, sans-serif;\">Ret planen i appen og indsend igen.</p>",
+                                    "emailMessage/Importance": "Normal"
+                                  },
+                                  "authentication": "@parameters('$authentication')"
+                                }
+                              }
+                            },
+                            "runAfter": {},
+                            "else": {
+                              "actions": {
+                                "Set_stage_next": {
+                                  "type": "OpenApiConnection",
+                                  "runAfter": {},
+                                  "inputs": {
+                                    "host": {
+                                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                      "connectionName": "shared_sharepointonline",
+                                      "operationId": "HttpRequest"
+                                    },
+                                    "parameters": {
+                                      "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                      "parameters/method": "POST",
+                                      "parameters/uri": "_api/web/lists/GetByTitle('@{parameters('BioSap-List-MaintenancePlansName (orsted_BioSapListMaintenancePlansName)')}')/items(@{triggerBody()?['ID']})",
+                                      "parameters/headers": {
+                                        "Content-Type": "application/json;odata=verbose",
+                                        "If-Match": "*",
+                                        "X-HTTP-Method": "MERGE"
+                                      },
+                                      "parameters/body": "{\"__metadata\": {\"type\": \"@{parameters('BioSap-ListItemEntityTypeMaintenancePlan (orsted_BioSapListItemEntityTypeMaintenancePlan)')}\"}, \"ApprovalStage\": \"Quality\", \"StageRunId\": \"\"}"
+                                    },
+                                    "authentication": "@parameters('$authentication')"
+                                  }
+                                },
+                                "Index_progress": {
+                                  "type": "If",
+                                  "expression": {
+                                    "greater": [
+                                      "@length(outputs('Get_request_index')?['body/value'])",
+                                      0
+                                    ]
+                                  },
+                                  "actions": {
+                                    "Patch_index_progress": {
+                                      "type": "OpenApiConnection",
+                                      "runAfter": {},
+                                      "inputs": {
+                                        "host": {
+                                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                          "connectionName": "shared_sharepointonline",
+                                          "operationId": "PatchItem"
+                                        },
+                                        "parameters": {
+                                          "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                          "table": "@parameters('MD_RequestIndex (orsted_shared_sharepointonline_9f0c6e07f15d4509a3ecab4d20b7fff7)')",
+                                          "id": "@first(outputs('Get_request_index')?['body/value'])?['ID']",
+                                          "item/Title": "@first(outputs('Get_request_index')?['body/value'])?['Title']",
+                                          "item/Domain": {
+                                            "Value": "MaintenancePlan"
+                                          },
+                                          "item/RequesterEmail": "@first(outputs('Get_request_index')?['body/value'])?['RequesterEmail']",
+                                          "item/Status": {
+                                            "Value": "UnderBehandling"
+                                          },
+                                          "item/StatusStep": 3,
+                                          "item/LastActionBy": "omkostningsgodkendelsen",
+                                          "item/LastActionOn": "@utcNow()"
+                                        },
+                                        "authentication": "@parameters('$authentication')"
+                                      }
+                                    }
+                                  },
+                                  "runAfter": {
+                                    "Set_stage_next": [
+                                      "Succeeded"
+                                    ]
+                                  },
+                                  "else": {
+                                    "actions": {}
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "runAfter": {
+                    "Final_approver": [
+                      "Succeeded"
+                    ]
+                  },
+                  "else": {
+                    "actions": {
+                      "Set_plan_returned_no_approver": {
+                        "type": "OpenApiConnection",
+                        "runAfter": {},
+                        "inputs": {
+                          "host": {
+                            "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                            "connectionName": "shared_sharepointonline",
+                            "operationId": "HttpRequest"
+                          },
+                          "parameters": {
+                            "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                            "parameters/method": "POST",
+                            "parameters/uri": "_api/web/lists/GetByTitle('@{parameters('BioSap-List-MaintenancePlansName (orsted_BioSapListMaintenancePlansName)')}')/items(@{triggerBody()?['ID']})",
+                            "parameters/headers": {
+                              "Content-Type": "application/json;odata=verbose",
+                              "If-Match": "*",
+                              "X-HTTP-Method": "MERGE"
+                            },
+                            "parameters/body": "{\"__metadata\": {\"type\": \"@{parameters('BioSap-ListItemEntityTypeMaintenancePlan (orsted_BioSapListItemEntityTypeMaintenancePlan)')}\"}, \"Status\": \"Returned\", \"ApprovalStage\": null, \"StageRunId\": \"\", \"ReturnComment\": \"Omkostningsgodkenderen (COST) findes ikke i MD_Approver eller i Office 365.\"}"
+                          },
+                          "authentication": "@parameters('$authentication')"
+                        }
+                      },
+                      "Mail_no_approver": {
+                        "type": "OpenApiConnection",
+                        "runAfter": {
+                          "Set_plan_returned_no_approver": [
+                            "Succeeded"
+                          ]
+                        },
+                        "inputs": {
+                          "host": {
+                            "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                            "connectionName": "shared_office365",
+                            "operationId": "SendEmailV2"
+                          },
+                          "parameters": {
+                            "emailMessage/To": "@parameters('BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)')",
+                            "emailMessage/Subject": "Omkostningsgodkender mangler - VH-plan @{triggerBody()?['PlanID']}",
+                            "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">VH-plan @{triggerBody()?['PlanID']} er sendt retur: rækken COST i MD_Approver mangler eller har ingen gyldig godkender i Office 365.</p>",
+                            "emailMessage/Importance": "Normal"
+                          },
+                          "authentication": "@parameters('$authentication')"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "runAfter": {
+                "Get_items_MaintenanceItems": [
+                  "Succeeded"
+                ]
+              },
+              "else": {
+                "actions": {
+                  "Return_no_items": {
+                    "type": "OpenApiConnection",
+                    "runAfter": {},
+                    "inputs": {
+                      "host": {
+                        "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                        "connectionName": "shared_sharepointonline",
+                        "operationId": "HttpRequest"
+                      },
+                      "parameters": {
+                        "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                        "parameters/method": "POST",
+                        "parameters/uri": "_api/web/lists/GetByTitle('@{parameters('BioSap-List-MaintenancePlansName (orsted_BioSapListMaintenancePlansName)')}')/items(@{triggerBody()?['ID']})",
+                        "parameters/headers": {
+                          "Content-Type": "application/json;odata=verbose",
+                          "If-Match": "*",
+                          "X-HTTP-Method": "MERGE"
+                        },
+                        "parameters/body": "{\"__metadata\": {\"type\": \"@{parameters('BioSap-ListItemEntityTypeMaintenancePlan (orsted_BioSapListItemEntityTypeMaintenancePlan)')}\"}, \"Status\": \"Returned\", \"ApprovalStage\": null, \"StageRunId\": \"\", \"ReturnComment\": \"Planen har ingen items.\"}"
+                      },
+                      "authentication": "@parameters('$authentication')"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "Catch": {
+          "type": "Scope",
+          "runAfter": {
+            "Try": [
+              "TimedOut",
+              "Skipped",
+              "Failed"
+            ]
+          },
+          "actions": {
+            "Convert_UTC_time_to_DK_time_zone": {
+              "type": "Expression",
+              "kind": "ConvertTimeZone",
+              "runAfter": {},
+              "inputs": {
+                "baseTime": "@utcNow()",
+                "formatString": "G",
+                "sourceTimeZone": "UTC",
+                "destinationTimeZone": "Romance Standard Time"
+              }
+            },
+            "Send_notification_to_development_team": {
+              "type": "OpenApiConnection",
+              "runAfter": {
+                "Convert_UTC_time_to_DK_time_zone": [
+                  "Succeeded"
+                ]
+              },
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                  "connectionName": "shared_office365",
+                  "operationId": "SendEmailV2"
+                },
+                "parameters": {
+                  "emailMessage/To": "@parameters('BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)')",
+                  "emailMessage/Subject": "An error occured in the flow - @{workflow()?['tags']?['flowDisplayName']}",
+                  "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">Hi,<br><br>An error was detected in the following flow instance (plan @{triggerBody()?['PlanID']}).<br><br>&gt;Timestamp<br>@{body('Convert_UTC_time_to_DK_time_zone')}<br><br>&gt;Run History<br>@{variables('FlowRunHistoryLink')}<br><br>Thank you</p>",
+                  "emailMessage/Importance": "Normal"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            }
+          }
+        },
+        "Finally": {
+          "type": "Scope",
+          "runAfter": {
+            "Catch": [
+              "Succeeded",
+              "Failed",
+              "Skipped",
+              "TimedOut"
+            ]
+          },
+          "actions": {}
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

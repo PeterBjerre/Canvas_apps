@@ -52,6 +52,34 @@
           "metadata": {
             "schemaName": "orsted_BioSapListMaintenancePlans"
           }
+        },
+        "BioSap-List-MaintenancePlansName (orsted_BioSapListMaintenancePlansName)": {
+          "defaultValue": "MaintenancePlans",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapListMaintenancePlansName"
+          }
+        },
+        "BioSap-ListItemEntityTypeMaintenancePlan (orsted_BioSapListItemEntityTypeMaintenancePlan)": {
+          "defaultValue": "SP.Data.MaintenancePlansListItem",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapListItemEntityTypeMaintenancePlan"
+          }
+        },
+        "MD_ApprovalLog (orsted_shared_sharepointonline_ec07acb417e14a7c999704263844acb9)": {
+          "defaultValue": "f80b05d7-06f9-4cf5-b6a7-45ed8a3c4ee3",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_shared_sharepointonline_ec07acb417e14a7c999704263844acb9"
+          }
+        },
+        "MD_RequestIndex (orsted_shared_sharepointonline_9f0c6e07f15d4509a3ecab4d20b7fff7)": {
+          "defaultValue": "3d945b5b-bd5b-43eb-be27-3f0c2416b08a",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_shared_sharepointonline_9f0c6e07f15d4509a3ecab4d20b7fff7"
+          }
         }
       },
       "triggers": {
@@ -83,6 +111,9 @@
             },
             {
               "expression": "@not(empty(triggerBody()?['SAPNum']))"
+            },
+            {
+              "expression": "@not(equals(triggerBody()?['RequesterNotified'], true))"
             }
           ]
         }
@@ -122,6 +153,141 @@
                   "emailMessage/Importance": "Normal"
                 },
                 "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Set_requester_notified": {
+              "type": "OpenApiConnection",
+              "runAfter": {
+                "Send_an_email_(V2)-EmailRequestor": [
+                  "Succeeded"
+                ]
+              },
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "connectionName": "shared_sharepointonline-1",
+                  "operationId": "HttpRequest"
+                },
+                "parameters": {
+                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                  "parameters/method": "POST",
+                  "parameters/uri": "_api/web/lists/GetByTitle('@{parameters('BioSap-List-MaintenancePlansName (orsted_BioSapListMaintenancePlansName)')}')/items(@{triggerBody()?['ID']})",
+                  "parameters/headers": {
+                    "Content-Type": "application/json;odata=verbose",
+                    "If-Match": "*",
+                    "X-HTTP-Method": "MERGE"
+                  },
+                  "parameters/body": "{\"__metadata\": {\"type\": \"@{parameters('BioSap-ListItemEntityTypeMaintenancePlan (orsted_BioSapListItemEntityTypeMaintenancePlan)')}\"}, \"RequesterNotified\": true}"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Get_request_index": {
+              "type": "OpenApiConnection",
+              "runAfter": {
+                "Set_requester_notified": [
+                  "Succeeded"
+                ]
+              },
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "connectionName": "shared_sharepointonline-1",
+                  "operationId": "GetItems"
+                },
+                "parameters": {
+                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                  "table": "@parameters('MD_RequestIndex (orsted_shared_sharepointonline_9f0c6e07f15d4509a3ecab4d20b7fff7)')",
+                  "$filter": "SourceItemId eq @{triggerBody()?['ID']} and Domain eq 'MaintenancePlan'",
+                  "$top": 1
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "RequestGuid": {
+              "type": "Compose",
+              "inputs": "@coalesce(first(outputs('Get_request_index')?['body/value'])?['RequestGuid'], '')",
+              "runAfter": {
+                "Get_request_index": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Log_sap_created": {
+              "type": "OpenApiConnection",
+              "runAfter": {
+                "RequestGuid": [
+                  "Succeeded"
+                ]
+              },
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "connectionName": "shared_sharepointonline-1",
+                  "operationId": "PostItem"
+                },
+                "parameters": {
+                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                  "table": "@parameters('MD_ApprovalLog (orsted_shared_sharepointonline_ec07acb417e14a7c999704263844acb9)')",
+                  "item/Title": "@workflow()?['run']?['name']",
+                  "item/RequestGuid": "@outputs('RequestGuid')",
+                  "item/PlanId": "@triggerBody()?['ID']",
+                  "item/Stage": "SapCreated",
+                  "item/Decision": "Approve",
+                  "item/DecidedByEmail": "system",
+                  "item/DecidedOn": "@utcNow()",
+                  "item/Detail": "@concat('SAP-plan ', triggerBody()?['SAPNum'])"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Index_published": {
+              "type": "If",
+              "expression": {
+                "greater": [
+                  "@length(outputs('Get_request_index')?['body/value'])",
+                  0
+                ]
+              },
+              "actions": {
+                "Patch_index_published": {
+                  "type": "OpenApiConnection",
+                  "runAfter": {},
+                  "inputs": {
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "connectionName": "shared_sharepointonline-1",
+                      "operationId": "PatchItem"
+                    },
+                    "parameters": {
+                      "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                      "table": "@parameters('MD_RequestIndex (orsted_shared_sharepointonline_9f0c6e07f15d4509a3ecab4d20b7fff7)')",
+                      "id": "@first(outputs('Get_request_index')?['body/value'])?['ID']",
+                      "item/Title": "@first(outputs('Get_request_index')?['body/value'])?['Title']",
+                      "item/Domain": {
+                        "Value": "MaintenancePlan"
+                      },
+                      "item/RequesterEmail": "@first(outputs('Get_request_index')?['body/value'])?['RequesterEmail']",
+                      "item/Status": {
+                        "Value": "OprettetISAP"
+                      },
+                      "item/StatusStep": 5,
+                      "item/SapObjectNo": "@triggerBody()?['SAPNum']",
+                      "item/IsOpen": false,
+                      "item/LastActionBy": "SAP",
+                      "item/LastActionOn": "@utcNow()"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "runAfter": {
+                "Log_sap_created": [
+                  "Succeeded"
+                ]
+              },
+              "else": {
+                "actions": {}
               }
             }
           },
