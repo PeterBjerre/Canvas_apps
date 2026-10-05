@@ -8,7 +8,8 @@ Screens:
           If(IsBlank(varMdView), Set(varMdView, "mine"));
           If(IsBlank(varMdStatusMode), Set(varMdStatusMode, "open"));
           If(IsBlank(varMdFlag), Set(varMdFlag, ""));
-          ClearCollect(colMdScope, ForAll(If(
+          Concurrent(
+              ClearCollect(colMdScope, ForAll(If(
                   varMdView = "mine",
                   If(
                       varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
@@ -20,7 +21,9 @@ Screens:
                       varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
                       'MD_RequestIndex'
                   )
-              ) As R, { Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
+              ) As R, { Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe })),
+              ClearCollect(colMdAprAll, SortByColumns(Filter(MD_ApprovalLog, Stage = "System" || Stage = "Cost" || Stage = "Quality"), "ID", SortOrder.Descending))
+          )
     Children:
       - conMdRoot:
           Control: GroupContainer
@@ -2631,7 +2634,7 @@ Screens:
                                         ="data:image/svg+xml;utf8," & EncodeUrl(If(
                                             !(ThisItem.Domain.Value = "MaintenancePlan" && ThisItem.Status.Value <> "Kladde"), "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='30' viewBox='0 0 270 30'><text x='4' y='19' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>Not required</text></svg>",
                                             With(
-                                                { L: Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid) },
+                                                { L: With({ c: Filter(colMdAprAll, RequestGuid = ThisItem.RequestGuid) }, If(IsEmpty(c) && CountRows(colMdAprAll) >= 500, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid), c)) },
                                                 With({a: With({T: ForAll(GroupBy(Filter(L, Stage = "System"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending)))}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
                                             r > 0, "Returned",
                                             n > 0 && n >= Max(1, ThisItem.ItemCount) && k = n, "Skipped",
@@ -3259,7 +3262,7 @@ Screens:
                                         ="data:image/svg+xml;utf8," & EncodeUrl(If(
                                             !(ThisItem.Domain.Value = "MaintenancePlan" && ThisItem.Status.Value <> "Kladde"), "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='30' viewBox='0 0 270 30'><text x='4' y='19' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>Not required</text></svg>",
                                             With(
-                                                { L: Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid) },
+                                                { L: With({ c: Filter(colMdAprAll, RequestGuid = ThisItem.RequestGuid) }, If(IsEmpty(c) && CountRows(colMdAprAll) >= 500, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid), c)) },
                                                 With({a: With({T: ForAll(GroupBy(Filter(L, Stage = "System"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending)))}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
                                             r > 0, "Returned",
                                             n > 0 && n >= Max(1, ThisItem.ItemCount) && k = n, "Skipped",
