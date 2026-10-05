@@ -124,6 +124,32 @@ def open_block(domain, init):
     )
 
 
+def stale_check(domain):
+    """Foerst i domaeneskaermens OnVisible: har en sletning (hubbens eller
+    skaermens egen, tools/request_delete.py) roert det, skaermen viser?
+
+    gbl<X>Stale saettes af sletningen. Er skaermens aabne anmodning vaek,
+    glemmes den (want og opened nulstilles), og open_block klargoer en ny,
+    tom anmodning lige efter - ellers ville naeste gem oprette
+    indeksraekken igen. Ellers koster det intet: opslaget sker kun, naar
+    flaget er sat. var<X>StaleNow bruges af Equipments og Materials til at
+    hente listen igen."""
+    t = domain["tag"]
+    now, stale = f"var{t}StaleNow", cb.stale_var(t)
+    return (
+        "// Har en sletning roert det, skaermen viser? (tools/request_delete.py)\n"
+        f"Set({now}, Coalesce({stale}, false));\n"
+        "If(\n"
+        f"    {now},\n"
+        f"    Set({stale}, false);\n"
+        "    If(\n"
+        f"        !IsBlank(var{t}RequestGuid) && IsBlank(LookUp(MD_RequestIndex, RequestGuid = var{t}RequestGuid)),\n"
+        f"        Set({cb.want_var(t)}, Blank());\n"
+        f'        Set({cb.opened_var(t)}, "")\n'
+        "    )\n"
+        ");\n\n")
+
+
 def _drop_repeated_sets(onstart, later):
     """Fjern de Set(), som clear_form_fx() lige efter goer IGEN med samme
     vaerdi. Domaenets OnStart (domain_app.STATE) og formularens nulstilling
@@ -289,7 +315,7 @@ def build_functionallocation():
     # besoeg, naar der ingen er.
     init = (cb.with_reqid(cb.domain_onstart(d), d) + ";\n"
             + asm.ME + ";\n" + cb.with_reqid(load, d))
-    load_all = open_block(d, init) + ";\n\n" + asm.ME + ";\n" + asm.ensure_row_part()
+    load_all = stale_check(d) + open_block(d, init) + ";\n\n" + asm.ME + ";\n" + asm.ensure_row_part()
     load_all = "\n".join(("    " + l) if l.strip() else "" for l in load_all.split("\n"))
     seen["props"]["OnVisible"] = (
         "IfError(\n" + load_all + ",\n"
@@ -340,11 +366,10 @@ def build_domain_app(key):
     init = (_drop_repeated_sets(cb.domain_onstart(d), cb.rename(form, d)) + ";\n" + form + ";\n"
             + cb.with_reqid(dp.open_request_fx(), d) + ";\n"
             + dp.refresh_rows_fx())
-    stale = cb.stale_var(d["tag"])
     # A failed load must neither leave the spinner on nor mark the screen as
     # prepared: the loading flag is cleared after IfError and the next visit retries.
-    load = (open_block(d, init) + ";\n\n"
-            f"If(\n    Coalesce({stale}, false),\n    Set({stale}, false);\n"
+    load = (stale_check(d) + open_block(d, init) + ";\n\n"
+            f"If(\n    var{d['tag']}StaleNow,\n"
             + "\n".join("    " + l for l in dp.refresh_rows_fx().split("\n")) + "\n)")
     load = "\n".join(("    " + l) if l.strip() else "" for l in load.split("\n"))
     seen["props"]["OnVisible"] = (
@@ -391,7 +416,7 @@ def build_vhplan():
             "// Editoren skal vise den plan, der lige er klargjort.\n"
             + build_items.SEED_FL_PICKER + ";\n"
             + build_items.RESET_EDITOR_CONTROLS)
-    seen["props"]["OnVisible"] = open_block(d, init) + done(d)
+    seen["props"]["OnVisible"] = stale_check(d) + open_block(d, init) + done(d)
     seen["children"].append(loading_overlay(d, "Maintenance Plan"))
     from gen_screen import render_screen
     _write(d["screen"], render_screen(d["screen"], screen_props(seen["props"]),

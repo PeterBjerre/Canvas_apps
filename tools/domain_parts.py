@@ -1074,7 +1074,7 @@ def build_submit_confirm():
         "Dom", CONFIRM_VAR, "Submit request?",
         '"The valid rows are sent to the landing page as Submitted and locked."',
         "Submit", with_busy(SAVING_VAR, send_fx(True)), "btnDomSubmitConfirm") + delete_modal(
-        "Dom", "varDomRequestGuid", cfg.L_INDEX) + [
+        "Dom", "varDomRequestGuid", cfg.L_INDEX, cfg.DOMAIN) + [
         loading_overlay("imgDomSaving", SAVING_VAR)]
 
 
