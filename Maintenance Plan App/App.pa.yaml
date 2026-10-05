@@ -564,7 +564,7 @@ App:
                       Set(varVhpRequestGuid, idx.RequestGuid);
                       Set(varVhpPlanCommitted, true);
                       Set(varVhpPlanLocked, true);
-                      Set(varVhpCanEdit, Lower(Coalesce(idx.RequesterEmail, "")) = varVhpMe && idx.Status.Value = "Kladde");
+                      Set(varVhpCanEdit, ((Lower(Coalesce(idx.RequesterEmail, "")) = varVhpMe && (idx.Status.Value = "Kladde")) || (IsAdmin && (idx.Status.Value = "Kladde" || idx.Status.Value = "AfventerInfo"))));
                       Set(varVhpViewOnly, !(Lower(Coalesce(Param("mode"), "")) = "edit" && varVhpCanEdit));
 
                       // --- de fem hentninger, PAA EEN GANG -------------

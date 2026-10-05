@@ -68,3 +68,11 @@ def as_admin(email, me):
     skal aendringen logges (opgave 4). En admin i sin egen anmodning er
     en almindelig aendring."""
     return f"({IS_ADMIN} && !({is_owner(email, me)}))"
+
+
+def may_change_ui(item, me):
+    """Hubbens Edit/Delete-knapper. En almindelig bruger ser dem som i dag
+    (paa alle sine egne anmodninger - handlingen afgoer status); en admin
+    ser dem ogsaa paa andres i Kladde og AfventerInfo."""
+    return (f"{is_owner(item + '.RequesterEmail', me)} || "
+            f"({IS_ADMIN} && {_in(item + '.Status.Value', ADMIN_STATUSES)})")

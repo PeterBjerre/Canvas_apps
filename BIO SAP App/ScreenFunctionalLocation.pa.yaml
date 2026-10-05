@@ -105,7 +105,7 @@ Screens:
                               Set(varFlRequestGuid, ""),
                               Set(varFlRequestNo, Coalesce(varFlReq.RequestNo, ""));
                               Set(varFlStatus, Coalesce(varFlReq.Status.Value, "Kladde"));
-                              Set(varFlCanEdit, Lower(Coalesce(varFlReq.RequesterEmail, "")) = varFlMe && varFlStatus = "Kladde");
+                              Set(varFlCanEdit, ((Lower(Coalesce(varFlReq.RequesterEmail, "")) = varFlMe && (varFlStatus = "Kladde")) || (IsAdmin && (varFlStatus = "Kladde" || varFlStatus = "AfventerInfo"))));
                               Set(varFlViewOnly, !(Lower(Coalesce(gblFlMode, "")) = "edit" && varFlCanEdit));
                               Clear(colFlDeleted);
                               ClearCollect(
@@ -555,33 +555,41 @@ Screens:
                               OnSelect: |-
                                   =Set(varFlSaving, true);
                                   Clear(colFlSaveErrors);
+                                  // 0. Hovedet, som det staar i SharePoint nu: grundraekken i trin 1 og
+                                  //    rettigheden i selve handlingen (tools/permissions.py).
+                                  Set(varFlReqNow, If(!IsBlank(varFlRequestGuid), LookUp(FunctionalLocationRequests, RequestGuid = varFlRequestGuid)));
+                                  If(
+                                      !IsBlank(varFlReqNow) &&
+                                      !((Lower(Coalesce(varFlReqNow.RequesterEmail, "")) = varFlMe && (varFlReqNow.Status.Value = "Kladde")) || (IsAdmin && (varFlReqNow.Status.Value = "Kladde" || varFlReqNow.Status.Value = "AfventerInfo"))),
+                                      Collect(colFlSaveErrors, { Where: "Request", Msg: "This request can no longer be changed." })
+                                  );
                                   If(IsBlank(varFlRequestGuid), Set(varFlRequestGuid, Text(GUID())));
                                   
                                   // 1. Hovedet. RequestNo er obligatorisk (Title) - GUID'en staar der, til
-                                  //    nummeret kan dannes af listens eget ID.
-                                  IfError(
-                                      Set(
-                                          varFlReq,
-                                          Patch(
-                                              FunctionalLocationRequests,
-                                              Coalesce(
-                                                  LookUp(FunctionalLocationRequests, RequestGuid = varFlRequestGuid),
-                                                  Defaults(FunctionalLocationRequests)
-                                              ),
-                                              {
-                                                  RequestNo: Coalesce(varFlRequestNo, varFlRequestGuid),
-                                                  RequestGuid: varFlRequestGuid,
-                                                  RequesterEmail: varFlMe,
-                                                  RequesterName: User().FullName
-                                              }
-                                          )
-                                      );
-                                      true,
-                                      Collect(colFlSaveErrors, { Where: "Header", Msg: FirstError.Message });
-                                      false
+                                  //    nummeret kan dannes af listens eget ID. Ejeren bevares.
+                                  If(
+                                      CountRows(colFlSaveErrors) = 0,
+                                      IfError(
+                                          Set(
+                                              varFlReq,
+                                              Patch(
+                                                  FunctionalLocationRequests,
+                                                  Coalesce(varFlReqNow, Defaults(FunctionalLocationRequests)),
+                                                  {
+                                                      RequestNo: Coalesce(varFlRequestNo, varFlRequestGuid),
+                                                      RequestGuid: varFlRequestGuid,
+                                                      RequesterEmail: Coalesce(varFlReqNow.RequesterEmail, varFlMe),
+                                                      RequesterName: Coalesce(varFlReqNow.RequesterName, User().FullName)
+                                                  }
+                                              )
+                                          );
+                                          true,
+                                          Collect(colFlSaveErrors, { Where: "Header", Msg: FirstError.Message });
+                                          false
+                                      )
                                   );
                                   If(
-                                      IsBlank(varFlRequestNo) && !IsBlank(varFlReq.ID),
+                                      CountRows(colFlSaveErrors) = 0 && IsBlank(varFlRequestNo) && !IsBlank(varFlReq.ID),
                                       Set(varFlRequestNo, "FL-" & Text(varFlReq.ID, "000000"));
                                       IfError(
                                           Patch(FunctionalLocationRequests, varFlReq, { RequestNo: varFlRequestNo });
@@ -620,7 +628,7 @@ Screens:
                                                   TrmAssignment: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "TRM ASSIGNMENT").Value, ""),
                                                   AbcIndic: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "ABC INDIC.").Value, ""),
                                                   SafetyCriticalEquipment: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "SAFETY CRITICAL EQUIPMENT").Value, ""),
-                                                  RequesterEmail: varFlMe,
+                                                  RequesterEmail: Coalesce(varFlReq.RequesterEmail, varFlMe),
                                                   SpoolValuesJson: JSON(
                                                       ForAll(Sort(Filter(colFlVals, RowGuid = R.RowGuid), Field) As V,
                                                              { field: V.Field, value: V.Value }),
@@ -650,7 +658,7 @@ Screens:
                                                   TrmAssignment: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "TRM ASSIGNMENT").Value, ""),
                                                   AbcIndic: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "ABC INDIC.").Value, ""),
                                                   SafetyCriticalEquipment: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "SAFETY CRITICAL EQUIPMENT").Value, ""),
-                                                  RequesterEmail: varFlMe,
+                                                  RequesterEmail: Coalesce(varFlReq.RequesterEmail, varFlMe),
                                                   SpoolValuesJson: JSON(
                                                       ForAll(Sort(Filter(colFlVals, RowGuid = R.RowGuid), Field) As V,
                                                              { field: V.Field, value: V.Value }),
@@ -679,23 +687,21 @@ Screens:
                                   
                                       // 4. Landingssiden.
                                       IfError(
+                                      Set(varFlIdxNow, LookUp(MD_RequestIndex, RequestGuid = varFlRequestGuid));
                                       Set(
                                           varFlIdx,
                                           Patch(
                                               MD_RequestIndex,
-                                              Coalesce(
-                                                  LookUp(MD_RequestIndex, RequestGuid = varFlRequestGuid),
-                                                  Defaults(MD_RequestIndex)
-                                              ),
+                                              Coalesce(varFlIdxNow, Defaults(MD_RequestIndex)),
                                               {
                                                   RequestNo: varFlRequestNo,
                                                   Domain: { Value: "FunctionalLocation" },
-                                                  Status: { Value: "Kladde" },
-                                                  StatusStep: 1,
+                                                  Status: { Value: Coalesce(varFlIdxNow.Status.Value, "Kladde") },
+                                                  StatusStep: Coalesce(varFlIdxNow.StatusStep, 1),
                                                   IsOpen: true,
                                                   RequestGuid: varFlRequestGuid,
-                                                  RequesterEmail: varFlMe,
-                                                  RequesterName: User().FullName,
+                                                  RequesterEmail: Coalesce(varFlReq.RequesterEmail, varFlMe),
+                                                  RequesterName: Coalesce(varFlReq.RequesterName, User().FullName),
                                                   ShortText: "Functional Location - Spool: " & CountRows(Filter(colFlRows, Status <> "draft")) & " row(s)",
                                                   Plant: Coalesce(Left(First(Sort(Filter(colFlRows, Status <> "draft"), RowNo)).FL, 3), ""),
                                                   ItemCount: CountRows(Filter(colFlRows, Status <> "draft")),
@@ -718,7 +724,7 @@ Screens:
                                               Patch(
                                                   FunctionalLocationRequests, varFlReq,
                                                   {
-                                                      Status: { Value: "Kladde" },
+                                                      Status: { Value: Coalesce(varFlReqNow.Status.Value, "Kladde") },
                                                       RowCount: CountRows(Filter(colFlRows, Status <> "draft")),
                                                       ReadyCount: CountRows(Filter(colFlRows, Status = "valid" || Status = "warning")),
                                                       IssueCount: CountRows(Filter(colFlRows, Status = "invalid")),
@@ -736,7 +742,7 @@ Screens:
                                   // Een samlet tilbagemelding - aldrig een Notify pr. raekke.
                                   If(
                                       CountRows(colFlSaveErrors) = 0,
-                                      Set(varFlStatus, "Kladde");
+                                      Set(varFlStatus, Coalesce(varFlReqNow.Status.Value, "Kladde"));
                                       Clear(colFlDeleted);
                                       Set(varFlInfo, "");
                                       Notify("Saved as " & varFlRequestNo & " - see it on the landing page.", NotificationType.Success),
@@ -6232,33 +6238,41 @@ Screens:
                                "Ready to submit " & CountRows(Filter(colFlRows, Status = "valid" || Status = "warning")) & " row(s)."), NotificationType.Warning),
                             
                                 Clear(colFlSaveErrors);
+                                // 0. Hovedet, som det staar i SharePoint nu: grundraekken i trin 1 og
+                                //    rettigheden i selve handlingen (tools/permissions.py).
+                                Set(varFlReqNow, If(!IsBlank(varFlRequestGuid), LookUp(FunctionalLocationRequests, RequestGuid = varFlRequestGuid)));
+                                If(
+                                    !IsBlank(varFlReqNow) &&
+                                    !((Lower(Coalesce(varFlReqNow.RequesterEmail, "")) = varFlMe && (varFlReqNow.Status.Value = "Kladde")) || (IsAdmin && (varFlReqNow.Status.Value = "Kladde" || varFlReqNow.Status.Value = "AfventerInfo"))),
+                                    Collect(colFlSaveErrors, { Where: "Request", Msg: "This request can no longer be changed." })
+                                );
                                 If(IsBlank(varFlRequestGuid), Set(varFlRequestGuid, Text(GUID())));
                                 
                                 // 1. Hovedet. RequestNo er obligatorisk (Title) - GUID'en staar der, til
-                                //    nummeret kan dannes af listens eget ID.
-                                IfError(
-                                    Set(
-                                        varFlReq,
-                                        Patch(
-                                            FunctionalLocationRequests,
-                                            Coalesce(
-                                                LookUp(FunctionalLocationRequests, RequestGuid = varFlRequestGuid),
-                                                Defaults(FunctionalLocationRequests)
-                                            ),
-                                            {
-                                                RequestNo: Coalesce(varFlRequestNo, varFlRequestGuid),
-                                                RequestGuid: varFlRequestGuid,
-                                                RequesterEmail: varFlMe,
-                                                RequesterName: User().FullName
-                                            }
-                                        )
-                                    );
-                                    true,
-                                    Collect(colFlSaveErrors, { Where: "Header", Msg: FirstError.Message });
-                                    false
+                                //    nummeret kan dannes af listens eget ID. Ejeren bevares.
+                                If(
+                                    CountRows(colFlSaveErrors) = 0,
+                                    IfError(
+                                        Set(
+                                            varFlReq,
+                                            Patch(
+                                                FunctionalLocationRequests,
+                                                Coalesce(varFlReqNow, Defaults(FunctionalLocationRequests)),
+                                                {
+                                                    RequestNo: Coalesce(varFlRequestNo, varFlRequestGuid),
+                                                    RequestGuid: varFlRequestGuid,
+                                                    RequesterEmail: Coalesce(varFlReqNow.RequesterEmail, varFlMe),
+                                                    RequesterName: Coalesce(varFlReqNow.RequesterName, User().FullName)
+                                                }
+                                            )
+                                        );
+                                        true,
+                                        Collect(colFlSaveErrors, { Where: "Header", Msg: FirstError.Message });
+                                        false
+                                    )
                                 );
                                 If(
-                                    IsBlank(varFlRequestNo) && !IsBlank(varFlReq.ID),
+                                    CountRows(colFlSaveErrors) = 0 && IsBlank(varFlRequestNo) && !IsBlank(varFlReq.ID),
                                     Set(varFlRequestNo, "FL-" & Text(varFlReq.ID, "000000"));
                                     IfError(
                                         Patch(FunctionalLocationRequests, varFlReq, { RequestNo: varFlRequestNo });
@@ -6297,7 +6311,7 @@ Screens:
                                                 TrmAssignment: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "TRM ASSIGNMENT").Value, ""),
                                                 AbcIndic: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "ABC INDIC.").Value, ""),
                                                 SafetyCriticalEquipment: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "SAFETY CRITICAL EQUIPMENT").Value, ""),
-                                                RequesterEmail: varFlMe,
+                                                RequesterEmail: Coalesce(varFlReq.RequesterEmail, varFlMe),
                                                 SpoolValuesJson: JSON(
                                                     ForAll(Sort(Filter(colFlVals, RowGuid = R.RowGuid), Field) As V,
                                                            { field: V.Field, value: V.Value }),
@@ -6327,7 +6341,7 @@ Screens:
                                                 TrmAssignment: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "TRM ASSIGNMENT").Value, ""),
                                                 AbcIndic: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "ABC INDIC.").Value, ""),
                                                 SafetyCriticalEquipment: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "SAFETY CRITICAL EQUIPMENT").Value, ""),
-                                                RequesterEmail: varFlMe,
+                                                RequesterEmail: Coalesce(varFlReq.RequesterEmail, varFlMe),
                                                 SpoolValuesJson: JSON(
                                                     ForAll(Sort(Filter(colFlVals, RowGuid = R.RowGuid), Field) As V,
                                                            { field: V.Field, value: V.Value }),
@@ -6356,23 +6370,21 @@ Screens:
                                 
                                     // 4. Landingssiden.
                                     IfError(
+                                    Set(varFlIdxNow, LookUp(MD_RequestIndex, RequestGuid = varFlRequestGuid));
                                     Set(
                                         varFlIdx,
                                         Patch(
                                             MD_RequestIndex,
-                                            Coalesce(
-                                                LookUp(MD_RequestIndex, RequestGuid = varFlRequestGuid),
-                                                Defaults(MD_RequestIndex)
-                                            ),
+                                            Coalesce(varFlIdxNow, Defaults(MD_RequestIndex)),
                                             {
                                                 RequestNo: varFlRequestNo,
                                                 Domain: { Value: "FunctionalLocation" },
-                                                Status: { Value: "Kladde" },
-                                                StatusStep: 1,
+                                                Status: { Value: Coalesce(varFlIdxNow.Status.Value, "Kladde") },
+                                                StatusStep: Coalesce(varFlIdxNow.StatusStep, 1),
                                                 IsOpen: true,
                                                 RequestGuid: varFlRequestGuid,
-                                                RequesterEmail: varFlMe,
-                                                RequesterName: User().FullName,
+                                                RequesterEmail: Coalesce(varFlReq.RequesterEmail, varFlMe),
+                                                RequesterName: Coalesce(varFlReq.RequesterName, User().FullName),
                                                 ShortText: "Functional Location - Spool: " & CountRows(Filter(colFlRows, Status <> "draft")) & " row(s)",
                                                 Plant: Coalesce(Left(First(Sort(Filter(colFlRows, Status <> "draft"), RowNo)).FL, 3), ""),
                                                 ItemCount: CountRows(Filter(colFlRows, Status <> "draft")),
@@ -6395,7 +6407,7 @@ Screens:
                                             Patch(
                                                 FunctionalLocationRequests, varFlReq,
                                                 {
-                                                    Status: { Value: "Kladde" },
+                                                    Status: { Value: Coalesce(varFlReqNow.Status.Value, "Kladde") },
                                                     RowCount: CountRows(Filter(colFlRows, Status <> "draft")),
                                                     ReadyCount: CountRows(Filter(colFlRows, Status = "valid" || Status = "warning")),
                                                     IssueCount: CountRows(Filter(colFlRows, Status = "invalid")),
@@ -6413,7 +6425,7 @@ Screens:
                                 // Een samlet tilbagemelding - aldrig een Notify pr. raekke.
                                 If(
                                     CountRows(colFlSaveErrors) = 0,
-                                    Set(varFlStatus, "Kladde");
+                                    Set(varFlStatus, Coalesce(varFlReqNow.Status.Value, "Kladde"));
                                     Clear(colFlDeleted);
                                     Set(varFlInfo, "");
                                     Set(varFlInfo, ""),
