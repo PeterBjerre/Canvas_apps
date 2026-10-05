@@ -106,20 +106,13 @@ VALIDATION = """With(
                     If(
                         n > 0 && (varVhpPlan.FirstCallDay <> 1 || varVhpPlan.FirstCallMonth <> 1),
                         "R4: " & Text(n) & " item(s) are marked as outage work. " &
-                            "First call must be 01/01, otherwise the task misses the outage.", "")),
-            r5:
-                With(
-                    { m: LookUp(colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon) },
-                    If(
-                        !IsBlank(varVhpPlan.CallHorizon) && m.SchedPeriod < 2,
-                        "R5: Scheduling period must be at least 2 years because of " &
-                            "the cost simulation in the BI report.", ""))
+                            "First call must be 01/01, otherwise the task misses the outage.", ""))
         },
         Concat(
             Filter(
                 Table(
                     { t: itemErr }, { t: s1 }, { t: s3 }, { t: s4 }, { t: s5 },
-                    { t: r1 }, { t: r2 }, { t: r4 }, { t: r5 }
+                    { t: r1 }, { t: r2 }, { t: r4 }
                 ),
                 !IsBlank(t)
             ),

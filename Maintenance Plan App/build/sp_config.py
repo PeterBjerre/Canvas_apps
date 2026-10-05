@@ -140,9 +140,6 @@ def _forall(source, fields, alias="R"):
 # blive betalt i OnStart af hver bruger hver gang.
 # ---------------------------------------------------------------------------
 STATIC_TABLES = [
-    ("colVhpYesNoOptions", [{"Value": "JA"}, {"Value": "NEJ"}],
-     "Valgene i MaintenancePlans.SchedulingIndicator (drpVhpSchedInd). "
-     "SharePoints egne vaerdier - de oversaettes ikke."),
     ("colVhpPlanTypeOptions",
      [{"Key": "SingleCycle", "Value": "Single cycle plan (IP41)"},
       {"Key": "Strategy", "Value": "Strategiplan (IP42)"}],
@@ -190,16 +187,6 @@ def named_formulas():
     # sammenligningen var mod et ForAll-felt og ikke mod en variabel.
     add("colVhpActivityTypeOptions",
         f"Sort({_forall(L_ACTTYPES, [('Id', 'R.ID'), ('Value', 'R.Title')])}, Value)")
-
-    # Value er teksten, brugeren vaelger. Days er TALLET, SharePoint vil have:
-    # valgkolonnen CallHorizonChoiceOLD har engelske tekster ("55 days (1 YR)"),
-    # som IKKE matcher matricens danske ("45 dage"), mens talkolonnen
-    # CallHorizon tager tallet direkte. Derfor baeres begge dele.
-    add("colVhpCallHorizonOptions",
-        "Sort(" + _forall(L_CALLHORIZON,
-                          [("Value", "R.Title"),
-                           ("Days", "R.NewCallHorizonOrFCD"),
-                           ("SchedPeriod", "R.SchedulingPeriodNum")]) + ", Value)")
 
     # --- valgkolonner: Choices() giver allerede { Value } ---
     add("colVhpPlanStatusOptions", f"Choices({L_ITEMS}.Status)")

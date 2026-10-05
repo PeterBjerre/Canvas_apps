@@ -30,7 +30,7 @@ import env_config as env
 APP_KEY = "equipment"
 SCREEN = "ScreenEquipment"
 TITLE = "Equipment"
-SUBTITLE = "Create, change and delete equipment - and pass the request on."
+SUBTITLE = "Create, change and delete equipment"
 
 # Praefikset i noeglerne: EQ-000912.
 PREFIX = "EQ"

@@ -57,14 +57,14 @@ ENV_ID = env.ENV_ID
 DOMAINS = [
     {"key": "FunctionalLocation", "short": "FL",  "name": "Functional location",
      "token": "domain-fl",  "app": "functionallocation", "icon_key": "functionallocation"},
+    {"key": "MaintenancePlan",    "short": "VHP", "name": "Maintenance plan",
+     "token": "domain-vhp", "app": "vhplan", "icon_key": "vhplan"},
+    {"key": "Material",           "short": "MAT", "name": "Material",
+     "token": "domain-mat", "app": "material", "icon_key": "material"},
     {"key": "Equipment",          "short": "EQ",  "name": "Equipment",
      "token": "domain-eq",  "app": "equipment", "icon_key": "equipment"},
     {"key": "MeasuringPoint",     "short": "MP",  "name": "Measuring point",
      "token": "domain-mp",  "app": None, "icon_key": "measuringpoint"},
-    {"key": "Material",           "short": "MAT", "name": "Material",
-     "token": "domain-mat", "app": "material", "icon_key": "material"},
-    {"key": "MaintenancePlan",    "short": "VHP", "name": "Maintenance plan",
-     "token": "domain-vhp", "app": "vhplan", "icon_key": "vhplan"},
 ]
 
 # Ikonerne er de FAELLES (tools/icons.py, issue #74) - de samme som i
@@ -118,12 +118,12 @@ for _d in DOMAINS:
 _STATUS_COLORS = {
     "Kladde":          ("state-neutral-fg", "state-neutral-bg"),
     "Indsendt":        ("state-info-fg",    "state-info-bg"),
-    "UnderBehandling": ("state-info-fg",    "state-info-bg"),
+    "UnderBehandling": ("state-violet-fg",  "state-violet-bg"),
     "AfventerInfo":    ("state-warn-fg",    "state-warn-bg"),
     "KlarTilSAP":      ("state-ok-fg",      "state-ok-bg"),
-    "OprettetISAP":    ("state-ok-fg",      "state-ok-bg"),
+    "OprettetISAP":    ("state-lime-fg",    "state-lime-bg"),
     "Afvist":          ("state-error-fg",   "state-error-bg"),
-    "Annulleret":      ("state-neutral-fg", "state-neutral-bg"),
+    "Annulleret":      ("state-rose-fg",    "state-rose-bg"),
 }
 if set(_STATUS_COLORS) != {k for k, _l, _s in ri.STATUS}:
     raise SystemExit("hub_config: _STATUS_COLORS og request_index.STATUS har ikke "
@@ -150,22 +150,22 @@ _SHIELD = "M12 21.5s7.5-3.2 7.5-9.5V5.2L12 2.5 4.5 5.2V12c0 6.3 7.5 9.5 7.5 9.5Z
 # Annulleret: en overstreget cirkel - ikke Afvist's kryds i graat.
 _BAN = "M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M5.3 5.3l13.4 13.4"
 
-# Issue #74: hver status sin egen kombination af form og farve.
-#   Draft, Submitted, In progress   den blaa familie - tre forskellige former
-#   Submitted                       blaat flueben i blaa cirkel (var groent)
-#   Ready for SAP                   groent flueben i groen cirkel (uaendret)
-#   Created in SAP                  groent skjold med flueben
-#   Awaiting info                   advarsel
-#   Rejected / Cancelled            roedt kryds / graa overstreget cirkel
+# Issue #74: hver status sin egen kombination af form og farve - og nu ogsaa
+# sin egen FARVE (otte forskellige nuancer):
+#   Draft           graat dokument            Submitted     blaa papirflyver
+#   In progress     violet ur                 Awaiting info orange advarsel
+#   Ready for SAP   groent flueben            Created in SAP lime skjold
+#   Rejected        roedt kryds               Cancelled     rose overstreget cirkel
+_SEND = "M21.5 3 2.5 10.5l7 3 3 7L21.5 3Z M9.5 13.5 21.5 3"
 STATUS_ICON = {
-    "Kladde":          (_DOC,    "state-info-fg"),
-    "Indsendt":        (_CHECK,  "state-info-fg"),
-    "UnderBehandling": (_CLOCK,  "state-info-fg"),
+    "Kladde":          (_DOC,    "state-neutral-fg"),
+    "Indsendt":        (_SEND,   "state-info-fg"),
+    "UnderBehandling": (_CLOCK,  "state-violet-fg"),
     "AfventerInfo":    (_ALERT,  "state-warn-fg"),
     "KlarTilSAP":      (_CHECK,  "state-ok-fg"),
-    "OprettetISAP":    (_SHIELD, "state-ok-fg"),
+    "OprettetISAP":    (_SHIELD, "state-lime-fg"),
     "Afvist":          (_CROSS,  "state-error-fg"),
-    "Annulleret":      (_BAN,    "state-neutral-fg"),
+    "Annulleret":      (_BAN,    "state-rose-fg"),
 }
 
 # Ingen to statusser maa have samme ikon OG samme farve.

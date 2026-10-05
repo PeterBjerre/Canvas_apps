@@ -21,7 +21,6 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 from gen_screen import render_screen, C_APP_BG, OUT_DIR
-from build_helpers import app_frame
 from side_nav import side_nav
 import kks_config as cfg
 import kks_parts as P
@@ -29,12 +28,12 @@ import kks_parts as P
 
 def build_screen(render=render_screen):
     """render: gen_screen.render_screen - eller BIO SAP App's opsamler."""
-    root = app_frame("Kks", P.build_bar(), [P.build_browse(), P.build_results()])
+    root = P.frame(P.build_header(), [P.build_browse(), P.build_results()])
     # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
     nav, overlay = side_nav("Kks", cfg.APP_KEY)
     # Ventespinneren ligger oeverst, mens noeglerne hentes.
     return render(cfg.SCREEN, {"Fill": C_APP_BG, "OnVisible": P.on_visible()},
-                  [root, *nav, *overlay, P.build_loading()])
+                  [root, *nav, *overlay, *P.build_picker(), *P.build_detail(), P.build_loading()])
 
 
 def main():

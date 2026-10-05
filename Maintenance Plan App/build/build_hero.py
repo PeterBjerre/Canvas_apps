@@ -4,10 +4,14 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import Ctrl, SHELL_W, C_PRIMARY, C_CARD_BORDER
 import layout_tokens as lay
 from build_helpers import (group, fit_button_width, text_ctrl, text_px,
-                           flow_row, page_icon, PAGE_ICON, ICON_W)
-from layout_tokens import if_below, at_least
+                           flow_row, page_icon, PAGE_ICON, ICON_W, top_bar, grow,
+                           button, confirm_modal, icon_on_mobile, delete_button, delete_modal)
+from layout_tokens import if_below, at_least, below
 from design_tokens import ref_hex
-from build_items import FL_CODE
+from build_items import FL_CODE, SEED_FL_PICKER, RESET_EDITOR_CONTROLS
+from build_plan_header import PLAN_CONTROLS
+from build_load import EMPTY_ITEM_FIELDS, _record, cfg as _cfg
+from generate_app_onstart import VARS_BLOCK
 
 # Topbjaelken er ALT, der er tilbage af hero-kortet.
 #
@@ -84,12 +88,11 @@ IS_STRAT = 'varVhpPlan.PlanType = "Strategy"'
 STEPS = [
     ('"Plan"', "VhpStepPlanDone", "Set(varVhpFocusStep, 1)"),
     ('"Item"', f"VhpStepItemDone && !({ITEM_DIRTY})", "Set(varVhpFocusStep, 2)"),
-    ('"Task list"', "VhpStepTasklistDone",
-     'Set(varVhpOpsTab, "ops");\nSet(varVhpFocusStep, 3)'),
-    (f'If({IS_STRAT}, "Packages", "Operations")', "VhpStepOpsDone",
-     f'Set(varVhpOpsTab, If({IS_STRAT}, "pkg", "ops"));\nSet(varVhpFocusStep, 4)'),
+    (f'If({IS_STRAT}, "Task list + pkgs", "Task list + ops")',
+     "VhpStepTasklistDone && VhpStepOpsDone",
+     f'Set(varVhpOpsTab, If({IS_STRAT}, "pkg", "ops"));\nSet(varVhpFocusStep, 3)'),
     ('"Save"', f"VhpStepSaveDone && varVhpPlanLocked && !({ITEM_DIRTY})",
-     "Set(varVhpFocusStep, 5)"),
+     "Set(varVhpFocusStep, 4)"),
 ]
 
 
@@ -103,7 +106,7 @@ def focus_border(ctrl, steps, normal):
     return ctrl
 
 
-STEP_W, STEP_H, R = 120, 64, 13
+STEP_W, STEP_H, R = 104, 56, 13
 # Et trin maa ikke blive smallere end det her - saa kan navnet ikke laeses.
 # Er der ikke plads til fem af dem mellem titlen og knapperne, stables
 # bjaelken (issue #73): titel, trin i fuld bredde, knapper.
@@ -123,7 +126,7 @@ def _hx(name):
     return '" & %s & "' % ref_hex(name)
 
 
-def _step_image(i, label, done, prev_done, current, action, width):
+def _step_image(i, label, done, prev_done, current, action, width, suffix="", height=None):
     """Eet trin: cirklen, dets navn og de to halve streger ud til naboerne.
 
     Stregen til venstre er faerdig, naar det FORRIGE trin er faerdigt,
@@ -135,7 +138,8 @@ def _step_image(i, label, done, prev_done, current, action, width):
     - Den faerdige streg TEGNES frem (stroke-dashoffset) med en svag
       gradient i ok-farven - venstre halvdel foerst, saa hoejre, saa
       fremdriften loeber fra trin til trin.
-    - Det aktive trin har en ring, der langsomt pulserer.
+    - Det aktive trins ring pulserer i 5 sekunder (4 gange a 1,25 s) og
+      staar derefter stille. Billedet tegnes forfra, naar trinet skifter.
     - Tjekmaerket tegnes frem, naar et trin bliver faerdigt.
     - Alt slaas fra under prefers-reduced-motion.
     Animationen er CSS inde i SVG'en - Image-kontrollen tegner den som et
@@ -160,10 +164,10 @@ def _step_image(i, label, done, prev_done, current, action, width):
            ".c{stroke-dasharray:20;stroke-dashoffset:20;"
            "animation:draw .35s .15s ease-out forwards}"
            ".p{transform-origin:center;transform-box:fill-box;"
-           "animation:pulse 1.8s ease-in-out infinite}"
+           "animation:pulse 1.25s ease-in-out 4 forwards}"
            "@keyframes draw{to{stroke-dashoffset:0}}"
-           "@keyframes pulse{0%,100%{opacity:.35;transform:scale(.92)}"
-           "50%{opacity:.9;transform:scale(1.06)}}"
+           "@keyframes pulse{0%,100%{opacity:.7;transform:scale(1)}"
+           "50%{opacity:.95;transform:scale(1.08)}}"
            "@media (prefers-reduced-motion:reduce){.d,.c{animation:none;"
            "stroke-dashoffset:0}.p{animation:none;opacity:.7}}"
            "</style>")
@@ -189,7 +193,7 @@ def _step_image(i, label, done, prev_done, current, action, width):
              f"<path class='c' d='M{cx - 5} {cy} l3.5 3.5 l6.5 -7' fill='none' "
              f"stroke='{surface}' stroke-width='2.4' stroke-linecap='round' "
              f"stroke-linejoin='round'/>")
-    cur = (f"<circle class='p' cx='{cx}' cy='{cy}' r='{R + 4}' fill='none' "
+    cur = (f"<circle class='p' cx='{cx}' cy='{cy}' r='{R + 4}' fill='none' opacity='.7' "
            f"stroke='{infoc}' stroke-width='2'/>"
            f"<circle cx='{cx}' cy='{cy}' r='{R - 1}' fill='{surface}' stroke='{infoc}' "
            f"stroke-width='2.5'/>"
@@ -202,24 +206,24 @@ def _step_image(i, label, done, prev_done, current, action, width):
     fx.append('If(%s, "%s", %s, "%s", "%s")' % (done, check, current, cur, later))
     fx.append('"<text x=\'%d\' y=\'%d\' %s font-size=\'12\' font-weight=\'600\' '
               'fill=\'" & If(%s, %s, %s, %s, %s) & "\'>" & %s & "</text>"'
-              % (cx, STEP_H - 10, font, done, text, current, info, grey, label))
+              % (cx, cy + R + 20, font, done, text, current, info, grey, label))
     fx.append('"</svg>"')
     img = '"data:image/svg+xml;utf8," & EncodeUrl(\n    ' + " &\n    ".join(fx) + "\n)"
     state = f'If({done}, "done", {current}, "current step", "not done")'
     # Trinenes status regnes EEN gang pr. billede (With), ikke een gang pr.
     # sted, SVG'en bruger den.
     wrap = "With(\n    %s,\n    %s\n)"
-    return Ctrl(f"imgVhpStep{i + 1}", "Image", props={
+    return Ctrl(f"imgVhpStep{i + 1}{suffix}", "Image", props={
         "AccessibleLabel": wrap % (_STATE, f'"Go to step {i + 1}, " & {label} & " - " & {state}'),
         "BorderStyle": "BorderStyle.None",
         "BorderThickness": "0",
-        "Height": str(STEP_H),
+        "Height": str(height or STEP_H),
         "Image": wrap % (_STATE, img),
         "ImagePosition": "ImagePosition.Fit",
         "OnSelect": action,
         "TabIndex": "0",
         "Width": width,
-    }, h=STEP_H)
+    }, h=height or STEP_H)
 
 
 def _submit_tooltip():
@@ -234,33 +238,72 @@ def _submit_tooltip():
             f"    \"Not ready to submit: \" &\n    {reasons}\n)")
 
 
-# Save draft og Submit - bredderne bruges baade af knapperne og af
-# bjaelkens to sider, saa progressbaren staar i midten.
+# Save draft og Submit - bredderne bruges af knapperne.
 SAVE_W = fit_button_width('"Save draft"') + ICON_W
-SUB_W = fit_button_width('"Submit"', min_w=96) + ICON_W
-# Titlen og domaeneikonet foran den (issue #74).
-TITLE_W = text_px("VH-plan", 22) + 4 + PAGE_ICON + 10
-# Hoejre side: begge knapper; under Tablet kun Submit (Save draft skjules).
-RIGHT_W = if_below("Tablet", str(SUB_W), str(SAVE_W + 8 + SUB_W))
-# Venstre side er lige saa bred som hoejre, saa trinene staar midt i
-# bjaelken. Under Tablet er der ikke plads til at spilde - saa kun titlen.
-LEFT_W = if_below("Tablet", str(TITLE_W), str(SAVE_W + 8 + SUB_W))
+SUB_W = fit_button_width('"Submit"', min_w=72)
+SUBTITLE = '"Plan header, items, task lists and operations - submitted to SAP master data."'
+NEW_W = fit_button_width('"New request"') + ICON_W
+EDIT_W = fit_button_width('"Edit"') + ICON_W
+VIEW_EDIT = "IfError(varVhpViewOnly && varVhpCanEdit, false)"
+
+RESET_COLLECTIONS = ("colVhpItems", "colVhpOperations", "colVhpItemObjects", "colVhpObjDraft",
+                     "colVhpMaterials", "colVhpAttachments")
+
+NEW_PLAN_FX = (
+    VARS_BLOCK[:VARS_BLOCK.index("// Brugeren")].strip() + "\n"
+    'Set(varVhpSavedJson, ""); Set(varVhpPrevPlant, ""); Set(varVhpPlanSpId, 0);\n'
+    'Set(varVhpPlanKey, ""); Set(varVhpPlanModified, Blank()); Set(varVhpRequestGuid, "");\n'
+    "Set(varVhpFocusStep, 0);\n"
+    + "".join(f"Clear({c});\n" for c in RESET_COLLECTIONS)
+    + f"Collect(colVhpItems, {_record(EMPTY_ITEM_FIELDS, 4)});\n"
+    + SEED_FL_PICKER + ";\n"
+    + RESET_EDITOR_CONTROLS + ";\n"
+    + "; ".join(f"Reset({c})" for c in PLAN_CONTROLS) + ";\n"
+    'Notify("New request started.", NotificationType.Success)'
+)
+
+HAS_UNSAVED = (
+    f"(varVhpPlanCommitted || CountRows(colVhpItems) > 1 || "
+    f"!IsBlank(Trim(First(colVhpItems).ShortText))) && "
+    f"!(VhpStepSaveDone && varVhpPlanLocked && !({ITEM_DIRTY}))"
+)
 
 # Bjaelkens elementer - samme opbevaring som assemble_screen skal bruge.
 CONFIRM = []
 
 
 def build_top_bar():
-    """VH-planens topbjaelke (issue #54):
+    """VH-planens topbjaelke - to raekker, saa intet kan klippes:
 
-        VH-plan        (1)--(2)--(3)--(4)--(5)        [Save draft][Submit]
+        [ikon] VH-plan                                  [Save draft][Submit]
+               undertekst
+                 (1)-----(2)-----(3)-----(4)-----(5)
+                 Plan    Item    Task    Ops     Save
 
-    Titlen til venstre, progressbaren CENTRERET, og Save draft og Submit
-    samlet til hoejre. Venstre og hoejre side er lige brede, saa midten er
-    bjaelkens midte. Help og tema staar i sidebaren."""
+    Foerste raekke er den SAMME titelbjaelke som paa alle andre sider
+    (build_helpers.top_bar), saa ikonet staar det samme sted overalt.
+    Trinene staar under den, i fuld bredde og med fast hoejde. Help og tema
+    staar i sidebaren."""
     from build_save import save_buttons
     btnDraft, btnSubmit, confirm = save_buttons(CAN_SUBMIT)
-    CONFIRM[:] = confirm
+    btnNew = button("btnVhpNewRequest", '"New request"',
+                    f"If({HAS_UNSAVED}, Set(varVhpConfirmNew, true), {NEW_PLAN_FX})",
+                    width=NEW_W, height=36, icon="Add",
+                    accessible='"Start a new blank request"')
+    btnNew.props["AlignInContainer"] = "AlignInContainer.Center"
+    btnNew.props["LayoutMinWidth"] = str(NEW_W)
+    btnNew.vis = at_least("Tablet")
+    btnEdit = button("btnVhpEdit", '"Edit"',
+                     "Set(varVhpViewOnly, false); Set(varVhpPlanLocked, false)",
+                     width=EDIT_W, height=36, icon="Edit", visible=VIEW_EDIT,
+                     accessible='"Edit this request"')
+    btnEdit.props["AlignInContainer"] = "AlignInContainer.Center"
+    confirmNew = confirm_modal(
+        "VhpNew", "varVhpConfirmNew", "Start a new request?",
+        '"Unsaved work on this request is discarded. Save a draft first to keep it."',
+        "Discard and start new", NEW_PLAN_FX, "btnVhpNewConfirm", icon="Add")
+    CONFIRM[:] = confirm + confirmNew + delete_modal("Vhp", "varVhpRequestGuid", _cfg.L_INDEX)
+    btnDelete = delete_button("Vhp", "varVhpViewOnly", "varVhpRequestGuid")
     btnDraft.props["Width"] = str(SAVE_W)
     btnDraft.props["Tooltip"] = (
         "If(\n"
@@ -268,33 +311,33 @@ def build_top_bar():
         "    IsBlank(varVhpPlanKey), \"Not saved yet. Save as draft so you can come back to it.\",\n"
         "    \"Saved as \" & varVhpPlanKey & \". The next save updates the same plan, items and operations.\"\n"
         ")")
-    btnDraft.vis = at_least("Tablet")
-    focus_border(btnDraft, (5,), C_CARD_BORDER)
+    focus_border(btnDraft, (4,), C_CARD_BORDER)
     btnSubmit.props["Width"] = str(SUB_W)
     btnSubmit.props["Tooltip"] = _submit_tooltip()
-    for b in (btnDraft, btnSubmit):
-        b.props["LayoutMinWidth"] = b.props["Width"]
-    right = group("conVhpBarRight", [btnDraft, btnSubmit], direction="Horizontal", gap=8,
-                  width=RIGHT_W, justify="End", align_items="Center", height=36)
-    right.props["LayoutMinWidth"] = RIGHT_W
-
-    title = text_ctrl("txtVhpTitle", '"VH-plan"', size=lay.SIZE_PAGE_TITLE, weight="Semibold",
-                      height=33, width=TITLE_W - PAGE_ICON - 10, wrap="false")
-    icon = page_icon("imgVhpTitleIcon", "vhplan")
-    left = group("conVhpBarLeft", [icon, title], direction="Horizontal", width=LEFT_W,
-                 align_items="Center", gap=10)
-    left.props["LayoutMinWidth"] = LEFT_W
+    title_bar = top_bar("Vhp", '"Maintenance Plan"', SUBTITLE, [], icon="vhplan", mode_var="varVhpViewOnly",
+                     num_var="varVhpPlanKey")
+    # Nye navne: Studio beholdt bjaelkens gamle tilstand paa conVhpBar fra foer redesignet.
+    title_bar.name = "conVhpTitleRow"
+    title_bar.children[1].name = "conVhpTitleText"
+    title_bar.props["AlignInContainer"] = "AlignInContainer.Center"
+    title_bar.children[1].props["AlignInContainer"] = "AlignInContainer.Center"
+    btnDraft.props["AlignInContainer"] = "AlignInContainer.Center"
+    btnSubmit.props["AlignInContainer"] = "AlignInContainer.Center"
+    btnDraft.props["LayoutMinWidth"] = str(SAVE_W)
+    btnSubmit.props["LayoutMinWidth"] = str(SUB_W)
+    for b_ in (btnEdit, btnNew, btnDraft):
+        icon_on_mobile(b_)
+    narrow = below("Tablet")
+    new_m_w = fit_button_width('"New"', min_w=0) + 8
+    btnNew.props["Text"] = f'If({narrow}, "New", "New request")'
+    btnNew.props["Width"] = f"If({narrow}, {new_m_w}, {NEW_W})"
+    btnNew.props["LayoutMinWidth"] = btnNew.props["Width"]
+    btnNew.props["Layout"] = f"If({narrow}, ButtonLayout.TextOnly, ButtonLayout.IconBefore)"
+    btnNew.vis = None
+    btnDraft.vis = None
 
     n = len(STEPS)
-    # EN RAEKKE ELLER TRE (issue #73). Foer stod trinene ALTID mellem
-    # titlen og knapperne, og under Desktop blev de regnet til 10-16 px
-    # brede - progressbaren var i praksis vaek paa tablet og mobil. Nu
-    # stables bjaelken med flow_row, naar fem trin paa STEP_MIN ikke kan
-    # staa i midten: titel, trinene i fuld bredde, knapperne til hoejre.
-    kids = [left, None, right]
-    avail = f"{SHELL_W} - ({LEFT_W}) - ({RIGHT_W}) - 24"
-    one_row = f"({avail}) >= {n * STEP_MIN}"
-    step_w = f"If({one_row}, Min({STEP_W}, ({avail}) / {n}), Min({STEP_W}, {SHELL_W} / {n}))"
+    step_w = f"Min({STEP_W}, {SHELL_W} / {n})"
     done = ["d%d" % (i + 1) for i in range(n)]
     imgs = []
     for i, (label, _d, action) in enumerate(STEPS):
@@ -302,12 +345,40 @@ def build_top_bar():
         current = f"(!{done[i]} && {before})"
         prev = done[i - 1] if i else "false"
         imgs.append(_step_image(i, label, done[i], prev, current, action, step_w))
-    steps = group("conVhpSteps", imgs, direction="Horizontal", gap=0, height=STEP_H,
-                  justify="Center", align_items="Center")
-    kids[1] = steps
-    bar = flow_row("conVhpBar", kids, SHELL_W, gap=12, flex=steps,
-                   flex_min=n * STEP_MIN)
-    # Stablet: titlen og knapperne fylder ikke hele linjen.
-    left.props["AlignInContainer"] = "AlignInContainer.Start"
-    right.props["AlignInContainer"] = "AlignInContainer.End"
-    return bar
+    steps_w = n * STEP_W
+    steps = group("conVhpStepRow", imgs, direction="Horizontal", gap=0, height=STEP_H,
+                  width=str(steps_w), justify="Center", align_items="Center",
+                  layout_min_width=steps_w)
+    steps.vis = at_least("Desktop")
+    # Mobile: the same step images (same STEPS logic) in a full-width row above the buttons.
+    m_h = f"Min({STEP_H}, ({SHELL_W}) / {n} * {STEP_H} / {STEP_W})"
+    m_imgs = [_step_image(i, label, done[i], done[i - 1] if i else "false",
+                          f"(!{done[i]} && {' && '.join(done[:i]) or 'true'})", action,
+                          f"{SHELL_W} / {n}", suffix="M", height=m_h)
+              for i, (label, _d, action) in enumerate(STEPS)]
+    m_steps = group("conVhpStepRowM", m_imgs, direction="Horizontal", gap=0, height=m_h,
+                    width=SHELL_W, justify="Center", align_items="Start",
+                    visible=below("Tablet"))
+    # Trinene staar midt paa linjen: titelblokken har samme bredde som den
+    # tomme rest efter dem, og resten tager en afstandsholder.
+    side_min = SAVE_W + SUB_W + NEW_W + EDIT_W + 32 + 40
+    side_w = if_below(
+        "Desktop", if_below("Tablet", str(SUB_W + 80 + new_m_w + 24 + 48), str(side_min)),
+        f"Max({side_min}, ({SHELL_W} - {steps_w}) / 2 - 16)")
+    title_bar.props["Width"] = if_below("Tablet", "56", if_below("Desktop", "220", f"Max({side_min}, ({SHELL_W} - {steps_w}) / 2 - 16)"))
+    title_bar.props["LayoutMinWidth"] = if_below("Tablet", "56", "220")
+    btns = group("conVhpHeadBtns", [btnEdit, btnDelete, btnNew, btnDraft, btnSubmit], direction="Horizontal", gap=8,
+                 height=44, width=side_w, justify="End", align_items="Center")
+    head = group("conVhpHeadLine", [title_bar, steps, btns],
+                 height=if_below("Tablet", "60", str(STEP_H + 28)),
+                 direction="Horizontal", gap=16, align_items="Center", justify="SpaceBetween")
+    title_bar.vis = at_least("Tablet")
+    head.props["LayoutJustifyContent"] = ("If(%s, LayoutJustifyContent.End, LayoutJustifyContent.SpaceBetween)" % below("Tablet"))
+    spacer = group("conVhpHeadSpace", [], direction="Horizontal", height=if_below("Tablet", "10", "8"))
+    head = group("conVhpHeadStack", [m_steps, head, spacer], direction="Vertical", gap=0)
+    if os.environ.get("VHP_DEBUG_LAYOUT"):
+        # Midlertidig diagnose: hver container faar sin egen baggrund.
+        for ctl, tok in ((head, "state-info-bg"), (title_bar, "state-warn-bg"),
+                         (title_bar.children[1], "state-error-bg"), (steps, "state-ok-bg")):
+            ctl.props["Fill"] = "C.'%s'" % tok
+    return head

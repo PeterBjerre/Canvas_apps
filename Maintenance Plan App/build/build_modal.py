@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_MUTED, C_TRANSPARENT, C_DIVIDER, C_MODAL_BG,
                         C_PRIMARY_SOFT, C_OVERLAY)
 import layout_tokens as lay
-from build_helpers import text_ctrl, group, button, text_input, grow, ICON_SAVE, checkbox_theme, table_surface
+from build_helpers import tap_backdrop, text_ctrl, group, button, text_input, grow, ICON_SAVE, checkbox_theme, table_surface
 from design_tokens import ref_hex
 
 MUT_HEX = ref_hex("text-muted")
@@ -263,16 +263,10 @@ def build_longtext_modal():
                       'If(varVhpLongTextTarget = "item", "Long text - item " & Text(varVhpLongTextItemId), '
                       '"Long text - operation " & varVhpLongTextOpNo)',
                       size=lay.SIZE_CARD_TITLE, weight="Semibold", height=26, wrap="false")
-    btnCancel = button("btnVhpLongTextCancel", '"Cancel"',
+    btnCancel = button("btnVhpLongTextCancel", '"Close"',
                        "Set(varVhpLongTextOpen, false)", width=90, height=32)
     headRow = group("conVhpLongTextHeadRow", [title, btnCancel], direction="Horizontal",
                     gap=12, height=32, justify="SpaceBetween", align_items="Center")
-
-    hint = text_ctrl(
-        "txtVhpLongTextHint",
-        ('"The long text follows the operation to SAP. Write the instruction '
-         'as the technician needs to read it - steps, safety notes and references."'),
-        size=12, color=C_MUTED, height=32, wrap="true")
 
     box = text_input("inpVhpLongTextBox", "varVhpLongTextDraft",
                      placeholder='"Instructions for this operation"',
@@ -297,12 +291,13 @@ def build_longtext_modal():
             "    )\n"
             ");\n"
             "Set(varVhpLongTextOpen, false)"
-        ), primary=True, width=150, height=36, icon=ICON_SAVE)
+        ), primary=True, width=150, height=36, icon=ICON_SAVE,
+        display_mode="If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)")
     footer = group("conVhpLongTextFooter", [btnSave], direction="Horizontal", gap=10,
                    height=36, justify="End", align_items="Center")
 
     modal = group(
-        "conVhpLongTextModal", [headRow, hint, box, footer], direction="Vertical", gap=12,
+        "conVhpLongTextModal", [headRow, box, footer], direction="Vertical", gap=12,
         fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
         pad=(18, 18, 18, 18), width="Min(620, App.Width - 40)", drop_shadow="ExtraBold",
         visible="varVhpLongTextOpen")
@@ -312,15 +307,11 @@ def build_longtext_modal():
 
 
 def build_modal_backdrop():
-    return Ctrl("conVhpPickerBackdrop", "GroupContainer", variant="AutoLayout", props={
-        "BorderStyle": "BorderStyle.None",
-        "DropShadow": "DropShadow.None",
-        "Fill": C_OVERLAY,
-        "Height": "App.Height",
-        "LayoutDirection": "LayoutDirection.Vertical",
-        "Visible": ("varVhpTasklistPickerOpen || varVhpLongTextOpen || varVhpObjListOpen || "
-                    "!IsBlank(varVhpMatOpNo) || !IsBlank(varVhpAttOpNo)"),
-        "Width": "App.Width",
-        "X": "0",
-        "Y": "0",
-    }, children=[])
+    vis = ("varVhpTasklistPickerOpen || varVhpLongTextOpen || varVhpObjListOpen || "
+           "!IsBlank(varVhpMatOpNo) || !IsBlank(varVhpAttOpNo) || !IsBlank(varVhpOpMNo)")
+    inner = ("varVhpTasklistPickerOpen || varVhpLongTextOpen || varVhpObjListOpen || "
+             "!IsBlank(varVhpMatOpNo) || !IsBlank(varVhpAttOpNo)")
+    return tap_backdrop("conVhpPickerBackdrop", vis,
+                        f"If({inner}, Set(varVhpTasklistPickerOpen, false); Set(varVhpLongTextOpen, false); "
+                        "Set(varVhpObjListOpen, false); Set(varVhpMatOpNo, \"\"); Set(varVhpAttOpNo, \"\"), "
+                        "Set(varVhpOpMNo, \"\"))")

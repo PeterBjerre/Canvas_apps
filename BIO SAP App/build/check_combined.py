@@ -30,14 +30,14 @@ import yaml
 import combined as cb
 
 # Navne uden domaenepraefiks, der er FAELLES med vilje.
-SHARED = {"gblNavOpen", "colAppPrefs", "darkModeEnabled", cb.NEW_SEQ}
+SHARED = {"gblFbOpen", "gblFbMe", "gblNavOpen", "colAppPrefs", "darkModeEnabled", cb.NEW_SEQ, "gblNavigating", "gblNavTo"}
 # Hubbens egne - de har aldrig haft et praefiks.
 HUB_OWN = {"varMdMe", "varMdView", "varMdDomain", "varMdStatusMode", "varMdNewMenu", "varMdClosedPeek"}
 
 TAGS = sorted({d["tag"] for d in cb.DOMAINS}, key=len, reverse=True)
 TAGGED = re.compile(r"\b(?:var|col|gbl)(%s)(?=[A-Z0-9_])\w*" % "|".join(TAGS))
 UNTAGGED = re.compile(r"\b(?:var|col|gbl)[A-Z]\w*")
-WANT = re.compile(r"\bgbl(%s)Want\b" % "|".join(TAGS))
+WANT = re.compile(r"\b(?:gbl(?:%s)Want|var(?:%s)Opened)\b" % ("|".join(TAGS), "|".join(TAGS)))
 
 
 def screens():

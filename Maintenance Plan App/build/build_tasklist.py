@@ -7,17 +7,18 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
 import layout_tokens as lay
 from build_helpers import (checkbox_theme, table_surface, flow_row, text_ctrl,
                            group, button, text_input, number_input, themed_dropdown,
-                           field_cell, card, pin_widths, grow,
-                           fit_button_width, fit_button_row, ICON_W)
+                           field_cell, card, pin_widths, grow, row_hit,
+                           fit_button_width, fit_button_row, ICON_W, ICON_SAVE, flow_ok, mark_done)
 from build_plan_header import section_header, help_panel
 import build_help as bh
 from build_strategy import build_strategy_body, IS_STRATEGY
 import sp_config as cfg
 from design_tokens import ref_hex
-from layout_tokens import SCROLLBAR_W, fits, TWO_COL_MIN
+from layout_tokens import SCROLLBAR_W, fits, TWO_COL_MIN, below, at_least, if_below
 
 # HTML kender ikke RGBA(). ref_hex giver den SAMME token som hex.
 MUT_HEX = ref_hex("text-muted")
+BG_HEX = ref_hex("bg-muted")
 PRI_HEX = ref_hex("text-primary")
 import build_attflows
 
@@ -25,7 +26,7 @@ import build_attflows
 # og dens refresh_fx() staar i build_attflows.py.
 att = build_attflows.PANE
 
-DM_ITEM = "If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)"
+DM_ITEM = "If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)"
 OPS_CW = f"({SHELL_W} - 36)"
 
 # ---------------------------------------------------------------------------
@@ -37,7 +38,6 @@ OPS_CW = f"({SHELL_W} - 36)"
 # Nu genereres begge dele herfra.
 # ---------------------------------------------------------------------------
 OPS_COLS = [
-    ("SEL", 30),
     ("OP NO.", 60),
     ("OPERATION SHORT TEXT", 200),
     ("WORK (H)", 64),
@@ -54,6 +54,7 @@ OPS_COLS = [
     # aabner materialerne og dokumenterne for NETOP denne operation.
     ("MATERIALS", 110),
     ("DOCS", 90),
+    ("ACTION", 64),
 ]
 
 # ---------------------------------------------------------------------------
@@ -98,8 +99,10 @@ def cost_expr(work):
             f'            {work} * Coalesce(ThisItem.UnitCost, 0),\n'
             f'            ThisItem.Cost\n'
             f'        )')
-OPS_GAP = 10
-OPS_TABLE_W = sum(w for _, w in OPS_COLS) + OPS_GAP * (len(OPS_COLS) - 1)
+OPS_GAP_MIN = 18
+OPS_COLS_W = sum(w for _, w in OPS_COLS)
+OPS_GAP = (f"Max({OPS_GAP_MIN}, Int(({OPS_CW} - 8 - {OPS_COLS_W}) / {len(OPS_COLS) - 1}))")
+OPS_TABLE_W = f"({OPS_COLS_W} + {OPS_GAP} * {len(OPS_COLS) - 1})"
 
 
 def _ops_header_html():
@@ -111,9 +114,11 @@ def _ops_header_html():
     # overskriften. Selve raekken er 1 px lavere end kontrollens Height, saa
     # afrundingsfejl ikke ogsaa udloeser en scrollbar.
     return (
-        "\"<style>html,body{margin:0;padding:0;overflow:hidden}</style>"
+        "\"<style>html,body{margin:0;padding:0;overflow:hidden}"
+        "span{padding-left:8px;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis}</style>"
         f"<div style='display:grid;grid-template-columns:{cols};"
-        f"column-gap:{OPS_GAP}px;align-items:center;height:21px;line-height:21px;overflow:hidden;"
+        f"column-gap:\" & {OPS_GAP} & \"px;align-items:center;height:30px;line-height:30px;overflow:hidden;"
+        "border-radius:8px;background:\" & " + BG_HEX + " & \";"
         # Farven kommer fra den SAMME token som resten af appen. Foer stod
         # der "#59667A" - det rigtige tal, men uden nogen forbindelse til
         # 'text-muted'. I moerk tilstand blev overskriften staaende
@@ -149,7 +154,7 @@ def _ops_totals_html():
         "\"<style>html,body{margin:0;padding:0;overflow:hidden}"
         "span{overflow:hidden;text-overflow:ellipsis}</style>"
         f"<div style='display:grid;grid-template-columns:{cols};"
-        f"column-gap:{OPS_GAP}px;align-items:center;height:23px;line-height:23px;overflow:hidden;"
+        f"column-gap:\" & {OPS_GAP} & \"px;align-items:center;height:23px;line-height:23px;overflow:hidden;"
         "color:\" & " + PRI_HEX + " & \";font-family:Segoe UI;font-size:12px;font-weight:700;white-space:nowrap;'>\""
     )
     parts = [head]
@@ -210,6 +215,13 @@ def _tab_bar():
     return flow_row("conVhpOpsTabBar", kids, OPS_CW, gap=6)
 
 
+def _tab_bar_if_strategy():
+    bar = _tab_bar()
+    bar.vis = f"IfError({IS_STRATEGY}, false)"
+    bar.props["Visible"] = bar.vis
+    return bar
+
+
 # Bliver planen lavet om fra strategi- til tidsplan, mens man staar paa
 # pakkefanen, forsvinder baade knappen og ruden - og kortet ville staa tomt.
 # Operationsruden overtager derfor den tilstand.
@@ -252,21 +264,27 @@ def _mat_header_html():
             f"font-weight:600;white-space:nowrap;'>{spans}</div>\"")
 
 
-def _modal(name, title, open_var, close_fx, kids, width=620):
+def _modal(name, title, open_var, close_fx, kids, width=620, scroll=False):
     """En popup i appens moenster (som tasklist-pickeren): centreret,
-    sloer bag (build_modal.build_modal_backdrop), titel og luk-knap."""
+    sloer bag (build_modal.build_modal_backdrop), titel og luk-knap.
+    scroll: titel og Close staar fast, indholdet scroller."""
     t = grow(text_ctrl(f"txt{name}Title", title, size=lay.SIZE_CARD_TITLE, weight="Semibold", height=26,
                        wrap="false"))
     close = button(f"btn{name}Close", '"Close"', close_fx,
                    width=fit_button_width('"Close"'), height=32)
     head = group(f"con{name}HeadRow", [t, close], direction="Horizontal", gap=12,
                  height=32, align_items="Center")
+    if scroll:
+        body_h = "Max(200, App.Height - 150)"
+        body = group(f"con{name}Body", kids, direction="Vertical", gap=8, height=body_h,
+                     overflow_y="Scroll")
+        kids = [body]
     modal = group(f"con{name}Modal", [head] + kids, direction="Vertical", gap=12,
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(18, 18, 18, 18), width=f"Min({width}, App.Width - 40)",
                   drop_shadow="ExtraBold", visible=f"IfError({open_var}, false)")
     modal.props["X"] = "(App.Width - Self.Width) / 2"
-    modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
+    modal.props["Y"] = "20" if scroll else "Max(20, (App.Height - Self.Height) / 3)"
     return modal
 
 
@@ -544,9 +562,134 @@ def _attachments_modal():
                   'Set(varVhpAttOpNo, "")', [picker, actions, note, gallery, empty])
 
 
+OPM_OPEN = "!IsBlank(varVhpOpMNo)"
+OPM = "LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo)"
+
+
+def _op_detail_modal():
+    """En operationslinje i en popup - kun i smalle skaerme, hvor tabellen
+    med femten kolonner ikke kan laeses. Samme felter som tabellens vigtigste
+    kolonner, og de samme Patch-formler paa samme samling."""
+    def label(name, text):
+        return text_ctrl(f"txtVhpOpM{name}", f'"{text}"', size=12, color=C_MUTED,
+                         height=18, wrap="false")
+
+    short = text_input("inpVhpOpMText", f"{OPM}.OperationShortText", width=MODAL_CW, height=32,
+                       onchange=f"Patch(colVhpOperations, {OPM}, {{ OperationShortText: Self.Text }})",
+                       label='"Operation text"')
+    work = number_input("numVhpOpMWork", f"{OPM}.WorkHours", width=MODAL_CW, height=32,
+                        label='"Work hours"')
+    cost = cost_expr("Self.Value").replace("ThisItem", "r")
+    work.props["OnChange"] = (
+        "With(\n    { r: " + OPM + " },\n    Patch(\n        colVhpOperations, r,\n"
+        "        {\n            WorkHours: Self.Value,\n"
+        f"            DurationHours: {cfg.duration_expr('Self.Value', 'r.Persons')},\n"
+        f"            Cost: {cost}\n        }}\n    )\n)")
+    persons = number_input("numVhpOpMPersons", f"{OPM}.Persons", width=MODAL_CW, height=32,
+                           label='"Number of people"')
+    persons.props["OnChange"] = (
+        "With(\n    { r: " + OPM + " },\n    Patch(\n        colVhpOperations, r,\n"
+        "        {\n            Persons: Self.Value,\n"
+        f"            DurationHours: {cfg.duration_expr('r.WorkHours', 'Self.Value')}\n        }}\n    )\n)")
+    dur = text_ctrl("txtVhpOpMDur",
+                    f'"Duration: " & Text({OPM}.DurationHours, "[$-en-US]#,##0.##") & " h   Work center: " & '
+                    f'Coalesce({OPM}.MainWorkCenter, "-")', size=13, color=C_MUTED, height=20,
+                    wrap="false")
+    mats = button("btnVhpOpMMat", f'"Materials (" & Text(CountRows(Filter(colVhpMaterials, ItemId = varVhpActiveItemId && '
+                  f'OperationNo = varVhpOpMNo))) & ")"', "Set(varVhpMatOpNo, varVhpOpMNo)",
+                  width=fit_button_width('"Materials (00)"'), height=32)
+    docs = button("btnVhpOpMDocs", '"Docs"', "Set(varVhpAttOpNo, varVhpOpMNo)",
+                  width=fit_button_width('"Docs"'), height=32)
+    rem = button("btnVhpOpMRemove", '"Remove"',
+                 "RemoveIf(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo);\n"
+                 'Set(varVhpOpMNo, "")', danger=True, width=fit_button_width('"Remove"'), height=32)
+    actions = flow_row("conVhpOpMActions", [mats, docs, rem], MODAL_CW, gap=8)
+
+    on_op = lambda s: s.replace("ThisItem", OPM)
+    ctrl_items = ("Filter(Distinct(Table("
+                  + ", ".join('{ Value: "%s" }' % c for c in CTRL_CHOICES)
+                  + f', {{ Value: Coalesce({OPM}.ControlKey, "") }}), Value), !IsBlank(Value))')
+    ctrl = themed_dropdown("drpVhpOpMCtrl", ctrl_items,
+                           f"LookUp({ctrl_items}, Value = {OPM}.ControlKey).Value",
+                           width=MODAL_CW, height=32, display_mode=on_op(DM_CTRL),
+                           label='"Control key"')
+    ctrl.props["OnChange"] = (f"Patch(colVhpOperations, {OPM}, "
+                              "{ ControlKey: Self.Selected.Value })")
+    vendor = text_input("inpVhpOpMVendor", f"{OPM}.Vendor", width=MODAL_CW, height=32,
+                        display_mode=on_op(DM_PURCHASE),
+                        onchange=f"Patch(colVhpOperations, {OPM}, {{ Vendor: Self.Text }})",
+                        label='"Supplier"')
+    price = number_input("numVhpOpMCost", f"{OPM}.Cost", width=MODAL_CW, height=32,
+                         display_mode=on_op(DM_PURCHASE), label='"Price"')
+    price.props["OnChange"] = f"Patch(colVhpOperations, {OPM}, {{ Cost: Self.Value }})"
+    matgrp = text_input("inpVhpOpMMatGrp", f"{OPM}.MaterialGroup", width=MODAL_CW, height=32,
+                        display_mode=on_op(DM_PURCHASE),
+                        onchange=f"Patch(colVhpOperations, {OPM}, {{ MaterialGroup: Self.Text }})",
+                        label='"Material group"')
+    longtext = button(
+        "btnVhpOpMLongText",
+        (f'If(IsBlank(Trim(Coalesce({OPM}.LongText, ""))), "Add text...", '
+         f'Left({OPM}.LongText, 24) & If(Len({OPM}.LongText) > 24, "..."))'),
+        ('Set(varVhpLongTextTarget, "op");\n'
+         'Set(varVhpLongTextItemId, varVhpActiveItemId);\n'
+         'Set(varVhpLongTextOpNo, varVhpOpMNo);\n'
+         f'Set(varVhpLongTextDraft, Coalesce({OPM}.LongText, ""));\n'
+         'Reset(inpVhpLongTextBox);\n'
+         'Set(varVhpLongTextOpen, true)'),
+        width=MODAL_CW, height=32, icon="DocumentText",
+        accessible='"Edit long text for operation " & varVhpOpMNo')
+    packages = text_ctrl(
+        "txtVhpOpMPackages",
+        ('If(varVhpPlan.PlanType <> "Strategy", "-", With({ sel: Filter(colVhpStrategyPackages As P, '
+         'P.StrategyKey = varVhpPlan.Strategy && ";" & Text(P.PackageNo) & ";" in '
+         f'Coalesce({OPM}.PackagesKey, ";")) }}, If(CountRows(sel) = 0, "(none)", '
+         'Concat(Sort(sel, PackageNo), ShortCode, ", "))))'),
+        size=13, height=20, wrap="false")
+    return _modal("VhpOpM", '"Operation " & varVhpOpMNo', OPM_OPEN, 'Set(varVhpOpMNo, "")',
+                  [label("L1", "Short text"), short, label("L2", "Work (h)"), work,
+                   label("L3", "Number of people"), persons, dur,
+                   label("L4", "Control key"), ctrl, label("L5", "Supplier"), vendor,
+                   label("L6", "Price"), price, label("L7", "Material group"), matgrp,
+                   label("L8", "Long text"), longtext, label("L9", "Packages"), packages,
+                   actions], scroll=True)
+
+
+def _ops_list_mobile():
+    """Operationerne som en liste af knapper under Tablet: en linje pr.
+    operation, et tryk aabner popup'en."""
+    n_ops = "CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId))"
+    has_ops = f"IfError(!IsBlank(varVhpActiveItemId) && {n_ops} > 0, false)"
+    row_h = 46
+    line = grow(text_ctrl(
+        "txtVhpOpMRow",
+        'ThisItem.OperationNo & "  \u00b7  " & Coalesce(ThisItem.OperationShortText, "") & "  \u00b7  " & '
+        'Text(ThisItem.WorkHours, "[$-en-US]#,##0.##") & " h"',
+        size=13, height=24, wrap="false"))
+    chev = text_ctrl("txtVhpOpMChev", '"\u203a"', size=18, color=C_MUTED, height=24, width=16,
+                     wrap="false")
+    row = group("conVhpOpMRow", [line, chev], direction="Horizontal", gap=8,
+                height="Parent.TemplateHeight - 2", align_items="Center",
+                width="Parent.TemplateWidth", fill=C_CARD_BG, pad=(0, 8, 0, 8))
+    hit = row_hit("btnVhpOpMHit", "Set(varVhpOpMNo, ThisItem.OperationNo)",
+                  '"Open operation " & ThisItem.OperationNo', "Parent.TemplateWidth",
+                  "Parent.TemplateHeight - 2")
+    vis = f"{has_ops} && {below('Tablet')}"
+    gal_h = f"{n_ops} * {row_h}"
+    gal = Ctrl("galVhpOpsM", "Gallery", variant="Vertical", props={
+        "AccessibleLabel": '"Operations - select one to open it"',
+        "BorderStyle": "BorderStyle.None", "Fill": C_CARD_BG, "FillPortions": "0",
+        "Height": gal_h,
+        "Items": "Sort(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Value(OperationNo))",
+        "LayoutMinWidth": "0", "LoadingSpinner": "LoadingSpinner.None", "Selectable": "false",
+        "ShowScrollbar": "false", "TabIndex": "0", "TemplatePadding": "2",
+        "TemplateSize": str(row_h - 2), "Visible": vis, "Width": "Parent.Width", "WrapCount": "1",
+    }, children=[row, hit], h=gal_h, vis=vis)
+    return gal
+
+
 def build_ops_modals():
     """Popupperne fra operationsraekkens Materials- og Docs-knapper."""
-    return [_materials_modal(), _attachments_modal()]
+    return [_op_detail_modal(), _materials_modal(), _attachments_modal()]
 
 
 # Tasklisterne til det valgte vaerk - Plant i Plan Header er den faelles
@@ -595,16 +738,6 @@ def build_tasklist_section():
     tasklistCell = field_cell("conVhpCellTasklist", "Tasklist For Active Item", drpTasklist, required=True,
                               width=TL_W, container_w=OPS_CW, fill_portions_formula="0")
 
-    btnApply = button(
-        "btnVhpApplyTasklist", "\"Apply Tasklist\"",
-        "If(\n"
-        "    IsBlank(varVhpActiveItemId) || IsBlank(drpVhpItemTasklist.Selected.Key),\n"
-        "    Notify(\"Select an item and a tasklist first.\", NotificationType.Warning),\n"
-        "    " + APPLY_TL.replace("\n", "\n    ") + "\n"
-        ")",
-        display_mode=("If(IsBlank(varVhpActiveItemId) || IsBlank(drpVhpItemTasklist.Selected.Key), "
-                      "DisplayMode.Disabled, DisplayMode.Edit)"))
-
     btnAddLines = button(
         "btnVhpAddTasklistLines", "\"Add Lines from Tasklist\"",
         (
@@ -652,49 +785,57 @@ def build_tasklist_section():
             ")"
         ), display_mode=DM_ITEM)
 
-    # Kun aktiv, naar der er en markeret linje at fjerne - samme betingelse
-    # som knappen selv tjekker.
-    btnRemoveOp = button(
-        "btnVhpRemoveOperation", "\"Remove Selected Operation\"",
+    # The two row-creating buttons stand right after the tasklist field,
+    # bottom-aligned with its dropdown while they share a line.
+    add_btns = [btnAddLines, btnAddOp]
+    for b in add_btns:
+        b.props["Width"] = str(fit_button_width(b.props["Text"]))
+        b.props["LayoutMinWidth"] = b.props["Width"]
+        b.vis = at_least("Tablet")
+    opsMenu = themed_dropdown(
+        "drpVhpOpsActions",
+        'Table({ Value: "Add lines from tasklist" }, { Value: "Add manual operation" })',
+        '""', width="190", height=36, label='"Tasklist actions"',
+        onchange=(
+            "Switch(\n"
+            "    Self.Selected.Value,\n"
+            f"    \"Add lines from tasklist\", {btnAddLines.props['OnSelect']},\n"
+            f"    \"Add manual operation\", {btnAddOp.props['OnSelect']}\n"
+            ");\nReset(Self)"))
+    opsMenu.props["LayoutMinWidth"] = "190"
+    opsMenu.vis = below("Tablet")
+    opsMenu.props["Visible"] = below("Tablet")
+    tb_kids = [tasklistCell, btnAddLines, btnAddOp, opsMenu]
+    on_line = flow_ok(tb_kids, OPS_CW, 12)
+    for b in add_btns + [opsMenu]:
+        b.props["AlignInContainer"] = f"If({on_line}, AlignInContainer.End, AlignInContainer.Start)"
+    toolbar = flow_row("conVhpOpsToolbar", tb_kids, OPS_CW, gap=12)
+
+    btnTlReset = button(
+        "btnVhpTasklistReset", "\"Reset\"",
+        "Reset(drpVhpItemTasklist);\n"
+        "Notify(\"Tasklist selection reset.\", NotificationType.Information)",
+        width=fit_button_width("\"Reset\""), height=36, display_mode=DM_ITEM)
+    btnTlSave = button(
+        "btnVhpTasklistSave", "\"Save\"",
         (
             "If(\n"
             "    IsBlank(varVhpActiveItemId),\n"
             "    Notify(\"Select an item first.\", NotificationType.Warning),\n"
-            "    If(\n"
-            f"        CountRows({OPS_SELECTED}) = 0,\n"
-            "        Notify(\"Select one or more operation lines to remove (Sel column).\", NotificationType.Warning),\n"
-            # Operationens materialer foelger med - ellers blev de gemt paa
-            # et OperationNo, der ikke findes. Dokumenterne hoerer til
-            # itemet og kan vaere knyttet til flere operationer; de bliver.
-            "        RemoveIf(\n"
-            "            colVhpMaterials,\n"
-            "            ItemId = varVhpActiveItemId,\n"
-            f"            OperationNo in {OPS_SELECTED}.OperationNo\n"
-            "        );\n"
-            "        RemoveIf(colVhpOperations, ItemId = varVhpActiveItemId, Selected = true);\n"
-            "        Notify(\"Removed selected operation line(s).\", NotificationType.Success)\n"
-            "    )\n"
+            "    IsBlank(drpVhpItemTasklist.Selected.Key),\n"
+            "    Notify(\"Select a tasklist first.\", NotificationType.Warning),\n"
+            "    UpdateIf(\n"
+            "        colVhpItems, ItemId = varVhpActiveItemId,\n"
+            "        { TasklistKey: drpVhpItemTasklist.Selected.Key, TasklistName: drpVhpItemTasklist.Selected.Name }\n"
+            "    );\n"
+            "    Select(btnVhpSaveDraft)\n"
             ")"
-        ), danger=True,
-        display_mode=(f"If(IsBlank(varVhpActiveItemId) || CountRows({OPS_SELECTED}) = 0, "
-                      "DisplayMode.Disabled, DisplayMode.Edit)"))
-
-    # KNAPGRUPPEN (issue #54): samlet, hver knap saa bred som sin tekst, og
-    # hoejrejusteret paa samme raekke som tasklist-feltet. Der er ikke plads
-    # nok, staar gruppen samlet paa linjen under; er der heller ikke plads
-    # dér, staar knapperne under hinanden (fit_button_row -> flow_row -
-    # aldrig et halvt ombrud, der klipper en knap).
-    btns = [btnApply, btnAddLines, btnAddOp, btnRemoveOp]
-    actionGroup = fit_button_row("conVhpOpsActionRow", btns, OPS_CW, gap=8)
-    GROUP_W = sum(int(b.props["Width"]) for b in btns) + 8 * (len(btns) - 1)
-    actionGroup.props["Width"] = f"If({OPS_CW} >= {GROUP_W}, {GROUP_W}, {OPS_CW})"
-    actionGroup.props["AlignInContainer"] = "AlignInContainer.End"
-
-    # Den fleksible luft i midten: dropdown til venstre, knapperne til
-    # hoejre. flow_row giver den resten af linjen (build_helpers.grow).
-    spacer = group("conVhpOpsToolbarGap", [], direction="Horizontal", height=0)
-    toolbar = flow_row("conVhpOpsToolbar", [tasklistCell, spacer, actionGroup], OPS_CW,
-                       gap=16, flex=spacer)
+        ), primary=True, icon=ICON_SAVE,
+        width=fit_button_width("\"Save\"", min_w=96) + ICON_W, height=36,
+        display_mode=("If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, "
+                      "btnVhpSaveDraft.DisplayMode)"))
+    opsFooter = group("conVhpOpsFooter", [btnTlReset, btnTlSave], direction="Horizontal", gap=8,
+                      height=36, align_items="Center", justify="End")
 
     tasklistMeta = text_ctrl(
         "txtVhpTasklistMeta",
@@ -717,24 +858,26 @@ def build_tasklist_section():
                         visible="IfError(varVhpShowHints && !IsBlank(varVhpActiveItemId), false)")
 
     opsHeader = Ctrl("htmVhpOpsHeader", "HtmlViewer", props={
-        "Fill": C_TRANSPARENT, "Height": "22", "HtmlText": _ops_header_html(),
+        "Fill": C_TRANSPARENT, "Height": "34", "HtmlText": _ops_header_html(),
         "PaddingBottom": "0", "PaddingLeft": "0", "PaddingRight": "0", "PaddingTop": "0",
         "Width": str(OPS_TABLE_W),
-    }, h=22)
+    }, h=34)
     opsDivider = group("conVhpOpsDivider", [], height=1, fill=C_DIVIDER, direction="Horizontal",
                        width=str(OPS_TABLE_W))
 
     # -- row template ---------------------------------------------------------
     w = {t: wd for t, wd in OPS_COLS}
-    chkSel = Ctrl("chkVhpOpSel", "ModernCheckbox", props=checkbox_theme({
-        "AccessibleLabel": "\"Select operation line\"",
-        "Default": "ThisItem.Selected",
-        "Height": "24",
-        "Label": "\"\"",
-        "OnCheck": "Patch(colVhpOperations, ThisItem, { Selected: true })",
-        "OnUncheck": "Patch(colVhpOperations, ThisItem, { Selected: false })",
-        "Width": str(w["SEL"]),
-    }), h=24)
+    btnOpDel = button(
+        "btnVhpOpDelete", '"Delete"',
+        (
+            "RemoveIf(colVhpMaterials, ItemId = ThisItem.ItemId && OperationNo = ThisItem.OperationNo);\n"
+            "RemoveIf(colVhpOperations, ItemId = ThisItem.ItemId && OperationNo = ThisItem.OperationNo);\n"
+            "Notify(\"Operation line removed.\", NotificationType.Success)"
+        ),
+        danger=True, width=40, height=32, icon="Delete", display_mode=DM_ITEM,
+        accessible='"Delete operation " & ThisItem.OperationNo')
+    btnOpDel.props["Layout"] = "ButtonLayout.IconOnly"
+    btnOpDel.props["Tooltip"] = '"Delete operation line"'
     txtOpNo = text_ctrl("txtVhpOpNo", "ThisItem.OperationNo", size=13, height=32, width=w["OP NO."], wrap="false")
     txtOpShort = text_input("inpVhpOpShortText", "ThisItem.OperationShortText", width=w["OPERATION SHORT TEXT"],
                             height=32,
@@ -827,8 +970,11 @@ def build_tasklist_section():
             "Reset(inpVhpLongTextBox);\n"
             "Set(varVhpLongTextOpen, true)"
         ),
-        width=w["LONG TEXT"], height=32,
+        width=w["LONG TEXT"], height=32, icon="DocumentText",
+        display_mode=("If(varVhpViewOnly && IsBlank(Trim(Coalesce(ThisItem.LongText, \"\"))), "
+                      "DisplayMode.Disabled, DisplayMode.Edit)"),
         accessible='"Edit long text for operation " & ThisItem.OperationNo')
+    mark_done(btnOpLongText, "!IsBlank(Trim(Coalesce(ThisItem.LongText, \"\")))")
 
     # Pakkerne redigeres i matricen nedenfor - her vises kun resultatet, saa
     # operationslinjen og allokeringen kan laeses samme sted.
@@ -863,15 +1009,16 @@ def build_tasklist_section():
         accessible='"Documents for operation " & ThisItem.OperationNo')
     for b_ in (btnOpMat, btnOpDocs):
         b_.props["Size"] = "12"
+    mark_done(btnOpMat, f"CountRows({OP_MATS}) > 0")
 
     opRow = group("conVhpOpRow",
-                  pin_widths([chkSel, txtOpNo, txtOpShort, numOpWork, numOpPersons, numOpDur, txtOpMwc,
+                  pin_widths([txtOpNo, txtOpShort, numOpWork, numOpPersons, numOpDur, txtOpMwc,
                               drpOpCtrl, txtOpVendor, numOpCost, txtOpMatGrp,
-                              btnOpLongText, txtOpPackages, btnOpMat, btnOpDocs]),
+                              btnOpLongText, txtOpPackages, btnOpMat, btnOpDocs, btnOpDel]),
                   direction="Horizontal", gap=OPS_GAP,
                   height="Parent.TemplateHeight - 2", align_items="Center", width="Parent.TemplateWidth")
 
-    OPS_ROW_H = 38 + 2
+    OPS_ROW_H = 44 + 2
     # INGEN TOM RAEKKE (issue #73). Hoejden var Max(n, 1) raekker, og
     # galleriets fyld var kantfarven - uden operationer stod der derfor en
     # farvet bjaelke under kolonneoverskrifterne. Nu er galleriet kun
@@ -892,13 +1039,13 @@ def build_tasklist_section():
             "LayoutMinWidth": "0",
             "LoadingSpinner": "LoadingSpinner.None",
             "Selectable": "false",
-            "ShowScrollbar": "true",
+            "ShowScrollbar": "false",
             "TabIndex": "0",
             "TemplatePadding": "2",
-            "TemplateSize": "38",
+            "TemplateSize": "44",
             # Tabellen + TemplatePadding + scrollbar. Var galleriet kun
             # tabellens bredde, laa sidste kolonne under scrollbaren.
-            "Width": str(OPS_TABLE_W + 4 + SCROLLBAR_W),
+            "Width": f"{OPS_TABLE_W} + 4",
             "Visible": has_ops,
             "WrapCount": "1",
         },
@@ -922,14 +1069,16 @@ def build_tasklist_section():
     opsTableWrap = group("conVhpOpsTableWrap",
                          [opsHeader, opsDivider, gallery, opsTotalsDivider, opsTotals, opsEmpty],
                          direction="Vertical", gap=4, overflow_x="Scroll", width="Parent.Width",
-                         align_items="Start")
+                         align_items="Start", visible=at_least("Tablet"))
 
     # Operationstabellen er fanen Operations - sammen med tasklist-vaelgeren
     # og de fire operationsknapper. De laa foer i kortet uden for ruderne, og
     # saa blev "Add operation" staaende paa materialefanen, hvor den ikke
     # hoerer hjemme. Hver fane ejer nu sine egne knapper, praecis som
     # materialeruden allerede gjorde.
-    opsPane = group("conVhpOpsPane", [toolbar, tasklistMeta, opsHint, opsTableWrap],
+    opsEmptyM = text_ctrl("txtVhpOpsEmptyM", "\"No operation lines yet...\"", size=13, color=C_MUTED,
+                          height=24, wrap="false", visible=f"!{has_ops} && {below('Tablet')}")
+    opsPane = group("conVhpOpsPane", [toolbar, tasklistMeta, opsHint, opsTableWrap, _ops_list_mobile(), opsEmptyM],
                     direction="Vertical", gap=8, width="Parent.Width",
                     visible=OPS_PANE_ON)
     pkgPane = build_strategy_body()
@@ -940,5 +1089,5 @@ def build_tasklist_section():
     # tasklist-vaelgeren og knapraekken, og saa stod selve skiftet nederst i
     # den halvdel af kortet, der ikke aendrede sig.
     return card("conVhpOpsCard",
-                [header, helpPanel, _tab_bar(),
-                 opsPane, pkgPane])
+                [header, helpPanel, _tab_bar_if_strategy(),
+                 opsPane, pkgPane, opsFooter])

@@ -67,8 +67,6 @@ VARS_BLOCK = """Set(
         SortField: "",
         Cycle: 0,
         Unit: "",
-        CallHorizon: "",
-        SchedulingIndicator: "",
         FirstCallDay: Day(Today()),
         FirstCallMonth: Month(Today()),
         FirstCallYear: Year(Today()) + 1
@@ -77,6 +75,9 @@ VARS_BLOCK = """Set(
 
 Set(varVhpPlanCommitted, false);
 Set(varVhpPlanLocked, false);
+Set(varVhpViewOnly, false);
+Set(varVhpBadgeOn, false);
+Set(varVhpCanEdit, false);
 Set(varVhpPlanCreatedAt, Blank());
 Set(varVhpPlanValidated, false);
 Set(varVhpItemValidated, false);
@@ -105,6 +106,7 @@ Set(varVhpObjListOpen, false);
 Set(varVhpFocusStep, 0);
 // Bekraeftelsen foer Submit.
 Set(varVhpConfirmSubmit, false);
+Set(varVhpConfirmNew, false);
 // Popupperne for materialer og dokumenter pr. operation (OperationNo, tom = lukket).
 Set(varVhpMatOpNo, "");
 Set(varVhpAttOpNo, "");

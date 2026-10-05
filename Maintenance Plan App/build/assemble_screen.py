@@ -23,7 +23,7 @@ from build_hero import build_top_bar, HELP_ON, HELP_ACTION, focus_border, CONFIR
 from build_helpers import loading_overlay
 from gen_screen import C_CARD_BORDER
 from side_nav import side_nav
-from build_plan_header import build_plan_header
+from build_plan_header import build_plan_header, plan_info_modal
 from build_items import build_items_section, build_object_list_modal
 from build_tasklist import build_tasklist_section, build_ops_modals
 from build_modal import (build_tasklist_picker_modal, build_longtext_modal,
@@ -41,7 +41,7 @@ def build_screen(render=render_screen):
         items,
         # Pakkematricen er nu en fane i Tasklist-sektionen, ikke et kort
         # for sig. Se build_tasklist._tab_bar.
-        focus_border(build_tasklist_section(), (3, 4), C_CARD_BORDER),
+        focus_border(build_tasklist_section(), (3,), C_CARD_BORDER),
         # Dispatch and Control og Save to SharePoint er fjernet (issue #54).
         # Save draft og Submit staar for enden af progressbaren i
         # topbjaelken (build_hero.py), og reglerne bag Validate er de
@@ -56,9 +56,10 @@ def build_screen(render=render_screen):
     nav, overlay = side_nav("Vhp", "vhplan", HELP_ON, HELP_ACTION)
     return render("ScreenVhPlan", {"Fill": C_APP_BG},
                          [root, *nav,
-                          build_modal_backdrop(), build_tasklist_picker_modal(),
+                          build_modal_backdrop(), *build_ops_modals(),
+                          build_tasklist_picker_modal(),
                           build_longtext_modal(), build_object_list_modal(),
-                          *build_ops_modals(), *CONFIRM, *overlay,
+                          *CONFIRM, *plan_info_modal(), *overlay,
                           # Ventespinneren, mens der gemmes - oeverst af alt.
                           loading_overlay("imgVhpSaving", "varVhpSaving")])
 

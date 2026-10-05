@@ -57,7 +57,7 @@ EMPTY_ITEM_FIELDS = [
     ("ItemId", "1"), ("ShortText", '""'), ("FunctionalLocation", '""'),
     ("FlDescription", '""'), ("MainWorkCenter", '""'), ("ActivityType", '""'),
     ("ObjectList", '""'), ("Revision", '""'), ("OrstedResponsible", '""'),
-    ("Initials", '""'), ("LongText", '""'), ("TasklistKey", '""'),
+    ("Initials", 'Upper(First(Split(varVhpMe, "@")).Value)'), ("LongText", '""'), ("TasklistKey", '""'),
     ("TasklistName", '""'), ("Status", '"draft"'), ("SpId", "0"),
 ]
 
@@ -78,12 +78,6 @@ PLAN_FIELDS = [
     ("SortField", "pl.SortField.Value"),
     ("Cycle", "pl.Cycle"),
     ("Unit", "pl.Unit.Value"),
-    # Gemningen skriver SchedulingPeriod (tallet), ikke teksten. Vejen
-    # tilbage gaar gennem den samme matrix, som fyldte dropdownen.
-    ("CallHorizon",
-     "LookUp(\n                            colVhpCallHorizonOptions, "
-     "SchedPeriod = pl.SchedulingPeriod\n                        ).Value"),
-    ("SchedulingIndicator", "pl.SchedulingIndicator.Value"),
     ("FirstCallDay", "Day(pl.PlannedDate)"),
     ("FirstCallMonth", "Month(pl.PlannedDate)"),
     ("FirstCallYear", "Year(pl.PlannedDate)"),
@@ -235,6 +229,9 @@ def load_block():
         # Laast som efter Save i Plan Header: den indlaeste plan ER den
         # gemte, og trin 1 er faerdigt. Edit laaser op (issue #54).
         "                Set(varVhpPlanLocked, true);\n"
+        # Edit only for the owner of a draft; everyone else stays in View.
+        "                Set(varVhpCanEdit, Lower(Coalesce(idx.RequesterEmail, \"\")) = varVhpMe && idx.Status.Value = \"Kladde\");\n"
+        "                Set(varVhpViewOnly, !(Lower(Coalesce(Param(\"mode\"), \"\")) = \"edit\" && varVhpCanEdit));\n"
         "\n"
         "                // --- de fem hentninger, PAA EEN GANG -------------\n"
         "                //\n"
