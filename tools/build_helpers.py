@@ -188,7 +188,7 @@ def group(name, children, direction="Vertical", gap=8, height=None, width="Paren
 # Ikonerne paa gem- og indsend-knapperne i hele BIO SAP (issue #54). Navnene
 # er Fluent-ikonernes; ModernButton.Icon tager dem direkte.
 ICON_SAVE = "Save"
-ICON_SUBMIT = "Send"
+ICON_SUBMIT = None
 # Ikon + mellemrum foran teksten - laegges til knappens tekstbredde.
 ICON_W = 24
 
@@ -249,6 +249,28 @@ def button(name, text, onselect, primary=False, danger=False, width=140, height=
         props["Icon"] = icon if icon.startswith(("If(", '"')) else f'"{icon}"'
         props["Layout"] = "ButtonLayout.IconBefore"
     return Ctrl(name, "ModernButton", props=props, h=height, vis=visible)
+
+
+def icon_on_mobile(btn, w=40):
+    """Under Tablet er knappen kun sit ikon (en kvadratisk flade); ellers uaendret."""
+    narrow = lay.below("Tablet")
+    btn.desk_w = btn.props["Width"]
+    btn.icon_w = w
+    btn.props["Width"] = f"If({narrow}, {w}, {btn.props['Width']})"
+    btn.props["LayoutMinWidth"] = btn.props["Width"]
+    btn.props["Layout"] = f"If({narrow}, ButtonLayout.IconOnly, ButtonLayout.IconBefore)"
+    return btn
+
+
+def new_text_on_mobile(btn, full_w):
+    """"New request" with a plus on Tablet and up; a compact text button "New" below."""
+    narrow = lay.below("Tablet")
+    w = fit_button_width('"New"', min_w=0) + 8
+    btn.props["Text"] = f'If({narrow}, "New", "New request")'
+    btn.props["Width"] = f"If({narrow}, {w}, {full_w})"
+    btn.props["LayoutMinWidth"] = btn.props["Width"]
+    btn.props["Layout"] = f"If({narrow}, ButtonLayout.TextOnly, ButtonLayout.IconBefore)"
+    return btn
 
 
 def mark_done(btn, done_expr):
@@ -316,7 +338,7 @@ def bool_toggle(name, default, display_mode=None, tooltip=None, true_text='"Yes"
     return t
 
 
-def spinner_svg(size=64, stroke=6, delay=0.15):
+def spinner_svg(size=64, stroke=6, delay=0.15, caption=None):
     """Hjulet - EEN tegning for hele repoet (issue #64).
 
     Et drejende SVG-hjul i temaets farver: et spor i state-neutral-bg og en
@@ -329,9 +351,16 @@ def spinner_svg(size=64, stroke=6, delay=0.15):
     hx = lambda n: '" & %s & "' % ref_hex_expr(n)
     c = size // 2
     r = c - stroke - 4
-    svg = ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{size}' height='{size}' "
-           f"viewBox='0 0 {size} {size}'>"
-           f"<g opacity='0'>"
+    w = max(size, 440) if caption else size
+    h = size + 36 if caption else size
+    cx = w // 2
+    text = (f"<text x='{c}' y='{size + 24}' text-anchor='middle' font-family='Segoe UI, sans-serif' "
+            f"font-size='14' font-weight='600' fill='{hx('text-primary')}'>{caption}</text>"
+            if caption else "")
+    svg = ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{h}' "
+           f"viewBox='0 0 {w} {h}'>"
+           f"<g opacity='0' transform='translate({cx - c} 0)'>"
+           f"{text}"
            f"<animate attributeName='opacity' from='0' to='1' begin='{delay}s' "
            f"dur='0.2s' fill='freeze'/>"
            f"<circle cx='{c}' cy='{c}' r='{r}' fill='none' stroke-width='{stroke}' "
@@ -346,7 +375,7 @@ def spinner_svg(size=64, stroke=6, delay=0.15):
     return f'"data:image/svg+xml;utf8," & EncodeUrl({svg})'
 
 
-def loading_overlay(name, busy_var, label="Saving, please wait"):
+def loading_overlay(name, busy_var, label="Saving, please wait", caption=None):
     """DEN ventespinner - ens i alle apps og alle skaerme (issue #54, #64).
 
     Et drejende hjul (spinner_svg) midt paa skaermen, oven paa alt, i
@@ -367,8 +396,28 @@ def loading_overlay(name, busy_var, label="Saving, please wait"):
         "BorderThickness": "0",
         "Fill": C_OVERLAY,
         "Height": "App.Height",
-        "Image": spinner_svg(),
+        "Image": spinner_svg(caption=caption),
         "ImagePosition": "ImagePosition.Center",
+        "TabIndex": "-1",
+        "Visible": vis,
+        "Width": "App.Width",
+        "X": "0",
+        "Y": "0",
+    }, h="App.Height", vis=vis)
+
+
+def tap_backdrop(name, vis, close_fx):
+    """Sloeret bag en popup. Paa mobil lukker et tryk udenfor popuppen den;
+    sloeret daekker hele skaermen, saa siden under ikke kan trykkes paa. Er
+    ventespinneren oppe, ligger den oven paa og tager trykket."""
+    return Ctrl(name, "Image", props={
+        "AccessibleLabel": '"Close the dialog"',
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        "Fill": C_OVERLAY,
+        "Height": "App.Height",
+        "Image": '""',
+        "OnSelect": f"If({lay.below('Tablet')}, {close_fx})",
         "TabIndex": "-1",
         "Visible": vis,
         "Width": "App.Width",
@@ -391,31 +440,41 @@ def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
     aabner den (Set(open_var, true)); foerst "Submit" HER koerer
     indsendelsen. Cancel lukker uden at goere noget."""
     vis = f"IfError({open_var}, false)"
-    backdrop = Ctrl(f"con{prefix}ConfirmBackdrop", "GroupContainer", variant="AutoLayout", props={
-        "BorderStyle": "BorderStyle.None",
-        "DropShadow": "DropShadow.None",
-        "Fill": C_OVERLAY,
-        "Height": "App.Height",
-        "LayoutDirection": "LayoutDirection.Vertical",
-        "Visible": vis,
-        "Width": "App.Width",
-        "X": "0",
-        "Y": "0",
-    }, children=[], vis=vis)
+    backdrop = tap_backdrop(f"con{prefix}ConfirmBackdrop", vis, f"Set({open_var}, false)")
     t = text_ctrl(f"txt{prefix}ConfirmTitle", f'"{title}"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
                   height=26, wrap="false")
     msg = text_ctrl(f"txt{prefix}ConfirmText", message, size=13, color=C_MUTED,
                     height=40, wrap="true")
-    cancel = button(f"btn{prefix}ConfirmCancel", '"Cancel"', f"Set({open_var}, false)",
-                    width=fit_button_width('"Cancel"'), height=36)
+    cancel = button(f"btn{prefix}ConfirmCancel", '"Close"', f"Set({open_var}, false)",
+                    width=fit_button_width('"Close"'), height=36)
     ok = button(confirm_name, f'"{confirm_text}"',
                 f"Set({open_var}, false);\n{confirm_fx}", primary=True,
-                width=fit_button_width(f'"{confirm_text}"') + ICON_W, height=36, icon=icon)
+                width=fit_button_width(f'"{confirm_text}"') + (ICON_W if icon else 0), height=36, icon=icon)
     footer = group(f"con{prefix}ConfirmFooter", [cancel, ok], direction="Horizontal", gap=8,
                    height=36, justify="End", align_items="Center")
     modal = group(f"con{prefix}ConfirmModal", [t, msg, footer], direction="Vertical", gap=12,
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(18, 18, 18, 18), width="Min(460, App.Width - 40)",
+                  drop_shadow="ExtraBold", visible=vis)
+    modal.props["X"] = "(App.Width - Self.Width) / 2"
+    modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
+    return [backdrop, modal]
+
+
+def text_modal(prefix, open_var, title_fx, body_fx, body_h):
+    """Et laeseudsnit: titel, brødtekst og Close - [sloer, popup]."""
+    vis = f"IfError({open_var}, false)"
+    backdrop = tap_backdrop(f"con{prefix}Backdrop", vis, f"Set({open_var}, false)")
+    t = text_ctrl(f"txt{prefix}Title", title_fx, size=lay.SIZE_CARD_TITLE, weight="Semibold",
+                  height=26, wrap="false")
+    body = text_ctrl(f"txt{prefix}Body", body_fx, size=13, height=body_h, wrap="true")
+    close = button(f"btn{prefix}Close", '"Close"', f"Set({open_var}, false)",
+                   width=fit_button_width('"Close"'), height=36)
+    footer = group(f"con{prefix}Footer", [close], direction="Horizontal", gap=8,
+                   height=36, justify="End", align_items="Center")
+    modal = group(f"con{prefix}Modal", [t, body, footer], direction="Vertical", gap=12,
+                  fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
+                  pad=(18, 18, 18, 18), width="Min(460, App.Width - 24)",
                   drop_shadow="ExtraBold", visible=vis)
     modal.props["X"] = "(App.Width - Self.Width) / 2"
     modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
@@ -736,7 +795,8 @@ def page_icon(name, key, size=PAGE_ICON):
     en svagt tonet firkant. Pynt: ingen tab stop, tom etiket."""
     import icons
     color = '" & %s & "' % ref_hex_expr(icons.token(key))
-    inner = icons.stroke_svg(key, color, size=20)
+    inner = icons.stroke_svg(key, color, size=20,
+                             hx=lambda tk: '" & %s & "' % ref_hex_expr(tk))
     pad = (size - 20) / 2
     svg = ("<svg xmlns='http://www.w3.org/2000/svg' width='%d' height='%d' "
            "viewBox='0 0 %d %d'><rect width='%d' height='%d' rx='8' fill='%s' "
@@ -755,8 +815,79 @@ def page_icon(name, key, size=PAGE_ICON):
     }, h=size)
 
 
+DELETE_W = 40
+
+
+def delete_button(prefix, view_var, guid_var):
+    """Icon-only Delete for the open request, shown in edit mode only."""
+    b = button(f"btn{prefix}DeleteRequest", '"Delete"', f"Set(var{prefix}DeleteOpen, true)",
+               width=fit_button_width('"Delete"') + ICON_W, height=36, icon="Delete", danger=True,
+               visible=f"!IfError({view_var}, true) && !IsBlank({guid_var})",
+               accessible='"Delete this request"', tooltip='"Delete this draft request"')
+    return icon_on_mobile(b, DELETE_W)
+
+
+def delete_modal(prefix, guid_var, index_list):
+    import side_nav
+    fx = (f"IfError(\n"
+          f"    If(\n"
+          f'        LookUp({index_list}, RequestGuid = {guid_var}).Status.Value = "Kladde",\n'
+          f"        Remove({index_list}, LookUp({index_list}, RequestGuid = {guid_var}));\n"
+          f'        Set({guid_var}, "");\n'
+          f'        Notify("Request deleted.", NotificationType.Success);\n'
+          f'        {side_nav._launch("hub")},\n'
+          f'        Notify("Only drafts can be deleted.", NotificationType.Warning)\n'
+          f"    );\n"
+          f"    true,\n"
+          f'    Notify("The request could not be deleted.", NotificationType.Error);\n'
+          f"    false\n"
+          f")")
+    return confirm_modal(f"{prefix}ReqDel", f"var{prefix}DeleteOpen", "Delete request",
+                         '"Delete this request? This cannot be undone."',
+                         "Delete", fx, f"btn{prefix}ReqDelConfirm", icon="Delete")
+
+
+def mode_badge(prefix, var):
+    """Pille efter sidetitlen: View mode eller Edit mode (kun fra Tablet og op)."""
+    view = f"IfError({var}, false)"
+    fill = f'If({view}, {ref_hex_expr("state-info-bg")}, {ref_hex_expr("state-neutral-bg")})'
+    fg = f'If({view}, {ref_hex_expr("state-info-fg")}, {ref_hex_expr("state-warn-fg")})'
+    svg = ('"data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'104\' '
+           'height=\'26\' viewBox=\'0 0 104 26\'><rect width=\'104\' height=\'26\' rx=\'13\' fill=\'" & ' + fill +
+           ' & "\'/><circle cx=\'15\' cy=\'13\' r=\'3.5\' fill=\'" & ' + fg +
+           ' & "\'/><text x=\'26\' y=\'17.5\' font-family=\'Segoe UI, sans-serif\' font-size=\'12\' '
+           'font-weight=\'600\' fill=\'" & ' + fg + ' & "\'>" & If(' + view +
+           ', "View mode", "Edit mode") & "</text></svg>")')
+    img = Ctrl(f"img{prefix}Mode", "Image", props={
+        "AccessibleLabel": f'If({view}, "View mode - fields are locked", "Edit mode")',
+        "AlignInContainer": "AlignInContainer.Center",
+        "BorderStyle": "BorderStyle.None", "BorderThickness": "0", "Height": "26",
+        "Image": f'If(IfError({var.replace("ViewOnly", "BadgeOn")}, false), {svg}, "")', "ImagePosition": "ImagePosition.Fit", "LayoutMinWidth": "104",
+        "OnSelect": "false", "TabIndex": "-1", "Width": "104",
+    }, h=26)
+    return img
+
+
+def number_badge(prefix, var, key):
+    """Pill with the plan/request number (e.g. MP0142) in the page icon's colour; empty until there is one."""
+    import icons
+    col = ref_hex_expr(icons.token(key))
+    svg = ('"data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'88\' '
+           'height=\'26\' viewBox=\'0 0 88 26\'><rect width=\'88\' height=\'26\' rx=\'13\' fill=\'" & ' + col +
+           ' & "\' fill-opacity=\'0.12\'/><text x=\'44\' y=\'17.5\' text-anchor=\'middle\' '
+           'font-family=\'Segoe UI, sans-serif\' font-size=\'12\' font-weight=\'600\' fill=\'" & ' + col +
+           ' & "\'>" & ' + var + ' & "</text></svg>")')
+    return Ctrl(f"img{prefix}Number", "Image", props={
+        "AccessibleLabel": f'"Number " & {var}',
+        "AlignInContainer": "AlignInContainer.Start",
+        "BorderStyle": "BorderStyle.None", "BorderThickness": "0", "Height": "26",
+        "Image": f'If(IsBlank({var}), "", {svg})', "ImagePosition": "ImagePosition.Fit",
+        "LayoutMinWidth": "88", "OnSelect": "false", "TabIndex": "-1", "Width": "88",
+    }, h=26)
+
+
 def top_bar(prefix, title, subtitle, actions, container_w=None, gap=10,
-            narrow_hide=(), sub=None, icon=None):
+            narrow_hide=(), sub=None, icon=None, mode_var=None, num_var=None):
     """Bjaelken oeverst - den SAMME konstruktion i alle apps.
 
     EEN vandret raekke uden formler i retning eller justering: titlen og
@@ -775,16 +906,36 @@ def top_bar(prefix, title, subtitle, actions, container_w=None, gap=10,
     """
     t = text_ctrl("txt%sTitle" % prefix, title, size=lay.SIZE_PAGE_TITLE, weight="Semibold",
                   height=30, wrap="false")
+    t.vis = at_least("Tablet")
     if sub is None:
         sub = [text_ctrl("txt%sSub" % prefix, subtitle, size=13, color=C_MUTED,
-                         height=20, wrap="false")]
-    left = grow(group("con%sBarLeft" % prefix, [t] + list(sub), direction="Vertical", gap=2))
+                         height=20, wrap="false", visible=at_least("Tablet"))]
+    extra = []
+    first = t
+    if num_var and icon:
+        nb = number_badge(prefix, num_var, icon)
+        nb.props["AlignInContainer"] = "AlignInContainer.Center"
+        tw = int(text_px(title.strip()[1:-1], lay.SIZE_PAGE_TITLE) * 0.86) + 2
+        t.props["Width"] = str(tw)
+        t.props["LayoutMinWidth"] = str(tw)
+        first = group("con%sTitleLine" % prefix, [t, nb], direction="Horizontal", gap=6,
+                      height=33, align_items="Center", width=str(tw + 6 + 88))
+        first.props["AlignInContainer"] = "AlignInContainer.Start"
+        first.vis = at_least("Tablet")
+        first.props["Visible"] = first.vis
+    if mode_var:
+        mb = mode_badge(prefix, mode_var)
+        mb.props["AlignInContainer"] = "AlignInContainer.Start"
+        mb.vis = at_least("Tablet")
+        extra = [mb]
+    left = grow(group("con%sBarLeft" % prefix, [first] + list(sub) + extra, direction="Vertical", gap=2))
     lead = []
     if icon:
         # icon: noeglen i tools/icons.DOMAIN - appens eget domaeneikon.
         ic = page_icon("img%sTitleIcon" % prefix, icon)
         ic.props["AlignInContainer"] = "AlignInContainer.Center"
         ic.props["LayoutMinWidth"] = str(PAGE_ICON)
+        ic.vis = at_least("Tablet")
         lead = [ic]
     for a in actions:
         a.props["AlignInContainer"] = "AlignInContainer.Center"
@@ -951,7 +1102,7 @@ def input_theme(props, display_mode):
     props["BasePaletteColor"] = C_PRIMARY
     props["Fill"] = input_fill(display_mode)
     props["Font"] = FONT
-    props["Size"] = str(lay.SIZE_INPUT)
+    props["Size"] = if_below("Tablet", str(lay.SIZE_INPUT_MOBILE), str(lay.SIZE_INPUT))
     if not display_mode:
         props["Appearance"] = "Appearance.FilledDarker"
         props["Color"] = C_INPUT_FG
@@ -1260,7 +1411,7 @@ def combobox(name, items, display_field="Display", multi=False, default_items=No
         "SelectMultiple": "true" if multi else "false",
         "SelectionColor": C_WHITE,
         "SelectionFill": C_PRIMARY,
-        "Size": str(lay.SIZE_INPUT),
+        "Size": if_below("Tablet", str(lay.SIZE_INPUT_MOBILE), str(lay.SIZE_INPUT)),
         "Width": width,
     }
     if default_items is not None:

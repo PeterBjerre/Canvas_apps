@@ -318,6 +318,7 @@ SIZE_MICRO = 11        # kolonneoverskrifter, badges
 SIZE_SMALL = 12        # hjaelpetekst, metadata
 SIZE_BODY = 13         # etiketter, broedtekst
 SIZE_INPUT = 14        # felter og knapper
+SIZE_INPUT_MOBILE = 16  # iOS zooms into fields below 16
 SIZE_CARD_TITLE = 17   # titlen paa et kort eller en popup
 SIZE_PAGE_TITLE = 22   # sidens titel i topbjaelken
 TYPE_SCALE = (SIZE_MICRO, SIZE_SMALL, SIZE_BODY, SIZE_INPUT,

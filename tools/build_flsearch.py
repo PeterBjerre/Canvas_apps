@@ -156,7 +156,7 @@ def search_action(query_ctrl, target_collection, msg_var, *, raw_var,
     busy_off = f";\n        Set({busy_var}, false)" if busy_var else ""
     return (
         f"With(\n"
-        f"    {{ q: Trim({q_src}) }},\n"
+        f"    {{ q: Upper(Trim({q_src})) }},\n"
         f"    If(\n"
         f"        Len(q) < {MIN_SEARCH_LEN},\n"
         f"        Notify(\n"
@@ -168,7 +168,7 @@ def search_action(query_ctrl, target_collection, msg_var, *, raw_var,
         + (f"        Set({last_var}, q);\n" if last_var else "")
         + f"        Clear({target_collection});\n"
         + (f"        {on_start};\n" if on_start else "")
-        + f"        Set({msg_var}, \"Searching for \" & q & \" ...\");\n"
+        + f"        Set({msg_var}, \"Searching for \" & Upper(q) & \" ...\");\n"
         f"        IfError(\n"
         f"            Set({raw_var}, {FLOW_NAME}.Run(q));\n"
         f"            If(\n"
@@ -178,7 +178,7 @@ def search_action(query_ctrl, target_collection, msg_var, *, raw_var,
         f"            );\n"
         f"            If(\n"
         f"                CountRows({target_collection}) = 0,\n"
-        f"                Notify(\"No {label.lower()} found for \" & q & \".\", NotificationType.Warning)"
+        f"                Notify(\"No {label.lower()} found for \" & Upper(q) & \".\", NotificationType.Warning)"
         + (f",\n                    {on_found}\n" if on_found else "\n")
         + f"            );\n"
         f"            Set(\n"
@@ -187,8 +187,8 @@ def search_action(query_ctrl, target_collection, msg_var, *, raw_var,
         f"                    {{ n: CountRows({target_collection}) }},\n"
         f"                    If(\n"
         f"                        n = 0,\n"
-        f"                        \"No {label} found for \" & q & \".\",\n"
-        f"                        Text(n) & \" {label} found for \" & q & \". \" &\n"
+        f"                        \"No {label} found for \" & Upper(q) & \".\",\n"
+        f"                        Text(n) & \" {label} found for \" & Upper(q) & \". \" &\n"
         f"                            If(\n"
         f"                                n > {LONG_RESULT},\n"
         f"                                \"The list is long - type more characters to narrow it.\",\n"

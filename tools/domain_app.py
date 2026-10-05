@@ -64,9 +64,9 @@ def formulas(cfg):
     )
 
 
-def _collection_block(cfg):
+def _collection_block(cfg, extra=()):
     out = []
-    for name, schema in collections(cfg):
+    for name, schema in list(collections(cfg)) + list(extra):
         fields = ", ".join(f"{k}: {v}" for k, v in schema.items())
         # If(false, ...): kun skemaet. OnStart koerer samtidig med foerste
         # skaerms OnVisible, og ClearCollect+Clear her kunne toemme det,
@@ -83,6 +83,9 @@ def _collection_block(cfg):
 STATE = '''Set(varDomMe, Lower(User().Email));
 Set(varDomRequestNo, "");
 Set(varDomRequestGuid, "");
+Set(varDomViewOnly, false);
+Set(varDomBadgeOn, false);
+Set(varDomCanEdit, false);
 Set(varDomActiveRowId, Blank());
 // Hvilken raekke detaljeruden viser. Blank = ruden er skjult.
 Set(varDomDetailsId, Blank());
@@ -109,17 +112,24 @@ Set(varDomAllCols, false);
 Set(varDomValidated, false)'''
 
 
-def onstart(cfg):
+def onstart(cfg, extra_collections=(), extra_state=""):
     # Temaet saettes FOER resten: skaermen tegner sig selv ud af C, og C
     # laeser darkModeEnabled.
-    return _collection_block(cfg) + "\n\n" + tok.onstart_block() + "\n\n" + STATE
+    body = _collection_block(cfg, extra_collections) + "\n\n" + tok.onstart_block() + "\n\n" + STATE
+    if extra_state:
+        body += ";\n\n" + extra_state
+    return body
 
 
-def write_app(cfg, app_dir):
+def write_app(cfg, app_dir, extra_collections=(), extra_state=""):
     """App.pa.yaml. OnStart HENTER INGEN DATA - raekkerne hentes i
-    skaermens OnVisible. Kun samlingsskemaerne og tilstanden staar her."""
+    skaermens OnVisible. Kun samlingsskemaerne og tilstanden staar her.
+
+    extra_collections / extra_state: det, der kun er den ene apps - fx
+    Materials' fakturaimport (Material App/build/invoice_parts.py). De
+    skrives efter de faelles, i samme form."""
     dp.use(cfg)
-    body = onstart(cfg)
+    body = onstart(cfg, extra_collections, extra_state)
     content = app_yaml.write(app_dir, formulas(cfg), body, cfg.SCREEN)
     n = sum(body.count(x) for x in (cfg.L_ROWS, cfg.L_INDEX))
     print("App.pa.yaml skrevet.", content.count(chr(10)) + 1, "linjer,",
@@ -143,12 +153,15 @@ def build_screen(cfg, parts, render):
     root = app_frame("Dom", dp.build_bar(), [parts.build_form(), parts.build_rows()])
     # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
     nav, overlay = side_nav("Dom", cfg.APP_KEY)
+    # Appens EGNE popupper ([sloer, popup], fx Materials' fakturaimport).
+    # De staar efter de faelles og foer sidebarens aabne panel.
+    own = parts.build_popups() if hasattr(parts, "build_popups") else []
     # Sloeret FOER popupperne: kontrollerne tegnes i den raekkefoelge, de
     # staar, saa det, der skal ligge bagved, skal staa foerst.
     return render(cfg.SCREEN,
                   {"Fill": C_APP_BG, "OnVisible": on_visible()},
                   [root, *nav, dp.build_backdrop(), dp.build_details(),
-                   dp.build_attachments(), *overlay,
+                   dp.build_attachments(), *own, *overlay,
                    # Bekraeftelserne og ventespinneren - oeverst.
                    *dp.build_delete_confirm(), *dp.build_submit_confirm()])
 

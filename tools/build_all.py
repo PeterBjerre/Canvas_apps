@@ -7,7 +7,8 @@ Bygger alle canvas apps i repoet og efterregner layoutet.
     python3 tools/build_all.py --app equipment
 
 Raekkefoelgen: PowerShell-, solution- og hemmelighedstjek (kun fuld
-bygning), farvevagten, FL-reglerne mod html/*.js (kraever Node), saa pr.
+bygning), farvevagten, FL-reglerne mod html/*.js og fakturalaeseren mod
+dens testfakturaer (begge kraever Node), saa pr.
 app generate -> assemble -> check_layout, og til sidst datakilde-, sprog-
 og hjaelpetekst-tjekket over ALLE skaerme.
 
