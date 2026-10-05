@@ -848,7 +848,7 @@ def delete_modal(prefix, guid_var, index_list, domain):
           "If(\n"
           f"    IsBlank({idx}),\n    {rd.GONE},\n"
           f"    !{rd.may_delete(idx, f'var{prefix}Me')},\n    {rd.DENIED},\n"
-          + rd.delete_fx(prefix, [domain], success, indent=4) + "\n)")
+          + rd.delete_fx(prefix, [domain], success, f"var{prefix}Me", indent=4) + "\n)")
     return confirm_modal(f"{prefix}ReqDel", f"var{prefix}DeleteOpen", "Delete request",
                          '"Delete this request? This cannot be undone."',
                          "Delete", fx, f"btn{prefix}ReqDelConfirm", icon="Delete")

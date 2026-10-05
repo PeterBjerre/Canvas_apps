@@ -1029,7 +1029,7 @@ def build_delete_modal():
           "If(\n"
           f"    IsBlank(varMdDelIdx),\n    {rd.GONE};\n    RemoveIf(colMdScope, Id = varMdDelItem.ID),\n"
           f"    !{rd.may_delete('varMdDelIdx', 'varMdMe')},\n    {rd.DENIED},\n"
-          + rd.delete_fx("Md", list(rd.TAGS), success, indent=4) + "\n)")
+          + rd.delete_fx("Md", list(rd.TAGS), success, "varMdMe", indent=4) + "\n)")
     return confirm_modal("MdDel", "varMdDeleteOpen", "Delete request",
                          f'"Delete " & varMdDelItem.{COL_NO} & "? This cannot be undone."',
                          "Delete", fx, "btnMdDelConfirm", icon="Delete")

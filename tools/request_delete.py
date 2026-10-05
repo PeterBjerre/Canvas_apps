@@ -32,6 +32,7 @@ FunctionalLocationRequests; PlanKey i MD_TasklistMaterial og
 MD_TasklistAttachment; MaintenancePlanID / MaintenancePlanNo (opslag) i
 TaskListMain og MaintenanceItems; ID i MaintenancePlans.
 """
+import admin_log as alog
 import permissions as perm
 import request_index as ri
 
@@ -98,7 +99,7 @@ def _chain(steps, success):
     return out
 
 
-def delete_fx(prefix, domains, success, indent=0):
+def delete_fx(prefix, domains, success, me, indent=0):
     """Selve sletningen, naar var<prefix>DelIdx er den friske indeksraekke.
 
     prefix:  skaermens praefiks ("Md" i hubben, "Dom"/"Vhp"/"Fl" paa
@@ -106,6 +107,8 @@ def delete_fx(prefix, domains, success, indent=0):
     domains: de domaener, skaermen kan slette. Er der flere (hubben),
              vaelges kaeden med Switch paa raekkens Domain.
     success: det, der skal ske, naar ALT er slettet.
+    me:      brugerens e-mail (var<X>Me). Sletter en admin en ANDENS
+             anmodning, skrives det i MD_ApprovalLog (tools/admin_log.py).
 
     Vaerdierne laegges i variabler foerst: et filter, der sammenligner
     med en variabel, delegeres; et felt i en record goer ikke altid."""
@@ -113,6 +116,11 @@ def delete_fx(prefix, domains, success, indent=0):
     guid, sp, key, dom = (f"var{prefix}DelGuid", f"var{prefix}DelSp",
                           f"var{prefix}DelKey", f"var{prefix}DelDomain")
     index = [(INDEX, None, f"Remove({INDEX}, Filter({INDEX}, RequestGuid = {guid}))")]
+    log = (f"If(\n    {perm.as_admin(idx + '.RequesterEmail', me)},\n"
+           + alog.write(guid, key, alog.DELETE,
+                        f'"Request deleted (" & {idx}.Status.Value & ", owner " & {idx}.RequesterEmail & ")"', 4)
+           + "\n);\n")
+    success = log + success
     head = (f"Set({guid}, {idx}.RequestGuid);\n"
             f"Set({sp}, {idx}.SourceItemId);\n"
             f"Set({key}, {idx}.{ri.COL_NO});\n"

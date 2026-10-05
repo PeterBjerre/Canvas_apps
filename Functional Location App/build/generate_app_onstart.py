@@ -154,6 +154,10 @@ COLLECTIONS = [
     ("colFlTabs", {"Key": '""', "Label": '""'}),
     # Gem: raekkerne i SharePoint paa RowGuid, og hvad der fejlede.
     ("colFlSp", {"RowGuid": '""', "ID": "0"}),
+    # Raekkerne, som de stod foer en ADMINS gemning af en andens anmodning -
+    # kun hentet dér, til admin-loggen (tools/admin_log.py).
+    ("colFlAdmOld", {"RowGuid": '""', "RowNo": "0", "FL": '""', "Description": '""',
+                     "KksType": '""', "AssignedClass": '""'}),
     ("colFlSaveErrors", {"Where": '""', "Msg": '""'}),
     # Dyblink: raekkerne, som de blev hentet.
     ("colFlLoad", dict(ROW_BASE, Json='""')),

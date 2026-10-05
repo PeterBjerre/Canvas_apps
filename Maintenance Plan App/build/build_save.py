@@ -93,6 +93,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from build_helpers import button, confirm_modal, ICON_SAVE, ICON_SUBMIT
 import sp_config as cfg
 import messages as msg
+import admin_log as alog
 import permissions as perm
 import request_index as ri
 
@@ -369,6 +370,18 @@ def _step_items():
     """4. Items: opdatér de eksisterende, opret de nye (D7)."""
     ex = f"Filter({cfg.L_ITEMS}, MaintenancePlanNo.Id = varVhpPlanSpId)"
     return _step("Items", (
+        # En admin i en andens plan: items, som de staar nu, til loggen.
+        # Kun dér - andre betaler ingen ekstra hentning.
+        "    If(\n"
+        f"        {AS_ADMIN},\n"
+        "        ClearCollect(\n"
+        "            colVhpAdmOld,\n"
+        f"            ForAll({ex} As I, {{ ID: I.ID, ItemID: I.ItemID, Title: I.Title, "
+        "ItemDescription: I.ItemDescription, FunctionalLocation: I.FunctionalLocation, "
+        "ObjectList: I.ObjectList })\n"
+        "        ),\n"
+        "        Clear(colVhpAdmOld)\n"
+        "    );\n"
         # Hvad der er i SharePoint nu - ID og noegle.
         "    ClearCollect(\n"
         "        colVhpSpItems,\n"
@@ -668,6 +681,42 @@ def _step_status():
         "    Set(varVhpPlanModified, varVhpPlanRec.Modified)"))
 
 
+def _admin_log():
+    """Admin i en andens plan: planhovedet foer/efter (varVhpPlanNow mod
+    varVhpPlanRec - begge som de staar i SharePoint), items foer (colVhpAdmOld)
+    mod det gemte, og Submit (tools/admin_log.py)."""
+    P, N = PLAN_NOW, "varVhpPlanRec"
+    header = alog.diff([
+        ("Plan text", f"{P}.Title", f"{N}.Title"),
+        ("Plant", f"{P}.PlantsInitial.Value", f"{N}.PlantsInitial.Value"),
+        ("Cycle", f"{P}.Cycle", f"{N}.Cycle"),
+        ("Unit", f"{P}.Unit.Value", f"{N}.Unit.Value"),
+        ("Planned date", f"{P}.PlannedDate", f"{N}.PlannedDate"),
+        ("Strategy", f"{P}.StrategyKey", f"{N}.StrategyKey"),
+        ("Sort field", f"{P}.SortField.Value", f"{N}.SortField.Value"),
+    ])
+    item = alog.diff([
+        ("Short text", "O.Title", "n.ShortText"),
+        ("Long text", "O.ItemDescription", "Coalesce(n.LongText, n.ShortText)"),
+        ("Functional location", "O.FunctionalLocation", "n.FunctionalLocation"),
+        ("Object list", "O.ObjectList", "n.ObjectList"),
+    ], 'O.ItemID & " "')
+    items = (
+        "Concat(\n    Filter(\n        ForAll(colVhpAdmOld As O,\n"
+        f"            With({{ n: LookUp({SAVEABLE_ITEMS}, SpId = O.ID) }},\n"
+        '                If(IsBlank(n), O.ItemID & ": removed",\n'
+        + "\n".join(" " * 16 + l for l in item.split("\n")) + ")\n"
+        "            )\n        ),\n        !IsBlank(Value)\n    ),\n    Value,\n    \"; \"\n)")
+    added = (f'With({{ k: CountRows(Filter({SAVEABLE_ITEMS}, !(SpId in colVhpAdmOld.ID))) }}, '
+             'If(k > 0, k & " item(s) added", ""))')
+    status = f'If(varVhpSubmitting, {alog.submitted(IDX_NOW + ".Status.Value")}, "")'
+    comment = alog.join(header, items, added, status)
+    return (f"If(\n    {AS_ADMIN},\n    With(\n        {{ c: {comment} }},\n"
+            "        If(\n            !IsBlank(c),\n"
+            + alog.write("varVhpRequestGuid", "varVhpPlanKey", alog.EDIT, "c", 12)
+            + "\n        )\n    )\n)")
+
+
 def save_action():
     """Hele gemningen. Om det er Save draft eller Submit, afgoer
     varVhpSubmitting - den nulstilles, naar gemningen er faerdig."""
@@ -678,6 +727,7 @@ def save_action():
         # Save-trinnet er groent, saa laenge planen er den samme - se
         # VhpStateJson i sp_config.py.
         "    Set(varVhpSavedJson, VhpStateJson);\n"
+        + _admin_log() + ";\n"
         f"    If(varVhpSubmitting, {msg.submitted('varVhpPlanKey')}, {msg.saved('varVhpPlanKey')}),\n"
         f"    If(varVhpSubmitting, {msg.failed('Submit', detail)}, {msg.failed('Save', detail)})\n"
         ")")

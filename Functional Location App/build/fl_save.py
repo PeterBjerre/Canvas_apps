@@ -37,6 +37,7 @@ af sig selv (fl_parts.REVERIFY) - og ingen raekke har en fejl (docs/31 FL68).
 """
 import fl_config as cfg
 import messages as msg
+import admin_log as alog
 import permissions as perm
 import request_index as ri
 from fl_validation import BUCKETS
@@ -55,6 +56,35 @@ SUBMIT_WHY = (f'If(varFlStatus = "Indsendt", "Request " & varFlRequestNo & " is 
               f'   {ERRS} > 0, "Submit is blocked: " & {ERRS} & " row(s) have errors.",\n'
               f'   {READY} = 0, "There are no rows ready for SAP.",\n'
               f'   "Ready to submit " & {READY} & " row(s).")')
+
+
+# Gemmer en admin en ANDENS anmodning? varFlReqNow er hovedet, som det
+# stod, da gemningen startede (save_fx trin 0).
+AS_ADMIN = ('(!IsBlank(varFlReqNow) && !('
+            + perm.is_owner("varFlReqNow.RequesterEmail", "varFlMe") + '))')
+
+
+def _admin_log():
+    """Raekkerne foer (colFlAdmOld) mod de gemte (LIVE) - tools/admin_log.py."""
+    row = alog.diff([
+        ("Functional location", "O.FL", "n.FL"),
+        ("Description", "O.Description", "n.Description"),
+        ("KKS type", "O.KksType", "n.KksType"),
+        ("Class", "O.AssignedClass", "n.AssignedClass"),
+    ], '"Row " & O.RowNo & " "')
+    rows = (
+        "Concat(\n    Filter(\n        ForAll(colFlAdmOld As O,\n"
+        f"            With({{ n: LookUp({LIVE}, RowGuid = O.RowGuid) }},\n"
+        '                If(IsBlank(n), "Row " & O.RowNo & ": removed",\n'
+        + "\n".join(" " * 16 + l for l in row.split("\n")) + ")\n"
+        "            )\n        ),\n        !IsBlank(Value)\n    ),\n    Value,\n    \"; \"\n)")
+    added = (f'With({{ k: CountRows(Filter({LIVE}, !(RowGuid in colFlAdmOld.RowGuid))) }}, '
+             'If(k > 0, k & " row(s) added", ""))')
+    comment = alog.join(rows, added)
+    return (f"If(\n    {AS_ADMIN},\n    With(\n        {{ c: {comment} }},\n"
+            "        If(\n            !IsBlank(c),\n"
+            + alog.write("varFlRequestGuid", "varFlRequestNo", alog.EDIT, "c", 12)
+            + "\n        )\n    )\n)")
 
 
 def _spool(field):
@@ -173,6 +203,17 @@ If(
     CountRows(colFlSaveErrors) = 0,
 
     // 2. Hvilke raekker findes allerede? Paa RowGuid - klientnoeglen.
+    //    En admin i en andens anmodning henter dem ogsaa med felter, til loggen.
+    If(
+        {AS_ADMIN},
+        ClearCollect(
+            colFlAdmOld,
+            ForAll(Filter({L}, RequestGuid = varFlRequestGuid) As I,
+                {{ RowGuid: I.RowGuid, RowNo: I.RowNo, FL: I.FunctionalLocation, Description: I.Description,
+                   KksType: I.KksType, AssignedClass: I.AssignedClass }})
+        ),
+        Clear(colFlAdmOld)
+    );
     ClearCollect(
         colFlSp,
         ForAll(Filter({L}, RequestGuid = varFlRequestGuid) As I, {{ RowGuid: I.RowGuid, ID: I.ID }})
@@ -247,6 +288,7 @@ If(
 If(
     CountRows(colFlSaveErrors) = 0,
     Set(varFlStatus, {kept});
+    {_admin_log().replace(chr(10), chr(10) + "    ")};
     Clear(colFlDeleted);
     Set(varFlInfo, "");
     {ok},
@@ -321,6 +363,10 @@ def submit_fx():
                       {{ Status: {{ Value: "Indsendt" }}, PayloadJson: varFlPayload, SubmittedOn: Now() }});
                 Patch({cfg.L_INDEX}, varFlIdx, {{ Status: {{ Value: "{ri.SUBMITTED}" }}, StatusStep: {ri.step(ri.SUBMITTED)}, LastActionOn: Now(), LastActionBy: varFlMe }});
                 Set(varFlStatus, "Indsendt");
+                If(
+                    {AS_ADMIN},
+{alog.write("varFlRequestGuid", "varFlRequestNo", alog.EDIT, alog.submitted("varFlReqNow.Status.Value"), 20)}
+                );
                 Set(varFlInfo, "");
                 {msg.submitted("varFlRequestNo")},
                 Set(varFlInfo, "Submit failed: " & FirstError.Message);
