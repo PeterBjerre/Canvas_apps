@@ -1,0 +1,51 @@
+{
+  "properties": {
+    "connectionReferences": {},
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        " BioSap-EmailDomain (orsted_BioSapEmailDomain)": {
+          "defaultValue": "orsted.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapEmailDomain"
+          }
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "0c1384fc-6aee-466f-a062-569b0b06e679"
+          },
+          "type": "Request",
+          "kind": "PowerAppV2",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            }
+          }
+        }
+      },
+      "actions": {
+        "Apply_to_each": {
+          "foreach": "@parameters(' BioSap-EmailDomain (orsted_BioSapEmailDomain)')",
+          "actions": {},
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "180c7c74-6110-4969-b1ec-170e79e21063"
+          },
+          "type": "Foreach"
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

@@ -1,0 +1,449 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapSharePointConn"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_office365": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapOutlookConn"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "BioSap-SiteUrl (orsted_BioSapSiteUrl)": {
+          "defaultValue": "https://orsted.sharepoint.com/teams/BioSAPDev",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapSiteUrl"
+          }
+        },
+        "BioSap-List-MaintenancePlans (orsted_BioSapListMaintenancePlans)": {
+          "defaultValue": "55c96ba9-52b8-4018-8945-f736b001d6a2",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapListMaintenancePlans"
+          }
+        },
+        "BioSap-List-MaintenanceItems (orsted_BioSapListMaintenanceItems)": {
+          "defaultValue": "d0b2538e-c702-4375-b766-caf342259495",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapListMaintenanceItems"
+          }
+        },
+        "BioSap-SapSystem (orsted_BioSapSapSystem)": {
+          "defaultValue": "GQ1",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapSapSystem"
+          }
+        },
+        "BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)": {
+          "defaultValue": "pkbje@orsted.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapErrorNotifiers"
+          }
+        }
+      },
+      "triggers": {
+        "Recurrence": {
+          "recurrence": {
+            "frequency": "Minute",
+            "interval": 10
+          },
+          "type": "Recurrence"
+        }
+      },
+      "actions": {
+        "Initialize_FlowRunHistoryLink": {
+          "runAfter": {},
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "FlowRunHistoryLink",
+                "type": "string",
+                "value": "<a href=\"@{concat('https://make.powerautomate.com/environments/', workflow()?['tags']['environmentName'], '/flows/', workflow()?['name'], '/runs/', workflow()?['run']['name'])}\">Link to Run History</a>"
+              }
+            ]
+          }
+        },
+        "Try": {
+          "actions": {
+            "Get_files_(properties_only)": {
+              "runAfter": {},
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "GetFileItems",
+                  "connectionName": "shared_sharepointonline"
+                },
+                "parameters": {
+                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                  "table": "f73be489-5b0f-4b2b-a4c7-20c56c446a42",
+                  "folderPath": "/SAP-oprettelse/Kvitteringer",
+                  "viewScopeOption": "Default",
+                  "$top": 5000
+                }
+              }
+            },
+            "Receipt_files": {
+              "runAfter": {
+                "Get_files_(properties_only)": [
+                  "Succeeded"
+                ]
+              },
+              "type": "Query",
+              "inputs": {
+                "from": "@body('Get_files_(properties_only)')?['value']",
+                "where": "@and(equals(item()?['{IsFolder}'], false), endsWith(toLower(item()?['{FilenameWithExtension}']), '.kvittering.json'))"
+              }
+            },
+            "Each_receipt": {
+              "foreach": "@body('Receipt_files')",
+              "actions": {
+                "Handle_receipt": {
+                  "actions": {
+                    "Get_receipt_content": {
+                      "runAfter": {},
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                          "operationId": "GetFileContent",
+                          "connectionName": "shared_sharepointonline"
+                        },
+                        "parameters": {
+                          "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                          "id": "@items('Each_receipt')?['{Identifier}']"
+                        }
+                      }
+                    },
+                    "Receipt": {
+                      "runAfter": {
+                        "Get_receipt_content": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "Compose",
+                      "inputs": "@json(if(empty(body('Get_receipt_content')?['$content']), string(body('Get_receipt_content')), base64ToString(body('Get_receipt_content')?['$content'])))"
+                    },
+                    "Get_plan": {
+                      "runAfter": {
+                        "Receipt": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                          "operationId": "GetItem",
+                          "connectionName": "shared_sharepointonline"
+                        },
+                        "parameters": {
+                          "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                          "table": "@parameters('BioSap-List-MaintenancePlans (orsted_BioSapListMaintenancePlans)')",
+                          "id": "@outputs('Receipt')?['planSpId']"
+                        }
+                      }
+                    },
+                    "Valid_receipt": {
+                      "actions": {
+                        "Each_item": {
+                          "foreach": "@outputs('Receipt')?['items']",
+                          "actions": {
+                            "Set_item_numbers": {
+                              "runAfter": {},
+                              "type": "OpenApiConnection",
+                              "inputs": {
+                                "host": {
+                                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                  "operationId": "HttpRequest",
+                                  "connectionName": "shared_sharepointonline"
+                                },
+                                "parameters": {
+                                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                  "parameters/method": "POST",
+                                  "parameters/uri": "_api/web/lists(guid'@{parameters('BioSap-List-MaintenanceItems (orsted_BioSapListMaintenanceItems)')}')/items(@{items('Each_item')?['spId']})",
+                                  "parameters/headers": {
+                                    "Accept": "application/json;odata=nometadata",
+                                    "Content-Type": "application/json;odata=nometadata",
+                                    "IF-MATCH": "*",
+                                    "X-HTTP-Method": "MERGE"
+                                  },
+                                  "parameters/body": "{\"SapItemNo\":\"@{items('Each_item')?['sapItemNo']}\",\"TaskListGroup\":\"@{items('Each_item')?['taskListGroup']}\",\"TaskListGroupCounter\":\"@{items('Each_item')?['taskListCounter']}\"}"
+                                }
+                              }
+                            }
+                          },
+                          "runAfter": {},
+                          "type": "Foreach"
+                        },
+                        "Set_plan_published": {
+                          "runAfter": {
+                            "Each_item": [
+                              "Succeeded"
+                            ]
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                              "operationId": "HttpRequest",
+                              "connectionName": "shared_sharepointonline"
+                            },
+                            "parameters": {
+                              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                              "parameters/method": "POST",
+                              "parameters/uri": "_api/web/lists(guid'@{parameters('BioSap-List-MaintenancePlans (orsted_BioSapListMaintenancePlans)')}')/items(@{outputs('Receipt')?['planSpId']})",
+                              "parameters/headers": {
+                                "Accept": "application/json;odata=nometadata",
+                                "Content-Type": "application/json;odata=nometadata",
+                                "IF-MATCH": "*",
+                                "X-HTTP-Method": "MERGE"
+                              },
+                              "parameters/body": "{\"SAPNum\":\"@{outputs('Receipt')?['sapPlanNo']}\",\"Status\":\"Published\",\"SapCreatedOn\":\"@{utcNow()}\",\"SapCreatedBy\":\"@{outputs('Receipt')?['lockedBy']}\"}"
+                            }
+                          }
+                        },
+                        "Move_file_to_Behandlet": {
+                          "runAfter": {
+                            "Set_plan_published": [
+                              "Succeeded"
+                            ]
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                              "operationId": "MoveFileAsync",
+                              "connectionName": "shared_sharepointonline"
+                            },
+                            "parameters": {
+                              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                              "parameters/sourceFileId": "@items('Each_receipt')?['{Identifier}']",
+                              "parameters/destinationDataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                              "parameters/destinationFolderPath": "/SAP-oprettelse/Kvitteringer/Behandlet",
+                              "parameters/nameConflictBehavior": 2
+                            }
+                          }
+                        }
+                      },
+                      "runAfter": {
+                        "Get_plan": [
+                          "Succeeded"
+                        ]
+                      },
+                      "else": {
+                        "actions": {
+                          "Move_file_to_Afvist": {
+                            "runAfter": {},
+                            "type": "OpenApiConnection",
+                            "inputs": {
+                              "host": {
+                                "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                "operationId": "MoveFileAsync",
+                                "connectionName": "shared_sharepointonline"
+                              },
+                              "parameters": {
+                                "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                "parameters/sourceFileId": "@items('Each_receipt')?['{Identifier}']",
+                                "parameters/destinationDataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                "parameters/destinationFolderPath": "/SAP-oprettelse/Kvitteringer/Afvist",
+                                "parameters/nameConflictBehavior": 2
+                              }
+                            }
+                          },
+                          "Send_rejected_notification": {
+                            "runAfter": {
+                              "Move_file_to_Afvist": [
+                                "Succeeded"
+                              ]
+                            },
+                            "type": "OpenApiConnection",
+                            "inputs": {
+                              "host": {
+                                "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                                "operationId": "SendEmailV2",
+                                "connectionName": "shared_office365"
+                              },
+                              "parameters": {
+                                "emailMessage/To": "@parameters('BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)')",
+                                "emailMessage/Subject": "VH-plan Opretter: kvittering afvist - @{items('Each_receipt')?['{FilenameWithExtension}']}",
+                                "emailMessage/Body": "<p>Kvitteringen blev afvist.</p><p>Fil: @{items('Each_receipt')?['{FilenameWithExtension}']}</p><p>Run history: @{variables('FlowRunHistoryLink')}</p>",
+                                "emailMessage/Importance": "Normal"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "expression": {
+                        "and": [
+                          {
+                            "equals": [
+                              "@outputs('Receipt')?['kind']",
+                              "vhplan-sap-receipt"
+                            ]
+                          },
+                          {
+                            "equals": [
+                              "@outputs('Receipt')?['state']",
+                              "Created"
+                            ]
+                          },
+                          {
+                            "equals": [
+                              "@not(empty(outputs('Receipt')?['sapPlanNo']))",
+                              true
+                            ]
+                          },
+                          {
+                            "equals": [
+                              "@outputs('Receipt')?['orderGuid']",
+                              "@body('Get_plan')?['SapOrderGuid']"
+                            ]
+                          },
+                          {
+                            "equals": [
+                              "@body('Get_plan')?['Status']?['Value']",
+                              "Ready for creation in SAP"
+                            ]
+                          },
+                          {
+                            "equals": [
+                              "@outputs('Receipt')?['sapSystem']",
+                              "@parameters('BioSap-SapSystem (orsted_BioSapSapSystem)')"
+                            ]
+                          }
+                        ]
+                      },
+                      "type": "If"
+                    }
+                  },
+                  "runAfter": {},
+                  "type": "Scope"
+                },
+                "Move_file_to_Afvist_on_error": {
+                  "runAfter": {
+                    "Handle_receipt": [
+                      "TimedOut",
+                      "Failed",
+                      "Skipped"
+                    ]
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "operationId": "MoveFileAsync",
+                      "connectionName": "shared_sharepointonline"
+                    },
+                    "parameters": {
+                      "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                      "parameters/sourceFileId": "@items('Each_receipt')?['{Identifier}']",
+                      "parameters/destinationDataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                      "parameters/destinationFolderPath": "/SAP-oprettelse/Kvitteringer/Afvist",
+                      "parameters/nameConflictBehavior": 2
+                    }
+                  }
+                },
+                "Send_error_notification_on_receipt_failure": {
+                  "runAfter": {
+                    "Handle_receipt": [
+                      "TimedOut",
+                      "Failed",
+                      "Skipped"
+                    ]
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                      "operationId": "SendEmailV2",
+                      "connectionName": "shared_office365"
+                    },
+                    "parameters": {
+                      "emailMessage/To": "@parameters('BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)')",
+                      "emailMessage/Subject": "VH-plan Opretter: fejl ved kvittering - @{items('Each_receipt')?['{FilenameWithExtension}']}",
+                      "emailMessage/Body": "<p>Fejl under behandling af kvittering.</p><p>Fil: @{items('Each_receipt')?['{FilenameWithExtension}']}</p><p>@{variables('FlowRunHistoryLink')}</p>",
+                      "emailMessage/Importance": "Normal"
+                    }
+                  }
+                }
+              },
+              "runAfter": {
+                "Receipt_files": [
+                  "Succeeded"
+                ]
+              },
+              "type": "Foreach"
+            }
+          },
+          "runAfter": {
+            "Initialize_FlowRunHistoryLink": [
+              "Succeeded"
+            ]
+          },
+          "type": "Scope"
+        },
+        "Catch": {
+          "actions": {
+            "Send_error_notification": {
+              "runAfter": {},
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                  "operationId": "SendEmailV2",
+                  "connectionName": "shared_office365"
+                },
+                "parameters": {
+                  "emailMessage/To": "@parameters('BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)')",
+                  "emailMessage/Subject": "VH-plan Opretter: fejl i flow @{workflow()?['tags']?['flowDisplayName']}",
+                  "emailMessage/Body": "<p>Flowet fejlede. Se kørslen.</p><p>@{variables('FlowRunHistoryLink')}</p>",
+                  "emailMessage/Importance": "Normal"
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "Try": [
+              "TimedOut",
+              "Skipped",
+              "Failed"
+            ]
+          },
+          "type": "Scope"
+        }
+      },
+      "outputs": {}
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}

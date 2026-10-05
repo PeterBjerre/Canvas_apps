@@ -1,0 +1,367 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapSharePointConn"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_office365": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapOutlookConn"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "BioSap-SiteUrl (orsted_BioSapSiteUrl)": {
+          "defaultValue": "https://orsted.sharepoint.com/teams/BioSAPDev",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapSiteUrl"
+          }
+        },
+        "BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)": {
+          "defaultValue": "pkbje@orsted.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapErrorNotifiers"
+          }
+        },
+        "BioSap-List-MaintenancePlans (orsted_BioSapListMaintenancePlans)": {
+          "defaultValue": "55c96ba9-52b8-4018-8945-f736b001d6a2",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapListMaintenancePlans"
+          }
+        },
+        "BioSap-List-MaintenancePlansName (orsted_BioSapListMaintenancePlansName)": {
+          "defaultValue": "MaintenancePlans",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapListMaintenancePlansName"
+          }
+        },
+        "BioSap-ListItemEntityTypeMaintenancePlan (orsted_BioSapListItemEntityTypeMaintenancePlan)": {
+          "defaultValue": "SP.Data.MaintenancePlansListItem",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapListItemEntityTypeMaintenancePlan"
+          }
+        },
+        "MD_RequestIndex (orsted_shared_sharepointonline_9f0c6e07f15d4509a3ecab4d20b7fff7)": {
+          "defaultValue": "3d945b5b-bd5b-43eb-be27-3f0c2416b08a",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_shared_sharepointonline_9f0c6e07f15d4509a3ecab4d20b7fff7"
+          }
+        },
+        "BioSap-List-MaintenanceItems (orsted_BioSapListMaintenanceItems)": {
+          "defaultValue": "d0b2538e-c702-4375-b766-caf342259495",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapListMaintenanceItems"
+          }
+        },
+        "MD_ApprovalLog (orsted_shared_sharepointonline_ec07acb417e14a7c999704263844acb9)": {
+          "defaultValue": "f80b05d7-06f9-4cf5-b6a7-45ed8a3c4ee3",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_shared_sharepointonline_ec07acb417e14a7c999704263844acb9"
+          }
+        },
+        "BioSap-MasterDataEmail (orsted_BioSapMasterDataEmail)": {
+          "defaultValue": "sapvedligehold@orsted.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapMasterDataEmail"
+          }
+        }
+      },
+      "triggers": {
+        "When_an_item_is_created_or_modified": {
+          "type": "OpenApiConnection",
+          "recurrence": {
+            "frequency": "Minute",
+            "interval": 1
+          },
+          "splitOn": "@triggerOutputs()?['body/value']",
+          "runtimeConfiguration": {
+            "concurrency": {
+              "runs": 1
+            }
+          },
+          "inputs": {
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+              "connectionName": "shared_sharepointonline",
+              "operationId": "GetOnUpdatedItems"
+            },
+            "parameters": {
+              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+              "table": "@parameters('BioSap-List-MaintenancePlans (orsted_BioSapListMaintenancePlans)')"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "conditions": [
+            {
+              "expression": "@equals(triggerBody()?['Status/Value'],'Ready for creation in SAP')"
+            },
+            {
+              "expression": "@not(equals(triggerBody()?['MasterDataNotified'], true))"
+            }
+          ]
+        }
+      },
+      "actions": {
+        "Initialize_FlowRunHistoryLink": {
+          "type": "InitializeVariable",
+          "runAfter": {},
+          "inputs": {
+            "variables": [
+              {
+                "name": "FlowRunHistoryLink",
+                "type": "string",
+                "value": "<a href=\"@{concat('https://make.powerautomate.com/environments/', workflow()?['tags']['environmentName'], '/flows/', workflow()?['name'], '/runs/', workflow()?['run']['name'])}\">Link to Run History</a>"
+              }
+            ]
+          }
+        },
+        "Try": {
+          "type": "Scope",
+          "runAfter": {
+            "Initialize_FlowRunHistoryLink": [
+              "Succeeded"
+            ]
+          },
+          "actions": {
+            "Set_notified": {
+              "type": "OpenApiConnection",
+              "runAfter": {},
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "connectionName": "shared_sharepointonline",
+                  "operationId": "HttpRequest"
+                },
+                "parameters": {
+                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                  "parameters/method": "POST",
+                  "parameters/uri": "_api/web/lists/GetByTitle('@{parameters('BioSap-List-MaintenancePlansName (orsted_BioSapListMaintenancePlansName)')}')/items(@{triggerBody()?['ID']})",
+                  "parameters/headers": {
+                    "Content-Type": "application/json;odata=verbose",
+                    "If-Match": "*",
+                    "X-HTTP-Method": "MERGE"
+                  },
+                  "parameters/body": "{\"__metadata\": {\"type\": \"@{parameters('BioSap-ListItemEntityTypeMaintenancePlan (orsted_BioSapListItemEntityTypeMaintenancePlan)')}\"}, \"MasterDataNotified\": true}"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Get_request_index": {
+              "type": "OpenApiConnection",
+              "runAfter": {
+                "Set_notified": [
+                  "Succeeded"
+                ]
+              },
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "connectionName": "shared_sharepointonline",
+                  "operationId": "GetItems"
+                },
+                "parameters": {
+                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                  "table": "@parameters('MD_RequestIndex (orsted_shared_sharepointonline_9f0c6e07f15d4509a3ecab4d20b7fff7)')",
+                  "$filter": "SourceItemId eq @{triggerBody()?['ID']} and Domain eq 'MaintenancePlan'",
+                  "$top": 1
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Get_items_MaintenanceItems": {
+              "type": "OpenApiConnection",
+              "runAfter": {
+                "Get_request_index": [
+                  "Succeeded"
+                ]
+              },
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "connectionName": "shared_sharepointonline",
+                  "operationId": "GetItems"
+                },
+                "parameters": {
+                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                  "table": "@parameters('BioSap-List-MaintenanceItems (orsted_BioSapListMaintenanceItems)')",
+                  "$filter": "MaintenancePlanNo/Id eq @{triggerBody()?['ID']}",
+                  "$top": 500
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Get_log_all": {
+              "type": "OpenApiConnection",
+              "runAfter": {
+                "Get_items_MaintenanceItems": [
+                  "Succeeded"
+                ]
+              },
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "connectionName": "shared_sharepointonline",
+                  "operationId": "GetItems"
+                },
+                "parameters": {
+                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                  "table": "@parameters('MD_ApprovalLog (orsted_shared_sharepointonline_ec07acb417e14a7c999704263844acb9)')",
+                  "$filter": "PlanId eq @{triggerBody()?['ID']}",
+                  "$top": 5000
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Select_item_lines": {
+              "type": "Select",
+              "inputs": {
+                "from": "@outputs('Get_items_MaintenanceItems')?['body/value']",
+                "select": "@concat('- ', coalesce(item()?['Title'], ''), ' (', coalesce(item()?['FunctionalLocation'], ''), ')')"
+              },
+              "runAfter": {
+                "Get_log_all": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Filter_approval_rows": {
+              "type": "Query",
+              "inputs": {
+                "from": "@outputs('Get_log_all')?['body/value']",
+                "where": "@or(equals(item()?['Decision'], 'Approve'), equals(item()?['Decision'], 'Skipped'))"
+              },
+              "runAfter": {
+                "Select_item_lines": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Select_approval_lines": {
+              "type": "Select",
+              "inputs": {
+                "from": "@body('Filter_approval_rows')",
+                "select": "@concat(coalesce(item()?['Stage'], ''), ' - ', coalesce(item()?['ItemText'], ''), ' - ', if(equals(item()?['Decision'], 'Skipped'), 'ikke nødvendig', coalesce(item()?['DecidedByEmail'], '')), ' ', coalesce(item()?['Detail'], ''))"
+              },
+              "runAfter": {
+                "Filter_approval_rows": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Send_to_master_data": {
+              "type": "OpenApiConnection",
+              "runAfter": {
+                "Select_approval_lines": [
+                  "Succeeded"
+                ]
+              },
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                  "connectionName": "shared_office365",
+                  "operationId": "SendEmailV2"
+                },
+                "parameters": {
+                  "emailMessage/To": "@parameters('BioSap-MasterDataEmail (orsted_BioSapMasterDataEmail)')",
+                  "emailMessage/Subject": "@concat('VH-plan ', triggerBody()?['PlanID'], ' klar til oprettelse i SAP - ', coalesce(triggerBody()?['PlantsInitial/Value'], ''))",
+                  "emailMessage/Body": "<div style=\"font-family: Arial, Helvetica, sans-serif; color:#24313f; font-size:14px;\"><h2 style=\"margin:0 0 8px 0;\">Klar til oprettelse i SAP</h2><p>VH-plan <strong>@{triggerBody()?['PlanID']}</strong> (@{replace(replace(replace(coalesce(triggerBody()?['Title'], ''), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}) er godkendt og klar til oprettelse i SAP.</p><table style=\"border-collapse:collapse; width:100%;\"><tr><td style=\"padding:7px 8px;border-bottom:1px solid #eef2f6;\">Plan</td><td style=\"padding:7px 8px;border-bottom:1px solid #eef2f6;\">@{triggerBody()?['PlanID']} - @{replace(replace(replace(coalesce(triggerBody()?['Title'], ''), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:7px 8px;border-bottom:1px solid #eef2f6;\">Værk</td><td style=\"padding:7px 8px;border-bottom:1px solid #eef2f6;\">@{coalesce(triggerBody()?['PlantsInitial/Value'], '')}</td></tr><tr><td style=\"padding:7px 8px;border-bottom:1px solid #eef2f6;\">Cyklus</td><td style=\"padding:7px 8px;border-bottom:1px solid #eef2f6;\">@{triggerBody()?['Cycle']} @{triggerBody()?['Unit/Value']}</td></tr><tr><td style=\"padding:7px 8px;border-bottom:1px solid #eef2f6;\">Strategi</td><td style=\"padding:7px 8px;border-bottom:1px solid #eef2f6;\">@{coalesce(triggerBody()?['StrategyKey'], '')}</td></tr><tr><td style=\"padding:7px 8px;border-bottom:1px solid #eef2f6;\">Rekvirent</td><td style=\"padding:7px 8px;border-bottom:1px solid #eef2f6;\">@{triggerBody()?['Author/DisplayName']}</td></tr></table><h3>Items</h3><p style=\"white-space:pre-line;\">@{join(body('Select_item_lines'), decodeUriComponent('%0A'))}</p><h3>Godkendelser</h3><p style=\"white-space:pre-line;\">@{join(take(body('Select_approval_lines'), 40), decodeUriComponent('%0A'))}</p><p><a href=\"@{coalesce(first(outputs('Get_request_index')?['body/value'])?['AppUrl'], parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)'))}\">Åbn planen i appen</a></p></div>",
+                  "emailMessage/Importance": "Normal"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            }
+          }
+        },
+        "Catch": {
+          "type": "Scope",
+          "runAfter": {
+            "Try": [
+              "TimedOut",
+              "Skipped",
+              "Failed"
+            ]
+          },
+          "actions": {
+            "Convert_UTC_time_to_DK_time_zone": {
+              "type": "Expression",
+              "kind": "ConvertTimeZone",
+              "runAfter": {},
+              "inputs": {
+                "baseTime": "@utcNow()",
+                "formatString": "G",
+                "sourceTimeZone": "UTC",
+                "destinationTimeZone": "Romance Standard Time"
+              }
+            },
+            "Send_notification_to_development_team": {
+              "type": "OpenApiConnection",
+              "runAfter": {
+                "Convert_UTC_time_to_DK_time_zone": [
+                  "Succeeded"
+                ]
+              },
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                  "connectionName": "shared_office365",
+                  "operationId": "SendEmailV2"
+                },
+                "parameters": {
+                  "emailMessage/To": "@parameters('BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)')",
+                  "emailMessage/Subject": "An error occured in the flow - @{workflow()?['tags']?['flowDisplayName']}",
+                  "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">Hi,<br><br>An error was detected in the following flow instance (plan @{triggerBody()?['PlanID']}).<br><br>&gt;Timestamp<br>@{body('Convert_UTC_time_to_DK_time_zone')}<br><br>&gt;Run History<br>@{variables('FlowRunHistoryLink')}<br><br>Thank you</p>",
+                  "emailMessage/Importance": "Normal"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            }
+          }
+        },
+        "Finally": {
+          "type": "Scope",
+          "runAfter": {
+            "Catch": [
+              "Succeeded",
+              "Failed",
+              "Skipped",
+              "TimedOut"
+            ]
+          },
+          "actions": {}
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}
