@@ -6741,8 +6741,8 @@ Screens:
                             If(
                                 IsBlank(varFlDelIdx),
                                 Notify("This request no longer exists.", NotificationType.Warning),
-                                !(Lower(Coalesce(varFlDelIdx.RequesterEmail, "")) = varFlMe && (varFlDelIdx.Status.Value = "Kladde")),
-                                Notify("Only drafts can be deleted.", NotificationType.Warning),
+                                !((Lower(Coalesce(varFlDelIdx.RequesterEmail, "")) = varFlMe && (varFlDelIdx.Status.Value = "Kladde")) || (IsAdmin && (varFlDelIdx.Status.Value = "Kladde" || varFlDelIdx.Status.Value = "AfventerInfo"))),
+                                If(IsAdmin, Notify("Only drafts and requests awaiting info can be deleted.", NotificationType.Warning), Notify("Only drafts can be deleted.", NotificationType.Warning)),
                                 Set(varFlDelGuid, varFlDelIdx.RequestGuid);
                                 Set(varFlDelSp, varFlDelIdx.SourceItemId);
                                 Set(varFlDelKey, varFlDelIdx.RequestNo);
