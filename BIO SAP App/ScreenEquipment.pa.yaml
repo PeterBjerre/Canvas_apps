@@ -43,7 +43,6 @@ Screens:
                       Set(varEqViewOnly, false);
                       Set(varEqBadgeOn, false);
                       Set(varEqCanEdit, false);
-                      Set(varEqActiveRowId, Blank());
                       // Hvilken raekke detaljeruden viser. Blank = ruden er skjult.
                       Set(varEqDetailsId, Blank());
                       // Sletning sker bag en bekraeftelse: hvilken raekke, og om den er aaben.
@@ -51,22 +50,11 @@ Screens:
                       Set(varEqConfirmDelete, false);
                       // Hvilken raekke dokumentpopuppen viser. Blank = lukket.
                       Set(varEqDocsId, Blank());
-                      Set(varEqRowStatus, "valid");
                       Set(varEqAttJson, "");
                       Set(varEqFlMsg, "");
-                      // FL-vaelgeren (tools/fl_picker.py): soegeteksten, den sidste soegning,
-                      // og om flowet koerer.
-                      Set(varEqFlQuery, "");
-                      Set(varEqFlLast, "");
                       Set(varEqFlBusy, false);
-                      Set(varEqInfo, "");
                       // Listen: false = Compact, true = All columns (issue #67/#68).
                       Set(varEqAllCols, false);
-          
-                      // Er formularen blevet tjekket? Styrer om en kraevet feltkant maa vaere
-                      // roed. false ved opstart: en tom formular, ingen har roert, skal ikke
-                      // staa og lyse roedt. Saettes af Gem/Indsend - se domain_parts.REQUIRED.
-                      Set(varEqValidated, false);
                       Set(varEqActiveRowId, Blank());
                       Set(varEqRowStatus, "valid");
                       Set(varEqValidated, false);
@@ -105,38 +93,70 @@ Screens:
                               Set(varEqCanEdit, Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe && varEqIdx.Status.Value = "Kladde");
                               Set(varEqViewOnly, !(Lower(Coalesce(gblEqMode, "")) = "edit" && varEqCanEdit))
                           )
+                      );
+                      ClearCollect(
+                          colEqRows,
+                          ForAll(
+                              SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
+                              {
+                                  RowId: R.ID,
+                                  ItemKey: Coalesce(R.ItemKey, ""),
+                                  RequestNo: Coalesce(R.RequestNo, ""),
+                                  Status: Coalesce(R.RowStatus.Value, "valid"),
+                                  FileCount: Coalesce(R.FileCount, 0),
+                                  Description: Coalesce(R.Description, ""),
+                                  Plant: Coalesce(R.Plant, ""),
+                                  RequestType: Coalesce(R.RequestType, ""),
+                                  EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
+                                  EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                  Manufacturer: Coalesce(R.Manufacturer, ""),
+                                  TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                  SerialNumber: Coalesce(R.SerialNumber, ""),
+                                  FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                  FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
+                                  FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
+                                  ClassData: Coalesce(R.ClassData, ""),
+                                  RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                  Placement: Coalesce(R.Placement, ""),
+                                  WarrantyStart: R.WarrantyStart,
+                                  WarrantyEnd: R.WarrantyEnd
+                              }
+                          )
                       )
                   )
               );
           
-              Set(varEqMe, Lower(User().Email));
-              ClearCollect(
-                  colEqRows,
-                  ForAll(
-                      SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
-                      {
-                          RowId: R.ID,
-                          ItemKey: Coalesce(R.ItemKey, ""),
-                          RequestNo: Coalesce(R.RequestNo, ""),
-                          Status: Coalesce(R.RowStatus.Value, "valid"),
-                          FileCount: Coalesce(R.FileCount, 0),
-                          Description: Coalesce(R.Description, ""),
-                          Plant: Coalesce(R.Plant, ""),
-                          RequestType: Coalesce(R.RequestType, ""),
-                          EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
-                          EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
-                          Manufacturer: Coalesce(R.Manufacturer, ""),
-                          TypeDesignation: Coalesce(R.TypeDesignation, ""),
-                          SerialNumber: Coalesce(R.SerialNumber, ""),
-                          FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                          FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
-                          FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
-                          ClassData: Coalesce(R.ClassData, ""),
-                          RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
-                          Placement: Coalesce(R.Placement, ""),
-                          WarrantyStart: R.WarrantyStart,
-                          WarrantyEnd: R.WarrantyEnd
-                      }
+              If(
+                  Coalesce(gblEqStale, false),
+                  Set(gblEqStale, false);
+                  ClearCollect(
+                      colEqRows,
+                      ForAll(
+                          SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
+                          {
+                              RowId: R.ID,
+                              ItemKey: Coalesce(R.ItemKey, ""),
+                              RequestNo: Coalesce(R.RequestNo, ""),
+                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                              FileCount: Coalesce(R.FileCount, 0),
+                              Description: Coalesce(R.Description, ""),
+                              Plant: Coalesce(R.Plant, ""),
+                              RequestType: Coalesce(R.RequestType, ""),
+                              EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
+                              EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                              Manufacturer: Coalesce(R.Manufacturer, ""),
+                              TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                              SerialNumber: Coalesce(R.SerialNumber, ""),
+                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                              FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
+                              FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
+                              ClassData: Coalesce(R.ClassData, ""),
+                              RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                              Placement: Coalesce(R.Placement, ""),
+                              WarrantyStart: R.WarrantyStart,
+                              WarrantyEnd: R.WarrantyEnd
+                          }
+                      )
                   )
               ),
               Notify("Could not load the saved rows. Check the connection and open the page again.",
