@@ -706,6 +706,7 @@ Screens:
                                               IsBlank(varEqRequestGuid),
                                               Set(varEqRequestGuid, Text(GUID()))
                                           );
+                                          Set(varEqAdmFrom, Coalesce(varEqIdx.Status.Value, ""));
                                           Set(
                                               varEqIdx,
                                               Patch(
@@ -4115,6 +4116,37 @@ Screens:
                                                   (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)) && !IsAdmin,
                                                   Notify("You can only change your own requests.", NotificationType.Warning),
                                               
+                                                  Set(varEqAdmNew, IsBlank(varEqActiveRowId));
+                                                  Set(
+                                                      varEqAdmDiff,
+                                                      If((!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)) && !varEqAdmNew, With({ o: LookUp(colEqRows, RowId = varEqActiveRowId) },
+                                                          Concat(
+                                                              Filter(
+                                                                  Table(
+                                                                  { f: "Description", a: Text(o.Description), b: Text(varEqFText) },
+                                                                  { f: "Plant", a: Text(o.Plant), b: Text(varEqFPlant) },
+                                                                  { f: "Type", a: Text(o.RequestType), b: Text(varEqFRequestType) },
+                                                                  { f: "Equipment number", a: Text(o.EquipmentNumber), b: Text(varEqFEquipmentNumber) },
+                                                                  { f: "Equipment type", a: Text(o.EquipmentCategory), b: Text(varEqFEquipmentCategory) },
+                                                                  { f: "Manufacturer", a: Text(o.Manufacturer), b: Text(varEqFManufacturer) },
+                                                                  { f: "Type designation", a: Text(o.TypeDesignation), b: Text(varEqFTypeDesignation) },
+                                                                  { f: "Serial number", a: Text(o.SerialNumber), b: Text(varEqFSerialNumber) },
+                                                                  { f: "Functional location", a: Text(o.FunctionalLocation), b: Text(varEqFFunctionalLocation) },
+                                                                  { f: "Func. loc. 1", a: Text(o.FunctionalLocation1), b: Text(varEqFFunctionalLocation1) },
+                                                                  { f: "Functional location 2", a: Text(o.FunctionalLocation2), b: Text(varEqFFunctionalLocation2) },
+                                                                  { f: "Class data", a: Text(o.ClassData), b: Text(varEqFClassData) },
+                                                                  { f: "Room coordinates", a: Text(o.RoomCoordinates), b: Text(varEqFRoomCoordinates) },
+                                                                  { f: "Placement text", a: Text(o.Placement), b: Text(varEqFPlacement) },
+                                                                  { f: "Warranty from", a: Text(o.WarrantyStart), b: Text(varEqFWarrantyStart) },
+                                                                  { f: "Warranty to", a: Text(o.WarrantyEnd), b: Text(varEqFWarrantyEnd) }
+                                                                  ),
+                                                                  Coalesce(a, "") <> Coalesce(b, "")
+                                                              ),
+                                                              o.ItemKey & " " & f & ": " & Coalesce(a, "(blank)") & " → " & Coalesce(b, "(blank)"),
+                                                              "; "
+                                                          )
+                                                      ), "")
+                                                  );
                                                   IfError(
                                                   Set(
                                                       varEqSpRow,
@@ -4174,6 +4206,24 @@ Screens:
                                                       )
                                                   );
                                                   Set(varEqRowStatus, "draft");
+                                                  If(
+                                                      (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)) && (varEqAdmNew || !IsBlank(varEqAdmDiff)),
+                                                      IfError(
+                                                          Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                              Title: varEqRequestNo,
+                                                              RequestGuid: varEqRequestGuid,
+                                                              Stage: "Admin",
+                                                              Decision: "AdminEdit",
+                                                              Detail: Left(If(varEqAdmNew, "New row " & Coalesce(varEqSpRow.ItemKey, "EQ-" & Text(varEqSpRow.ID, "000000")), varEqAdmDiff), 255),
+                                                              Comment: If(varEqAdmNew, "New row " & Coalesce(varEqSpRow.ItemKey, "EQ-" & Text(varEqSpRow.ID, "000000")), varEqAdmDiff),
+                                                              DecidedByEmail: Lower(User().Email),
+                                                              DecidedOn: Now()
+                                                          });
+                                                          true,
+                                                          Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                          false
+                                                      )
+                                                  );
                                               
                                                   If(
                                                       (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)),
@@ -4299,6 +4349,37 @@ Screens:
                                                   (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)) && !IsAdmin,
                                                   Notify("You can only change your own requests.", NotificationType.Warning),
                                               
+                                                  Set(varEqAdmNew, IsBlank(varEqActiveRowId));
+                                                  Set(
+                                                      varEqAdmDiff,
+                                                      If((!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)) && !varEqAdmNew, With({ o: LookUp(colEqRows, RowId = varEqActiveRowId) },
+                                                          Concat(
+                                                              Filter(
+                                                                  Table(
+                                                                  { f: "Description", a: Text(o.Description), b: Text(varEqFText) },
+                                                                  { f: "Plant", a: Text(o.Plant), b: Text(varEqFPlant) },
+                                                                  { f: "Type", a: Text(o.RequestType), b: Text(varEqFRequestType) },
+                                                                  { f: "Equipment number", a: Text(o.EquipmentNumber), b: Text(varEqFEquipmentNumber) },
+                                                                  { f: "Equipment type", a: Text(o.EquipmentCategory), b: Text(varEqFEquipmentCategory) },
+                                                                  { f: "Manufacturer", a: Text(o.Manufacturer), b: Text(varEqFManufacturer) },
+                                                                  { f: "Type designation", a: Text(o.TypeDesignation), b: Text(varEqFTypeDesignation) },
+                                                                  { f: "Serial number", a: Text(o.SerialNumber), b: Text(varEqFSerialNumber) },
+                                                                  { f: "Functional location", a: Text(o.FunctionalLocation), b: Text(varEqFFunctionalLocation) },
+                                                                  { f: "Func. loc. 1", a: Text(o.FunctionalLocation1), b: Text(varEqFFunctionalLocation1) },
+                                                                  { f: "Functional location 2", a: Text(o.FunctionalLocation2), b: Text(varEqFFunctionalLocation2) },
+                                                                  { f: "Class data", a: Text(o.ClassData), b: Text(varEqFClassData) },
+                                                                  { f: "Room coordinates", a: Text(o.RoomCoordinates), b: Text(varEqFRoomCoordinates) },
+                                                                  { f: "Placement text", a: Text(o.Placement), b: Text(varEqFPlacement) },
+                                                                  { f: "Warranty from", a: Text(o.WarrantyStart), b: Text(varEqFWarrantyStart) },
+                                                                  { f: "Warranty to", a: Text(o.WarrantyEnd), b: Text(varEqFWarrantyEnd) }
+                                                                  ),
+                                                                  Coalesce(a, "") <> Coalesce(b, "")
+                                                              ),
+                                                              o.ItemKey & " " & f & ": " & Coalesce(a, "(blank)") & " → " & Coalesce(b, "(blank)"),
+                                                              "; "
+                                                          )
+                                                      ), "")
+                                                  );
                                                   IfError(
                                                   Set(
                                                       varEqSpRow,
@@ -4358,6 +4439,24 @@ Screens:
                                                       )
                                                   );
                                                   Set(varEqRowStatus, "valid");
+                                                  If(
+                                                      (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)) && (varEqAdmNew || !IsBlank(varEqAdmDiff)),
+                                                      IfError(
+                                                          Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                              Title: varEqRequestNo,
+                                                              RequestGuid: varEqRequestGuid,
+                                                              Stage: "Admin",
+                                                              Decision: "AdminEdit",
+                                                              Detail: Left(If(varEqAdmNew, "New row " & Coalesce(varEqSpRow.ItemKey, "EQ-" & Text(varEqSpRow.ID, "000000")), varEqAdmDiff), 255),
+                                                              Comment: If(varEqAdmNew, "New row " & Coalesce(varEqSpRow.ItemKey, "EQ-" & Text(varEqSpRow.ID, "000000")), varEqAdmDiff),
+                                                              DecidedByEmail: Lower(User().Email),
+                                                              DecidedOn: Now()
+                                                          });
+                                                          true,
+                                                          Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                          false
+                                                      )
+                                                  );
                                               
                                                   If(
                                                       (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)),
@@ -12636,6 +12735,24 @@ Screens:
                                     RemoveIf(colEqAttachments, RowId = varEqDeleteId);
                                     If(varEqDetailsId = varEqDeleteId, Set(varEqDetailsId, Blank()));
                                     If(varEqDocsId = varEqDeleteId, Set(varEqDocsId, Blank()));
+                                    If(
+                                        (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)),
+                                        IfError(
+                                            Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                Title: varEqRequestNo,
+                                                RequestGuid: varEqRequestGuid,
+                                                Stage: "Admin",
+                                                Decision: "AdminDelete",
+                                                Detail: Left("Row " & LookUp(colEqRows, RowId = varEqDeleteId).ItemKey & " deleted", 255),
+                                                Comment: "Row " & LookUp(colEqRows, RowId = varEqDeleteId).ItemKey & " deleted",
+                                                DecidedByEmail: Lower(User().Email),
+                                                DecidedOn: Now()
+                                            });
+                                            true,
+                                            Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                            false
+                                        )
+                                    );
                                     If(varEqActiveRowId = varEqDeleteId,
                                         Set(varEqActiveRowId, Blank());
                                         Set(varEqRowStatus, "valid");
@@ -13000,6 +13117,7 @@ Screens:
                                         IsBlank(varEqRequestGuid),
                                         Set(varEqRequestGuid, Text(GUID()))
                                     );
+                                    Set(varEqAdmFrom, Coalesce(varEqIdx.Status.Value, ""));
                                     Set(
                                         varEqIdx,
                                         Patch(
@@ -13104,6 +13222,24 @@ Screens:
                                                     WarrantyEnd: R.WarrantyEnd
                                                 }
                                             )
+                                        )
+                                    );
+                                    If(
+                                        (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)),
+                                        IfError(
+                                            Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                Title: varEqRequestNo,
+                                                RequestGuid: varEqRequestGuid,
+                                                Stage: "Admin",
+                                                Decision: "AdminEdit",
+                                                Detail: Left("Status: " & Switch(varEqAdmFrom, "Kladde", "Draft", "Indsendt", "Submitted", "UnderBehandling", "In progress", "AfventerInfo", "Awaiting info", "KlarTilSAP", "Ready for SAP", "OprettetISAP", "Created in SAP", "Afvist", "Rejected", "Annulleret", "Cancelled", varEqAdmFrom) & " → Submitted", 255),
+                                                Comment: "Status: " & Switch(varEqAdmFrom, "Kladde", "Draft", "Indsendt", "Submitted", "UnderBehandling", "In progress", "AfventerInfo", "Awaiting info", "KlarTilSAP", "Ready for SAP", "OprettetISAP", "Created in SAP", "Afvist", "Rejected", "Annulleret", "Cancelled", varEqAdmFrom) & " → Submitted",
+                                                DecidedByEmail: Lower(User().Email),
+                                                DecidedOn: Now()
+                                            });
+                                            true,
+                                            Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                            false
                                         )
                                     );
                             
@@ -13393,6 +13529,24 @@ Screens:
                                     If(
                                         !IsEmpty(Errors(MD_RequestIndex)),
                                         Notify("The request could not be deleted: " & First(Errors(MD_RequestIndex)).Message, NotificationType.Error),
+                                        If(
+                                            (IsAdmin && !(Lower(Coalesce(varEqDelIdx.RequesterEmail, "")) = varEqMe)),
+                                            IfError(
+                                                Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                    Title: varEqDelKey,
+                                                    RequestGuid: varEqDelGuid,
+                                                    Stage: "Admin",
+                                                    Decision: "AdminDelete",
+                                                    Detail: Left("Request deleted (" & varEqDelIdx.Status.Value & ", owner " & varEqDelIdx.RequesterEmail & ")", 255),
+                                                    Comment: "Request deleted (" & varEqDelIdx.Status.Value & ", owner " & varEqDelIdx.RequesterEmail & ")",
+                                                    DecidedByEmail: Lower(User().Email),
+                                                    DecidedOn: Now()
+                                                });
+                                                true,
+                                                Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                false
+                                            )
+                                        );
                                         Set(varEqRequestGuid, "");
                                         Set(gblEqStale, true);
                                         Set(gblEqWant, Blank());

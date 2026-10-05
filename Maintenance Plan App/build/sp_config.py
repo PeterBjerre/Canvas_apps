@@ -406,6 +406,10 @@ WORKING_COLLECTIONS = [
     # foer skrivningen, de gamle raekker, der slettes til sidst, og
     # trinenes fejl.
     ("colVhpSpItems", {"ID": 0, "ItemID": '""'}),
+    # Items, som de stod foer en ADMINS gemning af en andens plan - kun
+    # hentet dér, til admin-loggen (tools/admin_log.py).
+    ("colVhpAdmOld", {"ID": 0, "ItemID": '""', "Title": '""', "ItemDescription": '""',
+                      "FunctionalLocation": '""', "ObjectList": '""'}),
     ("colVhpSpOps", {"ID": 0, "TaskItemID": '""'}),
     ("colVhpOldMats", {"ID": 0}),
     ("colVhpOldAtts", {"ID": 0}),

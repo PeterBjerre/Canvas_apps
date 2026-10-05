@@ -27,6 +27,7 @@ from gen_screen import (Ctrl, C_OVERLAY, C_MODAL_BG, C_PRIMARY_SOFT, C_MUTED, C_
 from build_helpers import group, text_ctrl, button, grow, spinner_svg, row_hit
 from design_tokens import ref_hex
 import layout_tokens as lay
+import admin_log as alog
 from layout_tokens import if_below, at_least
 
 OPEN = "IfError(varMdAprOpen, false)"
@@ -42,13 +43,17 @@ STAGES = [
     ("Cost", "Cost approval", "S2"),
     ("Quality", "Quality review", "S3"),
 ]
+# "Admin": en admins aendring i en andens anmodning (tools/admin_log.py) -
+# samme advarselsfarve som Returned, saa den skiller sig ud i forloebet.
 STATE_FG = {"Approved": C_VALID_FG, "Done": C_VALID_FG, "Skipped": C_NEUTRAL_FG,
-            "In progress": C_INFO_FG, "Returned": C_WARN_FG, "Pending": C_NEUTRAL_FG}
+            "In progress": C_INFO_FG, "Returned": C_WARN_FG, "Pending": C_NEUTRAL_FG,
+            "Admin": C_WARN_FG}
 STATE_BG = {"Approved": C_VALID_BG, "Done": C_VALID_BG, "Skipped": C_NEUTRAL_BG,
-            "In progress": C_INFO_BG, "Returned": C_WARN_BG, "Pending": C_NEUTRAL_BG}
+            "In progress": C_INFO_BG, "Returned": C_WARN_BG, "Pending": C_NEUTRAL_BG,
+            "Admin": C_WARN_BG}
 STATE_HEX = {"Approved": "state-ok-fg", "Done": "state-ok-fg", "Skipped": "state-neutral-fg",
              "In progress": "state-info-fg", "Returned": "state-warn-fg",
-             "Pending": "text-muted"}
+             "Pending": "text-muted", "Admin": "state-warn-fg"}
 PASSED = '(%s = "Approved" || %s = "Skipped" || %s = "Done")'
 
 
@@ -212,14 +217,17 @@ def _who(email):
 
 def _decision_rows(stage, tbl, timeline=False):
     item = '' if stage == "Quality" else ' & If(!IsBlank(ItemText), "  \u00b7  " & ItemText, "")'
-    state = 'Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Returned")'
+    state = ('Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", '
+             f'"{alog.EDIT}", "Admin", "{alog.DELETE}", "Admin", "Returned")')
+    label = (f'Switch(Decision, "{alog.EDIT}", "Admin edit", "{alog.DELETE}", "Admin delete", '
+             f'{state})')
     sub = ('Text(DecidedOn, "dd-mm-yyyy hh:mm") & '
            'If(!IsBlank(Comment), "  \u00b7  " & Substitute(Comment, Char(10), " "), '
            'If(!IsBlank(Detail), "  \u00b7  " & Detail, ""))')
     who = f"{_who('DecidedByEmail')}{item}"
     if timeline:
         who = f'Stage & "  \u00b7  " & {who}'
-    rec = _rec(Kind=_q("D"), Stage=_q(stage), Title=who, State=state, Label=state, Sub=sub)
+    rec = _rec(Kind=_q("D"), Stage=_q(stage), Title=who, State=state, Label=label, Sub=sub)
     return f'ForAll(SortByColumns({tbl}, "DecidedOn"), {rec})'
 
 
@@ -261,7 +269,9 @@ IS_TIMELINE = 'IfError(varMdAprMode, "") = "T"'
 
 
 def timeline_fx():
-    """Activity of one request. One filtered query, and only for plans."""
+    """Activity of one request. One filtered query. For plans it holds the
+    approvals; for every domain it holds an admin's changes (Stage "Admin",
+    tools/admin_log.py) - so it is read for all domains, not only plans."""
     stamp = 'Text(%s.Created, "dd-mm-yyyy hh:mm")' % R
     lines = [
         "Set(varMdAprBusy, true)",
@@ -270,8 +280,7 @@ def timeline_fx():
         'Set(varMdAprMode, "T")',
         "Set(varMdAprOpen, true)",
         f"Set({R}, ThisItem)",
-        f'If(ThisItem.Domain.Value = "MaintenancePlan", ClearCollect(colMdAprLog, '
-        f"Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid)), Clear(colMdAprLog))",
+        "ClearCollect(colMdAprLog, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid))",
         "ClearCollect(colMdAprRows, " + _rec(
             Kind=_q("D"), Stage=_q("T"), Title=f'"Created by " & {_who(R + ".RequesterEmail")}',
             State=_q("Done"), Label=_q("Created"), Sub=stamp) + ")",

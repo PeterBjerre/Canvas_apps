@@ -76,6 +76,7 @@ from layout_tokens import SCROLLBAR_W
 import domain_config as cfg
 import attflows
 import messages as msg
+import admin_log as alog
 import permissions as perm
 import request_index as ri
 
@@ -564,6 +565,19 @@ DENIED_OTHER = ('Notify("You can only change your own requests.", '
                 'NotificationType.Warning)')
 
 
+def _indent(text, n):
+    return "\n".join(" " * n + l for l in text.split("\n"))
+
+
+def _diff_pairs():
+    """(etiket, gammel vaerdi i raekken o, ny vaerdi i formularen)."""
+    pairs = [(cfg.TEXT_LABEL, f"o.{cfg.C_TEXT}", "varDomFText"),
+             (cfg.PLANT_LABEL, "o.Plant", "varDomFPlant")]
+    for col, label, _kind, _ch in FIELDS:
+        pairs.append((label, f"o.{col}", _var(col)))
+    return pairs
+
+
 def save_row_fx(status="valid", required=()):
     """Gem raekken i SharePoint - som kladde eller som faerdig.
 
@@ -618,6 +632,15 @@ def save_row_fx(status="valid", required=()):
         f'    Notify("{msg}", NotificationType.Warning),\n'
         + extra +
         "\n"
+        # Admin i en andens anmodning: hvad aendres? Formularen mod raekken,
+        # som den stod i listen - foer den hentes igen (tools/admin_log.py).
+        "    Set(varDomAdmNew, IsBlank(varDomActiveRowId));\n"
+        "    Set(\n"
+        "        varDomAdmDiff,\n"
+        f"        If({AS_ADMIN} && !varDomAdmNew, With({{ o: {ACTIVE} }},\n"
+        + _indent(alog.diff(_diff_pairs(), 'o.ItemKey & " "'), 12) + "\n"
+        '        ), "")\n'
+        "    );\n"
         "    IfError(\n"
         "    Set(\n"
         "        varDomSpRow,\n"
@@ -664,6 +687,10 @@ def save_row_fx(status="valid", required=()):
         "        )\n"
         "    );\n"
         f'    Set(varDomRowStatus, "{status}");\n'
+        f"    If(\n        {AS_ADMIN} && (varDomAdmNew || !IsBlank(varDomAdmDiff)),\n"
+        + alog.write("varDomRequestGuid", "varDomRequestNo", alog.EDIT,
+                     f'If(varDomAdmNew, "New row " & Coalesce(varDomSpRow.ItemKey, {key}), varDomAdmDiff)', 8)
+        + "\n    );\n"
         "\n"
         + refresh_rows_fx(4) + ";\n"
         "\n"
@@ -716,6 +743,10 @@ def delete_confirmed_fx():
         f"        If(varDomDocsId = {DELETE_ID}, Set(varDomDocsId, Blank()));\n"
         # Var det den aabne raekke, skal formularen ogsaa ryddes - ellers
         # staar der felter fra noget, der ikke findes.
+        f"        If(\n            {AS_ADMIN},\n"
+        + alog.write("varDomRequestGuid", "varDomRequestNo", alog.DELETE,
+                     f'"Row " & LookUp(colDomRows, RowId = {DELETE_ID}).ItemKey & " deleted"', 12)
+        + "\n        );\n"
         f"        If(varDomActiveRowId = {DELETE_ID},\n"
         "            " + clear_form_fx().replace("\n", "\n            ") + "\n"
         "        );\n"
@@ -1022,6 +1053,14 @@ def send_fx(submit):
         current="varDomIdx",
         short_text=f'"{cfg.TITLE}: " & CountRows({rows}) & " row(s)"',
         plant=f"First({rows}).Plant", item_count=f"CountRows({rows})")
+    # En admin, der indsender en andens anmodning, logges (tools/admin_log.py).
+    admin_submit_log = ""
+    if submit:
+        admin_submit_log = (
+            f"        If(\n            {AS_ADMIN},\n"
+            + alog.write("varDomRequestGuid", "varDomRequestNo", alog.EDIT,
+                         alog.submitted("varDomAdmFrom"), 12)
+            + "\n        );\n")
     empty = ("There are no completed rows to submit."
              if submit else "There are no rows to save.")
 
@@ -1060,6 +1099,8 @@ def send_fx(submit):
         "            IsBlank(varDomRequestGuid),\n"
         "            Set(varDomRequestGuid, Text(GUID()))\n"
         "        );\n"
+        # Status foer - til admin-loggen ved Submit.
+        "        Set(varDomAdmFrom, Coalesce(varDomIdx.Status.Value, \"\"));\n"
         "        Set(\n"
         "            varDomIdx,\n"
         "            Patch(\n"
@@ -1106,6 +1147,7 @@ def send_fx(submit):
         "        );\n"
         "\n"
         + refresh_rows_fx(8) + ";\n"
+        + admin_submit_log +
         "\n"
         f'        Set(varDomInfo, "{label}: " & varDomRequestNo);\n'
         f"        {(msg.submitted if submit else msg.saved)('varDomRequestNo')}"

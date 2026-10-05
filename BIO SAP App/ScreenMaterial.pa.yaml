@@ -706,6 +706,7 @@ Screens:
                                               IsBlank(varMatRequestGuid),
                                               Set(varMatRequestGuid, Text(GUID()))
                                           );
+                                          Set(varMatAdmFrom, Coalesce(varMatIdx.Status.Value, ""));
                                           Set(
                                               varMatIdx,
                                               Patch(
@@ -4122,6 +4123,37 @@ Screens:
                                                   (!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)) && !IsAdmin,
                                                   Notify("You can only change your own requests.", NotificationType.Warning),
                                               
+                                                  Set(varMatAdmNew, IsBlank(varMatActiveRowId));
+                                                  Set(
+                                                      varMatAdmDiff,
+                                                      If((!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)) && !varMatAdmNew, With({ o: LookUp(colMatRows, RowId = varMatActiveRowId) },
+                                                          Concat(
+                                                              Filter(
+                                                                  Table(
+                                                                  { f: "Material description", a: Text(o.MaterialDescription), b: Text(varMatFText) },
+                                                                  { f: "Plant", a: Text(o.Plant), b: Text(varMatFPlant) },
+                                                                  { f: "Functional location", a: Text(o.FunctionalLocation), b: Text(varMatFFunctionalLocation) },
+                                                                  { f: "No BOM item", a: Text(o.NoBomItem), b: Text(varMatFNoBomItem) },
+                                                                  { f: "Manufacturer", a: Text(o.Manufacturer), b: Text(varMatFManufacturer) },
+                                                                  { f: "Model number", a: Text(o.ModelNumber), b: Text(varMatFModelNumber) },
+                                                                  { f: "Manufacturer part no.", a: Text(o.ManufacturerPartNo), b: Text(varMatFManufacturerPartNo) },
+                                                                  { f: "Supplier", a: Text(o.Supplier), b: Text(varMatFSupplier) },
+                                                                  { f: "Supplier part no.", a: Text(o.SupplierPartNo), b: Text(varMatFSupplierPartNo) },
+                                                                  { f: "Delivery time (days)", a: Text(o.DeliveringTime), b: Text(varMatFDeliveringTime) },
+                                                                  { f: "Price", a: Text(o.Price), b: Text(varMatFPrice) },
+                                                                  { f: "Price unit", a: Text(o.PriceUnit), b: Text(varMatFPriceUnit) },
+                                                                  { f: "Stock unit", a: Text(o.StockUnit), b: Text(varMatFStockUnit) },
+                                                                  { f: "Recommended stock", a: Text(o.RecommendedStock), b: Text(varMatFRecommendedStock) },
+                                                                  { f: "Strategic part", a: Text(o.StrategicPart), b: Text(varMatFStrategicPart) },
+                                                                  { f: "Wear part", a: Text(o.WearPart), b: Text(varMatFWearPart) }
+                                                                  ),
+                                                                  Coalesce(a, "") <> Coalesce(b, "")
+                                                              ),
+                                                              o.ItemKey & " " & f & ": " & Coalesce(a, "(blank)") & " → " & Coalesce(b, "(blank)"),
+                                                              "; "
+                                                          )
+                                                      ), "")
+                                                  );
                                                   IfError(
                                                   Set(
                                                       varMatSpRow,
@@ -4181,6 +4213,24 @@ Screens:
                                                       )
                                                   );
                                                   Set(varMatRowStatus, "draft");
+                                                  If(
+                                                      (!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)) && (varMatAdmNew || !IsBlank(varMatAdmDiff)),
+                                                      IfError(
+                                                          Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                              Title: varMatRequestNo,
+                                                              RequestGuid: varMatRequestGuid,
+                                                              Stage: "Admin",
+                                                              Decision: "AdminEdit",
+                                                              Detail: Left(If(varMatAdmNew, "New row " & Coalesce(varMatSpRow.ItemKey, "MAT-" & Text(varMatSpRow.ID, "000000")), varMatAdmDiff), 255),
+                                                              Comment: If(varMatAdmNew, "New row " & Coalesce(varMatSpRow.ItemKey, "MAT-" & Text(varMatSpRow.ID, "000000")), varMatAdmDiff),
+                                                              DecidedByEmail: Lower(User().Email),
+                                                              DecidedOn: Now()
+                                                          });
+                                                          true,
+                                                          Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                          false
+                                                      )
+                                                  );
                                               
                                                   If(
                                                       (!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)),
@@ -4308,6 +4358,37 @@ Screens:
                                                   !varMatFNoBomItem && IsBlank(Trim(Coalesce(varMatFFunctionalLocation, ""))),
                                                   Notify("Functional location is required - or turn on No BOM Item.", NotificationType.Warning),
                                               
+                                                  Set(varMatAdmNew, IsBlank(varMatActiveRowId));
+                                                  Set(
+                                                      varMatAdmDiff,
+                                                      If((!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)) && !varMatAdmNew, With({ o: LookUp(colMatRows, RowId = varMatActiveRowId) },
+                                                          Concat(
+                                                              Filter(
+                                                                  Table(
+                                                                  { f: "Material description", a: Text(o.MaterialDescription), b: Text(varMatFText) },
+                                                                  { f: "Plant", a: Text(o.Plant), b: Text(varMatFPlant) },
+                                                                  { f: "Functional location", a: Text(o.FunctionalLocation), b: Text(varMatFFunctionalLocation) },
+                                                                  { f: "No BOM item", a: Text(o.NoBomItem), b: Text(varMatFNoBomItem) },
+                                                                  { f: "Manufacturer", a: Text(o.Manufacturer), b: Text(varMatFManufacturer) },
+                                                                  { f: "Model number", a: Text(o.ModelNumber), b: Text(varMatFModelNumber) },
+                                                                  { f: "Manufacturer part no.", a: Text(o.ManufacturerPartNo), b: Text(varMatFManufacturerPartNo) },
+                                                                  { f: "Supplier", a: Text(o.Supplier), b: Text(varMatFSupplier) },
+                                                                  { f: "Supplier part no.", a: Text(o.SupplierPartNo), b: Text(varMatFSupplierPartNo) },
+                                                                  { f: "Delivery time (days)", a: Text(o.DeliveringTime), b: Text(varMatFDeliveringTime) },
+                                                                  { f: "Price", a: Text(o.Price), b: Text(varMatFPrice) },
+                                                                  { f: "Price unit", a: Text(o.PriceUnit), b: Text(varMatFPriceUnit) },
+                                                                  { f: "Stock unit", a: Text(o.StockUnit), b: Text(varMatFStockUnit) },
+                                                                  { f: "Recommended stock", a: Text(o.RecommendedStock), b: Text(varMatFRecommendedStock) },
+                                                                  { f: "Strategic part", a: Text(o.StrategicPart), b: Text(varMatFStrategicPart) },
+                                                                  { f: "Wear part", a: Text(o.WearPart), b: Text(varMatFWearPart) }
+                                                                  ),
+                                                                  Coalesce(a, "") <> Coalesce(b, "")
+                                                              ),
+                                                              o.ItemKey & " " & f & ": " & Coalesce(a, "(blank)") & " → " & Coalesce(b, "(blank)"),
+                                                              "; "
+                                                          )
+                                                      ), "")
+                                                  );
                                                   IfError(
                                                   Set(
                                                       varMatSpRow,
@@ -4367,6 +4448,24 @@ Screens:
                                                       )
                                                   );
                                                   Set(varMatRowStatus, "valid");
+                                                  If(
+                                                      (!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)) && (varMatAdmNew || !IsBlank(varMatAdmDiff)),
+                                                      IfError(
+                                                          Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                              Title: varMatRequestNo,
+                                                              RequestGuid: varMatRequestGuid,
+                                                              Stage: "Admin",
+                                                              Decision: "AdminEdit",
+                                                              Detail: Left(If(varMatAdmNew, "New row " & Coalesce(varMatSpRow.ItemKey, "MAT-" & Text(varMatSpRow.ID, "000000")), varMatAdmDiff), 255),
+                                                              Comment: If(varMatAdmNew, "New row " & Coalesce(varMatSpRow.ItemKey, "MAT-" & Text(varMatSpRow.ID, "000000")), varMatAdmDiff),
+                                                              DecidedByEmail: Lower(User().Email),
+                                                              DecidedOn: Now()
+                                                          });
+                                                          true,
+                                                          Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                          false
+                                                      )
+                                                  );
                                               
                                                   If(
                                                       (!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)),
@@ -12425,6 +12524,24 @@ Screens:
                                     RemoveIf(colMatAttachments, RowId = varMatDeleteId);
                                     If(varMatDetailsId = varMatDeleteId, Set(varMatDetailsId, Blank()));
                                     If(varMatDocsId = varMatDeleteId, Set(varMatDocsId, Blank()));
+                                    If(
+                                        (!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)),
+                                        IfError(
+                                            Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                Title: varMatRequestNo,
+                                                RequestGuid: varMatRequestGuid,
+                                                Stage: "Admin",
+                                                Decision: "AdminDelete",
+                                                Detail: Left("Row " & LookUp(colMatRows, RowId = varMatDeleteId).ItemKey & " deleted", 255),
+                                                Comment: "Row " & LookUp(colMatRows, RowId = varMatDeleteId).ItemKey & " deleted",
+                                                DecidedByEmail: Lower(User().Email),
+                                                DecidedOn: Now()
+                                            });
+                                            true,
+                                            Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                            false
+                                        )
+                                    );
                                     If(varMatActiveRowId = varMatDeleteId,
                                         Set(varMatActiveRowId, Blank());
                                         Set(varMatRowStatus, "valid");
@@ -12789,6 +12906,7 @@ Screens:
                                         IsBlank(varMatRequestGuid),
                                         Set(varMatRequestGuid, Text(GUID()))
                                     );
+                                    Set(varMatAdmFrom, Coalesce(varMatIdx.Status.Value, ""));
                                     Set(
                                         varMatIdx,
                                         Patch(
@@ -12893,6 +13011,24 @@ Screens:
                                                     WearPart: Coalesce(R.WearPart, "")
                                                 }
                                             )
+                                        )
+                                    );
+                                    If(
+                                        (!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)),
+                                        IfError(
+                                            Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                Title: varMatRequestNo,
+                                                RequestGuid: varMatRequestGuid,
+                                                Stage: "Admin",
+                                                Decision: "AdminEdit",
+                                                Detail: Left("Status: " & Switch(varMatAdmFrom, "Kladde", "Draft", "Indsendt", "Submitted", "UnderBehandling", "In progress", "AfventerInfo", "Awaiting info", "KlarTilSAP", "Ready for SAP", "OprettetISAP", "Created in SAP", "Afvist", "Rejected", "Annulleret", "Cancelled", varMatAdmFrom) & " → Submitted", 255),
+                                                Comment: "Status: " & Switch(varMatAdmFrom, "Kladde", "Draft", "Indsendt", "Submitted", "UnderBehandling", "In progress", "AfventerInfo", "Awaiting info", "KlarTilSAP", "Ready for SAP", "OprettetISAP", "Created in SAP", "Afvist", "Rejected", "Annulleret", "Cancelled", varMatAdmFrom) & " → Submitted",
+                                                DecidedByEmail: Lower(User().Email),
+                                                DecidedOn: Now()
+                                            });
+                                            true,
+                                            Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                            false
                                         )
                                     );
                             
@@ -13182,6 +13318,24 @@ Screens:
                                     If(
                                         !IsEmpty(Errors(MD_RequestIndex)),
                                         Notify("The request could not be deleted: " & First(Errors(MD_RequestIndex)).Message, NotificationType.Error),
+                                        If(
+                                            (IsAdmin && !(Lower(Coalesce(varMatDelIdx.RequesterEmail, "")) = varMatMe)),
+                                            IfError(
+                                                Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                    Title: varMatDelKey,
+                                                    RequestGuid: varMatDelGuid,
+                                                    Stage: "Admin",
+                                                    Decision: "AdminDelete",
+                                                    Detail: Left("Request deleted (" & varMatDelIdx.Status.Value & ", owner " & varMatDelIdx.RequesterEmail & ")", 255),
+                                                    Comment: "Request deleted (" & varMatDelIdx.Status.Value & ", owner " & varMatDelIdx.RequesterEmail & ")",
+                                                    DecidedByEmail: Lower(User().Email),
+                                                    DecidedOn: Now()
+                                                });
+                                                true,
+                                                Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                false
+                                            )
+                                        );
                                         Set(varMatRequestGuid, "");
                                         Set(gblMatStale, true);
                                         Set(gblMatWant, Blank());

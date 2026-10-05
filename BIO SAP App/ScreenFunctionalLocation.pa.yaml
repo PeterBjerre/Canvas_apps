@@ -65,6 +65,8 @@ Screens:
           
                       If(false, ClearCollect(colFlSp, { RowGuid: "", ID: 0 }));
           
+                      If(false, ClearCollect(colFlAdmOld, { RowGuid: "", RowNo: 0, FL: "", Description: "", KksType: "", AssignedClass: "" }));
+          
                       If(false, ClearCollect(colFlSaveErrors, { Where: "", Msg: "" }));
           
                       If(false, ClearCollect(colFlLoad, { RowGuid: "", RowNo: 0, SpId: 0, FL: "", Description: "", KksType: "", AssignedClass: "", Status: "", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0, Json: "" }));
@@ -603,6 +605,17 @@ Screens:
                                       CountRows(colFlSaveErrors) = 0,
                                   
                                       // 2. Hvilke raekker findes allerede? Paa RowGuid - klientnoeglen.
+                                      //    En admin i en andens anmodning henter dem ogsaa med felter, til loggen.
+                                      If(
+                                          (!IsBlank(varFlReqNow) && !(Lower(Coalesce(varFlReqNow.RequesterEmail, "")) = varFlMe)),
+                                          ClearCollect(
+                                              colFlAdmOld,
+                                              ForAll(Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) As I,
+                                                  { RowGuid: I.RowGuid, RowNo: I.RowNo, FL: I.FunctionalLocation, Description: I.Description,
+                                                     KksType: I.KksType, AssignedClass: I.AssignedClass })
+                                          ),
+                                          Clear(colFlAdmOld)
+                                      );
                                       ClearCollect(
                                           colFlSp,
                                           ForAll(Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) As I, { RowGuid: I.RowGuid, ID: I.ID })
@@ -743,6 +756,54 @@ Screens:
                                   If(
                                       CountRows(colFlSaveErrors) = 0,
                                       Set(varFlStatus, Coalesce(varFlReqNow.Status.Value, "Kladde"));
+                                      If(
+                                          (!IsBlank(varFlReqNow) && !(Lower(Coalesce(varFlReqNow.RequesterEmail, "")) = varFlMe)),
+                                          With(
+                                              { c: Concat(Filter(Table({ t: Concat(
+                                          Filter(
+                                              ForAll(colFlAdmOld As O,
+                                                  With({ n: LookUp(Filter(colFlRows, Status <> "draft"), RowGuid = O.RowGuid) },
+                                                      If(IsBlank(n), "Row " & O.RowNo & ": removed",
+                                                      Concat(
+                                                          Filter(
+                                                              Table(
+                                                              { f: "Functional location", a: Text(O.FL), b: Text(n.FL) },
+                                                              { f: "Description", a: Text(O.Description), b: Text(n.Description) },
+                                                              { f: "KKS type", a: Text(O.KksType), b: Text(n.KksType) },
+                                                              { f: "Class", a: Text(O.AssignedClass), b: Text(n.AssignedClass) }
+                                                              ),
+                                                              Coalesce(a, "") <> Coalesce(b, "")
+                                                          ),
+                                                          "Row " & O.RowNo & " " & f & ": " & Coalesce(a, "(blank)") & " → " & Coalesce(b, "(blank)"),
+                                                          "; "
+                                                      ))
+                                                  )
+                                              ),
+                                              !IsBlank(Value)
+                                          ),
+                                          Value,
+                                          "; "
+                                      ) }, { t: With({ k: CountRows(Filter(Filter(colFlRows, Status <> "draft"), !(RowGuid in colFlAdmOld.RowGuid))) }, If(k > 0, k & " row(s) added", "")) }), !IsBlank(t)), t, "; ") },
+                                              If(
+                                                  !IsBlank(c),
+                                                  IfError(
+                                                      Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                          Title: varFlRequestNo,
+                                                          RequestGuid: varFlRequestGuid,
+                                                          Stage: "Admin",
+                                                          Decision: "AdminEdit",
+                                                          Detail: Left(c, 255),
+                                                          Comment: c,
+                                                          DecidedByEmail: Lower(User().Email),
+                                                          DecidedOn: Now()
+                                                      });
+                                                      true,
+                                                      Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                      false
+                                                  )
+                                              )
+                                          )
+                                      );
                                       Clear(colFlDeleted);
                                       Set(varFlInfo, "");
                                       Notify("Saved as " & varFlRequestNo & " - see it on the landing page.", NotificationType.Success),
@@ -6286,6 +6347,17 @@ Screens:
                                     CountRows(colFlSaveErrors) = 0,
                                 
                                     // 2. Hvilke raekker findes allerede? Paa RowGuid - klientnoeglen.
+                                    //    En admin i en andens anmodning henter dem ogsaa med felter, til loggen.
+                                    If(
+                                        (!IsBlank(varFlReqNow) && !(Lower(Coalesce(varFlReqNow.RequesterEmail, "")) = varFlMe)),
+                                        ClearCollect(
+                                            colFlAdmOld,
+                                            ForAll(Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) As I,
+                                                { RowGuid: I.RowGuid, RowNo: I.RowNo, FL: I.FunctionalLocation, Description: I.Description,
+                                                   KksType: I.KksType, AssignedClass: I.AssignedClass })
+                                        ),
+                                        Clear(colFlAdmOld)
+                                    );
                                     ClearCollect(
                                         colFlSp,
                                         ForAll(Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) As I, { RowGuid: I.RowGuid, ID: I.ID })
@@ -6426,6 +6498,54 @@ Screens:
                                 If(
                                     CountRows(colFlSaveErrors) = 0,
                                     Set(varFlStatus, Coalesce(varFlReqNow.Status.Value, "Kladde"));
+                                    If(
+                                        (!IsBlank(varFlReqNow) && !(Lower(Coalesce(varFlReqNow.RequesterEmail, "")) = varFlMe)),
+                                        With(
+                                            { c: Concat(Filter(Table({ t: Concat(
+                                        Filter(
+                                            ForAll(colFlAdmOld As O,
+                                                With({ n: LookUp(Filter(colFlRows, Status <> "draft"), RowGuid = O.RowGuid) },
+                                                    If(IsBlank(n), "Row " & O.RowNo & ": removed",
+                                                    Concat(
+                                                        Filter(
+                                                            Table(
+                                                            { f: "Functional location", a: Text(O.FL), b: Text(n.FL) },
+                                                            { f: "Description", a: Text(O.Description), b: Text(n.Description) },
+                                                            { f: "KKS type", a: Text(O.KksType), b: Text(n.KksType) },
+                                                            { f: "Class", a: Text(O.AssignedClass), b: Text(n.AssignedClass) }
+                                                            ),
+                                                            Coalesce(a, "") <> Coalesce(b, "")
+                                                        ),
+                                                        "Row " & O.RowNo & " " & f & ": " & Coalesce(a, "(blank)") & " → " & Coalesce(b, "(blank)"),
+                                                        "; "
+                                                    ))
+                                                )
+                                            ),
+                                            !IsBlank(Value)
+                                        ),
+                                        Value,
+                                        "; "
+                                    ) }, { t: With({ k: CountRows(Filter(Filter(colFlRows, Status <> "draft"), !(RowGuid in colFlAdmOld.RowGuid))) }, If(k > 0, k & " row(s) added", "")) }), !IsBlank(t)), t, "; ") },
+                                            If(
+                                                !IsBlank(c),
+                                                IfError(
+                                                    Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                        Title: varFlRequestNo,
+                                                        RequestGuid: varFlRequestGuid,
+                                                        Stage: "Admin",
+                                                        Decision: "AdminEdit",
+                                                        Detail: Left(c, 255),
+                                                        Comment: c,
+                                                        DecidedByEmail: Lower(User().Email),
+                                                        DecidedOn: Now()
+                                                    });
+                                                    true,
+                                                    Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                    false
+                                                )
+                                            )
+                                        )
+                                    );
                                     Clear(colFlDeleted);
                                     Set(varFlInfo, "");
                                     Set(varFlInfo, ""),
@@ -6483,6 +6603,24 @@ Screens:
                                                   { Status: { Value: "Indsendt" }, PayloadJson: varFlPayload, SubmittedOn: Now() });
                                             Patch(MD_RequestIndex, varFlIdx, { Status: { Value: "Indsendt" }, StatusStep: 2, LastActionOn: Now(), LastActionBy: varFlMe });
                                             Set(varFlStatus, "Indsendt");
+                                            If(
+                                                (!IsBlank(varFlReqNow) && !(Lower(Coalesce(varFlReqNow.RequesterEmail, "")) = varFlMe)),
+                                                IfError(
+                                                    Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                        Title: varFlRequestNo,
+                                                        RequestGuid: varFlRequestGuid,
+                                                        Stage: "Admin",
+                                                        Decision: "AdminEdit",
+                                                        Detail: Left("Status: " & Switch(varFlReqNow.Status.Value, "Kladde", "Draft", "Indsendt", "Submitted", "UnderBehandling", "In progress", "AfventerInfo", "Awaiting info", "KlarTilSAP", "Ready for SAP", "OprettetISAP", "Created in SAP", "Afvist", "Rejected", "Annulleret", "Cancelled", varFlReqNow.Status.Value) & " → Submitted", 255),
+                                                        Comment: "Status: " & Switch(varFlReqNow.Status.Value, "Kladde", "Draft", "Indsendt", "Submitted", "UnderBehandling", "In progress", "AfventerInfo", "Awaiting info", "KlarTilSAP", "Ready for SAP", "OprettetISAP", "Created in SAP", "Afvist", "Rejected", "Annulleret", "Cancelled", varFlReqNow.Status.Value) & " → Submitted",
+                                                        DecidedByEmail: Lower(User().Email),
+                                                        DecidedOn: Now()
+                                                    });
+                                                    true,
+                                                    Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                    false
+                                                )
+                                            );
                                             Set(varFlInfo, "");
                                             Notify("Submitted as " & varFlRequestNo & " - see it on the landing page.", NotificationType.Success),
                                             Set(varFlInfo, "Submit failed: " & FirstError.Message);
@@ -6771,6 +6909,24 @@ Screens:
                                         If(
                                             !IsEmpty(Errors(MD_RequestIndex)),
                                             Notify("The request could not be deleted: " & First(Errors(MD_RequestIndex)).Message, NotificationType.Error),
+                                            If(
+                                                (IsAdmin && !(Lower(Coalesce(varFlDelIdx.RequesterEmail, "")) = varFlMe)),
+                                                IfError(
+                                                    Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                        Title: varFlDelKey,
+                                                        RequestGuid: varFlDelGuid,
+                                                        Stage: "Admin",
+                                                        Decision: "AdminDelete",
+                                                        Detail: Left("Request deleted (" & varFlDelIdx.Status.Value & ", owner " & varFlDelIdx.RequesterEmail & ")", 255),
+                                                        Comment: "Request deleted (" & varFlDelIdx.Status.Value & ", owner " & varFlDelIdx.RequesterEmail & ")",
+                                                        DecidedByEmail: Lower(User().Email),
+                                                        DecidedOn: Now()
+                                                    });
+                                                    true,
+                                                    Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                    false
+                                                )
+                                            );
                                             Set(varFlRequestGuid, "");
                                             Set(gblFlStale, true);
                                             Set(gblFlWant, Blank());
