@@ -655,6 +655,10 @@ def rule_4d(ctx):
                 continue
             avail = real_width(p, w, 3, 4, 4)
             if avail is None:
+                own_w = (ctx.by_path.get(p) or {}).get("Properties", {}).get("Width")
+                if own_w and "Parent." not in own_w:
+                    avail = evaluate(own_w, w, 3, 4, 4)
+            if avail is None:
                 problems.append(f"[4d] {name}: bredden kan ikke efterregnes ved "
                                 f"App.Width={w}")
                 break

@@ -51,14 +51,14 @@ from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED,
                         C_INFO_BG, C_VALID_FG, C_VALID_BG, C_WARN_FG,
                         C_WARN_BG, C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY)
 import layout_tokens as lay
-from layout_tokens import fits
-from build_helpers import (text_ctrl, text_min_height, group, button, text_input,
+from layout_tokens import fits, if_below, below, at_least
+from build_helpers import (tap_backdrop, text_ctrl, text_min_height, group, button, text_input,
                            checkbox_theme, date_picker, fit_button_row,
                            fit_button_width, number_input, themed_dropdown,
                            card, field_cell, pin_widths, badge, top_bar, grow,
                            flow_row, label_px, text_px, loading_overlay,
-                           with_busy, confirm_modal, ICON_SAVE, ICON_SUBMIT,
-                           ICON_W)
+                           with_busy, confirm_modal, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
+                           ICON_W, icon_on_mobile, new_text_on_mobile)
 
 # Mens en gemning koerer, staar ventespinneren oven paa skaermen (issue #54).
 SAVING_VAR = "varDomSaving"
@@ -136,7 +136,7 @@ MODAL_X = "(App.Width - Self.Width) / 2"
 MODAL_Y = "Max(20, (App.Height - Self.Height) / 3)"
 
 # Indsendte raekker kan ikke redigeres - saa ejer SAP-processen dem.
-DM_ROW = ('If(varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)')
+DM_ROW = ('If(varDomViewOnly || varDomRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)')
 
 # HVORNAAR BLIVER EN FELTKANT ROED?
 #
@@ -163,7 +163,7 @@ REQUIRED = "varDomValidated"
 DM_DOCS = ('If(IsBlank(varDomDocsId), DisplayMode.Disabled, DisplayMode.Edit)')
 DM_SEL = ('If(IsBlank(varDomActiveRowId), DisplayMode.Disabled, DisplayMode.Edit)')
 # En indsendt raekke ejes af SAP-processen og kan ikke slettes.
-DM_DEL = ('If(IsBlank(varDomActiveRowId) || varDomRowStatus = "submitted", '
+DM_DEL = ('If(varDomViewOnly || IsBlank(varDomActiveRowId) || varDomRowStatus = "submitted", '
           'DisplayMode.Disabled, DisplayMode.Edit)')
 
 
@@ -178,21 +178,42 @@ def build_bar():
     regnes af top_bar() ud af de fire kontroller herunder. Tidligere stod
     det som fem konstanter og en vagt; de passede sammen, men ikke med den
     bredde, platformen faktisk gav, naar der var en scrollbar."""
-    count = badge("txtDomCount",
-                  f'"Rows: " & CountRows(colDomRows) & '
-                  f'If(CountRows(colDomRows) >= {ROW_LIMIT}, "+", "")', width=110)
-    # Ved loftet siger taelleren "500+" (ModernText har ingen Tooltip - en
-    # skaermlaeser faar forklaringen).
-    count.props["AccessibleLabel"] = (
-        f'If(CountRows(colDomRows) >= {ROW_LIMIT}, "Only your newest {ROW_LIMIT} rows are '
-        f'shown - older rows are in SharePoint.", "Your rows in SharePoint")')
-    no = text_ctrl("txtDomReqNo",
-                   'If(IsBlank(varDomRequestNo), "Not submitted", varDomRequestNo)',
-                   size=lay.SIZE_INPUT, weight="Semibold", height=24, width=150, wrap="false")
-    # Temaskiftet og vejen til hubben staar i sidebaren (tools/side_nav.py).
+    # Same header actions as Functional Location: Save draft, Submit, New request.
+    def sized(btn, icon):
+        w = fit_button_width(btn.props["Text"]) + (ICON_W if icon else 0)
+        btn.props["Width"] = str(w)
+        btn.props["LayoutMinWidth"] = str(w)
+        return btn
+
+    save = sized(button(
+        "btnDomSendDraft", '"Save draft"', with_busy(SAVING_VAR, send_fx(False)),
+        icon=ICON_SAVE,
+        display_mode=f'If(varDomViewOnly || CountRows({SENDABLE}) = 0, DisplayMode.Disabled, DisplayMode.Edit)',
+        tooltip='"Put the request on the landing page as Draft - rows stay editable"'),
+        True)
+    submit = sized(button(
+        "btnDomSubmit", '"Submit"', f"Set({CONFIRM_VAR}, true)", primary=True,
+        icon=ICON_SUBMIT,
+        display_mode=f'If(varDomViewOnly || CountRows({VALID}) = 0, DisplayMode.Disabled, DisplayMode.Edit)',
+        tooltip='"Submit the valid rows - they are locked afterwards (asks first)"'),
+        False)
+    new = sized(button(
+        "btnDomNewRequest", '"New request"',
+        'Set(varDomRequestGuid, "");\nSet(varDomRequestNo, "");\nSet(varDomViewOnly, false);\nSet(varDomCanEdit, false);\n' + clear_form_fx(),
+        icon="Add", tooltip='"Start a new request - your saved rows stay in SharePoint"'),
+        True)
+    edit = sized(button(
+        "btnDomEditRequest", '"Edit"', "Set(varDomViewOnly, false)", icon="Edit",
+        visible="varDomViewOnly && varDomCanEdit",
+        display_mode="If(varDomCanEdit, DisplayMode.Edit, DisplayMode.Disabled)",
+        tooltip='"Edit this draft"'), True)
+    narrow = below("Tablet")
+    save.props["Width"] = f"If({narrow}, 40, {save.props['Width']})"
+    save.props["Layout"] = f"If({narrow}, ButtonLayout.IconOnly, ButtonLayout.IconBefore)"
+    new_text_on_mobile(new, new.props["Width"])
     return top_bar("Dom", f'"{cfg.TITLE}"', f'"{cfg.SUBTITLE}"',
-                   [count, no],
-                   narrow_hide=("txtDomCount", "txtDomReqNo"), icon=cfg.APP_KEY)
+                   [edit, delete_button("Dom", "varDomViewOnly", "varDomRequestGuid"), save, submit, new],
+                   icon=cfg.APP_KEY, mode_var="varDomViewOnly", num_var="varDomRequestNo")
 
 
 # ---------------------------------------------------------------------------
@@ -308,7 +329,7 @@ def build_fl_picker(cell_w, lock=None, required_formula="false"):
         last_var=FL_LAST_VAR, pick_var=v,
         default_items=f"Filter(colDomFl, Code = {v})",
         display_mode=dm,
-        required_formula=required_formula, width=cell_w)
+        required_formula=required_formula, width=cell_w, stack_search=True)
 
 
 def fl_reset_fx_dom():
@@ -414,7 +435,10 @@ def open_request_fx():
         '        Notify("Request " & varDomIdx.RequestNo & " is already submitted. Rows you save start a new request.",\n'
         "            NotificationType.Information);\n"
         '        Set(varDomRequestGuid, ""); Set(varDomRequestNo, ""),\n'
-        "        Set(varDomRequestNo, varDomIdx.RequestNo)\n"
+        "        Set(varDomRequestNo, varDomIdx.RequestNo);\n"
+        # Edit only for the owner of a draft; everyone else stays in View.
+        '        Set(varDomCanEdit, Lower(Coalesce(varDomIdx.RequesterEmail, "")) = varDomMe && varDomIdx.Status.Value = "Kladde");\n'
+        "        Set(varDomViewOnly, !(Lower(Coalesce(Param(\"mode\"), \"\")) = \"edit\" && varDomCanEdit))\n"
         "    )\n"
         ")"
     )
@@ -429,7 +453,7 @@ def clear_form_fx():
     for col, _lab, kind, _ch in FIELDS:
         lines.append(f"Set({_var(col)}, {_blank(kind)});")
     lines.append(fl_reset_fx_dom() + ";")
-    lines.append('Set(varDomInfo, "New row - fill in and save.")')
+    lines.append('Set(varDomInfo, "")')
     return "\n".join(lines)
 
 
@@ -507,20 +531,9 @@ def open_docs_fx():
 def build_backdrop():
     """Sloeret bag popupperne. EEN kontrol til begge - to ville lagre oven
     paa hinanden og goere baggrunden dobbelt saa moerk."""
-    return Ctrl("conDomBackdrop", "GroupContainer", variant="AutoLayout",
-                props={
-                    "BorderStyle": "BorderStyle.None",
-                    "DropShadow": "DropShadow.None",
-                    "Fill": C_OVERLAY,
-                    "Height": "App.Height",
-                    "LayoutDirection": "LayoutDirection.Vertical",
-                    "LayoutOverflowX": "LayoutOverflow.Hide",
-                    "LayoutOverflowY": "LayoutOverflow.Hide",
-                    "Visible": "!IsBlank(varDomDetailsId) || !IsBlank(varDomDocsId)",
-                    "Width": "App.Width",
-                    "X": "0",
-                    "Y": "0",
-                }, children=[], vis="!IsBlank(varDomDetailsId) || !IsBlank(varDomDocsId)")
+    vis = "!IsBlank(varDomDetailsId) || !IsBlank(varDomDocsId)"
+    return tap_backdrop("conDomBackdrop", vis,
+                        "Set(varDomDetailsId, Blank()); Set(varDomDocsId, Blank())")
 
 
 def save_row_fx(status="valid", required=()):
@@ -799,6 +812,9 @@ def build_attachments():
 # knaps mindstehoejde. check_layout regel 25 kraever nu mindst 30.
 ROW_BTN = {"btnDomRowOpen": 60, "btnDomRowDetails": 72, "btnDomRowDocs": 64,
            "btnDomRowCopy": 64, "btnDomRowDelete": 72}
+ROW_BTN.update({n + "C": w for n, w in list(ROW_BTN.items())})
+ROW_H_C = 128
+GAL_ROWS_C = 5
 ROW_BTN_H = 30
 ROW_BTN_GAP = 4
 
@@ -1057,7 +1073,8 @@ def build_submit_confirm():
     return confirm_modal(
         "Dom", CONFIRM_VAR, "Submit request?",
         '"The valid rows are sent to the landing page as Submitted and locked."',
-        "Submit", with_busy(SAVING_VAR, send_fx(True)), "btnDomSubmitConfirm") + [
+        "Submit", with_busy(SAVING_VAR, send_fx(True)), "btnDomSubmitConfirm") + delete_modal(
+        "Dom", "varDomRequestGuid", cfg.L_INDEX) + [
         loading_overlay("imgDomSaving", SAVING_VAR)]
 
 
@@ -1275,14 +1292,23 @@ def form_footer(buttons):
          '    "Row status: New row - not saved yet",\n'
          '    "Row status: " & Coalesce(' + ACTIVE + '.ItemKey, "row " & varDomActiveRowId) &\n'
          '        " (" & varDomRowStatus & ")"\n'
-         ')'), 290)
+         ')'), f"Min(290, {FORM_W} - 138)")
     meta_w = 130 + 8 + 290
     meta = group("conDomFormMeta", [plant, state], direction="Horizontal", gap=8,
                  height=28, align_items="Center")
-    actions = flow_row("conDomFormActions", [meta] + list(buttons), FORM_W, gap=8,
+    buttons = list(buttons)
+    desk = sum(int(b.desk_w) for b in buttons) + 8 * (len(buttons) - 1)
+    icon = sum(b.icon_w for b in buttons) + 8 * (len(buttons) - 1)
+    for b in buttons:
+        b.props["LayoutMinWidth"] = b.props["Width"]
+    btn_row = group("conDomFormButtons", buttons, direction="Horizontal", gap=8, height=36,
+                    align_items="Center", width=if_below("Tablet", str(icon), str(desk)))
+    btn_row.props["LayoutMinWidth"] = btn_row.props["Width"]
+    btn_row.props["AlignInContainer"] = "AlignInContainer.Start"
+    actions = flow_row("conDomFormActions", [meta, btn_row], FORM_W, gap=8,
                        flex=meta, flex_min=meta_w)
     info = text_ctrl("txtDomFormInfo", "varDomInfo", size=12, color=C_MUTED,
-                     height=18, wrap="false")
+                     height=18, wrap="false", visible="!IsBlank(varDomInfo)")
     return [actions, info]
 
 
@@ -1292,19 +1318,19 @@ def form_buttons(save_fx, save_text, new_text):
 
     save_fx(status) er appens gem (save_row_fx med evt. egne krav)."""
     return [
-        fit(button("btnDomDelete", '"Delete row"', delete_row_fx(),
-                   danger=True, display_mode=DM_DEL,
-        tooltip='"Delete the open row in SharePoint (asks first)"')),
-        fit(button("btnDomSaveDraft", '"Save row draft"',
+        icon_on_mobile(fit(button("btnDomDelete", '"Delete row"', delete_row_fx(),
+                   danger=True, display_mode=DM_DEL, icon="Delete",
+        tooltip='"Delete the open row in SharePoint (asks first)"'), icon=True)),
+        icon_on_mobile(fit(button("btnDomSaveDraft", '"Save row draft"',
                    with_busy(SAVING_VAR, save_fx("draft")),
                    display_mode=DM_ROW, icon=ICON_SAVE,
-        tooltip='"Save the row as a draft - only the description is required"'), icon=True),
-        fit(button("btnDomSave", f'"{save_text}"',
+        tooltip='"Save the row as a draft - only the description is required"'), icon=True)),
+        icon_on_mobile(fit(button("btnDomSave", f'"{save_text}"',
                    with_busy(SAVING_VAR, save_fx("valid")),
                    primary=True, display_mode=DM_ROW, icon=ICON_SAVE,
-        tooltip='"Save the row as complete, ready to submit"'), icon=True),
-        fit(button("btnDomNew", f'"{new_text}"', clear_form_fx(),
-        tooltip='"Clear the form and start a new row"')),
+        tooltip='"Save the row as complete, ready to submit"'), icon=True)),
+        icon_on_mobile(fit(button("btnDomNew", f'"{new_text}"', clear_form_fx(), icon="Add",
+        tooltip='"Clear the form and start a new row"'), icon=True)),
     ]
 
 
@@ -1497,6 +1523,54 @@ def _row_buttons(name, btns, fxs, width, danger=(), modes=None):
                  width=width, align_items="Center", pad=(0, 0, 0, CELL_PAD))
 
 
+def _compact_row(lay_, load_fx, copy_fx, delete_fx):
+    """Card row below Desktop: key + status on top, the next values under it, the actions
+    on two short lines. Replaces the wide table, which would scroll sideways on a phone."""
+    cs = [lay_.slots[i][0] for i in lay_.compact]
+    s = "ThisItem.Status"
+    fg = (f'Switch({s}, "valid", {C_VALID_FG}, "submitted", {C_INFO_FG}, '
+          f'"draft", {C_WARN_FG}, {C_NEUTRAL_FG})')
+    bg = (f'Switch({s}, "valid", {C_VALID_BG}, "submitted", {C_INFO_BG}, '
+          f'"draft", {C_WARN_BG}, {C_NEUTRAL_BG})')
+    key = text_ctrl("txtDomRowKeyC", cs[0][1], size=14, weight="Semibold", height=22, wrap="false")
+    key = grow(key)
+    badge = text_ctrl("txtDomRowStatusC", f"Upper({s})", size=11, color=fg, weight="Semibold",
+                      height=22, width=BADGE_W - 2 * CELL_PAD, wrap="false",
+                      accessible=f'"Status: " & {s}',
+                      extra={"Fill": bg, "Align": "Align.Center",
+                             "RadiusBottomLeft": "6", "RadiusBottomRight": "6",
+                             "RadiusTopLeft": "6", "RadiusTopRight": "6"})
+    line1 = group("conDomRowLineC1", [key, badge], direction="Horizontal", gap=8, height=22,
+                  align_items="Center")
+    rest = " & \"  \u00b7  \" & ".join(f"Text({c[1]})" for c in cs[1:4])
+    line2 = text_ctrl("txtDomRowMetaC", rest or '""', size=12, color=C_MUTED, height=18,
+                      wrap="false")
+
+    def btns(name, names, fxs, **kw):
+        out = []
+        for (bn, text), fx in zip(names, fxs):
+            who = f'{text} & " " & ThisItem.ItemKey'
+            b = button(bn + "C", text, fx, danger=bn in kw.get("danger", ()),
+                       width=ROW_BTN[bn], height=ROW_BTN_H,
+                       display_mode=(kw.get("modes") or {}).get(bn), accessible=who, tooltip=who)
+            b.props["Size"] = "13"
+            out.append(b)
+        return group(name, out, direction="Horizontal", gap=ROW_BTN_GAP, height=ROW_BTN_H,
+                     align_items="Center")
+
+    line3 = btns("conDomRowLineC3", ACTION_BTNS, [load_fx, copy_fx, delete_fx],
+                 danger=("btnDomRowDelete",),
+                 modes={"btnDomRowDelete": ('If(varDomViewOnly || ThisItem.Status = "submitted", '
+                                            "DisplayMode.Disabled, DisplayMode.Edit)"),
+                        "btnDomRowCopy": "If(varDomViewOnly, DisplayMode.Disabled, DisplayMode.Edit)"})
+    line4 = btns("conDomRowLineC4", DETAIL_BTNS,
+                 ["Set(varDomDetailsId, ThisItem.RowId)", open_docs_fx()])
+    return group("conDomRowC", [line1, line2, line3, line4], direction="Vertical", gap=4,
+                 height="Parent.TemplateHeight - 2", align_items="Stretch",
+                 width="Parent.TemplateWidth", pad=(8, CELL_PAD, 0, CELL_PAD),
+                 visible=below("Desktop"))
+
+
 def build_list(slots, badge_head, search_placeholder):
     """Kortet med de gemte raekker - og indsend under tabellen.
 
@@ -1552,17 +1626,22 @@ def build_list(slots, badge_head, search_placeholder):
                               [load_row_fx(), copy_row_fx(), delete_this_row_fx()],
                               LIST_ACTIONS_W, danger=("btnDomRowDelete",),
                               modes={"btnDomRowDelete": (
-                                  'If(ThisItem.Status = "submitted", '
-                                  "DisplayMode.Disabled, DisplayMode.Edit)")}))
+                                  'If(varDomViewOnly || ThisItem.Status = "submitted", '
+                                  "DisplayMode.Disabled, DisplayMode.Edit)"),
+                                  "btnDomRowCopy": "If(varDomViewOnly, DisplayMode.Disabled, DisplayMode.Edit)"}))
 
-    table_w = lay_.table_w
+    table_w = if_below("Desktop", TABLE_AVAIL, lay_.table_w)
     list_head = group("conDomListHead", heads, direction="Horizontal", gap=T_GAP,
-                      height=34, width=table_w, align_items="Center", fill=C_MUTED_BG)
+                      height=34, width=table_w, align_items="Center", fill=C_MUTED_BG,
+                      visible=at_least("Desktop"))
     row = group("conDomRow", cells, direction="Horizontal", gap=T_GAP,
                 height="Parent.TemplateHeight - 2", align_items="Center",
-                justify="Start", width="Parent.TemplateWidth")
+                justify="Start", width="Parent.TemplateWidth", visible=at_least("Desktop"))
+    row_c = _compact_row(lay_, load_row_fx(), copy_row_fx(), delete_this_row_fx())
 
-    gal_h = f"Max(Min(CountRows({LIST_SCOPE}), {GAL_ROWS}), 1) * {ROW_H + 2}"
+    gal_h = (f"Max(Min(CountRows({LIST_SCOPE}), "
+             + if_below("Desktop", str(GAL_ROWS_C), str(GAL_ROWS)) + f"), 1) * "
+             + if_below("Desktop", str(ROW_H_C + 2), str(ROW_H + 2)))
     gal = Ctrl("galDomRows", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Saved rows"',
         "BorderStyle": "BorderStyle.None",
@@ -1577,10 +1656,10 @@ def build_list(slots, badge_head, search_placeholder):
         "ShowScrollbar": "true",
         "TabIndex": "0",
         "TemplatePadding": "2",
-        "TemplateSize": str(ROW_H),
+        "TemplateSize": if_below("Desktop", str(ROW_H_C), str(ROW_H)),
         "Width": f"({table_w}) + 4 + {SCROLLBAR_W}",
         "WrapCount": "1",
-    }, children=[row], h=gal_h)
+    }, children=[row, row_c], h=gal_h)
 
     # Vandret scroll, naar tabellen er bredere end kortet (All columns, og
     # Compact paa en tablet). Start, ikke Stretch - check_layout regel 14.
@@ -1592,11 +1671,9 @@ def build_list(slots, badge_head, search_placeholder):
     table.props["Height"] = f"{table.props['Height']} + If({wide}, {SCROLLBAR_W}, 0)"
     table.h = table.props["Height"]
 
-    empty = text_ctrl("txtDomNoRows", '"No saved rows yet."', size=13, color=C_MUTED,
-                      height=22, wrap="false",
-                      visible="IfError(CountRows(colDomRows) = 0, false)")
+    empty = None
 
-    return card("conDomRowsCard", [head, views, table, empty] + _submit_parts())
+    return card("conDomRowsCard", [head, views, table] + _submit_parts())
 
 
 # ---------------------------------------------------------------------------
@@ -1607,37 +1684,17 @@ def _submit_parts():
     til hoejre - og hvor indmeldingen staar."""
     # "Hent forfra" stod BEGGE steder - her og paa dokumentruden - og
     # betoed to forskellige ting. Nu siger navnet hvad der hentes.
-    reload_ = fit(button("btnDomReload", '"Reload rows"',
-                         refresh_rows_fx() + ';\nSet(varDomInfo, "Reloaded.")',
-        tooltip='"Fetch your rows from SharePoint again"'))
-    draft = fit(button(
-        "btnDomSendDraft", '"Save as draft"', with_busy(SAVING_VAR, send_fx(False)),
-        icon=ICON_SAVE,
-        display_mode=f'If(CountRows({SENDABLE}) = 0, DisplayMode.Disabled, DisplayMode.Edit)',
-        tooltip='"Put the request on the landing page as Draft - rows stay editable"'),
-        icon=True)
-    # Submit spoerger foerst (build_submit_confirm); indsendelsen koerer i
-    # popup'ens Submit.
-    submit = fit(button(
-        "btnDomSubmit", '"Submit saved rows"', f"Set({CONFIRM_VAR}, true)", primary=True,
-        icon=ICON_SUBMIT,
-        display_mode=f'If(CountRows({VALID}) = 0, DisplayMode.Disabled, DisplayMode.Edit)',
-        tooltip='"Submit the valid rows - they are locked afterwards (asks first)"'),
-        icon=True)
+    reload_ = icon_on_mobile(fit(button("btnDomReload", '"Reload rows"',
+                         refresh_rows_fx() + ';\nSet(varDomInfo, "Reloaded.")', icon="ArrowSync",
+        tooltip='"Fetch your rows from SharePoint again"'), icon=True))
     state = text_ctrl(
         "txtDomSubmitState",
         ('If(\n'
          '    IsBlank(varDomRequestNo),\n'
-         '    "The request has not been sent to the hub yet.",\n'
+         '    "",\n'
          '    "Request " & varDomRequestNo & " is on the landing page."\n'
          ')'),
-        size=13, color=C_MUTED, height=20, wrap="false")
-    row = flow_row("conDomSubmitRow", [state, reload_, draft, submit], FORM_W, gap=8,
+        size=13, color=C_MUTED, height=20, wrap="false", visible="!IsBlank(varDomRequestNo)")
+    row = flow_row("conDomSubmitRow", [state, reload_], FORM_W, gap=8,
                    flex=state, flex_min=0)
-    note = text_ctrl(
-        "txtDomSubmitNote",
-        ('"Save as draft puts the request on the landing page with status Draft '
-         '- it can still be edited. Submit locks the rows and sets the status '
-         'to Submitted. Both write to the SAME row in the index."'),
-        size=12, color=C_MUTED, height=18, wrap="false")
-    return [row, note]
+    return [row]

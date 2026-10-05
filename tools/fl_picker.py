@@ -60,19 +60,106 @@ til at vokse og blive skaaret af forneden, naar den blev aktiv.
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from gen_screen import Ctrl
+from gen_screen import Ctrl, C_CARD_BORDER, C_DISABLED_BG, C_MUTED
+from design_tokens import ref_hex
 import layout_tokens as lay
 from build_helpers import (button, group, grow, border_rule, input_theme,
-                           fit_button_width)
+                           fit_button_width, text_ctrl, label_px)
 import build_flsearch as fl
 
 PLACEHOLDER = f'"At least {fl.MIN_SEARCH_LEN} characters, e.g. SSV13 HFC"'
-SEARCH_W = fit_button_width('"Search"')
+SEARCH_W = fit_button_width('"Search"', min_w=0) - 12
 HEIGHT = 36
 # Luft over og under raekken, saa knappens fokusring ikke klippes.
 ROW_PAD = 2
-# Spinnerens faste plads til hoejre for knappen.
+# Spinnerens stoerrelse i den optagede knap.
 SPIN = 20
+# Knappen og den optagede knap har SAMME bredde, saa intet flytter sig.
+BUSY_W = fit_button_width('"Searching..."') + SPIN + 8
+# Search keeps the Searching... width, so nothing shifts when a search starts.
+SEARCH_W = BUSY_W
+
+# Soegeraekken i listen: Enter i en combobox vaelger den fremhaevede raekke, og
+# ModernCombobox har ingen Enter-haendelse. Ingen rigtig Functional Location
+# starter med "?".
+SEARCH_CODE = "?search"
+SEARCH_HINT = "  -  press Enter to search"
+
+
+def items_fx(results, busy_var, last_var):
+    """Comboboksens Items: resultaterne - plus en soegeraekke, naar der er
+    skrevet nok til en ny soegning.
+
+    Raekken ligger oeverst, naar teksten er en ny soegning, og nederst, naar
+    brugeren blot snaevrer det sidste svar ind, saa Enter der vaelger det
+    foerste rigtige resultat. Mens soegningen koerer, er den vaek.
+    ForAll over Sequence i stedet for Ungroup: Ungroup(Table({..},{..}), ..)
+    gav kun en raekke pr. post i Power Apps."""
+    return (
+        "With(\n"
+        "    { q: Trim(Self.SearchText) },\n"
+        "    With(\n"
+        "        {\n"
+        f"            s: {{ Code: \"{SEARCH_CODE}\", Description: q,\n"
+        f"                  Display: q & \"{SEARCH_HINT}\",\n"
+        "                  Maintainable: true, Level: \"\" },\n"
+        f"            n: CountRows({results}),\n"
+        f"            ask: Len(q) >= {fl.MIN_SEARCH_LEN} && !{busy_var} &&\n"
+        f"                 Upper(q) <> Upper(Coalesce({last_var}, \"\")),\n"
+        f"            narrow: CountRows({results}) > 0 && !IsBlank({last_var}) &&\n"
+        f"                    StartsWith(Upper(q), Upper({last_var}))\n"
+        "        },\n"
+        "        If(\n"
+        f"            !ask, {results},\n"
+        "            ForAll(\n"
+        "                Sequence(n + 1),\n"
+        f"                If(narrow, If(Value <= n, Index({results}, Value), s),\n"
+        f"                    If(Value = 1, s, Index({results}, Value - 1)))\n"
+        "            )\n"
+        "        )\n"
+        "    )\n"
+        ")"
+    )
+
+
+def busy_box(name, visible, label="Searching..."):
+    """Knappens afloeser mens soegningen koerer: EET billede med boksen, en
+    drejende spinner og teksten. Et billede, fordi en ModernSpinner i en
+    container ikke blev tegnet i Studio. Teksten staar som en streng for
+    sig selv, saa sprogvaelgeren (tools/i18n.py) kan oversaette den."""
+    w, h, r = BUSY_W, HEIGHT, lay.RADIUS_INPUT
+    cy, ring, gap = h // 2, 8, 8
+    # Spinner og tekst som en gruppe, centreret i boksen - som knappens tekst.
+    text_w = label_px(label, lay.SIZE_INPUT)
+    cx = (w - (2 * ring + gap + text_w)) / 2 + ring
+    hx = lambda t: '" & %s & "' % ref_hex(t)
+    svg = (f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{h}' "
+           f"viewBox='0 0 {w} {h}'>"
+           f"<rect x='0.5' y='0.5' width='{w - 1}' height='{h - 1}' rx='{r}' "
+           f"fill='{hx('state-neutral-bg')}' stroke='{hx('border-default')}'/>"
+           f"<circle cx='{cx}' cy='{cy}' r='{ring}' fill='none' stroke='{hx('border-default')}' "
+           f"stroke-width='2.5'/>"
+           f"<circle cx='{cx}' cy='{cy}' r='{ring}' fill='none' stroke='{hx('state-info-fg')}' "
+           f"stroke-width='2.5' stroke-linecap='round' stroke-dasharray='14 40'>"
+           f"<animateTransform attributeName='transform' type='rotate' "
+           f"from='0 {cx} {cy}' to='360 {cx} {cy}' dur='0.8s' repeatCount='indefinite'/>"
+           f"</circle>"
+           f"<text x='{cx + ring + gap}' y='{cy + 5}' font-family='Segoe UI, sans-serif' "
+           f"font-size='{lay.SIZE_INPUT}' font-weight='600' fill='{hx('text-primary')}'>"
+           f'" & "{label}" & "</text></svg>')
+    return Ctrl(name, "Image", props={
+        "AccessibleLabel": '"Searching"',
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        "Height": str(h),
+        "Image": f'"data:image/svg+xml;utf8," & EncodeUrl("{svg}")',
+        "ImagePosition": "ImagePosition.Fit",
+        "LayoutMinWidth": str(w),
+        "OnSelect": "false",
+        "TabIndex": "-1",
+        "Visible": visible,
+        "Width": str(w),
+    }, h=h, vis=visible)
 
 
 def _timer(name, start, duration, on_end):
@@ -110,7 +197,7 @@ def reset_fx(*, combo, results, msg_var, query_var, last_var, pick_var=None,
 def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
               last_var, pick_var, default_items, display_mode, on_select=None,
               on_clear=None, required_formula="false", width="Parent.Width",
-              label="Functional location"):
+              label="Functional location", trail=(), stack_search=False, col_w=None, stack_cond=None):
     """Raekken [combobox][Search][spinner] og dens timer - som EEN container.
 
     prefix     navnepraefikset (Vhp, Dom) - knap, spinner og timer faar det
@@ -135,6 +222,29 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
     select = f'Set({pick_var}, Coalesce(Self.Selected.Code, ""))'
     if on_select:
         select += f";\n{on_select}"
+    # The clear (x) button: drop the old search, its list and the dependants.
+    cleared = (f'Set({pick_var}, ""); Clear({results}); Set({last_var}, ""); '
+               f'Set({query_var}, ""); Set({msg_var}, "")'
+               + (f"; {on_clear}" if on_clear else ""))
+    select = (f"If(\n    IsBlank(Self.Selected.Code) && !{busy_var},\n    {cleared},\n"
+              f"    {select}\n)")
+    # Enter vaelger soegeraekken; OnChange koerer da soegningen paa den tekst,
+    # raekken bar, i stedet for at gemme et valg.
+    search_enter = fl.search_action(
+        combo, results, msg_var, raw_var=raw_var, busy_var=busy_var,
+        query_expr=query_var, last_var=last_var,
+        on_start=f'Set({pick_var}, ""); Reset({combo})' + (f"; {on_clear}" if on_clear else ""),
+        on_found=(f"Set({pick_var}, First({results}).Code);\n"
+                  f"                    Reset({combo})"))
+    on_change = (
+        "If(\n"
+        f"    Self.Selected.Code = \"{SEARCH_CODE}\",\n"
+        f"    Set({query_var}, Self.Selected.Description);\n"
+        f"    {search_enter};\n"
+        f"    Reset({combo}),\n"
+        f"    {select}\n"
+        ")"
+    )
 
     # Farver, udseende og laast-tilstand er DE SAMME som alle andre felters
     # (build_helpers.input_theme, issue #78). Comboboksen var Outline -
@@ -142,8 +252,10 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
     # graa tekst i moerk tilstand.
     cmb = Ctrl(combo, "ModernCombobox", props=input_theme({
         "AccessibleLabel": (f'"{label} - type at least {fl.MIN_SEARCH_LEN} '
-                            f'characters, then Search"'),
-        "BorderColor": border_rule("IsBlank(Self.Selected.Code)", required_formula),
+                            f'characters, then Search or Enter"'),
+        "BorderColor": border_rule(
+            f'(IsBlank(Self.Selected.Code) || Self.Selected.Code = "{SEARCH_CODE}")',
+            required_formula),
         "BorderStyle": "BorderStyle.Solid",
         "BorderThickness": "1",
         "DefaultSelectedItems": default_items,
@@ -152,10 +264,9 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
         "InputTextPlaceholder": PLACEHOLDER,
         "IsSearchable": "true",
         "ItemDisplayText": "ThisItem.Display",
-        # KUN rigtige resultater - ingen soegeraekke, ingen hjaelpetekst.
-        "Items": results,
+        "Items": items_fx(results, busy_var, last_var),
         "LayoutMinWidth": "0",
-        "OnChange": select,
+        "OnChange": on_change,
         # Samme hjoerner som alle andre felter (text_input, dropdown ...).
         **lay.radius(lay.RADIUS_INPUT),
         "SelectMultiple": "false",
@@ -166,30 +277,54 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
     grow(cmb)
 
     too_short = f"Len(Trim({query})) < {fl.MIN_SEARCH_LEN}"
-    btn = button(f"btn{prefix}FlSearch", f'If({busy_var}, "", "Search")', search,
+    btn = button(f"btn{prefix}FlSearch", '"Search"', search,
                  width=SEARCH_W, height=HEIGHT,
-                 display_mode=(f"If({busy_var} || {too_short}, DisplayMode.Disabled, "
+                 display_mode=(f"If({too_short}, DisplayMode.Disabled, "
                                f"{display_mode})"),
-                 accessible=f'If({busy_var}, "Searching functional locations", '
-                            '"Search functional location")')
+                 accessible='"Search functional location"',
+                 visible=f"!{busy_var}")
     btn.props["LayoutMinWidth"] = str(SEARCH_W)
+    stk = stack_cond or lay.below('Tablet')
+    if stack_search:
+        btn.props["AlignInContainer"] = f"If({stk}, AlignInContainer.Start, AlignInContainer.Center)"
 
-    # Spinnerens plads staar der altid; kun spinneren kommer og gaar.
-    spin = Ctrl(f"spn{prefix}FlSearch", "ModernSpinner", props={
-        "AccessibleLabel": '"Searching functional locations"',
-        "Height": str(SPIN),
-        "Label": '""',
-        "Visible": busy_var,
-        "Width": str(SPIN),
-    }, h=SPIN, vis=busy_var)
-    slot = group(f"con{prefix}FlSearchBusy", [spin], direction="Horizontal",
-                 gap=0, height=HEIGHT, width=SPIN, align_items="Center",
-                 justify="Center")
-    slot.props["LayoutMinWidth"] = str(SPIN)
+    # Mens soegningen koerer, er knappen skiftet ud med et billede af samme
+    # stoerrelse og form: en drejende spinner og "Searching...". Kun een af
+    # dem er synlig, saa intet i raekken flytter sig.
+    busy = busy_box(f"img{prefix}FlBusy", busy_var)
 
-    row = group(f"con{prefix}FlInput", [cmb, btn, slot], direction="Horizontal",
+    row_kids = [cmb, btn, busy, *trail]
+    if stack_search and trail:
+        narrow = stk
+        sum_w = " + ".join([str(SEARCH_W)] + [f"({t.props['Width']})" for t in trail]) \
+            + f" + {8 * len(trail)}"
+        actions = group(f"con{prefix}FlActions", [btn, busy, *trail], direction="Horizontal",
+                        gap=8, height=HEIGHT, align_items="Center", justify="Start",
+                        width=f"If({narrow}, {width}, {sum_w})")
+        actions.props["LayoutMinWidth"] = f"If({narrow}, 0, {sum_w})"
+        actions.props["AlignInContainer"] = "AlignInContainer.Start"
+        cmb.props["AlignInContainer"] = "AlignInContainer.Start"
+        row_kids = [cmb, actions]
+
+    row = group(f"con{prefix}FlInput", row_kids, direction="Horizontal",
                 gap=8, height=HEIGHT + 2 * ROW_PAD, pad=(ROW_PAD, 0, ROW_PAD, 0),
                 align_items="Center", width=width)
+    if stack_search:
+        row.props["LayoutDirection"] = (f"If({stk}, LayoutDirection.Vertical, "
+                                        "LayoutDirection.Horizontal)")
+        vgap = 8
+        if col_w and trail:
+            # Combobox fills column 1 only; the actions start at column 2.
+            vgap = 20
+            row.props["LayoutGap"] = "20"
+            cmb._grow = None
+            cmb.props["Width"] = f"If({stk}, {width}, {col_w})"
+            cmb.props["LayoutMinWidth"] = cmb.props["Width"]
+        row.props["Height"] = (f"If({stk}, {2 * HEIGHT + vgap + 2 * ROW_PAD}, "
+                               f"{HEIGHT + 2 * ROW_PAD})")
+        row.props["LayoutAlignItems"] = (f"If({stk}, LayoutAlignItems.Stretch, "
+                                         "LayoutAlignItems.Center)")
+        row.h = row.props["Height"]
     capture = _timer(
         f"tmr{prefix}FlCapture", f"!IsBlank({combo}.SearchText)", 300,
         f"If(!IsBlank({combo}.SearchText), Set({query_var}, {combo}.SearchText))")

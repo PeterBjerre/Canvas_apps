@@ -50,7 +50,21 @@ MAINTENANCE_PLAN = (
     "M8 2.5v4M16 2.5v4M3 10h18"
 )
 
-HUB = "M3 10.5 12 3l9 7.5M5.5 9.5V20h13V9.5"
+HUB_SATELLITES = (
+    (5, 5, "domain-fl"),
+    (19, 5, "domain-vhp"),
+    (5, 19, "domain-mat"),
+    (19, 19, "domain-eq"),
+)
+HUB = "M7 7l2.6 2.6M17 7l-2.6 2.6M7 17l2.6-2.6M17 17l-2.6-2.6"
+
+
+def hub_paths(hx):
+    """Et midterpunkt med fire satellitter, hver i sin domaenefarve. hx(token) giver farven, som den staar i en streng."""
+    sats = "".join(f"<circle cx='{x}' cy='{y}' r='3' fill='{hx(t)}' stroke='none'/>"
+                   for x, y, t in HUB_SATELLITES)
+    return (f"<path d='{HUB}' stroke='{hx('text-muted')}' stroke-width='1.6'/>"
+            f"<circle cx='12' cy='12' r='3.6' fill='{hx('text-muted')}' stroke='none'/>" + sats)
 
 # KKS-opslaget: tre linjer tekst og et forstoerrelsesglas - en
 # kodevejledning, man soeger i. Ikke et domaene med anmodninger, saa det
@@ -64,13 +78,13 @@ MIRROR_X = "matrix(-1 0 0 1 24 0)"
 
 # noegle (canvas_apps.json) -> (sti, farvetoken, spejlet)
 DOMAIN = {
-    "hub":                (HUB,                 "color-brand-primary", False),
+    "hub":                (HUB,                 "text-muted",         False),
     "functionallocation": (FUNCTIONAL_LOCATION, "domain-fl",           False),
     "equipment":          (EQUIPMENT,           "domain-eq",           False),
     "measuringpoint":     (MEASURING_POINT,     "domain-mp",           True),
     "material":           (MATERIAL,            "domain-mat",          False),
     "vhplan":             (MAINTENANCE_PLAN,    "domain-vhp",          False),
-    "kks":                (KKS,                 "color-brand-primary", False),
+    "kks":                (KKS,                 "text-muted",         False),
 }
 
 
@@ -86,11 +100,12 @@ def mirrored(key):
     return DOMAIN[key][2]
 
 
-def stroke_svg(key, color, size=24, stroke=1.8):
+def stroke_svg(key, color, size=24, stroke=1.8, hx=None):
     """Ikonet som en hel <svg>-streng i size x size. color er et hex-udtryk,
-    som det staar inde i en Power Fx-streng (fx '" & C.'hex-x' & "')."""
+    som det staar inde i en Power Fx-streng. hx(token) bruges af hub-ikonet."""
     t = f" transform='{MIRROR_X}'" if mirrored(key) else ""
+    shape = hub_paths(hx) if key == "hub" and hx else f"<path d='{path(key)}'/>"
     return (f"<svg xmlns='http://www.w3.org/2000/svg' width='{size}' height='{size}' "
             f"viewBox='0 0 24 24'><g fill='none' stroke='{color}' "
             f"stroke-width='{stroke}' stroke-linecap='round' stroke-linejoin='round'{t}>"
-            f"<path d='{path(key)}'/></g></svg>")
+            f"{shape}</g></svg>")

@@ -119,6 +119,15 @@ LIGHT = {
     'state-info-bg':    "RGBA(222, 240, 252, 1)",
     'state-neutral-fg': "RGBA(89, 102, 122, 1)",
     'state-neutral-bg': "RGBA(228, 233, 241, 1)",
+    # Tre farver til, saa hver anmodningsstatus faar sin egen (issue: Draft,
+    # Submitted og In progress var alle blaa; Ready for SAP og Created in
+    # SAP begge groenne).
+    'state-violet-fg':  "RGBA(91, 33, 182, 1)",
+    'state-violet-bg':  "RGBA(241, 236, 252, 1)",
+    'state-lime-fg':    "RGBA(63, 98, 18, 1)",
+    'state-lime-bg':    "RGBA(238, 246, 220, 1)",
+    'state-rose-fg':    "RGBA(190, 24, 93, 1)",
+    'state-rose-bg':    "RGBA(252, 231, 243, 1)",
 
     # --- modalen. De 2% gennemsigtighed er der i dag og bevares, saa
     #     lys tilstand ser ud praecis som foer ---
@@ -229,6 +238,12 @@ DARK = {
     'state-info-bg':    "RGBA(23, 37, 70, 1)",
     'state-neutral-fg': "RGBA(148, 163, 184, 1)",
     'state-neutral-bg': "RGBA(30, 41, 59, 1)",
+    'state-violet-fg':  "RGBA(196, 181, 253, 1)",
+    'state-violet-bg':  "RGBA(45, 27, 80, 1)",
+    'state-lime-fg':    "RGBA(190, 242, 100, 1)",
+    'state-lime-bg':    "RGBA(38, 50, 14, 1)",
+    'state-rose-fg':    "RGBA(249, 168, 212, 1)",
+    'state-rose-bg':    "RGBA(74, 17, 45, 1)",
 
     # --- modalen. Sloeret er moerkere end i lys tilstand: det skal skille
     #     modalen fra en baggrund, der i forvejen er moerk ---
@@ -341,11 +356,11 @@ CONTRAST = (
       "domain-vhp")] +
     # Statuschippen: forgrund paa SIN EGEN baggrund.
     [("state-%s-fg" % s, "state-%s-bg" % s, TEXT_MIN) for s in
-     ("ok", "warn", "error", "info", "neutral")] +
+     ("ok", "warn", "error", "info", "neutral", "violet", "lime", "rose")] +
     # De samme forgrunde bruges ogsaa som ren tekst uden chip (Fill er
     # gennemsigtig), og saa er det kortet eller skaermen bagved.
     [("state-%s-fg" % s, bg, TEXT_MIN) for s in
-     ("ok", "warn", "error", "info", "neutral")
+     ("ok", "warn", "error", "info", "neutral", "violet", "lime", "rose")
      for bg in ("bg-card", "bg-app")] +
     # -- kanter og streger (1.4.11) ---------------------------------------
     # border-default staar IKKE her - se CONTRAST_OPEN nedenfor.
@@ -602,9 +617,12 @@ HTML_TOKENS = ("text-primary", "text-muted",
                # domaeneikonerne og statusikonerne er SVG'er i de samme farver.
                "domain-fl", "domain-eq", "domain-mp", "domain-mat", "domain-vhp",
                "state-error-fg", "state-neutral-fg",
+               "state-violet-fg", "state-lime-fg", "state-rose-fg",
                # Skillelinjerne i FL-strukturens tabel (issue #77) - de samme
                # som C_DIVIDER i galleriernes raekker.
-               "border-subtle")
+               "border-subtle",
+               # Operationstabellens overskrift er en grå kasse som listernes.
+               "bg-muted")
 
 
 
@@ -624,6 +642,22 @@ def ref_hex(name):
             "%r er ikke en HTML-token. Tilfoej den til HTML_TOKENS.\nKendte: %s"
             % (name, ", ".join(HTML_TOKENS)))
     return "%s.'hex-%s'" % (RECORD, name)
+
+
+# Flagene i sprogvaelgeren (tools/side_nav.py), tegnet i en 24 x 24 firkant.
+# Flagfarver er faste - et flag skal ligne sig selv i begge temaer.
+FLAG_SVG = {
+    "en": ("<rect width='24' height='24' fill='#1F3A93'/>"
+           "<path d='M0 0L24 24M24 0L0 24' stroke='#FFFFFF' stroke-width='4.4'/>"
+           "<path d='M0 0L24 24M24 0L0 24' stroke='#D7263D' stroke-width='1.6'/>"
+           "<path d='M12 0V24M0 12H24' stroke='#FFFFFF' stroke-width='7'/>"
+           "<path d='M12 0V24M0 12H24' stroke='#D7263D' stroke-width='4'/>"),
+    "da": ("<rect width='24' height='24' fill='#D7263D'/>"
+           "<path d='M8.5 0V24M0 12H24' stroke='#FFFFFF' stroke-width='3.6'/>"),
+    "de": ("<rect width='24' height='8' fill='#1B1B1B'/>"
+           "<rect y='8' width='24' height='8' fill='#DD2A2A'/>"
+           "<rect y='16' width='24' height='8' fill='#FFC72C'/>"),
+}
 
 
 def ref(name):

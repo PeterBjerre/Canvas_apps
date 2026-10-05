@@ -176,7 +176,7 @@ class Ctrl:
     # vis = Visible-udtryk, hvis kontrollen kan vaere skjult. Forelderen
     #       taeller den saa kun med, naar den er synlig.
     __slots__ = ("name", "control", "variant", "props", "children", "h", "_vis",
-                 "_tpl_w", "_tpl_h", "_tpl_unc", "_grow")
+                 "_tpl_w", "_tpl_h", "_tpl_unc", "_grow", "desk_w", "icon_w")
 
     def __init__(self, name, control, variant=None, props=None, children=None, h=None, vis=None):
         self.name = name
@@ -373,14 +373,16 @@ def resolve_templates(nodes, parent=None, parent_inner=None, uncertain=False):
         else:
             cw = None
         if parent is not None and parent.control == "Gallery":
-            for key, val in (("Width", parent._tpl_w), ("Height", parent._tpl_h)):
+            for key, val in (("Width", parent._tpl_w), ("Height", parent._tpl_h),
+                             ("X", parent._tpl_w), ("Y", parent._tpl_h)):
                 cur = _p(c, key, "")
                 if "Parent.Template" in cur:
                     if val is None:
                         raise SystemExit(
                             f"gen_screen: {c.name}.{key} bruger Parent.Template*, men "
                             f"galleriet {parent.name}s {key.lower()} kan ikke regnes ud")
-                    new = cur.replace(f"Parent.Template{key}", f"({val})")
+                    new = cur.replace("Parent.TemplateWidth", f"({parent._tpl_w})").replace(
+                        "Parent.TemplateHeight", f"({parent._tpl_h})")
                     c.props[key] = new
                     if key == "Height":
                         c.h = new
@@ -661,15 +663,31 @@ def _gallery_checks(gal, siblings, row, leaves):
     spec.loader.exec_module(cl)
     evaluate, WIDTHS = cl.evaluate, cl.WIDTHS
     problems = []
+    # "_FitGuard": en betingelse, tjekket KAN regne paa, for hvornaar en celle
+    # er synlig. Det rigtige Visible kan naevne Self.Text og kan derfor ikke
+    # regnes paa. Noeglen skrives aldrig ud.
+    guards = {id(k): k.props.pop("_FitGuard", None) for k in leaves}
     widths = [w for w in WIDTHS if w >= lay.min_width("Tablet")]
     for w in widths:
         budget = evaluate(str(gal._tpl_w), w, 3, 4, 4) if gal._tpl_w else None
         if budget is None:
             break
         for k in leaves:
-            vis = evaluate(k.props.get("Visible"), w, 3, 4, 4) if k.props.get("Visible") else True
-            if vis is False:
-                continue
+            guard = guards.get(id(k))
+            if guard:
+                if evaluate(guard, w, 3, 4, 4) == 0.0:
+                    continue
+            else:
+                vis_expr = k.props.get("Visible")
+                parts = str(vis_expr).split(" && ") if vis_expr else []
+                hidden = False
+                for part in ([vis_expr] if vis_expr else []) + parts:
+                    v = evaluate(part, w, 3, 4, 4)
+                    if v is not None and not v:
+                        hidden = True
+                        break
+                if hidden:
+                    continue
             x = evaluate(_p(k, "X"), w, 3, 4, 4)
             kw = evaluate(_p(k, "Width", ""), w, 3, 4, 4)
             if x is None or kw is None:
@@ -725,9 +743,38 @@ def flatten_galleries(nodes, problems=None):
         raise SystemExit("gen_screen: gallerierne passer ikke:\n  " + "\n  ".join(problems))
 
 
+_LOCKED_TYPES = {"ModernTextInput", "ModernNumberInput", "ModernDatePicker", "ModernDropdown",
+                 "Classic/ComboBox", "ModernCombobox"}
+
+
+def _walk(nodes):
+    for n in nodes:
+        yield n
+        yield from _walk(n.children)
+
+
+def _lock_inputs_in_view(children):
+    import re
+    found = set()
+    for n in _walk(children):
+        for v in n.props.values():
+            found.update(re.findall(r"\bvar(\w+?)ViewOnly\b", str(v)))
+    if len(found) != 1:
+        return
+    var = "var%sViewOnly" % found.pop()
+    for n in _walk(children):
+        if n.control in _LOCKED_TYPES and "Fb" not in n.name:
+            dm = n.props.get("DisplayMode") or "DisplayMode.Edit"
+            if var not in str(dm):
+                n.props["DisplayMode"] = (
+                    f"If((If({var}, DisplayMode.View, {dm})) = DisplayMode.Edit, "
+                    "DisplayMode.Edit, DisplayMode.View)")
+
+
 def render_screen(screen_name, screen_props, children):
     resolve_templates(children)
     flatten_galleries(children)
+    _lock_inputs_in_view(children)
     lines = ["Screens:", f"  {screen_name}:", "    Properties:"]
     ppad = " " * 6
     cpad = " " * 10

@@ -86,12 +86,14 @@ SCREENS (de fem enkelte apps) er intet aendret.
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import Ctrl, C_SURFACE, C_DIVIDER, C_MUTED_BG, C_PRIMARY, C_TITLE
-from design_tokens import ref_hex, theme_query, TRANSPARENT
-from build_helpers import group, theme_button, help_toggle, text_ctrl, grow, THEME_TOGGLE_H
+from design_tokens import ref_hex, theme_query, TRANSPARENT, FLAG_SVG
+from build_helpers import group, theme_button, help_toggle, text_ctrl, grow, THEME_TOGGLE_H, page_icon
 import layout_tokens as lay
 import env_config as env
 import icons
+import feedback_popup as feedback
 
+ICON_MESSAGE = "M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-4 3.5V17H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"
 # Aaben eller lukket. Blank ved start = lukket. Den gemmes ikke: en
 # sidebar, der stod aaben fra sidst, ville ligge oven paa formularen.
 OPEN = "gblNavOpen"
@@ -110,6 +112,7 @@ ITEMS = [(k, env.APPS[k]["nav_label"], icons.path(k)) for k in env.NAV_ORDER]
 # DEN SAMLEDE APP: {noegle: skaermnavn}. None = de fem enkelte apps, hvor
 # et punkt er Launch() af en anden app. Saettes med use_screens().
 SCREENS = None
+NAV_PRE = {}
 
 
 def use_screens(screens):
@@ -144,25 +147,31 @@ def _icon(path, color):
     s = 18 / 24
     x = (lay.NAV_W - 18) / 2
     y = (ITEM_H - 18) / 2
+    shape = (icons.hub_paths(_hx) if path == icons.HUB else f"<path d='{path}'/>")
     return (f"<g transform='translate({x:g} {y:g}) scale({s:g})' fill='none' "
             f"stroke='{color}' stroke-width='1.6' stroke-linecap='round' "
-            f"stroke-linejoin='round'><path d='{path}'/></g>")
+            f"stroke-linejoin='round'>{shape}</g>")
 
 
-def _item_svg(w, path, label, current):
+def _item_svg(w, path, label, current, icon_token=None):
     """Et punkt. current = den app, man staar i: baggrund, accentfarve og
-    stregen ude ved kanten, som i shell.css."""
+    stregen ude ved kanten, som i shell.css. icon_token: ikonets egen
+    farve (domaenefarven); uden den foelger ikonet teksten."""
     fg = _hx("state-info-fg") if current else _hx("text-muted")
+    icon_fg = _hx(icon_token) if icon_token else fg
     body = ""
     if current:
         body += (f"<rect x='8' y='0' width='{w - 16}' height='{ITEM_H}' rx='8' "
                  f"fill='{_hx('state-info-bg')}'/>"
                  f"<rect x='0' y='{ITEM_H // 2 - 10}' width='3' height='20' rx='1.5' "
-                 f"fill='{_hx('color-brand-primary')}'/>")
-    body += _icon(path, fg)
+                 f"fill='{icon_fg}'/>")
+    body += _icon(path, icon_fg)
     if label:
+        # The label is a STANDALONE string in the expression, so the language
+        # selector (tools/i18n.py) can translate it.
         body += (f"<text x='{lay.NAV_W}' y='{ITEM_H // 2 + 5}' {FONT} "
-                 f"font-size='14' font-weight='600' fill='{fg}'>{label}</text>")
+                 f"font-size='14' font-weight='600' fill='{fg}'>"
+                 f'" & "{label}" & "</text>')
     return _svg(w, ITEM_H, body)
 
 
@@ -205,9 +214,64 @@ def _image(name, svg, width, height, onselect, label, tooltip=None, hover=True):
     return Ctrl(name, "Image", props=props, h=height)
 
 
+
+# Cirkulaere flag: tegningerne staar i design_tokens.FLAG_SVG.
+_FLAGS = FLAG_SVG
+
+
+def _flag(code, x, y, d):
+    """Flaget som en rund badge med fin kant, d px stor, placeret i x, y."""
+    cid = "f" + code
+    return (f"<svg x='{x}' y='{y}' width='{d}' height='{d}' viewBox='0 0 24 24'>"
+            f"<defs><clipPath id='{cid}'><circle cx='12' cy='12' r='11.5'/></clipPath></defs>"
+            f"<g clip-path='url(#{cid})'>{_FLAGS[code]}</g>"
+            f"<circle cx='12' cy='12' r='11.5' fill='none' stroke='{_hx('border-default')}' "
+            f"stroke-opacity='0.9' stroke-width='1'/></svg>")
+
+
+def _svg_data(w, h, body):
+    return (f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{h}' "
+            f"viewBox='0 0 {w} {h}'>{body}</svg>")
+
+
+def _lang_picker(p, suffix, compact):
+    """Static English flag (information only, no action)."""
+    H = THEME_TOGGLE_H
+    W = H if compact else 148
+    if compact:
+        body = _flag("en", (W - 24) // 2, (H - 24) // 2, 24)
+    else:
+        body = (_flag("en", 8, (H - 24) // 2, 24)
+                + f"<text x='42' y='{H // 2 + 5}' {FONT} font-size='13' font-weight='600' "
+                  f"fill='{_hx('text-primary')}'>English</text>")
+    c = _image(f"img{p}NavLang{suffix}", '"' + _svg_data(W, H, body) + '"', W, H,
+               "false", '"Language: English"', hover=False)
+    c.props["TabIndex"] = "-1"
+    return c
+
+def _message_button(p, suffix, compact):
+    """Message icon above the language flag: opens the feedback popup."""
+    H = THEME_TOGGLE_H
+    W = H if compact else 148
+    ox = (W - 18) / 2 if compact else 12
+    oy = (H - 18) / 2
+    icon = (f"<g transform='translate({ox:g} {oy:g}) scale({18 / 24:g})' fill='none' "
+            f"stroke='{_hx('text-primary')}' stroke-width='1.8' stroke-linecap='round' "
+            f"stroke-linejoin='round'><path d='{ICON_MESSAGE}'/></g>")
+    body = (f"<rect x='1' y='1' width='{W - 2}' height='{H - 2}' rx='{H // 2 - 1}' "
+            f"fill='{_hx('state-neutral-bg')}' stroke='{_hx('border-default')}'/>" + icon)
+    if not compact:
+        body += (f"<text x='40' y='{H // 2 + 5}' {FONT} font-size='13' font-weight='600' "
+                 f"fill='{_hx('text-primary')}'>" + '" & "Message us" & "</text>')
+    return _image(f"img{p}NavMessage{suffix}", '"' + _svg_data(W, H, body) + '"', W, H,
+                  f"{CLOSE}; {feedback.OPEN_FX}", '"Message SAP maintenance"',
+                  tooltip='"Message SAP maintenance"')
+
+
 def _launch(key):
     if SCREENS is not None:
-        return f"{CLOSE}; Navigate({SCREENS[key]}, ScreenTransition.None)"
+        pre = NAV_PRE.get(key)
+        return f"{CLOSE}; " + (pre + "; " if pre else "") + f"Navigate({SCREENS[key]}, ScreenTransition.None)"
     url = env.play_url(key)
     return f'{CLOSE}; Launch("{url}" & {theme_query("?")}, {{ }}, LaunchTarget.Replace)'
 
@@ -242,9 +306,10 @@ def _column(p, suffix, w, current, is_open, help_on, help_action):
         if (key not in SCREENS) if SCREENS is not None else not env.app_id(key):
             continue
         cur = key == current
+        tok = icons.token(key)
         items.append(_image(
             n(f"Nav{key[0].upper()}{key[1:]}"),
-            _item_svg(w, icon, label if is_open else None, cur), w, ITEM_H,
+            _item_svg(w, icon, label if is_open else None, cur, tok), w, ITEM_H,
             CLOSE if cur else _launch(key),
             f'"{label}' + (' (current app)"' if cur else '"'),
             tooltip=None if is_open else f'"{label}"', hover=not cur))
@@ -256,6 +321,8 @@ def _column(p, suffix, w, current, is_open, help_on, help_action):
     if help_on is not None:
         foot_kids.append(help_toggle(n("Help"), help_on, help_action,
                                      compact=not is_open))
+    foot_kids.append(_message_button(p, suffix, not is_open))
+    foot_kids.append(_lang_picker(p, suffix, not is_open))
     foot_kids.append(theme_button(n("Theme"), compact=not is_open))
     # Knopperne er THEME_TOGGLE_H brede i den lukkede skinne - venstre
     # polstring saa de staar midt i den. Pillerne i panelet flugter med dem.
@@ -282,17 +349,15 @@ def _mobile_bar(p, current):
     samme som i skinnen (til hubben), og appens navn staar til hoejre, saa
     man kan se, hvor man er, uden at aabne menuen."""
     label = dict((k, l) for k, l, _ in ITEMS)[current]
-    hub = current == "hub"
     menu = _image(f"img{p}NavMenu", _svg(lay.NAV_W, ITEM_H, _icon(ICON_MENU, _hx("text-primary"))),
                   lay.NAV_W, ITEM_H, f"Set({OPEN}, true)", '"Open menu"',
                   tooltip='"Open menu"')
-    brand_w = lay.NAV_W + 80
-    brand = _image(f"img{p}NavBrandMobile", _brand_svg(brand_w, True), brand_w, BRAND_H,
-                   CLOSE if hub else _launch("hub"), '"BIO SAP - Masterdata Hub"',
-                   hover=False)
-    title = grow(text_ctrl(f"txt{p}NavTitle", f'"{label}"', size=14, color=C_TITLE,
-                           weight="Semibold", height=22, align="Right"))
-    bar = group(f"con{p}MobileBar", [menu, brand, title], direction="Horizontal", gap=0,
+    title = grow(text_ctrl(f"txt{p}NavTitle", f'"{label}"', size=16, color=C_TITLE,
+                           weight="Semibold", height=24, wrap="false"))
+    pic = page_icon(f"img{p}NavPageIcon", current)
+    pic.props["AlignInContainer"] = "AlignInContainer.Center"
+    pic.props["LayoutMinWidth"] = str(pic.props["Width"])
+    bar = group(f"con{p}MobileBar", [menu, pic, title], direction="Horizontal", gap=6,
                 height=lay.MOBILE_BAR_H, width="App.Width", align_items="Center",
                 fill=C_SURFACE, border_color=C_DIVIDER, border_thickness=1,
                 pad=(0, 16, 0, 0), visible=f"!({lay.NAV_ON})")
@@ -348,4 +413,4 @@ def side_nav(prefix, current, help_on=None, help_action=None):
         "X": "0",
         "Y": "0",
     }, h="App.Height", vis=OPEN)
-    return [rail, _mobile_bar(p, current)], [scrim, panel]
+    return [rail, _mobile_bar(p, current)], [scrim, panel] + feedback.build(p)
