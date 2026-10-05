@@ -1,4 +1,4 @@
-# 31 – Functional Location: regelinventaret
+﻿# 31 – Functional Location: regelinventaret
 
 Kontrakten for canvas-appen **Functional Location App**. Hver regel, der
 står i `html/functional-location.html` og de scripts, siden indlæser, har et
@@ -142,7 +142,6 @@ ellers fra standardkolonnerne, ellers er det feltnavnet med versaler
 | FL63 | Add row; Delete row (sidste række væk → ny tom række, og rækkerne valideres igen - JS'en gør det ikke, men uden Verify-knap ville Submit ellers stå låst); siden starter med én tom række | `:399`, `:423-429`, `:464-479`, `:917-935` | – | Afledt | `btnFlAddRow`, `btnFlRowDelete`, `OnVisible` | `fl_parts.py` `add_row_fx`, `btnFlAddRow`, `btnFlRowDelete`; `assemble_screen.py` `on_visible` |
 | FL64 | Export JSON: `generatedAt`, `source`, `rows`, `classBuckets`, `ruleMeta` | `:2254-2276` | – | – | Bevidst fjernet (issue #77): knappen er væk. Samme form fryses stadig som snapshot ved Submit (`fl_save.py` `payload_fx`) | – |
 | FL65 | Klassernes hjælpetekster (`CLASS_HELP`) | `:75-113` | – | Afledt | `colFlClassHelp` | `generate_app_onstart.py` `colFlClassHelp`; `fl_parts.py` `btnFlTab` (Tooltip) |
-| FL66 | Tællere: rækker i alt, klar (valid+warning), med fejl | `:2244-2252` | – | Afledt | Badge i bjælken ved siden af Save draft, Submit og New request | `fl_parts.py` `COUNTS` → `txtFlCount` |
 | FL67 | Uden virkning i originalen: `FIELD_REGEX_RULES` bruges ingen steder; trinet `VerifyFunctionalLocationClasses` gør intet; `FL_CLASSIFICATION_DATA` overskrives af `FL_LOOKUPS` | `:159-177`, `:182-200`, `fl-rule-engine.js:264` | – | – | Bevidst ikke implementeret: det ville give en regel, originalen ikke har | – (efterprøvet af differentialtesten: 0 afvigelser uden dem) |
 
 ### Regler, appen lægger til (fra opgaven, ikke fra HTML'en)
@@ -329,7 +328,6 @@ De har deres egen matrix nedenfor og efterprøves i Studio efter deploy.
 | FL62 | Ret FL → rækken valideres igen med det samme | Ret Remarks til 31 tegn i detaljeruden → rækken bliver straks `invalid` med `Remarks: Max 30 characters.` |
 | FL63 | Slet eneste række → én ny tom række | Slet den ene af to dubletter → den anden mister `Duplicate FL.` med det samme (automatisk validering, issue #77) |
 | FL65 | Musen over fanen `GIV (1)` → `GIV: TRANSDUSERS` | Fanen `NO CLASS` → ingen hjælpetekst |
-| FL66 | 3 rækker, 1 med fejl → `Rows: 3`, `Ready: 2`, `Issues: 1` | En tom række → tæller i `Rows`, ikke i `Ready` eller `Issues` |
 | FL68 | Ingen fejl → Submit aktiv, uden at noget skal trykkes | En række `invalid` → Submit inaktiv og beskeden vist |
 | FL69 | Indsendt → felterne er grå | Kladde → felterne kan redigeres |
 | FL70 | New request → én tom række, intet nummer | Efter Submit → New request giver en ny, tom anmodning; den indsendte er uændret i SharePoint |

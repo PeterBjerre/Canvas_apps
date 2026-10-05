@@ -1,8 +1,4 @@
-# 34 — Oprettelse i SAP: ordrefiler og SAP Opretter
-
-> **2026-10-03:** Opretteren laver nu også FL-anmodninger og hedder **SAP
-> Opretter** (før *VH-plan Opretter*). Knappen *Vis plan* hedder *Vis
-> detaljer*. FL-delen står i [`36-fl-sap-oprettelse.md`](36-fl-sap-oprettelse.md).
+# 34 — Oprettelse i SAP: ordrefiler og VH-plan Opretter
 
 **Beslutning (2026-10-02):** VH-planer oprettes i SAP af **VH-plan Opretter**.
 Det er en lille, ny Excel-projektmappe med SAP GUI Scripting, bygget på
@@ -26,7 +22,7 @@ Excel bruges ikke længere.
 gamle regneark har 22.000 linjer VBA i 31 moduler. GUI-delen virker, men
 hentningen fra SharePoint gør ikke (docs/20). Opretteren er de cirka 3.000
 linjer, der skal til for at oprette en plan, og tre knapper, man skal kende:
-*Opdater liste*, *Vis detaljer* og *Opret i SAP*.
+*Opdater liste*, *Vis plan* og *Opret i SAP*.
 
 **Data: JSON — og den bare *er* der.** Når en plan bliver *Ready for creation
 in SAP*, skriver et flow hele planen i én fil: plan, items, operationer,
@@ -37,7 +33,7 @@ hemmelig flow-URL i projektmappen.
 
 JSON frem for Markdown, fordi filen er et *maskinformat*. Den kan valideres
 mod et skema, og felterne kan ikke misforstås. Det menneskelige overblik
-har I allerede i mailen. I opretteren viser **Vis detaljer** desuden felt for felt,
+har I allerede i mailen. I opretteren viser **Vis plan** desuden felt for felt,
 hvad der kommer til at stå i SAP, før der trykkes på noget.
 
 **Tilbage til SharePoint:** opretteren lægger en kvitteringsfil i samme
@@ -57,8 +53,8 @@ og sætter planen til *Published*. Så sender det eksisterende
                                  og SapOrderGuid paa planen
                                           │  OneDrive
                                           ▼
-                              SAP Opretter (Excel, paa jeres pc)
-                              Opdater liste → Vis detaljer → Opret i SAP
+                              VH-plan Opretter (Excel, paa jeres pc)
+                              Opdater liste → Vis plan → Opret i SAP
                               pr. item:  IA05 arbejdsplan → IP04 position → IP05 langtekst
                               til sidst: IP01 plan
                               statusfil efter hvert gem
@@ -200,7 +196,7 @@ gamle scripts (`excel/src/Modules/GUI_Script.bas`), samlet i `VhpConfig.bas`.
 
 ## 8. Når noget går galt
 
-- **Planen står som "Kan ikke oprettes".** *Vis detaljer* viser alle fejl. De
+- **Planen står som "Kan ikke oprettes".** *Vis plan* viser alle fejl. De
   fleste rettes i appen (planen sendes retur og godkendes igen — så kommer
   der en ny ordre) eller i arket *Opslag* (en manglende kaldshorisont eller
   ydelse).
@@ -234,7 +230,7 @@ gamle scripts (`excel/src/Modules/GUI_Script.bas`), samlet i `VhpConfig.bas`.
   (Option Explicit), alle blokke er lukket, private procedurer kaldes ikke
   på tværs, og kildekoden er ren ASCII. Afprøvet med plantede fejl.
 - LibreOffice Basic oversætter hvert modul (syntaksfejl) og kører
-  `VhpTest.SelfTestPure`: 85 tjek af oversættelserne, langteksten og FL-reglerne.
+  `VhpTest.SelfTestPure`: 67 tjek af oversættelserne og langteksten.
 - `tests/test_sap_contract.py`: eksemplerne validerer mod skemaerne, flowets
   felter er præcis skemaets, opretteren læser kun felter, skemaet kender, og
   kolonnerne, flowene skriver, findes eller oprettes af
@@ -268,7 +264,7 @@ forkert, siger opretteren hvilket og på hvilken skærm. Rettelsen er én linje 
 | | Hvorfor | I mellemtiden |
 |---|---|---|
 | Strategiplaner (IP42, pakker) | Pakkeallokeringen i IA05 er aldrig blevet kørt af et script mod jeres SAP. Opretteren afviser planen med en tydelig besked frem for at gætte | Opret dem i hånden |
-| Materialer (komponenter) | Komponentskærmen i IA05 er ikke optaget | Står som advarsel i *Vis detaljer* og i kvitteringen: tilføj i IA06 |
+| Materialer (komponenter) | Komponentskærmen i IA05 er ikke optaget | Står som advarsel i *Vis plan* og i kvitteringen: tilføj i IA06 |
 | Dokumenter | Ligger i SharePoint, ikke i ordren | Som i dag |
 | Omkostningsart | Kolonnens plads i operationsoversigten kendes ikke | SAP udleder den |
 | Operationsnumre | SAP nummererer 0010, 0020 … i appens rækkefølge | — |
@@ -280,9 +276,9 @@ forkert, siger opretteren hvilket og på hvilken skærm. Rettelsen er én linje 
 2. Byg de to flows efter docs/35 i solution BIO SAP og opret
    miljøvariablerne `BioSap-Environment` og `BioSap-SapSystem`.
 3. Synkronisér biblioteket med OneDrive på jeres pc'er.
-4. Byg projektmappen: `excel\opretter\Build-Opretter.ps1`. Udfyld arket
-   *Opslag* (ydelsesnumrene og de værker, der mangler, fra det gamle
-   regneark). Læg den, hvor teamet åbner den fra.
+4. Byg projektmappen: `excel\opretter\Build-Opretter.ps1`. Kontrollér de
+  seedede værk- og PM03-opslag i arket *Opslag*, og tilpas kun hvis SAP-data
+  lokalt afviger. Læg den, hvor teamet åbner den fra.
 5. Afprøv efter 9. med DEV-planer i GQ1.
 6. Gentag 1–3 mod PROD-sitet, og sæt *SAP-system* til GP1.
 7. Når I stoler på den: sæt *Bekræft hvert gem* til Nej.
