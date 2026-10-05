@@ -32,6 +32,7 @@ FunctionalLocationRequests; PlanKey i MD_TasklistMaterial og
 MD_TasklistAttachment; MaintenancePlanID / MaintenancePlanNo (opslag) i
 TaskListMain og MaintenanceItems; ID i MaintenancePlans.
 """
+import permissions as perm
 import request_index as ri
 
 INDEX = ri.LIST
@@ -40,11 +41,6 @@ INDEX = ri.LIST
 # den samlede app (BIO SAP App/build/combined.py).
 TAGS = {"FunctionalLocation": "Fl", "MaintenancePlan": "Vhp",
         "Equipment": "Eq", "Material": "Mat"}
-
-# Statusser, en almindelig bruger maa slette sin egen anmodning i. Samme
-# regel som domaeneskaermenes "Only drafts can be deleted."
-OWNER_STATUSES = (ri.DRAFT,)
-
 
 def stale_var(tag):
     """Saettes af en sletning; domaeneskaermen ser efter den i OnVisible
@@ -135,11 +131,12 @@ def delete_fx(prefix, domains, success, indent=0):
 
 
 def may_delete(idx, me):
-    """Maa brugeren slette raekken? Ejer og kladde. (Opgave 3 udvider med
-    admin - se tools/permissions.py.)"""
-    statuses = " || ".join(f'{idx}.Status.Value = "{s}"' for s in OWNER_STATUSES)
-    return f'(Lower(Coalesce({idx}.RequesterEmail, "")) = {me} && ({statuses}))'
+    """Maa brugeren slette raekken? Ejeren sin kladde; en admin alle
+    anmodninger i Kladde og AfventerInfo (tools/permissions.py)."""
+    return perm.may_change(f"{idx}.RequesterEmail", f"{idx}.Status.Value", me)
 
 
-DENIED = 'Notify("Only drafts can be deleted.", NotificationType.Warning)'
+DENIED = ('If(' + perm.IS_ADMIN + ', '
+          'Notify("Only drafts and requests awaiting info can be deleted.", NotificationType.Warning), '
+          'Notify("Only drafts can be deleted.", NotificationType.Warning))')
 GONE = 'Notify("This request no longer exists.", NotificationType.Warning)'

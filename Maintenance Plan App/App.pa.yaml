@@ -180,6 +180,10 @@ App:
           1
       );
 
+      // ADMIN. Genereret af tools/permissions.py - ret ikke her.
+      // Een delegerbar LookUp i admin-listen, laest dovent og kun een gang.
+      IsAdmin = !IsBlank(LookUp(UserAndGroups, Title = "Admin" && Member = Lower(User().Email)));
+
       // Hjaelpetekster. En manglende raekke = ingen tekst, ikke en fejl.
       colVhpHelp = ForAll(Filter(MD_HelpText, AppArea.Value = "MaintenancePlan") As R, { Key: R.HelpKey, Kind: R.Kind.Value, Heading: Coalesce(R.Heading, ""), Body: Coalesce(R.Body, ""), Ord: Coalesce(R.SortOrder, 0) });
 

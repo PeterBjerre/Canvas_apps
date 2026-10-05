@@ -180,6 +180,10 @@ App:
           1
       );
 
+      // ADMIN. Genereret af tools/permissions.py - ret ikke her.
+      // Een delegerbar LookUp i admin-listen, laest dovent og kun een gang.
+      IsAdmin = !IsBlank(LookUp(UserAndGroups, Title = "Admin" && Member = Lower(User().Email)));
+
       // Tjeklisten pr. klasse (FL30-FL53). Ord 0 = klassens TRM-flag (FL48).
       colFlPlan = Table(
           { Cls: "ELF", Ord: 1, Rule: "FL30", Field: "REMARKS", Label: "Remarks", Chk: "MAX", Num: 30, List: "", Msg: "Max 30 characters." },

@@ -5526,8 +5526,8 @@ Screens:
                                 IsBlank(varMdDelIdx),
                                 Notify("This request no longer exists.", NotificationType.Warning);
                                 RemoveIf(colMdScope, Id = varMdDelItem.ID),
-                                !(Lower(Coalesce(varMdDelIdx.RequesterEmail, "")) = varMdMe && (varMdDelIdx.Status.Value = "Kladde")),
-                                Notify("Only drafts can be deleted.", NotificationType.Warning),
+                                !((Lower(Coalesce(varMdDelIdx.RequesterEmail, "")) = varMdMe && (varMdDelIdx.Status.Value = "Kladde")) || (IsAdmin && (varMdDelIdx.Status.Value = "Kladde" || varMdDelIdx.Status.Value = "AfventerInfo"))),
+                                If(IsAdmin, Notify("Only drafts and requests awaiting info can be deleted.", NotificationType.Warning), Notify("Only drafts can be deleted.", NotificationType.Warning)),
                                 Set(varMdDelGuid, varMdDelIdx.RequestGuid);
                                 Set(varMdDelSp, varMdDelIdx.SourceItemId);
                                 Set(varMdDelKey, varMdDelIdx.RequestNo);
