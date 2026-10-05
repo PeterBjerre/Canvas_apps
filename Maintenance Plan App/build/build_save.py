@@ -184,15 +184,6 @@ def plan_fields():
         "                varVhpPlan.FirstCallYear, varVhpPlan.FirstCallMonth, varVhpPlan.FirstCallDay\n"
         "            ),\n"
         "            StrategyKey: varVhpPlan.Strategy,\n"
-        # JA/NEJ-valget (REVIEW.md D12). Tomt valg skriver ingenting.
-        "            SchedulingIndicator: If(\n"
-        "                IsBlank(varVhpPlan.SchedulingIndicator), Blank(),\n"
-        "                { Value: varVhpPlan.SchedulingIndicator }\n"
-        "            ),\n"
-        # CallHorizon skrives IKKE. Se docstringen oeverst.
-        "            SchedulingPeriod: LookUp(\n"
-        "                colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon\n"
-        "            ).SchedPeriod,\n"
         # Id baeres i den navngivne formel (B7) - foer et opslag mod
         # SharePoint-listen ved hvert gem.
         "            SortField: With(\n"
@@ -630,7 +621,8 @@ def _step_status():
         "        Set(\n"
         "            varVhpPlanRec,\n"
         f"            Patch({cfg.L_PLANS}, varVhpPlanRec, "
-        f"{{ Status: {{ Value: \"{PLAN_STATUS_SUBMITTED}\" }} }})\n"
+        f"{{ Status: {{ Value: \"{PLAN_STATUS_SUBMITTED}\" }}, "
+        "ApprovalStage: { Value: \"System\" }, SubmittedOn: Now(), StageRunId: \"\" })\n"
         "        )\n"
         "    );\n"
         # Hubben laeser KUN indeksraekken.
@@ -691,7 +683,7 @@ def save_action():
 # Submit gaar ogsaa gennem den her knap (Select). Submit kan kun trykkes,
 # naar planen kan indsendes - og saa er den her knap altid aktiv.
 DRAFT_DM = ("If(\n"
-            f"    varVhpSaving || !varVhpPlanCommitted || {SAVEABLE_COUNT} = 0,\n"
+            f"    varVhpViewOnly || varVhpSaving || !varVhpPlanCommitted || {SAVEABLE_COUNT} = 0,\n"
             "    DisplayMode.Disabled,\n"
             "    DisplayMode.Edit\n"
             ")")
@@ -713,7 +705,7 @@ def save_buttons(can_submit):
                       display_mode=DRAFT_DM, icon=ICON_SAVE)
     btnSubmit = button("btnVhpSubmit", "\"Submit\"", "Set(varVhpConfirmSubmit, true)",
                        primary=True, icon=ICON_SUBMIT,
-                       display_mode=f"If({can_submit}, DisplayMode.Edit, DisplayMode.Disabled)")
+                       display_mode=f"If(!varVhpViewOnly && {can_submit}, DisplayMode.Edit, DisplayMode.Disabled)")
     confirm = confirm_modal(
         "Vhp", "varVhpConfirmSubmit", "Submit plan?",
         "\"The plan \" & varVhpPlan.Plant & \" \" & varVhpPlan.PlanText & "

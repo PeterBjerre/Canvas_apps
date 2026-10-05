@@ -109,9 +109,11 @@ fra en af de fem enkeltapps — skriver den `AppUrl` =
    `MaintenancePlans`, `MaterialItems`, `PlantList`, `SortFieldList`,
    `TaskListMain`
 
-   *Flows (4):* `BioSap-DeleteSubmittedAttachments`,
+   *Flows (5):* `BioSap-DeleteSubmittedAttachments`,
    `BioSap-GetSubmittedAttachments`, `BioSap-Integration-FunctionalLocations`,
-   `BioSap-TaskListAttachment`
+   `BioSap-TaskListAttachment`, `BioSap-Material-ReadInvoice` (fakturaimporten,
+   [`docs/34`](../docs/34-faktura-import.md) — flowet og Office Scriptet skal
+   oprettes først)
 3. **Sæt app-id'et** under `biosap` i `tools/canvas_apps.json`. Det står i
    Studio-URL'en (`…%2Fapps%2F<app_id>`).
 4. **Deploy:**
@@ -155,6 +157,8 @@ fra en af de fem enkeltapps — skriver den `AppUrl` =
    8. Submit med gyldige rækker → status *Indsendt*, og formularen låses.
 8. Mål: tid til hubben vises og første besøg på hvert domæne, sammenlignet
    med de fem apps.
+9. **Materials → Import invoice:** testplanen i
+   [`docs/34`](../docs/34-faktura-import.md#testplan).
 
 ## Byg
 

@@ -181,6 +181,9 @@ Set(varFlRequestGuid, "");
 Set(varFlRequestNo, "");
 // Kladde / Indsendt - som i FunctionalLocationRequests.Status.
 Set(varFlStatus, "");
+Set(varFlViewOnly, false);
+Set(varFlBadgeOn, false);
+Set(varFlCanEdit, false);
 Set(varFlNextRowNo, 1);
 // Aktiv klassefane. "ALL" som i renderClassTabs.
 Set(varFlTab, "ALL");

@@ -144,7 +144,7 @@ def build_strategy_body():
             "    );\n"
             "    Notify(\"All packages ticked on every operation.\", NotificationType.Success)\n"
             ")"
-        ), display_mode="If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)")
+        ), display_mode="If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)")
 
     # Et 1/3/6/12-moenster fungerer saadan, at en operation der hoerer til den
     # maanedlige pakke naesten altid ogsaa skal udfoeres ved kvartals-,
@@ -200,7 +200,7 @@ def build_strategy_body():
             ")"
         ), primary=True,
         display_mode=(f"If(\n"
-                      f"    IsBlank(varVhpActiveItemId) || !{STRATEGY_IS_HIER},\n"
+                      f"    varVhpViewOnly || IsBlank(varVhpActiveItemId) || !{STRATEGY_IS_HIER},\n"
                       f"    DisplayMode.Disabled,\n"
                       f"    DisplayMode.Edit\n"
                       f")"))
@@ -215,7 +215,7 @@ def build_strategy_body():
             "    Notify(\"Package selections cleared.\", NotificationType.Success)\n"
             ")"
         ), danger=True,
-        display_mode="If(IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)")
+        display_mode="If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)")
 
     actionRow = button_row("conVhpPkgActionRow", [btnHier, btnAll, btnClear], OPS_CW)
 

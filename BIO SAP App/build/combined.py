@@ -195,9 +195,15 @@ def domain_onstart(domain):
     return rename(on, domain)
 
 
+def mode_var(tag):
+    """"view" eller "edit": erstatter Param("mode") i domaenets egen kode."""
+    return f"gbl{tag}Mode"
+
+
 def with_reqid(text, domain):
-    """Param("reqid") -> domaenets egen variabel. Se reqid_var()."""
-    return text.replace('Param("reqid")', reqid_var(domain["tag"]))
+    """Param("reqid") og Param("mode") -> domaenets egne variable. Se reqid_var()."""
+    return (text.replace('Param("reqid")', reqid_var(domain["tag"]))
+                .replace('Param("mode")', mode_var(domain["tag"])))
 
 
 # ---------------------------------------------------------------------------

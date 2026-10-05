@@ -47,7 +47,7 @@ WARNS = 'CountRows(Filter(colFlRows, Status = "warning"))'
 
 # FL68: Submit kun med en frisk, fejlfri validering og mindst een klar raekke.
 SUBMIT_OK = (f'!varFlStale && {ERRS} = 0 && {READY} > 0 && '
-             f'varFlStatus <> "Indsendt"')
+             f'varFlStatus <> "Indsendt" && !varFlViewOnly')
 SUBMIT_DM = f"If({SUBMIT_OK}, DisplayMode.Edit, DisplayMode.Disabled)"
 SUBMIT_WHY = (f'If(varFlStatus = "Indsendt", "Request " & varFlRequestNo & " is submitted and locked.",\n'
               f'   varFlStale, "The rows are being checked - try again in a moment.",\n'
@@ -330,6 +330,8 @@ If(
     Set(varFlRequestGuid, ""),
     Set(varFlRequestNo, Coalesce(varFlReq.RequestNo, ""));
     Set(varFlStatus, Coalesce(varFlReq.Status.Value, "Kladde"));
+    Set(varFlCanEdit, Lower(Coalesce(varFlReq.RequesterEmail, "")) = varFlMe && varFlStatus = "Kladde");
+    Set(varFlViewOnly, !(Lower(Coalesce(Param("mode"), "")) = "edit" && varFlCanEdit));
     Clear(colFlDeleted);
     ClearCollect(
         colFlLoad,

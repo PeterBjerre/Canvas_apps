@@ -31,15 +31,15 @@ from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED, C_WHITE,
 from design_tokens import ref_hex
 import layout_tokens as lay
 from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE, at_least, below
-from build_helpers import (text_ctrl, group, button, text_input, themed_dropdown, card,
+from build_helpers import (tap_backdrop, new_text_on_mobile, text_ctrl, group, button, text_input, themed_dropdown, card,
                            pin_widths, top_bar, grow, badge, fit_button_width, row_rule,
-                           loading_overlay, with_busy, confirm_modal, ICON_SAVE, ICON_SUBMIT,
+                           loading_overlay, with_busy, confirm_modal, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
                            ICON_W)
 
 NARROW = below("Tablet")
 
 # Indsendt = laast (FL69).
-DM_EDIT = 'If(varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)'
+DM_EDIT = 'If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)'
 
 
 def norm_fl(expr):
@@ -104,10 +104,6 @@ def _field_border(bad, ok):
 # ---------------------------------------------------------------------------
 # Bjaelken
 # ---------------------------------------------------------------------------
-COUNTS = ('"Rows: " & CountRows(colFlRows) & "  Ready: " & '
-          'CountRows(Filter(colFlRows, Status = "valid" || Status = "warning")) & '
-          '"  Issues: " & CountRows(Filter(colFlRows, Status = "invalid"))')
-
 # Undertitlen siger, hvilken anmodning man staar i, naar den er gemt -
 # det stod foer i indsend-kortet, som ikke findes mere (issue #77).
 SUBTITLE = (f'If(IsBlank(varFlRequestNo), "{cfg.SUBTITLE}", "Request " & varFlRequestNo & '
@@ -136,24 +132,28 @@ def build_bar():
     JSON stod (issue #77). Valideringen koerer af sig selv (REVERIFY), og
     eksporten er vaek - snapshottet fryses stadig ved Submit (payload_fx).
     Tallene er renderMetrics (FL66)."""
-    count = badge("txtFlCount", COUNTS, width=220)
     save = _fit(button("btnFlSaveDraft", '"Save draft"', with_busy("varFlSaving", S.save_fx()),
                        icon=ICON_SAVE,
-                       display_mode=(f'If(varFlStatus = "Indsendt" || CountRows({S.LIVE}) = 0, '
+                       display_mode=(f'If(varFlViewOnly || varFlStatus = "Indsendt" || CountRows({S.LIVE}) = 0, '
                                      f'DisplayMode.Disabled, DisplayMode.Edit)')), icon=True)
     save.props["Tooltip"] = ('"Puts the request on the landing page as Draft - '
                              'it can still be edited."')
     # Submit spoerger foerst (build_submit_confirm, issue #54).
     submit = _fit(button("btnFlSubmit", '"Submit"', "Set(varFlConfirmSubmit, true)",
-                         primary=True, icon=ICON_SUBMIT, display_mode=S.SUBMIT_DM), icon=True)
+                         primary=True, icon=ICON_SUBMIT, display_mode=S.SUBMIT_DM))
     submit.props["Tooltip"] = S.SUBMIT_WHY
     new = _fit(button("btnFlNew", '"New request"', NEW_FX, icon="Add"), icon=True)
-    for b in (save, submit, new):
-        _bar_btn(b)
+    edit = _fit(button("btnFlEdit", '"Edit"', "Set(varFlViewOnly, false)", icon="Edit",
+                       visible="varFlViewOnly && varFlCanEdit",
+                       display_mode="If(varFlCanEdit, DisplayMode.Edit, DisplayMode.Disabled)"),
+                icon=True)
+    _bar_btn(edit)
+    _bar_btn(save)
+    new_text_on_mobile(new, new.props["Width"])
     # Temaskiftet og vejen til hubben staar i sidebaren (tools/side_nav.py).
-    bar = top_bar("Fl", f'"{cfg.TITLE}"', SUBTITLE, [count, save, submit, new],
-                  icon=cfg.APP_KEY)
-    count.vis = at_least("Desktop")
+    bar = top_bar("Fl", f'"{cfg.TITLE}"', SUBTITLE,
+                  [edit, delete_button("Fl", "varFlViewOnly", "varFlRequestGuid"), save, submit, new],
+                  icon=cfg.APP_KEY, mode_var="varFlViewOnly")
     return bar
 
 
@@ -197,9 +197,10 @@ class Cols:
         # de tre mellemrum mellem FL, Description, Validation og handlingen.
         self.others = (f"If({self.show_no}, {28 + GAP}, 0) + {self.act} + "
                        f"If({self.show_mid}, {mid_sum}, 0) + {VAL_MIN} + {3 * GAP}")
-        self.pair = f"Min({PAIR_MAX}, Max({PAIR_MIN}, ({ROWS_W}) - ({self.others})))"
-        self.fl = f"({self.pair}) * 160 / {PAIR_MAX}"
-        self.desc = f"({self.pair}) * 140 / {PAIR_MAX}"
+        self.pmax = f"If({NARROW}, 190, {PAIR_MAX})"
+        self.pair = f"Min({self.pmax}, Max(If({NARROW}, 100, {PAIR_MIN}), ({ROWS_W}) - ({self.others})))"
+        self.fl = f"({self.pair}) * 160 / ({self.pmax})"
+        self.desc = f"({self.pair}) * 140 / ({self.pmax})"
         # Resten - regnet af det samme udtryk, ikke af galleriets Parent.Width.
         self.rest = f"Max(48, ({ROWS_W}) - ({self.others}) + {VAL_MIN} - ({self.pair}))"
 
@@ -698,6 +699,8 @@ Clear(colFlTabs);
 Set(varFlRequestGuid, "");
 Set(varFlRequestNo, "");
 Set(varFlStatus, "");
+Set(varFlViewOnly, false);
+Set(varFlCanEdit, false);
 Set(varFlTab, "ALL");
 Set(varFlDetailRow, "");
 Set(varFlStale, false);
@@ -708,19 +711,7 @@ Set(varFlInfo, "")"""
 
 def build_backdrop():
     vis = DET_OPEN
-    return Ctrl("conFlBackdrop", "GroupContainer", variant="AutoLayout", props={
-        "BorderStyle": "BorderStyle.None",
-        "DropShadow": "DropShadow.None",
-        "Fill": C_OVERLAY,
-        "Height": "App.Height",
-        "LayoutDirection": "LayoutDirection.Vertical",
-        "LayoutOverflowX": "LayoutOverflow.Hide",
-        "LayoutOverflowY": "LayoutOverflow.Hide",
-        "Visible": vis,
-        "Width": "App.Width",
-        "X": "0",
-        "Y": "0",
-    }, children=[], vis=vis)
+    return tap_backdrop("conFlBackdrop", vis, 'Set(varFlDetailRow, "")')
 
 
 def build_submit_confirm():
@@ -729,5 +720,6 @@ def build_submit_confirm():
     return confirm_modal(
         "Fl", "varFlConfirmSubmit", "Submit request?",
         '"A JSON snapshot is frozen and the rows are locked."',
-        "Submit", with_busy("varFlSaving", S.submit_fx()), "btnFlSubmitConfirm") + [
+        "Submit", with_busy("varFlSaving", S.submit_fx()), "btnFlSubmitConfirm") + delete_modal(
+        "Fl", "varFlRequestGuid", cfg.L_INDEX) + [
         loading_overlay("imgFlSaving", "varFlSaving")]

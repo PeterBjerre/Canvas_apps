@@ -76,16 +76,6 @@ HINTS = {
                   "    )\n"
                   ")"),
 
-    "CallHorizon": ("With(\n"
-                    "    { m: LookUp(colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon) },\n"
-                    "    If(\n"
-                    "        IsBlank(m.Value),\n"
-                    "        " + _q("Working days the order stays on the job list before the finish date.") + ",\n"
-                    "        Text(m.Days) & " + _q(" FCD, schedulering ") + " & Text(m.SchedPeriod) &\n"
-                    "            " + _q(" years. Set automatically from the cycle.") + "\n"
-                    "    )\n"
-                    ")"),
-
     # Revisionsopgaver kaldes 1/1 - ellers flytter kaldet sig og rammer
     # ikke revisionen.
     "FirstCall": ("If(\n"

@@ -39,11 +39,11 @@ L_FLKEY = "MD_FLKey"
 # (noegle, knaptekst, undertitel). Noeglen er vaerdien i varKksKey.
 # Positionerne er KKS-noeglens - se docs/02-datamodel-sharepoint.md, MD_FLKey.
 KEYS = [
-    ("function", "Function key",
+    ("function", "Function",
      "Function keys - KKS positions 7-9. Pick a letter, a group and a subgroup, or search."),
-    ("aggregate", "Aggregate key",
+    ("aggregate", "Aggregate",
      "Aggregate keys - KKS positions 12-13. Pick a letter, or search."),
-    ("component", "Component key",
+    ("component", "Component",
      "Component keys - KKS positions 18-19. Pick a letter, or search."),
 ]
 # MD_FLKey.KeyType for de to genbrugte omraader.

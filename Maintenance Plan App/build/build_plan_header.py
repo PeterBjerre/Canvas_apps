@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gen_screen import Ctrl, C_MUTED, C_REQUIRED, C_INFO_BG, SHELL_W
+from gen_screen import Ctrl, C_MUTED, C_REQUIRED, C_INFO_BG, SHELL_W, C_DISABLED_BG, C_DIVIDER
 import build_help as bh
 import layout_tokens as lay
 from build_helpers import (child_name, text_min_height, text_ctrl, group, button, text_input, number_input,
@@ -9,7 +9,64 @@ from build_helpers import (child_name, text_min_height, text_ctrl, group, button
                            column_grid, text_px, fit_button_width, ICON_W)
 
 DM_PLAN = "If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)"
+SUMMARY_VIS = "(varVhpPlanLocked && " + lay.at_least("Tablet") + ")"
+INFO_VIS = "(varVhpPlanLocked && " + lay.below("Tablet") + ")"
+
+
+def plan_info_modal():
+    from build_helpers import text_modal
+    body = ('"Plant: " & Text(varVhpPlan.Plant) & Char(10) & "Plan text: " & Coalesce(varVhpPlan.PlanText, "")'
+            ' & Char(10) & If(' + IS_STRATEGY + ', "Strategy: " & Coalesce(varVhpPlan.Strategy, ""), '
+            '"Cycle: Every " & Text(varVhpPlan.Cycle) & " " & varVhpPlan.Unit)'
+            ' & Char(10) & "First call: " & Text(varVhpPlan.FirstCallDay) & "/" & Text(varVhpPlan.FirstCallMonth)'
+            ' & "/" & Text(varVhpPlan.FirstCallYear)')
+    return text_modal("VhpPlanInfo", "varVhpPlanInfoOpen", '"Plan header"', body, 96)
 REQ_PLAN = "varVhpPlanValidated"
+
+
+def _summary_chips():
+    from design_tokens import ref_hex
+    from gen_screen import Ctrl as _C
+    esc = lambda e: f'Substitute(Substitute({e}, "&", "&amp;"), "<", "&lt;")'
+    first = ('Text(varVhpPlan.FirstCallDay) & "/" & Text(varVhpPlan.FirstCallMonth) & "/" & '
+             'Text(varVhpPlan.FirstCallYear)')
+    cycle = (f'If({IS_STRATEGY}, Coalesce(varVhpPlan.Strategy, ""), "Every " & Text(varVhpPlan.Cycle) '
+             '& " " & varVhpPlan.Unit)')
+    segs = [('"PLANT"', 'Text(varVhpPlan.Plant)'), ('"PLAN TEXT"', 'Coalesce(varVhpPlan.PlanText, "")'),
+            (f'If({IS_STRATEGY}, "STRATEGY", "CYCLE")', cycle), ('"FIRST CALL"', first)]
+    binds, widths = [], []
+    for i, (lab, val) in enumerate(segs, 1):
+        binds.append(f"l{i}: {lab}")
+        binds.append(f"v{i}: {val}")
+        widths.append(f"w{i}: 30 + Len(l{i}) * 7 + Len(v{i}) * 7.4")
+    head = ("With({ " + ", ".join(binds) + " },\n  With({ " + ", ".join(widths)
+            + " },\n    %s\n))")
+    tot = "w1 + w2 + w3 + w4 + 24"
+    fill, line = ref_hex("state-neutral-bg"), ref_hex("border-default")
+    mut, txt = ref_hex("text-muted"), ref_hex("text-primary")
+    parts = ['"<svg xmlns=\'http://www.w3.org/2000/svg\' height=\'32\' width=\'" & (' + tot + ') & "\'>"']
+    xs = ["0", "w1 + 8", "w1 + w2 + 16", "w1 + w2 + w3 + 24"]
+    for i in range(1, 5):
+        x, w = xs[i - 1], f"w{i}"
+        parts.append(
+            f'"<rect x=\'" & ({x} + 1) & "\' y=\'2\' rx=\'14\' width=\'" & ({w} - 2) & "\' height=\'28\' '
+            f'fill=\'" & {fill} & "\' stroke=\'" & {line} & "\'/>"')
+        parts.append(
+            f'"<text x=\'" & ({x} + 14) & "\' y=\'20\' font-family=\'Segoe UI, sans-serif\' font-size=\'10\' '
+            f'font-weight=\'600\' letter-spacing=\'.5\' fill=\'" & {mut} & "\'>" & {esc("l%d" % i)} & "</text>"')
+        parts.append(
+            f'"<text x=\'" & ({x} + 20 + Len(l{i}) * 7) & "\' y=\'20\' font-family=\'Segoe UI, sans-serif\' '
+            f'font-size=\'13\' font-weight=\'600\' fill=\'" & {txt} & "\'>" & {esc("v%d" % i)} & "</text>"')
+    parts.append('"</svg>"')
+    img = '"data:image/svg+xml;utf8," & EncodeUrl(\n        ' + " &\n        ".join(parts) + "\n    )"
+    label = ('Coalesce(varVhpPlan.PlanText, "") & ", " & ' + cycle + ' & ", first call " & ' + first)
+    return _C("imgVhpPlanSummary", "Image", props={
+        "AccessibleLabel": label,
+        "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
+        "Height": "32", "Image": head % img, "ImagePosition": "ImagePosition.Fit",
+        "OnSelect": "false", "TabIndex": "-1", "Visible": SUMMARY_VIS,
+        "Width": head % tot, "AlignInContainer": "AlignInContainer.Start",
+    }, h=32, vis=SUMMARY_VIS)
 
 # Indholdsbredden i et kort: skaermens indholdsbredde minus kortets polstring.
 PLAN_CW = f"({SHELL_W} - 36)"
@@ -144,7 +201,6 @@ def help_panel(name, section):
 # tilbage, eller appens startvaerdier, hvis planen aldrig er gemt.
 PLAN_CONTROLS = ("drpVhpPlanType", "drpVhpStrategy", "drpVhpPlant", "drpVhpStatus",
                  "inpVhpPlanText", "drpVhpSortField", "numVhpCycle", "drpVhpUnit",
-                 "drpVhpCallHorizon", "drpVhpSchedInd",
                  "numVhpFirstCallDay", "numVhpFirstCallMonth", "numVhpFirstCallYear")
 
 
@@ -177,9 +233,23 @@ def build_plan_header():
         required_formula=f"(varVhpPlanValidated && {LIVE_IS_STRATEGY})",
         display_mode=f"If(varVhpPlanLocked || {LIVE_NOT_STRATEGY}, DisplayMode.Disabled, DisplayMode.Edit)",
         value_col="Key", display_col="Value")
+    off = "Self.DisplayMode <> DisplayMode.Edit"
+    drpStrategy.props["Appearance"] = "Appearance.FilledDarker"
+    drpStrategy.props["Fill"] = f"If({off}, {C_DISABLED_BG}, {drpStrategy.props['Fill']})"
+    drpStrategy.props["BorderColor"] = f"If({off}, {C_DIVIDER}, {drpStrategy.props['BorderColor']})"
+    drpStrategy.props["Color"] = f"If({off}, {C_MUTED}, {drpStrategy.props['Color']})"
 
-    txtPlanText = text_input("inpVhpPlanText", "varVhpPlan.PlanText", max_length=40,
-                             required_formula=REQ_PLAN, display_mode=DM_PLAN)
+    PT, PL = "varVhpPlan.PlanText", "drpVhpPlant.Selected.Value"
+    pt_rest = (f'If(StartsWith(Upper({PT}), Upper(varVhpPlan.Plant) & " "), '
+               f'Mid({PT}, Len(varVhpPlan.Plant) + 2), {PT})')
+    pt_default = (f'If(\n    varVhpViewOnly || IsBlank({PL}), {PT},\n'
+                  f'    Upper(Trim({PT})) = Upper({PL}), {PL} & " ",\n'
+                  f'    StartsWith(Upper({PT}), Upper({PL}) & " "), {PT},\n'
+                  f'    {PL} & " " & {pt_rest}\n)')
+    txtPlanText = text_input("inpVhpPlanText", pt_default, max_length=40,
+                             required_formula=REQ_PLAN, display_mode=DM_PLAN,
+                             onchange=(f'If(!varVhpViewOnly && !IsBlank({PL}) && '
+                                       f'!StartsWith(Upper(Self.Text), Upper({PL}) & " "), Reset(Self))'))
     drpSortField = themed_dropdown("drpVhpSortField", "colVhpSortFieldOptions",
                             "LookUp(colVhpSortFieldOptions, Value = varVhpPlan.SortField).Value",
                             display_mode=DM_PLAN)
@@ -187,15 +257,6 @@ def build_plan_header():
                             display_mode=DM_CYCLE)
     drpUnit = themed_dropdown("drpVhpUnit", "colVhpUnitOptions", "LookUp(colVhpUnitOptions, Value = varVhpPlan.Unit).Value",
                        required_formula=REQ_CYCLE, display_mode=DM_CYCLE)
-    drpCallHorizon = themed_dropdown("drpVhpCallHorizon", "colVhpCallHorizonOptions",
-                              "LookUp(colVhpCallHorizonOptions, Value = varVhpPlan.CallHorizon).Value",
-                              display_mode=DM_PLAN)
-    # SchedulingIndicator er en Choice (JA/NEJ) paa MaintenancePlans. Den stod
-    # som fritekst og blev aldrig gemt (REVIEW.md D12). Vaerdierne er
-    # SharePoints og oversaettes ikke.
-    drpSchedInd = themed_dropdown("drpVhpSchedInd", "colVhpYesNoOptions",
-                                  "LookUp(colVhpYesNoOptions, Value = varVhpPlan.SchedulingIndicator).Value",
-                                  display_mode=DM_PLAN)
     numFirstCallDay = number_input("numVhpFirstCallDay", "varVhpPlan.FirstCallDay", min_v=1, max_v=31,
                                    required_formula=REQ_PLAN, display_mode=DM_PLAN, label="\"First call, day\"")
     numFirstCallMonth = number_input("numVhpFirstCallMonth", "varVhpPlan.FirstCallMonth", min_v=1, max_v=12,
@@ -227,19 +288,19 @@ def build_plan_header():
                          direction="Horizontal", gap=FC_GAP, height=36,
                          align_items="Center", width="Parent.Width")
 
+    cellStrategy = cell("conVhpCellStrategy", "Maintenance Strategy", drpStrategy, "Strategy")
+    cellStrategy.props["Visible"] = LIVE_IS_STRATEGY
+    cellStrategy.vis = LIVE_IS_STRATEGY
+
     grid = column_grid("conVhpPlanGrid", [
         [cell("conVhpCellPlanType", "Plan Type", drpPlanType, "PlanType", True),
-         cell("conVhpCellStrategy", "Maintenance Strategy", drpStrategy, "Strategy"),
-         cell("conVhpCellPlant", "Plant", drpPlant, "Plant", True)],
+         cell("conVhpCellPlant", "Plant", drpPlant, "Plant", True),
+         cellStrategy],
         [cell("conVhpCellStatus", "Status", drpStatus, "Status", True),
-         cell("conVhpCellPlanText", "Plan Text", txtPlanText, "PlanText", True),
-         cell("conVhpCellSortField", "Sort Field", drpSortField, "SortField")],
-        [cell("conVhpCellCycle", "Cycle", numCycle, "Cycle", True),
-         cell("conVhpCellUnit", "Unit", drpUnit, "Unit", True),
-         cell("conVhpCellCallHorizon", "Call Horizon", drpCallHorizon, "CallHorizon")],
-        # "Statutory Sort Field" stod her som et tekstfelt uden kolonne i
-        # SharePoint - det blev aldrig gemt og er fjernet (REVIEW.md D12).
-        [cell("conVhpCellSchedInd", "Scheduling Indicator", drpSchedInd, "SchedInd"),
+         cell("conVhpCellPlanText", "Plan Text", txtPlanText, "PlanText", True)],
+        [cell("conVhpCellSortField", "Sort Field", drpSortField, "SortField"),
+         cell("conVhpCellCycle", "Cycle", numCycle, "Cycle", True)],
+        [cell("conVhpCellUnit", "Unit", drpUnit, "Unit", True),
          cell("conVhpCellFirstCall", "First Call (dd / mm / yyyy)", firstCallRow,
               "FirstCall", True)],
     ], container_w=CW, row_gap=10)
@@ -247,31 +308,21 @@ def build_plan_header():
     planMeta = text_ctrl(
         "txtVhpPlanMeta",
         f"If(varVhpPlanCommitted, \"Plan created \" & Text(varVhpPlanCreatedAt, \"{lay.DATETIME_FMT}\"), \"\")",
-        size=12, color=C_MUTED, height=18, wrap="false")
-    # Hvad der faktisk er hentet. Tallene taelles paa de navngivne formler,
-    # saa de er rigtige i stedet for en haardkodet paastand om "14 option lists".
-    # Antallet af strategier UDEN pakker naevnes eksplicit - ellers ser en kort
-    # strategiliste ud som en fejl i stedet for som en mangel i masterdata.
-    optionsState = text_ctrl(
-        "txtVhpPlanOptionsState",
-        (
-            "\"Data: \" & Text(CountRows(colVhpTasklists)) & \" task lists, \" &\n"
-            "Text(CountRows(colVhpStrategies)) & \" strategies\" &\n"
-            "With(\n"
-            "    { mangler: CountRows(Filter(colVhpStrategies, !PackagesLoaded)) },\n"
-            "    If(mangler > 0, \" (\" & Text(mangler) & \" without packages)\", \"\")\n"
-            ") & \", \" &\n"
-            "Text(CountRows(colVhpMainWorkCenters)) & \" work centres.\""
-        ),
-        size=12, color=C_MUTED, height=18, wrap="true")
-    footerInfo = grow(group("conVhpPlanFooterInfo", [planMeta, optionsState], direction="Vertical",
-                            gap=2, height=40))
+        size=12, color=C_MUTED, height=24, wrap="false", visible="!varVhpPlanLocked")
+    summary = _summary_chips()
+    info = button("btnVhpPlanInfo", '"Plan details"', "Set(varVhpPlanInfoOpen, true)",
+                  width=fit_button_width('"Plan details"') + 8, height=32, visible=INFO_VIS,
+                  accessible='"Show the plan header details"')
+    info.props["AlignInContainer"] = "AlignInContainer.Start"
+    footerInfo = grow(group("conVhpPlanFooterInfo", [summary, info, planMeta], direction="Vertical",
+                            gap=0, height=32))
 
     btnSave = button(
         "btnVhpPlanSave", "If(varVhpPlanLocked, \"Edit\", \"Save\")",
         (
             "If(\n"
             "    varVhpPlanLocked,\n"
+            "    Set(varVhpViewOnly, false);\n"
             "    Set(varVhpPlanLocked, false);\n"
             "    Notify(\"Plan unlocked for editing.\", NotificationType.Success),\n"
             "\n"
@@ -304,8 +355,6 @@ def build_plan_header():
             "                    SortField: drpVhpSortField.Selected.Value,\n"
             "                    Cycle: If(isStrat, 0, numVhpCycle.Value),\n"
             "                    Unit: If(isStrat, \"\", drpVhpUnit.Selected.Value),\n"
-            "                    CallHorizon: drpVhpCallHorizon.Selected.Value,\n"
-            "                    SchedulingIndicator: drpVhpSchedInd.Selected.Value,\n"
             "                    FirstCallDay: numVhpFirstCallDay.Value,\n"
             "                    FirstCallMonth: numVhpFirstCallMonth.Value,\n"
             "                    FirstCallYear: numVhpFirstCallYear.Value\n"
@@ -340,7 +389,8 @@ def build_plan_header():
             ")"
         ),
         primary=True, width=140, height=36,
-        icon="If(varVhpPlanLocked, \"Edit\", \"Save\")")
+        icon="If(varVhpPlanLocked, \"Edit\", \"Save\")",
+        visible="!varVhpViewOnly || varVhpCanEdit")
 
     # RESET (issue #54): de usavede aendringer i planhovedet tilbage til
     # den senest gemte plan - eller startvaerdierne, hvis planen aldrig er
@@ -357,7 +407,17 @@ def build_plan_header():
     btnSave.props["Width"] = str(fit_button_width("\"Save\"", min_w=96) + ICON_W)
 
     footer = group("conVhpPlanFooter", [footerInfo, btnReset, btnSave], direction="Horizontal",
-                   gap=8, height=40, align_items="Center")
+                   gap=8, height=36, align_items="Center")
 
-    # Kompakt (issue #54): 10 px mellem titel, felter og fod i stedet for 14.
+    # SAMLET SAMMEN, NAAR PLANEN ER GEMT. Felterne og hjaelpepanelet vises kun,
+    # mens planen kan redigeres; derefter staar en linje med det vigtigste, og
+    # Edit folder dem ud igen.
+    OPEN_EDIT = "!varVhpPlanLocked"
+    grid.props["Visible"] = OPEN_EDIT
+    grid.vis = OPEN_EDIT
+    helpPanel.vis = f"({OPEN_EDIT}) && IfError(varVhpShowHints, false)"
+    helpPanel.props["Visible"] = helpPanel.vis
+    btnReset.props["Visible"] = OPEN_EDIT
+    btnReset.vis = OPEN_EDIT
+
     return card("conVhpPlanCard", [header, helpPanel, grid, footer], gap=10, pad_y=12)

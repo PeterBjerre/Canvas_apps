@@ -52,6 +52,9 @@ def _navigation():
     """Sidebaren navigerer mellem skaerme i stedet for at starte apps."""
     import side_nav
     side_nav.use_screens(cb.SCREENS)
+    side_nav.NAV_PRE = {
+        d["key"]: f'Set(gblNavTo, "{d["tag"]}")'
+        for d in cb.DOMAINS if d["key"] != "hub" and d["key"] not in cb.LOOKUPS}
 
 
 def _capture():
@@ -87,12 +90,15 @@ def open_block(domain, init):
     en variabel sat dér er ikke sikkert sat her. Og den betales af alle, ogsaa
     dem der kun kigger paa hubben. Her betales et domaene, naar det aabnes."""
     t = domain["tag"]
-    want = (f'Coalesce(\n'
+    want = (f'If(\n'
+            f'        gblNavTo = "{t}",\n'
+            f'        "new:0",\n'
+            f'        Coalesce(\n'
             f'        {cb.want_var(t)},\n'
             f'        If(Lower(Param("{cb.DOMAIN_PARAM}")) = "{domain["key"]}", '
             f'"link:" & Param("reqid")),\n'
             f'        "new"\n'
-            f'    )')
+            f'    )\n    )')
     body = "\n".join(("        " + l) if l.strip() else "" for l in init.split("\n")).lstrip()
     return (
         "// DEN SAMLEDE APP: klargoer skaermen, naar hubben eller et dyblink\n"
@@ -104,11 +110,13 @@ def open_block(domain, init):
         f"        wantKey <> Coalesce({cb.opened_var(t)}, \"\"),\n"
         f"        Set({cb.loading_var(t)}, true);\n"
         f"        Set({cb.opened_var(t)}, wantKey);\n"
-        f"        Set(\n"
+            f'        Set(\n'
         f"            {cb.reqid_var(t)},\n"
         f'            If(StartsWith(wantKey, "req:"), Mid(wantKey, 5),\n'
+        f'               StartsWith(wantKey, "edit:"), Mid(wantKey, 6),\n'
         f'               StartsWith(wantKey, "link:"), Mid(wantKey, 6), "")\n'
         f"        );\n"
+        f'        Set({cb.mode_var(t)}, If(StartsWith(wantKey, "edit:") || (StartsWith(wantKey, "link:") && Lower(Coalesce(Param("mode"), "")) = "edit"), "edit", "view"));\n'
         f"        {body}\n"
         "    )\n"
         ")"
@@ -118,8 +126,12 @@ def open_block(domain, init):
 def done(domain):
     """Sidste linje i domaeneskaermens OnVisible: klargoeringen er faerdig,
     spinneren forsvinder."""
+    t = domain['tag']
+    o = f"Coalesce({cb.opened_var(t)}, \"\")"
     return (";\n\n// Klar - ventespinneren forsvinder.\n"
-            f"Set({cb.loading_var(domain['tag'])}, false)")
+            f"Set(var{t}BadgeOn, StartsWith({o}, \"req:\") || StartsWith({o}, \"edit:\") "
+            f"|| StartsWith({o}, \"link:\"));\n"
+            f"Set({cb.loading_var(t)}, false);\nSet(gblNavigating, false);\nSet(gblNavTo, \"\")")
 
 
 def screen_props(props):
@@ -147,7 +159,8 @@ def loading_overlay(domain, label):
     blive fyldt."""
     from build_helpers import loading_overlay as shared
     return shared(f"img{domain['tag']}Loading", cb.loading_var(domain["tag"]),
-                  f"Loading {label}, please wait")
+                  f"Loading {label}, please wait",
+                  "Opening request - checking edit or view mode...")
 
 
 def _write(screen_name, text, domain=None):
@@ -186,30 +199,35 @@ def build_hub():
         if x is None:
             return None
         return (f"Set({cb.NEW_SEQ}, Coalesce({cb.NEW_SEQ}, 0) + 1);\n"
+                "Set(gblNavigating, true);\n"
                 f'Set({cb.want_var(x["tag"])}, "new:" & {cb.NEW_SEQ});\n'
                 f"Navigate({x['screen']}, ScreenTransition.None)")
 
-    branches = []
-    for dom in hub_config.DOMAINS:
-        x = by_app.get(dom["app"])
-        if x is None:
-            continue
-        branches.append(
-            f'        "{dom["key"]}",\n'
-            f'            Set({cb.want_var(x["tag"])}, "req:" & ThisItem.RequestGuid);\n'
-            f"            Navigate({x['screen']}, ScreenTransition.None)")
-    open_action = (
-        "If(\n"
-        "    IsBlank(ThisItem.RequestGuid),\n"
-        '    Notify("This request has no ID.", NotificationType.Error),\n'
-        "    Switch(\n"
-        "        ThisItem.Domain.Value,\n"
-        + ",\n".join(branches) + ",\n"
-        '        Notify("This kind of request has no screen in the app yet.", '
-        "NotificationType.Warning)\n"
-        "    )\n"
-        ")")
-    build_hub.use_actions(new_action, open_action)
+    def request_action(prefix):
+        branches = []
+        for dom in hub_config.DOMAINS:
+            x = by_app.get(dom["app"])
+            if x is None:
+                continue
+            branches.append(
+                f'        "{dom["key"]}",\n'
+                f'            Set(gblNavigating, true);\n'
+                f'            Set({cb.opened_var(x["tag"])}, "");\n'
+                f'            Set({cb.want_var(x["tag"])}, "{prefix}:" & ThisItem.RequestGuid);\n'
+                f"            Navigate({x['screen']}, ScreenTransition.None)")
+        return (
+            "If(\n"
+            "    IsBlank(ThisItem.RequestGuid),\n"
+            '    Notify("This request has no ID.", NotificationType.Error),\n'
+            "    Switch(\n"
+            "        ThisItem.Domain.Value,\n"
+            + ",\n".join(branches) + ",\n"
+            '        Notify("This kind of request has no screen in the app yet.", '
+            "NotificationType.Warning)\n"
+            "    )\n"
+            ")")
+
+    build_hub.use_actions(new_action, request_action("req"), request_action("edit"))
 
     asm = _load(d, "assemble_hub.py")
     seen, fake = _capture()
@@ -220,6 +238,9 @@ def build_hub():
     # et domaene, der netop har gemt.
     if seen["props"].get("OnVisible") != build_hub.HUB_ON_VISIBLE:
         raise SystemExit("Masterdata Hub's OnVisible er aendret - byg den ind her.")
+    from build_helpers import loading_overlay as shared_overlay
+    seen["children"].append(shared_overlay("imgMdNavigating", "gblNavigating",
+                                           "Opening, please wait", "Opening..."))
     _write(d["screen"], render_screen(d["screen"], screen_props(seen["props"]),
                                       seen["children"]))
 
@@ -245,8 +266,14 @@ def build_functionallocation():
     # besoeg, naar der ingen er.
     init = (cb.with_reqid(cb.domain_onstart(d), d) + ";\n"
             + asm.ME + ";\n" + cb.with_reqid(load, d))
-    seen["props"]["OnVisible"] = (open_block(d, init) + ";\n\n"
-                                  + asm.ME + ";\n" + asm.ensure_row_part() + done(d))
+    load_all = open_block(d, init) + ";\n\n" + asm.ME + ";\n" + asm.ensure_row_part()
+    load_all = "\n".join(("    " + l) if l.strip() else "" for l in load_all.split("\n"))
+    seen["props"]["OnVisible"] = (
+        "IfError(\n" + load_all + ",\n"
+        '    Notify("Could not load the page. Check the connection and open it again.",\n'
+        "        NotificationType.Error);\n"
+        f'    Set({cb.opened_var(d["tag"])}, "")\n'
+        ")" + done(d))
     seen["children"].append(loading_overlay(d, "Functional Location"))
     from gen_screen import render_screen
     _write(d["screen"], render_screen(d["screen"], screen_props(seen["props"]),
@@ -281,8 +308,16 @@ def build_domain_app(key):
     # naar hubben beder om en anden anmodning (samme greb som FL, D23).
     init = (cb.domain_onstart(d) + ";\n" + dp.clear_form_fx() + ";\n"
             + cb.with_reqid(dp.open_request_fx(), d))
-    seen["props"]["OnVisible"] = (open_block(d, init) + ";\n\n"
-                                  + me + dp.refresh_rows_fx() + done(d))
+    # A failed load must neither leave the spinner on nor mark the screen as
+    # prepared: the loading flag is cleared after IfError and the next visit retries.
+    load = open_block(d, init) + ";\n\n" + me + dp.refresh_rows_fx()
+    load = "\n".join(("    " + l) if l.strip() else "" for l in load.split("\n"))
+    seen["props"]["OnVisible"] = (
+        "IfError(\n" + load + ",\n"
+        '    Notify("Could not load the saved rows. Check the connection and open the page again.",\n'
+        "        NotificationType.Error);\n"
+        f'    Set({cb.opened_var(d["tag"])}, "")\n'
+        ")" + done(d))
     # Her stod en regex-omdoebning: felternes kontroller hed inp<Kolonne>
     # og con<Kolonne> uden Dom, og Manufacturer findes i begge domaener.
     # domain_parts navngiver dem nu selv inpDom<Kolonne>/conDom<Kolonne>
@@ -314,12 +349,15 @@ def build_vhplan():
     if seen["props"].get("OnVisible"):
         raise SystemExit("VH-plan har faaet en OnVisible - byg den ind i build_vhplan().")
     import build_items
-    init = (cb.with_reqid(cb.domain_onstart(d), d) + ";\n"
+    init = ("// A new or another request starts from a clean plan.\n"
+            "Clear(colVhpItems);\nClear(colVhpOperations);\nClear(colVhpItemObjects);\n"
+            "Clear(colVhpObjDraft);\nClear(colVhpMaterials);\nClear(colVhpAttachments);\n"
+            + cb.with_reqid(cb.domain_onstart(d), d) + ";\n"
             "// Editoren skal vise den plan, der lige er klargjort.\n"
             + build_items.SEED_FL_PICKER + ";\n"
             + build_items.RESET_EDITOR_CONTROLS)
     seen["props"]["OnVisible"] = open_block(d, init) + done(d)
-    seen["children"].append(loading_overlay(d, "VH-plan"))
+    seen["children"].append(loading_overlay(d, "Maintenance Plan"))
     from gen_screen import render_screen
     _write(d["screen"], render_screen(d["screen"], screen_props(seen["props"]),
                                       seen["children"]))
