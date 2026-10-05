@@ -24,6 +24,7 @@ klargoeres - den faelles build_helpers.loading_overlay, og kun den.
 """
 import importlib.util
 import os
+import re
 import subprocess
 import sys
 
@@ -121,6 +122,28 @@ def open_block(domain, init):
         "    )\n"
         ")"
     )
+
+
+def _drop_repeated_sets(onstart, later):
+    """Fjern de Set(), som clear_form_fx() lige efter goer IGEN med samme
+    vaerdi. Domaenets OnStart (domain_app.STATE) og formularens nulstilling
+    satte fx varEqActiveRowId, varEqRowStatus og FL-soegningen to gange i
+    traek. Kommentaren lige over en fjernet linje gaar med."""
+    def norm(stmt):
+        return re.sub(r"\s+", " ", stmt.strip().rstrip(";").strip())
+    again = {norm(x) for x in re.split(r";\s*\n|;\s+(?=Set\()", later)
+             if x.strip().startswith("Set(")}
+    lines = onstart.split("\n")
+    keep = []
+    for line in lines:
+        if line.strip().startswith("Set(") and norm(line) in again:
+            while keep and keep[-1].strip().startswith("//"):
+                keep.pop()
+            continue
+        keep.append(line)
+    out = "\n".join(keep).rstrip()
+    out = re.sub(r"\n\s*\n(\s*\n)+", "\n\n", out)
+    return out.rstrip(";").rstrip()
 
 
 def done(domain):
@@ -306,11 +329,23 @@ def build_domain_app(key):
     # resten, naar skaermen skrives (_write).
     # Dyblinket/Open fra hubben hoerer til klargoeringen - den koerer kun,
     # naar hubben beder om en anden anmodning (samme greb som FL, D23).
-    init = (cb.domain_onstart(d) + ";\n" + dp.clear_form_fx() + ";\n"
-            + cb.with_reqid(dp.open_request_fx(), d))
+    #
+    # RAEKKERNE HENTES KUN VED KLARGOERINGEN (2026-10-05). De stod efter
+    # open_block og blev hentet forfra ved HVERT besoeg - ogsaa naar man
+    # bare skiftede tilbage via sidebaren. Kun skaermen selv skriver i
+    # listen, og den henter selv forfra efter hver skrivning
+    # (refresh_rows_fx). Det eneste andet sted, der aendrer raekkerne, er
+    # hubbens sletning; den saetter gbl<X>Stale, og saa hentes de her.
+    form = dp.clear_form_fx()
+    init = (_drop_repeated_sets(cb.domain_onstart(d), cb.rename(form, d)) + ";\n" + form + ";\n"
+            + cb.with_reqid(dp.open_request_fx(), d) + ";\n"
+            + dp.refresh_rows_fx())
+    stale = cb.stale_var(d["tag"])
     # A failed load must neither leave the spinner on nor mark the screen as
     # prepared: the loading flag is cleared after IfError and the next visit retries.
-    load = open_block(d, init) + ";\n\n" + me + dp.refresh_rows_fx()
+    load = (open_block(d, init) + ";\n\n"
+            f"If(\n    Coalesce({stale}, false),\n    Set({stale}, false);\n"
+            + "\n".join("    " + l for l in dp.refresh_rows_fx().split("\n")) + "\n)")
     load = "\n".join(("    " + l) if l.strip() else "" for l in load.split("\n"))
     seen["props"]["OnVisible"] = (
         "IfError(\n" + load + ",\n"

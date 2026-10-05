@@ -37,7 +37,7 @@ HUB_OWN = {"varMdMe", "varMdView", "varMdDomain", "varMdStatusMode", "varMdNewMe
 TAGS = sorted({d["tag"] for d in cb.DOMAINS}, key=len, reverse=True)
 TAGGED = re.compile(r"\b(?:var|col|gbl)(%s)(?=[A-Z0-9_])\w*" % "|".join(TAGS))
 UNTAGGED = re.compile(r"\b(?:var|col|gbl)[A-Z]\w*")
-WANT = re.compile(r"\b(?:gbl(?:%s)Want|var(?:%s)Opened)\b" % ("|".join(TAGS), "|".join(TAGS)))
+WANT = re.compile(r"\b(?:gbl(?:%s)(?:Want|Stale)|var(?:%s)Opened)\b" % ("|".join(TAGS), "|".join(TAGS)))
 
 
 def screens():
@@ -112,7 +112,8 @@ def main():
                 tag, name = m.group(1), m.group(0)
                 if tag in own:
                     continue
-                # Hubben saetter hvert domaenes want - det er vejen ind.
+                # Hubben saetter hvert domaenes want - det er vejen ind - og
+        # gbl<X>Stale, naar den har slettet noget, skaermen viser.
                 if d["key"] == "hub" and WANT.fullmatch(name):
                     continue
                 bad.add(name)
