@@ -111,6 +111,26 @@ NOT_STARTED = (
     % (STRIP_W, STRIP_H, STRIP_W, STRIP_H, SVG_FONT, ref_hex("text-muted")))
 
 
+# GODKENDELSESLOGGEN HENTES EEN GANG (2026-10-05)
+#
+# Striben i listen stod som Filter(MD_ApprovalLog, RequestGuid =
+# ThisItem.RequestGuid) i HVER raekke - og i to kontroller (bred og
+# kompakt). Det var et kald pr. synlig VH-plan, to hvis begge blev
+# evalueret. Nu hentes de tre godkendelsestrins raekker een gang, naar
+# hubben vises (build_hub.HUB_ON_VISIBLE), og striben laeser samlingen.
+# Stage er indekseret, og Or paa lighed delegeres til SharePoint. Nyeste
+# foerst: rammer listen appens data row limit, er det de AELDSTE
+# beslutninger, der mangler - og for en raekke uden beslutninger i
+# samlingen spoerges der saa direkte, som foer.
+LOG_LIMIT = 500   # appens Data row limit (som build_hub.ROW_LIMIT)
+LOG_REFRESH = ('ClearCollect(colMdAprAll, SortByColumns(Filter(MD_ApprovalLog, '
+               'Stage = "System" || Stage = "Cost" || Stage = "Quality"), "ID", '
+               'SortOrder.Descending))')
+ROW_LOG = ('With({ c: Filter(colMdAprAll, RequestGuid = ThisItem.RequestGuid) }, '
+           f'If(IsEmpty(c) && CountRows(colMdAprAll) >= {LOG_LIMIT}, '
+           'Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid), c))')
+
+
 def row_svg():
     """Power Fx text for the strip's SVG, or "" when the request has no approval flow."""
     req = "ThisItem"
@@ -146,7 +166,7 @@ def row_svg():
         f"With({{c: {stage_state(pick('Quality'), expected('Quality', req), 'b')}}},\n"
         f"With({{d: {sap_state(req)}}},\n{body}))))")
     return ("If(\n    !(" + applies(req) + '), ' + NOT_STARTED + ',\n'
-            "    With(\n        { L: Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid) },\n"
+            f"    With(\n        {{ L: {ROW_LOG} }},\n"
             f"        {inner}\n    )\n)")
 
 

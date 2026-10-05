@@ -252,7 +252,7 @@ HUB_ON_VISIBLE = (
     "If(IsBlank(varMdView), Set(varMdView, \"mine\"));\n"
     "If(IsBlank(varMdStatusMode), Set(varMdStatusMode, \"open\"));\n"
     "If(IsBlank(varMdFlag), Set(varMdFlag, \"\"));\n"
-    + SCOPE_REFRESH
+    "Concurrent(\n    " + SCOPE_REFRESH + ",\n    " + approval_flow.LOG_REFRESH + "\n)"
 )
 
 
