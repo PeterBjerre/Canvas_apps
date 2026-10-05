@@ -1,39 +1,46 @@
 ﻿# SharePoint-lister bag VH-plan appen
 
-Udtrukket 2026-09-20 21:41 fra https://orsted.sharepoint.com/teams/BioSAPDev
+Udtrukket 2026-10-05 20:37 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 
 | Liste | Raekker | Kolonner |
 |---|---:|---:|
-| `AppSettings` | 6 | 13 |
+| `AppSettings` | 7 | 13 |
 | `ASV Standard Tasklist` | 26 | 42 |
 | `AVV Standard Tasklist` | 37 | 43 |
 | `CallHorizonMatrix` | 16 | 10 |
-| `EquipmentItems` | 0 | 32 |
+| `EquipmentItems` | 3 | 32 |
+| `FunctionalLocationItems` | 1 | 21 |
+| `FunctionalLocationRequests` | 1 | 17 |
 | `HEV Standard Tasklist` | 30 | 42 |
 | `KYV Standard Tasklist` | 20 | 42 |
 | `LubricationTaskTypeList` | 2 | 6 |
 | `MaintenanceActivityTypeList` | 7 | 7 |
-| `MaintenanceItems` | 63 | 34 |
-| `MaintenancePlans` | 41 | 28 |
+| `MaintenanceItems` | 71 | 36 |
+| `MaintenancePlans` | 50 | 38 |
 | `MainWorkCenters` | 53 | 8 |
-| `MaterialItems` | 0 | 31 |
-| `MD_RequestIndex` | 25 | 23 |
+| `MaterialItems` | 5 | 32 |
+| `MD_ApprovalLog` | 19 | 18 |
+| `MD_Approver` | 25 | 10 |
+| `MD_FLKey` | 6733 | 9 |
+| `MD_HelpText` | 36 | 11 |
+| `MD_KksFunctionKey` | 2913 | 9 |
+| `MD_RequestIndex` | 37 | 23 |
 | `MD_StandardTaskOperations` | 176 | 31 |
 | `MD_Strategy` | 53 | 11 |
 | `MD_StrategyPackage` | 3 | 14 |
 | `MD_TasklistAttachment` | 1 | 13 |
-| `MD_TasklistMaterial` | 6 | 14 |
+| `MD_TasklistMaterial` | 7 | 14 |
 | `PlantList` | 6 | 6 |
 | `SKV Standard Tasklist` | 31 | 42 |
 | `SortFieldList` | 28 | 6 |
 | `SSV Standard Tasklist` | 32 | 42 |
 | `StandardStrategyList` | 3 | 6 |
 | `StandardTaskList` | 3 | 12 |
-| `TaskListMain` | 324 | 31 |
+| `TaskListMain` | 357 | 31 |
 | `UserAndGroups` | 7 | 7 |
 | `Vendors` | 20 | 7 |
 
-## `AppSettings`  -  6 raekker
+## `AppSettings`  -  7 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -42,7 +49,7 @@ Udtrukket 2026-09-20 21:41 fra https://orsted.sharepoint.com/teams/BioSAPDev
 | `AppID` | AppID | Text |  |  |  |
 | `Notes` | Notes | Note |  |  |  |
 | `AppUrl` | AppUrl | URL |  |  |  |
-| `Option` | Option | Choice |  |  | valg: RunningNoPlan, PowerApps, RunningNoItem, RunningNoTask |
+| `Option` | Option | Choice |  |  | valg: RunningNoPlan, PowerApps, RunningNoItem, RunningNoTask, CostApprovalThresholdDkk |
 | `Value` | Value | Number |  |  |  |
 | `EnvironmentID` | EnvironmentID | Text |  | x |  |
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
@@ -161,7 +168,7 @@ Udtrukket 2026-09-20 21:41 fra https://orsted.sharepoint.com/teams/BioSAPDev
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `EquipmentItems`  -  0 raekker
+## `EquipmentItems`  -  3 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -192,6 +199,54 @@ Udtrukket 2026-09-20 21:41 fra https://orsted.sharepoint.com/teams/BioSAPDev
 | `WarrantyStart` | WarrantyStart | DateTime |  |  |  |
 | `WarrantyEnd` | WarrantyEnd | DateTime |  |  |  |
 | `LongText` | LongText | Note |  |  |  |
+| `ID` | ID | Counter |  |  | skrivebeskyttet |
+| `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
+| `Created` | Created | DateTime |  |  | skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+
+## `FunctionalLocationItems`  -  1 raekker
+
+| Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
+|---|---|---|:-:|:-:|---|
+| `Title` | **RowGuid** | Text | x | x |  |
+| `RequestGuid` | RequestGuid | Text | x | x |  |
+| `RequestId` | RequestId | Number |  | x |  |
+| `RowNo` | RowNo | Number |  |  |  |
+| `FunctionalLocation` | FunctionalLocation | Text |  | x |  |
+| `Description` | Description | Text |  |  |  |
+| `KksType` | KksType | Text |  |  |  |
+| `AssignedClass` | AssignedClass | Text |  | x |  |
+| `RowStatus` | RowStatus | Choice |  | x | valg: draft, valid, warning, invalid |
+| `FirstIssue` | FirstIssue | Text |  |  |  |
+| `IssueCount` | IssueCount | Number |  |  |  |
+| `TrmAssignment` | TrmAssignment | Text |  |  |  |
+| `AbcIndic` | AbcIndic | Text |  |  |  |
+| `SafetyCriticalEquipment` | SafetyCriticalEquipment | Text |  | x |  |
+| `RequesterEmail` | RequesterEmail | Text |  | x |  |
+| `SpoolValuesJson` | SpoolValuesJson | Note |  |  |  |
+| `ID` | ID | Counter |  |  | skrivebeskyttet |
+| `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
+| `Created` | Created | DateTime |  |  | skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+
+## `FunctionalLocationRequests`  -  1 raekker
+
+| Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
+|---|---|---|:-:|:-:|---|
+| `Title` | **RequestNo** | Text | x | x |  |
+| `RequestGuid` | RequestGuid | Text | x | x |  |
+| `Status` | Status | Choice |  | x | valg: Kladde, Indsendt, UnderBehandling, AfventerInfo, KlarTilSAP, OprettetISAP, Afvist, Annulleret |
+| `RequesterEmail` | RequesterEmail | Text |  | x |  |
+| `RequesterName` | RequesterName | Text |  |  |  |
+| `RowCount` | RowCount | Number |  |  |  |
+| `ReadyCount` | ReadyCount | Number |  |  |  |
+| `IssueCount` | IssueCount | Number |  |  |  |
+| `WarningCount` | WarningCount | Number |  |  |  |
+| `SubmittedOn` | SubmittedOn | DateTime |  |  |  |
+| `IndexItemId` | IndexItemId | Number |  |  |  |
+| `PayloadJson` | PayloadJson | Note |  |  |  |
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
@@ -315,13 +370,13 @@ Udtrukket 2026-09-20 21:41 fra https://orsted.sharepoint.com/teams/BioSAPDev
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `MaintenanceItems`  -  63 raekker
+## `MaintenanceItems`  -  71 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
 | `Title` | Title | Text | x |  |  |
 | `Status` | Status | Choice |  |  | valg: New, Change, Deleted |
-| `MaintenancePlanNo` | MaintenancePlanNo | Lookup | x |  | opslag -> 55c96ba9-52b8-4018-8945-f736b001d6a2 (PlanID) |
+| `MaintenancePlanNo` | MaintenancePlanNo | Lookup | x | x | opslag -> 55c96ba9-52b8-4018-8945-f736b001d6a2 (PlanID) |
 | `ItemDescription` | ItemDescription | Note | x |  |  |
 | `FunctionalLocation` | FunctionalLocation | Text | x |  |  |
 | `Priority` | Priority | Choice | x |  | valg: Red (Statutory and SCEq), Yellow (default), Blue (standing order), (Kun notification) 3 Within a week, (Kun notification) 4 Within a month |
@@ -348,18 +403,20 @@ Udtrukket 2026-09-20 21:41 fra https://orsted.sharepoint.com/teams/BioSAPDev
 | `SCEqFL` | SCEqFL | Text |  |  |  |
 | `SCEqOL` | SCEqOL | Note |  |  |  |
 | `OrstedResponsibleEmail` | OrstedResponsibleEmail | Text |  | x |  |
+| `ItemGuid` | ItemGuid | Text |  | x |  |
+| `SapItemNo` | SapItemNo | Text |  | x |  |
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `MaintenancePlans`  -  41 raekker
+## `MaintenancePlans`  -  50 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
 | `Title` | Title | Text | x |  |  |
-| `Status` | Status | Choice | x |  | valg: Draft, In Progress, Ready for creation in SAP, Published |
+| `Status` | Status | Choice | x |  | valg: Draft, In Progress, Ready for creation in SAP, Published, Returned |
 | `MultiCounterStrategy` | MultiCounterStrategy | Choice |  |  | valg: 100001 - BIO 6 Mon or 166 Counter Days, 100002 - BIO 12 Mon or 166 Counter Days, 100003 - BIO 12 Mon or 208 Counter Days, 100004 - BIO 12 Mon or 250 Counter Days, 100005 - BIO 12 Mon or 333 Counter Days, 100006 - BIO 12 Mon or 354 Counter Days |
 | `Cycle` | Cycle | Number | x |  |  |
 | `Unit` | Unit | Choice | x |  | valg: H, DAY, WK, MON, YR |
@@ -381,6 +438,16 @@ Udtrukket 2026-09-20 21:41 fra https://orsted.sharepoint.com/teams/BioSAPDev
 | `InitialEmailSent` | InitialEmailSent | Boolean |  |  |  |
 | `SAPNum` | SAPNum | Text |  |  |  |
 | `StrategyKey` | StrategyKey | Text |  | x |  |
+| `ApprovalStage` | ApprovalStage | Choice |  | x | valg: System, Cost, Quality, Done |
+| `SubmittedOn` | SubmittedOn | DateTime |  |  |  |
+| `StageRunId` | StageRunId | Text |  |  |  |
+| `ReturnComment` | ReturnComment | Note |  |  |  |
+| `MasterDataNotified` | MasterDataNotified | Boolean |  |  |  |
+| `RequesterNotified` | RequesterNotified | Boolean |  |  |  |
+| `SapOrderGuid` | SapOrderGuid | Text |  | x |  |
+| `SapOrderFile` | SapOrderFile | Text |  |  |  |
+| `SapCreatedOn` | SapCreatedOn | DateTime |  |  |  |
+| `SapCreatedBy` | SapCreatedBy | Text |  |  |  |
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
@@ -400,7 +467,7 @@ Udtrukket 2026-09-20 21:41 fra https://orsted.sharepoint.com/teams/BioSAPDev
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `MaterialItems`  -  0 raekker
+## `MaterialItems`  -  5 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -430,13 +497,96 @@ Udtrukket 2026-09-20 21:41 fra https://orsted.sharepoint.com/teams/BioSAPDev
 | `StrategicPart` | StrategicPart | Text |  |  |  |
 | `WearPart` | WearPart | Text |  |  |  |
 | `LongText` | LongText | Note |  |  |  |
+| `NoBomItem` | NoBomItem | Boolean |  |  |  |
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `MD_RequestIndex`  -  25 raekker
+## `MD_ApprovalLog`  -  19 raekker
+
+| Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
+|---|---|---|:-:|:-:|---|
+| `Title` | Title | Text |  |  |  |
+| `RequestGuid` | RequestGuid | Text |  | x |  |
+| `PlanId` | PlanId | Number |  | x |  |
+| `Stage` | Stage | Text |  | x |  |
+| `ItemGuid` | ItemGuid | Text |  | x |  |
+| `ItemText` | ItemText | Text |  |  |  |
+| `Fingerprint` | Fingerprint | Text |  |  |  |
+| `Amount` | Amount | Number |  |  |  |
+| `Decision` | Decision | Text |  |  |  |
+| `Detail` | Detail | Text |  |  |  |
+| `DecidedByEmail` | DecidedByEmail | Text |  |  |  |
+| `DecidedOn` | DecidedOn | DateTime |  |  |  |
+| `Comment` | Comment | Note |  |  |  |
+| `ID` | ID | Counter |  |  | skrivebeskyttet |
+| `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
+| `Created` | Created | DateTime |  |  | skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+
+## `MD_Approver`  -  25 raekker
+
+| Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
+|---|---|---|:-:|:-:|---|
+| `Title` | **ApproverKey** | Text | x | x |  |
+| `Approver1` | Approver1 | Text |  |  |  |
+| `Approver2` | Approver2 | Text |  |  |  |
+| `Approver1Absent` | Approver1Absent | Boolean |  |  |  |
+| `Notes` | Notes | Text |  |  |  |
+| `ID` | ID | Counter |  |  | skrivebeskyttet |
+| `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
+| `Created` | Created | DateTime |  |  | skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+
+## `MD_FLKey`  -  6733 raekker
+
+| Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
+|---|---|---|:-:|:-:|---|
+| `Title` | **KeyValue** | Text | x | x |  |
+| `KeyType` | KeyType | Text | x | x |  |
+| `Value` | Value | Text |  |  |  |
+| `Description` | Description | Text |  |  |  |
+| `Modified` | Modified | DateTime |  | x | skrivebeskyttet |
+| `ID` | ID | Counter |  |  | skrivebeskyttet |
+| `Created` | Created | DateTime |  |  | skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+
+## `MD_HelpText`  -  36 raekker
+
+| Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
+|---|---|---|:-:|:-:|---|
+| `Title` | **HelpKey** | Text | x | x |  |
+| `AppArea` | AppArea | Choice | x | x | valg: FunctionalLocation, Equipment, MeasuringPoint, Material, MaintenancePlan |
+| `Kind` | Kind | Choice | x |  | valg: Hint, Panel |
+| `Heading` | Heading | Text |  |  |  |
+| `Body` | Body | Note | x |  |  |
+| `SortOrder` | SortOrder | Number |  |  |  |
+| `ID` | ID | Counter |  |  | skrivebeskyttet |
+| `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
+| `Created` | Created | DateTime |  |  | skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+
+## `MD_KksFunctionKey`  -  2913 raekker
+
+| Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
+|---|---|---|:-:|:-:|---|
+| `Title` | **Code** | Text | x | x |  |
+| `Section` | Section | Text | x | x |  |
+| `SortNo` | SortNo | Number | x | x |  |
+| `Description` | Description | Note |  |  |  |
+| `Modified` | Modified | DateTime |  | x | skrivebeskyttet |
+| `ID` | ID | Counter |  |  | skrivebeskyttet |
+| `Created` | Created | DateTime |  |  | skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+
+## `MD_RequestIndex`  -  37 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -553,7 +703,7 @@ Udtrukket 2026-09-20 21:41 fra https://orsted.sharepoint.com/teams/BioSAPDev
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `MD_TasklistMaterial`  -  6 raekker
+## `MD_TasklistMaterial`  -  7 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -716,7 +866,7 @@ Udtrukket 2026-09-20 21:41 fra https://orsted.sharepoint.com/teams/BioSAPDev
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `TaskListMain`  -  324 raekker
+## `TaskListMain`  -  357 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -732,7 +882,7 @@ Udtrukket 2026-09-20 21:41 fra https://orsted.sharepoint.com/teams/BioSAPDev
 | `PlantInitial` | PlantInitial | Text |  |  |  |
 | `TaskItemID` | TaskItemID | Text |  |  |  |
 | `StandardTaskItemID` | StandardTaskItemID | Number |  |  |  |
-| `MaintenancePlanID` | MaintenancePlanID | Lookup |  |  | opslag -> 55c96ba9-52b8-4018-8945-f736b001d6a2 (PlanID) |
+| `MaintenancePlanID` | MaintenancePlanID | Lookup |  | x | opslag -> 55c96ba9-52b8-4018-8945-f736b001d6a2 (PlanID) |
 | `VendorID` | VendorID | Number |  |  |  |
 | `Ctrl` | Ctrl | Text |  |  |  |
 | `Materials` | Materials | Note |  |  |  |

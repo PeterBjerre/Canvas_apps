@@ -170,7 +170,13 @@ function Add-Choice {
         Write-Host "    ! $Name findes ikke paa $List" -ForegroundColor Yellow
         return
     }
-    $current = [string[]]$f.Choices
+    # Get-PnPField henter ikke .Choices - kun SchemaXml. Det gav en tom liste, og
+    # Set-PnPField erstattede alle valg med det ene nye.
+    $current = [string[]]@(([xml]$f.SchemaXml).Field.CHOICES.CHOICE)
+    if (-not $current) {
+        Write-Host "    ! kan ikke laese valgene paa $Name - roerer dem ikke" -ForegroundColor Yellow
+        return
+    }
     if ($current -contains $Choice) {
         Write-Host "    = $Name har allerede '$Choice'" -ForegroundColor DarkGray
         return
@@ -181,6 +187,30 @@ function Add-Choice {
     }
     Set-PnPField -List $List -Identity $Name -Values @{ Choices = [string[]]($current + $Choice) }
     Write-Host "    + $Name faar valget '$Choice'" -ForegroundColor Green
+}
+
+function Set-ChoiceOrder {
+    # Sikrer, at alle oenskede valg findes i den raekkefoelge. Andre valg, der er der, beholdes efter dem.
+    # Retter ogsaa en kolonne, hvor en tidligere koersel har slettet valgene.
+    param([string]$List, [string]$Name, [string[]]$Wanted)
+    $f = Get-PnPField -List $List -Identity $Name -ErrorAction SilentlyContinue
+    if (-not $f) {
+        Write-Host "    ! $Name findes ikke paa $List" -ForegroundColor Yellow
+        return
+    }
+    $current = [string[]]@(([xml]$f.SchemaXml).Field.CHOICES.CHOICE)
+    $missing = @($Wanted | Where-Object { $current -notcontains $_ })
+    if (-not $missing) {
+        Write-Host "    = $Name har alle valg" -ForegroundColor DarkGray
+        return
+    }
+    $new = [string[]]($Wanted + @($current | Where-Object { $Wanted -notcontains $_ }))
+    if ($WhatIfOnly) {
+        Write-Host "    ? ville saette valgene paa ${Name}: $($new -join ', ')" -ForegroundColor Yellow
+        return
+    }
+    Set-PnPField -List $List -Identity $Name -Values @{ Choices = $new }
+    Write-Host "    + $Name har nu: $($new -join ', ')" -ForegroundColor Green
 }
 
 # ---------------------------------------------------------------------------
@@ -198,7 +228,7 @@ Add-Col $PLANS 'MasterDataNotified' Boolean `
     -Description 'Spaerre: mailen til Master Data er sendt. IKKE det samme som InitialEmailSent.'
 Add-Col $PLANS 'RequesterNotified' Boolean `
     -Description 'Spaerre: rekvirenten har faaet mailen ved Published.'
-Add-Choice $PLANS 'Status' $RETURNED
+Set-ChoiceOrder $PLANS 'Status' @('Draft', 'In Progress', 'Ready for creation in SAP', 'Published', $RETURNED)
 
 # ---------------------------------------------------------------------------
 Write-Host "`n=== $ITEMS ===" -ForegroundColor Cyan
@@ -294,7 +324,7 @@ Write-Host "`n=== $SETTINGS ===" -ForegroundColor Cyan
 # ---------------------------------------------------------------------------
 # Option er en Choice-kolonne, saa vaerdien skal findes som valg, foer
 # raekken kan skrives.
-Add-Choice $SETTINGS 'Option' $THRESHOLD_OPTION
+Set-ChoiceOrder $SETTINGS 'Option' @('RunningNoPlan', 'PowerApps', 'RunningNoItem', 'RunningNoTask', $THRESHOLD_OPTION)
 if ($WhatIfOnly) {
     Write-Host "  ? ville saette $THRESHOLD_OPTION = $THRESHOLD_VALUE for $Environment" -ForegroundColor Yellow
 } else {
