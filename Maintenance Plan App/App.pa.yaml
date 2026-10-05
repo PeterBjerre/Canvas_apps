@@ -180,6 +180,10 @@ App:
           1
       );
 
+      // ADMIN. Genereret af tools/permissions.py - ret ikke her.
+      // Een delegerbar LookUp i admin-listen, laest dovent og kun een gang.
+      IsAdmin = !IsBlank(LookUp(UserAndGroups, Title = "Admin" && Member = Lower(User().Email)));
+
       // Hjaelpetekster. En manglende raekke = ingen tekst, ikke en fejl.
       colVhpHelp = ForAll(Filter(MD_HelpText, AppArea.Value = "MaintenancePlan") As R, { Key: R.HelpKey, Kind: R.Kind.Value, Heading: Coalesce(R.Heading, ""), Body: Coalesce(R.Body, ""), Ord: Coalesce(R.SortOrder, 0) });
 
@@ -359,6 +363,8 @@ App:
       If(false, ClearCollect(colVhpSavedOps, { LocalItemId: 0, OpNo: "", SpId: 0, TaskKey: "" }));
 
       If(false, ClearCollect(colVhpSpItems, { ID: 0, ItemID: "" }));
+
+      If(false, ClearCollect(colVhpAdmOld, { ID: 0, ItemID: "", Title: "", ItemDescription: "", FunctionalLocation: "", ObjectList: "" }));
 
       If(false, ClearCollect(colVhpSpOps, { ID: 0, TaskItemID: "" }));
 
@@ -560,7 +566,7 @@ App:
                       Set(varVhpRequestGuid, idx.RequestGuid);
                       Set(varVhpPlanCommitted, true);
                       Set(varVhpPlanLocked, true);
-                      Set(varVhpCanEdit, Lower(Coalesce(idx.RequesterEmail, "")) = varVhpMe && idx.Status.Value = "Kladde");
+                      Set(varVhpCanEdit, ((Lower(Coalesce(idx.RequesterEmail, "")) = varVhpMe && (idx.Status.Value = "Kladde")) || (IsAdmin && (idx.Status.Value = "Kladde" || idx.Status.Value = "AfventerInfo"))));
                       Set(varVhpViewOnly, !(Lower(Coalesce(Param("mode"), "")) = "edit" && varVhpCanEdit));
 
                       // --- de fem hentninger, PAA EEN GANG -------------

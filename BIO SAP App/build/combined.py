@@ -113,6 +113,13 @@ def loading_var(tag):
     return f"var{tag}Loading"
 
 
+def stale_var(tag):
+    """Sand, naar hubben har slettet noget, domaeneskaermen viser i sin
+    liste. Skaermen henter saa sine raekker igen ved naeste besoeg - og
+    kun da (build_screens.build_domain_app)."""
+    return f"gbl{tag}Stale"
+
+
 def reqid_var(tag):
     """Den anmodning, der skal hentes. Erstatter Param("reqid") i
     domaenets egen kode - i een app er Param() det samme for alle skaerme

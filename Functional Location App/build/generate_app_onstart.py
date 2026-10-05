@@ -30,6 +30,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), "tools")
 import app_yaml
 import design_tokens as tok
 import layout_tokens as lay
+import permissions as perm
 import fl_config as cfg
 from fl_validation import CALC_SCHEMA
 
@@ -83,7 +84,7 @@ def _function_keys():
 
 
 def formulas_block():
-    parts = [tok.formula(), lay.formula()]
+    parts = [tok.formula(), lay.formula(), perm.formula()]
     parts.append(_table(
         "colFlPlan", R["plan"],
         ["Cls", "Ord", "Rule", "Field", "Label", "Chk", "Num", "List", "Msg"],
@@ -153,6 +154,10 @@ COLLECTIONS = [
     ("colFlTabs", {"Key": '""', "Label": '""'}),
     # Gem: raekkerne i SharePoint paa RowGuid, og hvad der fejlede.
     ("colFlSp", {"RowGuid": '""', "ID": "0"}),
+    # Raekkerne, som de stod foer en ADMINS gemning af en andens anmodning -
+    # kun hentet dér, til admin-loggen (tools/admin_log.py).
+    ("colFlAdmOld", {"RowGuid": '""', "RowNo": "0", "FL": '""', "Description": '""',
+                     "KksType": '""', "AssignedClass": '""'}),
     ("colFlSaveErrors", {"Where": '""', "Msg": '""'}),
     # Dyblink: raekkerne, som de blev hentet.
     ("colFlLoad", dict(ROW_BASE, Json='""')),

@@ -8,7 +8,8 @@ Screens:
           If(IsBlank(varMdView), Set(varMdView, "mine"));
           If(IsBlank(varMdStatusMode), Set(varMdStatusMode, "open"));
           If(IsBlank(varMdFlag), Set(varMdFlag, ""));
-          ClearCollect(colMdScope, ForAll(If(
+          Concurrent(
+              ClearCollect(colMdScope, ForAll(If(
                   varMdView = "mine",
                   If(
                       varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
@@ -20,7 +21,9 @@ Screens:
                       varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
                       'MD_RequestIndex'
                   )
-              ) As R, { Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
+              ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe })),
+              ClearCollect(colMdAprAll, SortByColumns(Filter(MD_ApprovalLog, Stage = "System" || Stage = "Cost" || Stage = "Quality"), "ID", SortOrder.Descending))
+          )
     Children:
       - conMdRoot:
           Control: GroupContainer
@@ -280,7 +283,7 @@ Screens:
                                               varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
                                               'MD_RequestIndex'
                                           )
-                                      ) As R, { Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
+                                      ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
                               RadiusBottomLeft: |-
                                   =10
                               RadiusBottomRight: |-
@@ -340,7 +343,7 @@ Screens:
                                               varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
                                               'MD_RequestIndex'
                                           )
-                                      ) As R, { Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
+                                      ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
                               RadiusBottomLeft: |-
                                   =10
                               RadiusBottomRight: |-
@@ -984,7 +987,7 @@ Screens:
                                               varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
                                               'MD_RequestIndex'
                                           )
-                                      ) As R, { Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
+                                      ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
                               RadiusBottomLeft: |-
                                   =10
                               RadiusBottomRight: |-
@@ -1143,7 +1146,7 @@ Screens:
                                                     varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
                                                     'MD_RequestIndex'
                                                 )
-                                            ) As R, { Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
+                                            ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
                                     RadiusBottomLeft: |-
                                         =10
                                     RadiusBottomRight: |-
@@ -1205,7 +1208,7 @@ Screens:
                                                     varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
                                                     'MD_RequestIndex'
                                                 )
-                                            ) As R, { Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
+                                            ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
                                     RadiusBottomLeft: |-
                                         =10
                                     RadiusBottomRight: |-
@@ -1320,7 +1323,7 @@ Screens:
                                                     varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
                                                     'MD_RequestIndex'
                                                 )
-                                            ) As R, { Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
+                                            ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
                                     RadiusBottomLeft: |-
                                         =10
                                     RadiusBottomRight: |-
@@ -1383,7 +1386,7 @@ Screens:
                                                     varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
                                                     'MD_RequestIndex'
                                                 )
-                                            ) As R, { Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
+                                            ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
                                     RadiusBottomLeft: |-
                                         =10
                                     RadiusBottomRight: |-
@@ -1446,7 +1449,7 @@ Screens:
                                                     varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
                                                     'MD_RequestIndex'
                                                 )
-                                            ) As R, { Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
+                                            ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
                                     RadiusBottomLeft: |-
                                         =10
                                     RadiusBottomRight: |-
@@ -1534,7 +1537,7 @@ Screens:
                                                     varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
                                                     'MD_RequestIndex'
                                                 )
-                                            ) As R, { Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
+                                            ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
                                     RadiusBottomLeft: |-
                                         =10
                                     RadiusBottomRight: |-
@@ -1594,7 +1597,7 @@ Screens:
                                                     varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
                                                     'MD_RequestIndex'
                                                 )
-                                            ) As R, { Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
+                                            ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
                                     RadiusBottomLeft: |-
                                         =10
                                     RadiusBottomRight: |-
@@ -1729,7 +1732,7 @@ Screens:
                                                     varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
                                                     'MD_RequestIndex'
                                                 )
-                                            ) As R, { Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
+                                            ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
                                     RadiusBottomLeft: |-
                                         =10
                                     RadiusBottomRight: |-
@@ -2631,7 +2634,7 @@ Screens:
                                         ="data:image/svg+xml;utf8," & EncodeUrl(If(
                                             !(ThisItem.Domain.Value = "MaintenancePlan" && ThisItem.Status.Value <> "Kladde"), "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='30' viewBox='0 0 270 30'><text x='4' y='19' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>Not required</text></svg>",
                                             With(
-                                                { L: Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid) },
+                                                { L: With({ c: Filter(colMdAprAll, RequestGuid = ThisItem.RequestGuid) }, If(IsEmpty(c) && CountRows(colMdAprAll) >= 500, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid), c)) },
                                                 With({a: With({T: ForAll(GroupBy(Filter(L, Stage = "System"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending)))}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
                                             r > 0, "Returned",
                                             n > 0 && n >= Max(1, ThisItem.ItemCount) && k = n, "Skipped",
@@ -2669,6 +2672,7 @@ Screens:
                                             "In progress", C.'hex-state-info-fg',
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
                                             C.'hex-text-muted'
                                         ) & "' fill='" & If(a = "Pending", "none", Switch(
                                             a,
@@ -2678,6 +2682,7 @@ Screens:
                                             "In progress", C.'hex-state-info-fg',
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
                                         "<text x='33' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
@@ -2688,6 +2693,7 @@ Screens:
                                             "In progress", C.'hex-state-info-fg',
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
                                             C.'hex-text-muted'
                                         ) & "'>System</text>" &
                                         "<circle cx='99' cy='23' r='4' stroke-width='1.5' stroke='" & Switch(
@@ -2698,6 +2704,7 @@ Screens:
                                             "In progress", C.'hex-state-info-fg',
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
                                             C.'hex-text-muted'
                                         ) & "' fill='" & If(b = "Pending", "none", Switch(
                                             b,
@@ -2707,6 +2714,7 @@ Screens:
                                             "In progress", C.'hex-state-info-fg',
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
                                         "<text x='99' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
@@ -2717,6 +2725,7 @@ Screens:
                                             "In progress", C.'hex-state-info-fg',
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
                                             C.'hex-text-muted'
                                         ) & "'>Cost</text>" &
                                         "<circle cx='165' cy='23' r='4' stroke-width='1.5' stroke='" & Switch(
@@ -2727,6 +2736,7 @@ Screens:
                                             "In progress", C.'hex-state-info-fg',
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
                                             C.'hex-text-muted'
                                         ) & "' fill='" & If(c = "Pending", "none", Switch(
                                             c,
@@ -2736,6 +2746,7 @@ Screens:
                                             "In progress", C.'hex-state-info-fg',
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
                                         "<text x='165' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
@@ -2746,6 +2757,7 @@ Screens:
                                             "In progress", C.'hex-state-info-fg',
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
                                             C.'hex-text-muted'
                                         ) & "'>Quality</text>" &
                                         "<circle cx='231' cy='23' r='4' stroke-width='1.5' stroke='" & Switch(
@@ -2756,6 +2768,7 @@ Screens:
                                             "In progress", C.'hex-state-info-fg',
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
                                             C.'hex-text-muted'
                                         ) & "' fill='" & If(d = "Pending", "none", Switch(
                                             d,
@@ -2765,6 +2778,7 @@ Screens:
                                             "In progress", C.'hex-state-info-fg',
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
                                         "<text x='231' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
@@ -2775,6 +2789,7 @@ Screens:
                                             "In progress", C.'hex-state-info-fg',
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
                                             C.'hex-text-muted'
                                         ) & "'>SAP</text>" &
                                         "</svg>"))))
@@ -3259,7 +3274,7 @@ Screens:
                                         ="data:image/svg+xml;utf8," & EncodeUrl(If(
                                             !(ThisItem.Domain.Value = "MaintenancePlan" && ThisItem.Status.Value <> "Kladde"), "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='30' viewBox='0 0 270 30'><text x='4' y='19' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>Not required</text></svg>",
                                             With(
-                                                { L: Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid) },
+                                                { L: With({ c: Filter(colMdAprAll, RequestGuid = ThisItem.RequestGuid) }, If(IsEmpty(c) && CountRows(colMdAprAll) >= 500, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid), c)) },
                                                 With({a: With({T: ForAll(GroupBy(Filter(L, Stage = "System"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending)))}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
                                             r > 0, "Returned",
                                             n > 0 && n >= Max(1, ThisItem.ItemCount) && k = n, "Skipped",
@@ -3297,6 +3312,7 @@ Screens:
                                             "In progress", C.'hex-state-info-fg',
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
                                             C.'hex-text-muted'
                                         ) & "' fill='" & If(a = "Pending", "none", Switch(
                                             a,
@@ -3306,6 +3322,7 @@ Screens:
                                             "In progress", C.'hex-state-info-fg',
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
                                         "<text x='33' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
@@ -3316,6 +3333,7 @@ Screens:
                                             "In progress", C.'hex-state-info-fg',
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
                                             C.'hex-text-muted'
                                         ) & "'>System</text>" &
                                         "<circle cx='99' cy='23' r='4' stroke-width='1.5' stroke='" & Switch(
@@ -3326,6 +3344,7 @@ Screens:
                                             "In progress", C.'hex-state-info-fg',
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
                                             C.'hex-text-muted'
                                         ) & "' fill='" & If(b = "Pending", "none", Switch(
                                             b,
@@ -3335,6 +3354,7 @@ Screens:
                                             "In progress", C.'hex-state-info-fg',
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
                                         "<text x='99' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
@@ -3345,6 +3365,7 @@ Screens:
                                             "In progress", C.'hex-state-info-fg',
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
                                             C.'hex-text-muted'
                                         ) & "'>Cost</text>" &
                                         "<circle cx='165' cy='23' r='4' stroke-width='1.5' stroke='" & Switch(
@@ -3355,6 +3376,7 @@ Screens:
                                             "In progress", C.'hex-state-info-fg',
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
                                             C.'hex-text-muted'
                                         ) & "' fill='" & If(c = "Pending", "none", Switch(
                                             c,
@@ -3364,6 +3386,7 @@ Screens:
                                             "In progress", C.'hex-state-info-fg',
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
                                         "<text x='165' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
@@ -3374,6 +3397,7 @@ Screens:
                                             "In progress", C.'hex-state-info-fg',
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
                                             C.'hex-text-muted'
                                         ) & "'>Quality</text>" &
                                         "<circle cx='231' cy='23' r='4' stroke-width='1.5' stroke='" & Switch(
@@ -3384,6 +3408,7 @@ Screens:
                                             "In progress", C.'hex-state-info-fg',
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
                                             C.'hex-text-muted'
                                         ) & "' fill='" & If(d = "Pending", "none", Switch(
                                             d,
@@ -3393,6 +3418,7 @@ Screens:
                                             "In progress", C.'hex-state-info-fg',
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
                                         "<text x='231' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
@@ -3403,6 +3429,7 @@ Screens:
                                             "In progress", C.'hex-state-info-fg',
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
                                             C.'hex-text-muted'
                                         ) & "'>SAP</text>" &
                                         "</svg>"))))
@@ -3590,13 +3617,13 @@ Screens:
                                         Set(varMdAprS4, Switch(varMdAprReq.Status.Value, "OprettetISAP", "Done", "KlarTilSAP", "In progress", "Pending"));
                                         Set(varMdAprCur, If(varMdAprS1 = "In progress" || varMdAprS1 = "Returned", "System", varMdAprS2 = "In progress" || varMdAprS2 = "Returned", "Cost", varMdAprS3 = "In progress" || varMdAprS3 = "Returned", "Quality", varMdAprS4 = "In progress", "SAP", ""));
                                         ClearCollect(colMdAprRows, { Kind: "H", Stage: "System", Title: "System approval", State: varMdAprS1, Label: varMdAprS1, Rule: "One approver per item - " & Max(1, varMdAprReq.ItemCount) & If(Max(1, varMdAprReq.ItemCount) = 1, " item", " items in parallel") & ", all must pass", Cur: varMdAprCur = "System", Sub: "" });
-                                        Collect(colMdAprRows, ForAll(SortByColumns(Filter(colMdAprLatest, Stage = "System"), "DecidedOn"), { Kind: "D", Stage: "System", Title: Upper(First(Split(Coalesce(DecidedByEmail, "unknown@"), "@")).Value) & If(!IsBlank(ItemText), "  ·  " & ItemText, ""), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Returned"), Label: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Returned"), Rule: "", Cur: false, Sub: Text(DecidedOn, "dd-mm-yyyy hh:mm") & If(!IsBlank(Comment), "  ·  " & Substitute(Comment, Char(10), " "), If(!IsBlank(Detail), "  ·  " & Detail, "")) }));
+                                        Collect(colMdAprRows, ForAll(SortByColumns(Filter(colMdAprLatest, Stage = "System"), "DecidedOn"), { Kind: "D", Stage: "System", Title: Upper(First(Split(Coalesce(DecidedByEmail, "unknown@"), "@")).Value) & If(!IsBlank(ItemText), "  ·  " & ItemText, ""), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned"), Label: Switch(Decision, "AdminEdit", "Admin edit", "AdminDelete", "Admin delete", Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned")), Rule: "", Cur: false, Sub: Text(DecidedOn, "dd-mm-yyyy hh:mm") & If(!IsBlank(Comment), "  ·  " & Substitute(Comment, Char(10), " "), If(!IsBlank(Detail), "  ·  " & Detail, "")) }));
                                         If(varMdAprS1 = "In progress" && CountRows(Filter(colMdAprLatest, Stage = "System")) < Max(1, varMdAprReq.ItemCount), Collect(colMdAprRows, { Kind: "D", Stage: "System", Title: "System manager of each item", State: "Pending", Label: "Awaiting", Rule: "", Cur: false, Sub: (Max(1, varMdAprReq.ItemCount) - CountRows(Filter(colMdAprLatest, Stage = "System"))) & " of " & Max(1, varMdAprReq.ItemCount) & " awaiting a decision" }));
                                         Collect(colMdAprRows, { Kind: "H", Stage: "Cost", Title: "Cost approval", State: varMdAprS2, Label: varMdAprS2, Rule: "One approver per item - items under the threshold are skipped, all must pass", Cur: varMdAprCur = "Cost", Sub: "" });
-                                        Collect(colMdAprRows, ForAll(SortByColumns(Filter(colMdAprLatest, Stage = "Cost"), "DecidedOn"), { Kind: "D", Stage: "Cost", Title: Upper(First(Split(Coalesce(DecidedByEmail, "unknown@"), "@")).Value) & If(!IsBlank(ItemText), "  ·  " & ItemText, ""), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Returned"), Label: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Returned"), Rule: "", Cur: false, Sub: Text(DecidedOn, "dd-mm-yyyy hh:mm") & If(!IsBlank(Comment), "  ·  " & Substitute(Comment, Char(10), " "), If(!IsBlank(Detail), "  ·  " & Detail, "")) }));
+                                        Collect(colMdAprRows, ForAll(SortByColumns(Filter(colMdAprLatest, Stage = "Cost"), "DecidedOn"), { Kind: "D", Stage: "Cost", Title: Upper(First(Split(Coalesce(DecidedByEmail, "unknown@"), "@")).Value) & If(!IsBlank(ItemText), "  ·  " & ItemText, ""), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned"), Label: Switch(Decision, "AdminEdit", "Admin edit", "AdminDelete", "Admin delete", Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned")), Rule: "", Cur: false, Sub: Text(DecidedOn, "dd-mm-yyyy hh:mm") & If(!IsBlank(Comment), "  ·  " & Substitute(Comment, Char(10), " "), If(!IsBlank(Detail), "  ·  " & Detail, "")) }));
                                         If(varMdAprS2 = "In progress" && CountRows(Filter(colMdAprLatest, Stage = "Cost")) < Max(1, varMdAprReq.ItemCount), Collect(colMdAprRows, { Kind: "D", Stage: "Cost", Title: With({a: LookUp(MD_Approver, ApproverKey = "COST")}, If(IsBlank(a), "Approver not set", Upper(If(a.Approver1Absent, a.Approver2, a.Approver1)))), State: "Pending", Label: "Awaiting", Rule: "", Cur: false, Sub: With({a: LookUp(MD_Approver, ApproverKey = "COST")}, If(IsBlank(a), "No row in MD_Approver for " & "COST", If(a.Approver1Absent, "2nd approver - 1st approver absent", "1st approver"))) }));
                                         Collect(colMdAprRows, { Kind: "H", Stage: "Quality", Title: "Quality review", State: varMdAprS3, Label: varMdAprS3, Rule: "One approver for the whole plan - the plant", Cur: varMdAprCur = "Quality", Sub: "" });
-                                        Collect(colMdAprRows, ForAll(SortByColumns(Filter(colMdAprLatest, Stage = "Quality"), "DecidedOn"), { Kind: "D", Stage: "Quality", Title: Upper(First(Split(Coalesce(DecidedByEmail, "unknown@"), "@")).Value), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Returned"), Label: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Returned"), Rule: "", Cur: false, Sub: Text(DecidedOn, "dd-mm-yyyy hh:mm") & If(!IsBlank(Comment), "  ·  " & Substitute(Comment, Char(10), " "), If(!IsBlank(Detail), "  ·  " & Detail, "")) }));
+                                        Collect(colMdAprRows, ForAll(SortByColumns(Filter(colMdAprLatest, Stage = "Quality"), "DecidedOn"), { Kind: "D", Stage: "Quality", Title: Upper(First(Split(Coalesce(DecidedByEmail, "unknown@"), "@")).Value), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned"), Label: Switch(Decision, "AdminEdit", "Admin edit", "AdminDelete", "Admin delete", Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned")), Rule: "", Cur: false, Sub: Text(DecidedOn, "dd-mm-yyyy hh:mm") & If(!IsBlank(Comment), "  ·  " & Substitute(Comment, Char(10), " "), If(!IsBlank(Detail), "  ·  " & Detail, "")) }));
                                         If(varMdAprS3 = "In progress" && CountRows(Filter(colMdAprLatest, Stage = "Quality")) < 1, Collect(colMdAprRows, { Kind: "D", Stage: "Quality", Title: With({a: LookUp(MD_Approver, ApproverKey = Upper(Left(varMdAprReq.Plant, 3)))}, If(IsBlank(a), "Approver not set", Upper(If(a.Approver1Absent, a.Approver2, a.Approver1)))), State: "Pending", Label: "Awaiting", Rule: "", Cur: false, Sub: With({a: LookUp(MD_Approver, ApproverKey = Upper(Left(varMdAprReq.Plant, 3)))}, If(IsBlank(a), "No row in MD_Approver for " & Upper(Left(varMdAprReq.Plant, 3)), If(a.Approver1Absent, "2nd approver - 1st approver absent", "1st approver"))) }));
                                         Collect(colMdAprRows, { Kind: "H", Stage: "SAP", Title: "Creation in SAP", State: varMdAprS4, Label: varMdAprS4, Rule: "Master Data creates the plan - no approval", Cur: varMdAprCur = "SAP", Sub: "" });
                                         If(varMdAprS4 <> "Pending", Collect(colMdAprRows, { Kind: "D", Stage: "SAP", Title: "Master Data", State: varMdAprS4, Label: If(varMdAprS4 = "Done", "Created", "Awaiting"), Rule: "", Cur: false, Sub: If(varMdAprS4 = "Done", "SAP " & varMdAprReq.SapObjectNo, "Ready - waiting for creation in SAP") }));
@@ -3706,9 +3733,9 @@ Screens:
                                         Set(varMdAprMode, "T");
                                         Set(varMdAprOpen, true);
                                         Set(varMdAprReq, ThisItem);
-                                        If(ThisItem.Domain.Value = "MaintenancePlan", ClearCollect(colMdAprLog, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid)), Clear(colMdAprLog));
+                                        ClearCollect(colMdAprLog, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid));
                                         ClearCollect(colMdAprRows, { Kind: "D", Stage: "T", Title: "Created by " & Upper(First(Split(Coalesce(varMdAprReq.RequesterEmail, "unknown@"), "@")).Value), State: "Done", Label: "Created", Rule: "", Cur: false, Sub: Text(varMdAprReq.Created, "dd-mm-yyyy hh:mm") });
-                                        Collect(colMdAprRows, ForAll(SortByColumns(colMdAprLog, "DecidedOn"), { Kind: "D", Stage: "T", Title: Stage & "  ·  " & Upper(First(Split(Coalesce(DecidedByEmail, "unknown@"), "@")).Value) & If(!IsBlank(ItemText), "  ·  " & ItemText, ""), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Returned"), Label: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "Returned"), Rule: "", Cur: false, Sub: Text(DecidedOn, "dd-mm-yyyy hh:mm") & If(!IsBlank(Comment), "  ·  " & Substitute(Comment, Char(10), " "), If(!IsBlank(Detail), "  ·  " & Detail, "")) }));
+                                        Collect(colMdAprRows, ForAll(SortByColumns(colMdAprLog, "DecidedOn"), { Kind: "D", Stage: "T", Title: Stage & "  ·  " & Upper(First(Split(Coalesce(DecidedByEmail, "unknown@"), "@")).Value) & If(!IsBlank(ItemText), "  ·  " & ItemText, ""), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned"), Label: Switch(Decision, "AdminEdit", "Admin edit", "AdminDelete", "Admin delete", Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned")), Rule: "", Cur: false, Sub: Text(DecidedOn, "dd-mm-yyyy hh:mm") & If(!IsBlank(Comment), "  ·  " & Substitute(Comment, Char(10), " "), If(!IsBlank(Detail), "  ·  " & Detail, "")) }));
                                         If(!IsBlank(varMdAprReq.SapObjectNo), Collect(colMdAprRows, { Kind: "D", Stage: "T", Title: "SAP " & varMdAprReq.SapObjectNo, State: "Done", Label: "Created", Rule: "", Cur: false, Sub: "Created in SAP" }));
                                         If(varMdAprReq.IsOpen && !IsBlank(varMdAprReq.AssignedToEmail), Collect(colMdAprRows, { Kind: "D", Stage: "T", Title: Upper(First(Split(Coalesce(varMdAprReq.AssignedToEmail, "unknown@"), "@")).Value), State: "In progress", Label: "Waiting", Rule: "", Cur: false, Sub: "Assigned to" }));
                                         Collect(colMdAprRows, { Kind: "D", Stage: "T", Title: "Status: " & varMdAprReq.Status.Value, State: If(varMdAprReq.IsOpen, "In progress", "Done"), Label: If(varMdAprReq.IsOpen, "Open", "Closed"), Rule: "", Cur: false, Sub: "Last change " & Text(varMdAprReq.LastActionOn, "dd-mm-yyyy hh:mm") & If(!IsBlank(varMdAprReq.LastActionBy), " by " & varMdAprReq.LastActionBy, "") });
@@ -3782,7 +3809,7 @@ Screens:
                                     TabIndex: |-
                                         =0
                                     Visible: |-
-                                        =LayoutRank >= 4 && (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe)
+                                        =LayoutRank >= 4 && (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo")))
                                     Width: |-
                                         =28
                                     X: |-
@@ -3820,7 +3847,7 @@ Screens:
                                     TabIndex: |-
                                         =0
                                     Visible: |-
-                                        =LayoutRank >= 4 && (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe)
+                                        =LayoutRank >= 4 && (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo")))
                                     Width: |-
                                         =28
                                     X: |-
@@ -3884,7 +3911,7 @@ Screens:
                                     TabIndex: |-
                                         =0
                                     Visible: |-
-                                        =LayoutRank >= 3 && LayoutRank < 4 && (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe)
+                                        =LayoutRank >= 3 && LayoutRank < 4 && (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo")))
                                     Width: |-
                                         =28
                                     X: |-
@@ -3922,7 +3949,7 @@ Screens:
                                     TabIndex: |-
                                         =0
                                     Visible: |-
-                                        =LayoutRank >= 3 && LayoutRank < 4 && (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe)
+                                        =LayoutRank >= 3 && LayoutRank < 4 && (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe || (IsAdmin && (ThisItem.Status.Value = "Kladde" || ThisItem.Status.Value = "AfventerInfo")))
                                     Width: |-
                                         =28
                                     X: |-
@@ -5518,26 +5545,199 @@ Screens:
                             =ButtonLayout.IconBefore
                         OnSelect: |-
                             =Set(varMdDeleteOpen, false);
-                            IfError(
-                                Remove('MD_RequestIndex', LookUp('MD_RequestIndex', ID = varMdDelItem.ID));
-                                Notify("Request deleted.", NotificationType.Success);
-                                true,
-                                Notify("The request could not be deleted.", NotificationType.Error);
-                                false
-                            );
-                            ClearCollect(colMdScope, ForAll(If(
-                                    varMdView = "mine",
-                                    If(
-                                        varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
-                                        varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
-                                        Filter('MD_RequestIndex', RequesterEmail = varMdMe)
-                                    ),
-                                    If(
-                                        varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
-                                        varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
-                                        'MD_RequestIndex'
-                                    )
-                                ) As R, { Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))
+                            Set(varMdDelIdx, LookUp('MD_RequestIndex', ID = varMdDelItem.ID));
+                            If(
+                                IsBlank(varMdDelIdx),
+                                Notify("This request no longer exists.", NotificationType.Warning);
+                                RemoveIf(colMdScope, Id = varMdDelItem.ID),
+                                !((Lower(Coalesce(varMdDelIdx.RequesterEmail, "")) = varMdMe && (varMdDelIdx.Status.Value = "Kladde")) || (IsAdmin && (varMdDelIdx.Status.Value = "Kladde" || varMdDelIdx.Status.Value = "AfventerInfo"))),
+                                If(IsAdmin, Notify("Only drafts and requests awaiting info can be deleted.", NotificationType.Warning), Notify("Only drafts can be deleted.", NotificationType.Warning)),
+                                Set(varMdDelGuid, varMdDelIdx.RequestGuid);
+                                Set(varMdDelSp, varMdDelIdx.SourceItemId);
+                                Set(varMdDelKey, varMdDelIdx.RequestNo);
+                                Set(varMdDelDomain, varMdDelIdx.Domain.Value);
+                                Switch(
+                                    varMdDelDomain,
+                                    "FunctionalLocation",
+                                        Remove(FunctionalLocationItems, Filter(FunctionalLocationItems, RequestGuid = varMdDelGuid));
+                                        If(
+                                            !IsEmpty(Errors(FunctionalLocationItems)),
+                                            Notify("The request could not be deleted: " & First(Errors(FunctionalLocationItems)).Message, NotificationType.Error),
+                                            Remove(FunctionalLocationRequests, Filter(FunctionalLocationRequests, RequestGuid = varMdDelGuid));
+                                            If(
+                                                !IsEmpty(Errors(FunctionalLocationRequests)),
+                                                Notify("The request could not be deleted: " & First(Errors(FunctionalLocationRequests)).Message, NotificationType.Error),
+                                                Remove(MD_RequestIndex, Filter(MD_RequestIndex, RequestGuid = varMdDelGuid));
+                                                If(
+                                                    !IsEmpty(Errors(MD_RequestIndex)),
+                                                    Notify("The request could not be deleted: " & First(Errors(MD_RequestIndex)).Message, NotificationType.Error),
+                                                    If(
+                                                        (IsAdmin && !(Lower(Coalesce(varMdDelIdx.RequesterEmail, "")) = varMdMe)),
+                                                        IfError(
+                                                            Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                                Title: varMdDelKey,
+                                                                RequestGuid: varMdDelGuid,
+                                                                Stage: "Admin",
+                                                                Decision: "AdminDelete",
+                                                                Detail: Left("Request deleted (" & varMdDelIdx.Status.Value & ", owner " & varMdDelIdx.RequesterEmail & ")", 255),
+                                                                Comment: "Request deleted (" & varMdDelIdx.Status.Value & ", owner " & varMdDelIdx.RequesterEmail & ")",
+                                                                DecidedByEmail: Lower(User().Email),
+                                                                DecidedOn: Now()
+                                                            });
+                                                            true,
+                                                            Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                            false
+                                                        )
+                                                    );
+                                                    RemoveIf(colMdScope, Id = varMdDelIdx.ID);
+                                                    Switch(
+                                                        varMdDelDomain,
+                                                        "FunctionalLocation", Set(gblFlStale, true),
+                                                        "MaintenancePlan", Set(gblVhpStale, true),
+                                                        "Equipment", Set(gblEqStale, true),
+                                                        "Material", Set(gblMatStale, true)
+                                                    );
+                                                    Notify("Request deleted.", NotificationType.Success)
+                                                )
+                                            )
+                                        ),
+                                    "MaintenancePlan",
+                                        If(!IsBlank(varMdDelKey), Remove(MD_TasklistMaterial, Filter(MD_TasklistMaterial, PlanKey = varMdDelKey)));
+                                        If(
+                                            !IsBlank(varMdDelKey) && !IsEmpty(Errors(MD_TasklistMaterial)),
+                                            Notify("The request could not be deleted: " & First(Errors(MD_TasklistMaterial)).Message, NotificationType.Error),
+                                            If(!IsBlank(varMdDelKey), Remove(MD_TasklistAttachment, Filter(MD_TasklistAttachment, PlanKey = varMdDelKey)));
+                                            If(
+                                                !IsBlank(varMdDelKey) && !IsEmpty(Errors(MD_TasklistAttachment)),
+                                                Notify("The request could not be deleted: " & First(Errors(MD_TasklistAttachment)).Message, NotificationType.Error),
+                                                If(!IsBlank(varMdDelSp), Remove(TaskListMain, Filter(TaskListMain, MaintenancePlanID.Id = varMdDelSp)));
+                                                If(
+                                                    !IsBlank(varMdDelSp) && !IsEmpty(Errors(TaskListMain)),
+                                                    Notify("The request could not be deleted: " & First(Errors(TaskListMain)).Message, NotificationType.Error),
+                                                    If(!IsBlank(varMdDelSp), Remove(MaintenanceItems, Filter(MaintenanceItems, MaintenancePlanNo.Id = varMdDelSp)));
+                                                    If(
+                                                        !IsBlank(varMdDelSp) && !IsEmpty(Errors(MaintenanceItems)),
+                                                        Notify("The request could not be deleted: " & First(Errors(MaintenanceItems)).Message, NotificationType.Error),
+                                                        If(!IsBlank(varMdDelSp), Remove(MaintenancePlans, Filter(MaintenancePlans, ID = varMdDelSp)));
+                                                        If(
+                                                            !IsBlank(varMdDelSp) && !IsEmpty(Errors(MaintenancePlans)),
+                                                            Notify("The request could not be deleted: " & First(Errors(MaintenancePlans)).Message, NotificationType.Error),
+                                                            Remove(MD_RequestIndex, Filter(MD_RequestIndex, RequestGuid = varMdDelGuid));
+                                                            If(
+                                                                !IsEmpty(Errors(MD_RequestIndex)),
+                                                                Notify("The request could not be deleted: " & First(Errors(MD_RequestIndex)).Message, NotificationType.Error),
+                                                                If(
+                                                                    (IsAdmin && !(Lower(Coalesce(varMdDelIdx.RequesterEmail, "")) = varMdMe)),
+                                                                    IfError(
+                                                                        Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                                            Title: varMdDelKey,
+                                                                            RequestGuid: varMdDelGuid,
+                                                                            Stage: "Admin",
+                                                                            Decision: "AdminDelete",
+                                                                            Detail: Left("Request deleted (" & varMdDelIdx.Status.Value & ", owner " & varMdDelIdx.RequesterEmail & ")", 255),
+                                                                            Comment: "Request deleted (" & varMdDelIdx.Status.Value & ", owner " & varMdDelIdx.RequesterEmail & ")",
+                                                                            DecidedByEmail: Lower(User().Email),
+                                                                            DecidedOn: Now()
+                                                                        });
+                                                                        true,
+                                                                        Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                                        false
+                                                                    )
+                                                                );
+                                                                RemoveIf(colMdScope, Id = varMdDelIdx.ID);
+                                                                Switch(
+                                                                    varMdDelDomain,
+                                                                    "FunctionalLocation", Set(gblFlStale, true),
+                                                                    "MaintenancePlan", Set(gblVhpStale, true),
+                                                                    "Equipment", Set(gblEqStale, true),
+                                                                    "Material", Set(gblMatStale, true)
+                                                                );
+                                                                Notify("Request deleted.", NotificationType.Success)
+                                                            )
+                                                        )
+                                                    )
+                                                )
+                                            )
+                                        ),
+                                    "Equipment",
+                                        Remove(EquipmentItems, Filter(EquipmentItems, RequestGuid = varMdDelGuid));
+                                        If(
+                                            !IsEmpty(Errors(EquipmentItems)),
+                                            Notify("The request could not be deleted: " & First(Errors(EquipmentItems)).Message, NotificationType.Error),
+                                            Remove(MD_RequestIndex, Filter(MD_RequestIndex, RequestGuid = varMdDelGuid));
+                                            If(
+                                                !IsEmpty(Errors(MD_RequestIndex)),
+                                                Notify("The request could not be deleted: " & First(Errors(MD_RequestIndex)).Message, NotificationType.Error),
+                                                If(
+                                                    (IsAdmin && !(Lower(Coalesce(varMdDelIdx.RequesterEmail, "")) = varMdMe)),
+                                                    IfError(
+                                                        Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                            Title: varMdDelKey,
+                                                            RequestGuid: varMdDelGuid,
+                                                            Stage: "Admin",
+                                                            Decision: "AdminDelete",
+                                                            Detail: Left("Request deleted (" & varMdDelIdx.Status.Value & ", owner " & varMdDelIdx.RequesterEmail & ")", 255),
+                                                            Comment: "Request deleted (" & varMdDelIdx.Status.Value & ", owner " & varMdDelIdx.RequesterEmail & ")",
+                                                            DecidedByEmail: Lower(User().Email),
+                                                            DecidedOn: Now()
+                                                        });
+                                                        true,
+                                                        Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                        false
+                                                    )
+                                                );
+                                                RemoveIf(colMdScope, Id = varMdDelIdx.ID);
+                                                Switch(
+                                                    varMdDelDomain,
+                                                    "FunctionalLocation", Set(gblFlStale, true),
+                                                    "MaintenancePlan", Set(gblVhpStale, true),
+                                                    "Equipment", Set(gblEqStale, true),
+                                                    "Material", Set(gblMatStale, true)
+                                                );
+                                                Notify("Request deleted.", NotificationType.Success)
+                                            )
+                                        ),
+                                    "Material",
+                                        Remove(MaterialItems, Filter(MaterialItems, RequestGuid = varMdDelGuid));
+                                        If(
+                                            !IsEmpty(Errors(MaterialItems)),
+                                            Notify("The request could not be deleted: " & First(Errors(MaterialItems)).Message, NotificationType.Error),
+                                            Remove(MD_RequestIndex, Filter(MD_RequestIndex, RequestGuid = varMdDelGuid));
+                                            If(
+                                                !IsEmpty(Errors(MD_RequestIndex)),
+                                                Notify("The request could not be deleted: " & First(Errors(MD_RequestIndex)).Message, NotificationType.Error),
+                                                If(
+                                                    (IsAdmin && !(Lower(Coalesce(varMdDelIdx.RequesterEmail, "")) = varMdMe)),
+                                                    IfError(
+                                                        Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                            Title: varMdDelKey,
+                                                            RequestGuid: varMdDelGuid,
+                                                            Stage: "Admin",
+                                                            Decision: "AdminDelete",
+                                                            Detail: Left("Request deleted (" & varMdDelIdx.Status.Value & ", owner " & varMdDelIdx.RequesterEmail & ")", 255),
+                                                            Comment: "Request deleted (" & varMdDelIdx.Status.Value & ", owner " & varMdDelIdx.RequesterEmail & ")",
+                                                            DecidedByEmail: Lower(User().Email),
+                                                            DecidedOn: Now()
+                                                        });
+                                                        true,
+                                                        Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                        false
+                                                    )
+                                                );
+                                                RemoveIf(colMdScope, Id = varMdDelIdx.ID);
+                                                Switch(
+                                                    varMdDelDomain,
+                                                    "FunctionalLocation", Set(gblFlStale, true),
+                                                    "MaintenancePlan", Set(gblVhpStale, true),
+                                                    "Equipment", Set(gblEqStale, true),
+                                                    "Material", Set(gblMatStale, true)
+                                                );
+                                                Notify("Request deleted.", NotificationType.Success)
+                                            )
+                                        ),
+                                    Notify("This kind of request cannot be deleted here.", NotificationType.Warning)
+                                )
+                            )
                         RadiusBottomLeft: |-
                             =10
                         RadiusBottomRight: |-
@@ -5961,6 +6161,7 @@ Screens:
                                       "In progress", C.'hex-state-info-fg',
                                       "Returned", C.'hex-state-warn-fg',
                                       "Pending", C.'hex-text-muted',
+                                      "Admin", C.'hex-state-warn-fg',
                                       C.'hex-text-muted'
                                   ) & "'/><g transform='translate(4 11)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(
                                       ThisItem.State,
@@ -5978,6 +6179,7 @@ Screens:
                                       "In progress", C.'hex-state-info-fg',
                                       "Returned", C.'hex-state-warn-fg',
                                       "Pending", C.'hex-text-muted',
+                                      "Admin", C.'hex-state-warn-fg',
                                       C.'hex-text-muted'
                                   ) & "' fill='" & If(ThisItem.State = "Pending", "none", Switch(
                                       ThisItem.State,
@@ -5987,6 +6189,7 @@ Screens:
                                       "In progress", C.'hex-state-info-fg',
                                       "Returned", C.'hex-state-warn-fg',
                                       "Pending", C.'hex-text-muted',
+                                      "Admin", C.'hex-state-warn-fg',
                                       C.'hex-text-muted'
                                   )) & "'/>")) & "</svg>")
                               ImagePosition: |-
@@ -6290,6 +6493,7 @@ Screens:
                                       "In progress", C.'state-info-fg',
                                       "Returned", C.'state-warn-fg',
                                       "Pending", C.'state-neutral-fg',
+                                      "Admin", C.'state-warn-fg',
                                       C.'state-neutral-fg'
                                   )
                               Fill: |-
@@ -6301,6 +6505,7 @@ Screens:
                                       "In progress", C.'state-info-bg',
                                       "Returned", C.'state-warn-bg',
                                       "Pending", C.'state-neutral-bg',
+                                      "Admin", C.'state-warn-bg',
                                       C.'state-neutral-fg'
                                   )
                               Font: |-

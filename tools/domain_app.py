@@ -16,6 +16,7 @@ import app_yaml
 import design_tokens as tok
 import layout_tokens as lay
 import domain_parts as dp
+import permissions as perm
 from build_helpers import app_frame
 from gen_screen import C_APP_BG
 from side_nav import side_nav
@@ -57,7 +58,7 @@ def collections(cfg):
 
 def formulas(cfg):
     return (
-        tok.formula() + "\n\n" + lay.formula() + "\n\n"
+        tok.formula() + "\n\n" + lay.formula() + "\n\n" + perm.formula() + "\n\n"
         "// Vaerkerne. Eneste opslagsliste appen laeser, og den laeses foerst,\n"
         "// naar dropdownen aabnes.\n"
         f"colDomPlants = Sort(ForAll({cfg.L_PLANTS} As R, {{ Value: R.Title }}), Value);"

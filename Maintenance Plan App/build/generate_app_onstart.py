@@ -24,6 +24,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), "tools")
 import app_yaml
 import design_tokens as tok
 import layout_tokens as lay
+import permissions as perm
 
 
 def _fx_value(v):
@@ -186,7 +187,7 @@ def build_onstart():
 
 def build_formulas():
     """App.Formulas. Hver formel afsluttes med semikolon - ogsaa den sidste."""
-    out = [tok.formula(), "", lay.formula(), ""]
+    out = [tok.formula(), "", lay.formula(), "", perm.formula(), ""]
     for name, expr, why in cfg.named_formulas() + build_status.formulas():
         if why:
             out.append(f"// {why}")

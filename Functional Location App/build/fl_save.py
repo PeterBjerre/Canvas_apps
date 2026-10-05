@@ -37,6 +37,8 @@ af sig selv (fl_parts.REVERIFY) - og ingen raekke har en fejl (docs/31 FL68).
 """
 import fl_config as cfg
 import messages as msg
+import admin_log as alog
+import permissions as perm
 import request_index as ri
 from fl_validation import BUCKETS
 
@@ -54,6 +56,35 @@ SUBMIT_WHY = (f'If(varFlStatus = "Indsendt", "Request " & varFlRequestNo & " is 
               f'   {ERRS} > 0, "Submit is blocked: " & {ERRS} & " row(s) have errors.",\n'
               f'   {READY} = 0, "There are no rows ready for SAP.",\n'
               f'   "Ready to submit " & {READY} & " row(s).")')
+
+
+# Gemmer en admin en ANDENS anmodning? varFlReqNow er hovedet, som det
+# stod, da gemningen startede (save_fx trin 0).
+AS_ADMIN = ('(!IsBlank(varFlReqNow) && !('
+            + perm.is_owner("varFlReqNow.RequesterEmail", "varFlMe") + '))')
+
+
+def _admin_log():
+    """Raekkerne foer (colFlAdmOld) mod de gemte (LIVE) - tools/admin_log.py."""
+    row = alog.diff([
+        ("Functional location", "O.FL", "n.FL"),
+        ("Description", "O.Description", "n.Description"),
+        ("KKS type", "O.KksType", "n.KksType"),
+        ("Class", "O.AssignedClass", "n.AssignedClass"),
+    ], '"Row " & O.RowNo & " "')
+    rows = (
+        "Concat(\n    Filter(\n        ForAll(colFlAdmOld As O,\n"
+        f"            With({{ n: LookUp({LIVE}, RowGuid = O.RowGuid) }},\n"
+        '                If(IsBlank(n), "Row " & O.RowNo & ": removed",\n'
+        + "\n".join(" " * 16 + l for l in row.split("\n")) + ")\n"
+        "            )\n        ),\n        !IsBlank(Value)\n    ),\n    Value,\n    \"; \"\n)")
+    added = (f'With({{ k: CountRows(Filter({LIVE}, !(RowGuid in colFlAdmOld.RowGuid))) }}, '
+             'If(k > 0, k & " row(s) added", ""))')
+    comment = alog.join(rows, added)
+    return (f"If(\n    {AS_ADMIN},\n    With(\n        {{ c: {comment} }},\n"
+            "        If(\n            !IsBlank(c),\n"
+            + alog.write("varFlRequestGuid", "varFlRequestNo", alog.EDIT, "c", 12)
+            + "\n        )\n    )\n)")
 
 
 def _spool(field):
@@ -76,7 +107,7 @@ def _row_record():
                 TrmAssignment: {_spool("TRM ASSIGNMENT")},
                 AbcIndic: {_spool("ABC INDIC.")},
                 SafetyCriticalEquipment: {_spool("SAFETY CRITICAL EQUIPMENT")},
-                RequesterEmail: varFlMe,
+                RequesterEmail: Coalesce(varFlReq.RequesterEmail, varFlMe),
                 SpoolValuesJson: JSON(
                     ForAll(Sort(Filter(colFlVals, RowGuid = R.RowGuid), Field) As V,
                            {{ field: V.Field, value: V.Value }}),
@@ -93,15 +124,17 @@ def _index_patch(status, step=None):
         request_no="varFlRequestNo", guid="varFlRequestGuid", me="varFlMe",
         short_text=f'"{cfg.TITLE}: " & CountRows({LIVE}) & " row(s)"',
         plant=f'Coalesce(Left(First(Sort({LIVE}, RowNo)).FL, 3), "")',
-        item_count=f"CountRows({LIVE})", source_id="varFlReq.ID", indent=12)
-    return f"""Set(
+        item_count=f"CountRows({LIVE})", source_id="varFlReq.ID",
+        # Ejeren bevares, ogsaa naar en admin gemmer (tools/permissions.py).
+        owner="Coalesce(varFlReq.RequesterEmail, varFlMe)",
+        owner_name="Coalesce(varFlReq.RequesterName, User().FullName)",
+        current="varFlIdxNow", indent=12)
+    return f"""Set(varFlIdxNow, LookUp({cfg.L_INDEX}, RequestGuid = varFlRequestGuid));
+    Set(
         varFlIdx,
         Patch(
             {cfg.L_INDEX},
-            Coalesce(
-                LookUp({cfg.L_INDEX}, RequestGuid = varFlRequestGuid),
-                Defaults({cfg.L_INDEX})
-            ),
+            Coalesce(varFlIdxNow, Defaults({cfg.L_INDEX})),
             {rec}
         )
     )"""
@@ -114,36 +147,49 @@ def save_fx(status="Kladde", step=1, notify=True):
     # Indsend kalder gem foerst og siger selv "Submitted as ..." bagefter -
     # to beskeder i traek for een handling (REVIEW.md A6).
     ok = msg.saved("varFlRequestNo") if notify else 'Set(varFlInfo, "")'
+    # Et kladde-gem beholder anmodningens status: for ejeren er den Kladde,
+    # men en admin, der retter en anmodning i AfventerInfo, maa ikke sende
+    # den tilbage (tools/permissions.py).
+    kept = (f'Coalesce(varFlReqNow.Status.Value, "{status}")' if status == ri.DRAFT
+            else f'"{status}"')
     new_rows = f'Filter(colFlRows, Status <> "draft" && !(RowGuid in colFlSp.RowGuid))'
     old_rows = f'Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid)'
     return f"""Clear(colFlSaveErrors);
+// 0. Hovedet, som det staar i SharePoint nu: grundraekken i trin 1 og
+//    rettigheden i selve handlingen (tools/permissions.py).
+Set(varFlReqNow, If(!IsBlank(varFlRequestGuid), LookUp({cfg.L_REQ}, RequestGuid = varFlRequestGuid)));
+If(
+    !IsBlank(varFlReqNow) &&
+    !{perm.may_change("varFlReqNow.RequesterEmail", "varFlReqNow.Status.Value", "varFlMe")},
+    Collect(colFlSaveErrors, {{ Where: "Request", Msg: "This request can no longer be changed." }})
+);
 If(IsBlank(varFlRequestGuid), Set(varFlRequestGuid, Text(GUID())));
 
 // 1. Hovedet. RequestNo er obligatorisk (Title) - GUID'en staar der, til
-//    nummeret kan dannes af listens eget ID.
-IfError(
-    Set(
-        varFlReq,
-        Patch(
-            {cfg.L_REQ},
-            Coalesce(
-                LookUp({cfg.L_REQ}, RequestGuid = varFlRequestGuid),
-                Defaults({cfg.L_REQ})
-            ),
-            {{
-                RequestNo: Coalesce(varFlRequestNo, varFlRequestGuid),
-                RequestGuid: varFlRequestGuid,
-                RequesterEmail: varFlMe,
-                RequesterName: User().FullName
-            }}
-        )
-    );
-    true,
-    Collect(colFlSaveErrors, {{ Where: "Header", Msg: FirstError.Message }});
-    false
+//    nummeret kan dannes af listens eget ID. Ejeren bevares.
+If(
+    CountRows(colFlSaveErrors) = 0,
+    IfError(
+        Set(
+            varFlReq,
+            Patch(
+                {cfg.L_REQ},
+                Coalesce(varFlReqNow, Defaults({cfg.L_REQ})),
+                {{
+                    RequestNo: Coalesce(varFlRequestNo, varFlRequestGuid),
+                    RequestGuid: varFlRequestGuid,
+                    RequesterEmail: Coalesce(varFlReqNow.RequesterEmail, varFlMe),
+                    RequesterName: Coalesce(varFlReqNow.RequesterName, User().FullName)
+                }}
+            )
+        );
+        true,
+        Collect(colFlSaveErrors, {{ Where: "Header", Msg: FirstError.Message }});
+        false
+    )
 );
 If(
-    IsBlank(varFlRequestNo) && !IsBlank(varFlReq.ID),
+    CountRows(colFlSaveErrors) = 0 && IsBlank(varFlRequestNo) && !IsBlank(varFlReq.ID),
     Set(varFlRequestNo, {ri.number_expr(cfg.PREFIX, "varFlReq.ID")});
     IfError(
         Patch({cfg.L_REQ}, varFlReq, {{ RequestNo: varFlRequestNo }});
@@ -157,6 +203,17 @@ If(
     CountRows(colFlSaveErrors) = 0,
 
     // 2. Hvilke raekker findes allerede? Paa RowGuid - klientnoeglen.
+    //    En admin i en andens anmodning henter dem ogsaa med felter, til loggen.
+    If(
+        {AS_ADMIN},
+        ClearCollect(
+            colFlAdmOld,
+            ForAll(Filter({L}, RequestGuid = varFlRequestGuid) As I,
+                {{ RowGuid: I.RowGuid, RowNo: I.RowNo, FL: I.FunctionalLocation, Description: I.Description,
+                   KksType: I.KksType, AssignedClass: I.AssignedClass }})
+        ),
+        Clear(colFlAdmOld)
+    );
     ClearCollect(
         colFlSp,
         ForAll(Filter({L}, RequestGuid = varFlRequestGuid) As I, {{ RowGuid: I.RowGuid, ID: I.ID }})
@@ -212,7 +269,7 @@ If(
             Patch(
                 {cfg.L_REQ}, varFlReq,
                 {{
-                    Status: {{ Value: "{status}" }},
+                    Status: {{ Value: {kept} }},
                     RowCount: CountRows({LIVE}),
                     ReadyCount: {READY},
                     IssueCount: {ERRS},
@@ -230,7 +287,8 @@ If(
 // Een samlet tilbagemelding - aldrig een Notify pr. raekke.
 If(
     CountRows(colFlSaveErrors) = 0,
-    Set(varFlStatus, "{status}");
+    Set(varFlStatus, {kept});
+    {_admin_log().replace(chr(10), chr(10) + "    ")};
     Clear(colFlDeleted);
     Set(varFlInfo, "");
     {ok},
@@ -305,6 +363,10 @@ def submit_fx():
                       {{ Status: {{ Value: "Indsendt" }}, PayloadJson: varFlPayload, SubmittedOn: Now() }});
                 Patch({cfg.L_INDEX}, varFlIdx, {{ Status: {{ Value: "{ri.SUBMITTED}" }}, StatusStep: {ri.step(ri.SUBMITTED)}, LastActionOn: Now(), LastActionBy: varFlMe }});
                 Set(varFlStatus, "Indsendt");
+                If(
+                    {AS_ADMIN},
+{alog.write("varFlRequestGuid", "varFlRequestNo", alog.EDIT, alog.submitted("varFlReqNow.Status.Value"), 20)}
+                );
                 Set(varFlInfo, "");
                 {msg.submitted("varFlRequestNo")},
                 Set(varFlInfo, "Submit failed: " & FirstError.Message);
@@ -330,7 +392,7 @@ If(
     Set(varFlRequestGuid, ""),
     Set(varFlRequestNo, Coalesce(varFlReq.RequestNo, ""));
     Set(varFlStatus, Coalesce(varFlReq.Status.Value, "Kladde"));
-    Set(varFlCanEdit, Lower(Coalesce(varFlReq.RequesterEmail, "")) = varFlMe && varFlStatus = "Kladde");
+    Set(varFlCanEdit, {perm.may_change("varFlReq.RequesterEmail", "varFlStatus", "varFlMe")});
     Set(varFlViewOnly, !(Lower(Coalesce(Param("mode"), "")) = "edit" && varFlCanEdit));
     Clear(colFlDeleted);
     ClearCollect(
