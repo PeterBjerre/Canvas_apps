@@ -109,9 +109,6 @@ SECTIONS = [
         ("StrategicPart", "Strategic part", "text", None),
         ("WearPart", "Wear part", "text", None),
     ]),
-    ("Remarks", [
-        ("LongText", "Long text", "long", None),
-    ]),
 ]
 
 PLANT_LABEL = "Plant"

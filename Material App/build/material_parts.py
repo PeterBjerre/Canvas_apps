@@ -11,12 +11,12 @@ felter, i hvilken raekkefoelge, og hvilke kolonner listen viser.
 
 FORMULAREN
 ----------
-    Spare Parts Form  * Required                    [No BOM Item: OFF]
+    Spare Parts Form  * Required   [Import invoice] [No BOM Item: OFF]
     [ FL          ][ Manufacturer ][ Model number ][ Manuf. part no.  ]
     [ Description ][ Documentation][ Stock unit   ][ Price            ]
     [ Price unit  ][ Delivery time][ Rec. stock   ][ Supplier         ]
     [ Supp. part  ][ Strategic    ][ Wear part    ][ Plant            ]
-    [ Long text                                                       ]
+    [ Plant ]
     (Plant: X) (Row status: ...)  [Delete row][Save draft][Save row][Reset form]
 
 NO BOM ITEM
@@ -107,8 +107,8 @@ FORM_ORDER = ["FL", "Manufacturer", "ModelNumber", "ManufacturerPartNo",
               "PriceUnit", "DeliveringTime", "RecommendedStock", "Supplier",
               "SupplierPartNo", "StrategicPart", "WearPart", "PLANT"]
 # Felter, der ikke er en celle i gitteret: NoBomItem er knappen i hovedet,
-# LongText har hele bredden under gitteret, og FL er cellen "FL".
-NOT_IN_GRID = {"NoBomItem", "LongText", cfg.FL_FIELD}
+# NoBomItem er knappen i hovedet, og FL er cellen "FL".
+NOT_IN_GRID = {"NoBomItem", cfg.FL_FIELD}
 
 
 def _cell(key):
@@ -130,15 +130,8 @@ def build_form():
     # Soegningens svar under den foerste raekke - den med FL i.
     rows.insert(1, dp.build_fl_msg())
 
-    col, label, _kind, _ch = next(f for f in dp.FIELDS if f[0] == "LongText")
-    long_text = field_cell(f"conDom{col}", label,
-                           text_input(f"inpDom{col}", dp._var(col), height=72,
-                                      display_mode=dp.DM_ROW, ttype="Multiline",
-                                      onchange=f"Set({dp._var(col)}, Self.Text)"),
-                           width=dp.FORM_W, fill_portions_formula="0")
-
     buttons = dp.form_buttons(save_fx, "Save row", "New row")
-    return card("conDomFormCard", [head] + rows + [long_text] + dp.form_footer(buttons))
+    return card("conDomFormCard", [head] + rows + dp.form_footer(buttons))
 
 
 # ---------------------------------------------------------------------------
