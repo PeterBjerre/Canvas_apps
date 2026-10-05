@@ -256,7 +256,7 @@ Screens:
                                   Set(varVhpRequestGuid, idx.RequestGuid);
                                   Set(varVhpPlanCommitted, true);
                                   Set(varVhpPlanLocked, true);
-                                  Set(varVhpCanEdit, Lower(Coalesce(idx.RequesterEmail, "")) = varVhpMe && idx.Status.Value = "Kladde");
+                                  Set(varVhpCanEdit, ((Lower(Coalesce(idx.RequesterEmail, "")) = varVhpMe && (idx.Status.Value = "Kladde")) || (IsAdmin && (idx.Status.Value = "Kladde" || idx.Status.Value = "AfventerInfo"))));
                                   Set(varVhpViewOnly, !(Lower(Coalesce(gblVhpMode, "")) = "edit" && varVhpCanEdit));
           
                                   // --- de fem hentninger, PAA EEN GANG -------------
@@ -1846,7 +1846,16 @@ Screens:
                                                           r.ID - Value(Mid(r.TaskItemID, 3)),
                                                           Blank()
                                                       )
-                                                  ))
+                                                  )),
+                                                      Set(varVhpIdxNow, If(!IsBlank(varVhpRequestGuid), LookUp(MD_RequestIndex, RequestGuid = varVhpRequestGuid)))
+                                                  );
+                                                  If(
+                                                      !IsBlank(varVhpIdxNow) &&
+                                                      !((Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe && (varVhpIdxNow.Status.Value = "Kladde")) || (IsAdmin && (varVhpIdxNow.Status.Value = "Kladde" || varVhpIdxNow.Status.Value = "AfventerInfo"))),
+                                                      Collect(colVhpSaveErrors, {
+                                                          Where: "Request",
+                                                          Msg: "This request can no longer be changed."
+                                                      })
                                                   );
                                                   If(
                                                       IsBlank(varVhpPlanOff) || IsBlank(varVhpItemOff) || IsBlank(varVhpTaskOff),
@@ -1884,15 +1893,15 @@ Screens:
                                               If(
                                                   CountRows(colVhpSaveErrors) = 0,
                                               IfError(
+                                                  Set(varVhpPlanNow, If(varVhpPlanSpId > 0, LookUp(MaintenancePlans, ID = varVhpPlanSpId)));
                                                   Set(
                                                       varVhpPlanRec,
                                                       Patch(
                                                           MaintenancePlans,
-                                                          If(varVhpPlanSpId > 0, LookUp(MaintenancePlans, ID = varVhpPlanSpId),
-                                                              Defaults(MaintenancePlans)),
+                                                          If(varVhpPlanSpId > 0, varVhpPlanNow, Defaults(MaintenancePlans)),
                                                           {
                                                           Title: varVhpPlan.PlanText,
-                                                          Status: { Value: "Draft" },
+                                                          Status: If((!IsBlank(varVhpIdxNow) && !(Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe)) && !IsBlank(varVhpPlanNow), varVhpPlanNow.Status, { Value: "Draft" }),
                                                           PlantsInitial: { Value: varVhpPlan.Plant },
                                                           Cycle: varVhpPlan.Cycle,
                                                           Unit: { Value: varVhpPlan.Unit },
@@ -1964,14 +1973,14 @@ Screens:
                                                               Priority: { Value: "Yellow (default)" },
                                                               OrstedResponsible: {
                                                                   '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
-                                                                  Claims: "i:0#.f|membership|" & varVhpMe,
-                                                                  DisplayName: User().FullName,
-                                                                  Email: User().Email,
+                                                                  Claims: "i:0#.f|membership|" & If((!IsBlank(varVhpIdxNow) && !(Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe)), Lower(Coalesce(IT.OrstedResponsible, varVhpIdxNow.RequesterEmail)), varVhpMe),
+                                                                  DisplayName: If((!IsBlank(varVhpIdxNow) && !(Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe)), Lower(Coalesce(IT.OrstedResponsible, varVhpIdxNow.RequesterEmail)), User().FullName),
+                                                                  Email: If((!IsBlank(varVhpIdxNow) && !(Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe)), Lower(Coalesce(IT.OrstedResponsible, varVhpIdxNow.RequesterEmail)), User().Email),
                                                                   Department: "",
                                                                   JobTitle: "",
                                                                   Picture: ""
                                                               },
-                                                              OrstedResponsibleEmail: varVhpMe,
+                                                              OrstedResponsibleEmail: If((!IsBlank(varVhpIdxNow) && !(Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe)), Lower(Coalesce(IT.OrstedResponsible, varVhpIdxNow.RequesterEmail)), varVhpMe),
                                                               InitialOrstedResponsible: IT.Initials,
                                                               MaintenanceActivityType: With(
                                                                   { a: LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType) },
@@ -2004,14 +2013,14 @@ Screens:
                                                               Priority: { Value: "Yellow (default)" },
                                                               OrstedResponsible: {
                                                                   '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
-                                                                  Claims: "i:0#.f|membership|" & varVhpMe,
-                                                                  DisplayName: User().FullName,
-                                                                  Email: User().Email,
+                                                                  Claims: "i:0#.f|membership|" & If((!IsBlank(varVhpIdxNow) && !(Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe)), Lower(Coalesce(IT.OrstedResponsible, varVhpIdxNow.RequesterEmail)), varVhpMe),
+                                                                  DisplayName: If((!IsBlank(varVhpIdxNow) && !(Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe)), Lower(Coalesce(IT.OrstedResponsible, varVhpIdxNow.RequesterEmail)), User().FullName),
+                                                                  Email: If((!IsBlank(varVhpIdxNow) && !(Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe)), Lower(Coalesce(IT.OrstedResponsible, varVhpIdxNow.RequesterEmail)), User().Email),
                                                                   Department: "",
                                                                   JobTitle: "",
                                                                   Picture: ""
                                                               },
-                                                              OrstedResponsibleEmail: varVhpMe,
+                                                              OrstedResponsibleEmail: If((!IsBlank(varVhpIdxNow) && !(Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe)), Lower(Coalesce(IT.OrstedResponsible, varVhpIdxNow.RequesterEmail)), varVhpMe),
                                                               InitialOrstedResponsible: IT.Initials,
                                                               MaintenanceActivityType: With(
                                                                   { a: LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType) },
@@ -2287,7 +2296,7 @@ Screens:
                                                   Patch(
                                                       MD_RequestIndex,
                                                       Coalesce(
-                                                          LookUp(MD_RequestIndex, RequestGuid = varVhpRequestGuid),
+                                                          varVhpIdxNow,
                                                           Defaults(MD_RequestIndex)
                                                       ),
                                                       {
@@ -2297,8 +2306,8 @@ Screens:
                                                           StatusStep: 2,
                                                           IsOpen: true,
                                                           RequestGuid: varVhpRequestGuid,
-                                                          RequesterEmail: varVhpMe,
-                                                          RequesterName: User().FullName,
+                                                          RequesterEmail: Coalesce(varVhpIdxNow.RequesterEmail, varVhpMe),
+                                                          RequesterName: Coalesce(varVhpIdxNow.RequesterName, User().FullName),
                                                           ShortText: varVhpPlan.PlanText,
                                                           Plant: varVhpPlan.Plant,
                                                           ItemCount: CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))),
@@ -2311,18 +2320,18 @@ Screens:
                                                   Patch(
                                                       MD_RequestIndex,
                                                       Coalesce(
-                                                          LookUp(MD_RequestIndex, RequestGuid = varVhpRequestGuid),
+                                                          varVhpIdxNow,
                                                           Defaults(MD_RequestIndex)
                                                       ),
                                                       {
                                                           RequestNo: varVhpPlanKey,
                                                           Domain: { Value: "MaintenancePlan" },
-                                                          Status: { Value: "Kladde" },
-                                                          StatusStep: 1,
+                                                          Status: { Value: Coalesce(varVhpIdxNow.Status.Value, "Kladde") },
+                                                          StatusStep: Coalesce(varVhpIdxNow.StatusStep, 1),
                                                           IsOpen: true,
                                                           RequestGuid: varVhpRequestGuid,
-                                                          RequesterEmail: varVhpMe,
-                                                          RequesterName: User().FullName,
+                                                          RequesterEmail: Coalesce(varVhpIdxNow.RequesterEmail, varVhpMe),
+                                                          RequesterName: Coalesce(varVhpIdxNow.RequesterName, User().FullName),
                                                           ShortText: varVhpPlan.PlanText,
                                                           Plant: varVhpPlan.Plant,
                                                           ItemCount: CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))),

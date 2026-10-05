@@ -26,6 +26,7 @@ from hub_config import LIST, COL_NO, DOMAINS, STATUS, STATUS_ICON, APP_TARGET
 from design_tokens import theme_query, ref_hex, ref as _t
 from icons import MIRROR_X
 import approval_flow
+import permissions as perm
 import request_delete as rd
 from layout_tokens import (if_below, below, at_least, SCROLLBAR_W, GALLERY_RESERVE, PAGE_PAD_R,
                            HEADER_PAD_T)
@@ -995,7 +996,7 @@ def build_list():
 
 def _owner_buttons(act, suffix):
     """Edit and Delete: shown and enabled for the creator's own requests."""
-    own = 'Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe'
+    own = perm.may_change_ui("ThisItem", "varMdMe")
     edit = _image("btnMdRowEdit" + suffix,
                   _svg_uri(_icon_svg("M4 20h4L19 9l-4-4L4 16v4z M13.5 6.5l4 4", _hx("text-muted"))),
                   TL_W, TL_W, onselect=act, label=f'"Edit " & ThisItem.{COL_NO}', hover=C_ROW_HOVER)

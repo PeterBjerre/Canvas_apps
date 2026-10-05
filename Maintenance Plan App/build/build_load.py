@@ -50,6 +50,7 @@ visning og hentes igen ved naeste FL-soegning.
 """
 import sp_config as cfg
 from build_helpers import concurrent
+import permissions as perm
 
 # Et helt tomt item, saa Item Editoren staar klar (#8). Bruges baade naar
 # appen aabnes uden dyblink, og naar et dyblink ikke kan findes.
@@ -229,8 +230,10 @@ def load_block():
         # Laast som efter Save i Plan Header: den indlaeste plan ER den
         # gemte, og trin 1 er faerdigt. Edit laaser op (issue #54).
         "                Set(varVhpPlanLocked, true);\n"
-        # Edit only for the owner of a draft; everyone else stays in View.
-        "                Set(varVhpCanEdit, Lower(Coalesce(idx.RequesterEmail, \"\")) = varVhpMe && idx.Status.Value = \"Kladde\");\n"
+        # Edit for the owner of a draft, and for an admin (tools/permissions.py);
+        # everyone else stays in View.
+        "                Set(varVhpCanEdit, "
+        + perm.may_change("idx.RequesterEmail", "idx.Status.Value", "varVhpMe") + ");\n"
         "                Set(varVhpViewOnly, !(Lower(Coalesce(Param(\"mode\"), \"\")) = \"edit\" && varVhpCanEdit));\n"
         "\n"
         "                // --- de fem hentninger, PAA EEN GANG -------------\n"
