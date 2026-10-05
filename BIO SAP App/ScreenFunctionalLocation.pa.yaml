@@ -5,6 +5,18 @@ Screens:
           =C.'bg-app'
       OnVisible: |-
           =IfError(
+              // Har en sletning roert det, skaermen viser? (tools/request_delete.py)
+              Set(varFlStaleNow, Coalesce(gblFlStale, false));
+              If(
+                  varFlStaleNow,
+                  Set(gblFlStale, false);
+                  If(
+                      !IsBlank(varFlRequestGuid) && IsBlank(LookUp(MD_RequestIndex, RequestGuid = varFlRequestGuid)),
+                      Set(gblFlWant, Blank());
+                      Set(varFlOpened, "")
+                  )
+              );
+          
               // DEN SAMLEDE APP: klargoer skaermen, naar hubben eller et dyblink
               // beder om noget andet end det, den viser. Se BIO SAP App/build/
               // build_screens.py, open_block().
@@ -6725,18 +6737,37 @@ Screens:
                             =ButtonLayout.IconBefore
                         OnSelect: |-
                             =Set(varFlDeleteOpen, false);
-                            IfError(
+                            Set(varFlDelIdx, LookUp(MD_RequestIndex, RequestGuid = varFlRequestGuid));
+                            If(
+                                IsBlank(varFlDelIdx),
+                                Notify("This request no longer exists.", NotificationType.Warning),
+                                !(Lower(Coalesce(varFlDelIdx.RequesterEmail, "")) = varFlMe && (varFlDelIdx.Status.Value = "Kladde")),
+                                Notify("Only drafts can be deleted.", NotificationType.Warning),
+                                Set(varFlDelGuid, varFlDelIdx.RequestGuid);
+                                Set(varFlDelSp, varFlDelIdx.SourceItemId);
+                                Set(varFlDelKey, varFlDelIdx.RequestNo);
+                                Set(varFlDelDomain, varFlDelIdx.Domain.Value);
+                                Remove(FunctionalLocationItems, Filter(FunctionalLocationItems, RequestGuid = varFlDelGuid));
                                 If(
-                                    LookUp(MD_RequestIndex, RequestGuid = varFlRequestGuid).Status.Value = "Kladde",
-                                    Remove(MD_RequestIndex, LookUp(MD_RequestIndex, RequestGuid = varFlRequestGuid));
-                                    Set(varFlRequestGuid, "");
-                                    Notify("Request deleted.", NotificationType.Success);
-                                    Set(gblNavOpen, false); Navigate(ScreenMdHub, ScreenTransition.None),
-                                    Notify("Only drafts can be deleted.", NotificationType.Warning)
-                                );
-                                true,
-                                Notify("The request could not be deleted.", NotificationType.Error);
-                                false
+                                    !IsEmpty(Errors(FunctionalLocationItems)),
+                                    Notify("The request could not be deleted: " & First(Errors(FunctionalLocationItems)).Message, NotificationType.Error),
+                                    Remove(FunctionalLocationRequests, Filter(FunctionalLocationRequests, RequestGuid = varFlDelGuid));
+                                    If(
+                                        !IsEmpty(Errors(FunctionalLocationRequests)),
+                                        Notify("The request could not be deleted: " & First(Errors(FunctionalLocationRequests)).Message, NotificationType.Error),
+                                        Remove(MD_RequestIndex, Filter(MD_RequestIndex, RequestGuid = varFlDelGuid));
+                                        If(
+                                            !IsEmpty(Errors(MD_RequestIndex)),
+                                            Notify("The request could not be deleted: " & First(Errors(MD_RequestIndex)).Message, NotificationType.Error),
+                                            Set(varFlRequestGuid, "");
+                                            Set(gblFlStale, true);
+                                            Set(gblFlWant, Blank());
+                                            Set(varFlOpened, "");
+                                            Notify("Request deleted.", NotificationType.Success);
+                                            Set(gblNavOpen, false); Navigate(ScreenMdHub, ScreenTransition.None)
+                                        )
+                                    )
+                                )
                             )
                         RadiusBottomLeft: |-
                             =10

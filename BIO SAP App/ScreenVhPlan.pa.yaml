@@ -4,7 +4,19 @@ Screens:
       Fill: |-
           =C.'bg-app'
       OnVisible: |-
-          =// DEN SAMLEDE APP: klargoer skaermen, naar hubben eller et dyblink
+          =// Har en sletning roert det, skaermen viser? (tools/request_delete.py)
+          Set(varVhpStaleNow, Coalesce(gblVhpStale, false));
+          If(
+              varVhpStaleNow,
+              Set(gblVhpStale, false);
+              If(
+                  !IsBlank(varVhpRequestGuid) && IsBlank(LookUp(MD_RequestIndex, RequestGuid = varVhpRequestGuid)),
+                  Set(gblVhpWant, Blank());
+                  Set(varVhpOpened, "")
+              )
+          );
+          
+          // DEN SAMLEDE APP: klargoer skaermen, naar hubben eller et dyblink
           // beder om noget andet end det, den viser. Se BIO SAP App/build/
           // build_screens.py, open_block().
           With(
@@ -17943,18 +17955,52 @@ Screens:
                             =ButtonLayout.IconBefore
                         OnSelect: |-
                             =Set(varVhpDeleteOpen, false);
-                            IfError(
+                            Set(varVhpDelIdx, LookUp(MD_RequestIndex, RequestGuid = varVhpRequestGuid));
+                            If(
+                                IsBlank(varVhpDelIdx),
+                                Notify("This request no longer exists.", NotificationType.Warning),
+                                !(Lower(Coalesce(varVhpDelIdx.RequesterEmail, "")) = varVhpMe && (varVhpDelIdx.Status.Value = "Kladde")),
+                                Notify("Only drafts can be deleted.", NotificationType.Warning),
+                                Set(varVhpDelGuid, varVhpDelIdx.RequestGuid);
+                                Set(varVhpDelSp, varVhpDelIdx.SourceItemId);
+                                Set(varVhpDelKey, varVhpDelIdx.RequestNo);
+                                Set(varVhpDelDomain, varVhpDelIdx.Domain.Value);
+                                If(!IsBlank(varVhpDelKey), Remove(MD_TasklistMaterial, Filter(MD_TasklistMaterial, PlanKey = varVhpDelKey)));
                                 If(
-                                    LookUp(MD_RequestIndex, RequestGuid = varVhpRequestGuid).Status.Value = "Kladde",
-                                    Remove(MD_RequestIndex, LookUp(MD_RequestIndex, RequestGuid = varVhpRequestGuid));
-                                    Set(varVhpRequestGuid, "");
-                                    Notify("Request deleted.", NotificationType.Success);
-                                    Set(gblNavOpen, false); Navigate(ScreenMdHub, ScreenTransition.None),
-                                    Notify("Only drafts can be deleted.", NotificationType.Warning)
-                                );
-                                true,
-                                Notify("The request could not be deleted.", NotificationType.Error);
-                                false
+                                    !IsBlank(varVhpDelKey) && !IsEmpty(Errors(MD_TasklistMaterial)),
+                                    Notify("The request could not be deleted: " & First(Errors(MD_TasklistMaterial)).Message, NotificationType.Error),
+                                    If(!IsBlank(varVhpDelKey), Remove(MD_TasklistAttachment, Filter(MD_TasklistAttachment, PlanKey = varVhpDelKey)));
+                                    If(
+                                        !IsBlank(varVhpDelKey) && !IsEmpty(Errors(MD_TasklistAttachment)),
+                                        Notify("The request could not be deleted: " & First(Errors(MD_TasklistAttachment)).Message, NotificationType.Error),
+                                        If(!IsBlank(varVhpDelSp), Remove(TaskListMain, Filter(TaskListMain, MaintenancePlanID.Id = varVhpDelSp)));
+                                        If(
+                                            !IsBlank(varVhpDelSp) && !IsEmpty(Errors(TaskListMain)),
+                                            Notify("The request could not be deleted: " & First(Errors(TaskListMain)).Message, NotificationType.Error),
+                                            If(!IsBlank(varVhpDelSp), Remove(MaintenanceItems, Filter(MaintenanceItems, MaintenancePlanNo.Id = varVhpDelSp)));
+                                            If(
+                                                !IsBlank(varVhpDelSp) && !IsEmpty(Errors(MaintenanceItems)),
+                                                Notify("The request could not be deleted: " & First(Errors(MaintenanceItems)).Message, NotificationType.Error),
+                                                If(!IsBlank(varVhpDelSp), Remove(MaintenancePlans, Filter(MaintenancePlans, ID = varVhpDelSp)));
+                                                If(
+                                                    !IsBlank(varVhpDelSp) && !IsEmpty(Errors(MaintenancePlans)),
+                                                    Notify("The request could not be deleted: " & First(Errors(MaintenancePlans)).Message, NotificationType.Error),
+                                                    Remove(MD_RequestIndex, Filter(MD_RequestIndex, RequestGuid = varVhpDelGuid));
+                                                    If(
+                                                        !IsEmpty(Errors(MD_RequestIndex)),
+                                                        Notify("The request could not be deleted: " & First(Errors(MD_RequestIndex)).Message, NotificationType.Error),
+                                                        Set(varVhpRequestGuid, "");
+                                                        Set(gblVhpStale, true);
+                                                        Set(gblVhpWant, Blank());
+                                                        Set(varVhpOpened, "");
+                                                        Notify("Request deleted.", NotificationType.Success);
+                                                        Set(gblNavOpen, false); Navigate(ScreenMdHub, ScreenTransition.None)
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
                             )
                         RadiusBottomLeft: |-
                             =10

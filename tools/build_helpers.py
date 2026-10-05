@@ -827,21 +827,28 @@ def delete_button(prefix, view_var, guid_var):
     return icon_on_mobile(b, DELETE_W)
 
 
-def delete_modal(prefix, guid_var, index_list):
+def delete_modal(prefix, guid_var, index_list, domain):
+    """Delete request paa domaeneskaermen - tools/request_delete.py, den samme
+    sletning som hubbens: kildedata foerst, indeksraekken sidst, og succes
+    kun naar alt er slettet. Her stod Remove af indeksraekken alene.
+
+    Efter sletningen glemmer skaermen anmodningen helt (want, opened og
+    gbl<X>Stale), saa naeste besoeg starter en ny, tom anmodning og henter
+    listen igen - ellers kunne et gem oprette indeksraekken paa ny."""
     import side_nav
-    fx = (f"IfError(\n"
-          f"    If(\n"
-          f'        LookUp({index_list}, RequestGuid = {guid_var}).Status.Value = "Kladde",\n'
-          f"        Remove({index_list}, LookUp({index_list}, RequestGuid = {guid_var}));\n"
-          f'        Set({guid_var}, "");\n'
-          f'        Notify("Request deleted.", NotificationType.Success);\n'
-          f'        {side_nav._launch("hub")},\n'
-          f'        Notify("Only drafts can be deleted.", NotificationType.Warning)\n'
-          f"    );\n"
-          f"    true,\n"
-          f'    Notify("The request could not be deleted.", NotificationType.Error);\n'
-          f"    false\n"
-          f")")
+    import request_delete as rd
+    idx = f"var{prefix}DelIdx"
+    success = (f'Set({guid_var}, "");\n'
+               f"Set({rd.stale_var(prefix)}, true);\n"
+               f"Set(gbl{prefix}Want, Blank());\n"
+               f'Set(var{prefix}Opened, "");\n'
+               'Notify("Request deleted.", NotificationType.Success);\n'
+               f"{side_nav._launch('hub')}")
+    fx = (f"Set({idx}, LookUp({index_list}, RequestGuid = {guid_var}));\n"
+          "If(\n"
+          f"    IsBlank({idx}),\n    {rd.GONE},\n"
+          f"    !{rd.may_delete(idx, f'var{prefix}Me')},\n    {rd.DENIED},\n"
+          + rd.delete_fx(prefix, [domain], success, indent=4) + "\n)")
     return confirm_modal(f"{prefix}ReqDel", f"var{prefix}DeleteOpen", "Delete request",
                          '"Delete this request? This cannot be undone."',
                          "Delete", fx, f"btn{prefix}ReqDelConfirm", icon="Delete")

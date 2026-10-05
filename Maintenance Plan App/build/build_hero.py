@@ -302,7 +302,7 @@ def build_top_bar():
         "VhpNew", "varVhpConfirmNew", "Start a new request?",
         '"Unsaved work on this request is discarded. Save a draft first to keep it."',
         "Discard and start new", NEW_PLAN_FX, "btnVhpNewConfirm", icon="Add")
-    CONFIRM[:] = confirm + confirmNew + delete_modal("Vhp", "varVhpRequestGuid", _cfg.L_INDEX)
+    CONFIRM[:] = confirm + confirmNew + delete_modal("Vhp", "varVhpRequestGuid", _cfg.L_INDEX, "MaintenancePlan")
     btnDelete = delete_button("Vhp", "varVhpViewOnly", "varVhpRequestGuid")
     btnDraft.props["Width"] = str(SAVE_W)
     btnDraft.props["Tooltip"] = (

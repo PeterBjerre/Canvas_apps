@@ -26,6 +26,7 @@ from hub_config import LIST, COL_NO, DOMAINS, STATUS, STATUS_ICON, APP_TARGET
 from design_tokens import theme_query, ref_hex, ref as _t
 from icons import MIRROR_X
 import approval_flow
+import request_delete as rd
 from layout_tokens import (if_below, below, at_least, SCROLLBAR_W, GALLERY_RESERVE, PAGE_PAD_R,
                            HEADER_PAD_T)
 
@@ -233,7 +234,7 @@ SCOPE = (
 # taelles i samlingen. Rammer den loftet, staar der "500+".
 ROW_LIMIT = 500   # appens Data row limit (Studio -> Settings)
 SCOPE_REFRESH = (
-    f"ClearCollect(colMdScope, ForAll({SCOPE} As R, {{ Domain: R.Domain.Value, "
+    f"ClearCollect(colMdScope, ForAll({SCOPE} As R, {{ Id: R.ID, Domain: R.Domain.Value, "
     "Mine: R.AssignedToEmail = varMdMe, "
     "Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), "
     'Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))')
@@ -1008,10 +1009,26 @@ def _owner_buttons(act, suffix):
 
 
 def build_delete_modal():
-    fx = (f"IfError(\n    Remove('{LIST}', LookUp('{LIST}', ID = varMdDelItem.ID));\n"
-          '    Notify("Request deleted.", NotificationType.Success);\n    true,\n'
-          '    Notify("The request could not be deleted.", NotificationType.Error);\n    false\n);\n'
-          + SCOPE_REFRESH)
+    """Sletningen bag bekraeftelsen - tools/request_delete.py, den samme som
+    domaeneskaermenes.
+
+    Raekken slaas op FRISK paa ID, saa tjekket gaelder det, der staar i
+    SharePoint nu - ikke en gammel kopi i galleriet, og ikke noget, der kan
+    aendres ved at saette en variabel. Efter sletningen fjernes raekken
+    lokalt fra colMdScope (fliserne og taelleren); galleriet laeser listen
+    selv og ser Remove. Her stod SCOPE_REFRESH - hele omfanget hentet igen.
+
+    Domaeneskaermen faar gbl<X>Stale: den henter sine raekker igen og
+    glemmer anmodningen, hvis det var den, den havde aaben."""
+    success = ("RemoveIf(colMdScope, Id = varMdDelIdx.ID);\n"
+               "Switch(\n    varMdDelDomain,\n" + ",\n".join(
+                   f'    "{d}", Set({rd.stale_var(t)}, true)' for d, t in rd.TAGS.items()) + "\n);\n"
+               'Notify("Request deleted.", NotificationType.Success)')
+    fx = (f"Set(varMdDelIdx, LookUp('{LIST}', ID = varMdDelItem.ID));\n"
+          "If(\n"
+          f"    IsBlank(varMdDelIdx),\n    {rd.GONE};\n    RemoveIf(colMdScope, Id = varMdDelItem.ID),\n"
+          f"    !{rd.may_delete('varMdDelIdx', 'varMdMe')},\n    {rd.DENIED},\n"
+          + rd.delete_fx("Md", list(rd.TAGS), success, indent=4) + "\n)")
     return confirm_modal("MdDel", "varMdDeleteOpen", "Delete request",
                          f'"Delete " & varMdDelItem.{COL_NO} & "? This cannot be undone."',
                          "Delete", fx, "btnMdDelConfirm", icon="Delete")
