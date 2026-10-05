@@ -76,6 +76,8 @@ from layout_tokens import SCROLLBAR_W
 import domain_config as cfg
 import attflows
 import messages as msg
+import admin_log as alog
+import permissions as perm
 import request_index as ri
 
 # Flowkontrakten staar i tools/attflows.py; ruden her er dens
@@ -103,6 +105,15 @@ def use(expected):
 
 ROW_H = 44
 GAL_ROWS = 8
+
+# Arbejder brugeren som ADMIN i en andens anmodning? varDomIdx er den
+# aabne anmodnings indeksraekke (open_request_fx / send_fx); uden GUID er
+# der ingen aaben anmodning, og varDomIdx kan vaere en gammel vaerdi.
+# Saa vises den anmodnings raekker i stedet for brugerens egne, og ejeren
+# bevares paa alt, der gemmes (tools/permissions.py).
+AS_ADMIN = ('(!IsBlank(varDomRequestGuid) && !IsBlank(varDomIdx) && '
+            'varDomIdx.RequestGuid = varDomRequestGuid && '
+            '!(' + perm.is_owner("varDomIdx.RequesterEmail", "varDomMe") + '))')
 
 # Den aktive raekke i samlingen. Blank betyder "ny raekke".
 ACTIVE = "LookUp(colDomRows, RowId = varDomActiveRowId)"
@@ -374,15 +385,27 @@ def _patch_value(col, kind):
 def refresh_rows_fx(indent=0):
     """Spejlet af listen. Samlingen er ALDRIG sandheden - den hentes
     forfra efter hver skrivning, saa det, skaermen viser, er det, der staar
-    i SharePoint."""
+    i SharePoint.
+
+    Brugerens egne raekker - eller, naar en admin har aabnet en andens
+    anmodning, DEN anmodnings raekker (AS_ADMIN). To hele ClearCollect i
+    en If, saa hvert filter delegeres for sig."""
     pad = " " * indent
+    mine = _collect_rows(f"Filter({cfg.L_ROWS}, RequesterEmail = varDomMe)")
+    theirs = _collect_rows(f"Filter({cfg.L_ROWS}, RequestGuid = varDomRequestGuid)")
+    ind = lambda t: "\n".join("    " + l for l in t.split("\n"))
+    body = f"If(\n    {AS_ADMIN},\n{ind(theirs)},\n{ind(mine)}\n)"
+    return "\n".join(pad + l for l in body.split("\n"))
+
+
+def _collect_rows(source):
     lines = [
         "ClearCollect(",
         "    colDomRows,",
         "    ForAll(",
         # Nyeste foerst: rammer listen appens data row limit, er det de
         # AELDSTE raekker, der ikke hentes - ikke tilfaeldige (REVIEW.md B4).
-        f'        SortByColumns(Filter({cfg.L_ROWS}, RequesterEmail = varDomMe), "Created", SortOrder.Descending) As R,',
+        f'        SortByColumns({source}, "Created", SortOrder.Descending) As R,',
         "        {",
         "            RowId: R.ID,",
         "            ItemKey: Coalesce(R.ItemKey, \"\"),",
@@ -404,7 +427,7 @@ def refresh_rows_fx(indent=0):
         lines.append(f"            {col}: {v},")
     lines[-1] = lines[-1].rstrip(",")
     lines += ["        }", "    )", ")"]
-    return "\n".join(pad + l for l in lines)
+    return "\n".join(lines)
 
 
 
@@ -436,8 +459,10 @@ def open_request_fx():
         "            NotificationType.Information);\n"
         '        Set(varDomRequestGuid, ""); Set(varDomRequestNo, ""),\n'
         "        Set(varDomRequestNo, varDomIdx.RequestNo);\n"
-        # Edit only for the owner of a draft; everyone else stays in View.
-        '        Set(varDomCanEdit, Lower(Coalesce(varDomIdx.RequesterEmail, "")) = varDomMe && varDomIdx.Status.Value = "Kladde");\n'
+        # Edit for the owner of a draft, and for an admin (tools/permissions.py);
+        # everyone else stays in View.
+        "        Set(varDomCanEdit, "
+        + perm.may_change("varDomIdx.RequesterEmail", "varDomIdx.Status.Value", "varDomMe") + ");\n"
         "        Set(varDomViewOnly, !(Lower(Coalesce(Param(\"mode\"), \"\")) = \"edit\" && varDomCanEdit))\n"
         "    )\n"
         ")"
@@ -536,6 +561,23 @@ def build_backdrop():
                         "Set(varDomDetailsId, Blank()); Set(varDomDocsId, Blank())")
 
 
+DENIED_OTHER = ('Notify("You can only change your own requests.", '
+                'NotificationType.Warning)')
+
+
+def _indent(text, n):
+    return "\n".join(" " * n + l for l in text.split("\n"))
+
+
+def _diff_pairs():
+    """(etiket, gammel vaerdi i raekken o, ny vaerdi i formularen)."""
+    pairs = [(cfg.TEXT_LABEL, f"o.{cfg.C_TEXT}", "varDomFText"),
+             (cfg.PLANT_LABEL, "o.Plant", "varDomFPlant")]
+    for col, label, _kind, _ch in FIELDS:
+        pairs.append((label, f"o.{col}", _var(col)))
+    return pairs
+
+
 def save_row_fx(status="valid", required=()):
     """Gem raekken i SharePoint - som kladde eller som faerdig.
 
@@ -558,8 +600,9 @@ def save_row_fx(status="valid", required=()):
         patch.append(f"            {col}: {_patch_value(col, kind)},")
     patch += [
         '            RowStatus: { Value: "%s" },' % status,
-        "            RequesterEmail: varDomMe,",
-        "            RequesterName: User().FullName",
+        # En admin i en andens anmodning gemmer raekken i EJERENS navn.
+        f"            RequesterEmail: If({AS_ADMIN}, Lower(varDomIdx.RequesterEmail), varDomMe),",
+        f"            RequesterName: If({AS_ADMIN}, varDomIdx.RequesterName, User().FullName)",
     ]
     key = f'"{cfg.PREFIX}-" & Text(varDomSpRow.ID, "000000")'
 
@@ -574,7 +617,9 @@ def save_row_fx(status="valid", required=()):
         done = "Saved as "
     # Hvert ekstra krav er sin egen gren i den samme If - og faar sin egen
     # besked, saa brugeren ser HVAD der mangler.
-    extra = ""
+    # Rettigheden staar ogsaa i selve handlingen, ikke kun i UI'et.
+    extra = (f"    {AS_ADMIN} && !{perm.IS_ADMIN},\n"
+             f"    {DENIED_OTHER},\n")
     if status != "draft":
         for cond, text in required:
             extra += f'    {cond},\n    Notify("{text}", NotificationType.Warning),\n'
@@ -587,6 +632,15 @@ def save_row_fx(status="valid", required=()):
         f'    Notify("{msg}", NotificationType.Warning),\n'
         + extra +
         "\n"
+        # Admin i en andens anmodning: hvad aendres? Formularen mod raekken,
+        # som den stod i listen - foer den hentes igen (tools/admin_log.py).
+        "    Set(varDomAdmNew, IsBlank(varDomActiveRowId));\n"
+        "    Set(\n"
+        "        varDomAdmDiff,\n"
+        f"        If({AS_ADMIN} && !varDomAdmNew, With({{ o: {ACTIVE} }},\n"
+        + _indent(alog.diff(_diff_pairs(), 'o.ItemKey & " "'), 12) + "\n"
+        '        ), "")\n'
+        "    );\n"
         "    IfError(\n"
         "    Set(\n"
         "        varDomSpRow,\n"
@@ -607,6 +661,16 @@ def save_row_fx(status="valid", required=()):
         # lavede en dublet med Defaults().
         "    Set(varDomActiveRowId, varDomSpRow.ID);\n"
         "\n"
+        # En admins NYE raekke i en andens anmodning skal hoere til DEN
+        # anmodning - ellers forsvinder den fra listen (refresh_rows_fx).
+        "    If(\n"
+        f"        {AS_ADMIN} && Coalesce(varDomSpRow.RequestGuid, \"\") <> varDomRequestGuid,\n"
+        "        Set(\n"
+        "            varDomSpRow,\n"
+        f"            Patch({cfg.L_ROWS}, varDomSpRow, {{ RequestGuid: varDomRequestGuid, RequestNo: varDomRequestNo }})\n"
+        "        )\n"
+        "    );\n"
+        "\n"
         "    // Noeglen er lavet af raekkens eget ID og kan derfor foerst\n"
         "    // dannes, naar raekken findes. Derfor to skrivninger paa en ny\n"
         "    // raekke og een paa en gammel\n"
@@ -623,6 +687,10 @@ def save_row_fx(status="valid", required=()):
         "        )\n"
         "    );\n"
         f'    Set(varDomRowStatus, "{status}");\n'
+        f"    If(\n        {AS_ADMIN} && (varDomAdmNew || !IsBlank(varDomAdmDiff)),\n"
+        + alog.write("varDomRequestGuid", "varDomRequestNo", alog.EDIT,
+                     f'If(varDomAdmNew, "New row " & Coalesce(varDomSpRow.ItemKey, {key}), varDomAdmDiff)', 8)
+        + "\n    );\n"
         "\n"
         + refresh_rows_fx(4) + ";\n"
         "\n"
@@ -675,6 +743,10 @@ def delete_confirmed_fx():
         f"        If(varDomDocsId = {DELETE_ID}, Set(varDomDocsId, Blank()));\n"
         # Var det den aabne raekke, skal formularen ogsaa ryddes - ellers
         # staar der felter fra noget, der ikke findes.
+        f"        If(\n            {AS_ADMIN},\n"
+        + alog.write("varDomRequestGuid", "varDomRequestNo", alog.DELETE,
+                     f'"Row " & LookUp(colDomRows, RowId = {DELETE_ID}).ItemKey & " deleted"', 12)
+        + "\n        );\n"
         f"        If(varDomActiveRowId = {DELETE_ID},\n"
         "            " + clear_form_fx().replace("\n", "\n            ") + "\n"
         "        );\n"
@@ -975,8 +1047,20 @@ def send_fx(submit):
         cfg.DOMAIN, cfg.APP_KEY, status,
         request_no="Coalesce(varDomRequestNo, varDomRequestGuid)",
         guid="varDomRequestGuid", me="varDomMe",
+        # Ejeren bevares - ogsaa naar en admin gemmer en andens anmodning.
+        owner='Coalesce(varDomIdx.RequesterEmail, varDomMe)',
+        owner_name="Coalesce(varDomIdx.RequesterName, User().FullName)",
+        current="varDomIdx",
         short_text=f'"{cfg.TITLE}: " & CountRows({rows}) & " row(s)"',
         plant=f"First({rows}).Plant", item_count=f"CountRows({rows})")
+    # En admin, der indsender en andens anmodning, logges (tools/admin_log.py).
+    admin_submit_log = ""
+    if submit:
+        admin_submit_log = (
+            f"        If(\n            {AS_ADMIN},\n"
+            + alog.write("varDomRequestGuid", "varDomRequestNo", alog.EDIT,
+                         alog.submitted("varDomAdmFrom"), 12)
+            + "\n        );\n")
     empty = ("There are no completed rows to submit."
              if submit else "There are no rows to save.")
 
@@ -999,19 +1083,29 @@ def send_fx(submit):
         f"    CountRows({rows}) = 0,\n"
         f'    Notify("{empty}", NotificationType.Warning),\n'
         "\n"
+        # Indeksraekken slaas op FRISK, foer der skrives: den er grundraekken
+        # i Patch (samme ene opslag som foer) og afgoer, om brugeren maa.
+        "    Set(\n"
+        "        varDomIdx,\n"
+        f"        If(!IsBlank(varDomRequestGuid), LookUp({cfg.L_INDEX}, RequestGuid = varDomRequestGuid))\n"
+        "    );\n"
+        "    If(\n"
+        "        !IsBlank(varDomIdx) &&\n"
+        "        !" + perm.may_change("varDomIdx.RequesterEmail", "varDomIdx.Status.Value", "varDomMe") + ",\n"
+        '        Notify("This request can no longer be changed.", NotificationType.Warning),\n'
+        "\n"
         "    IfError(\n"
         "        If(\n"
         "            IsBlank(varDomRequestGuid),\n"
         "            Set(varDomRequestGuid, Text(GUID()))\n"
         "        );\n"
+        # Status foer - til admin-loggen ved Submit.
+        "        Set(varDomAdmFrom, Coalesce(varDomIdx.Status.Value, \"\"));\n"
         "        Set(\n"
         "            varDomIdx,\n"
         "            Patch(\n"
         f"                {cfg.L_INDEX},\n"
-        "                Coalesce(\n"
-        f"                    LookUp({cfg.L_INDEX}, RequestGuid = varDomRequestGuid),\n"
-        f"                    Defaults({cfg.L_INDEX})\n"
-        "                ),\n"
+        "                Coalesce(varDomIdx, Defaults(" + cfg.L_INDEX + ")),\n"
         f"                {index_rec}\n"
         "            )\n"
         "        );\n"
@@ -1053,6 +1147,7 @@ def send_fx(submit):
         "        );\n"
         "\n"
         + refresh_rows_fx(8) + ";\n"
+        + admin_submit_log +
         "\n"
         f'        Set(varDomInfo, "{label}: " & varDomRequestNo);\n'
         f"        {(msg.submitted if submit else msg.saved)('varDomRequestNo')}"
@@ -1060,6 +1155,7 @@ def send_fx(submit):
         "\n"
         f'        Set(varDomInfo, "{action} failed: " & FirstError.Message);\n'
         f"        {msg.failed(action)}\n"
+        "    )\n"
         "    )\n"
         ")"
     )
@@ -1074,7 +1170,7 @@ def build_submit_confirm():
         "Dom", CONFIRM_VAR, "Submit request?",
         '"The valid rows are sent to the landing page as Submitted and locked."',
         "Submit", with_busy(SAVING_VAR, send_fx(True)), "btnDomSubmitConfirm") + delete_modal(
-        "Dom", "varDomRequestGuid", cfg.L_INDEX) + [
+        "Dom", "varDomRequestGuid", cfg.L_INDEX, cfg.DOMAIN) + [
         loading_overlay("imgDomSaving", SAVING_VAR)]
 
 

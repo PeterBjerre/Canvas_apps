@@ -93,6 +93,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from build_helpers import button, confirm_modal, ICON_SAVE, ICON_SUBMIT
 import sp_config as cfg
 import messages as msg
+import admin_log as alog
+import permissions as perm
 import request_index as ri
 
 # AppUrl (appens play-URL fra tools/canvas_apps.json) skrives af
@@ -129,6 +131,19 @@ OK = "CountRows(colVhpSaveErrors) = 0"
 
 # Knappen, begge veje ind i gemningen gaar igennem (se save_buttons).
 SAVE_BUTTON = "btnVhpSaveDraft"
+
+# Indeksraekken, som den staar i SharePoint, naar gemningen starter
+# (_step_keys). Den er grundraekken i trin 8 og afgoer rettigheden.
+IDX_NOW = "varVhpIdxNow"
+# Planhovedet, som det staar i SharePoint, foer trin 3 skriver det.
+PLAN_NOW = "varVhpPlanNow"
+# Gemmer en admin en andens anmodning? Saa bevares ejeren (tools/permissions.py).
+AS_ADMIN = (f"(!IsBlank({IDX_NOW}) && "
+            f"!({perm.is_owner(IDX_NOW + '.RequesterEmail', 'varVhpMe')}))")
+# Den ansvarlige paa et item: brugeren selv - eller, for en admin i en
+# andens anmodning, den, der staar paa itemet, og ellers anmodningens ejer.
+RESP_OTHER = f"Lower(Coalesce(IT.OrstedResponsible, {IDX_NOW}.RequesterEmail))"
+RESP = f"If({AS_ADMIN}, {RESP_OTHER}, varVhpMe)"
 
 
 def _offset(list_name, key_field, prefix):
@@ -176,7 +191,10 @@ def plan_fields():
     return (
         "{\n"
         "            Title: varVhpPlan.PlanText,\n"
-        f"            Status: {{ Value: \"{PLAN_STATUS_DRAFT}\" }},\n"
+        # En admin, der retter en andens plan, flytter den ikke tilbage til
+        # Draft - godkendelsesflowet laeser planens status.
+        f"            Status: If({AS_ADMIN} && !IsBlank({PLAN_NOW}), {PLAN_NOW}.Status, "
+        f"{{ Value: \"{PLAN_STATUS_DRAFT}\" }}),\n"
         "            PlantsInitial: { Value: varVhpPlan.Plant },\n"
         "            Cycle: varVhpPlan.Cycle,\n"
         "            Unit: { Value: varVhpPlan.Unit },\n"
@@ -215,14 +233,14 @@ def item_fields(key=None):
         # den, der kan filtreres delegerbart.
         "                OrstedResponsible: {\n"
         "                    '@odata.type': \"#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser\",\n"
-        "                    Claims: \"i:0#.f|membership|\" & varVhpMe,\n"
-        "                    DisplayName: User().FullName,\n"
-        "                    Email: User().Email,\n"
+        f"                    Claims: \"i:0#.f|membership|\" & {RESP},\n"
+        f"                    DisplayName: If({AS_ADMIN}, {RESP_OTHER}, User().FullName),\n"
+        f"                    Email: If({AS_ADMIN}, {RESP_OTHER}, User().Email),\n"
         "                    Department: \"\",\n"
         "                    JobTitle: \"\",\n"
         "                    Picture: \"\"\n"
         "                },\n"
-        "                OrstedResponsibleEmail: varVhpMe,\n"
+        f"                OrstedResponsibleEmail: {RESP},\n"
         "                InitialOrstedResponsible: IT.Initials,\n"
         # Opslag i de navngivne formler, ikke i listerne - de har Id.
         "                MaintenanceActivityType: With(\n"
@@ -273,7 +291,19 @@ def _step_keys():
         "    Concurrent(\n"
         f"        Set(varVhpPlanOff, {_offset(cfg.L_PLANS, 'PlanID', 'MP')}),\n"
         f"        Set(varVhpItemOff, {_offset(cfg.L_ITEMS, 'ItemID', 'MI')}),\n"
-        f"        Set(varVhpTaskOff, {_offset(cfg.L_TASKS, 'TaskItemID', 'TI')})\n"
+        f"        Set(varVhpTaskOff, {_offset(cfg.L_TASKS, 'TaskItemID', 'TI')}),\n"
+        # Indeksraekken hentes samtidig - den slaas op en gang, ikke to.
+        f"        Set({IDX_NOW}, If(!IsBlank(varVhpRequestGuid), "
+        f"LookUp({cfg.L_INDEX}, RequestGuid = varVhpRequestGuid)))\n"
+        "    );\n"
+        # Rettigheden i selve handlingen - ikke kun i UI'et.
+        "    If(\n"
+        f"        !IsBlank({IDX_NOW}) &&\n"
+        f"        !{perm.may_change(IDX_NOW + '.RequesterEmail', IDX_NOW + '.Status.Value', 'varVhpMe')},\n"
+        "        Collect(colVhpSaveErrors, {\n"
+        "            Where: \"Request\",\n"
+        "            Msg: \"This request can no longer be changed.\"\n"
+        "        })\n"
         "    );\n"
         # Hellere stoppe end at starte en ny noegleserie ved siden af den
         # eksisterende, uden at nogen opdager det.
@@ -311,12 +341,12 @@ def _step_conflict():
 def _step_plan():
     """3. Planhovedet og dets noegle."""
     return _step("Plan", (
+        f"    Set({PLAN_NOW}, If(varVhpPlanSpId > 0, LookUp({cfg.L_PLANS}, ID = varVhpPlanSpId)));\n"
         "    Set(\n"
         "        varVhpPlanRec,\n"
         "        Patch(\n"
         f"            {cfg.L_PLANS},\n"
-        f"            If(varVhpPlanSpId > 0, LookUp({cfg.L_PLANS}, ID = varVhpPlanSpId),\n"
-        f"                Defaults({cfg.L_PLANS})),\n"
+        f"            If(varVhpPlanSpId > 0, {PLAN_NOW}, Defaults({cfg.L_PLANS})),\n"
         f"            {plan_fields()}\n"
         "        )\n"
         "    );\n"
@@ -340,6 +370,18 @@ def _step_items():
     """4. Items: opdatér de eksisterende, opret de nye (D7)."""
     ex = f"Filter({cfg.L_ITEMS}, MaintenancePlanNo.Id = varVhpPlanSpId)"
     return _step("Items", (
+        # En admin i en andens plan: items, som de staar nu, til loggen.
+        # Kun dér - andre betaler ingen ekstra hentning.
+        "    If(\n"
+        f"        {AS_ADMIN},\n"
+        "        ClearCollect(\n"
+        "            colVhpAdmOld,\n"
+        f"            ForAll({ex} As I, {{ ID: I.ID, ItemID: I.ItemID, Title: I.Title, "
+        "ItemDescription: I.ItemDescription, FunctionalLocation: I.FunctionalLocation, "
+        "ObjectList: I.ObjectList })\n"
+        "        ),\n"
+        "        Clear(colVhpAdmOld)\n"
+        "    );\n"
         # Hvad der er i SharePoint nu - ID og noegle.
         "    ClearCollect(\n"
         "        colVhpSpItems,\n"
@@ -605,10 +647,13 @@ def _index_patch(status):
     rec = ri.record(
         DOMAIN, "vhplan", status,
         request_no="varVhpPlanKey", guid="varVhpRequestGuid", me="varVhpMe",
+        owner=f"Coalesce({IDX_NOW}.RequesterEmail, varVhpMe)",
+        owner_name=f"Coalesce({IDX_NOW}.RequesterName, User().FullName)",
+        current=IDX_NOW,
         short_text="varVhpPlan.PlanText", plant="varVhpPlan.Plant",
         item_count=SAVEABLE_COUNT, source_id="varVhpPlanSpId", indent=8)
     return (f"Patch(\n        {cfg.L_INDEX},\n        Coalesce(\n"
-            f"            LookUp({cfg.L_INDEX}, RequestGuid = varVhpRequestGuid),\n"
+            f"            {IDX_NOW},\n"
             f"            Defaults({cfg.L_INDEX})\n        ),\n        {rec}\n    )")
 
 
@@ -636,6 +681,42 @@ def _step_status():
         "    Set(varVhpPlanModified, varVhpPlanRec.Modified)"))
 
 
+def _admin_log():
+    """Admin i en andens plan: planhovedet foer/efter (varVhpPlanNow mod
+    varVhpPlanRec - begge som de staar i SharePoint), items foer (colVhpAdmOld)
+    mod det gemte, og Submit (tools/admin_log.py)."""
+    P, N = PLAN_NOW, "varVhpPlanRec"
+    header = alog.diff([
+        ("Plan text", f"{P}.Title", f"{N}.Title"),
+        ("Plant", f"{P}.PlantsInitial.Value", f"{N}.PlantsInitial.Value"),
+        ("Cycle", f"{P}.Cycle", f"{N}.Cycle"),
+        ("Unit", f"{P}.Unit.Value", f"{N}.Unit.Value"),
+        ("Planned date", f"{P}.PlannedDate", f"{N}.PlannedDate"),
+        ("Strategy", f"{P}.StrategyKey", f"{N}.StrategyKey"),
+        ("Sort field", f"{P}.SortField.Value", f"{N}.SortField.Value"),
+    ])
+    item = alog.diff([
+        ("Short text", "O.Title", "n.ShortText"),
+        ("Long text", "O.ItemDescription", "Coalesce(n.LongText, n.ShortText)"),
+        ("Functional location", "O.FunctionalLocation", "n.FunctionalLocation"),
+        ("Object list", "O.ObjectList", "n.ObjectList"),
+    ], 'O.ItemID & " "')
+    items = (
+        "Concat(\n    Filter(\n        ForAll(colVhpAdmOld As O,\n"
+        f"            With({{ n: LookUp({SAVEABLE_ITEMS}, SpId = O.ID) }},\n"
+        '                If(IsBlank(n), O.ItemID & ": removed",\n'
+        + "\n".join(" " * 16 + l for l in item.split("\n")) + ")\n"
+        "            )\n        ),\n        !IsBlank(Value)\n    ),\n    Value,\n    \"; \"\n)")
+    added = (f'With({{ k: CountRows(Filter({SAVEABLE_ITEMS}, !(SpId in colVhpAdmOld.ID))) }}, '
+             'If(k > 0, k & " item(s) added", ""))')
+    status = f'If(varVhpSubmitting, {alog.submitted(IDX_NOW + ".Status.Value")}, "")'
+    comment = alog.join(header, items, added, status)
+    return (f"If(\n    {AS_ADMIN},\n    With(\n        {{ c: {comment} }},\n"
+            "        If(\n            !IsBlank(c),\n"
+            + alog.write("varVhpRequestGuid", "varVhpPlanKey", alog.EDIT, "c", 12)
+            + "\n        )\n    )\n)")
+
+
 def save_action():
     """Hele gemningen. Om det er Save draft eller Submit, afgoer
     varVhpSubmitting - den nulstilles, naar gemningen er faerdig."""
@@ -646,6 +727,7 @@ def save_action():
         # Save-trinnet er groent, saa laenge planen er den samme - se
         # VhpStateJson i sp_config.py.
         "    Set(varVhpSavedJson, VhpStateJson);\n"
+        + _admin_log() + ";\n"
         f"    If(varVhpSubmitting, {msg.submitted('varVhpPlanKey')}, {msg.saved('varVhpPlanKey')}),\n"
         f"    If(varVhpSubmitting, {msg.failed('Submit', detail)}, {msg.failed('Save', detail)})\n"
         ")")

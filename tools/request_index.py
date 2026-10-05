@@ -77,7 +77,8 @@ def _check_domain(domain):
 
 
 def record(domain, app_key, status, *, request_no, guid, me, short_text,
-           plant, item_count, source_id=None, indent=16):
+           plant, item_count, source_id=None, owner=None, owner_name=None,
+           current=None, indent=16):
     """Indeksraekken som Power Fx-record - de SAMME felter fra alle apps.
 
     Argumenterne er Power Fx-udtryk (fx "varDomRequestGuid"), undtagen
@@ -85,7 +86,17 @@ def record(domain, app_key, status, *, request_no, guid, me, short_text,
 
     AppUrl er den SAMLEDE apps play-URL med ?domain=<app_key>&reqid= (se
     COMBINED_APP). Hubben bygger selv "Open" af domaenet
-    (build_hub._open_action); AppUrl er reserven og linket til flows."""
+    (build_hub._open_action); AppUrl er reserven og linket til flows.
+
+    owner / owner_name: anmodningens ejer, naar den kan vaere en anden end
+    brugeren - en admin, der gemmer en andens anmodning, maa ikke overtage
+    den. LastActionBy er stadig den, der handlede.
+
+    current: den eksisterende indeksraekke (eller Blank for en ny). Ved
+    et KLADDE-gem beholder raekken saa sin status: en ejer gemmer kun en
+    Kladde (tools/permissions.py), saa for ham er det uaendret, men en
+    admin, der retter en anmodning i AfventerInfo, maa ikke sende den
+    tilbage til Kladde."""
     _check_domain(domain)
     if app_key not in env.screen_apps():
         raise KeyError("'%s' er ikke en domaeneskaerm i den samlede app. Kendte: %s"
@@ -94,17 +105,22 @@ def record(domain, app_key, status, *, request_no, guid, me, short_text,
     if not url:
         raise SystemExit("'%s' har intet app_id i miljoeet '%s' (tools/canvas_apps.json)."
                          % (COMBINED_APP, env.ENV_NAME))
+    if current and status == DRAFT:
+        st = f'Status: {{ Value: Coalesce({current}.Status.Value, "{status}") }}'
+        sstep = f"StatusStep: Coalesce({current}.StatusStep, {step(status)})"
+    else:
+        st, sstep = f'Status: {{ Value: "{status}" }}', f"StatusStep: {step(status)}"
     fields = [
         f"{COL_NO}: {request_no}",
         f'Domain: {{ Value: "{domain}" }}',
-        f'Status: {{ Value: "{status}" }}',
-        f"StatusStep: {step(status)}",
+        st,
+        sstep,
         # Apperne skriver kun Kladde og Indsendt - begge er aabne. Flows,
         # der lukker en anmodning, saetter IsOpen selv.
         "IsOpen: true",
         f"RequestGuid: {guid}",
-        f"RequesterEmail: {me}",
-        "RequesterName: User().FullName",
+        f"RequesterEmail: {owner or me}",
+        f"RequesterName: {owner_name or 'User().FullName'}",
         f"ShortText: {short_text}",
         f"Plant: {plant}",
         f"ItemCount: {item_count}",

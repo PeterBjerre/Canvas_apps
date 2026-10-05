@@ -5,6 +5,18 @@ Screens:
           =C.'bg-app'
       OnVisible: |-
           =IfError(
+              // Har en sletning roert det, skaermen viser? (tools/request_delete.py)
+              Set(varEqStaleNow, Coalesce(gblEqStale, false));
+              If(
+                  varEqStaleNow,
+                  Set(gblEqStale, false);
+                  If(
+                      !IsBlank(varEqRequestGuid) && IsBlank(LookUp(MD_RequestIndex, RequestGuid = varEqRequestGuid)),
+                      Set(gblEqWant, Blank());
+                      Set(varEqOpened, "")
+                  )
+              );
+          
               // DEN SAMLEDE APP: klargoer skaermen, naar hubben eller et dyblink
               // beder om noget andet end det, den viser. Se BIO SAP App/build/
               // build_screens.py, open_block().
@@ -43,7 +55,6 @@ Screens:
                       Set(varEqViewOnly, false);
                       Set(varEqBadgeOn, false);
                       Set(varEqCanEdit, false);
-                      Set(varEqActiveRowId, Blank());
                       // Hvilken raekke detaljeruden viser. Blank = ruden er skjult.
                       Set(varEqDetailsId, Blank());
                       // Sletning sker bag en bekraeftelse: hvilken raekke, og om den er aaben.
@@ -51,22 +62,11 @@ Screens:
                       Set(varEqConfirmDelete, false);
                       // Hvilken raekke dokumentpopuppen viser. Blank = lukket.
                       Set(varEqDocsId, Blank());
-                      Set(varEqRowStatus, "valid");
                       Set(varEqAttJson, "");
                       Set(varEqFlMsg, "");
-                      // FL-vaelgeren (tools/fl_picker.py): soegeteksten, den sidste soegning,
-                      // og om flowet koerer.
-                      Set(varEqFlQuery, "");
-                      Set(varEqFlLast, "");
                       Set(varEqFlBusy, false);
-                      Set(varEqInfo, "");
                       // Listen: false = Compact, true = All columns (issue #67/#68).
                       Set(varEqAllCols, false);
-          
-                      // Er formularen blevet tjekket? Styrer om en kraevet feltkant maa vaere
-                      // roed. false ved opstart: en tom formular, ingen har roert, skal ikke
-                      // staa og lyse roedt. Saettes af Gem/Indsend - se domain_parts.REQUIRED.
-                      Set(varEqValidated, false);
                       Set(varEqActiveRowId, Blank());
                       Set(varEqRowStatus, "valid");
                       Set(varEqValidated, false);
@@ -102,41 +102,136 @@ Screens:
                                   NotificationType.Information);
                               Set(varEqRequestGuid, ""); Set(varEqRequestNo, ""),
                               Set(varEqRequestNo, varEqIdx.RequestNo);
-                              Set(varEqCanEdit, Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe && varEqIdx.Status.Value = "Kladde");
+                              Set(varEqCanEdit, ((Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe && (varEqIdx.Status.Value = "Kladde")) || (IsAdmin && (varEqIdx.Status.Value = "Kladde" || varEqIdx.Status.Value = "AfventerInfo"))));
                               Set(varEqViewOnly, !(Lower(Coalesce(gblEqMode, "")) = "edit" && varEqCanEdit))
+                          )
+                      );
+                      If(
+                          (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)),
+                          ClearCollect(
+                              colEqRows,
+                              ForAll(
+                                  SortByColumns(Filter(EquipmentItems, RequestGuid = varEqRequestGuid), "Created", SortOrder.Descending) As R,
+                                  {
+                                      RowId: R.ID,
+                                      ItemKey: Coalesce(R.ItemKey, ""),
+                                      RequestNo: Coalesce(R.RequestNo, ""),
+                                      Status: Coalesce(R.RowStatus.Value, "valid"),
+                                      FileCount: Coalesce(R.FileCount, 0),
+                                      Description: Coalesce(R.Description, ""),
+                                      Plant: Coalesce(R.Plant, ""),
+                                      RequestType: Coalesce(R.RequestType, ""),
+                                      EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
+                                      EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                      Manufacturer: Coalesce(R.Manufacturer, ""),
+                                      TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                      SerialNumber: Coalesce(R.SerialNumber, ""),
+                                      FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                      FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
+                                      FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
+                                      ClassData: Coalesce(R.ClassData, ""),
+                                      RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                      Placement: Coalesce(R.Placement, ""),
+                                      WarrantyStart: R.WarrantyStart,
+                                      WarrantyEnd: R.WarrantyEnd
+                                  }
+                              )
+                          ),
+                          ClearCollect(
+                              colEqRows,
+                              ForAll(
+                                  SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
+                                  {
+                                      RowId: R.ID,
+                                      ItemKey: Coalesce(R.ItemKey, ""),
+                                      RequestNo: Coalesce(R.RequestNo, ""),
+                                      Status: Coalesce(R.RowStatus.Value, "valid"),
+                                      FileCount: Coalesce(R.FileCount, 0),
+                                      Description: Coalesce(R.Description, ""),
+                                      Plant: Coalesce(R.Plant, ""),
+                                      RequestType: Coalesce(R.RequestType, ""),
+                                      EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
+                                      EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                      Manufacturer: Coalesce(R.Manufacturer, ""),
+                                      TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                      SerialNumber: Coalesce(R.SerialNumber, ""),
+                                      FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                      FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
+                                      FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
+                                      ClassData: Coalesce(R.ClassData, ""),
+                                      RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                      Placement: Coalesce(R.Placement, ""),
+                                      WarrantyStart: R.WarrantyStart,
+                                      WarrantyEnd: R.WarrantyEnd
+                                  }
+                              )
                           )
                       )
                   )
               );
           
-              Set(varEqMe, Lower(User().Email));
-              ClearCollect(
-                  colEqRows,
-                  ForAll(
-                      SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
-                      {
-                          RowId: R.ID,
-                          ItemKey: Coalesce(R.ItemKey, ""),
-                          RequestNo: Coalesce(R.RequestNo, ""),
-                          Status: Coalesce(R.RowStatus.Value, "valid"),
-                          FileCount: Coalesce(R.FileCount, 0),
-                          Description: Coalesce(R.Description, ""),
-                          Plant: Coalesce(R.Plant, ""),
-                          RequestType: Coalesce(R.RequestType, ""),
-                          EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
-                          EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
-                          Manufacturer: Coalesce(R.Manufacturer, ""),
-                          TypeDesignation: Coalesce(R.TypeDesignation, ""),
-                          SerialNumber: Coalesce(R.SerialNumber, ""),
-                          FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                          FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
-                          FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
-                          ClassData: Coalesce(R.ClassData, ""),
-                          RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
-                          Placement: Coalesce(R.Placement, ""),
-                          WarrantyStart: R.WarrantyStart,
-                          WarrantyEnd: R.WarrantyEnd
-                      }
+              If(
+                  varEqStaleNow,
+                  If(
+                      (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)),
+                      ClearCollect(
+                          colEqRows,
+                          ForAll(
+                              SortByColumns(Filter(EquipmentItems, RequestGuid = varEqRequestGuid), "Created", SortOrder.Descending) As R,
+                              {
+                                  RowId: R.ID,
+                                  ItemKey: Coalesce(R.ItemKey, ""),
+                                  RequestNo: Coalesce(R.RequestNo, ""),
+                                  Status: Coalesce(R.RowStatus.Value, "valid"),
+                                  FileCount: Coalesce(R.FileCount, 0),
+                                  Description: Coalesce(R.Description, ""),
+                                  Plant: Coalesce(R.Plant, ""),
+                                  RequestType: Coalesce(R.RequestType, ""),
+                                  EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
+                                  EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                  Manufacturer: Coalesce(R.Manufacturer, ""),
+                                  TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                  SerialNumber: Coalesce(R.SerialNumber, ""),
+                                  FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                  FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
+                                  FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
+                                  ClassData: Coalesce(R.ClassData, ""),
+                                  RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                  Placement: Coalesce(R.Placement, ""),
+                                  WarrantyStart: R.WarrantyStart,
+                                  WarrantyEnd: R.WarrantyEnd
+                              }
+                          )
+                      ),
+                      ClearCollect(
+                          colEqRows,
+                          ForAll(
+                              SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
+                              {
+                                  RowId: R.ID,
+                                  ItemKey: Coalesce(R.ItemKey, ""),
+                                  RequestNo: Coalesce(R.RequestNo, ""),
+                                  Status: Coalesce(R.RowStatus.Value, "valid"),
+                                  FileCount: Coalesce(R.FileCount, 0),
+                                  Description: Coalesce(R.Description, ""),
+                                  Plant: Coalesce(R.Plant, ""),
+                                  RequestType: Coalesce(R.RequestType, ""),
+                                  EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
+                                  EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                  Manufacturer: Coalesce(R.Manufacturer, ""),
+                                  TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                  SerialNumber: Coalesce(R.SerialNumber, ""),
+                                  FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                  FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
+                                  FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
+                                  ClassData: Coalesce(R.ClassData, ""),
+                                  RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                  Placement: Coalesce(R.Placement, ""),
+                                  WarrantyStart: R.WarrantyStart,
+                                  WarrantyEnd: R.WarrantyEnd
+                              }
+                          )
+                      )
                   )
               ),
               Notify("Could not load the saved rows. Check the connection and open the page again.",
@@ -597,28 +692,35 @@ Screens:
                                       CountRows(Filter(colEqRows, Status <> "submitted")) = 0,
                                       Notify("There are no rows to save.", NotificationType.Warning),
                                   
+                                      Set(
+                                          varEqIdx,
+                                          If(!IsBlank(varEqRequestGuid), LookUp(MD_RequestIndex, RequestGuid = varEqRequestGuid))
+                                      );
+                                      If(
+                                          !IsBlank(varEqIdx) &&
+                                          !((Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe && (varEqIdx.Status.Value = "Kladde")) || (IsAdmin && (varEqIdx.Status.Value = "Kladde" || varEqIdx.Status.Value = "AfventerInfo"))),
+                                          Notify("This request can no longer be changed.", NotificationType.Warning),
+                                  
                                       IfError(
                                           If(
                                               IsBlank(varEqRequestGuid),
                                               Set(varEqRequestGuid, Text(GUID()))
                                           );
+                                          Set(varEqAdmFrom, Coalesce(varEqIdx.Status.Value, ""));
                                           Set(
                                               varEqIdx,
                                               Patch(
                                                   MD_RequestIndex,
-                                                  Coalesce(
-                                                      LookUp(MD_RequestIndex, RequestGuid = varEqRequestGuid),
-                                                      Defaults(MD_RequestIndex)
-                                                  ),
+                                                  Coalesce(varEqIdx, Defaults(MD_RequestIndex)),
                                                   {
                                                       RequestNo: Coalesce(varEqRequestNo, varEqRequestGuid),
                                                       Domain: { Value: "Equipment" },
-                                                      Status: { Value: "Kladde" },
-                                                      StatusStep: 1,
+                                                      Status: { Value: Coalesce(varEqIdx.Status.Value, "Kladde") },
+                                                      StatusStep: Coalesce(varEqIdx.StatusStep, 1),
                                                       IsOpen: true,
                                                       RequestGuid: varEqRequestGuid,
-                                                      RequesterEmail: varEqMe,
-                                                      RequesterName: User().FullName,
+                                                      RequesterEmail: Coalesce(varEqIdx.RequesterEmail, varEqMe),
+                                                      RequesterName: Coalesce(varEqIdx.RequesterName, User().FullName),
                                                       ShortText: "Equipment: " & CountRows(Filter(colEqRows, Status <> "submitted")) & " row(s)",
                                                       Plant: First(Filter(colEqRows, Status <> "submitted")).Plant,
                                                       ItemCount: CountRows(Filter(colEqRows, Status <> "submitted")),
@@ -648,33 +750,65 @@ Screens:
                                               )
                                           );
                                   
-                                          ClearCollect(
-                                              colEqRows,
-                                              ForAll(
-                                                  SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
-                                                  {
-                                                      RowId: R.ID,
-                                                      ItemKey: Coalesce(R.ItemKey, ""),
-                                                      RequestNo: Coalesce(R.RequestNo, ""),
-                                                      Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                      FileCount: Coalesce(R.FileCount, 0),
-                                                      Description: Coalesce(R.Description, ""),
-                                                      Plant: Coalesce(R.Plant, ""),
-                                                      RequestType: Coalesce(R.RequestType, ""),
-                                                      EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
-                                                      EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
-                                                      Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                      TypeDesignation: Coalesce(R.TypeDesignation, ""),
-                                                      SerialNumber: Coalesce(R.SerialNumber, ""),
-                                                      FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                      FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
-                                                      FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
-                                                      ClassData: Coalesce(R.ClassData, ""),
-                                                      RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
-                                                      Placement: Coalesce(R.Placement, ""),
-                                                      WarrantyStart: R.WarrantyStart,
-                                                      WarrantyEnd: R.WarrantyEnd
-                                                  }
+                                          If(
+                                              (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)),
+                                              ClearCollect(
+                                                  colEqRows,
+                                                  ForAll(
+                                                      SortByColumns(Filter(EquipmentItems, RequestGuid = varEqRequestGuid), "Created", SortOrder.Descending) As R,
+                                                      {
+                                                          RowId: R.ID,
+                                                          ItemKey: Coalesce(R.ItemKey, ""),
+                                                          RequestNo: Coalesce(R.RequestNo, ""),
+                                                          Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                          FileCount: Coalesce(R.FileCount, 0),
+                                                          Description: Coalesce(R.Description, ""),
+                                                          Plant: Coalesce(R.Plant, ""),
+                                                          RequestType: Coalesce(R.RequestType, ""),
+                                                          EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
+                                                          EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                          Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                          TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                          SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                          FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                          FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
+                                                          FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
+                                                          ClassData: Coalesce(R.ClassData, ""),
+                                                          RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                          Placement: Coalesce(R.Placement, ""),
+                                                          WarrantyStart: R.WarrantyStart,
+                                                          WarrantyEnd: R.WarrantyEnd
+                                                      }
+                                                  )
+                                              ),
+                                              ClearCollect(
+                                                  colEqRows,
+                                                  ForAll(
+                                                      SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
+                                                      {
+                                                          RowId: R.ID,
+                                                          ItemKey: Coalesce(R.ItemKey, ""),
+                                                          RequestNo: Coalesce(R.RequestNo, ""),
+                                                          Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                          FileCount: Coalesce(R.FileCount, 0),
+                                                          Description: Coalesce(R.Description, ""),
+                                                          Plant: Coalesce(R.Plant, ""),
+                                                          RequestType: Coalesce(R.RequestType, ""),
+                                                          EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
+                                                          EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                          Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                          TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                          SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                          FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                          FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
+                                                          FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
+                                                          ClassData: Coalesce(R.ClassData, ""),
+                                                          RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                          Placement: Coalesce(R.Placement, ""),
+                                                          WarrantyStart: R.WarrantyStart,
+                                                          WarrantyEnd: R.WarrantyEnd
+                                                      }
+                                                  )
                                               )
                                           );
                                   
@@ -683,6 +817,7 @@ Screens:
                                   
                                           Set(varEqInfo, "Save failed: " & FirstError.Message);
                                           Notify("Save failed: " & FirstError.Message, NotificationType.Error)
+                                      )
                                       )
                                   );
                                   Set(varEqSaving, false)
@@ -3978,7 +4113,40 @@ Screens:
                                               If(
                                                   IsBlank(Trim(Coalesce(varEqFText, ""))),
                                                   Notify("Description is required - also on a draft.", NotificationType.Warning),
+                                                  (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)) && !IsAdmin,
+                                                  Notify("You can only change your own requests.", NotificationType.Warning),
                                               
+                                                  Set(varEqAdmNew, IsBlank(varEqActiveRowId));
+                                                  Set(
+                                                      varEqAdmDiff,
+                                                      If((!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)) && !varEqAdmNew, With({ o: LookUp(colEqRows, RowId = varEqActiveRowId) },
+                                                          Concat(
+                                                              Filter(
+                                                                  Table(
+                                                                  { f: "Description", a: Text(o.Description), b: Text(varEqFText) },
+                                                                  { f: "Plant", a: Text(o.Plant), b: Text(varEqFPlant) },
+                                                                  { f: "Type", a: Text(o.RequestType), b: Text(varEqFRequestType) },
+                                                                  { f: "Equipment number", a: Text(o.EquipmentNumber), b: Text(varEqFEquipmentNumber) },
+                                                                  { f: "Equipment type", a: Text(o.EquipmentCategory), b: Text(varEqFEquipmentCategory) },
+                                                                  { f: "Manufacturer", a: Text(o.Manufacturer), b: Text(varEqFManufacturer) },
+                                                                  { f: "Type designation", a: Text(o.TypeDesignation), b: Text(varEqFTypeDesignation) },
+                                                                  { f: "Serial number", a: Text(o.SerialNumber), b: Text(varEqFSerialNumber) },
+                                                                  { f: "Functional location", a: Text(o.FunctionalLocation), b: Text(varEqFFunctionalLocation) },
+                                                                  { f: "Func. loc. 1", a: Text(o.FunctionalLocation1), b: Text(varEqFFunctionalLocation1) },
+                                                                  { f: "Functional location 2", a: Text(o.FunctionalLocation2), b: Text(varEqFFunctionalLocation2) },
+                                                                  { f: "Class data", a: Text(o.ClassData), b: Text(varEqFClassData) },
+                                                                  { f: "Room coordinates", a: Text(o.RoomCoordinates), b: Text(varEqFRoomCoordinates) },
+                                                                  { f: "Placement text", a: Text(o.Placement), b: Text(varEqFPlacement) },
+                                                                  { f: "Warranty from", a: Text(o.WarrantyStart), b: Text(varEqFWarrantyStart) },
+                                                                  { f: "Warranty to", a: Text(o.WarrantyEnd), b: Text(varEqFWarrantyEnd) }
+                                                                  ),
+                                                                  Coalesce(a, "") <> Coalesce(b, "")
+                                                              ),
+                                                              o.ItemKey & " " & f & ": " & Coalesce(a, "(blank)") & " → " & Coalesce(b, "(blank)"),
+                                                              "; "
+                                                          )
+                                                      ), "")
+                                                  );
                                                   IfError(
                                                   Set(
                                                       varEqSpRow,
@@ -4007,12 +4175,20 @@ Screens:
                                                           WarrantyStart: varEqFWarrantyStart,
                                                           WarrantyEnd: varEqFWarrantyEnd,
                                                           RowStatus: { Value: "draft" },
-                                                          RequesterEmail: varEqMe,
-                                                          RequesterName: User().FullName
+                                                          RequesterEmail: If((!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)), Lower(varEqIdx.RequesterEmail), varEqMe),
+                                                          RequesterName: If((!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)), varEqIdx.RequesterName, User().FullName)
                                                           }
                                                       )
                                                   );
                                                   Set(varEqActiveRowId, varEqSpRow.ID);
+                                              
+                                                  If(
+                                                      (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)) && Coalesce(varEqSpRow.RequestGuid, "") <> varEqRequestGuid,
+                                                      Set(
+                                                          varEqSpRow,
+                                                          Patch(EquipmentItems, varEqSpRow, { RequestGuid: varEqRequestGuid, RequestNo: varEqRequestNo })
+                                                      )
+                                                  );
                                               
                                                   // Noeglen er lavet af raekkens eget ID og kan derfor foerst
                                                   // dannes, naar raekken findes. Derfor to skrivninger paa en ny
@@ -4030,34 +4206,84 @@ Screens:
                                                       )
                                                   );
                                                   Set(varEqRowStatus, "draft");
+                                                  If(
+                                                      (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)) && (varEqAdmNew || !IsBlank(varEqAdmDiff)),
+                                                      IfError(
+                                                          Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                              Title: varEqRequestNo,
+                                                              RequestGuid: varEqRequestGuid,
+                                                              Stage: "Admin",
+                                                              Decision: "AdminEdit",
+                                                              Detail: Left(If(varEqAdmNew, "New row " & Coalesce(varEqSpRow.ItemKey, "EQ-" & Text(varEqSpRow.ID, "000000")), varEqAdmDiff), 255),
+                                                              Comment: If(varEqAdmNew, "New row " & Coalesce(varEqSpRow.ItemKey, "EQ-" & Text(varEqSpRow.ID, "000000")), varEqAdmDiff),
+                                                              DecidedByEmail: Lower(User().Email),
+                                                              DecidedOn: Now()
+                                                          });
+                                                          true,
+                                                          Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                          false
+                                                      )
+                                                  );
                                               
-                                                  ClearCollect(
-                                                      colEqRows,
-                                                      ForAll(
-                                                          SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
-                                                          {
-                                                              RowId: R.ID,
-                                                              ItemKey: Coalesce(R.ItemKey, ""),
-                                                              RequestNo: Coalesce(R.RequestNo, ""),
-                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                              FileCount: Coalesce(R.FileCount, 0),
-                                                              Description: Coalesce(R.Description, ""),
-                                                              Plant: Coalesce(R.Plant, ""),
-                                                              RequestType: Coalesce(R.RequestType, ""),
-                                                              EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
-                                                              EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
-                                                              Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                              TypeDesignation: Coalesce(R.TypeDesignation, ""),
-                                                              SerialNumber: Coalesce(R.SerialNumber, ""),
-                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                              FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
-                                                              FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
-                                                              ClassData: Coalesce(R.ClassData, ""),
-                                                              RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
-                                                              Placement: Coalesce(R.Placement, ""),
-                                                              WarrantyStart: R.WarrantyStart,
-                                                              WarrantyEnd: R.WarrantyEnd
-                                                          }
+                                                  If(
+                                                      (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)),
+                                                      ClearCollect(
+                                                          colEqRows,
+                                                          ForAll(
+                                                              SortByColumns(Filter(EquipmentItems, RequestGuid = varEqRequestGuid), "Created", SortOrder.Descending) As R,
+                                                              {
+                                                                  RowId: R.ID,
+                                                                  ItemKey: Coalesce(R.ItemKey, ""),
+                                                                  RequestNo: Coalesce(R.RequestNo, ""),
+                                                                  Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                                  FileCount: Coalesce(R.FileCount, 0),
+                                                                  Description: Coalesce(R.Description, ""),
+                                                                  Plant: Coalesce(R.Plant, ""),
+                                                                  RequestType: Coalesce(R.RequestType, ""),
+                                                                  EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
+                                                                  EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                                  Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                                  TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                                  SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                                  FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                                  FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
+                                                                  FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
+                                                                  ClassData: Coalesce(R.ClassData, ""),
+                                                                  RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                                  Placement: Coalesce(R.Placement, ""),
+                                                                  WarrantyStart: R.WarrantyStart,
+                                                                  WarrantyEnd: R.WarrantyEnd
+                                                              }
+                                                          )
+                                                      ),
+                                                      ClearCollect(
+                                                          colEqRows,
+                                                          ForAll(
+                                                              SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
+                                                              {
+                                                                  RowId: R.ID,
+                                                                  ItemKey: Coalesce(R.ItemKey, ""),
+                                                                  RequestNo: Coalesce(R.RequestNo, ""),
+                                                                  Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                                  FileCount: Coalesce(R.FileCount, 0),
+                                                                  Description: Coalesce(R.Description, ""),
+                                                                  Plant: Coalesce(R.Plant, ""),
+                                                                  RequestType: Coalesce(R.RequestType, ""),
+                                                                  EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
+                                                                  EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                                  Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                                  TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                                  SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                                  FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                                  FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
+                                                                  FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
+                                                                  ClassData: Coalesce(R.ClassData, ""),
+                                                                  RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                                  Placement: Coalesce(R.Placement, ""),
+                                                                  WarrantyStart: R.WarrantyStart,
+                                                                  WarrantyEnd: R.WarrantyEnd
+                                                              }
+                                                          )
                                                       )
                                                   );
                                               
@@ -4120,7 +4346,40 @@ Screens:
                                               If(
                                                   IsBlank(Trim(Coalesce(varEqFText, ""))) || IsBlank(varEqFPlant),
                                                   Notify("Description and Plant are required.", NotificationType.Warning),
+                                                  (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)) && !IsAdmin,
+                                                  Notify("You can only change your own requests.", NotificationType.Warning),
                                               
+                                                  Set(varEqAdmNew, IsBlank(varEqActiveRowId));
+                                                  Set(
+                                                      varEqAdmDiff,
+                                                      If((!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)) && !varEqAdmNew, With({ o: LookUp(colEqRows, RowId = varEqActiveRowId) },
+                                                          Concat(
+                                                              Filter(
+                                                                  Table(
+                                                                  { f: "Description", a: Text(o.Description), b: Text(varEqFText) },
+                                                                  { f: "Plant", a: Text(o.Plant), b: Text(varEqFPlant) },
+                                                                  { f: "Type", a: Text(o.RequestType), b: Text(varEqFRequestType) },
+                                                                  { f: "Equipment number", a: Text(o.EquipmentNumber), b: Text(varEqFEquipmentNumber) },
+                                                                  { f: "Equipment type", a: Text(o.EquipmentCategory), b: Text(varEqFEquipmentCategory) },
+                                                                  { f: "Manufacturer", a: Text(o.Manufacturer), b: Text(varEqFManufacturer) },
+                                                                  { f: "Type designation", a: Text(o.TypeDesignation), b: Text(varEqFTypeDesignation) },
+                                                                  { f: "Serial number", a: Text(o.SerialNumber), b: Text(varEqFSerialNumber) },
+                                                                  { f: "Functional location", a: Text(o.FunctionalLocation), b: Text(varEqFFunctionalLocation) },
+                                                                  { f: "Func. loc. 1", a: Text(o.FunctionalLocation1), b: Text(varEqFFunctionalLocation1) },
+                                                                  { f: "Functional location 2", a: Text(o.FunctionalLocation2), b: Text(varEqFFunctionalLocation2) },
+                                                                  { f: "Class data", a: Text(o.ClassData), b: Text(varEqFClassData) },
+                                                                  { f: "Room coordinates", a: Text(o.RoomCoordinates), b: Text(varEqFRoomCoordinates) },
+                                                                  { f: "Placement text", a: Text(o.Placement), b: Text(varEqFPlacement) },
+                                                                  { f: "Warranty from", a: Text(o.WarrantyStart), b: Text(varEqFWarrantyStart) },
+                                                                  { f: "Warranty to", a: Text(o.WarrantyEnd), b: Text(varEqFWarrantyEnd) }
+                                                                  ),
+                                                                  Coalesce(a, "") <> Coalesce(b, "")
+                                                              ),
+                                                              o.ItemKey & " " & f & ": " & Coalesce(a, "(blank)") & " → " & Coalesce(b, "(blank)"),
+                                                              "; "
+                                                          )
+                                                      ), "")
+                                                  );
                                                   IfError(
                                                   Set(
                                                       varEqSpRow,
@@ -4149,12 +4408,20 @@ Screens:
                                                           WarrantyStart: varEqFWarrantyStart,
                                                           WarrantyEnd: varEqFWarrantyEnd,
                                                           RowStatus: { Value: "valid" },
-                                                          RequesterEmail: varEqMe,
-                                                          RequesterName: User().FullName
+                                                          RequesterEmail: If((!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)), Lower(varEqIdx.RequesterEmail), varEqMe),
+                                                          RequesterName: If((!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)), varEqIdx.RequesterName, User().FullName)
                                                           }
                                                       )
                                                   );
                                                   Set(varEqActiveRowId, varEqSpRow.ID);
+                                              
+                                                  If(
+                                                      (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)) && Coalesce(varEqSpRow.RequestGuid, "") <> varEqRequestGuid,
+                                                      Set(
+                                                          varEqSpRow,
+                                                          Patch(EquipmentItems, varEqSpRow, { RequestGuid: varEqRequestGuid, RequestNo: varEqRequestNo })
+                                                      )
+                                                  );
                                               
                                                   // Noeglen er lavet af raekkens eget ID og kan derfor foerst
                                                   // dannes, naar raekken findes. Derfor to skrivninger paa en ny
@@ -4172,34 +4439,84 @@ Screens:
                                                       )
                                                   );
                                                   Set(varEqRowStatus, "valid");
+                                                  If(
+                                                      (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)) && (varEqAdmNew || !IsBlank(varEqAdmDiff)),
+                                                      IfError(
+                                                          Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                              Title: varEqRequestNo,
+                                                              RequestGuid: varEqRequestGuid,
+                                                              Stage: "Admin",
+                                                              Decision: "AdminEdit",
+                                                              Detail: Left(If(varEqAdmNew, "New row " & Coalesce(varEqSpRow.ItemKey, "EQ-" & Text(varEqSpRow.ID, "000000")), varEqAdmDiff), 255),
+                                                              Comment: If(varEqAdmNew, "New row " & Coalesce(varEqSpRow.ItemKey, "EQ-" & Text(varEqSpRow.ID, "000000")), varEqAdmDiff),
+                                                              DecidedByEmail: Lower(User().Email),
+                                                              DecidedOn: Now()
+                                                          });
+                                                          true,
+                                                          Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                          false
+                                                      )
+                                                  );
                                               
-                                                  ClearCollect(
-                                                      colEqRows,
-                                                      ForAll(
-                                                          SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
-                                                          {
-                                                              RowId: R.ID,
-                                                              ItemKey: Coalesce(R.ItemKey, ""),
-                                                              RequestNo: Coalesce(R.RequestNo, ""),
-                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                              FileCount: Coalesce(R.FileCount, 0),
-                                                              Description: Coalesce(R.Description, ""),
-                                                              Plant: Coalesce(R.Plant, ""),
-                                                              RequestType: Coalesce(R.RequestType, ""),
-                                                              EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
-                                                              EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
-                                                              Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                              TypeDesignation: Coalesce(R.TypeDesignation, ""),
-                                                              SerialNumber: Coalesce(R.SerialNumber, ""),
-                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                              FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
-                                                              FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
-                                                              ClassData: Coalesce(R.ClassData, ""),
-                                                              RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
-                                                              Placement: Coalesce(R.Placement, ""),
-                                                              WarrantyStart: R.WarrantyStart,
-                                                              WarrantyEnd: R.WarrantyEnd
-                                                          }
+                                                  If(
+                                                      (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)),
+                                                      ClearCollect(
+                                                          colEqRows,
+                                                          ForAll(
+                                                              SortByColumns(Filter(EquipmentItems, RequestGuid = varEqRequestGuid), "Created", SortOrder.Descending) As R,
+                                                              {
+                                                                  RowId: R.ID,
+                                                                  ItemKey: Coalesce(R.ItemKey, ""),
+                                                                  RequestNo: Coalesce(R.RequestNo, ""),
+                                                                  Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                                  FileCount: Coalesce(R.FileCount, 0),
+                                                                  Description: Coalesce(R.Description, ""),
+                                                                  Plant: Coalesce(R.Plant, ""),
+                                                                  RequestType: Coalesce(R.RequestType, ""),
+                                                                  EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
+                                                                  EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                                  Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                                  TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                                  SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                                  FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                                  FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
+                                                                  FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
+                                                                  ClassData: Coalesce(R.ClassData, ""),
+                                                                  RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                                  Placement: Coalesce(R.Placement, ""),
+                                                                  WarrantyStart: R.WarrantyStart,
+                                                                  WarrantyEnd: R.WarrantyEnd
+                                                              }
+                                                          )
+                                                      ),
+                                                      ClearCollect(
+                                                          colEqRows,
+                                                          ForAll(
+                                                              SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
+                                                              {
+                                                                  RowId: R.ID,
+                                                                  ItemKey: Coalesce(R.ItemKey, ""),
+                                                                  RequestNo: Coalesce(R.RequestNo, ""),
+                                                                  Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                                  FileCount: Coalesce(R.FileCount, 0),
+                                                                  Description: Coalesce(R.Description, ""),
+                                                                  Plant: Coalesce(R.Plant, ""),
+                                                                  RequestType: Coalesce(R.RequestType, ""),
+                                                                  EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
+                                                                  EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                                  Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                                  TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                                  SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                                  FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                                  FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
+                                                                  FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
+                                                                  ClassData: Coalesce(R.ClassData, ""),
+                                                                  RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                                  Placement: Coalesce(R.Placement, ""),
+                                                                  WarrantyStart: R.WarrantyStart,
+                                                                  WarrantyEnd: R.WarrantyEnd
+                                                              }
+                                                          )
                                                       )
                                                   );
                                               
@@ -7216,33 +7533,65 @@ Screens:
                                     LayoutMinWidth: |-
                                         =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If(LayoutRank < 2, 40, 148)) + (0) + 8, If(LayoutRank < 2, 40, 148), 0)
                                     OnSelect: |-
-                                        =ClearCollect(
-                                            colEqRows,
-                                            ForAll(
-                                                SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
-                                                {
-                                                    RowId: R.ID,
-                                                    ItemKey: Coalesce(R.ItemKey, ""),
-                                                    RequestNo: Coalesce(R.RequestNo, ""),
-                                                    Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                    FileCount: Coalesce(R.FileCount, 0),
-                                                    Description: Coalesce(R.Description, ""),
-                                                    Plant: Coalesce(R.Plant, ""),
-                                                    RequestType: Coalesce(R.RequestType, ""),
-                                                    EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
-                                                    EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
-                                                    Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                    TypeDesignation: Coalesce(R.TypeDesignation, ""),
-                                                    SerialNumber: Coalesce(R.SerialNumber, ""),
-                                                    FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                    FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
-                                                    FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
-                                                    ClassData: Coalesce(R.ClassData, ""),
-                                                    RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
-                                                    Placement: Coalesce(R.Placement, ""),
-                                                    WarrantyStart: R.WarrantyStart,
-                                                    WarrantyEnd: R.WarrantyEnd
-                                                }
+                                        =If(
+                                            (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)),
+                                            ClearCollect(
+                                                colEqRows,
+                                                ForAll(
+                                                    SortByColumns(Filter(EquipmentItems, RequestGuid = varEqRequestGuid), "Created", SortOrder.Descending) As R,
+                                                    {
+                                                        RowId: R.ID,
+                                                        ItemKey: Coalesce(R.ItemKey, ""),
+                                                        RequestNo: Coalesce(R.RequestNo, ""),
+                                                        Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                        FileCount: Coalesce(R.FileCount, 0),
+                                                        Description: Coalesce(R.Description, ""),
+                                                        Plant: Coalesce(R.Plant, ""),
+                                                        RequestType: Coalesce(R.RequestType, ""),
+                                                        EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
+                                                        EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                        Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                        TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                        SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                        FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                        FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
+                                                        FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
+                                                        ClassData: Coalesce(R.ClassData, ""),
+                                                        RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                        Placement: Coalesce(R.Placement, ""),
+                                                        WarrantyStart: R.WarrantyStart,
+                                                        WarrantyEnd: R.WarrantyEnd
+                                                    }
+                                                )
+                                            ),
+                                            ClearCollect(
+                                                colEqRows,
+                                                ForAll(
+                                                    SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
+                                                    {
+                                                        RowId: R.ID,
+                                                        ItemKey: Coalesce(R.ItemKey, ""),
+                                                        RequestNo: Coalesce(R.RequestNo, ""),
+                                                        Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                        FileCount: Coalesce(R.FileCount, 0),
+                                                        Description: Coalesce(R.Description, ""),
+                                                        Plant: Coalesce(R.Plant, ""),
+                                                        RequestType: Coalesce(R.RequestType, ""),
+                                                        EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
+                                                        EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                        Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                        TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                        SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                        FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                        FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
+                                                        FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
+                                                        ClassData: Coalesce(R.ClassData, ""),
+                                                        RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                        Placement: Coalesce(R.Placement, ""),
+                                                        WarrantyStart: R.WarrantyStart,
+                                                        WarrantyEnd: R.WarrantyEnd
+                                                    }
+                                                )
                                             )
                                         );
                                         Set(varEqInfo, "Reloaded.")
@@ -12386,6 +12735,24 @@ Screens:
                                     RemoveIf(colEqAttachments, RowId = varEqDeleteId);
                                     If(varEqDetailsId = varEqDeleteId, Set(varEqDetailsId, Blank()));
                                     If(varEqDocsId = varEqDeleteId, Set(varEqDocsId, Blank()));
+                                    If(
+                                        (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)),
+                                        IfError(
+                                            Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                Title: varEqRequestNo,
+                                                RequestGuid: varEqRequestGuid,
+                                                Stage: "Admin",
+                                                Decision: "AdminDelete",
+                                                Detail: Left("Row " & LookUp(colEqRows, RowId = varEqDeleteId).ItemKey & " deleted", 255),
+                                                Comment: "Row " & LookUp(colEqRows, RowId = varEqDeleteId).ItemKey & " deleted",
+                                                DecidedByEmail: Lower(User().Email),
+                                                DecidedOn: Now()
+                                            });
+                                            true,
+                                            Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                            false
+                                        )
+                                    );
                                     If(varEqActiveRowId = varEqDeleteId,
                                         Set(varEqActiveRowId, Blank());
                                         Set(varEqRowStatus, "valid");
@@ -12409,33 +12776,65 @@ Screens:
                                         Set(varEqFlQuery, ""); Set(varEqFlLast, ""); Set(varEqFlMsg, ""); Clear(colEqFl); Reset(cmbEqFl);
                                         Set(varEqInfo, "")
                                     );
-                                    ClearCollect(
-                                        colEqRows,
-                                        ForAll(
-                                            SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
-                                            {
-                                                RowId: R.ID,
-                                                ItemKey: Coalesce(R.ItemKey, ""),
-                                                RequestNo: Coalesce(R.RequestNo, ""),
-                                                Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                FileCount: Coalesce(R.FileCount, 0),
-                                                Description: Coalesce(R.Description, ""),
-                                                Plant: Coalesce(R.Plant, ""),
-                                                RequestType: Coalesce(R.RequestType, ""),
-                                                EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
-                                                EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
-                                                Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                TypeDesignation: Coalesce(R.TypeDesignation, ""),
-                                                SerialNumber: Coalesce(R.SerialNumber, ""),
-                                                FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
-                                                FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
-                                                ClassData: Coalesce(R.ClassData, ""),
-                                                RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
-                                                Placement: Coalesce(R.Placement, ""),
-                                                WarrantyStart: R.WarrantyStart,
-                                                WarrantyEnd: R.WarrantyEnd
-                                            }
+                                    If(
+                                        (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)),
+                                        ClearCollect(
+                                            colEqRows,
+                                            ForAll(
+                                                SortByColumns(Filter(EquipmentItems, RequestGuid = varEqRequestGuid), "Created", SortOrder.Descending) As R,
+                                                {
+                                                    RowId: R.ID,
+                                                    ItemKey: Coalesce(R.ItemKey, ""),
+                                                    RequestNo: Coalesce(R.RequestNo, ""),
+                                                    Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                    FileCount: Coalesce(R.FileCount, 0),
+                                                    Description: Coalesce(R.Description, ""),
+                                                    Plant: Coalesce(R.Plant, ""),
+                                                    RequestType: Coalesce(R.RequestType, ""),
+                                                    EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
+                                                    EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                    Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                    TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                    SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                    FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                    FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
+                                                    FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
+                                                    ClassData: Coalesce(R.ClassData, ""),
+                                                    RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                    Placement: Coalesce(R.Placement, ""),
+                                                    WarrantyStart: R.WarrantyStart,
+                                                    WarrantyEnd: R.WarrantyEnd
+                                                }
+                                            )
+                                        ),
+                                        ClearCollect(
+                                            colEqRows,
+                                            ForAll(
+                                                SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
+                                                {
+                                                    RowId: R.ID,
+                                                    ItemKey: Coalesce(R.ItemKey, ""),
+                                                    RequestNo: Coalesce(R.RequestNo, ""),
+                                                    Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                    FileCount: Coalesce(R.FileCount, 0),
+                                                    Description: Coalesce(R.Description, ""),
+                                                    Plant: Coalesce(R.Plant, ""),
+                                                    RequestType: Coalesce(R.RequestType, ""),
+                                                    EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
+                                                    EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                    Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                    TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                    SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                    FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                    FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
+                                                    FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
+                                                    ClassData: Coalesce(R.ClassData, ""),
+                                                    RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                    Placement: Coalesce(R.Placement, ""),
+                                                    WarrantyStart: R.WarrantyStart,
+                                                    WarrantyEnd: R.WarrantyEnd
+                                                }
+                                            )
                                         )
                                     );
                                     Set(varEqInfo, "Row deleted. The documents remain in the library.");
@@ -12704,19 +13103,26 @@ Screens:
                                 CountRows(Filter(colEqRows, Status = "valid")) = 0,
                                 Notify("There are no completed rows to submit.", NotificationType.Warning),
                             
+                                Set(
+                                    varEqIdx,
+                                    If(!IsBlank(varEqRequestGuid), LookUp(MD_RequestIndex, RequestGuid = varEqRequestGuid))
+                                );
+                                If(
+                                    !IsBlank(varEqIdx) &&
+                                    !((Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe && (varEqIdx.Status.Value = "Kladde")) || (IsAdmin && (varEqIdx.Status.Value = "Kladde" || varEqIdx.Status.Value = "AfventerInfo"))),
+                                    Notify("This request can no longer be changed.", NotificationType.Warning),
+                            
                                 IfError(
                                     If(
                                         IsBlank(varEqRequestGuid),
                                         Set(varEqRequestGuid, Text(GUID()))
                                     );
+                                    Set(varEqAdmFrom, Coalesce(varEqIdx.Status.Value, ""));
                                     Set(
                                         varEqIdx,
                                         Patch(
                                             MD_RequestIndex,
-                                            Coalesce(
-                                                LookUp(MD_RequestIndex, RequestGuid = varEqRequestGuid),
-                                                Defaults(MD_RequestIndex)
-                                            ),
+                                            Coalesce(varEqIdx, Defaults(MD_RequestIndex)),
                                             {
                                                 RequestNo: Coalesce(varEqRequestNo, varEqRequestGuid),
                                                 Domain: { Value: "Equipment" },
@@ -12724,8 +13130,8 @@ Screens:
                                                 StatusStep: 2,
                                                 IsOpen: true,
                                                 RequestGuid: varEqRequestGuid,
-                                                RequesterEmail: varEqMe,
-                                                RequesterName: User().FullName,
+                                                RequesterEmail: Coalesce(varEqIdx.RequesterEmail, varEqMe),
+                                                RequesterName: Coalesce(varEqIdx.RequesterName, User().FullName),
                                                 ShortText: "Equipment: " & CountRows(Filter(colEqRows, Status = "valid")) & " row(s)",
                                                 Plant: First(Filter(colEqRows, Status = "valid")).Plant,
                                                 ItemCount: CountRows(Filter(colEqRows, Status = "valid")),
@@ -12757,33 +13163,83 @@ Screens:
                                         )
                                     );
                             
-                                    ClearCollect(
-                                        colEqRows,
-                                        ForAll(
-                                            SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
-                                            {
-                                                RowId: R.ID,
-                                                ItemKey: Coalesce(R.ItemKey, ""),
-                                                RequestNo: Coalesce(R.RequestNo, ""),
-                                                Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                FileCount: Coalesce(R.FileCount, 0),
-                                                Description: Coalesce(R.Description, ""),
-                                                Plant: Coalesce(R.Plant, ""),
-                                                RequestType: Coalesce(R.RequestType, ""),
-                                                EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
-                                                EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
-                                                Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                TypeDesignation: Coalesce(R.TypeDesignation, ""),
-                                                SerialNumber: Coalesce(R.SerialNumber, ""),
-                                                FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
-                                                FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
-                                                ClassData: Coalesce(R.ClassData, ""),
-                                                RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
-                                                Placement: Coalesce(R.Placement, ""),
-                                                WarrantyStart: R.WarrantyStart,
-                                                WarrantyEnd: R.WarrantyEnd
-                                            }
+                                    If(
+                                        (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)),
+                                        ClearCollect(
+                                            colEqRows,
+                                            ForAll(
+                                                SortByColumns(Filter(EquipmentItems, RequestGuid = varEqRequestGuid), "Created", SortOrder.Descending) As R,
+                                                {
+                                                    RowId: R.ID,
+                                                    ItemKey: Coalesce(R.ItemKey, ""),
+                                                    RequestNo: Coalesce(R.RequestNo, ""),
+                                                    Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                    FileCount: Coalesce(R.FileCount, 0),
+                                                    Description: Coalesce(R.Description, ""),
+                                                    Plant: Coalesce(R.Plant, ""),
+                                                    RequestType: Coalesce(R.RequestType, ""),
+                                                    EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
+                                                    EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                    Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                    TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                    SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                    FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                    FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
+                                                    FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
+                                                    ClassData: Coalesce(R.ClassData, ""),
+                                                    RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                    Placement: Coalesce(R.Placement, ""),
+                                                    WarrantyStart: R.WarrantyStart,
+                                                    WarrantyEnd: R.WarrantyEnd
+                                                }
+                                            )
+                                        ),
+                                        ClearCollect(
+                                            colEqRows,
+                                            ForAll(
+                                                SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
+                                                {
+                                                    RowId: R.ID,
+                                                    ItemKey: Coalesce(R.ItemKey, ""),
+                                                    RequestNo: Coalesce(R.RequestNo, ""),
+                                                    Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                    FileCount: Coalesce(R.FileCount, 0),
+                                                    Description: Coalesce(R.Description, ""),
+                                                    Plant: Coalesce(R.Plant, ""),
+                                                    RequestType: Coalesce(R.RequestType, ""),
+                                                    EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
+                                                    EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                    Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                    TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                    SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                    FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                    FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
+                                                    FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
+                                                    ClassData: Coalesce(R.ClassData, ""),
+                                                    RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                    Placement: Coalesce(R.Placement, ""),
+                                                    WarrantyStart: R.WarrantyStart,
+                                                    WarrantyEnd: R.WarrantyEnd
+                                                }
+                                            )
+                                        )
+                                    );
+                                    If(
+                                        (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)),
+                                        IfError(
+                                            Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                Title: varEqRequestNo,
+                                                RequestGuid: varEqRequestGuid,
+                                                Stage: "Admin",
+                                                Decision: "AdminEdit",
+                                                Detail: Left("Status: " & Switch(varEqAdmFrom, "Kladde", "Draft", "Indsendt", "Submitted", "UnderBehandling", "In progress", "AfventerInfo", "Awaiting info", "KlarTilSAP", "Ready for SAP", "OprettetISAP", "Created in SAP", "Afvist", "Rejected", "Annulleret", "Cancelled", varEqAdmFrom) & " → Submitted", 255),
+                                                Comment: "Status: " & Switch(varEqAdmFrom, "Kladde", "Draft", "Indsendt", "Submitted", "UnderBehandling", "In progress", "AfventerInfo", "Awaiting info", "KlarTilSAP", "Ready for SAP", "OprettetISAP", "Created in SAP", "Afvist", "Rejected", "Annulleret", "Cancelled", varEqAdmFrom) & " → Submitted",
+                                                DecidedByEmail: Lower(User().Email),
+                                                DecidedOn: Now()
+                                            });
+                                            true,
+                                            Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                            false
                                         )
                                     );
                             
@@ -12794,6 +13250,7 @@ Screens:
                             
                                     Set(varEqInfo, "Submit failed: " & FirstError.Message);
                                     Notify("Submit failed: " & FirstError.Message, NotificationType.Error)
+                                )
                                 )
                             );
                             Set(varEqSaving, false)
@@ -13054,18 +13511,50 @@ Screens:
                             =ButtonLayout.IconBefore
                         OnSelect: |-
                             =Set(varEqDeleteOpen, false);
-                            IfError(
+                            Set(varEqDelIdx, LookUp(MD_RequestIndex, RequestGuid = varEqRequestGuid));
+                            If(
+                                IsBlank(varEqDelIdx),
+                                Notify("This request no longer exists.", NotificationType.Warning),
+                                !((Lower(Coalesce(varEqDelIdx.RequesterEmail, "")) = varEqMe && (varEqDelIdx.Status.Value = "Kladde")) || (IsAdmin && (varEqDelIdx.Status.Value = "Kladde" || varEqDelIdx.Status.Value = "AfventerInfo"))),
+                                If(IsAdmin, Notify("Only drafts and requests awaiting info can be deleted.", NotificationType.Warning), Notify("Only drafts can be deleted.", NotificationType.Warning)),
+                                Set(varEqDelGuid, varEqDelIdx.RequestGuid);
+                                Set(varEqDelSp, varEqDelIdx.SourceItemId);
+                                Set(varEqDelKey, varEqDelIdx.RequestNo);
+                                Set(varEqDelDomain, varEqDelIdx.Domain.Value);
+                                Remove(EquipmentItems, Filter(EquipmentItems, RequestGuid = varEqDelGuid));
                                 If(
-                                    LookUp(MD_RequestIndex, RequestGuid = varEqRequestGuid).Status.Value = "Kladde",
-                                    Remove(MD_RequestIndex, LookUp(MD_RequestIndex, RequestGuid = varEqRequestGuid));
-                                    Set(varEqRequestGuid, "");
-                                    Notify("Request deleted.", NotificationType.Success);
-                                    Set(gblNavOpen, false); Navigate(ScreenMdHub, ScreenTransition.None),
-                                    Notify("Only drafts can be deleted.", NotificationType.Warning)
-                                );
-                                true,
-                                Notify("The request could not be deleted.", NotificationType.Error);
-                                false
+                                    !IsEmpty(Errors(EquipmentItems)),
+                                    Notify("The request could not be deleted: " & First(Errors(EquipmentItems)).Message, NotificationType.Error),
+                                    Remove(MD_RequestIndex, Filter(MD_RequestIndex, RequestGuid = varEqDelGuid));
+                                    If(
+                                        !IsEmpty(Errors(MD_RequestIndex)),
+                                        Notify("The request could not be deleted: " & First(Errors(MD_RequestIndex)).Message, NotificationType.Error),
+                                        If(
+                                            (IsAdmin && !(Lower(Coalesce(varEqDelIdx.RequesterEmail, "")) = varEqMe)),
+                                            IfError(
+                                                Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                    Title: varEqDelKey,
+                                                    RequestGuid: varEqDelGuid,
+                                                    Stage: "Admin",
+                                                    Decision: "AdminDelete",
+                                                    Detail: Left("Request deleted (" & varEqDelIdx.Status.Value & ", owner " & varEqDelIdx.RequesterEmail & ")", 255),
+                                                    Comment: "Request deleted (" & varEqDelIdx.Status.Value & ", owner " & varEqDelIdx.RequesterEmail & ")",
+                                                    DecidedByEmail: Lower(User().Email),
+                                                    DecidedOn: Now()
+                                                });
+                                                true,
+                                                Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                false
+                                            )
+                                        );
+                                        Set(varEqRequestGuid, "");
+                                        Set(gblEqStale, true);
+                                        Set(gblEqWant, Blank());
+                                        Set(varEqOpened, "");
+                                        Notify("Request deleted.", NotificationType.Success);
+                                        Set(gblNavOpen, false); Navigate(ScreenMdHub, ScreenTransition.None)
+                                    )
+                                )
                             )
                         RadiusBottomLeft: |-
                             =10
