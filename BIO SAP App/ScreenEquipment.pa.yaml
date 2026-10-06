@@ -4,246 +4,13 @@ Screens:
       Fill: |-
           =C.'bg-app'
       OnVisible: |-
-          =IfError(
-              // Har en sletning roert det, skaermen viser? (tools/request_delete.py)
-              Set(varEqStaleNow, Coalesce(gblEqStale, false));
-              If(
-                  varEqStaleNow,
-                  Set(gblEqStale, false);
-                  If(
-                      !IsBlank(varEqRequestGuid) && IsBlank(LookUp(MD_RequestIndex, RequestGuid = varEqRequestGuid)),
-                      Set(gblEqWant, Blank());
-                      Set(varEqOpened, "")
-                  )
-              );
-          
-              // DEN SAMLEDE APP: klargoer skaermen, naar hubben eller et dyblink
-              // beder om noget andet end det, den viser. Se BIO SAP App/build/
-              // build_screens.py, open_block().
-              With(
-                  { wantKey: If(
-                      gblNavTo = "Eq",
-                      "new:0",
-                      Coalesce(
-                      gblEqWant,
-                      If(Lower(Param("domain")) = "equipment", "link:" & Param("reqid")),
-                      "new"
-                  )
-                  ) },
-                  If(
-                      wantKey <> Coalesce(varEqOpened, ""),
-                      Set(varEqLoading, true);
-                      Set(varEqOpened, wantKey);
-                      Set(
-                          gblEqReqId,
-                          If(StartsWith(wantKey, "req:"), Mid(wantKey, 5),
-                             StartsWith(wantKey, "edit:"), Mid(wantKey, 6),
-                             StartsWith(wantKey, "link:"), Mid(wantKey, 6), "")
-                      );
-                      Set(gblEqMode, If(StartsWith(wantKey, "edit:") || (StartsWith(wantKey, "link:") && Lower(Coalesce(Param("mode"), "")) = "edit"), "edit", "view"));
-                      If(false, ClearCollect(colEqRows, { RowId: 0, ItemKey: "", RequestNo: "", Status: "", FileCount: 0, Description: "", Plant: "", RequestType: "", EquipmentNumber: "", EquipmentCategory: "", Manufacturer: "", TypeDesignation: "", SerialNumber: "", FunctionalLocation: "", FunctionalLocation1: "", FunctionalLocation2: "", ClassData: "", RoomCoordinates: "", Placement: "", WarrantyStart: Blank(), WarrantyEnd: Blank() }));
-          
-                      If(false, ClearCollect(colEqAttachments, { RowId: 0, FileName: "", FileUrl: "", Identifier: "", Selected: false }));
-          
-                      If(false, ClearCollect(colEqAttUp, { Name: "", Ok: false }));
-          
-                      If(false, ClearCollect(colEqFl, { Code: "", Description: "", Display: "", Maintainable: false, Level: "" }));
-          
-                      Set(varEqMe, Lower(User().Email));
-                      Set(varEqRequestNo, "");
-                      Set(varEqRequestGuid, "");
-                      Set(varEqViewOnly, false);
-                      Set(varEqBadgeOn, false);
-                      Set(varEqCanEdit, false);
-                      // Hvilken raekke detaljeruden viser. Blank = ruden er skjult.
-                      Set(varEqDetailsId, Blank());
-                      // Sletning sker bag en bekraeftelse: hvilken raekke, og om den er aaben.
-                      Set(varEqDeleteId, Blank());
-                      Set(varEqConfirmDelete, false);
-                      // Hvilken raekke dokumentpopuppen viser. Blank = lukket.
-                      Set(varEqDocsId, Blank());
-                      Set(varEqAttJson, "");
-                      Set(varEqFlMsg, "");
-                      Set(varEqFlBusy, false);
-                      // Listen: false = Compact, true = All columns (issue #67/#68).
-                      Set(varEqAllCols, false);
-                      Set(varEqActiveRowId, Blank());
-                      Set(varEqRowStatus, "valid");
-                      Set(varEqValidated, false);
-                      Set(varEqFText, "");
-                      Set(varEqFPlant, "");
-                      Set(varEqFRequestType, "");
-                      Set(varEqFEquipmentNumber, "");
-                      Set(varEqFEquipmentCategory, "");
-                      Set(varEqFManufacturer, "");
-                      Set(varEqFTypeDesignation, "");
-                      Set(varEqFSerialNumber, "");
-                      Set(varEqFFunctionalLocation, "");
-                      Set(varEqFFunctionalLocation1, "");
-                      Set(varEqFFunctionalLocation2, "");
-                      Set(varEqFClassData, "");
-                      Set(varEqFRoomCoordinates, "");
-                      Set(varEqFPlacement, "");
-                      Set(varEqFWarrantyStart, Blank());
-                      Set(varEqFWarrantyEnd, Blank());
-                      Set(varEqFlQuery, ""); Set(varEqFlLast, ""); Set(varEqFlMsg, ""); Clear(colEqFl); Reset(cmbEqFl);
-                      Set(varEqInfo, "");
-                      If(
-                          !IsBlank(gblEqReqId) && varEqRequestGuid <> gblEqReqId,
-                          Set(varEqRequestGuid, gblEqReqId);
-                          Set(varEqIdx, LookUp(MD_RequestIndex, RequestGuid = varEqRequestGuid));
-                          If(
-                              IsBlank(varEqIdx),
-                              Notify("Could not find the request behind this link. Rows you save start a new request.",
-                                  NotificationType.Warning);
-                              Set(varEqRequestGuid, ""); Set(varEqRequestNo, ""),
-                              varEqIdx.Status.Value = "Indsendt",
-                              Notify("Request " & varEqIdx.RequestNo & " is already submitted. Rows you save start a new request.",
-                                  NotificationType.Information);
-                              Set(varEqRequestGuid, ""); Set(varEqRequestNo, ""),
-                              Set(varEqRequestNo, varEqIdx.RequestNo);
-                              Set(varEqCanEdit, ((Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe && (varEqIdx.Status.Value = "Kladde")) || (IsAdmin && (varEqIdx.Status.Value = "Kladde" || varEqIdx.Status.Value = "AfventerInfo"))));
-                              Set(varEqViewOnly, !(Lower(Coalesce(gblEqMode, "")) = "edit" && varEqCanEdit))
-                          )
-                      );
-                      If(
-                          (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)),
-                          ClearCollect(
-                              colEqRows,
-                              ForAll(
-                                  SortByColumns(Filter(EquipmentItems, RequestGuid = varEqRequestGuid), "Created", SortOrder.Descending) As R,
-                                  {
-                                      RowId: R.ID,
-                                      ItemKey: Coalesce(R.ItemKey, ""),
-                                      RequestNo: Coalesce(R.RequestNo, ""),
-                                      Status: Coalesce(R.RowStatus.Value, "valid"),
-                                      FileCount: Coalesce(R.FileCount, 0),
-                                      Description: Coalesce(R.Description, ""),
-                                      Plant: Coalesce(R.Plant, ""),
-                                      RequestType: Coalesce(R.RequestType, ""),
-                                      EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
-                                      EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
-                                      Manufacturer: Coalesce(R.Manufacturer, ""),
-                                      TypeDesignation: Coalesce(R.TypeDesignation, ""),
-                                      SerialNumber: Coalesce(R.SerialNumber, ""),
-                                      FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                      FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
-                                      FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
-                                      ClassData: Coalesce(R.ClassData, ""),
-                                      RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
-                                      Placement: Coalesce(R.Placement, ""),
-                                      WarrantyStart: R.WarrantyStart,
-                                      WarrantyEnd: R.WarrantyEnd
-                                  }
-                              )
-                          ),
-                          ClearCollect(
-                              colEqRows,
-                              ForAll(
-                                  SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
-                                  {
-                                      RowId: R.ID,
-                                      ItemKey: Coalesce(R.ItemKey, ""),
-                                      RequestNo: Coalesce(R.RequestNo, ""),
-                                      Status: Coalesce(R.RowStatus.Value, "valid"),
-                                      FileCount: Coalesce(R.FileCount, 0),
-                                      Description: Coalesce(R.Description, ""),
-                                      Plant: Coalesce(R.Plant, ""),
-                                      RequestType: Coalesce(R.RequestType, ""),
-                                      EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
-                                      EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
-                                      Manufacturer: Coalesce(R.Manufacturer, ""),
-                                      TypeDesignation: Coalesce(R.TypeDesignation, ""),
-                                      SerialNumber: Coalesce(R.SerialNumber, ""),
-                                      FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                      FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
-                                      FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
-                                      ClassData: Coalesce(R.ClassData, ""),
-                                      RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
-                                      Placement: Coalesce(R.Placement, ""),
-                                      WarrantyStart: R.WarrantyStart,
-                                      WarrantyEnd: R.WarrantyEnd
-                                  }
-                              )
-                          )
-                      )
-                  )
-              );
-          
-              If(
-                  varEqStaleNow,
-                  If(
-                      (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)),
-                      ClearCollect(
-                          colEqRows,
-                          ForAll(
-                              SortByColumns(Filter(EquipmentItems, RequestGuid = varEqRequestGuid), "Created", SortOrder.Descending) As R,
-                              {
-                                  RowId: R.ID,
-                                  ItemKey: Coalesce(R.ItemKey, ""),
-                                  RequestNo: Coalesce(R.RequestNo, ""),
-                                  Status: Coalesce(R.RowStatus.Value, "valid"),
-                                  FileCount: Coalesce(R.FileCount, 0),
-                                  Description: Coalesce(R.Description, ""),
-                                  Plant: Coalesce(R.Plant, ""),
-                                  RequestType: Coalesce(R.RequestType, ""),
-                                  EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
-                                  EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
-                                  Manufacturer: Coalesce(R.Manufacturer, ""),
-                                  TypeDesignation: Coalesce(R.TypeDesignation, ""),
-                                  SerialNumber: Coalesce(R.SerialNumber, ""),
-                                  FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                  FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
-                                  FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
-                                  ClassData: Coalesce(R.ClassData, ""),
-                                  RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
-                                  Placement: Coalesce(R.Placement, ""),
-                                  WarrantyStart: R.WarrantyStart,
-                                  WarrantyEnd: R.WarrantyEnd
-                              }
-                          )
-                      ),
-                      ClearCollect(
-                          colEqRows,
-                          ForAll(
-                              SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
-                              {
-                                  RowId: R.ID,
-                                  ItemKey: Coalesce(R.ItemKey, ""),
-                                  RequestNo: Coalesce(R.RequestNo, ""),
-                                  Status: Coalesce(R.RowStatus.Value, "valid"),
-                                  FileCount: Coalesce(R.FileCount, 0),
-                                  Description: Coalesce(R.Description, ""),
-                                  Plant: Coalesce(R.Plant, ""),
-                                  RequestType: Coalesce(R.RequestType, ""),
-                                  EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
-                                  EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
-                                  Manufacturer: Coalesce(R.Manufacturer, ""),
-                                  TypeDesignation: Coalesce(R.TypeDesignation, ""),
-                                  SerialNumber: Coalesce(R.SerialNumber, ""),
-                                  FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                  FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
-                                  FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
-                                  ClassData: Coalesce(R.ClassData, ""),
-                                  RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
-                                  Placement: Coalesce(R.Placement, ""),
-                                  WarrantyStart: R.WarrantyStart,
-                                  WarrantyEnd: R.WarrantyEnd
-                              }
-                          )
-                      )
-                  )
-              ),
-              Notify("Could not load the saved rows. Check the connection and open the page again.",
-                  NotificationType.Error);
-              Set(varEqOpened, "")
+          =// Klargoeringen staar paa en skjult knap, saa Retry kan koere den igen
+          // (BIO SAP App/build/build_screens.py, attach_open). Sloeret taendes
+          // her med det samme, naar der tydeligvis skal klargoeres.
+          If(IsBlank(varEqOpened) || If(gblNavTo = "Eq", "new:0", Coalesce(gblEqWant, varEqOpened)) <> varEqOpened,
+              Set(varEqLoading, true)
           );
-          
-          // Klar - ventespinneren forsvinder.
-          Set(varEqBadgeOn, StartsWith(Coalesce(varEqOpened, ""), "req:") || StartsWith(Coalesce(varEqOpened, ""), "edit:") || StartsWith(Coalesce(varEqOpened, ""), "link:"));
-          Set(varEqLoading, false);
-          Set(gblNavigating, false);
-          Set(gblNavTo, "")
+          Select(btnEqOpen)
     Children:
       - conEqRoot:
           Control: GroupContainer
@@ -3714,7 +3481,7 @@ Screens:
                                                       Default: |-
                                                           =If(IsBlank(varEqActiveRowId), "Save the row first", Text(Coalesce(LookUp(colEqRows, RowId = varEqActiveRowId).FileCount, 0)) & " document(s)")
                                                       DisplayMode: |-
-                                                          =If((If(varEqViewOnly, DisplayMode.View, If((DisplayMode.View) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                          =If((DisplayMode.View) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                       Fill: |-
                                                           =If(DisplayMode.View = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                       FillPortions: |-
@@ -4793,8 +4560,6 @@ Screens:
                                         =C.'input-fg'
                                     Default: |-
                                         =""
-                                    DisplayMode: |-
-                                        =If((If(varEqViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                     Fill: |-
                                         =C.'input-bg'
                                     Font: |-
@@ -4838,8 +4603,6 @@ Screens:
                                         =C.'input-fg'
                                     Default: |-
                                         =LookUp(["All status", "Draft", "Valid", "Submitted"] As _dd, _dd.Value = ("All status"))
-                                    DisplayMode: |-
-                                        =If((If(varEqViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                     Fill: |-
                                         =C.'input-bg'
                                     Font: |-
@@ -4889,8 +4652,6 @@ Screens:
                                                   { Rows: Sort(Distinct(Filter(colEqRows, !IsBlank(Plant)), Plant), Value) }),
                                             Rows
                                         ) As _dd, _dd.Value = ("All plants"))
-                                    DisplayMode: |-
-                                        =If((If(varEqViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                     Fill: |-
                                         =C.'input-bg'
                                     Font: |-
@@ -13686,7 +13447,7 @@ Screens:
             Height: |-
                 =App.Height
             Image: |-
-                ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><g opacity='0' transform='translate(0 0)'><animate attributeName='opacity' from='0' to='1' begin='0.15s' dur='0.2s' fill='freeze'/><circle cx='32' cy='32' r='22' fill='none' stroke-width='6' stroke='" & C.'hex-state-neutral-bg' & "'/><path d='M32 10 a22 22 0 0 1 22 22' fill='none' stroke-width='6' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'><animateTransform attributeName='transform' type='rotate' from='0 32 32' to='360 32 32' dur='0.9s' repeatCount='indefinite'/></path></g></svg>")
+                ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><style>.f{opacity:0;animation:f .2s ease-out 0.15s forwards}.s{transform-origin:32px 32px;animation:s .9s linear infinite}@keyframes f{to{opacity:1}}@keyframes s{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.s{animation:none}}</style><g class='f' transform='translate(0 0)'><circle cx='32' cy='32' r='22' fill='none' stroke-width='6' stroke='" & C.'hex-state-neutral-bg' & "'/><path class='s' d='M32 10 a22 22 0 0 1 22 22' fill='none' stroke-width='6' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'/></g></svg>")
             ImagePosition: |-
                 =ImagePosition.Center
             TabIndex: |-
@@ -13695,6 +13456,299 @@ Screens:
                 =IfError(varEqSaving, false)
             Width: |-
                 =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - btnEqOpen:
+          Control: ModernButton
+          Properties:
+            AccessibleLabel: |-
+                ="Open the request"
+            Align: |-
+                =Align.Center
+            AlignInContainer: |-
+                =AlignInContainer.Center
+            Appearance: |-
+                =ButtonAppearance.Outline
+            BorderColor: |-
+                =C.'border-default'
+            BorderThickness: |-
+                =1
+            Color: |-
+                =C.'text-primary'
+            Font: |-
+                =Font.'Segoe UI'
+            FontWeight: |-
+                =FontWeight.Semibold
+            Height: |-
+                =36
+            Layout: |-
+                =ButtonLayout.TextOnly
+            OnSelect: |-
+                =IfError(
+                    // Har en sletning roert det, skaermen viser? (tools/request_delete.py)
+                    Set(varEqStaleNow, Coalesce(gblEqStale, false));
+                    If(
+                        varEqStaleNow,
+                        Set(gblEqStale, false);
+                        If(
+                            !IsBlank(varEqRequestGuid) && IsBlank(LookUp(MD_RequestIndex, RequestGuid = varEqRequestGuid)),
+                            Set(gblEqWant, Blank());
+                            Set(varEqOpened, "")
+                        )
+                    );
+                
+                    // DEN SAMLEDE APP: klargoer skaermen, naar hubben eller et dyblink
+                    // beder om noget andet end det, den viser. Se BIO SAP App/build/
+                    // build_screens.py, open_block().
+                    With(
+                        { wantKey: If(
+                            gblNavTo = "Eq",
+                            "new:0",
+                            Coalesce(
+                            gblEqWant,
+                            If(Lower(Param("domain")) = "equipment", "link:" & Param("reqid")),
+                            "new"
+                        )
+                        ) },
+                        If(
+                            wantKey <> Coalesce(varEqOpened, ""),
+                            Set(varEqLoading, true);
+                            Set(varEqOpened, wantKey);
+                            Set(
+                                gblEqReqId,
+                                If(StartsWith(wantKey, "req:"), Mid(wantKey, 5),
+                                   StartsWith(wantKey, "edit:"), Mid(wantKey, 6),
+                                   StartsWith(wantKey, "link:"), Mid(wantKey, 6), "")
+                            );
+                            Set(gblEqMode, If(StartsWith(wantKey, "edit:") || (StartsWith(wantKey, "link:") && Lower(Coalesce(Param("mode"), "")) = "edit"), "edit", "view"));
+                            // Live status (issue #92): the first step is the request itself.
+                            Set(varEqLoadFailed, false);
+                            Set(varEqLoadSlow, false);
+                            Set(varEqLoadStep, If(IsBlank(gblEqReqId), "Setting up a new request", "Finding the request"));
+                            If(false, ClearCollect(colEqRows, { RowId: 0, ItemKey: "", RequestNo: "", Status: "", FileCount: 0, Description: "", Plant: "", RequestType: "", EquipmentNumber: "", EquipmentCategory: "", Manufacturer: "", TypeDesignation: "", SerialNumber: "", FunctionalLocation: "", FunctionalLocation1: "", FunctionalLocation2: "", ClassData: "", RoomCoordinates: "", Placement: "", WarrantyStart: Blank(), WarrantyEnd: Blank() }));
+                
+                            If(false, ClearCollect(colEqAttachments, { RowId: 0, FileName: "", FileUrl: "", Identifier: "", Selected: false }));
+                
+                            If(false, ClearCollect(colEqAttUp, { Name: "", Ok: false }));
+                
+                            If(false, ClearCollect(colEqFl, { Code: "", Description: "", Display: "", Maintainable: false, Level: "" }));
+                
+                            Set(varEqMe, Lower(User().Email));
+                            Set(varEqRequestNo, "");
+                            Set(varEqRequestGuid, "");
+                            Set(varEqViewOnly, false);
+                            Set(varEqBadgeOn, false);
+                            Set(varEqCanEdit, false);
+                            // Hvilken raekke detaljeruden viser. Blank = ruden er skjult.
+                            Set(varEqDetailsId, Blank());
+                            // Sletning sker bag en bekraeftelse: hvilken raekke, og om den er aaben.
+                            Set(varEqDeleteId, Blank());
+                            Set(varEqConfirmDelete, false);
+                            // Hvilken raekke dokumentpopuppen viser. Blank = lukket.
+                            Set(varEqDocsId, Blank());
+                            Set(varEqAttJson, "");
+                            Set(varEqFlMsg, "");
+                            Set(varEqFlBusy, false);
+                            // Listen: false = Compact, true = All columns (issue #67/#68).
+                            Set(varEqAllCols, false);
+                            Set(varEqActiveRowId, Blank());
+                            Set(varEqRowStatus, "valid");
+                            Set(varEqValidated, false);
+                            Set(varEqFText, "");
+                            Set(varEqFPlant, "");
+                            Set(varEqFRequestType, "");
+                            Set(varEqFEquipmentNumber, "");
+                            Set(varEqFEquipmentCategory, "");
+                            Set(varEqFManufacturer, "");
+                            Set(varEqFTypeDesignation, "");
+                            Set(varEqFSerialNumber, "");
+                            Set(varEqFFunctionalLocation, "");
+                            Set(varEqFFunctionalLocation1, "");
+                            Set(varEqFFunctionalLocation2, "");
+                            Set(varEqFClassData, "");
+                            Set(varEqFRoomCoordinates, "");
+                            Set(varEqFPlacement, "");
+                            Set(varEqFWarrantyStart, Blank());
+                            Set(varEqFWarrantyEnd, Blank());
+                            Set(varEqFlQuery, ""); Set(varEqFlLast, ""); Set(varEqFlMsg, ""); Clear(colEqFl); Reset(cmbEqFl);
+                            Set(varEqInfo, "");
+                            If(
+                                !IsBlank(gblEqReqId) && varEqRequestGuid <> gblEqReqId,
+                                Set(varEqRequestGuid, gblEqReqId);
+                                Set(varEqIdx, LookUp(MD_RequestIndex, RequestGuid = varEqRequestGuid));
+                                If(
+                                    IsBlank(varEqIdx),
+                                    Notify("Could not find the request behind this link. Rows you save start a new request.",
+                                        NotificationType.Warning);
+                                    Set(varEqRequestGuid, ""); Set(varEqRequestNo, ""),
+                                    varEqIdx.Status.Value = "Indsendt",
+                                    Notify("Request " & varEqIdx.RequestNo & " is already submitted. Rows you save start a new request.",
+                                        NotificationType.Information);
+                                    Set(varEqRequestGuid, ""); Set(varEqRequestNo, ""),
+                                    Set(varEqRequestNo, varEqIdx.RequestNo);
+                                    Set(varEqCanEdit, ((Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe && (varEqIdx.Status.Value = "Kladde")) || (IsAdmin && (varEqIdx.Status.Value = "Kladde" || varEqIdx.Status.Value = "AfventerInfo"))));
+                                    Set(varEqViewOnly, !(Lower(Coalesce(gblEqMode, "")) = "edit" && varEqCanEdit))
+                                )
+                            );
+                            Set(varEqLoadStep, "Loading saved rows");
+                            If(
+                                (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)),
+                                ClearCollect(
+                                    colEqRows,
+                                    ForAll(
+                                        SortByColumns(Filter(EquipmentItems, RequestGuid = varEqRequestGuid), "Created", SortOrder.Descending) As R,
+                                        {
+                                            RowId: R.ID,
+                                            ItemKey: Coalesce(R.ItemKey, ""),
+                                            RequestNo: Coalesce(R.RequestNo, ""),
+                                            Status: Coalesce(R.RowStatus.Value, "valid"),
+                                            FileCount: Coalesce(R.FileCount, 0),
+                                            Description: Coalesce(R.Description, ""),
+                                            Plant: Coalesce(R.Plant, ""),
+                                            RequestType: Coalesce(R.RequestType, ""),
+                                            EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
+                                            EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                            Manufacturer: Coalesce(R.Manufacturer, ""),
+                                            TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                            SerialNumber: Coalesce(R.SerialNumber, ""),
+                                            FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                            FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
+                                            FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
+                                            ClassData: Coalesce(R.ClassData, ""),
+                                            RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                            Placement: Coalesce(R.Placement, ""),
+                                            WarrantyStart: R.WarrantyStart,
+                                            WarrantyEnd: R.WarrantyEnd
+                                        }
+                                    )
+                                ),
+                                ClearCollect(
+                                    colEqRows,
+                                    ForAll(
+                                        SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
+                                        {
+                                            RowId: R.ID,
+                                            ItemKey: Coalesce(R.ItemKey, ""),
+                                            RequestNo: Coalesce(R.RequestNo, ""),
+                                            Status: Coalesce(R.RowStatus.Value, "valid"),
+                                            FileCount: Coalesce(R.FileCount, 0),
+                                            Description: Coalesce(R.Description, ""),
+                                            Plant: Coalesce(R.Plant, ""),
+                                            RequestType: Coalesce(R.RequestType, ""),
+                                            EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
+                                            EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                            Manufacturer: Coalesce(R.Manufacturer, ""),
+                                            TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                            SerialNumber: Coalesce(R.SerialNumber, ""),
+                                            FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                            FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
+                                            FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
+                                            ClassData: Coalesce(R.ClassData, ""),
+                                            RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                            Placement: Coalesce(R.Placement, ""),
+                                            WarrantyStart: R.WarrantyStart,
+                                            WarrantyEnd: R.WarrantyEnd
+                                        }
+                                    )
+                                )
+                            )
+                        )
+                    );
+                
+                    If(
+                        varEqStaleNow,
+                        If(
+                            (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)),
+                            ClearCollect(
+                                colEqRows,
+                                ForAll(
+                                    SortByColumns(Filter(EquipmentItems, RequestGuid = varEqRequestGuid), "Created", SortOrder.Descending) As R,
+                                    {
+                                        RowId: R.ID,
+                                        ItemKey: Coalesce(R.ItemKey, ""),
+                                        RequestNo: Coalesce(R.RequestNo, ""),
+                                        Status: Coalesce(R.RowStatus.Value, "valid"),
+                                        FileCount: Coalesce(R.FileCount, 0),
+                                        Description: Coalesce(R.Description, ""),
+                                        Plant: Coalesce(R.Plant, ""),
+                                        RequestType: Coalesce(R.RequestType, ""),
+                                        EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
+                                        EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                        Manufacturer: Coalesce(R.Manufacturer, ""),
+                                        TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                        SerialNumber: Coalesce(R.SerialNumber, ""),
+                                        FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                        FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
+                                        FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
+                                        ClassData: Coalesce(R.ClassData, ""),
+                                        RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                        Placement: Coalesce(R.Placement, ""),
+                                        WarrantyStart: R.WarrantyStart,
+                                        WarrantyEnd: R.WarrantyEnd
+                                    }
+                                )
+                            ),
+                            ClearCollect(
+                                colEqRows,
+                                ForAll(
+                                    SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe), "Created", SortOrder.Descending) As R,
+                                    {
+                                        RowId: R.ID,
+                                        ItemKey: Coalesce(R.ItemKey, ""),
+                                        RequestNo: Coalesce(R.RequestNo, ""),
+                                        Status: Coalesce(R.RowStatus.Value, "valid"),
+                                        FileCount: Coalesce(R.FileCount, 0),
+                                        Description: Coalesce(R.Description, ""),
+                                        Plant: Coalesce(R.Plant, ""),
+                                        RequestType: Coalesce(R.RequestType, ""),
+                                        EquipmentNumber: Coalesce(R.EquipmentNumber, ""),
+                                        EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                        Manufacturer: Coalesce(R.Manufacturer, ""),
+                                        TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                        SerialNumber: Coalesce(R.SerialNumber, ""),
+                                        FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                        FunctionalLocation1: Coalesce(R.FunctionalLocation1, ""),
+                                        FunctionalLocation2: Coalesce(R.FunctionalLocation2, ""),
+                                        ClassData: Coalesce(R.ClassData, ""),
+                                        RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                        Placement: Coalesce(R.Placement, ""),
+                                        WarrantyStart: R.WarrantyStart,
+                                        WarrantyEnd: R.WarrantyEnd
+                                    }
+                                )
+                            )
+                        )
+                    ),
+                    Set(varEqLoadFailed, true);
+                    Set(varEqOpened, "")
+                );
+                
+                // Klar - ventespinneren forsvinder.
+                Set(varEqBadgeOn, StartsWith(Coalesce(varEqOpened, ""), "req:") || StartsWith(Coalesce(varEqOpened, ""), "edit:") || StartsWith(Coalesce(varEqOpened, ""), "link:"));
+                Set(varEqLoading, false);
+                Set(varEqLoadSlow, false);
+                Set(gblNavigating, false);
+                Set(gblNavTo, "")
+            RadiusBottomLeft: |-
+                =10
+            RadiusBottomRight: |-
+                =10
+            RadiusTopLeft: |-
+                =10
+            RadiusTopRight: |-
+                =10
+            Size: |-
+                =14
+            Text: |-
+                ="Open"
+            VerticalAlign: |-
+                =VerticalAlign.Middle
+            Visible: |-
+                =false
+            Width: |-
+                =72
             X: |-
                 =0
             Y: |-
@@ -13713,16 +13767,332 @@ Screens:
             Height: |-
                 =App.Height
             Image: |-
-                ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='440' height='100' viewBox='0 0 440 100'><g opacity='0' transform='translate(188 0)'><text x='32' y='88' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>Opening request - checking edit or view mode...</text><animate attributeName='opacity' from='0' to='1' begin='0.15s' dur='0.2s' fill='freeze'/><circle cx='32' cy='32' r='22' fill='none' stroke-width='6' stroke='" & C.'hex-state-neutral-bg' & "'/><path d='M32 10 a22 22 0 0 1 22 22' fill='none' stroke-width='6' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'><animateTransform attributeName='transform' type='rotate' from='0 32 32' to='360 32 32' dur='0.9s' repeatCount='indefinite'/></path></g></svg>")
-            ImagePosition: |-
-                =ImagePosition.Center
+                =""
             TabIndex: |-
                 =-1
             Visible: |-
-                =IfError(varEqLoading, false)
+                =IfError(varEqLoading, false) || IfError(varEqLoadFailed, false)
             Width: |-
                 =App.Width
             X: |-
                 =0
             Y: |-
                 =0
+      - conEqLoadCard:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'border-default'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.Bold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =178 + If(IfError(varEqLoadFailed, false), 6 + (36), 0)
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Stretch
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =6
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =18
+            PaddingLeft: |-
+                =20
+            PaddingRight: |-
+                =20
+            PaddingTop: |-
+                =22
+            RadiusBottomLeft: |-
+                =16
+            RadiusBottomRight: |-
+                =16
+            RadiusTopLeft: |-
+                =16
+            RadiusTopRight: |-
+                =16
+            Visible: |-
+                =IfError(varEqLoading, false) || IfError(varEqLoadFailed, false)
+            Width: |-
+                =Min(360, App.Width - 32)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =(App.Height - Self.Height) / 2
+          Children:
+            - imgEqLoadIcon:
+                Control: Image
+                Properties:
+                  AccessibleLabel: |-
+                      =If(IfError(varEqLoadFailed, false), "Error", "Loading")
+                  AlignInContainer: |-
+                      =AlignInContainer.Center
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Height: |-
+                      =40
+                  Image: |-
+                      =If(IfError(varEqLoadFailed, false), "data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><circle cx='20' cy='20' r='16' fill='none' stroke-width='3' stroke='" & C.'hex-state-error-fg' & "'/><path d='M20 12 V22' stroke='" & C.'hex-state-error-fg' & "' stroke-width='4' stroke-linecap='round'/><circle cx='20' cy='29' r='3' fill='" & C.'hex-state-error-fg' & "'/></svg>"), "data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><style>.f{opacity:0;animation:f .2s ease-out 0.15s forwards}.s{transform-origin:20px 20px;animation:s .9s linear infinite}@keyframes f{to{opacity:1}}@keyframes s{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.s{animation:none}}</style><g class='f' transform='translate(0 0)'><circle cx='20' cy='20' r='12' fill='none' stroke-width='4' stroke='" & C.'hex-state-neutral-bg' & "'/><path class='s' d='M20 8 a12 12 0 0 1 12 12' fill='none' stroke-width='4' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'/></g></svg>"))
+                  ImagePosition: |-
+                      =ImagePosition.Fit
+                  TabIndex: |-
+                      =-1
+                  Width: |-
+                      =40
+            - txtEqLoadTitle:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  Align: |-
+                      =Align.Center
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-primary'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  FontWeight: |-
+                      =FontWeight.Semibold
+                  Height: |-
+                      =26
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =17
+                  Text: |-
+                      =If(IfError(varEqLoadFailed, false), "Could not open the request", IsBlank(gblEqReqId), "Preparing a new request", "Opening request")
+                  Wrap: |-
+                      =false
+            - txtEqLoadStep:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  Align: |-
+                      =Align.Center
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =20
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =13
+                  Text: |-
+                      =If(IfError(varEqLoadFailed, false), "Stopped while " & Lower(Left(Coalesce(varEqLoadStep, ""), 1)) & Mid(Coalesce(varEqLoadStep, ""), 2), Coalesce(varEqLoadStep, ""))
+                  Wrap: |-
+                      =false
+            - txtEqLoadHint:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  Align: |-
+                      =Align.Center
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =34
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =12
+                  Text: |-
+                      =If(IfError(varEqLoadFailed, false), "Check your connection and try again.", IfError(varEqLoadSlow, false) && IfError(varEqLoading, false), "Taking longer than usual. " & Switch(Coalesce(varEqLoadStep, ""), "Finding the request", "The request list is responding slowly.", "Loading plan details", "Still waiting for the plan details.", "Loading items and operations", "Plans with many items and operations take longer.", "Loading materials and documents", "Plans with many materials and documents take longer.", "Loading standard task lists", "Standard task lists load once per session.", "Loading functional locations", "Requests with many rows take longer to load.", "Loading saved rows", "Many saved rows take longer to load.", "Still working on it."), "")
+                  Wrap: |-
+                      =true
+            - conEqLoadActions:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =36
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =8
+                  LayoutJustifyContent: |-
+                      =LayoutJustifyContent.Center
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Visible: |-
+                      =IfError(varEqLoadFailed, false)
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - btnEqLoadClose:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-default'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varEqLoadFailed, false);
+                            Set(gblEqWant, Blank());
+                            Set(varEqOpened, "");
+                            Navigate(ScreenMdHub, ScreenTransition.None)
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =14
+                        Text: |-
+                            ="Close"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =77
+                  - btnEqLoadRetry:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Retry"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
+                        Color: |-
+                            =C.'text-on-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varEqLoadFailed, false);
+                            Set(varEqLoadSlow, false);
+                            Set(varEqOpened, "");
+                            Set(varEqLoading, true);
+                            Select(btnEqOpen)
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =14
+                        Text: |-
+                            ="Retry"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =73
+      - tmrEqLoadSlow:
+          Control: Timer
+          Properties:
+            AutoPause: |-
+                =false
+            AutoStart: |-
+                =false
+            Duration: |-
+                =6000
+            Height: |-
+                =1
+            OnTimerEnd: |-
+                =Set(varEqLoadSlow, true)
+            Repeat: |-
+                =false
+            Reset: |-
+                =!IfError(varEqLoading, false)
+            Start: |-
+                =IfError(varEqLoading, false)
+            Visible: |-
+                =false
+            Width: |-
+                =1

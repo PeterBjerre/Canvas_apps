@@ -80,8 +80,16 @@ PKG_COUNTS = [0, 3, 4]
 CTRL_HEIGHT_REF = re.compile(r"\b(?:con|gal|txt|btn|drp|num|chk)[A-Za-z0-9_]*\.Height\b")
 
 
-def _if(c, a, b):
-    return a if c else b
+def _if(*args):
+    """If(c1, v1, c2, v2, ..., ellers) - Power Fx' flade If med flere
+    betingelser (hubbens filterlinje, issue #91). Uden en ellers-vaerdi kan
+    den ikke regnes ud, som foer."""
+    if len(args) < 3 or len(args) % 2 == 0:
+        raise TypeError("If uden ellers-vaerdi")
+    for i in range(0, len(args) - 1, 2):
+        if args[i]:
+            return args[i + 1]
+    return args[-1]
 
 
 def _iferror(a, b):
@@ -280,6 +288,29 @@ def is_stretch(props, w):
     return bool(v)
 
 
+def gap_at(props, w=None, default=8):
+    """En containers LayoutGap ved skaermbredden w.
+
+    Her stod re.sub(r"[^0-9.]", "", gap) - det virker paa et tal, men et
+    UDTRYK (hubbens filterlinje krymper sit mellemrum med bredden, issue
+    #91) blev til alle dets cifre efter hinanden. Kan udtrykket ikke regnes
+    ud, eller kendes w ikke, bruges det stoerste mellemrum over test-
+    bredderne - det ugunstigste."""
+    raw = props.get("LayoutGap")
+    if raw is None:
+        return float(default)
+    s = raw.strip().lstrip("=").strip()
+    try:
+        return float(s)
+    except ValueError:
+        pass
+    widths = [w] if w is not None else WIDTHS
+    vals = [v for v in (evaluate(raw, x, 3, 4, 4) for x in widths) if v is not None]
+    if not vals and w is not None:
+        vals = [v for v in (evaluate(raw, x, 3, 4, 4) for x in WIDTHS) if v is not None]
+    return max(vals) if vals else float(default)
+
+
 def collect(nodes, path="", out=None):
     out = [] if out is None else out
     for item in nodes or []:
@@ -366,7 +397,7 @@ def rule_2_3(ctx):
         kids = body.get("Children") or []
         if body.get("Control") != "GroupContainer" or not kids:
             continue
-        gap = float(re.sub(r"[^0-9.]", "", props.get("LayoutGap", "=8")) or 8)
+        gap = gap_at(props)
         pt = float(re.sub(r"[^0-9.]", "", props.get("PaddingTop", "=0")) or 0)
         pb = float(re.sub(r"[^0-9.]", "", props.get("PaddingBottom", "=0")) or 0)
 
@@ -384,6 +415,7 @@ def rule_2_3(ctx):
 
         for w in WIDTHS:
             vertical = is_vertical(props, w)
+            gap = gap_at(props, w)
             for ni in ITEM_COUNTS:
                 for no in OP_COUNTS:
                     for npk in PKG_COUNTS:
@@ -578,9 +610,10 @@ def rule_4c(ctx):
             continue
         if "true" not in (props.get("LayoutWrap") or "").lower():
             continue
-        gap = float(re.sub(r"[^0-9.]", "", props.get("LayoutGap", "=8")) or 8)
+        gap = gap_at(props)
         found = None
         for w in WIDTHS:
+            gap = gap_at(props, w)
             for ni in ITEM_COUNTS:
                 own_h = evaluate(props.get("Height"), w, ni, 4, 4)
                 avail = real_width(p, w, ni, 4, 4)
@@ -649,8 +682,9 @@ def rule_4d(ctx):
         props = body.get("Properties") or {}
         if "If(" not in (props.get("LayoutDirection") or ""):
             continue
-        gap = float(re.sub(r"[^0-9.]", "", props.get("LayoutGap", "=8")) or 8)
+        gap = gap_at(props)
         for w in WIDTHS:
+            gap = gap_at(props, w)
             if is_vertical(props, w):
                 continue
             avail = real_width(p, w, 3, 4, 4)
@@ -778,7 +812,7 @@ def rule_26(ctx):
             if "Horizontal" not in (kp.get("LayoutDirection") or "") or \
                     "true" in (kp.get("LayoutWrap") or ""):
                 continue
-            gap = float(re.sub(r"[^0-9.]", "", kp.get("LayoutGap", "=0")) or 0)
+            gap = gap_at(kp, default=0)
             # Tabeller med kolonner kraever mindst Tablet. Apperne er tablet-
             # og desktoplayouts; paa en telefon kan syv kolonner ikke staa.
             for w in [x for x in WIDTHS if x >= lay.min_width("Tablet")]:
@@ -1144,7 +1178,7 @@ def rule_4(ctx):
             continue
         if "Horizontal" not in (props.get("LayoutDirection") or ""):
             continue
-        gap = float(re.sub(r"[^0-9.]", "", props.get("LayoutGap", "=8")) or 8)
+        gap = gap_at(props)
 
         if "true" not in (props.get("LayoutWrap") or "").lower():
             # -- rene tal, ingen krympning -----------------------------
