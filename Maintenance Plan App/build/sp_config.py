@@ -136,6 +136,11 @@ def non_flow_desc(code):
 NON_FLOW_DESC = non_flow_desc("c")
 
 
+# Vaerk -> vaerket, hvis standardtaskliste det laaner, saa laenge det ingen
+# har selv. Fra den gamle app (StandardTasklistGallery: HCV og SMV -> AVV).
+TASKLIST_FALLBACK = {"HCV": "AVV", "SMV": "AVV"}
+
+
 def _forall(source, fields, alias="R"):
     """ForAll med eksplicit record - virker i alle Power Fx-versioner.
 
@@ -341,7 +346,7 @@ def named_formulas():
         "op pr. vaerk i hukommelsen.")
 
     ops = _forall(
-        "Sort(Filter(colVhpStdOps, Plant = P.Value), OperationNo)",
+        "Sort(Filter(colVhpStdOps, Plant = P.Src), OperationNo)",
         [("OperationNo", "Text(O.OperationNo, \"0000\")"),
          ("OperationShortText", "O.OperationShortText"),
          ("WorkHours", "O.Work"),
@@ -368,11 +373,27 @@ def named_formulas():
          ("MaterialGroup", "O.MaterialGroup"),
          ("OpPlant", "O.SapPlant")],
         alias="O")
+    # VAERKER UDEN EGEN STANDARDARBEJDSPLAN. Den gamle app gav HCV og SMV
+    # AVV's standardtaskliste (TASKLIST_FALLBACK). Har vaerket faaet sine
+    # egne operationer i MD_StandardTaskOperations, bruges de i stedet.
+    fallback = ", ".join(f'"{k}", "{v}"' for k, v in TASKLIST_FALLBACK.items())
+    add("colVhpTasklistPlants",
+        "Filter(\n"
+        f"    ForAll(Choices({L_STDOPS}.Plant) As C,\n"
+        "        {\n"
+        "            Plant: C.Value,\n"
+        "            Src: If(C.Value in colVhpStdOps.Plant, C.Value,\n"
+        f"                Coalesce(Switch(C.Value, {fallback}), C.Value))\n"
+        "        }\n"
+        "    ),\n"
+        "    Src in colVhpStdOps.Plant\n"
+        ")",
+        "Vaerkerne med en standardtaskliste, og hvis operationer den bruger.")
     add("colVhpTasklists",
-        _forall("Distinct(colVhpStdOps, Plant)",
-                [("Plant", "P.Value"),
-                 ("Key", "P.Value & \"-STD\""),
-                 ("Name", "\"Standard task list - \" & P.Value"),
+        _forall("colVhpTasklistPlants",
+                [("Plant", "P.Plant"),
+                 ("Key", "P.Plant & \"-STD\""),
+                 ("Name", "\"Standard task list - \" & P.Plant"),
                  ("Description", "\"\""),
                  ("Operations", ops)],
                 alias="P"))
