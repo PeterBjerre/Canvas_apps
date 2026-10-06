@@ -16842,7 +16842,7 @@ Screens:
                 =464 + If(IfError(CountRows(Filter(
                     colVhpFl,
                     !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
-                )) = 0, true), 12 + (32), 0)
+                )) = 0 && CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) = 0, true), 12 + (32), 0)
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -17042,10 +17042,23 @@ Screens:
                   Height: |-
                       =306
                   Items: |-
-                      =Sort(Filter(
+                      =With(
+                          { c: ForAll(Filter(
                           colVhpFl,
                           !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
-                      ), Code)
+                      ) As F, { Code: F.Code, Description: F.Description }) },
+                          With(
+                              { x: ForAll(Filter(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), !(Code in c.Code)) As O,
+                                          { Code: O.Code, Description: O.Description }) },
+                              Sort(
+                                  ForAll(
+                                      Sequence(CountRows(c) + CountRows(x)),
+                                      If(Value <= CountRows(c), Index(c, Value), Index(x, Value - CountRows(c)))
+                                  ),
+                                  Code
+                              )
+                          )
+                      )
                   LayoutMinWidth: |-
                       =0
                   LoadingSpinner: |-
@@ -17161,7 +17174,7 @@ Screens:
                       =IfError(CountRows(Filter(
                           colVhpFl,
                           !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
-                      )) = 0, true)
+                      )) = 0 && CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) = 0, true)
                   Wrap: |-
                       =true
             - conVhpObjListFooter:
