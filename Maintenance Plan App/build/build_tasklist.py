@@ -739,7 +739,7 @@ def build_tasklist_section():
                               width=TL_W, container_w=OPS_CW, fill_portions_formula="0")
 
     btnAddLines = button(
-        "btnVhpAddTasklistLines", "\"Add Lines from Tasklist\"",
+        "btnVhpAddTasklistLines", "\"Lines from tasklist\"",
         (
             "If(\n"
             "    IsBlank(varVhpActiveItemId),\n"
@@ -752,10 +752,12 @@ def build_tasklist_section():
             "        Set(varVhpTasklistPickerOpen, true)\n"
             "    )\n"
             ")"
-        ), primary=True, display_mode=DM_ITEM)
+        ), primary=True, display_mode=DM_ITEM, icon="Add",
+        accessible="\"Add lines from the tasklist\"",
+        tooltip="\"Add operation lines from the selected tasklist\"")
 
     btnAddOp = button(
-        "btnVhpAddOperation", "\"Add Manual Operation\"",
+        "btnVhpAddOperation", "\"Manual operation\"",
         (
             "If(\n"
             "    IsBlank(varVhpActiveItemId),\n"
@@ -783,13 +785,15 @@ def build_tasklist_section():
             "    );\n"
             "    Notify(\"Operation line added.\", NotificationType.Success)\n"
             ")"
-        ), display_mode=DM_ITEM)
+        ), display_mode=DM_ITEM, icon="Add",
+        accessible="\"Add a manual operation\"",
+        tooltip="\"Add an empty operation line you fill in yourself\"")
 
     # The two row-creating buttons stand right after the tasklist field,
     # bottom-aligned with its dropdown while they share a line.
     add_btns = [btnAddLines, btnAddOp]
     for b in add_btns:
-        b.props["Width"] = str(fit_button_width(b.props["Text"]))
+        b.props["Width"] = str(fit_button_width(b.props["Text"]) + ICON_W)
         b.props["LayoutMinWidth"] = b.props["Width"]
         b.vis = at_least("Tablet")
     opsMenu = themed_dropdown(
