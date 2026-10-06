@@ -3642,19 +3642,19 @@ Screens:
                                         ))));
                                         Set(varMdAprS4, Switch(varMdAprReq.Status.Value, "OprettetISAP", "Done", "KlarTilSAP", "In progress", "Pending"));
                                         Set(varMdAprCur, If(varMdAprS1 = "In progress" || varMdAprS1 = "Returned", "System", varMdAprS2 = "In progress" || varMdAprS2 = "Returned", "Cost", varMdAprS3 = "In progress" || varMdAprS3 = "Returned", "Quality", varMdAprS4 = "In progress", "SAP", ""));
-                                        ClearCollect(colMdAprRows, { Kind: "H", Stage: "System", Title: "System approval", State: varMdAprS1, Label: varMdAprS1, Rule: "One approver per item - " & Max(1, varMdAprReq.ItemCount) & If(Max(1, varMdAprReq.ItemCount) = 1, " item", " items in parallel") & ", all must pass", Cur: varMdAprCur = "System", Sub: "" });
-                                        Collect(colMdAprRows, ForAll(SortByColumns(Filter(colMdAprLatest, Stage = "System"), "DecidedOn"), { Kind: "D", Stage: "System", Title: Upper(First(Split(Coalesce(DecidedByEmail, "unknown@"), "@")).Value) & If(!IsBlank(ItemText), "  ·  " & ItemText, ""), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned"), Label: Switch(Decision, "AdminEdit", "Admin edit", "AdminDelete", "Admin delete", Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned")), Rule: "", Cur: false, Sub: Text(DecidedOn, "dd-mm-yyyy hh:mm") & If(!IsBlank(Comment), "  ·  " & Substitute(Comment, Char(10), " "), If(!IsBlank(Detail), "  ·  " & Detail, "")) }));
-                                        If(varMdAprS1 = "In progress" && CountRows(Filter(colMdAprLatest, Stage = "System")) < Max(1, varMdAprReq.ItemCount), Collect(colMdAprRows, { Kind: "D", Stage: "System", Title: "System manager of each item", State: "Pending", Label: "Awaiting", Rule: "", Cur: false, Sub: (Max(1, varMdAprReq.ItemCount) - CountRows(Filter(colMdAprLatest, Stage = "System"))) & " of " & Max(1, varMdAprReq.ItemCount) & " awaiting a decision" }));
-                                        Collect(colMdAprRows, { Kind: "H", Stage: "Cost", Title: "Cost approval", State: varMdAprS2, Label: varMdAprS2, Rule: "One approver per item - items under the threshold are skipped, all must pass", Cur: varMdAprCur = "Cost", Sub: "" });
-                                        Collect(colMdAprRows, ForAll(SortByColumns(Filter(colMdAprLatest, Stage = "Cost"), "DecidedOn"), { Kind: "D", Stage: "Cost", Title: Upper(First(Split(Coalesce(DecidedByEmail, "unknown@"), "@")).Value) & If(!IsBlank(ItemText), "  ·  " & ItemText, ""), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned"), Label: Switch(Decision, "AdminEdit", "Admin edit", "AdminDelete", "Admin delete", Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned")), Rule: "", Cur: false, Sub: Text(DecidedOn, "dd-mm-yyyy hh:mm") & If(!IsBlank(Comment), "  ·  " & Substitute(Comment, Char(10), " "), If(!IsBlank(Detail), "  ·  " & Detail, "")) }));
-                                        If(varMdAprS2 = "In progress" && CountRows(Filter(colMdAprLatest, Stage = "Cost")) < Max(1, varMdAprReq.ItemCount), Collect(colMdAprRows, { Kind: "D", Stage: "Cost", Title: With({a: LookUp(MD_Approver, ApproverKey = "COST")}, If(IsBlank(a), "Approver not set", Upper(If(a.Approver1Absent, a.Approver2, a.Approver1)))), State: "Pending", Label: "Awaiting", Rule: "", Cur: false, Sub: With({a: LookUp(MD_Approver, ApproverKey = "COST")}, If(IsBlank(a), "No row in MD_Approver for " & "COST", If(a.Approver1Absent, "2nd approver - 1st approver absent", "1st approver"))) }));
-                                        Collect(colMdAprRows, { Kind: "H", Stage: "Quality", Title: "Quality review", State: varMdAprS3, Label: varMdAprS3, Rule: "One approver for the whole plan - the plant", Cur: varMdAprCur = "Quality", Sub: "" });
-                                        Collect(colMdAprRows, ForAll(SortByColumns(Filter(colMdAprLatest, Stage = "Quality"), "DecidedOn"), { Kind: "D", Stage: "Quality", Title: Upper(First(Split(Coalesce(DecidedByEmail, "unknown@"), "@")).Value), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned"), Label: Switch(Decision, "AdminEdit", "Admin edit", "AdminDelete", "Admin delete", Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned")), Rule: "", Cur: false, Sub: Text(DecidedOn, "dd-mm-yyyy hh:mm") & If(!IsBlank(Comment), "  ·  " & Substitute(Comment, Char(10), " "), If(!IsBlank(Detail), "  ·  " & Detail, "")) }));
-                                        If(varMdAprS3 = "In progress" && CountRows(Filter(colMdAprLatest, Stage = "Quality")) < 1, Collect(colMdAprRows, { Kind: "D", Stage: "Quality", Title: With({a: LookUp(MD_Approver, ApproverKey = Upper(Left(varMdAprReq.Plant, 3)))}, If(IsBlank(a), "Approver not set", Upper(If(a.Approver1Absent, a.Approver2, a.Approver1)))), State: "Pending", Label: "Awaiting", Rule: "", Cur: false, Sub: With({a: LookUp(MD_Approver, ApproverKey = Upper(Left(varMdAprReq.Plant, 3)))}, If(IsBlank(a), "No row in MD_Approver for " & Upper(Left(varMdAprReq.Plant, 3)), If(a.Approver1Absent, "2nd approver - 1st approver absent", "1st approver"))) }));
-                                        Collect(colMdAprRows, { Kind: "H", Stage: "SAP", Title: "Creation in SAP", State: varMdAprS4, Label: varMdAprS4, Rule: "Master Data creates the plan - no approval", Cur: varMdAprCur = "SAP", Sub: "" });
-                                        If(varMdAprS4 <> "Pending", Collect(colMdAprRows, { Kind: "D", Stage: "SAP", Title: "Master Data", State: varMdAprS4, Label: If(varMdAprS4 = "Done", "Created", "Awaiting"), Rule: "", Cur: false, Sub: If(varMdAprS4 = "Done", "SAP " & varMdAprReq.SapObjectNo, "Ready - waiting for creation in SAP") }));
+                                        ClearCollect(colMdAprRows, { Kind: "H", Stage: "System", Title: "System approval", State: varMdAprS1, Label: varMdAprS1, Rule: "One approver per item - " & Max(1, varMdAprReq.ItemCount) & If(Max(1, varMdAprReq.ItemCount) = 1, " item", " items in parallel") & ", all must pass", Cur: varMdAprCur = "System", Sub: "", Act: "", Stamp: "", Human: false });
+                                        Collect(colMdAprRows, ForAll(SortByColumns(Filter(colMdAprLatest, Stage = "System"), "DecidedOn"), { Kind: "D", Stage: "System", Title: Upper(First(Split(Coalesce(DecidedByEmail, "unknown"), "@")).Value), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned"), Label: Switch(Decision, "AdminEdit", "Admin edit", "AdminDelete", "Admin delete", Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned")), Rule: "", Cur: false, Sub: If(!IsBlank(Comment), Substitute(Comment, Char(10), " "), Coalesce(Detail, "")), Act: Coalesce(ItemText, ""), Stamp: Text(DecidedOn, "dd-mm-yyyy hh:mm"), Human: "@" in Coalesce(DecidedByEmail, "") }));
+                                        If(varMdAprS1 = "In progress" && CountRows(Filter(colMdAprLatest, Stage = "System")) < Max(1, varMdAprReq.ItemCount), Collect(colMdAprRows, { Kind: "D", Stage: "System", Title: "System manager of each item", State: "Pending", Label: "Awaiting", Rule: "", Cur: false, Sub: (Max(1, varMdAprReq.ItemCount) - CountRows(Filter(colMdAprLatest, Stage = "System"))) & " of " & Max(1, varMdAprReq.ItemCount) & " awaiting a decision", Act: "", Stamp: "", Human: false }));
+                                        Collect(colMdAprRows, { Kind: "H", Stage: "Cost", Title: "Cost approval", State: varMdAprS2, Label: varMdAprS2, Rule: "One approver per item - items under the threshold are skipped, all must pass", Cur: varMdAprCur = "Cost", Sub: "", Act: "", Stamp: "", Human: false });
+                                        Collect(colMdAprRows, ForAll(SortByColumns(Filter(colMdAprLatest, Stage = "Cost"), "DecidedOn"), { Kind: "D", Stage: "Cost", Title: Upper(First(Split(Coalesce(DecidedByEmail, "unknown"), "@")).Value), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned"), Label: Switch(Decision, "AdminEdit", "Admin edit", "AdminDelete", "Admin delete", Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned")), Rule: "", Cur: false, Sub: If(!IsBlank(Comment), Substitute(Comment, Char(10), " "), Coalesce(Detail, "")), Act: Coalesce(ItemText, ""), Stamp: Text(DecidedOn, "dd-mm-yyyy hh:mm"), Human: "@" in Coalesce(DecidedByEmail, "") }));
+                                        If(varMdAprS2 = "In progress" && CountRows(Filter(colMdAprLatest, Stage = "Cost")) < Max(1, varMdAprReq.ItemCount), With({a: LookUp(MD_Approver, ApproverKey = "COST")}, Collect(colMdAprRows, { Kind: "D", Stage: "Cost", Title: If(IsBlank(a), "Approver not set", Upper(First(Split(Coalesce(If(a.Approver1Absent, a.Approver2, a.Approver1), "unknown"), "@")).Value)), State: "Pending", Label: "Awaiting", Rule: "", Cur: false, Sub: If(IsBlank(a), "No row in MD_Approver for " & "COST", If(a.Approver1Absent, "1st approver absent", "")), Act: If(IsBlank(a), "", If(a.Approver1Absent, "2nd approver", "1st approver")), Stamp: "", Human: !IsBlank(a) })));
+                                        Collect(colMdAprRows, { Kind: "H", Stage: "Quality", Title: "Quality review", State: varMdAprS3, Label: varMdAprS3, Rule: "One approver for the whole plan - the plant", Cur: varMdAprCur = "Quality", Sub: "", Act: "", Stamp: "", Human: false });
+                                        Collect(colMdAprRows, ForAll(SortByColumns(Filter(colMdAprLatest, Stage = "Quality"), "DecidedOn"), { Kind: "D", Stage: "Quality", Title: Upper(First(Split(Coalesce(DecidedByEmail, "unknown"), "@")).Value), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned"), Label: Switch(Decision, "AdminEdit", "Admin edit", "AdminDelete", "Admin delete", Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned")), Rule: "", Cur: false, Sub: If(!IsBlank(Comment), Substitute(Comment, Char(10), " "), Coalesce(Detail, "")), Act: "Whole plan", Stamp: Text(DecidedOn, "dd-mm-yyyy hh:mm"), Human: "@" in Coalesce(DecidedByEmail, "") }));
+                                        If(varMdAprS3 = "In progress" && CountRows(Filter(colMdAprLatest, Stage = "Quality")) < 1, With({a: LookUp(MD_Approver, ApproverKey = Upper(Left(varMdAprReq.Plant, 3)))}, Collect(colMdAprRows, { Kind: "D", Stage: "Quality", Title: If(IsBlank(a), "Approver not set", Upper(First(Split(Coalesce(If(a.Approver1Absent, a.Approver2, a.Approver1), "unknown"), "@")).Value)), State: "Pending", Label: "Awaiting", Rule: "", Cur: false, Sub: If(IsBlank(a), "No row in MD_Approver for " & Upper(Left(varMdAprReq.Plant, 3)), If(a.Approver1Absent, "1st approver absent", "")), Act: If(IsBlank(a), "", If(a.Approver1Absent, "2nd approver", "1st approver")), Stamp: "", Human: !IsBlank(a) })));
+                                        Collect(colMdAprRows, { Kind: "H", Stage: "SAP", Title: "Creation in SAP", State: varMdAprS4, Label: varMdAprS4, Rule: "Master Data creates the plan - no approval", Cur: varMdAprCur = "SAP", Sub: "", Act: "", Stamp: "", Human: false });
+                                        If(varMdAprS4 <> "Pending", Collect(colMdAprRows, { Kind: "D", Stage: "SAP", Title: "Master Data", State: varMdAprS4, Label: If(varMdAprS4 = "Done", "Created", "Awaiting"), Rule: "", Cur: false, Sub: If(varMdAprS4 = "Done", "SAP " & varMdAprReq.SapObjectNo, ""), Act: If(varMdAprS4 = "Done", "Created the plan", "Ready - waiting for creation in SAP"), Stamp: "", Human: false }));
                                         ClearCollect(colMdAprTmp, colMdAprRows);
-                                        ClearCollect(colMdAprRows, ForAll(Sequence(CountRows(colMdAprTmp)) As S, With({ q: Index(colMdAprTmp, S.Value) }, { Kind: q.Kind, Stage: q.Stage, Title: q.Title, State: q.State, Label: q.Label, Rule: q.Rule, Cur: q.Cur, Sub: q.Sub, Idx: S.Value, L1: "", L2: "", IsLast: false })));
+                                        ClearCollect(colMdAprRows, ForAll(Sequence(CountRows(colMdAprTmp)) As S, With({ q: Index(colMdAprTmp, S.Value) }, { Kind: q.Kind, Stage: q.Stage, Title: q.Title, State: q.State, Label: q.Label, Rule: q.Rule, Cur: q.Cur, Sub: q.Sub, Act: q.Act, Stamp: q.Stamp, Human: q.Human, Idx: S.Value, L1: "", L2: "", IsLast: false })));
                                         Set(varMdAprBusy, false)
                                     PaddingBottom: |-
                                         =0
@@ -3760,13 +3760,13 @@ Screens:
                                         Set(varMdAprOpen, true);
                                         Set(varMdAprReq, ThisItem);
                                         ClearCollect(colMdAprLog, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid));
-                                        ClearCollect(colMdAprRows, { Kind: "D", Stage: "T", Title: "Created by " & Upper(First(Split(Coalesce(varMdAprReq.RequesterEmail, "unknown@"), "@")).Value), State: "Done", Label: "Created", Rule: "", Cur: false, Sub: Text(varMdAprReq.Created, "dd-mm-yyyy hh:mm") });
-                                        Collect(colMdAprRows, ForAll(SortByColumns(colMdAprLog, "DecidedOn"), { Kind: "D", Stage: "T", Title: Stage & "  ·  " & Upper(First(Split(Coalesce(DecidedByEmail, "unknown@"), "@")).Value) & If(!IsBlank(ItemText), "  ·  " & ItemText, ""), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned"), Label: Switch(Decision, "AdminEdit", "Admin edit", "AdminDelete", "Admin delete", Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned")), Rule: "", Cur: false, Sub: Text(DecidedOn, "dd-mm-yyyy hh:mm") & If(!IsBlank(Comment), "  ·  " & Substitute(Comment, Char(10), " "), If(!IsBlank(Detail), "  ·  " & Detail, "")) }));
-                                        If(!IsBlank(varMdAprReq.SapObjectNo), Collect(colMdAprRows, { Kind: "D", Stage: "T", Title: "SAP " & varMdAprReq.SapObjectNo, State: "Done", Label: "Created", Rule: "", Cur: false, Sub: "Created in SAP" }));
-                                        If(varMdAprReq.IsOpen && !IsBlank(varMdAprReq.AssignedToEmail), Collect(colMdAprRows, { Kind: "D", Stage: "T", Title: Upper(First(Split(Coalesce(varMdAprReq.AssignedToEmail, "unknown@"), "@")).Value), State: "In progress", Label: "Waiting", Rule: "", Cur: false, Sub: "Assigned to" }));
-                                        Collect(colMdAprRows, { Kind: "D", Stage: "T", Title: "Status: " & varMdAprReq.Status.Value, State: If(varMdAprReq.IsOpen, "In progress", "Done"), Label: If(varMdAprReq.IsOpen, "Open", "Closed"), Rule: "", Cur: false, Sub: "Last change " & Text(varMdAprReq.LastActionOn, "dd-mm-yyyy hh:mm") & If(!IsBlank(varMdAprReq.LastActionBy), " by " & varMdAprReq.LastActionBy, "") });
+                                        ClearCollect(colMdAprRows, { Kind: "D", Stage: "T", Title: Upper(First(Split(Coalesce(varMdAprReq.RequesterEmail, "unknown"), "@")).Value), State: "Done", Label: "Created", Rule: "", Cur: false, Sub: "", Act: "Created the request", Stamp: Text(varMdAprReq.Created, "dd-mm-yyyy hh:mm"), Human: true });
+                                        Collect(colMdAprRows, ForAll(SortByColumns(colMdAprLog, "DecidedOn"), { Kind: "D", Stage: "T", Title: Upper(First(Split(Coalesce(DecidedByEmail, "unknown"), "@")).Value), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned"), Label: Switch(Decision, "AdminEdit", "Admin edit", "AdminDelete", "Admin delete", Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned")), Rule: "", Cur: false, Sub: With({ n: If(!IsBlank(Comment), Substitute(Comment, Char(10), " "), Coalesce(Detail, "")) }, If(IsBlank(ItemText), n, ItemText & If(IsBlank(n), "", "  ·  " & n))), Act: Switch(Stage, "System", "System approval", "Cost", "Cost approval", "Quality", "Quality review", "SapCreated", "Creation in SAP", "Admin", "Admin change", Stage), Stamp: Text(DecidedOn, "dd-mm-yyyy hh:mm"), Human: "@" in Coalesce(DecidedByEmail, "") }));
+                                        If(!IsBlank(varMdAprReq.SapObjectNo), Collect(colMdAprRows, { Kind: "D", Stage: "T", Title: "SAP", State: "Done", Label: "Created", Rule: "", Cur: false, Sub: "SAP " & varMdAprReq.SapObjectNo, Act: "Created in SAP", Stamp: "", Human: false }));
+                                        If(varMdAprReq.IsOpen && !IsBlank(varMdAprReq.AssignedToEmail), Collect(colMdAprRows, { Kind: "D", Stage: "T", Title: Upper(First(Split(Coalesce(varMdAprReq.AssignedToEmail, "unknown"), "@")).Value), State: "In progress", Label: "Waiting", Rule: "", Cur: false, Sub: "", Act: "Assigned to", Stamp: "", Human: true }));
+                                        Collect(colMdAprRows, { Kind: "D", Stage: "T", Title: "Status", State: If(varMdAprReq.IsOpen, "In progress", varMdAprReq.Status.Value = "Afvist", "Rejected", varMdAprReq.Status.Value = "Annulleret", "Cancelled", "Done"), Label: If(varMdAprReq.IsOpen, "Open", "Closed"), Rule: "", Cur: false, Sub: If(IsBlank(varMdAprReq.LastActionBy), "Last change", "Last change by " & If("@" in Coalesce(varMdAprReq.LastActionBy, ""), Upper(First(Split(Coalesce(varMdAprReq.LastActionBy, "unknown"), "@")).Value), varMdAprReq.LastActionBy)), Act: Switch(varMdAprReq.Status.Value, "Kladde", "Draft", "Indsendt", "Submitted", "UnderBehandling", "In progress", "AfventerInfo", "Awaiting info", "KlarTilSAP", "Ready for SAP", "OprettetISAP", "Created in SAP", "Afvist", "Rejected", "Annulleret", "Cancelled", varMdAprReq.Status.Value), Stamp: Text(varMdAprReq.LastActionOn, "dd-mm-yyyy hh:mm"), Human: false });
                                         ClearCollect(colMdAprTmp, colMdAprRows);
-                                        ClearCollect(colMdAprRows, ForAll(Sequence(CountRows(colMdAprTmp)) As S, With({ q: Index(colMdAprTmp, S.Value) }, { Kind: q.Kind, Stage: q.Stage, Title: q.Title, State: q.State, Label: q.Label, Rule: q.Rule, Cur: q.Cur, Sub: q.Sub, Idx: S.Value, L1: "", L2: "", IsLast: false })));
+                                        ClearCollect(colMdAprRows, ForAll(Sequence(CountRows(colMdAprTmp)) As S, With({ q: Index(colMdAprTmp, S.Value) }, { Kind: q.Kind, Stage: q.Stage, Title: q.Title, State: q.State, Label: q.Label, Rule: q.Rule, Cur: q.Cur, Sub: q.Sub, Act: q.Act, Stamp: q.Stamp, Human: q.Human, Idx: S.Value, L1: "", L2: "", IsLast: false })));
                                         Set(varMdAprBusy, false)
                                     PressedFill: |-
                                         =C.'row-hover'
@@ -5850,7 +5850,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =84 + If(IfError(varMdAprBusy, false), 110, 20 + 10 + (Min(CountRows(colMdAprRows), 11) + IfError(varMdAprExtra, 0)) * 46)
+                      =84 + If(IfError(varMdAprBusy, false), 110, 20 + 10 + (Min(CountRows(colMdAprRows), 11) + IfError(varMdAprExtra, 0)) * 48)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -5880,7 +5880,7 @@ Screens:
                   RadiusTopRight: |-
                       =16
                   Width: |-
-                      =Min(640, App.Width - 24)
+                      =Min(720, App.Width - 24)
                 Children:
                   - conMdAprHead:
                       Control: GroupContainer
@@ -5899,7 +5899,7 @@ Screens:
                         LayoutDirection: |-
                             =LayoutDirection.Horizontal
                         LayoutGap: |-
-                            =12
+                            =10
                         LayoutMinWidth: |-
                             =0
                         LayoutOverflowX: |-
@@ -5922,8 +5922,6 @@ Screens:
                                   =C.'text-primary'
                               Fill: |-
                                   =RGBA(0, 0, 0, 0)
-                              FillPortions: |-
-                                  =0
                               Font: |-
                                   =Font.'Segoe UI'
                               FontWeight: |-
@@ -5931,7 +5929,7 @@ Screens:
                               Height: |-
                                   =26
                               LayoutMinWidth: |-
-                                  =0
+                                  =65
                               PaddingBottom: |-
                                   =0
                               PaddingLeft: |-
@@ -5943,9 +5941,71 @@ Screens:
                               Size: |-
                                   =17
                               Text: |-
-                                  =varMdAprReq.RequestNo & If(IfError(varMdAprMode, "") = "T", "  -  activity", "  -  approval flow")
+                                  =If(IfError(varMdAprMode, "") = "T", "Activity", "Approval flow")
                               Width: |-
-                                  =Max(0, (((Min(640, App.Width - 24)) - 16 - 16)) - ((84) + 12) - 2)
+                                  =If(IfError(varMdAprMode, "") = "T", 65, 109)
+                              Wrap: |-
+                                  =false
+                        - imgMdAprNo:
+                            Control: Image
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Request " & varMdAprReq.RequestNo
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Height: |-
+                                  =26
+                              Image: |-
+                                  =If(IsBlank(varMdAprReq.RequestNo), "", With({ c: Switch(varMdAprReq.Domain.Value, "FunctionalLocation", C.'hex-domain-fl', "MaintenancePlan", C.'hex-domain-vhp', "Material", C.'hex-domain-mat', "Equipment", C.'hex-domain-eq', "MeasuringPoint", C.'hex-domain-mp', C.'hex-text-muted') }, "data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='88' height='26' viewBox='0 0 88 26'><rect width='88' height='26' rx='13' fill='" & c & "' fill-opacity='0.12'/><text x='44' y='17.5' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='12' font-weight='600' fill='" & c & "'>" & varMdAprReq.RequestNo & "</text></svg>")))
+                              ImagePosition: |-
+                                  =ImagePosition.Fit
+                              LayoutMinWidth: |-
+                                  =88
+                              OnSelect: |-
+                                  =false
+                              TabIndex: |-
+                                  =-1
+                              Width: |-
+                                  =88
+                        - txtMdAprHeadGap:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  =""
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-primary'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              FillPortions: |-
+                                  =0
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =20
+                              LayoutMinWidth: |-
+                                  =0
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =11
+                              Text: |-
+                                  =""
+                              Width: |-
+                                  =Max(0, (((Min(720, App.Width - 24)) - 16 - 16)) - ((If(IfError(varMdAprMode, "") = "T", 65, 109)) + 10) - ((88) + 10) - ((84) + 10) - 2)
                               Wrap: |-
                                   =false
                         - btnMdAprClose:
@@ -6022,11 +6082,11 @@ Screens:
                             =If(IfError(varMdAprMode, "") = "T", Concat(
                                 Filter(
                                     Table(
-                                        { v: If(!IsBlank(varMdAprReq.RequesterName), "by " & varMdAprReq.RequesterName) },
+                                        { v: If(!IsBlank(varMdAprReq.RequesterEmail), "Requested by " & Upper(First(Split(Coalesce(varMdAprReq.RequesterEmail, "unknown"), "@")).Value)) },
                                         { v: If(varMdAprReq.ItemCount > 0, Text(varMdAprReq.ItemCount) &
                                                 If(varMdAprReq.ItemCount = 1, " item", " items")) },
                                         { v: If(!IsBlank(varMdAprReq.SapObjectNo), "SAP " & varMdAprReq.SapObjectNo) },
-                                        { v: If(!IsBlank(varMdAprReq.LastActionBy), "last change by " & varMdAprReq.LastActionBy) }
+                                        { v: If(!IsBlank(varMdAprReq.LastActionBy), "last change by " & If("@" in Coalesce(varMdAprReq.LastActionBy, ""), Upper(First(Split(Coalesce(varMdAprReq.LastActionBy, "unknown"), "@")).Value), varMdAprReq.LastActionBy)) }
                                     ),
                                     !IsBlank(v)
                                 ),
@@ -6041,7 +6101,7 @@ Screens:
                       Control: Image
                       Properties:
                         AccessibleLabel: |-
-                            ="Loading approval flow"
+                            =If(IfError(varMdAprMode, "") = "T", "Loading activity", "Loading approval flow")
                         BorderStyle: |-
                             =BorderStyle.None
                         BorderThickness: |-
@@ -6059,13 +6119,13 @@ Screens:
                         Visible: |-
                             =IfError(varMdAprBusy, false)
                         Width: |-
-                            =(Min(640, App.Width - 24) - 32)
+                            =(Min(720, App.Width - 24) - 32)
                   - galMdAprRows:
                       Control: Gallery
                       Variant: Vertical
                       Properties:
                         AccessibleLabel: |-
-                            ="Approval flow"
+                            =If(IfError(varMdAprMode, "") = "T", "Activity", "Approval flow")
                         AlignInContainer: |-
                             =AlignInContainer.Start
                         BorderStyle: |-
@@ -6075,9 +6135,9 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =(Min(CountRows(colMdAprRows), 11) + IfError(varMdAprExtra, 0)) * 46
+                            =(Min(CountRows(colMdAprRows), 11) + IfError(varMdAprExtra, 0)) * 48
                         Items: |-
-                            =Ungroup(ForAll(colMdAprRows As Q, { r: If(Q.Idx = IfError(varMdAprExp, 0), With({t: If(Len(Q.Title) > RoundDown((((Min(640, App.Width - 24) - 32) - 20) - 48 - 92 - 12) / 7.6, 0), Q.Title & "  ·  ", "") & Q.Sub, c: RoundDown((((Min(640, App.Width - 24) - 32) - 20) - 56) / 5.8, 0)}, Ungroup(Table({r: Table(Q)}, {r: ForAll(Sequence(RoundUp(Len(t) / (2 * c), 0)) As S, { Kind: "X", Stage: "", Title: "", State: Q.State, Label: "", Rule: "", Cur: false, Sub: "", Idx: Q.Idx, L1: Mid(t, (S.Value - 1) * 2 * c + 1, c), L2: Mid(t, (S.Value - 1) * 2 * c + c + 1, c), IsLast: S.Value = RoundUp(Len(t) / (2 * c), 0) })}), r)), Table(Q)) }), r)
+                            =Ungroup(ForAll(colMdAprRows As Q, { r: If(Q.Idx = IfError(varMdAprExp, 0), With({t: If(Len(Q.Act) > RoundDown((((Min(720, App.Width - 24) - 32) - 20) - 92 - 10 - 12 - (If(Q.Human, 70, 48) + Min(Len(Q.Title) * 8 + 4, ((((Min(720, App.Width - 24) - 32) - 20) - 92 - 10 - 12) - 48) / 2) + 8)) / 6.6, 0), Q.Act & "  ·  ", "") & Q.Stamp & If(IsBlank(Q.Stamp) || IsBlank(Q.Sub), "", "  ·  ") & Q.Sub, c: RoundDown((((Min(720, App.Width - 24) - 32) - 20) - 56) / 5.8, 0)}, Ungroup(Table({r: Table(Q)}, {r: ForAll(Sequence(RoundUp(Len(t) / (2 * c), 0)) As S, { Kind: "X", Stage: "", Title: "", State: Q.State, Label: "", Rule: "", Cur: false, Sub: "", Act: "", Stamp: "", Human: Q.Human, Idx: Q.Idx, L1: Mid(t, (S.Value - 1) * 2 * c + 1, c), L2: Mid(t, (S.Value - 1) * 2 * c + c + 1, c), IsLast: S.Value = RoundUp(Len(t) / (2 * c), 0) })}), r)), Table(Q)) }), r)
                         LayoutMinWidth: |-
                             =0
                         Selectable: |-
@@ -6089,74 +6149,43 @@ Screens:
                         TemplatePadding: |-
                             =0
                         TemplateSize: |-
-                            =46
+                            =48
                         Visible: |-
                             =!IfError(varMdAprBusy, false)
                         Width: |-
-                            =(Min(640, App.Width - 24) - 32)
+                            =(Min(720, App.Width - 24) - 32)
                         WrapCount: |-
                             =1
                       Children:
-                        - txtMdAprCur:
-                            Control: ModernText
-                            Properties:
-                              AccessibleLabel: |-
-                                  =""
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Color: |-
-                                  =C.'text-primary'
-                              Fill: |-
-                                  =If(ThisItem.Kind = "H" && ThisItem.Cur, C.'state-info-bg', RGBA(0, 0, 0, 0))
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              Height: |-
-                                  =44
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
-                              Size: |-
-                                  =12
-                              Text: |-
-                                  =""
-                              Width: |-
-                                  =((Min(640, App.Width - 24) - 32) - 20)
-                              Wrap: |-
-                                  =false
-                              X: |-
-                                  =0
-                              Y: |-
-                                  =0
                         - btnMdAprCard:
                             Control: Classic/Button
                             Properties:
+                              BorderColor: |-
+                                  =If(ThisItem.Human && ThisItem.State <> "Pending", RGBA(0, 0, 0, 0), C.'border-default')
                               BorderStyle: |-
-                                  =BorderStyle.None
+                                  =BorderStyle.Dashed
                               BorderThickness: |-
-                                  =0
+                                  =If(ThisItem.Human && ThisItem.State <> "Pending", 0, 1)
                               Color: |-
                                   =RGBA(0, 0, 0, 0)
                               DisplayMode: |-
                                   =DisplayMode.View
                               Fill: |-
-                                  =If(ThisItem.Kind = "D" || ThisItem.Kind = "X", C.'bg-muted', RGBA(0, 0, 0, 0))
+                                  =If((ThisItem.Kind = "D" || ThisItem.Kind = "X") && ThisItem.Human && ThisItem.State <> "Pending", C.'bg-muted', RGBA(0, 0, 0, 0))
                               Height: |-
-                                  =If(ThisItem.Kind = "X", If(ThisItem.IsLast, 42, 46), If(IfError(varMdAprExp, 0) = ThisItem.Idx, 42, 38))
+                                  =If(ThisItem.Kind = "X", If(ThisItem.IsLast, 44, 48), If(IfError(varMdAprExp, 0) = ThisItem.Idx, 44, 40))
+                              HoverBorderColor: |-
+                                  =If(ThisItem.Human && ThisItem.State <> "Pending", RGBA(0, 0, 0, 0), C.'border-default')
                               HoverColor: |-
                                   =RGBA(0, 0, 0, 0)
                               HoverFill: |-
-                                  =If(ThisItem.Kind = "D" || ThisItem.Kind = "X", C.'bg-muted', RGBA(0, 0, 0, 0))
+                                  =If((ThisItem.Kind = "D" || ThisItem.Kind = "X") && ThisItem.Human && ThisItem.State <> "Pending", C.'bg-muted', RGBA(0, 0, 0, 0))
+                              PressedBorderColor: |-
+                                  =If(ThisItem.Human && ThisItem.State <> "Pending", RGBA(0, 0, 0, 0), C.'border-default')
                               PressedColor: |-
                                   =RGBA(0, 0, 0, 0)
                               PressedFill: |-
-                                  =If(ThisItem.Kind = "D" || ThisItem.Kind = "X", C.'bg-muted', RGBA(0, 0, 0, 0))
+                                  =If((ThisItem.Kind = "D" || ThisItem.Kind = "X") && ThisItem.Human && ThisItem.State <> "Pending", C.'bg-muted', RGBA(0, 0, 0, 0))
                               RadiusBottomLeft: |-
                                   =If(ThisItem.Kind = "X", If(ThisItem.IsLast, 8, 0), If(IfError(varMdAprExp, 0) = ThisItem.Idx, 0, 8))
                               RadiusBottomRight: |-
@@ -6172,7 +6201,7 @@ Screens:
                               Visible: |-
                                   =ThisItem.Kind = "D" || ThisItem.Kind = "X"
                               Width: |-
-                                  =((Min(640, App.Width - 24) - 32) - 20) - 38
+                                  =((Min(720, App.Width - 24) - 32) - 20) - 38
                               X: |-
                                   =38
                               Y: |-
@@ -6189,9 +6218,9 @@ Screens:
                               Fill: |-
                                   =RGBA(0, 0, 0, 0)
                               Height: |-
-                                  =46
+                                  =48
                               Image: |-
-                                  ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='32' height='46' viewBox='0 0 32 46'><line x1='16' y1='0' x2='16' y2='46' stroke='" & C.'hex-border-default' & "' stroke-width='2'/>" & If(ThisItem.Kind = "H", "<circle cx='16' cy='23' r='11' fill='" & Switch(
+                                  ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='32' height='48' viewBox='0 0 32 48'><line x1='16' y1='0' x2='16' y2='48' stroke='" & C.'hex-border-default' & "' stroke-width='2'/>" & If(ThisItem.Kind = "H", "<circle cx='16' cy='24' r='11' fill='" & Switch(
                                       ThisItem.State,
                                       "Approved", C.'hex-state-ok-fg',
                                       "Done", C.'hex-state-ok-fg',
@@ -6200,8 +6229,10 @@ Screens:
                                       "Returned", C.'hex-state-warn-fg',
                                       "Pending", C.'hex-text-muted',
                                       "Admin", C.'hex-state-warn-fg',
+                                      "Rejected", C.'hex-state-error-fg',
+                                      "Cancelled", C.'hex-state-neutral-fg',
                                       C.'hex-text-muted'
-                                  ) & "'/><g transform='translate(4 11)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(
+                                  ) & "'/><g transform='translate(4 12)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(
                                       ThisItem.State,
                                       "Approved", "M7 12.5l3.2 3.2L17 9",
                                       "Done", "M7 12.5l3.2 3.2L17 9",
@@ -6209,7 +6240,7 @@ Screens:
                                       "In progress", "M12 7.5v5l3 2",
                                       "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4",
                                       "M12 12v.01"
-                                  ) & "'/></g>", If(ThisItem.Kind = "X", "", "<line x1='16' y1='23' x2='30' y2='23' stroke='" & C.'hex-border-default' & "' stroke-width='1.5'/><circle cx='16' cy='23' r='5' stroke-width='2' stroke='" & Switch(
+                                  ) & "'/></g>", If(ThisItem.Kind = "X", "", "<line x1='16' y1='24' x2='30' y2='24' stroke='" & C.'hex-border-default' & "' stroke-width='1.5'/>" & If(ThisItem.Human, "<circle cx='16' cy='24' r='5' stroke-width='2' stroke='" & Switch(
                                       ThisItem.State,
                                       "Approved", C.'hex-state-ok-fg',
                                       "Done", C.'hex-state-ok-fg',
@@ -6218,6 +6249,8 @@ Screens:
                                       "Returned", C.'hex-state-warn-fg',
                                       "Pending", C.'hex-text-muted',
                                       "Admin", C.'hex-state-warn-fg',
+                                      "Rejected", C.'hex-state-error-fg',
+                                      "Cancelled", C.'hex-state-neutral-fg',
                                       C.'hex-text-muted'
                                   ) & "' fill='" & If(ThisItem.State = "Pending", "none", Switch(
                                       ThisItem.State,
@@ -6228,8 +6261,34 @@ Screens:
                                       "Returned", C.'hex-state-warn-fg',
                                       "Pending", C.'hex-text-muted',
                                       "Admin", C.'hex-state-warn-fg',
+                                      "Rejected", C.'hex-state-error-fg',
+                                      "Cancelled", C.'hex-state-neutral-fg',
                                       C.'hex-text-muted'
-                                  )) & "'/>")) & "</svg>")
+                                  )) & "'/>", "<rect x='12' y='20' width='8' height='8' rx='1' transform='rotate(45 16 24)' stroke-width='2' stroke='" & Switch(
+                                      ThisItem.State,
+                                      "Approved", C.'hex-state-ok-fg',
+                                      "Done", C.'hex-state-ok-fg',
+                                      "Skipped", C.'hex-state-neutral-fg',
+                                      "In progress", C.'hex-state-info-fg',
+                                      "Returned", C.'hex-state-warn-fg',
+                                      "Pending", C.'hex-text-muted',
+                                      "Admin", C.'hex-state-warn-fg',
+                                      "Rejected", C.'hex-state-error-fg',
+                                      "Cancelled", C.'hex-state-neutral-fg',
+                                      C.'hex-text-muted'
+                                  ) & "' fill='" & If(ThisItem.State = "Pending", "none", Switch(
+                                      ThisItem.State,
+                                      "Approved", C.'hex-state-ok-fg',
+                                      "Done", C.'hex-state-ok-fg',
+                                      "Skipped", C.'hex-state-neutral-fg',
+                                      "In progress", C.'hex-state-info-fg',
+                                      "Returned", C.'hex-state-warn-fg',
+                                      "Pending", C.'hex-text-muted',
+                                      "Admin", C.'hex-state-warn-fg',
+                                      "Rejected", C.'hex-state-error-fg',
+                                      "Cancelled", C.'hex-state-neutral-fg',
+                                      C.'hex-text-muted'
+                                  )) & "'/>"))) & "</svg>")
                               ImagePosition: |-
                                   =ImagePosition.Fit
                               OnSelect: |-
@@ -6242,6 +6301,53 @@ Screens:
                                   =0
                               Y: |-
                                   =0
+                        - txtMdAprCurBar:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  =""
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-primary'
+                              Fill: |-
+                                  =C.'state-info-fg'
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =26
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              RadiusBottomLeft: |-
+                                  =2
+                              RadiusBottomRight: |-
+                                  =2
+                              RadiusTopLeft: |-
+                                  =2
+                              RadiusTopRight: |-
+                                  =2
+                              Size: |-
+                                  =11
+                              Text: |-
+                                  =""
+                              Visible: |-
+                                  =ThisItem.Kind = "H" && ThisItem.Cur
+                              Width: |-
+                                  =3
+                              Wrap: |-
+                                  =false
+                              X: |-
+                                  =34
+                              Y: |-
+                                  =11
                         - txtMdAprHTitle:
                             Control: ModernText
                             Properties:
@@ -6276,11 +6382,11 @@ Screens:
                               Visible: |-
                                   =ThisItem.Kind = "H"
                               Width: |-
-                                  =((Min(640, App.Width - 24) - 32) - 20) - 40 - 92 - 8
+                                  =((Min(720, App.Width - 24) - 32) - 20) - 92 - 10 - 12 - 42
                               Wrap: |-
                                   =false
                               X: |-
-                                  =40
+                                  =42
                               Y: |-
                                   =5
                         - txtMdAprHRule:
@@ -6315,67 +6421,53 @@ Screens:
                               Visible: |-
                                   =ThisItem.Kind = "H"
                               Width: |-
-                                  =((Min(640, App.Width - 24) - 32) - 20) - 48
+                                  =((Min(720, App.Width - 24) - 32) - 20) - 92 - 10 - 12 - 42
                               Wrap: |-
                                   =false
                               X: |-
-                                  =40
+                                  =42
                               Y: |-
                                   =26
-                        - txtMdAprCurTag:
-                            Control: ModernText
+                        - imgMdAprPerson:
+                            Control: Image
                             Properties:
                               AccessibleLabel: |-
-                                  ="Current"
-                              Align: |-
-                                  =Align.Center
+                                  =""
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
                                   =0
-                              Color: |-
-                                  =C.'text-on-primary'
                               Fill: |-
-                                  =C.'state-info-fg'
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              FontWeight: |-
-                                  =FontWeight.Semibold
+                                  =RGBA(0, 0, 0, 0)
                               Height: |-
-                                  =20
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =1
-                              Size: |-
-                                  =11
-                              Text: |-
-                                  ="Current"
-                              Visible: |-
-                                  =ThisItem.Kind = "H" && ThisItem.Cur
-                              Width: |-
-                                  =58
-                              Wrap: |-
+                                  =16
+                              Image: |-
+                                  ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path d='M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z M4.5 20.5a7.5 7.5 0 0 1 15 0' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>")
+                              ImagePosition: |-
+                                  =ImagePosition.Fit
+                              OnSelect: |-
                                   =false
+                              TabIndex: |-
+                                  =-1
+                              Visible: |-
+                                  =ThisItem.Kind = "D" && ThisItem.Human
+                              Width: |-
+                                  =16
                               X: |-
-                                  =((Min(640, App.Width - 24) - 32) - 20) - 92 - 4 - 58 - 6
+                                  =48
                               Y: |-
-                                  =5
+                                  =If(IsBlank(If(LayoutRank < 2, ThisItem.Stamp & If(IsBlank(ThisItem.Stamp) || IsBlank(ThisItem.Sub), "", "  ·  ") & ThisItem.Sub, ThisItem.Sub)), 14, 6) + 2
                         - txtMdAprDTitle:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  =Self.Text
+                                  =If(ThisItem.Human, "User ", "Automated: ") & ThisItem.Title
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
                                   =0
                               Color: |-
-                                  =C.'text-primary'
+                                  =If(ThisItem.Human, C.'text-primary', C.'text-muted')
                               Fill: |-
                                   =RGBA(0, 0, 0, 0)
                               Font: |-
@@ -6399,13 +6491,52 @@ Screens:
                               Visible: |-
                                   =ThisItem.Kind = "D"
                               Width: |-
-                                  =((Min(640, App.Width - 24) - 32) - 20) - 48 - 92 - 12
+                                  =Min(Len(ThisItem.Title) * 8 + 4, (If(LayoutRank >= 2, ((Min(720, App.Width - 24) - 32) - 20) - 92 - 10 - 12 - 104, ((Min(720, App.Width - 24) - 32) - 20) - 92 - 10) - 12 - 48) / 2)
                               Wrap: |-
                                   =false
                               X: |-
-                                  =48
+                                  =If(ThisItem.Human, 70, 48)
                               Y: |-
-                                  =6
+                                  =If(IsBlank(If(LayoutRank < 2, ThisItem.Stamp & If(IsBlank(ThisItem.Stamp) || IsBlank(ThisItem.Sub), "", "  ·  ") & ThisItem.Sub, ThisItem.Sub)), 14, 6)
+                        - txtMdAprDAct:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  =Self.Text
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-primary'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =20
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =13
+                              Text: |-
+                                  =ThisItem.Act
+                              Visible: |-
+                                  =ThisItem.Kind = "D" && !IsBlank(ThisItem.Act)
+                              Width: |-
+                                  =Max(0, If(LayoutRank >= 2, ((Min(720, App.Width - 24) - 32) - 20) - 92 - 10 - 12 - 104, ((Min(720, App.Width - 24) - 32) - 20) - 92 - 10) - 12 - (If(ThisItem.Human, 70, 48) + Min(Len(ThisItem.Title) * 8 + 4, (If(LayoutRank >= 2, ((Min(720, App.Width - 24) - 32) - 20) - 92 - 10 - 12 - 104, ((Min(720, App.Width - 24) - 32) - 20) - 92 - 10) - 12 - 48) / 2) + 8))
+                              Wrap: |-
+                                  =false
+                              X: |-
+                                  =If(ThisItem.Human, 70, 48) + Min(Len(ThisItem.Title) * 8 + 4, (If(LayoutRank >= 2, ((Min(720, App.Width - 24) - 32) - 20) - 92 - 10 - 12 - 104, ((Min(720, App.Width - 24) - 32) - 20) - 92 - 10) - 12 - 48) / 2) + 8
+                              Y: |-
+                                  =If(IsBlank(If(LayoutRank < 2, ThisItem.Stamp & If(IsBlank(ThisItem.Stamp) || IsBlank(ThisItem.Sub), "", "  ·  ") & ThisItem.Sub, ThisItem.Sub)), 14, 6)
                         - txtMdAprDSub:
                             Control: ModernText
                             Properties:
@@ -6422,7 +6553,7 @@ Screens:
                               Font: |-
                                   =Font.'Segoe UI'
                               Height: |-
-                                  =17
+                                  =18
                               PaddingBottom: |-
                                   =0
                               PaddingLeft: |-
@@ -6432,19 +6563,60 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =11
+                                  =12
                               Text: |-
-                                  =ThisItem.Sub
+                                  =If(LayoutRank < 2, ThisItem.Stamp & If(IsBlank(ThisItem.Stamp) || IsBlank(ThisItem.Sub), "", "  ·  ") & ThisItem.Sub, ThisItem.Sub)
                               Visible: |-
-                                  =ThisItem.Kind = "D" && !(IfError(varMdAprExp, 0) = ThisItem.Idx)
+                                  =ThisItem.Kind = "D" && !(IfError(varMdAprExp, 0) = ThisItem.Idx) && !(IsBlank(If(LayoutRank < 2, ThisItem.Stamp & If(IsBlank(ThisItem.Stamp) || IsBlank(ThisItem.Sub), "", "  ·  ") & ThisItem.Sub, ThisItem.Sub)))
                               Width: |-
-                                  =((Min(640, App.Width - 24) - 32) - 20) - 56
+                                  =If(LayoutRank >= 2, ((Min(720, App.Width - 24) - 32) - 20) - 92 - 10 - 12 - 104, ((Min(720, App.Width - 24) - 32) - 20) - 92 - 10) - 12 - 48
                               Wrap: |-
                                   =false
                               X: |-
                                   =48
                               Y: |-
                                   =25
+                        - txtMdAprStamp:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  =Self.Text
+                              Align: |-
+                                  =Align.Right
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-muted'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =20
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =12
+                              Text: |-
+                                  =ThisItem.Stamp
+                              Visible: |-
+                                  =ThisItem.Kind = "D" && LayoutRank >= 2 && !IsBlank(ThisItem.Stamp)
+                              Width: |-
+                                  =104
+                              Wrap: |-
+                                  =false
+                              X: |-
+                                  =((Min(720, App.Width - 24) - 32) - 20) - 92 - 10 - 12 - 104
+                              Y: |-
+                                  =14
                         - txtMdAprX1:
                             Control: ModernText
                             Properties:
@@ -6461,7 +6633,7 @@ Screens:
                               Font: |-
                                   =Font.'Segoe UI'
                               Height: |-
-                                  =17
+                                  =18
                               PaddingBottom: |-
                                   =0
                               PaddingLeft: |-
@@ -6471,13 +6643,13 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =11
+                                  =12
                               Text: |-
                                   =ThisItem.L1
                               Visible: |-
                                   =ThisItem.Kind = "X"
                               Width: |-
-                                  =((Min(640, App.Width - 24) - 32) - 20) - 56
+                                  =((Min(720, App.Width - 24) - 32) - 20) - 56
                               Wrap: |-
                                   =false
                               X: |-
@@ -6500,7 +6672,7 @@ Screens:
                               Font: |-
                                   =Font.'Segoe UI'
                               Height: |-
-                                  =17
+                                  =18
                               PaddingBottom: |-
                                   =0
                               PaddingLeft: |-
@@ -6510,13 +6682,13 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =11
+                                  =12
                               Text: |-
                                   =ThisItem.L2
                               Visible: |-
                                   =ThisItem.Kind = "X"
                               Width: |-
-                                  =((Min(640, App.Width - 24) - 32) - 20) - 56
+                                  =((Min(720, App.Width - 24) - 32) - 20) - 56
                               Wrap: |-
                                   =false
                               X: |-
@@ -6527,7 +6699,7 @@ Screens:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  ="Status " & ThisItem.Label
+                                  ="Status " & ThisItem.Label & If(ThisItem.Cur, ", current stage", "")
                               Align: |-
                                   =Align.Center
                               BorderStyle: |-
@@ -6539,11 +6711,13 @@ Screens:
                                       ThisItem.State,
                                       "Approved", C.'state-ok-fg',
                                       "Done", C.'state-ok-fg',
-                                      "Skipped", C.'state-neutral-fg',
+                                      "Skipped", C.'text-muted',
+                                      "Cancelled", C.'text-muted',
                                       "In progress", C.'state-info-fg',
                                       "Returned", C.'state-warn-fg',
-                                      "Pending", C.'state-neutral-fg',
+                                      "Pending", C.'state-info-fg',
                                       "Admin", C.'state-warn-fg',
+                                      "Rejected", C.'state-error-fg',
                                       C.'state-neutral-fg'
                                   )
                               Fill: |-
@@ -6551,31 +6725,43 @@ Screens:
                                       ThisItem.State,
                                       "Approved", C.'state-ok-bg',
                                       "Done", C.'state-ok-bg',
-                                      "Skipped", C.'state-neutral-bg',
+                                      "Skipped", C.'bg-muted',
+                                      "Cancelled", C.'bg-muted',
                                       "In progress", C.'state-info-bg',
                                       "Returned", C.'state-warn-bg',
                                       "Pending", C.'state-neutral-bg',
                                       "Admin", C.'state-warn-bg',
-                                      C.'state-neutral-fg'
+                                      "Rejected", C.'state-error-bg',
+                                      C.'state-neutral-bg'
                                   )
                               Font: |-
                                   =Font.'Segoe UI'
                               FontWeight: |-
                                   =FontWeight.Semibold
                               Height: |-
-                                  =20
+                                  =22
                               PaddingBottom: |-
                                   =0
                               PaddingLeft: |-
-                                  =0
+                                  =8
                               PaddingRight: |-
-                                  =0
+                                  =8
                               PaddingTop: |-
-                                  =1
+                                  =0
+                              RadiusBottomLeft: |-
+                                  =6
+                              RadiusBottomRight: |-
+                                  =6
+                              RadiusTopLeft: |-
+                                  =6
+                              RadiusTopRight: |-
+                                  =6
                               Size: |-
                                   =11
                               Text: |-
                                   =ThisItem.Label
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
                               Visible: |-
                                   =!(ThisItem.Kind = "X")
                               Width: |-
@@ -6583,9 +6769,9 @@ Screens:
                               Wrap: |-
                                   =false
                               X: |-
-                                  =((Min(640, App.Width - 24) - 32) - 20) - 92 - 4
+                                  =((Min(720, App.Width - 24) - 32) - 20) - 92 - 10
                               Y: |-
-                                  =If(ThisItem.Kind = "H", 5, 8)
+                                  =13
                         - btnMdAprExpand:
                             Control: Classic/Button
                             Properties:
@@ -6604,7 +6790,7 @@ Screens:
                               FocusedBorderThickness: |-
                                   =2
                               Height: |-
-                                  =If(ThisItem.Kind = "X", 46, 38)
+                                  =If(ThisItem.Kind = "X", 48, 40)
                               HoverBorderColor: |-
                                   =RGBA(0, 0, 0, 0)
                               HoverColor: |-
@@ -6612,7 +6798,7 @@ Screens:
                               HoverFill: |-
                                   =C.'row-hover'
                               OnSelect: |-
-                                  =If(ThisItem.Kind = "X" || IfError(varMdAprExp, 0) = ThisItem.Idx, Set(varMdAprExp, 0); Set(varMdAprExtra, 0), Set(varMdAprExp, ThisItem.Idx); Set(varMdAprExtra, With({t: If(Len(ThisItem.Title) > RoundDown((((Min(640, App.Width - 24) - 32) - 20) - 48 - 92 - 12) / 7.6, 0), ThisItem.Title & "  ·  ", "") & ThisItem.Sub, c: RoundDown((((Min(640, App.Width - 24) - 32) - 20) - 56) / 5.8, 0)}, RoundUp(Len(t) / (2 * c), 0))))
+                                  =If(ThisItem.Kind = "X" || IfError(varMdAprExp, 0) = ThisItem.Idx, Set(varMdAprExp, 0); Set(varMdAprExtra, 0), Set(varMdAprExp, ThisItem.Idx); Set(varMdAprExtra, With({t: If(Len(ThisItem.Act) > RoundDown((((Min(720, App.Width - 24) - 32) - 20) - 92 - 10 - 12 - (If(ThisItem.Human, 70, 48) + Min(Len(ThisItem.Title) * 8 + 4, ((((Min(720, App.Width - 24) - 32) - 20) - 92 - 10 - 12) - 48) / 2) + 8)) / 6.6, 0), ThisItem.Act & "  ·  ", "") & ThisItem.Stamp & If(IsBlank(ThisItem.Stamp) || IsBlank(ThisItem.Sub), "", "  ·  ") & ThisItem.Sub, c: RoundDown((((Min(720, App.Width - 24) - 32) - 20) - 56) / 5.8, 0)}, RoundUp(Len(t) / (2 * c), 0))))
                               PressedBorderColor: |-
                                   =RGBA(0, 0, 0, 0)
                               PressedColor: |-
@@ -6632,9 +6818,9 @@ Screens:
                               Text: |-
                                   ="Show or hide the full text"
                               Visible: |-
-                                  =ThisItem.Kind = "D" && LayoutRank < 2 && (Len(ThisItem.Sub) > RoundDown((((Min(640, App.Width - 24) - 32) - 20) - 56) / 5.8, 0) || Len(ThisItem.Title) > RoundDown((((Min(640, App.Width - 24) - 32) - 20) - 48 - 92 - 12) / 7.6, 0)) || ThisItem.Kind = "X"
+                                  =ThisItem.Kind = "D" && LayoutRank < 2 && (Len(If(LayoutRank < 2, ThisItem.Stamp & If(IsBlank(ThisItem.Stamp) || IsBlank(ThisItem.Sub), "", "  ·  ") & ThisItem.Sub, ThisItem.Sub)) > RoundDown((((Min(720, App.Width - 24) - 32) - 20) - 56) / 5.8, 0) || Len(ThisItem.Act) > RoundDown((((Min(720, App.Width - 24) - 32) - 20) - 92 - 10 - 12 - (If(ThisItem.Human, 70, 48) + Min(Len(ThisItem.Title) * 8 + 4, ((((Min(720, App.Width - 24) - 32) - 20) - 92 - 10 - 12) - 48) / 2) + 8)) / 6.6, 0)) || ThisItem.Kind = "X"
                               Width: |-
-                                  =((Min(640, App.Width - 24) - 32) - 20) - 38
+                                  =((Min(720, App.Width - 24) - 32) - 20) - 38
                               X: |-
                                   =38
                               Y: |-

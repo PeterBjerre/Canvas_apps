@@ -357,6 +357,9 @@ CONTRAST = (
     # Statuschippen: forgrund paa SIN EGEN baggrund.
     [("state-%s-fg" % s, "state-%s-bg" % s, TEXT_MIN) for s in
      ("ok", "warn", "error", "info", "neutral", "violet", "lime", "rose")] +
+    # Hubbens Awaiting-badge (approval_flow, issue #90): blaa tekst paa den
+    # neutrale, blaagraa flade.
+    [("state-info-fg", "state-neutral-bg", TEXT_MIN)] +
     # De samme forgrunde bruges ogsaa som ren tekst uden chip (Fill er
     # gennemsigtig), og saa er det kortet eller skaermen bagved.
     [("state-%s-fg" % s, bg, TEXT_MIN) for s in
