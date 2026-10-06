@@ -131,6 +131,26 @@ VALIDATION = """With(
 )"""
 # R3 er fjernet med vilje - se historikken i build_hero.py (git).
 
+# HVILKEN SEKTION EN REGEL HOERER TIL (issue #123). Sektionernes badge
+# skifter til "Valid", naar trinnet er faerdigt OG ingen af reglerne ovenfor
+# peger paa sektionen. Reglerne er de samme - de sorteres kun efter
+# beskedens begyndelse, saa der ikke opstaar en validering ved siden af
+# VhpValidationErrors. R2 og R4 rettes i Plan Header (Sort Field og First
+# Call), selv om det er items, der udloeser dem. tests/test_checks.py tjekker,
+# at hver regel i VALIDATION har en sektion.
+RULE_SECTIONS = {
+    "Plan": ("S1:", "R1:", "R2:", "R4:"),
+    "Item": ("Item ",),
+    "Ops": ("S3:", "S4:", "S5:", "M1:"),
+}
+
+
+def _section_rules(section):
+    """De linjer i VhpValidationErrors, der hoerer til sektionen - tom tekst,
+    naar der ingen er."""
+    cond = " || ".join(f'StartsWith(Value, "{p}")' for p in RULE_SECTIONS[section])
+    return f"Concat(Filter(Split(VhpValidationErrors, Char(10)), {cond}), Value, Char(10))"
+
 
 def formulas():
     """(navn, udtryk, forklaring) - samme form som sp_config.named_formulas."""
@@ -160,6 +180,22 @@ def formulas():
         "CountRows(Filter(colVhpOperations, Len(Coalesce(PackagesKey, \";\")) <= 1)) = 0)",
         "Trin 4: alle items har operationer - og paa en strategiplan med pakker "
         "en pakke pr. operation.")
+    # SEKTIONERNES BADGE (issue #123): "Valid" kraever trinnet OG at ingen
+    # regel peger paa sektionen. Naar Submit er aktiv, er alle tre sande.
+    # Usavede aendringer i Item Editoren (build_hero.ITEM_DIRTY) kan kun
+    # skaermen se - de laegges til paa skaermen.
+    add("VhpPlanRuleErrors", _section_rules("Plan"),
+        "Reglerne, der rettes i Plan Header.")
+    add("VhpItemRuleErrors", _section_rules("Item"),
+        "Reglerne, der rettes i Item Editoren.")
+    add("VhpOpsRuleErrors", _section_rules("Ops"),
+        "Reglerne, der rettes i Tasklist and Operations.")
+    add("VhpPlanValid", "VhpStepPlanDone && IsBlank(VhpPlanRuleErrors)",
+        "Plan Header er gemt og opfylder sine regler.")
+    add("VhpItemsValid", "VhpStepItemDone && IsBlank(VhpItemRuleErrors)",
+        "Alle items er gemt som valid og opfylder deres regler.")
+    add("VhpOpsValid", "VhpStepTasklistDone && VhpStepOpsDone && IsBlank(VhpOpsRuleErrors)",
+        "Alle items har tasklist og operationer, og reglerne er opfyldt.")
     # Selected er afkrydsningen i tabellerne - den er ikke en aendring af
     # planen, og en markering maa ikke goere Save-trinnet graat.
     add("VhpStateJson",
