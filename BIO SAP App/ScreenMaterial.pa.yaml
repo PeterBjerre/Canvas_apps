@@ -161,7 +161,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Width: |-
-                                  =Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - (If(varMatViewOnly && varMatCanEdit, (96) + 10, 0)) - (If(!IfError(varMatViewOnly, true) && !IsBlank(varMatRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - ((If(LayoutRank < 2, 40, 135)) + 10) - ((82) + 10) - ((If(LayoutRank < 2, 70, 148)) + 10) - 2)
+                                  =Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - (If(IfError(varMatViewOnly && varMatCanEdit, false), (If(LayoutRank < 2, 40, 96)) + 10, 0)) - (If(!IfError(varMatViewOnly, true) && !IsBlank(varMatRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - ((If(LayoutRank < 2, 40, 135)) + 10) - ((82) + 10) - ((If(LayoutRank < 2, 70, 148)) + 10) - 2)
                             Children:
                               - conMatTitleLine:
                                   Control: GroupContainer
@@ -192,7 +192,7 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 2
                                     Width: |-
-                                        =Max(0, Min(194, ((Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - (If(varMatViewOnly && varMatCanEdit, (96) + 10, 0)) - (If(!IfError(varMatViewOnly, true) && !IsBlank(varMatRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - ((If(LayoutRank < 2, 40, 135)) + 10) - ((82) + 10) - ((If(LayoutRank < 2, 70, 148)) + 10) - 2)))))
+                                        =Max(0, Min(194, ((Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - (If(IfError(varMatViewOnly && varMatCanEdit, false), (If(LayoutRank < 2, 40, 96)) + 10, 0)) - (If(!IfError(varMatViewOnly, true) && !IsBlank(varMatRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - ((If(LayoutRank < 2, 40, 135)) + 10) - ((82) + 10) - ((If(LayoutRank < 2, 70, 148)) + 10) - 2)))))
                                   Children:
                                     - txtMatTitle:
                                         Control: ModernText
@@ -230,7 +230,7 @@ Screens:
                                           Visible: |-
                                               =LayoutRank >= 2
                                           Width: |-
-                                              =Max(0, Min(100, ((Max(0, Min(194, ((Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - (If(varMatViewOnly && varMatCanEdit, (96) + 10, 0)) - (If(!IfError(varMatViewOnly, true) && !IsBlank(varMatRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - ((If(LayoutRank < 2, 40, 135)) + 10) - ((82) + 10) - ((If(LayoutRank < 2, 70, 148)) + 10) - 2))))))) - (If(IsBlank(varMatRequestNo), 0, 6 + 88))))
+                                              =Max(0, Min(100, ((Max(0, Min(194, ((Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - (If(IfError(varMatViewOnly && varMatCanEdit, false), (If(LayoutRank < 2, 40, 96)) + 10, 0)) - (If(!IfError(varMatViewOnly, true) && !IsBlank(varMatRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - ((If(LayoutRank < 2, 40, 135)) + 10) - ((82) + 10) - ((If(LayoutRank < 2, 70, 148)) + 10) - 2))))))) - (If(IsBlank(varMatRequestNo), 0, 6 + 88))))
                                           Wrap: |-
                                               =false
                                     - imgMatNumber:
@@ -322,7 +322,7 @@ Screens:
                             Control: ModernButton
                             Properties:
                               AccessibleLabel: |-
-                                  ="Edit"
+                                  ="Edit this material request"
                               Align: |-
                                   =Align.Center
                               AlignInContainer: |-
@@ -335,8 +335,6 @@ Screens:
                                   =1
                               Color: |-
                                   =C.'text-primary'
-                              DisplayMode: |-
-                                  =If(varMatCanEdit, DisplayMode.Edit, DisplayMode.Disabled)
                               Font: |-
                                   =Font.'Segoe UI'
                               FontWeight: |-
@@ -346,9 +344,9 @@ Screens:
                               Icon: |-
                                   ="Edit"
                               Layout: |-
-                                  =ButtonLayout.IconBefore
+                                  =If(LayoutRank < 2, ButtonLayout.IconOnly, ButtonLayout.IconBefore)
                               LayoutMinWidth: |-
-                                  =96
+                                  =If(LayoutRank < 2, 40, 96)
                               OnSelect: |-
                                   =Set(varMatViewOnly, false)
                               RadiusBottomLeft: |-
@@ -364,18 +362,18 @@ Screens:
                               Text: |-
                                   ="Edit"
                               Tooltip: |-
-                                  ="Edit this draft"
+                                  ="Edit this material request"
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Visible: |-
-                                  =varMatViewOnly && varMatCanEdit
+                                  =IfError(varMatViewOnly && varMatCanEdit, false)
                               Width: |-
-                                  =96
+                                  =If(LayoutRank < 2, 40, 96)
                         - btnMatDeleteRequest:
                             Control: ModernButton
                             Properties:
                               AccessibleLabel: |-
-                                  ="Delete this request"
+                                  ="Delete this material request"
                               Align: |-
                                   =Align.Center
                               AlignInContainer: |-
@@ -415,7 +413,7 @@ Screens:
                               Text: |-
                                   ="Delete"
                               Tooltip: |-
-                                  ="Delete this draft request"
+                                  ="Delete this draft material request"
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Visible: |-
@@ -12945,7 +12943,7 @@ Screens:
                 Control: ModernText
                 Properties:
                   AccessibleLabel: |-
-                      ="Delete this request? This cannot be undone."
+                      ="Delete this material request? This cannot be undone."
                   BorderStyle: |-
                       =BorderStyle.None
                   BorderThickness: |-
@@ -12969,7 +12967,7 @@ Screens:
                   Size: |-
                       =13
                   Text: |-
-                      ="Delete this request? This cannot be undone."
+                      ="Delete this material request? This cannot be undone."
                   Wrap: |-
                       =true
             - conMatReqDelConfirmFooter:
@@ -13279,10 +13277,6 @@ Screens:
                                     IsBlank(varMatIdx),
                                     Notify("Could not find the request behind this link. Rows you save start a new request.",
                                         NotificationType.Warning);
-                                    Set(varMatRequestGuid, ""); Set(varMatRequestNo, ""),
-                                    varMatIdx.Status.Value = "Indsendt",
-                                    Notify("Request " & varMatIdx.RequestNo & " is already submitted. Rows you save start a new request.",
-                                        NotificationType.Information);
                                     Set(varMatRequestGuid, ""); Set(varMatRequestNo, ""),
                                     Set(varMatRequestNo, varMatIdx.RequestNo);
                                     Set(varMatCanEdit, ((Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe && (varMatIdx.Status.Value = "Kladde")) || (IsAdmin && (varMatIdx.Status.Value = "Kladde" || varMatIdx.Status.Value = "AfventerInfo"))));
