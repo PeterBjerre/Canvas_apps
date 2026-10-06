@@ -78,6 +78,10 @@ def _steps(domain, guid, sp, key):
              f"Remove(TaskListMain, Filter(TaskListMain, MaintenancePlanID.Id = {sp}))"),
             ("MaintenanceItems", p,
              f"Remove(MaintenanceItems, Filter(MaintenanceItems, MaintenancePlanNo.Id = {sp}))"),
+            # Note to self (issue #115). Listen viser kun de raekker, brugeren
+            # maa se - en admin uden Override List Behaviors finder ingen.
+            ("VHP_NoteToSelf", None,
+             f"Remove(VHP_NoteToSelf, Filter(VHP_NoteToSelf, RequestGuid = {guid}))"),
             ("MaintenancePlans", p,
              f"Remove(MaintenancePlans, Filter(MaintenancePlans, ID = {sp}))"),
         ]
