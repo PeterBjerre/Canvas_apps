@@ -24,8 +24,8 @@ from build_helpers import loading_overlay
 from gen_screen import C_CARD_BORDER
 from side_nav import side_nav
 from build_plan_header import build_plan_header, plan_info_modal
-from build_items import build_items_section, build_object_list_modal
-from build_tasklist import build_tasklist_section, build_ops_modals
+from build_items import build_items_section, build_object_list_modal, item_info_modal
+from build_tasklist import build_tasklist_section, build_ops_modals, ops_info_modal
 from build_modal import (build_tasklist_picker_modal, build_longtext_modal,
                          build_modal_backdrop)
 
@@ -59,7 +59,8 @@ def build_screen(render=render_screen):
                           build_modal_backdrop(), *build_ops_modals(),
                           build_tasklist_picker_modal(),
                           build_longtext_modal(), build_object_list_modal(),
-                          *CONFIRM, *plan_info_modal(), *overlay,
+                          *CONFIRM, *plan_info_modal(), *item_info_modal(),
+                          *ops_info_modal(), *overlay,
                           # Ventespinneren, mens der gemmes - oeverst af alt.
                           loading_overlay("imgVhpSaving", "varVhpSaving")])
 
