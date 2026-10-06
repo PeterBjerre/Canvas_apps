@@ -87,6 +87,15 @@ VALIDATION = """With(
                         ") has no operations - the plan would call an empty order.",
                         Char(10)
                     ), ""),
+            m1:
+                Concat(
+                    Filter(colVhpOperations,
+                        Upper(Trim(Coalesce(ControlKey, ""))) = "PM02" &&
+                        IsBlank(Trim(Coalesce(MaterialGroup, "")))),
+                    "M1: Item " & Text(ItemId) & " operation " & OperationNo &
+                    " is PM02 and needs a material group.",
+                    Char(10)
+                ),
             r1:
                 If(
                     !IsBlank(varVhpPlan.Plant) && !IsBlank(varVhpPlan.PlanText) &&
@@ -112,7 +121,7 @@ VALIDATION = """With(
             Filter(
                 Table(
                     { t: itemErr }, { t: s1 }, { t: s3 }, { t: s4 }, { t: s5 },
-                    { t: r1 }, { t: r2 }, { t: r4 }
+                    { t: m1 }, { t: r1 }, { t: r2 }, { t: r4 }
                 ),
                 !IsBlank(t)
             ),
