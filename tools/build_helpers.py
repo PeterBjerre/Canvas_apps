@@ -965,16 +965,30 @@ def page_icon(name, key, size=PAGE_ICON):
 DELETE_W = 40
 
 
-def delete_button(prefix, view_var, guid_var):
+def edit_button(name, view_var, can_var, onselect, what="request", tooltip=None):
+    """Edit for the open request - VH-planens knap, nu faelles (issue #94).
+
+    Vises kun i View mode og kun, naar brugeren maa aendre anmodningen
+    (can_var er sat af tools/permissions.may_change ved indlaesningen:
+    ejer i Kladde, admin i Kladde og AfventerInfo). Er anmodningen indsendt
+    eller laast, er can_var falsk, og knappen staar der ikke. Under Tablet
+    er den kun sit ikon, som Delete ved siden af."""
+    b = button(name, '"Edit"', onselect, width=fit_button_width('"Edit"') + ICON_W, height=36,
+               icon="Edit", visible=f"IfError({view_var} && {can_var}, false)",
+               accessible=f'"Edit this {what}"', tooltip=tooltip)
+    return icon_on_mobile(b)
+
+
+def delete_button(prefix, view_var, guid_var, what="request"):
     """Icon-only Delete for the open request, shown in edit mode only."""
     b = button(f"btn{prefix}DeleteRequest", '"Delete"', f"Set(var{prefix}DeleteOpen, true)",
                width=fit_button_width('"Delete"') + ICON_W, height=36, icon="Delete", danger=True,
                visible=f"!IfError({view_var}, true) && !IsBlank({guid_var})",
-               accessible='"Delete this request"', tooltip='"Delete this draft request"')
+               accessible=f'"Delete this {what}"', tooltip=f'"Delete this draft {what}"')
     return icon_on_mobile(b, DELETE_W)
 
 
-def delete_modal(prefix, guid_var, index_list, domain):
+def delete_modal(prefix, guid_var, index_list, domain, what="request"):
     """Delete request paa domaeneskaermen - tools/request_delete.py, den samme
     sletning som hubbens: kildedata foerst, indeksraekken sidst, og succes
     kun naar alt er slettet. Her stod Remove af indeksraekken alene.
@@ -997,7 +1011,7 @@ def delete_modal(prefix, guid_var, index_list, domain):
           f"    !{rd.may_delete(idx, f'var{prefix}Me')},\n    {rd.DENIED},\n"
           + rd.delete_fx(prefix, [domain], success, f"var{prefix}Me", indent=4) + "\n)")
     return confirm_modal(f"{prefix}ReqDel", f"var{prefix}DeleteOpen", "Delete request",
-                         '"Delete this request? This cannot be undone."',
+                         f'"Delete this {what}? This cannot be undone."',
                          "Delete", fx, f"btn{prefix}ReqDelConfirm", icon="Delete")
 
 
