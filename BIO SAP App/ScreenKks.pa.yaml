@@ -6233,7 +6233,7 @@ Screens:
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
-                            =Set(gblNavOpen, false); Set(gblFbMe, Lower(User().Email)); Set(gblFbOpen, true)
+                            =Set(gblNavOpen, false); Set(gblFbMe, Lower(User().Email)); Set(gblFbPick, false); ClearCollect(colFbRequests, ForAll(FirstN(Sort(Filter('MD_RequestIndex', RequesterEmail = gblFbMe), LastActionOn, SortOrder.Descending), 100) As R, {Code: R.RequestNo, Title: Coalesce(R.ShortText, ""), Domain: R.Domain.Value, TypeName: Switch(R.Domain.Value, "FunctionalLocation", "Functional location", "Equipment", "Equipment", "MeasuringPoint", "Measuring point", "Material", "Material", "MaintenancePlan", "Maintenance plan", "Request")})); Set(gblFbOpen, true)
                         PressedFill: |-
                             =C.'bg-muted'
                         TabIndex: |-
@@ -6893,7 +6893,7 @@ Screens:
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
-                            =Set(gblNavOpen, false); Set(gblFbMe, Lower(User().Email)); Set(gblFbOpen, true)
+                            =Set(gblNavOpen, false); Set(gblFbMe, Lower(User().Email)); Set(gblFbPick, false); ClearCollect(colFbRequests, ForAll(FirstN(Sort(Filter('MD_RequestIndex', RequesterEmail = gblFbMe), LastActionOn, SortOrder.Descending), 100) As R, {Code: R.RequestNo, Title: Coalesce(R.ShortText, ""), Domain: R.Domain.Value, TypeName: Switch(R.Domain.Value, "FunctionalLocation", "Functional location", "Equipment", "Equipment", "MeasuringPoint", "Measuring point", "Material", "Material", "MaintenancePlan", "Maintenance plan", "Request")})); Set(gblFbOpen, true)
                         PressedFill: |-
                             =C.'bg-muted'
                         TabIndex: |-
@@ -7031,7 +7031,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =290 + 12 + (62) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(220, Min(272, App.Height - 40 - 402)))))
+                      =242 + 12 + (62 + If(gblFbPick, 6 + (12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(CountRows(galKksFbSubject.AllItems), 7) * 36)), 0)) + If(!gblFbPick, 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(220, Min(272, App.Height - 40 - 402))))), 0) + If(!gblFbPick, 12 + (36), 0)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -7155,7 +7155,7 @@ Screens:
                               Layout: |-
                                   =ButtonLayout.TextOnly
                               OnSelect: |-
-                                  =Set(gblFbOpen, false); Reset(cmbKksFbRequest); Reset(inpKksFbMessage)
+                                  =Set(gblFbOpen, false); Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpKksFbSubjectFind); Reset(inpKksFbMessage)
                               RadiusBottomLeft: |-
                                   =10
                               RadiusBottomRight: |-
@@ -7420,7 +7420,7 @@ Screens:
                                         =VerticalAlign.Middle
                                     Wrap: |-
                                         =false
-                  - conKksFbRequestCell:
+                  - conKksFbSubjectCell:
                       Control: GroupContainer
                       Variant: AutoLayout
                       Properties:
@@ -7431,7 +7431,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =62
+                            =62 + If(gblFbPick, 6 + (12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(CountRows(galKksFbSubject.AllItems), 7) * 36)), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -7447,11 +7447,11 @@ Screens:
                         Width: |-
                             =Parent.Width
                       Children:
-                        - txtKksFbRequestCellLabel:
+                        - txtKksFbSubjectLabel:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  ="About a request (optional)"
+                                  ="Subject or request (optional)"
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -7477,39 +7477,44 @@ Screens:
                               Size: |-
                                   =12
                               Text: |-
-                                  ="About a request (optional)"
+                                  ="Subject or request (optional)"
                               Wrap: |-
                                   =false
-                        - cmbKksFbRequest:
-                            Control: ModernCombobox
+                        - conKksFbSubject:
+                            Control: GroupContainer
+                            Variant: AutoLayout
                             Properties:
-                              AccessibleLabel: |-
-                                  ="Request the message is about, or type your own subject"
-                              Appearance: |-
-                                  =Appearance.FilledDarker
-                              BasePaletteColor: |-
-                                  =C.'color-brand-primary'
-                              BorderStyle: |-
-                                  =BorderStyle.Solid
+                              BorderColor: |-
+                                  =If(gblFbPick, C.'color-brand-primary', C.'border-subtle')
                               BorderThickness: |-
                                   =1
-                              Color: |-
-                                  =C.'input-fg'
+                              DropShadow: |-
+                                  =DropShadow.None
                               Fill: |-
                                   =C.'input-bg'
-                              Font: |-
-                                  =Font.'Segoe UI'
+                              FillPortions: |-
+                                  =0
                               Height: |-
                                   =36
-                              InputTextPlaceholder: |-
-                                  ="Pick a request or type a subject"
-                              IsSearchable: |-
-                                  =true
-                              ItemDisplayText: |-
-                                  =ThisItem.Display
-                              Items: |-
-                                  =Ungroup(Table({r: Filter(Table({Code: "", Display: Trim(cmbKksFbRequest.SearchText)}), !IsBlank(Display))}, {r: ForAll(FirstN(Sort(Filter('MD_RequestIndex', RequesterEmail = gblFbMe), LastActionOn, SortOrder.Descending), 50) As R, {Code: R.RequestNo, Display: R.RequestNo & " - " & R.ShortText})}), r)
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Center
+                              LayoutDirection: |-
+                                  =LayoutDirection.Horizontal
+                              LayoutGap: |-
+                                  =8
                               LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =12
+                              PaddingRight: |-
+                                  =10
+                              PaddingTop: |-
                                   =0
                               RadiusBottomLeft: |-
                                   =10
@@ -7519,12 +7524,482 @@ Screens:
                                   =10
                               RadiusTopRight: |-
                                   =10
-                              SelectMultiple: |-
-                                  =false
-                              Size: |-
-                                  =If(LayoutRank < 2, 16, 14)
                               Width: |-
                                   =Parent.Width
+                            Children:
+                              - imgKksFbSubjectIcon:
+                                  Control: Image
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =""
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Height: |-
+                                        =20
+                                    Image: |-
+                                        ="data:image/svg+xml;utf8," & EncodeUrl(Switch(gblFbSel.Domain, "FunctionalLocation", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><g fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g></svg>", "Equipment", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><g fill='none' stroke='" & C.'hex-domain-eq' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g></svg>", "MeasuringPoint", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><g fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></svg>", "Material", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><g fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g></svg>", "MaintenancePlan", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><g fill='none' stroke='" & C.'hex-domain-vhp' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g></svg>", ""))
+                                    ImagePosition: |-
+                                        =ImagePosition.Fit
+                                    OnSelect: |-
+                                        =Set(gblFbPick, !gblFbPick)
+                                    TabIndex: |-
+                                        =-1
+                                    Visible: |-
+                                        =gblFbSel.Kind = "R"
+                                    Width: |-
+                                        =20
+                              - btnKksFbSubject:
+                                  Control: Classic/Button
+                                  Properties:
+                                    Align: |-
+                                        =Align.Left
+                                    BorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =If(!IsBlank(gblFbSel.Kind), C.'input-fg', C.'text-muted')
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    FillPortions: |-
+                                        =0
+                                    FocusedBorderColor: |-
+                                        =C.'color-brand-primary'
+                                    FocusedBorderThickness: |-
+                                        =2
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Normal
+                                    Height: |-
+                                        =34
+                                    HoverBorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    HoverColor: |-
+                                        =If(!IsBlank(gblFbSel.Kind), C.'input-fg', C.'text-muted')
+                                    HoverFill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    LayoutMinWidth: |-
+                                        =0
+                                    OnSelect: |-
+                                        =Set(gblFbPick, !gblFbPick)
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    PressedBorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    PressedColor: |-
+                                        =If(!IsBlank(gblFbSel.Kind), C.'input-fg', C.'text-muted')
+                                    PressedFill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Size: |-
+                                        =If(LayoutRank < 2, 16, 14)
+                                    TabIndex: |-
+                                        =0
+                                    Text: |-
+                                        =With({t: If(!IsBlank(gblFbSel.Kind), gblFbSel.Label, "Pick a subject or request"), c: RoundDown((Self.Width) / 7.5, 0)}, If(Len(t) > c, Left(t, Max(1, c - 3)) & "...", t))
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =Max(0, ((((Min(560, App.Width - 40)) - 18 - 18)) - 12 - 10) - (If(gblFbSel.Kind = "R", (20) + 8, 0)) - ((20) + 8) - 2)
+                              - imgKksFbSubjectChevron:
+                                  Control: Image
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =""
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Height: |-
+                                        =20
+                                    Image: |-
+                                        ="data:image/svg+xml;utf8," & EncodeUrl(If(gblFbPick, "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><path d='M6 15l6-6 6 6' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><path d='M6 9l6 6 6-6' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>"))
+                                    ImagePosition: |-
+                                        =ImagePosition.Fit
+                                    OnSelect: |-
+                                        =Set(gblFbPick, !gblFbPick)
+                                    TabIndex: |-
+                                        =-1
+                                    Width: |-
+                                        =20
+                        - conKksFbSubjectList:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderColor: |-
+                                  =C.'border-subtle'
+                              BorderThickness: |-
+                                  =1
+                              DropShadow: |-
+                                  =DropShadow.None
+                              Fill: |-
+                                  =C.'bg-modal'
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(CountRows(galKksFbSubject.AllItems), 7) * 36)
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Stretch
+                              LayoutDirection: |-
+                                  =LayoutDirection.Vertical
+                              LayoutGap: |-
+                                  =0
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              PaddingBottom: |-
+                                  =6
+                              PaddingLeft: |-
+                                  =6
+                              PaddingRight: |-
+                                  =6
+                              PaddingTop: |-
+                                  =6
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Visible: |-
+                                  =gblFbPick
+                              Width: |-
+                                  =Parent.Width
+                            Children:
+                              - conKksFbSubjectFind:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =42
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =0
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
+                                    PaddingBottom: |-
+                                        =6
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Visible: |-
+                                        =CountRows(colFbRequests) > 6
+                                    Width: |-
+                                        =Parent.Width
+                                  Children:
+                                    - inpKksFbSubjectFind:
+                                        Control: ModernTextInput
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Search your requests"
+                                          Appearance: |-
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
+                                          BorderColor: |-
+                                              =C.'border-default'
+                                          BorderStyle: |-
+                                              =BorderStyle.Solid
+                                          BorderThickness: |-
+                                              =1
+                                          Color: |-
+                                              =C.'input-fg'
+                                          Default: |-
+                                              =""
+                                          Fill: |-
+                                              =C.'input-bg'
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =36
+                                          LayoutMinWidth: |-
+                                              =0
+                                          Placeholder: |-
+                                              ="Search number, title or type"
+                                          RadiusBottomLeft: |-
+                                              =10
+                                          RadiusBottomRight: |-
+                                              =10
+                                          RadiusTopLeft: |-
+                                              =10
+                                          RadiusTopRight: |-
+                                              =10
+                                          Size: |-
+                                              =If(LayoutRank < 2, 16, 14)
+                                          ValidationState: |-
+                                              =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                                          Width: |-
+                                              =Parent.Width
+                              - galKksFbSubject:
+                                  Control: Gallery
+                                  Variant: Vertical
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Subjects and your requests"
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =Min(CountRows(galKksFbSubject.AllItems), 7) * 36
+                                    Items: |-
+                                        =With({q: Trim(inpKksFbSubjectFind.Text)},
+                                            With({
+                                                g: Filter(Table({Label: "Question"}, {Label: "Improvement idea"}, {Label: "Technical issue"}, {Label: "Other"}), IsBlank(q) || q in Label),
+                                                r: Filter(colFbRequests, IsBlank(q) || q in Code || q in Title || q in TypeName)
+                                            },
+                                            Ungroup(Table(
+                                                {x: Filter(Table({Kind: "H", Code: "", Label: "General", TypeName: "", Domain: "", Title: ""}), !IsEmpty(g))},
+                                                {x: ForAll(g As G, {Kind: "G", Code: "", Label: G.Label, TypeName: "", Domain: "", Title: ""})},
+                                                {x: Table({Kind: "H", Code: "", Label: "Your requests", TypeName: "", Domain: "", Title: ""})},
+                                                {x: ForAll(r As R, {Kind: "R", Code: R.Code, Label: R.Code & If(IsBlank(R.Title), "", " · " & R.Title), TypeName: R.TypeName, Domain: R.Domain, Title: R.Title})},
+                                                {x: Filter(Table({Kind: "E", Code: "", Label: If(IsBlank(q), "You have no requests yet.", "No requests match your search."), TypeName: "", Domain: "", Title: ""}), IsEmpty(r))}
+                                            ), x)))
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LoadingSpinner: |-
+                                        =LoadingSpinner.None
+                                    Selectable: |-
+                                        =false
+                                    ShowScrollbar: |-
+                                        =true
+                                    TabIndex: |-
+                                        =0
+                                    TemplatePadding: |-
+                                        =0
+                                    TemplateSize: |-
+                                        =36
+                                    Width: |-
+                                        =Parent.Width
+                                    WrapCount: |-
+                                        =1
+                                  Children:
+                                    - txtKksFbSubjectHead:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =Self.Text
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-muted'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =18
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =11
+                                          Text: |-
+                                              =ThisItem.Label
+                                          Visible: |-
+                                              =ThisItem.Kind = "H"
+                                          Width: |-
+                                              =(((((Min(560, App.Width - 40)) - 18 - 18)) - 6 - 6) - 2 * 0 - 18 - 40) - 24
+                                          Wrap: |-
+                                              =false
+                                          X: |-
+                                              =12
+                                          Y: |-
+                                              =14
+                                    - rctKksFbSubjectAccent:
+                                        Control: Rectangle
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =""
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Fill: |-
+                                              =Switch(ThisItem.Domain, "FunctionalLocation", C.'domain-fl', "Equipment", C.'domain-eq', "MeasuringPoint", C.'domain-mp', "Material", C.'domain-mat', "MaintenancePlan", C.'domain-vhp', C.'color-brand-primary')
+                                          Height: |-
+                                              =24
+                                          OnSelect: |-
+                                              =false
+                                          TabIndex: |-
+                                              =-1
+                                          Visible: |-
+                                              =!IsBlank(gblFbSel.Kind) && ThisItem.Kind = gblFbSel.Kind && ThisItem.Label = gblFbSel.Label
+                                          Width: |-
+                                              =3
+                                          X: |-
+                                              =0
+                                          Y: |-
+                                              =6
+                                    - imgKksFbSubjectRowIcon:
+                                        Control: Image
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =""
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Height: |-
+                                              =20
+                                          Image: |-
+                                              ="data:image/svg+xml;utf8," & EncodeUrl(Switch(ThisItem.Domain, "FunctionalLocation", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><g fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g></svg>", "Equipment", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><g fill='none' stroke='" & C.'hex-domain-eq' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g></svg>", "MeasuringPoint", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><g fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></svg>", "Material", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><g fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g></svg>", "MaintenancePlan", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><g fill='none' stroke='" & C.'hex-domain-vhp' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g></svg>", ""))
+                                          ImagePosition: |-
+                                              =ImagePosition.Fit
+                                          OnSelect: |-
+                                              =false
+                                          TabIndex: |-
+                                              =-1
+                                          Visible: |-
+                                              =ThisItem.Kind = "R"
+                                          Width: |-
+                                              =20
+                                          X: |-
+                                              =12
+                                          Y: |-
+                                              =8
+                                    - txtKksFbSubjectRow:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =Self.Text
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =If(ThisItem.Kind = "E", C.'text-muted', C.'text-primary')
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =If(!IsBlank(gblFbSel.Kind) && ThisItem.Kind = gblFbSel.Kind && ThisItem.Label = gblFbSel.Label, FontWeight.Semibold, FontWeight.Normal)
+                                          Height: |-
+                                              =20
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =13
+                                          Text: |-
+                                              =With({t: ThisItem.Label, c: RoundDown((Self.Width) / 7, 0)}, If(Len(t) > c, Left(t, Max(1, c - 3)) & "...", t))
+                                          Visible: |-
+                                              =ThisItem.Kind <> "H"
+                                          Width: |-
+                                              =(((((Min(560, App.Width - 40)) - 18 - 18)) - 6 - 6) - 2 * 0 - 18 - 40) - If(ThisItem.Kind = "R", 40, 12) - 12
+                                          Wrap: |-
+                                              =false
+                                          X: |-
+                                              =If(ThisItem.Kind = "R", 40, 12)
+                                          Y: |-
+                                              =8
+                                    - btnKksFbSubjectPick:
+                                        Control: Classic/Button
+                                        Properties:
+                                          BorderColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          BorderStyle: |-
+                                              =BorderStyle.Solid
+                                          BorderThickness: |-
+                                              =2
+                                          Color: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          FocusedBorderColor: |-
+                                              =C.'color-brand-primary'
+                                          FocusedBorderThickness: |-
+                                              =2
+                                          Height: |-
+                                              =36
+                                          HoverBorderColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          HoverColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          HoverFill: |-
+                                              =C.'row-hover'
+                                          OnSelect: |-
+                                              =Set(gblFbSel, {Kind: ThisItem.Kind, Code: ThisItem.Code, Label: ThisItem.Label, TypeName: ThisItem.TypeName, Domain: ThisItem.Domain, Title: ThisItem.Title}); Set(gblFbPick, false)
+                                          PressedBorderColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          PressedColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          PressedFill: |-
+                                              =C.'row-pressed'
+                                          RadiusBottomLeft: |-
+                                              =6
+                                          RadiusBottomRight: |-
+                                              =6
+                                          RadiusTopLeft: |-
+                                              =6
+                                          RadiusTopRight: |-
+                                              =6
+                                          TabIndex: |-
+                                              =0
+                                          Text: |-
+                                              =If(ThisItem.Kind = "R", "Request " & ThisItem.Code & ", " & ThisItem.TypeName & ", " & ThisItem.Title, ThisItem.Label)
+                                          Visible: |-
+                                              =ThisItem.Kind = "G" || ThisItem.Kind = "R"
+                                          Width: |-
+                                              =(((((Min(560, App.Width - 40)) - 18 - 18)) - 6 - 6) - 2 * 0 - 18 - 40)
+                                          X: |-
+                                              =0
+                                          Y: |-
+                                              =0
                   - conKksFbMessageCell:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -7549,6 +8024,8 @@ Screens:
                             =LayoutOverflow.Hide
                         LayoutOverflowY: |-
                             =LayoutOverflow.Hide
+                        Visible: |-
+                            =!gblFbPick
                         Width: |-
                             =Parent.Width
                       Children:
@@ -7603,7 +8080,7 @@ Screens:
                               Color: |-
                                   =C.'input-fg'
                               Default: |-
-                                  ="Hello SAP Maintenance Team," & Char(10) & Char(10) & "Request:" & Char(10) & Char(10) & Char(10) & "Kind regards," & Char(10) & Char(10) & User().FullName & Char(10) & User().Email
+                                  ="Hello SAP Maintenance Team," & Char(10) & Char(10) & Char(10) & Char(10) & "Kind regards," & Char(10) & Char(10) & User().FullName & Char(10) & User().Email
                               Fill: |-
                                   =C.'input-bg'
                               Font: |-
@@ -7661,6 +8138,8 @@ Screens:
                             =12
                         Text: |-
                             ="Send delivers the message from the app. Send via Outlook opens a draft where you can add attachments."
+                        Visible: |-
+                            =!gblFbPick
                         Wrap: |-
                             =true
                   - conKksFbFooter:
@@ -7720,9 +8199,9 @@ Screens:
                               Layout: |-
                                   =ButtonLayout.TextOnly
                               OnSelect: |-
-                                  =Launch("mailto:sapvedligehold@orsted.com?subject=" & EncodeUrl("SAP maintenance - " & If(IsBlank(cmbKksFbRequest.Selected.Display), "question", If(IsBlank(cmbKksFbRequest.Selected.Code), cmbKksFbRequest.Selected.Display, "request " & cmbKksFbRequest.Selected.Code))) & "&body=" & EncodeUrl(Left(inpKksFbMessage.Text, Find("Kind regards,", inpKksFbMessage.Text & "Kind regards,") - 1)));
+                                  =Launch("mailto:sapvedligehold@orsted.com?subject=" & EncodeUrl("SAP maintenance - " & Switch(gblFbSel.Kind, "R", gblFbSel.TypeName & " request " & gblFbSel.Code, "G", gblFbSel.Label, "question")) & "&body=" & EncodeUrl(If(gblFbSel.Kind = "R", "Request: " & gblFbSel.Code & Char(10) & "Type: " & gblFbSel.TypeName & Char(10) & "Title: " & gblFbSel.Title & Char(10) & Char(10), "") & Left(inpKksFbMessage.Text, Find("Kind regards,", inpKksFbMessage.Text & "Kind regards,") - 1)));
                                   Set(gblFbOpen, false);
-                                  Reset(cmbKksFbRequest); Reset(inpKksFbMessage);
+                                  Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpKksFbSubjectFind); Reset(inpKksFbMessage);
                                   Notify("The mail is ready in Outlook. Press Send there.", NotificationType.Information)
                               RadiusBottomLeft: |-
                                   =10
@@ -7766,7 +8245,7 @@ Screens:
                               Layout: |-
                                   =ButtonLayout.IconBefore
                               OnSelect: |-
-                                  =IfError('BioSap-SendFeedbackMail'.Run("sapvedligehold@orsted.com", "SAP maintenance - " & If(IsBlank(cmbKksFbRequest.Selected.Display), "question", If(IsBlank(cmbKksFbRequest.Selected.Code), cmbKksFbRequest.Selected.Display, "request " & cmbKksFbRequest.Selected.Code)), Substitute(inpKksFbMessage.Text, Char(10), "<br>")), Notify("The message could not be sent.", NotificationType.Error), Set(gblFbOpen, false); Reset(cmbKksFbRequest); Reset(inpKksFbMessage); Notify("Message sent.", NotificationType.Success))
+                                  =IfError('BioSap-SendFeedbackMail'.Run("sapvedligehold@orsted.com", "SAP maintenance - " & Switch(gblFbSel.Kind, "R", gblFbSel.TypeName & " request " & gblFbSel.Code, "G", gblFbSel.Label, "question"), Substitute(If(gblFbSel.Kind = "R", "Request: " & gblFbSel.Code & Char(10) & "Type: " & gblFbSel.TypeName & Char(10) & "Title: " & gblFbSel.Title & Char(10) & Char(10), "") & inpKksFbMessage.Text, Char(10), "<br>")), Notify("The message could not be sent.", NotificationType.Error), Set(gblFbOpen, false); Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpKksFbSubjectFind); Reset(inpKksFbMessage); Notify("Message sent.", NotificationType.Success))
                               RadiusBottomLeft: |-
                                   =10
                               RadiusBottomRight: |-
