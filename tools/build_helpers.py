@@ -715,7 +715,7 @@ def grow(ctrl, min_w=0):
 
 
 def flow_row(name, children, container_w, gap=8, flex=None, flex_min=0,
-             **group_kw):
+             ok=None, **group_kw):
     """En raekke, der ENTEN staar vandret paa een linje ELLER lodret med
     eet barn pr. linje. Aldrig noget midt imellem - og ALDRIG LayoutWrap.
 
@@ -748,8 +748,13 @@ def flow_row(name, children, container_w, gap=8, flex=None, flex_min=0,
     Graensen (passer/passer ikke) regnes af boernenes egne bredder mod
     container_w, som altid er regnet af SHELL_W - en NEDRE graense for den
     bredde, der er. Tilfoejes en knap, flytter graensen sig selv.
+
+    ok kan gives udefra, naar raekken selv krymper sine boern, saa den
+    altid passer (hubbens filterlinje, issue #91) - saa er graensen en
+    tier og ikke en sum. gap maa da ogsaa vaere et udtryk.
     """
-    ok = flow_ok(children, container_w, gap, flex, flex_min)
+    if ok is None:
+        ok = flow_ok(children, container_w, gap, flex, flex_min)
     for c in children:
         if c is flex:
             grow(c, 0)
@@ -763,10 +768,11 @@ def flow_row(name, children, container_w, gap=8, flex=None, flex_min=0,
     parts = []
     for i, c in enumerate(children):
         g = 0 if i == 0 else gap
+        gs = str(g) if isinstance(g, int) else "(%s)" % g
         if c.vis:
-            parts.append("If(%s, %d + (%s), 0)" % (c.vis, g, hs[i]))
+            parts.append("If(%s, %s + (%s), 0)" % (c.vis, gs, hs[i]))
         else:
-            parts.append("%d + (%s)" % (g, hs[i]) if g else "(%s)" % hs[i])
+            parts.append("%s + (%s)" % (gs, hs[i]) if g else "(%s)" % hs[i])
     stacked = " + ".join(parts)
     row = group(name, children, direction="Horizontal", gap=gap,
                 height="If(%s, %s, %s)" % (ok, one, stacked), **group_kw)
