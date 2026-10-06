@@ -288,7 +288,7 @@ def build_tasklist_picker_modal():
             "                    ControlKey: TLOP.ControlKey, Cost: TLOP.Cost,\n"
             "                    UnitCost: TLOP.UnitCost,\n"
             "                    Currency: TLOP.Currency, CostElement: TLOP.CostElement,\n"
-            "                    MaterialGroup: TLOP.MaterialGroup,\n"
+            "                    MaterialGroup: TLOP.MaterialGroup, ServiceNo: TLOP.ServiceNo,\n"
             "                    PackagesKey: \";\", Selected: false\n"
             "                }\n"
             "            )\n"

@@ -954,12 +954,12 @@ Private Sub BuildLookups()
         CreateTable ws, "N3", LO_SERVICES, _
             Array("Arbejdscenter (endelse)", "Ydelsesnr.", "Varegruppe", VhpUtil.Dk("Bem{ae}rkning")), _
             Array( _
-                Array("XSTIL", "", "", "Stillads"), Array("XISOL", "", "", "Isolering"), _
-                Array("XELEK", "", "", "El"), Array("XINDU", "", "", "Industriservice"), _
-                Array("XSMED", "", "", "Smed"), Array("XSVEJ", "", "", VhpUtil.Dk("Svejsning")), _
+                Array("XSTIL", "3000002", "B11.08", "Stillads"), Array("XISOL", "3000001", "B11.02", "Isolering"), _
+                Array("XELEK", "3000100", "B09.03", "El"), Array("XINDU", "3000360", "B11.01", "Industriservice"), _
+                Array("XSMED", "3000000", "B08.04", "Smed"), Array("XSVEJ", "3000050", "B08.04", VhpUtil.Dk("Svejsning")), _
                 Array("XSPEC", "", "", "Special"))
-        ws.Range("N2").Value = VhpUtil.Dk("Udfyld ydelsesnumrene fra det gamle regneark (Call_Horizon_Table, kolonne I og J).")
-        ws.Range("N2").Font.Color = RGB(196, 49, 75)
+        ws.Range("N2").Value = VhpUtil.Dk("Standardvaerdier for PM03-ydelser er seedet i builderen.")
+        ws.Range("N2").Font.Color = RGB(96, 94, 92)
     End If
 
     If Not TableExists(ws, LO_FL_CHARS) Then

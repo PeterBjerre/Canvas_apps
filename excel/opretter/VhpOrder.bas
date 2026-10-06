@@ -406,11 +406,11 @@ Private Sub ValidateOperation(ByVal res As Object, ByVal lbl As String, ByVal op
             If VhpUtil.JNum(op, "work") <= 0 Then
                 AddError res, opLbl & VhpUtil.Dk("PM03 skal have timer {-} de er ydelsens m{ae}ngde.")
             End If
-            Set svc = VhpLookup.Service(lk, VhpUtil.JStr(op, "workCenter"))
+            Set svc = VhpLookup.ServiceFor(lk, op)
             If svc Is Nothing Then
                 AddError res, opLbl & VhpUtil.Dk("ydelsesnummer mangler for arbejdscentret ") & _
                     VhpMap.WorkCenter(VhpUtil.JStr(op, "workCenter")) & _
-                    VhpUtil.Dk(" i Opslag (tabellen Ydelser, endelsen ") & _
+                    VhpUtil.Dk(" (ServiceNo paa standardoperationen, eller tabellen Ydelser i Opslag med endelsen ") & _
                     VhpMap.ServiceSuffix(VhpUtil.JStr(op, "workCenter")) & ")."
             ElseIf VhpUtil.IsBlank(VhpUtil.JStr(svc, "serviceNo")) Then
                 AddError res, opLbl & VhpUtil.Dk("ydelsesnummeret for ") & _

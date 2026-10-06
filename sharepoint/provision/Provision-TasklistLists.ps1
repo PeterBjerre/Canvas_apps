@@ -119,6 +119,49 @@ New-MdField 'MD_TasklistAttachment' 'UploadStatus' Choice `
 Write-Host "`nTaskListMain" -ForegroundColor Cyan
 New-MdField 'TaskListMain' 'MaterialGroup' Text
 
+# ---------------------------------------------------------------------------
+# Ydelsesnummeret (PM03)
+# ---------------------------------------------------------------------------
+# Stod foer kun i Excel-opretterens tabel Ydelser (arbejdscentrets endelse,
+# fx XSTIL for SSVXSTIL). Nu vedligeholdes det paa standardoperationen og
+# skrives paa operationen i TaskListMain, naar linjen vaelges i appen.
+# Opretteren bruger TaskListMain-vaerdien og falder kun tilbage paa Ydelser,
+# naar den er tom.
+New-MdField 'TaskListMain' 'ServiceNo' Text
+
+Write-Host "`nMD_StandardTaskOperations" -ForegroundColor Cyan
+New-MdField 'MD_StandardTaskOperations' 'ServiceNo' Text
+
+# Standardvaerdierne fra det gamle regneark (arbejdscentrets endelse ->
+# ydelsesnummer og varegruppe). Skrives kun paa PM03-linjer, hvor feltet er
+# tomt - en vaerdi, nogen har rettet i listen, roeres ikke. XSPEC har ingen
+# standardydelse og staar derfor ikke her.
+$SERVICES = @{
+    'XSTIL' = @{ ServiceNo = '3000002'; MaterialGroup = 'B11.08' }   # Stillads
+    'XISOL' = @{ ServiceNo = '3000001'; MaterialGroup = 'B11.02' }   # Isolering
+    'XELEK' = @{ ServiceNo = '3000100'; MaterialGroup = 'B09.03' }   # El
+    'XINDU' = @{ ServiceNo = '3000360'; MaterialGroup = 'B11.01' }   # Industriservice
+    'XSMED' = @{ ServiceNo = '3000000'; MaterialGroup = 'B08.04' }   # Smed
+    'XSVEJ' = @{ ServiceNo = '3000050'; MaterialGroup = 'B08.04' }   # Svejsning
+}
+$filled = 0
+foreach ($it in (Get-PnPListItem -List 'MD_StandardTaskOperations' -PageSize 500)) {
+    $fv = $it.FieldValues
+    if (([string]$fv.ControlKey).Trim().ToUpper() -ne 'PM03') { continue }
+    $wc = ([string]$fv.WorkCenter).Trim().ToUpper()
+    if ($wc.Length -lt 5) { continue }
+    $svc = $SERVICES[$wc.Substring($wc.Length - 5)]
+    if ($null -eq $svc) { continue }
+    $vals = @{}
+    if ([string]::IsNullOrWhiteSpace([string]$fv.ServiceNo))     { $vals.ServiceNo = $svc.ServiceNo }
+    if ([string]::IsNullOrWhiteSpace([string]$fv.MaterialGroup)) { $vals.MaterialGroup = $svc.MaterialGroup }
+    if ($vals.Count) {
+        Set-PnPListItem -List 'MD_StandardTaskOperations' -Identity $it.Id -Values $vals | Out-Null
+        $filled++
+    }
+}
+Write-Host "    $filled PM03-linje(r) fik ydelsesnummer/varegruppe" -ForegroundColor Green
+
 Write-Host "`nFaerdig." -ForegroundColor Green
 Write-Host "Naeste skridt: koer sharepoint/inspect/Export-ListSchema.ps1 igen," -ForegroundColor Gray
 Write-Host "saa check_datasources.py kan efterproeve de nye kolonner." -ForegroundColor Gray

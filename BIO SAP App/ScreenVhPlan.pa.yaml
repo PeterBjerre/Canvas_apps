@@ -2165,11 +2165,8 @@ Screens:
                                                               Price: OP.Cost,
                                                               Currency: OP.Currency,
                                                               CostElem: OP.CostElement,
-                                                              MaterialGroup: If(
-                                                                  Upper(Trim(Coalesce(OP.ControlKey, ""))) = "PM02" && IsBlank(Trim(Coalesce(OP.MaterialGroup, ""))),
-                                                                  "B08.06",
-                                                                  OP.MaterialGroup
-                                                              ),
+                                                              MaterialGroup: OP.MaterialGroup,
+                                                              ServiceNo: OP.ServiceNo,
                                                               LongText: OP.LongText,
                                                               PlantInitial: varVhpPlan.Plant,
                                                               MaintenanceItemNo: { Id: LookUp(colVhpSavedItems, LocalId = OP.ItemId).SpId, Value: LookUp(colVhpSavedItems, LocalId = OP.ItemId).ItemKey },
@@ -2201,11 +2198,8 @@ Screens:
                                                               Price: OP.Cost,
                                                               Currency: OP.Currency,
                                                               CostElem: OP.CostElement,
-                                                              MaterialGroup: If(
-                                                                  Upper(Trim(Coalesce(OP.ControlKey, ""))) = "PM02" && IsBlank(Trim(Coalesce(OP.MaterialGroup, ""))),
-                                                                  "B08.06",
-                                                                  OP.MaterialGroup
-                                                              ),
+                                                              MaterialGroup: OP.MaterialGroup,
+                                                              ServiceNo: OP.ServiceNo,
                                                               LongText: OP.LongText,
                                                               PlantInitial: varVhpPlan.Plant,
                                                               MaintenanceItemNo: { Id: LookUp(colVhpSavedItems, LocalId = OP.ItemId).SpId, Value: LookUp(colVhpSavedItems, LocalId = OP.ItemId).ItemKey },
@@ -6109,6 +6103,7 @@ Screens:
                                                                   Currency: SRC.Currency,
                                                                   CostElement: SRC.CostElement,
                                                                   MaterialGroup: SRC.MaterialGroup,
+                                                                  ServiceNo: SRC.ServiceNo,
                                                                   SpId: 0
                                                               }
                                                           )
@@ -10411,6 +10406,7 @@ Screens:
                                                           Currency: "",
                                                           CostElement: 0,
                                                           MaterialGroup: "",
+                                                          ServiceNo: "",
                                                           LongText: "",
                                                           PackagesKey: ";",
                                                           Selected: false
@@ -10506,6 +10502,7 @@ Screens:
                                                           Currency: "",
                                                           CostElement: 0,
                                                           MaterialGroup: "",
+                                                          ServiceNo: "",
                                                           LongText: "",
                                                           PackagesKey: ";",
                                                           Selected: false
@@ -17487,7 +17484,7 @@ Screens:
                                                 ControlKey: TLOP.ControlKey, Cost: TLOP.Cost,
                                                 UnitCost: TLOP.UnitCost,
                                                 Currency: TLOP.Currency, CostElement: TLOP.CostElement,
-                                                MaterialGroup: TLOP.MaterialGroup,
+                                                MaterialGroup: TLOP.MaterialGroup, ServiceNo: TLOP.ServiceNo,
                                                 PackagesKey: ";", Selected: false
                                             }
                                         )
@@ -22222,7 +22219,7 @@ Screens:
                             Clear(colVhpAttachments);
                             If(false, ClearCollect(colVhpItems, { ItemId: 0, ShortText: "", FunctionalLocation: "", FlDescription: "", MainWorkCenter: "", ActivityType: "", ObjectList: "", Revision: "", OrstedResponsible: "", Initials: "", LongText: "", NonFlowUserStatus: "", TasklistKey: "", TasklistName: "", Status: "", SpId: 0 }));
                 
-                            If(false, ClearCollect(colVhpOperations, { ItemId: 0, OperationNo: "", OperationShortText: "", WorkHours: 0, Persons: 0, DurationHours: 0, MainWorkCenter: "", Vendor: "", LongText: "", PackagesKey: ";", Selected: false, ControlKey: "", Cost: 0, UnitCost: 0, Currency: "", CostElement: 0, MaterialGroup: "", SpId: 0 }));
+                            If(false, ClearCollect(colVhpOperations, { ItemId: 0, OperationNo: "", OperationShortText: "", WorkHours: 0, Persons: 0, DurationHours: 0, MainWorkCenter: "", Vendor: "", LongText: "", PackagesKey: ";", Selected: false, ControlKey: "", Cost: 0, UnitCost: 0, Currency: "", CostElement: 0, MaterialGroup: "", ServiceNo: "", SpId: 0 }));
                 
                             If(false, ClearCollect(colVhpFl, { Code: "", Description: "", Display: "", Maintainable: false, Level: "" }));
                 
@@ -22526,6 +22523,7 @@ Screens:
                                                             Currency: OP.Currency,
                                                             CostElement: OP.CostElem,
                                                             MaterialGroup: OP.MaterialGroup,
+                                                            ServiceNo: OP.ServiceNo,
                                                             SpId: OP.ID
                                                         }
                                                     )
