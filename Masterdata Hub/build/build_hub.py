@@ -1101,12 +1101,33 @@ def build_list():
     out.props["Height"] = if_below("Tablet", h_mobile, if_below("Wide", h_compact, out.props["Height"]))
     return out
 
+# EDIT ER AKTIV PRAECIS NAAR APPEN AABNER I EDIT (issue #100)
+#
+# Knappen var synlig OG aktiv paa alle brugerens egne anmodninger
+# (may_change_ui), mens domaeneskaermen afgoer Edit/View med may_change
+# mod indeksraekkens status: ejer kun i Kladde, admin i Kladde og
+# AfventerInfo. En indsendt anmodning havde derfor en aktiv Edit, der
+# aabnede i View. Nu er synligheden uaendret (may_change_ui), og
+# DisplayMode er den SAMME regel, appen bruger - samme RequesterEmail og
+# Status fra MD_RequestIndex, som galleriet allerede har i raekken. VH-
+# planen afgoer ogsaa Edit paa indeksets status (build_load.py), saa
+# MaintenancePlans' egen status skal ikke slaas op - intet kald pr. raekke.
+EDIT_ICON = "M4 20h4L19 9l-4-4L4 16v4z M13.5 6.5l4 4"
+EDIT_LOCKED_TIP = '"This request can no longer be edited because it has been submitted."'
+
+
 def _owner_buttons(act, suffix):
-    """Edit and Delete: shown and enabled for the creator's own requests."""
+    """Edit and Delete: shown for the creator's own requests (and an admin's).
+    Edit is enabled only while the request app would open it in Edit."""
     own = perm.may_change_ui("ThisItem", "varMdMe")
+    can_edit = perm.may_change("ThisItem.RequesterEmail", "ThisItem.Status.Value", "varMdMe")
     edit = _image("btnMdRowEdit" + suffix,
-                  _svg_uri(_icon_svg("M4 20h4L19 9l-4-4L4 16v4z M13.5 6.5l4 4", _hx("text-muted"))),
+                  _svg_uri(f"If(\n    {can_edit},\n    "
+                           + _icon_svg(EDIT_ICON, _hx("text-muted")) + ",\n    "
+                           + _icon_svg(EDIT_ICON, _hx("border-default")) + "\n)"),
                   TL_W, TL_W, onselect=act, label=f'"Edit " & ThisItem.{COL_NO}', hover=C_ROW_HOVER)
+    edit.props["DisplayMode"] = f"If({can_edit}, DisplayMode.Edit, DisplayMode.Disabled)"
+    edit.props["Tooltip"] = f'If({can_edit}, "Edit request", {EDIT_LOCKED_TIP})'
     dele = _image("btnMdRowDelete" + suffix,
                   _svg_uri(_icon_svg("M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3", _hx("state-error-fg"))),
                   TL_W, TL_W, onselect="Set(varMdDelItem, ThisItem);\nSet(varMdDeleteOpen, true)",

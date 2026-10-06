@@ -194,10 +194,37 @@ def reset_fx(*, combo, results, msg_var, query_var, last_var, pick_var=None,
     return "; ".join(parts)
 
 
+# Pladsholderen, mens vaelgeren er laast af lock (issue #101).
+LOCKED_PLACEHOLDER = '"Not used - No BOM Item is on"'
+
+
+def _lock_combo(cmb, lock):
+    """Laast af lock = UTILGAENGELIG, ikke skrivebeskyttet (issue #101).
+
+    input_theme goer et laast felt til View: "renders as read-only rather
+    than looking disabled". Det er rigtigt for et felt, man ikke maa
+    aendre - men No BOM Item betyder, at feltet slet ikke er i brug, og i
+    View saa comboboksen ud som et almindeligt, tomt felt. Derfor
+    Disabled, mens lock er sand: ingen fokus, ingen soegning, intet valg,
+    og Fluent graaner selv pilen. Fyld, kant og tekst saettes eksplicit
+    til de graa tokens (udfyldt, saa Fill tegnes), og kanten er aldrig
+    roed. Slaas lock fra, gaelder feltets egne regler igen uaendret."""
+    p = cmb.props
+    dm = p.get("DisplayMode") or "DisplayMode.Edit"
+    p["DisplayMode"] = f"If({lock}, DisplayMode.Disabled, {dm})"
+    p["Appearance"] = f"If({lock}, Appearance.FilledDarker, {p['Appearance']})"
+    p["Fill"] = f"If({lock}, {C_DISABLED_BG}, {p['Fill']})"
+    p["Color"] = f"If({lock}, {C_MUTED}, {p['Color']})"
+    p["BorderColor"] = f"If({lock}, {C_CARD_BORDER}, {p['BorderColor']})"
+    p["InputTextPlaceholder"] = (f"If({lock}, {LOCKED_PLACEHOLDER}, "
+                                 f"{p['InputTextPlaceholder']})")
+
+
 def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
               last_var, pick_var, default_items, display_mode, on_select=None,
               on_clear=None, required_formula="false", width="Parent.Width",
-              label="Functional location", trail=(), stack_search=False, col_w=None, stack_cond=None):
+              label="Functional location", trail=(), stack_search=False, col_w=None, stack_cond=None,
+              lock=None):
     """Raekken [combobox][Search][spinner] og dens timer - som EEN container.
 
     prefix     navnepraefikset (Vhp, Dom) - knap, spinner og timer faar det
@@ -208,6 +235,8 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
     default_items  DefaultSelectedItems - det gemte valg som tabel
     on_select  hvad et valg goer ud over at saette pick_var
     on_clear   ryd det gemte valg - koeres, naar en ny soegning starter
+    lock       udtryk, der goer vaelgeren utilgaengelig, mens det er sandt
+               (Materials' No BOM Item, issue #101) - se _lock_combo
     """
     query = f"Coalesce({combo}.SearchText, {query_var})"
     search = fl.search_action(
@@ -274,9 +303,13 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
                             "ValidationState.Error, ValidationState.None)"),
         "Width": "0",
     }, display_mode), h=HEIGHT)
+    if lock:
+        _lock_combo(cmb, lock)
     grow(cmb)
 
     too_short = f"Len(Trim({query})) < {fl.MIN_SEARCH_LEN}"
+    if lock:
+        too_short = f"{lock} || {too_short}"
     btn = button(f"btn{prefix}FlSearch", '"Search"', search,
                  width=SEARCH_W, height=HEIGHT,
                  display_mode=(f"If({too_short}, DisplayMode.Disabled, "
