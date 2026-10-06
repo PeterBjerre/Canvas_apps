@@ -1,0 +1,276 @@
+{
+  "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "$connections": {
+      "defaultValue": {},
+      "type": "Object"
+    },
+    "$authentication": {
+      "defaultValue": {},
+      "type": "SecureObject"
+    }
+  },
+  "triggers": {
+    "manual": {
+      "type": "Request",
+      "kind": "Button",
+      "inputs": {
+        "schema": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "title": "FL objekt-ID",
+              "type": "string",
+              "description": "Fx IF00000000000000584237. Tom = eksemplet fra API-teamet",
+              "x-ms-content-hint": "TEXT",
+              "x-ms-dynamically-added": true
+            }
+          },
+          "required": []
+        }
+      }
+    }
+  },
+  "actions": {
+    "Opsaetning": {
+      "runAfter": {},
+      "type": "Compose",
+      "inputs": {
+        "tokenUrl": "https://login.microsoftonline.com/100b3c99-f3e2-4da0-9c8a-b9d345742c36/oauth2/v2.0/token",
+        "clientId": "9ab1e626-a2c7-4202-b325-398d6f68ee24",
+        "scope": "https://Dongenergy.onmicrosoft.com/9ab1e626-a2c7-4202-b325-398d6f68ee24/.default",
+        "baseUrl": "https://test.api.orsted.dk/saputility",
+        "standardObjektId": "IF00000000000000584237"
+      }
+    },
+    "Initialize_variable_ObjektId": {
+      "runAfter": {
+        "Opsaetning": [
+          "Succeeded"
+        ]
+      },
+      "type": "InitializeVariable",
+      "inputs": {
+        "variables": [
+          {
+            "name": "ObjektId",
+            "type": "string",
+            "value": "@{if(empty(trim(coalesce(triggerBody()?['text'], ''))), outputs('Opsaetning')?['standardObjektId'], trim(triggerBody()?['text']))}"
+          }
+        ]
+      }
+    },
+    "Initialize_variable_ClientSecret": {
+      "runAfter": {
+        "Initialize_variable_ObjektId": [
+          "Succeeded"
+        ]
+      },
+      "type": "InitializeVariable",
+      "inputs": {
+        "variables": [
+          {
+            "name": "ClientSecret",
+            "type": "string",
+            "value": ""
+          }
+        ]
+      },
+      "runtimeConfiguration": {
+        "secureData": {
+          "properties": [
+            "inputs"
+          ]
+        }
+      }
+    },
+    "Initialize_variable_ApiKey": {
+      "runAfter": {
+        "Initialize_variable_ClientSecret": [
+          "Succeeded"
+        ]
+      },
+      "type": "InitializeVariable",
+      "inputs": {
+        "variables": [
+          {
+            "name": "ApiKey",
+            "type": "string",
+            "value": ""
+          }
+        ]
+      },
+      "runtimeConfiguration": {
+        "secureData": {
+          "properties": [
+            "inputs"
+          ]
+        }
+      }
+    },
+    "Hent_token": {
+      "runAfter": {
+        "Initialize_variable_ApiKey": [
+          "Succeeded"
+        ]
+      },
+      "type": "Http",
+      "inputs": {
+        "method": "POST",
+        "uri": "@{outputs('Opsaetning')?['tokenUrl']}",
+        "headers": {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        "body": "grant_type=client_credentials&client_id=@{encodeUriComponent(outputs('Opsaetning')?['clientId'])}&client_secret=@{encodeUriComponent(variables('ClientSecret'))}&scope=@{encodeUriComponent(outputs('Opsaetning')?['scope'])}",
+        "retryPolicy": {
+          "type": "none"
+        }
+      },
+      "runtimeConfiguration": {
+        "secureData": {
+          "properties": [
+            "inputs",
+            "outputs"
+          ]
+        }
+      }
+    },
+    "Token_ok": {
+      "runAfter": {
+        "Hent_token": [
+          "Succeeded",
+          "Failed",
+          "TimedOut"
+        ]
+      },
+      "type": "If",
+      "expression": {
+        "and": [
+          {
+            "equals": [
+              "@outputs('Hent_token')?['statusCode']",
+              200
+            ]
+          }
+        ]
+      },
+      "actions": {
+        "Kald_API": {
+          "runAfter": {},
+          "type": "Http",
+          "inputs": {
+            "method": "GET",
+            "uri": "@{outputs('Opsaetning')?['baseUrl']}/functionallocations/@{encodeUriComponent(variables('ObjektId'))}",
+            "headers": {
+              "Authorization": "@{concat('Bearer ', body('Hent_token')?['access_token'])}",
+              "x-apikey": "@{variables('ApiKey')}",
+              "Accept": "application/json"
+            },
+            "retryPolicy": {
+              "type": "none"
+            }
+          },
+          "runtimeConfiguration": {
+            "secureData": {
+              "properties": [
+                "inputs"
+              ]
+            }
+          }
+        },
+        "Svar": {
+          "runAfter": {
+            "Kald_API": [
+              "Succeeded",
+              "Failed",
+              "TimedOut"
+            ]
+          },
+          "type": "Compose",
+          "inputs": {
+            "objektId": "@variables('ObjektId')",
+            "url": "@{outputs('Opsaetning')?['baseUrl']}/functionallocations/@{encodeUriComponent(variables('ObjektId'))}",
+            "status": "@outputs('Kald_API')?['statusCode']",
+            "svar": "@body('Kald_API')"
+          }
+        },
+        "API_ok": {
+          "runAfter": {
+            "Svar": [
+              "Succeeded"
+            ]
+          },
+          "type": "If",
+          "expression": {
+            "and": [
+              {
+                "equals": [
+                  "@outputs('Kald_API')?['statusCode']",
+                  200
+                ]
+              }
+            ]
+          },
+          "actions": {
+            "Fundet": {
+              "runAfter": {},
+              "type": "Compose",
+              "inputs": {
+                "functionKey": "@body('Kald_API')?['functionKey']",
+                "objectId": "@body('Kald_API')?['objectId']",
+                "description": "@body('Kald_API')?['description']",
+                "room": "@body('Kald_API')?['room']",
+                "sortField": "@body('Kald_API')?['sortField']"
+              }
+            }
+          },
+          "else": {
+            "actions": {
+              "Stop_API_fejl": {
+                "runAfter": {},
+                "type": "Terminate",
+                "inputs": {
+                  "runStatus": "Failed",
+                  "runError": {
+                    "code": "ApiFejl",
+                    "message": "API'et svarede @{outputs('Kald_API')?['statusCode']} i stedet for 200. Se handlingen Svar."
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "actions": {
+          "Token_fejl": {
+            "runAfter": {},
+            "type": "Compose",
+            "inputs": {
+              "status": "@outputs('Hent_token')?['statusCode']",
+              "error": "@body('Hent_token')?['error']",
+              "error_description": "@body('Hent_token')?['error_description']"
+            }
+          },
+          "Stop_token_fejl": {
+            "runAfter": {
+              "Token_fejl": [
+                "Succeeded"
+              ]
+            },
+            "type": "Terminate",
+            "inputs": {
+              "runStatus": "Failed",
+              "runError": {
+                "code": "TokenFejl",
+                "message": "Token kunne ikke hentes (status @{outputs('Hent_token')?['statusCode']}). Er ClientSecret udfyldt? Se handlingen Token_fejl."
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "outputs": {}
+}
