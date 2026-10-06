@@ -17,7 +17,7 @@ FORMULAREN
     [ Price unit  ][ Delivery time][ Rec. stock   ][ Supplier         ]
     [ Supp. part  ][ Strategic    ][ Wear part    ][ Plant            ]
     [ Plant ]
-    (Plant: X) (Row status: ...)  [Delete row][Save draft][Save row][Reset form]
+    (Plant: X) (Row status: ...)  [Save draft][Save row][Reset form]
 
 NO BOM ITEM
 -----------
