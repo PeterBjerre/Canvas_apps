@@ -10746,7 +10746,7 @@ Screens:
                                                         colVhpOperations, ThisItem,
                                                         {
                                                             WorkHours: Self.Value,
-                                                            DurationHours: Self.Value / Max(Coalesce(ThisItem.Persons, 1), 1),
+                                                            DurationHours: Round(Self.Value / Max(Coalesce(ThisItem.Persons, 1), 1), 2),
                                                             Cost: If(
                                                                 Upper(Coalesce(ThisItem.ControlKey, "")) = "PM03",
                                                                 Self.Value * Coalesce(ThisItem.UnitCost, 0),
@@ -10806,7 +10806,7 @@ Screens:
                                                         colVhpOperations, ThisItem,
                                                         {
                                                             Persons: Self.Value,
-                                                            DurationHours: ThisItem.WorkHours / Max(Coalesce(Self.Value, 1), 1)
+                                                            DurationHours: Round(ThisItem.WorkHours / Max(Coalesce(Self.Value, 1), 1), 2)
                                                         }
                                                     )
                                                 Precision: |-
@@ -14093,7 +14093,7 @@ Screens:
                                     colVhpOperations, r,
                                     {
                                         WorkHours: Self.Value,
-                                        DurationHours: Self.Value / Max(Coalesce(r.Persons, 1), 1),
+                                        DurationHours: Round(Self.Value / Max(Coalesce(r.Persons, 1), 1), 2),
                                         Cost: If(
                                         Upper(Coalesce(r.ControlKey, "")) = "PM03",
                                         Self.Value * Coalesce(r.UnitCost, 0),
@@ -14185,7 +14185,7 @@ Screens:
                                     colVhpOperations, r,
                                     {
                                         Persons: Self.Value,
-                                        DurationHours: r.WorkHours / Max(Coalesce(Self.Value, 1), 1)
+                                        DurationHours: Round(r.WorkHours / Max(Coalesce(Self.Value, 1), 1), 2)
                                     }
                                 )
                             )

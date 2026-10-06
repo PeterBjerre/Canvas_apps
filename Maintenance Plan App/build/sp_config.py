@@ -104,8 +104,11 @@ C_FILE_NAME   = "FileName"
 #
 # Nul personer findes ikke; en tom eller nulstillet celle regnes som een, saa
 # udtrykket aldrig dividerer med nul.
+#
+# Afrundet til to decimaler som i den gamle app: 10 timer paa 3 personer er
+# 3,33 og ikke 3,3333333 i TaskListMain og i SAP-ordren.
 def duration_expr(work, persons):
-    return f"{work} / Max(Coalesce({persons}, 1), 1)"
+    return f"Round({work} / Max(Coalesce({persons}, 1), 1), 2)"
 
 
 # Beskrivelserne til Non Flow User Status-koderne (issue #112). Kun
