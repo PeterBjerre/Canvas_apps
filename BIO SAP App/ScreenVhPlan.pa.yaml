@@ -4,450 +4,13 @@ Screens:
       Fill: |-
           =C.'bg-app'
       OnVisible: |-
-          =// Har en sletning roert det, skaermen viser? (tools/request_delete.py)
-          Set(varVhpStaleNow, Coalesce(gblVhpStale, false));
-          If(
-              varVhpStaleNow,
-              Set(gblVhpStale, false);
-              If(
-                  !IsBlank(varVhpRequestGuid) && IsBlank(LookUp(MD_RequestIndex, RequestGuid = varVhpRequestGuid)),
-                  Set(gblVhpWant, Blank());
-                  Set(varVhpOpened, "")
-              )
+          =// Klargoeringen staar paa en skjult knap, saa Retry kan koere den igen
+          // (BIO SAP App/build/build_screens.py, attach_open). Sloeret taendes
+          // her med det samme, naar der tydeligvis skal klargoeres.
+          If(IsBlank(varVhpOpened) || If(gblNavTo = "Vhp", "new:0", Coalesce(gblVhpWant, varVhpOpened)) <> varVhpOpened,
+              Set(varVhpLoading, true)
           );
-          
-          // DEN SAMLEDE APP: klargoer skaermen, naar hubben eller et dyblink
-          // beder om noget andet end det, den viser. Se BIO SAP App/build/
-          // build_screens.py, open_block().
-          With(
-              { wantKey: If(
-                  gblNavTo = "Vhp",
-                  "new:0",
-                  Coalesce(
-                  gblVhpWant,
-                  If(Lower(Param("domain")) = "vhplan", "link:" & Param("reqid")),
-                  "new"
-              )
-              ) },
-              If(
-                  wantKey <> Coalesce(varVhpOpened, ""),
-                  Set(varVhpLoading, true);
-                  Set(varVhpOpened, wantKey);
-                  Set(
-                      gblVhpReqId,
-                      If(StartsWith(wantKey, "req:"), Mid(wantKey, 5),
-                         StartsWith(wantKey, "edit:"), Mid(wantKey, 6),
-                         StartsWith(wantKey, "link:"), Mid(wantKey, 6), "")
-                  );
-                  Set(gblVhpMode, If(StartsWith(wantKey, "edit:") || (StartsWith(wantKey, "link:") && Lower(Coalesce(Param("mode"), "")) = "edit"), "edit", "view"));
-                  // A new or another request starts from a clean plan.
-                  Clear(colVhpItems);
-                  Clear(colVhpOperations);
-                  Clear(colVhpItemObjects);
-                  Clear(colVhpObjDraft);
-                  Clear(colVhpMaterials);
-                  Clear(colVhpAttachments);
-                  If(false, ClearCollect(colVhpItems, { ItemId: 0, ShortText: "", FunctionalLocation: "", FlDescription: "", MainWorkCenter: "", ActivityType: "", ObjectList: "", Revision: "", OrstedResponsible: "", Initials: "", LongText: "", TasklistKey: "", TasklistName: "", Status: "", SpId: 0 }));
-          
-                  If(false, ClearCollect(colVhpOperations, { ItemId: 0, OperationNo: "", OperationShortText: "", WorkHours: 0, Persons: 0, DurationHours: 0, MainWorkCenter: "", Vendor: "", LongText: "", PackagesKey: ";", Selected: false, ControlKey: "", Cost: 0, UnitCost: 0, Currency: "", CostElement: 0, MaterialGroup: "", SpId: 0 }));
-          
-                  If(false, ClearCollect(colVhpFl, { Code: "", Description: "", Display: "", Maintainable: false, Level: "" }));
-          
-                  If(false, ClearCollect(colVhpItemObjects, { ItemId: 0, Code: "", Description: "" }));
-          
-                  If(false, ClearCollect(colVhpObjDraft, { Code: "", Description: "" }));
-          
-                  If(false, ClearCollect(colVhpPickerSelected, { OperationNo: "" }));
-          
-                  If(false, ClearCollect(colVhpMaterials, { ItemId: 0, LineId: 0, MaterialNo: "", Description: "", Unit: "", Quantity: 0, OperationNo: "", Selected: false }));
-          
-                  If(false, ClearCollect(colVhpAttachments, { ItemId: 0, FileName: "", FileUrl: "", Identifier: "", FileSize: 0, OperationsKey: ";", Status: "", Selected: false }));
-          
-                  If(false, ClearCollect(colVhpAttFiles, { Name: "", Link: "", Identifier: "" }));
-          
-                  If(false, ClearCollect(colVhpAttKeep, { FileName: "", OperationsKey: ";" }));
-          
-                  If(false, ClearCollect(colVhpAttUp, { Name: "", Ok: false }));
-          
-                  If(false, ClearCollect(colVhpSavedItems, { LocalId: 0, SpId: 0, ItemKey: "" }));
-          
-                  If(false, ClearCollect(colVhpSavedOps, { LocalItemId: 0, OpNo: "", SpId: 0, TaskKey: "" }));
-          
-                  If(false, ClearCollect(colVhpSpItems, { ID: 0, ItemID: "" }));
-          
-                  If(false, ClearCollect(colVhpAdmOld, { ID: 0, ItemID: "", Title: "", ItemDescription: "", FunctionalLocation: "", ObjectList: "" }));
-          
-                  If(false, ClearCollect(colVhpSpOps, { ID: 0, TaskItemID: "" }));
-          
-                  If(false, ClearCollect(colVhpOldMats, { ID: 0 }));
-          
-                  If(false, ClearCollect(colVhpOldAtts, { ID: 0 }));
-          
-                  If(false, ClearCollect(colVhpSaveErrors, { Where: "", Msg: "" }));
-          
-                  Set(
-                      varVhpPlan,
-                      {
-                          Plant: "",
-                          Status: "",
-                          PlanType: "SingleCycle",
-                          Strategy: "",
-                          PlanText: "",
-                          SortField: "",
-                          Cycle: 0,
-                          Unit: "",
-                          FirstCallDay: Day(Today()),
-                          FirstCallMonth: Month(Today()),
-                          FirstCallYear: Year(Today()) + 1
-                      }
-                  );
-          
-                  Set(varVhpPlanCommitted, false);
-                  Set(varVhpPlanLocked, false);
-                  Set(varVhpViewOnly, false);
-                  Set(varVhpBadgeOn, false);
-                  Set(varVhpCanEdit, false);
-                  Set(varVhpPlanCreatedAt, Blank());
-                  Set(varVhpPlanValidated, false);
-                  Set(varVhpItemValidated, false);
-                  // Appen aabner med EET item, der allerede er valgt. Item Editoren stod
-                  // foer tom og skrivebeskyttet (DM_ITEM slaar fra paa tomt
-                  // varVhpActiveItemId), saa det foerste man moedte var en raekke graa felter
-                  // og en knap, man skulle finde foerst. Nummeret er 1, saa "Add item" (som
-                  // taeller varVhpNextItemId een op foerst) fortsaetter ved 2.
-                  Set(varVhpActiveItemId, 1);
-                  Set(varVhpNextItemId, 1);
-                  Set(varVhpFlMsg, "");
-                  // Brugeren, som alle skrivninger stempler (REVIEW.md A10).
-                  Set(varVhpMe, Lower(User().Email));
-                  // Trinene og Submit regnes af navngivne formler (build_status.py).
-                  // varVhpSavedJson er planen, som den stod ved sidste gemning i SharePoint.
-                  Set(varVhpSavedJson, "");
-                  Set(varVhpPrevPlant, "");
-                  // FL-vaelgeren (tools/fl_picker.py): om flowet koerer, soegeteksten og
-                  // den sidste soegning, det valgte resultat - og Object List-popup'en.
-                  Set(varVhpFlBusy, false);
-                  Set(varVhpFlQuery, "");
-                  Set(varVhpFlLast, "");
-                  Set(varVhpFlPick, "");
-                  Set(varVhpObjListOpen, false);
-                  // Trinet, der sidst er klikket i progressbaren - dets sektion har en tyk kant.
-                  Set(varVhpFocusStep, 0);
-                  // Bekraeftelsen foer Submit.
-                  Set(varVhpConfirmSubmit, false);
-                  Set(varVhpConfirmNew, false);
-                  // Popupperne for materialer og dokumenter pr. operation (OperationNo, tom = lukket).
-                  Set(varVhpMatOpNo, "");
-                  Set(varVhpAttOpNo, "");
-                  // Lang tekst: "op" = en operation, "item" = itemets lange tekst.
-                  Set(varVhpLongTextTarget, "op");
-                  Set(varVhpTasklistPickerOpen, false);
-          
-                  // Get-flowet svarer med en STRENG, der skal gennem ParseJSON.
-                  Set(varVhpAttJson, "");
-          
-                  // Popup'en til lang tekst paa en operation. Operationen udpeges af
-                  // BEGGE noegler - OperationNo er kun unikt inden for et item.
-                  Set(varVhpLongTextOpen, false);
-                  Set(varVhpLongTextItemId, 0);
-                  Set(varVhpLongTextOpNo, "");
-                  Set(varVhpLongTextDraft, "");
-          
-                  // Gemning i SharePoint. SpId > 0 betyder, at planen findes som raekke -
-                  // saa opdateres den i stedet for at blive oprettet igen.
-                  Set(varVhpPlanSpId, 0);
-                  Set(varVhpPlanKey, "");
-                  // Gemmet (build_save.py): konflikttjek, Save draft/Submit og planens raekke.
-                  Set(varVhpPlanModified, Blank());
-                  Set(varVhpSubmitting, false);
-                  Set(varVhpRequestGuid, "");
-                  Set(varVhpSaving, false);
-          
-                  // Hjaelpepanelerne. Slaaet fra som standard - teksten er der for den, der
-                  // har brug for den, ikke for at fylde skaermen for alle andre.
-                  Set(varVhpShowHints, false);
-          
-                  // Fanen i Tasklist-sektionen. Operations er den man er i oftest.
-                  Set(varVhpOpsTab, "ops");
-          
-                  // Dyblink fra Masterdata Hub: <app-url>?reqid=<RequestGuid>.
-                  //
-                  // Det er en datahentning i OnStart, og reglen er ellers, at der ikke
-                  // er nogen. Undtagelsen er bevidst og betales kun af den, der
-                  // FAKTISK aabner et dyblink: uden parameter koeres kun Collect af et
-                  // tomt item, og der roeres ingen liste. Se build_load.py.
-                  If(
-                      IsBlank(gblVhpReqId),
-          
-                      Collect(colVhpItems, {
-                          ItemId: 1,
-                          ShortText: "",
-                          FunctionalLocation: "",
-                          FlDescription: "",
-                          MainWorkCenter: "",
-                          ActivityType: "",
-                          ObjectList: "",
-                          Revision: "",
-                          OrstedResponsible: "",
-                          Initials: Upper(First(Split(varVhpMe, "@")).Value),
-                          LongText: "",
-                          TasklistKey: "",
-                          TasklistName: "",
-                          Status: "draft",
-                          SpId: 0
-                      }),
-          
-                      Set(varVhpRequestGuid, gblVhpReqId);
-                      With(
-                          { idx: LookUp(MD_RequestIndex, RequestGuid = varVhpRequestGuid) },
-                          Set(varVhpPlanSpId, idx.SourceItemId);
-                          With(
-                              { pl: LookUp(MaintenancePlans, ID = varVhpPlanSpId) },
-                              If(
-                                  IsBlank(pl.ID),
-          
-                                  // Linket peger paa noget, der ikke er her - fx en
-                                  // indmelding fra et andet miljoe. Sig det, og aabn
-                                  // som en ny plan i stedet for at staa tom og tavs.
-                                  Notify(
-                                      "Could not find the request behind this link. Opening a new plan.",
-                                      NotificationType.Warning
-                                  );
-                                  Set(varVhpRequestGuid, "");
-                                  Set(varVhpPlanSpId, 0);
-                                  Set(varVhpPlanModified, Blank());
-                                  Collect(colVhpItems, {
-                                      ItemId: 1,
-                                      ShortText: "",
-                                      FunctionalLocation: "",
-                                      FlDescription: "",
-                                      MainWorkCenter: "",
-                                      ActivityType: "",
-                                      ObjectList: "",
-                                      Revision: "",
-                                      OrstedResponsible: "",
-                                      Initials: Upper(First(Split(varVhpMe, "@")).Value),
-                                      LongText: "",
-                                      TasklistKey: "",
-                                      TasklistName: "",
-                                      Status: "draft",
-                                      SpId: 0
-                                  }),
-          
-                                  IfError(
-                                  // --- planhovedet ---------------------------------
-                                  Set(
-                                      varVhpPlan,
-                                      {
-                                          Plant: pl.PlantsInitial.Value,
-                                          Status: Coalesce(LookUp(MaintenanceItems, MaintenancePlanNo.Id = varVhpPlanSpId).Status.Value, ""),
-                                          PlanType: If(IsBlank(pl.StrategyKey), "SingleCycle", "Strategy"),
-                                          Strategy: Coalesce(pl.StrategyKey, ""),
-                                          PlanText: pl.Title,
-                                          SortField: pl.SortField.Value,
-                                          Cycle: pl.Cycle,
-                                          Unit: pl.Unit.Value,
-                                          FirstCallDay: Day(pl.PlannedDate),
-                                          FirstCallMonth: Month(pl.PlannedDate),
-                                          FirstCallYear: Year(pl.PlannedDate)
-                                      }
-                                  );
-                                  Set(varVhpPlanSpId, pl.ID);
-                                  Set(varVhpPlanKey, pl.PlanID);
-                                  Set(varVhpPlanModified, pl.Modified);
-                                  Set(varVhpRequestGuid, idx.RequestGuid);
-                                  Set(varVhpPlanCommitted, true);
-                                  Set(varVhpPlanLocked, true);
-                                  Set(varVhpCanEdit, ((Lower(Coalesce(idx.RequesterEmail, "")) = varVhpMe && (idx.Status.Value = "Kladde")) || (IsAdmin && (idx.Status.Value = "Kladde" || idx.Status.Value = "AfventerInfo"))));
-                                  Set(varVhpViewOnly, !(Lower(Coalesce(gblVhpMode, "")) = "edit" && varVhpCanEdit));
-          
-                                  // --- de fem hentninger, PAA EEN GANG -------------
-                                  //
-                                  // Fem lister i kaede er fem rundture efter hinanden;
-                                  // appen venter paa SUMMEN. I Concurrent venter den kun
-                                  // paa den laengste.
-                                  //
-                                  // De fem er uafhaengige af hinanden. De afhaenger alle
-                                  // af 'pl' - men den er sat UDENFOR og er faerdig, foer
-                                  // Concurrent starter. Og varVhpActiveItemId nedenfor
-                                  // laeser colVhpItems: ogsaa sikkert, for Concurrent
-                                  // venter paa dem alle, foer den gaar videre.
-                                  Concurrent(
-                                      ClearCollect(
-                                          colVhpItems,
-                                          ForAll(
-                                              Filter(MaintenanceItems, MaintenancePlanNo.Id = varVhpPlanSpId) As IT,
-                                              {
-                                                  ItemId: IT.ID,
-                                                  ShortText: IT.Title,
-                                                  FunctionalLocation: IT.FunctionalLocation,
-                                                  FlDescription: "",
-                                                  MainWorkCenter: IT.MainWorkCenter.Value,
-                                                  ActivityType: IT.MaintenanceActivityType.Value,
-                                                  ObjectList: IT.ObjectList,
-                                                  Revision: IT.RevisionMark.Value,
-                                                  OrstedResponsible: IT.OrstedResponsibleEmail,
-                                                  Initials: IT.InitialOrstedResponsible,
-                                                  LongText: IT.ItemDescription,
-                                                  TasklistKey: "",
-                                                  TasklistName: "",
-                                                  Status: "valid",
-                                                  SpId: IT.ID
-                                              }
-                                          )
-                                      ),
-                                      ClearCollect(
-                                          colVhpSavedItems,
-                                          ForAll(
-                                              Filter(MaintenanceItems, MaintenancePlanNo.Id = varVhpPlanSpId) As IT,
-                                              { LocalId: IT.ID, SpId: IT.ID, ItemKey: IT.ItemID }
-                                          )
-                                      ),
-                                      ClearCollect(
-                                          colVhpOperations,
-                                          ForAll(
-                                              Filter(TaskListMain, MaintenancePlanID.Id = varVhpPlanSpId) As OP,
-                                              {
-                                                  ItemId: OP.MaintenanceItemNo.Id,
-                                                  OperationNo: Text(OP.OperationNo, "0000"),
-                                                  OperationShortText: OP.OperationShortText,
-                                                  WorkHours: OP.Work,
-                                                  Persons: OP.Num,
-                                                  DurationHours: OP.Duration,
-                                                  MainWorkCenter: OP.WorkCtr,
-                                                  Vendor: OP.Vendor,
-                                                  LongText: OP.LongText,
-                                                  PackagesKey: Coalesce(OP.PackagesKey, ";"),
-                                                  Selected: false,
-                                                  ControlKey: OP.Ctrl,
-                                                  Cost: OP.Price,
-                                                  UnitCost: If(Coalesce(OP.Work, 0) > 0, OP.Price / OP.Work, OP.Price),
-                                                  Currency: OP.Currency,
-                                                  CostElement: OP.CostElem,
-                                                  MaterialGroup: OP.MaterialGroup,
-                                                  SpId: OP.ID
-                                              }
-                                          )
-                                      )
-                                  );
-          
-                                  // Disse to LAESER colVhpSavedItems, som boelge 1
-                                  // skriver. De kan derfor ikke koere sammen med den.
-                                  Concurrent(
-                                      ClearCollect(
-                                          colVhpMaterials,
-                                          ForAll(
-                                              Filter(MD_TasklistMaterial, PlanKey = varVhpPlanKey) As MT,
-                                              {
-                                                  ItemId: LookUp(colVhpSavedItems, ItemKey = MT.ItemKey).LocalId,
-                                                  LineId: MT.LineId,
-                                                  MaterialNo: MT.MaterialNo,
-                                                  Description: MT.MaterialText,
-                                                  Unit: MT.Unit,
-                                                  Quantity: MT.Quantity,
-                                                  OperationNo: MT.OperationNo,
-                                                  Selected: false
-                                              }
-                                          )
-                                      ),
-                                      ClearCollect(
-                                          colVhpAttachments,
-                                          ForAll(
-                                              Filter(MD_TasklistAttachment, PlanKey = varVhpPlanKey) As AT,
-                                              {
-                                                  ItemId: LookUp(colVhpSavedItems, ItemKey = AT.ItemKey).LocalId,
-                                                  FileName: AT.FileName,
-                                                  FileUrl: AT.FileUrl,
-                                                  Identifier: "",
-                                                  FileSize: AT.FileSize,
-                                                  OperationsKey: Coalesce(AT.OperationsKey, ";"),
-                                                  Status: AT.UploadStatus.Value,
-                                                  Selected: false
-                                              }
-                                          )
-                                      )
-                                  );
-          
-                                  // --- det, gemningen ikke skriver, afledes ---------
-                                  // Objektlisten ligger som tekst paa itemet ("A;B;C").
-                                  ClearCollect(
-                                      colVhpItemObjects,
-                                      Ungroup(
-                                          ForAll(
-                                              colVhpItems As I,
-                                              {
-                                                  Objs: ForAll(
-                                                      Filter(Split(I.ObjectList, ";"), !IsBlank(Trim(Value))) As S,
-                                                      { ItemId: I.ItemId, Code: Trim(S.Value), Description: "" }
-                                                  )
-                                              }
-                                          ),
-                                          Objs
-                                      )
-                                  );
-                                  // Een standardarbejdsplan pr. vaerk: et item med
-                                  // operationer har vaerkets (trin 3 og S3 kraever den).
-                                  With(
-                                      { tl: LookUp(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)) },
-                                      UpdateIf(
-                                          colVhpItems,
-                                          ItemId in colVhpOperations.ItemId,
-                                          { TasklistKey: Coalesce(tl.Key, ""), TasklistName: Coalesce(tl.Name, "") }
-                                      )
-                                  );
-          
-                                  // --- hvad der er valgt naar skaermen tegnes -------
-                                  Set(varVhpActiveItemId, First(colVhpItems).ItemId);
-                                  Set(varVhpNextItemId, Max(colVhpItems, ItemId));
-                                  Notify(
-                                      "Opened " & idx.RequestNo & " - " &
-                                          Text(CountRows(colVhpItems)) & " item(s), " &
-                                          Text(CountRows(colVhpOperations)) & " operation line(s).",
-                                      NotificationType.Success
-                                  );
-                                  // Den indlaeste plan ER den gemte - Save-trinnet er groent,
-                                  // til noget aendres.
-                                  Set(varVhpSavedJson, VhpStateJson);
-                                  true,
-                                  Notify(
-                                      "Could not open the request: " & FirstError.Message,
-                                      NotificationType.Error
-                                  );
-                                  Set(varVhpRequestGuid, "");
-                                  Set(varVhpPlanSpId, 0);
-                                  Set(varVhpPlanKey, "");
-                                  Set(varVhpPlanModified, Blank());
-                                  Set(varVhpPlanCommitted, false);
-                                  Set(varVhpPlanLocked, false);
-                                  false
-                                  )
-                              )
-                          )
-                      )
-                  );
-                  // Editoren skal vise den plan, der lige er klargjort.
-                  Clear(colVhpFl);
-                  With(
-                      { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                      If(
-                          !IsBlank(it.FunctionalLocation),
-                          Collect(
-                              colVhpFl,
-                              { Code: it.FunctionalLocation, Description: it.FlDescription,
-                                Display: it.FunctionalLocation & " - " & it.FlDescription,
-                                Maintainable: true, Level: "" }
-                          )
-                      )
-                  );
-                  Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(tglVhpItemRevision); Reset(inpVhpItemInitials); Reset(drpVhpItemTasklist)
-              )
-          );
-          
-          // Klar - ventespinneren forsvinder.
-          Set(varVhpBadgeOn, StartsWith(Coalesce(varVhpOpened, ""), "req:") || StartsWith(Coalesce(varVhpOpened, ""), "edit:") || StartsWith(Coalesce(varVhpOpened, ""), "link:"));
-          Set(varVhpLoading, false);
-          Set(gblNavigating, false);
-          Set(gblNavTo, "")
+          Select(btnVhpOpen)
     Children:
       - conVhpRoot:
           Control: GroupContainer
@@ -19844,7 +19407,7 @@ Screens:
             Height: |-
                 =App.Height
             Image: |-
-                ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><g opacity='0' transform='translate(0 0)'><animate attributeName='opacity' from='0' to='1' begin='0.15s' dur='0.2s' fill='freeze'/><circle cx='32' cy='32' r='22' fill='none' stroke-width='6' stroke='" & C.'hex-state-neutral-bg' & "'/><path d='M32 10 a22 22 0 0 1 22 22' fill='none' stroke-width='6' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'><animateTransform attributeName='transform' type='rotate' from='0 32 32' to='360 32 32' dur='0.9s' repeatCount='indefinite'/></path></g></svg>")
+                ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><style>.f{opacity:0;animation:f .2s ease-out 0.15s forwards}.s{transform-origin:32px 32px;animation:s .9s linear infinite}@keyframes f{to{opacity:1}}@keyframes s{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.s{animation:none}}</style><g class='f' transform='translate(0 0)'><circle cx='32' cy='32' r='22' fill='none' stroke-width='6' stroke='" & C.'hex-state-neutral-bg' & "'/><path class='s' d='M32 10 a22 22 0 0 1 22 22' fill='none' stroke-width='6' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'/></g></svg>")
             ImagePosition: |-
                 =ImagePosition.Center
             TabIndex: |-
@@ -19853,6 +19416,508 @@ Screens:
                 =IfError(varVhpSaving, false)
             Width: |-
                 =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - btnVhpOpen:
+          Control: ModernButton
+          Properties:
+            AccessibleLabel: |-
+                ="Open the request"
+            Align: |-
+                =Align.Center
+            AlignInContainer: |-
+                =AlignInContainer.Center
+            Appearance: |-
+                =ButtonAppearance.Outline
+            BorderColor: |-
+                =C.'border-default'
+            BorderThickness: |-
+                =1
+            Color: |-
+                =C.'text-primary'
+            Font: |-
+                =Font.'Segoe UI'
+            FontWeight: |-
+                =FontWeight.Semibold
+            Height: |-
+                =36
+            Layout: |-
+                =ButtonLayout.TextOnly
+            OnSelect: |-
+                =IfError(
+                    // Har en sletning roert det, skaermen viser? (tools/request_delete.py)
+                    Set(varVhpStaleNow, Coalesce(gblVhpStale, false));
+                    If(
+                        varVhpStaleNow,
+                        Set(gblVhpStale, false);
+                        If(
+                            !IsBlank(varVhpRequestGuid) && IsBlank(LookUp(MD_RequestIndex, RequestGuid = varVhpRequestGuid)),
+                            Set(gblVhpWant, Blank());
+                            Set(varVhpOpened, "")
+                        )
+                    );
+                
+                    // DEN SAMLEDE APP: klargoer skaermen, naar hubben eller et dyblink
+                    // beder om noget andet end det, den viser. Se BIO SAP App/build/
+                    // build_screens.py, open_block().
+                    With(
+                        { wantKey: If(
+                            gblNavTo = "Vhp",
+                            "new:0",
+                            Coalesce(
+                            gblVhpWant,
+                            If(Lower(Param("domain")) = "vhplan", "link:" & Param("reqid")),
+                            "new"
+                        )
+                        ) },
+                        If(
+                            wantKey <> Coalesce(varVhpOpened, ""),
+                            Set(varVhpLoading, true);
+                            Set(varVhpOpened, wantKey);
+                            Set(
+                                gblVhpReqId,
+                                If(StartsWith(wantKey, "req:"), Mid(wantKey, 5),
+                                   StartsWith(wantKey, "edit:"), Mid(wantKey, 6),
+                                   StartsWith(wantKey, "link:"), Mid(wantKey, 6), "")
+                            );
+                            Set(gblVhpMode, If(StartsWith(wantKey, "edit:") || (StartsWith(wantKey, "link:") && Lower(Coalesce(Param("mode"), "")) = "edit"), "edit", "view"));
+                            // Live status (issue #92): the first step is the request itself.
+                            Set(varVhpLoadFailed, false);
+                            Set(varVhpLoadSlow, false);
+                            Set(varVhpLoadStep, If(IsBlank(gblVhpReqId), "Setting up a new plan", "Finding the request"));
+                            // A new or another request starts from a clean plan.
+                            Clear(colVhpItems);
+                            Clear(colVhpOperations);
+                            Clear(colVhpItemObjects);
+                            Clear(colVhpObjDraft);
+                            Clear(colVhpMaterials);
+                            Clear(colVhpAttachments);
+                            If(false, ClearCollect(colVhpItems, { ItemId: 0, ShortText: "", FunctionalLocation: "", FlDescription: "", MainWorkCenter: "", ActivityType: "", ObjectList: "", Revision: "", OrstedResponsible: "", Initials: "", LongText: "", TasklistKey: "", TasklistName: "", Status: "", SpId: 0 }));
+                
+                            If(false, ClearCollect(colVhpOperations, { ItemId: 0, OperationNo: "", OperationShortText: "", WorkHours: 0, Persons: 0, DurationHours: 0, MainWorkCenter: "", Vendor: "", LongText: "", PackagesKey: ";", Selected: false, ControlKey: "", Cost: 0, UnitCost: 0, Currency: "", CostElement: 0, MaterialGroup: "", SpId: 0 }));
+                
+                            If(false, ClearCollect(colVhpFl, { Code: "", Description: "", Display: "", Maintainable: false, Level: "" }));
+                
+                            If(false, ClearCollect(colVhpItemObjects, { ItemId: 0, Code: "", Description: "" }));
+                
+                            If(false, ClearCollect(colVhpObjDraft, { Code: "", Description: "" }));
+                
+                            If(false, ClearCollect(colVhpPickerSelected, { OperationNo: "" }));
+                
+                            If(false, ClearCollect(colVhpMaterials, { ItemId: 0, LineId: 0, MaterialNo: "", Description: "", Unit: "", Quantity: 0, OperationNo: "", Selected: false }));
+                
+                            If(false, ClearCollect(colVhpAttachments, { ItemId: 0, FileName: "", FileUrl: "", Identifier: "", FileSize: 0, OperationsKey: ";", Status: "", Selected: false }));
+                
+                            If(false, ClearCollect(colVhpAttFiles, { Name: "", Link: "", Identifier: "" }));
+                
+                            If(false, ClearCollect(colVhpAttKeep, { FileName: "", OperationsKey: ";" }));
+                
+                            If(false, ClearCollect(colVhpAttUp, { Name: "", Ok: false }));
+                
+                            If(false, ClearCollect(colVhpSavedItems, { LocalId: 0, SpId: 0, ItemKey: "" }));
+                
+                            If(false, ClearCollect(colVhpSavedOps, { LocalItemId: 0, OpNo: "", SpId: 0, TaskKey: "" }));
+                
+                            If(false, ClearCollect(colVhpSpItems, { ID: 0, ItemID: "" }));
+                
+                            If(false, ClearCollect(colVhpAdmOld, { ID: 0, ItemID: "", Title: "", ItemDescription: "", FunctionalLocation: "", ObjectList: "" }));
+                
+                            If(false, ClearCollect(colVhpSpOps, { ID: 0, TaskItemID: "" }));
+                
+                            If(false, ClearCollect(colVhpOldMats, { ID: 0 }));
+                
+                            If(false, ClearCollect(colVhpOldAtts, { ID: 0 }));
+                
+                            If(false, ClearCollect(colVhpSaveErrors, { Where: "", Msg: "" }));
+                
+                            Set(
+                                varVhpPlan,
+                                {
+                                    Plant: "",
+                                    Status: "",
+                                    PlanType: "SingleCycle",
+                                    Strategy: "",
+                                    PlanText: "",
+                                    SortField: "",
+                                    Cycle: 0,
+                                    Unit: "",
+                                    FirstCallDay: Day(Today()),
+                                    FirstCallMonth: Month(Today()),
+                                    FirstCallYear: Year(Today()) + 1
+                                }
+                            );
+                
+                            Set(varVhpPlanCommitted, false);
+                            Set(varVhpPlanLocked, false);
+                            Set(varVhpViewOnly, false);
+                            Set(varVhpBadgeOn, false);
+                            Set(varVhpCanEdit, false);
+                            Set(varVhpPlanCreatedAt, Blank());
+                            Set(varVhpPlanValidated, false);
+                            Set(varVhpItemValidated, false);
+                            // Appen aabner med EET item, der allerede er valgt. Item Editoren stod
+                            // foer tom og skrivebeskyttet (DM_ITEM slaar fra paa tomt
+                            // varVhpActiveItemId), saa det foerste man moedte var en raekke graa felter
+                            // og en knap, man skulle finde foerst. Nummeret er 1, saa "Add item" (som
+                            // taeller varVhpNextItemId een op foerst) fortsaetter ved 2.
+                            Set(varVhpActiveItemId, 1);
+                            Set(varVhpNextItemId, 1);
+                            Set(varVhpFlMsg, "");
+                            // Brugeren, som alle skrivninger stempler (REVIEW.md A10).
+                            Set(varVhpMe, Lower(User().Email));
+                            // Trinene og Submit regnes af navngivne formler (build_status.py).
+                            // varVhpSavedJson er planen, som den stod ved sidste gemning i SharePoint.
+                            Set(varVhpSavedJson, "");
+                            Set(varVhpPrevPlant, "");
+                            // FL-vaelgeren (tools/fl_picker.py): om flowet koerer, soegeteksten og
+                            // den sidste soegning, det valgte resultat - og Object List-popup'en.
+                            Set(varVhpFlBusy, false);
+                            Set(varVhpFlQuery, "");
+                            Set(varVhpFlLast, "");
+                            Set(varVhpFlPick, "");
+                            Set(varVhpObjListOpen, false);
+                            // Trinet, der sidst er klikket i progressbaren - dets sektion har en tyk kant.
+                            Set(varVhpFocusStep, 0);
+                            // Bekraeftelsen foer Submit.
+                            Set(varVhpConfirmSubmit, false);
+                            Set(varVhpConfirmNew, false);
+                            // Popupperne for materialer og dokumenter pr. operation (OperationNo, tom = lukket).
+                            Set(varVhpMatOpNo, "");
+                            Set(varVhpAttOpNo, "");
+                            // Lang tekst: "op" = en operation, "item" = itemets lange tekst.
+                            Set(varVhpLongTextTarget, "op");
+                            Set(varVhpTasklistPickerOpen, false);
+                
+                            // Get-flowet svarer med en STRENG, der skal gennem ParseJSON.
+                            Set(varVhpAttJson, "");
+                
+                            // Popup'en til lang tekst paa en operation. Operationen udpeges af
+                            // BEGGE noegler - OperationNo er kun unikt inden for et item.
+                            Set(varVhpLongTextOpen, false);
+                            Set(varVhpLongTextItemId, 0);
+                            Set(varVhpLongTextOpNo, "");
+                            Set(varVhpLongTextDraft, "");
+                
+                            // Gemning i SharePoint. SpId > 0 betyder, at planen findes som raekke -
+                            // saa opdateres den i stedet for at blive oprettet igen.
+                            Set(varVhpPlanSpId, 0);
+                            Set(varVhpPlanKey, "");
+                            // Gemmet (build_save.py): konflikttjek, Save draft/Submit og planens raekke.
+                            Set(varVhpPlanModified, Blank());
+                            Set(varVhpSubmitting, false);
+                            Set(varVhpRequestGuid, "");
+                            Set(varVhpSaving, false);
+                
+                            // Hjaelpepanelerne. Slaaet fra som standard - teksten er der for den, der
+                            // har brug for den, ikke for at fylde skaermen for alle andre.
+                            Set(varVhpShowHints, false);
+                
+                            // Fanen i Tasklist-sektionen. Operations er den man er i oftest.
+                            Set(varVhpOpsTab, "ops");
+                
+                            // Dyblink fra Masterdata Hub: <app-url>?reqid=<RequestGuid>.
+                            //
+                            // Det er en datahentning i OnStart, og reglen er ellers, at der ikke
+                            // er nogen. Undtagelsen er bevidst og betales kun af den, der
+                            // FAKTISK aabner et dyblink: uden parameter koeres kun Collect af et
+                            // tomt item, og der roeres ingen liste. Se build_load.py.
+                            If(
+                                IsBlank(gblVhpReqId),
+                
+                                Collect(colVhpItems, {
+                                    ItemId: 1,
+                                    ShortText: "",
+                                    FunctionalLocation: "",
+                                    FlDescription: "",
+                                    MainWorkCenter: "",
+                                    ActivityType: "",
+                                    ObjectList: "",
+                                    Revision: "",
+                                    OrstedResponsible: "",
+                                    Initials: Upper(First(Split(varVhpMe, "@")).Value),
+                                    LongText: "",
+                                    TasklistKey: "",
+                                    TasklistName: "",
+                                    Status: "draft",
+                                    SpId: 0
+                                }),
+                
+                                Set(varVhpRequestGuid, gblVhpReqId);
+                                With(
+                                    { idx: LookUp(MD_RequestIndex, RequestGuid = varVhpRequestGuid) },
+                                    Set(varVhpPlanSpId, idx.SourceItemId);
+                                    Set(varVhpLoadStep, "Loading plan details");
+                                    With(
+                                        { pl: LookUp(MaintenancePlans, ID = varVhpPlanSpId) },
+                                        If(
+                                            IsBlank(pl.ID),
+                
+                                            // Linket peger paa noget, der ikke er her - fx en
+                                            // indmelding fra et andet miljoe. Sig det, og aabn
+                                            // som en ny plan i stedet for at staa tom og tavs.
+                                            Notify(
+                                                "Could not find the request behind this link. Opening a new plan.",
+                                                NotificationType.Warning
+                                            );
+                                            Set(varVhpRequestGuid, "");
+                                            Set(varVhpPlanSpId, 0);
+                                            Set(varVhpPlanModified, Blank());
+                                            Collect(colVhpItems, {
+                                                ItemId: 1,
+                                                ShortText: "",
+                                                FunctionalLocation: "",
+                                                FlDescription: "",
+                                                MainWorkCenter: "",
+                                                ActivityType: "",
+                                                ObjectList: "",
+                                                Revision: "",
+                                                OrstedResponsible: "",
+                                                Initials: Upper(First(Split(varVhpMe, "@")).Value),
+                                                LongText: "",
+                                                TasklistKey: "",
+                                                TasklistName: "",
+                                                Status: "draft",
+                                                SpId: 0
+                                            }),
+                
+                                            IfError(
+                                            // --- planhovedet ---------------------------------
+                                            Set(
+                                                varVhpPlan,
+                                                {
+                                                    Plant: pl.PlantsInitial.Value,
+                                                    Status: Coalesce(LookUp(MaintenanceItems, MaintenancePlanNo.Id = varVhpPlanSpId).Status.Value, ""),
+                                                    PlanType: If(IsBlank(pl.StrategyKey), "SingleCycle", "Strategy"),
+                                                    Strategy: Coalesce(pl.StrategyKey, ""),
+                                                    PlanText: pl.Title,
+                                                    SortField: pl.SortField.Value,
+                                                    Cycle: pl.Cycle,
+                                                    Unit: pl.Unit.Value,
+                                                    FirstCallDay: Day(pl.PlannedDate),
+                                                    FirstCallMonth: Month(pl.PlannedDate),
+                                                    FirstCallYear: Year(pl.PlannedDate)
+                                                }
+                                            );
+                                            Set(varVhpPlanSpId, pl.ID);
+                                            Set(varVhpPlanKey, pl.PlanID);
+                                            Set(varVhpPlanModified, pl.Modified);
+                                            Set(varVhpRequestGuid, idx.RequestGuid);
+                                            Set(varVhpPlanCommitted, true);
+                                            Set(varVhpPlanLocked, true);
+                                            Set(varVhpCanEdit, ((Lower(Coalesce(idx.RequesterEmail, "")) = varVhpMe && (idx.Status.Value = "Kladde")) || (IsAdmin && (idx.Status.Value = "Kladde" || idx.Status.Value = "AfventerInfo"))));
+                                            Set(varVhpViewOnly, !(Lower(Coalesce(gblVhpMode, "")) = "edit" && varVhpCanEdit));
+                
+                                            // --- de fem hentninger, PAA EEN GANG -------------
+                                            //
+                                            // Fem lister i kaede er fem rundture efter hinanden;
+                                            // appen venter paa SUMMEN. I Concurrent venter den kun
+                                            // paa den laengste.
+                                            //
+                                            // De fem er uafhaengige af hinanden. De afhaenger alle
+                                            // af 'pl' - men den er sat UDENFOR og er faerdig, foer
+                                            // Concurrent starter. Og varVhpActiveItemId nedenfor
+                                            // laeser colVhpItems: ogsaa sikkert, for Concurrent
+                                            // venter paa dem alle, foer den gaar videre.
+                                            Set(varVhpLoadStep, "Loading items and operations");
+                                            Concurrent(
+                                                ClearCollect(
+                                                    colVhpItems,
+                                                    ForAll(
+                                                        Filter(MaintenanceItems, MaintenancePlanNo.Id = varVhpPlanSpId) As IT,
+                                                        {
+                                                            ItemId: IT.ID,
+                                                            ShortText: IT.Title,
+                                                            FunctionalLocation: IT.FunctionalLocation,
+                                                            FlDescription: "",
+                                                            MainWorkCenter: IT.MainWorkCenter.Value,
+                                                            ActivityType: IT.MaintenanceActivityType.Value,
+                                                            ObjectList: IT.ObjectList,
+                                                            Revision: IT.RevisionMark.Value,
+                                                            OrstedResponsible: IT.OrstedResponsibleEmail,
+                                                            Initials: IT.InitialOrstedResponsible,
+                                                            LongText: IT.ItemDescription,
+                                                            TasklistKey: "",
+                                                            TasklistName: "",
+                                                            Status: "valid",
+                                                            SpId: IT.ID
+                                                        }
+                                                    )
+                                                ),
+                                                ClearCollect(
+                                                    colVhpSavedItems,
+                                                    ForAll(
+                                                        Filter(MaintenanceItems, MaintenancePlanNo.Id = varVhpPlanSpId) As IT,
+                                                        { LocalId: IT.ID, SpId: IT.ID, ItemKey: IT.ItemID }
+                                                    )
+                                                ),
+                                                ClearCollect(
+                                                    colVhpOperations,
+                                                    ForAll(
+                                                        Filter(TaskListMain, MaintenancePlanID.Id = varVhpPlanSpId) As OP,
+                                                        {
+                                                            ItemId: OP.MaintenanceItemNo.Id,
+                                                            OperationNo: Text(OP.OperationNo, "0000"),
+                                                            OperationShortText: OP.OperationShortText,
+                                                            WorkHours: OP.Work,
+                                                            Persons: OP.Num,
+                                                            DurationHours: OP.Duration,
+                                                            MainWorkCenter: OP.WorkCtr,
+                                                            Vendor: OP.Vendor,
+                                                            LongText: OP.LongText,
+                                                            PackagesKey: Coalesce(OP.PackagesKey, ";"),
+                                                            Selected: false,
+                                                            ControlKey: OP.Ctrl,
+                                                            Cost: OP.Price,
+                                                            UnitCost: If(Coalesce(OP.Work, 0) > 0, OP.Price / OP.Work, OP.Price),
+                                                            Currency: OP.Currency,
+                                                            CostElement: OP.CostElem,
+                                                            MaterialGroup: OP.MaterialGroup,
+                                                            SpId: OP.ID
+                                                        }
+                                                    )
+                                                )
+                                            );
+                
+                                            // Disse to LAESER colVhpSavedItems, som boelge 1
+                                            // skriver. De kan derfor ikke koere sammen med den.
+                                            Set(varVhpLoadStep, "Loading materials and documents");
+                                            Concurrent(
+                                                ClearCollect(
+                                                    colVhpMaterials,
+                                                    ForAll(
+                                                        Filter(MD_TasklistMaterial, PlanKey = varVhpPlanKey) As MT,
+                                                        {
+                                                            ItemId: LookUp(colVhpSavedItems, ItemKey = MT.ItemKey).LocalId,
+                                                            LineId: MT.LineId,
+                                                            MaterialNo: MT.MaterialNo,
+                                                            Description: MT.MaterialText,
+                                                            Unit: MT.Unit,
+                                                            Quantity: MT.Quantity,
+                                                            OperationNo: MT.OperationNo,
+                                                            Selected: false
+                                                        }
+                                                    )
+                                                ),
+                                                ClearCollect(
+                                                    colVhpAttachments,
+                                                    ForAll(
+                                                        Filter(MD_TasklistAttachment, PlanKey = varVhpPlanKey) As AT,
+                                                        {
+                                                            ItemId: LookUp(colVhpSavedItems, ItemKey = AT.ItemKey).LocalId,
+                                                            FileName: AT.FileName,
+                                                            FileUrl: AT.FileUrl,
+                                                            Identifier: "",
+                                                            FileSize: AT.FileSize,
+                                                            OperationsKey: Coalesce(AT.OperationsKey, ";"),
+                                                            Status: AT.UploadStatus.Value,
+                                                            Selected: false
+                                                        }
+                                                    )
+                                                )
+                                            );
+                
+                                            // --- det, gemningen ikke skriver, afledes ---------
+                                            // Objektlisten ligger som tekst paa itemet ("A;B;C").
+                                            ClearCollect(
+                                                colVhpItemObjects,
+                                                Ungroup(
+                                                    ForAll(
+                                                        colVhpItems As I,
+                                                        {
+                                                            Objs: ForAll(
+                                                                Filter(Split(I.ObjectList, ";"), !IsBlank(Trim(Value))) As S,
+                                                                { ItemId: I.ItemId, Code: Trim(S.Value), Description: "" }
+                                                            )
+                                                        }
+                                                    ),
+                                                    Objs
+                                                )
+                                            );
+                                            // Een standardarbejdsplan pr. vaerk: et item med
+                                            // operationer har vaerkets (trin 3 og S3 kraever den).
+                                            Set(varVhpLoadStep, "Loading standard task lists");
+                                            With(
+                                                { tl: LookUp(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)) },
+                                                UpdateIf(
+                                                    colVhpItems,
+                                                    ItemId in colVhpOperations.ItemId,
+                                                    { TasklistKey: Coalesce(tl.Key, ""), TasklistName: Coalesce(tl.Name, "") }
+                                                )
+                                            );
+                
+                                            // --- hvad der er valgt naar skaermen tegnes -------
+                                            Set(varVhpActiveItemId, First(colVhpItems).ItemId);
+                                            Set(varVhpNextItemId, Max(colVhpItems, ItemId));
+                                            Notify(
+                                                "Opened " & idx.RequestNo & " - " &
+                                                    Text(CountRows(colVhpItems)) & " item(s), " &
+                                                    Text(CountRows(colVhpOperations)) & " operation line(s).",
+                                                NotificationType.Success
+                                            );
+                                            // Den indlaeste plan ER den gemte - Save-trinnet er groent,
+                                            // til noget aendres.
+                                            Set(varVhpSavedJson, VhpStateJson);
+                                            true,
+                                            Set(varVhpLoadFailed, true);
+                                            Set(varVhpRequestGuid, "");
+                                            Set(varVhpPlanSpId, 0);
+                                            Set(varVhpPlanKey, "");
+                                            Set(varVhpPlanModified, Blank());
+                                            Set(varVhpPlanCommitted, false);
+                                            Set(varVhpPlanLocked, false);
+                                            false
+                                            )
+                                        )
+                                    )
+                                )
+                            );
+                            // Editoren skal vise den plan, der lige er klargjort.
+                            Clear(colVhpFl);
+                            With(
+                                { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                If(
+                                    !IsBlank(it.FunctionalLocation),
+                                    Collect(
+                                        colVhpFl,
+                                        { Code: it.FunctionalLocation, Description: it.FlDescription,
+                                          Display: it.FunctionalLocation & " - " & it.FlDescription,
+                                          Maintainable: true, Level: "" }
+                                    )
+                                )
+                            );
+                            Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(tglVhpItemRevision); Reset(inpVhpItemInitials); Reset(drpVhpItemTasklist)
+                        )
+                    ),
+                    Set(varVhpLoadFailed, true);
+                    Set(varVhpOpened, "")
+                );
+                
+                // Klar - ventespinneren forsvinder.
+                Set(varVhpBadgeOn, StartsWith(Coalesce(varVhpOpened, ""), "req:") || StartsWith(Coalesce(varVhpOpened, ""), "edit:") || StartsWith(Coalesce(varVhpOpened, ""), "link:"));
+                Set(varVhpLoading, false);
+                Set(varVhpLoadSlow, false);
+                Set(gblNavigating, false);
+                Set(gblNavTo, "")
+            RadiusBottomLeft: |-
+                =10
+            RadiusBottomRight: |-
+                =10
+            RadiusTopLeft: |-
+                =10
+            RadiusTopRight: |-
+                =10
+            Size: |-
+                =14
+            Text: |-
+                ="Open"
+            VerticalAlign: |-
+                =VerticalAlign.Middle
+            Visible: |-
+                =false
+            Width: |-
+                =72
             X: |-
                 =0
             Y: |-
@@ -19871,16 +19936,332 @@ Screens:
             Height: |-
                 =App.Height
             Image: |-
-                ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='440' height='100' viewBox='0 0 440 100'><g opacity='0' transform='translate(188 0)'><text x='32' y='88' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>Opening request - checking edit or view mode...</text><animate attributeName='opacity' from='0' to='1' begin='0.15s' dur='0.2s' fill='freeze'/><circle cx='32' cy='32' r='22' fill='none' stroke-width='6' stroke='" & C.'hex-state-neutral-bg' & "'/><path d='M32 10 a22 22 0 0 1 22 22' fill='none' stroke-width='6' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'><animateTransform attributeName='transform' type='rotate' from='0 32 32' to='360 32 32' dur='0.9s' repeatCount='indefinite'/></path></g></svg>")
-            ImagePosition: |-
-                =ImagePosition.Center
+                =""
             TabIndex: |-
                 =-1
             Visible: |-
-                =IfError(varVhpLoading, false)
+                =IfError(varVhpLoading, false) || IfError(varVhpLoadFailed, false)
             Width: |-
                 =App.Width
             X: |-
                 =0
             Y: |-
                 =0
+      - conVhpLoadCard:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'border-default'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.Bold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =178 + If(IfError(varVhpLoadFailed, false), 6 + (36), 0)
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Stretch
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =6
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =18
+            PaddingLeft: |-
+                =20
+            PaddingRight: |-
+                =20
+            PaddingTop: |-
+                =22
+            RadiusBottomLeft: |-
+                =16
+            RadiusBottomRight: |-
+                =16
+            RadiusTopLeft: |-
+                =16
+            RadiusTopRight: |-
+                =16
+            Visible: |-
+                =IfError(varVhpLoading, false) || IfError(varVhpLoadFailed, false)
+            Width: |-
+                =Min(360, App.Width - 32)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =(App.Height - Self.Height) / 2
+          Children:
+            - imgVhpLoadIcon:
+                Control: Image
+                Properties:
+                  AccessibleLabel: |-
+                      =If(IfError(varVhpLoadFailed, false), "Error", "Loading")
+                  AlignInContainer: |-
+                      =AlignInContainer.Center
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Height: |-
+                      =40
+                  Image: |-
+                      =If(IfError(varVhpLoadFailed, false), "data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><circle cx='20' cy='20' r='16' fill='none' stroke-width='3' stroke='" & C.'hex-state-error-fg' & "'/><path d='M20 12 V22' stroke='" & C.'hex-state-error-fg' & "' stroke-width='4' stroke-linecap='round'/><circle cx='20' cy='29' r='3' fill='" & C.'hex-state-error-fg' & "'/></svg>"), "data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><style>.f{opacity:0;animation:f .2s ease-out 0.15s forwards}.s{transform-origin:20px 20px;animation:s .9s linear infinite}@keyframes f{to{opacity:1}}@keyframes s{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.s{animation:none}}</style><g class='f' transform='translate(0 0)'><circle cx='20' cy='20' r='12' fill='none' stroke-width='4' stroke='" & C.'hex-state-neutral-bg' & "'/><path class='s' d='M20 8 a12 12 0 0 1 12 12' fill='none' stroke-width='4' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'/></g></svg>"))
+                  ImagePosition: |-
+                      =ImagePosition.Fit
+                  TabIndex: |-
+                      =-1
+                  Width: |-
+                      =40
+            - txtVhpLoadTitle:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  Align: |-
+                      =Align.Center
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-primary'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  FontWeight: |-
+                      =FontWeight.Semibold
+                  Height: |-
+                      =26
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =17
+                  Text: |-
+                      =If(IfError(varVhpLoadFailed, false), "Could not open the request", IsBlank(gblVhpReqId), "Preparing a new request", "Opening request")
+                  Wrap: |-
+                      =false
+            - txtVhpLoadStep:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  Align: |-
+                      =Align.Center
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =20
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =13
+                  Text: |-
+                      =If(IfError(varVhpLoadFailed, false), "Stopped while " & Lower(Left(Coalesce(varVhpLoadStep, ""), 1)) & Mid(Coalesce(varVhpLoadStep, ""), 2), Coalesce(varVhpLoadStep, ""))
+                  Wrap: |-
+                      =false
+            - txtVhpLoadHint:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  Align: |-
+                      =Align.Center
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =34
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =12
+                  Text: |-
+                      =If(IfError(varVhpLoadFailed, false), "Check your connection and try again.", IfError(varVhpLoadSlow, false) && IfError(varVhpLoading, false), "Taking longer than usual. " & Switch(Coalesce(varVhpLoadStep, ""), "Finding the request", "The request list is responding slowly.", "Loading plan details", "Still waiting for the plan details.", "Loading items and operations", "Plans with many items and operations take longer.", "Loading materials and documents", "Plans with many materials and documents take longer.", "Loading standard task lists", "Standard task lists load once per session.", "Loading functional locations", "Requests with many rows take longer to load.", "Loading saved rows", "Many saved rows take longer to load.", "Still working on it."), "")
+                  Wrap: |-
+                      =true
+            - conVhpLoadActions:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =36
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =8
+                  LayoutJustifyContent: |-
+                      =LayoutJustifyContent.Center
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Visible: |-
+                      =IfError(varVhpLoadFailed, false)
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - btnVhpLoadClose:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-default'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varVhpLoadFailed, false);
+                            Set(gblVhpWant, Blank());
+                            Set(varVhpOpened, "");
+                            Navigate(ScreenMdHub, ScreenTransition.None)
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =14
+                        Text: |-
+                            ="Close"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =77
+                  - btnVhpLoadRetry:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Retry"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
+                        Color: |-
+                            =C.'text-on-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varVhpLoadFailed, false);
+                            Set(varVhpLoadSlow, false);
+                            Set(varVhpOpened, "");
+                            Set(varVhpLoading, true);
+                            Select(btnVhpOpen)
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =14
+                        Text: |-
+                            ="Retry"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =73
+      - tmrVhpLoadSlow:
+          Control: Timer
+          Properties:
+            AutoPause: |-
+                =false
+            AutoStart: |-
+                =false
+            Duration: |-
+                =6000
+            Height: |-
+                =1
+            OnTimerEnd: |-
+                =Set(varVhpLoadSlow, true)
+            Repeat: |-
+                =false
+            Reset: |-
+                =!IfError(varVhpLoading, false)
+            Start: |-
+                =IfError(varVhpLoading, false)
+            Visible: |-
+                =false
+            Width: |-
+                =1
