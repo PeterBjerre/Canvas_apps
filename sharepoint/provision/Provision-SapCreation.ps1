@@ -1,12 +1,13 @@
 ﻿<#
 .SYNOPSIS
     Det, oprettelsen i SAP har brug for i SharePoint: biblioteket
-    SAP-oprettelse med sine mapper og fem kolonner til numrene fra SAP.
+    SAP-oprettelse med sine mapper og kolonnerne til resultaterne fra SAP -
+    for VH-planer og for FL-anmodninger.
 
 .DESCRIPTION
-    Se docs/34-sap-oprettelse.md og docs/35-flow-sap-ordre.md. Scriptet er
-    idempotent og ADDITIVT: det sletter ingenting, og appen virker uaendret
-    bagefter.
+    Se docs/34-sap-oprettelse.md, docs/35-flow-sap-ordre.md og
+    docs/36-fl-sap-oprettelse.md. Scriptet er idempotent og ADDITIVT: det
+    sletter ingenting, og appen virker uaendret bagefter.
 
     BIBLIOTEKET  SAP-oprettelse
         Til oprettelse\          flowet BioSap-VhPlan-SapOrder skriver een
@@ -14,6 +15,8 @@
         Kvitteringer\            VH-plan Opretter skriver kvitteringen
         Kvitteringer\Behandlet\  flowet BioSap-VhPlan-SapReceipt flytter
         Kvitteringer\Afvist\     kvitteringen hertil, naar den er laest
+        Kvitteringer\FL\         FL-kvitteringerne - flowet
+          Behandlet\, Afvist\    BioSap-FL-SapReceipt laeser dem
         Oprettet\                opretteren flytter ordren hertil
 
     Biblioteket synkroniseres til Master Datas pc'er med OneDrive
@@ -33,6 +36,14 @@
                         Arbejdsplanens gruppe og taeller skrives i de
                         kolonner, der findes: TaskListGroup og
                         TaskListGroupCounter.
+
+    FunctionalLocationRequests (kun hvis listen findes)
+        SapOrderGuid, SapOrderFile, SapCreatedOn, SapCreatedBy - som paa
+                        MaintenancePlans
+
+    FunctionalLocationItems (kun hvis listen findes)
+        SapResult       Text - Created (IL01) eller Updated (IL02)
+        SapMessage      Text - SAP's statuslinje efter Gem
 
     RETTIGHEDER
     -----------
@@ -112,7 +123,8 @@ if (-not $lib) {
 if ($lib) {
     $rootFolder = Get-PnPProperty -ClientObject $lib -Property RootFolder
     $libUrl = $rootFolder.Name
-    foreach ($folder in @('Til oprettelse', 'Kvitteringer', 'Kvitteringer/Behandlet', 'Kvitteringer/Afvist', 'Oprettet')) {
+    foreach ($folder in @('Til oprettelse', 'Kvitteringer', 'Kvitteringer/Behandlet', 'Kvitteringer/Afvist',
+                          'Kvitteringer/FL', 'Kvitteringer/FL/Behandlet', 'Kvitteringer/FL/Afvist', 'Oprettet')) {
         if ($WhatIfOnly) {
             Write-Host "    ? mappen $folder" -ForegroundColor Yellow
         } else {
@@ -136,6 +148,33 @@ Add-Col 'MaintenancePlans' 'SapCreatedBy' Text `
 Write-Host "`n=== MaintenanceItems ===" -ForegroundColor Cyan
 Add-Col 'MaintenanceItems' 'SapItemNo' Text -Indexed `
     -Description 'Vedligeholdspositionens nummer i SAP (IP04). Skrives af kvitteringsflowet.'
+
+# ---------------------------------------------------------------------------
+# FL-anmodningerne. Listerne oprettes af Provision-FunctionalLocationLists.ps1;
+# findes de ikke endnu, springes de over - koer det script foerst.
+foreach ($pair in @(@('FunctionalLocationRequests', 'FL-anmodningerne'), @('FunctionalLocationItems', 'FL-raekkerne'))) {
+    if (-not (Get-PnPList -Identity $pair[0] -ErrorAction SilentlyContinue)) {
+        Write-Host "`n=== $($pair[0]) findes ikke - koer Provision-FunctionalLocationLists.ps1 foerst ===" -ForegroundColor Yellow
+    }
+}
+if (Get-PnPList -Identity 'FunctionalLocationRequests' -ErrorAction SilentlyContinue) {
+    Write-Host "`n=== FunctionalLocationRequests ===" -ForegroundColor Cyan
+    Add-Col 'FunctionalLocationRequests' 'SapOrderGuid' Text -Indexed `
+        -Description 'Ordren til SAP-oprettelsen, flowet sidst skrev. Kvitteringen skal baere den samme.'
+    Add-Col 'FunctionalLocationRequests' 'SapOrderFile' Text `
+        -Description 'Navnet paa ordrefilen i SAP-oprettelse/Til oprettelse.'
+    Add-Col 'FunctionalLocationRequests' 'SapCreatedOn' DateTime `
+        -Description 'Hvornaar kvitteringen fra SAP Opretter blev laest.'
+    Add-Col 'FunctionalLocationRequests' 'SapCreatedBy' Text `
+        -Description 'Initialerne paa den, der oprettede FL i SAP.'
+}
+if (Get-PnPList -Identity 'FunctionalLocationItems' -ErrorAction SilentlyContinue) {
+    Write-Host "`n=== FunctionalLocationItems ===" -ForegroundColor Cyan
+    Add-Col 'FunctionalLocationItems' 'SapResult' Text `
+        -Description 'Created (oprettet med IL01) eller Updated (fandtes, aendret med IL02).'
+    Add-Col 'FunctionalLocationItems' 'SapMessage' Text `
+        -Description 'Statuslinjen i SAP efter Gem.'
+}
 
 Write-Host ""
 Write-Host "Faerdig. Synkroniser biblioteket $LibraryName med OneDrive paa Master Datas pc'er," -ForegroundColor Cyan
