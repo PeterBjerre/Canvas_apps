@@ -5,7 +5,7 @@ from gen_screen import Ctrl, SHELL_W, C_PRIMARY, C_CARD_BORDER, C_VALID_FG, C_MU
 import layout_tokens as lay
 from build_helpers import (group, fit_button_width, text_ctrl, text_px,
                            flow_row, page_icon, PAGE_ICON, ICON_W, top_bar, grow,
-                           button, confirm_modal, icon_on_mobile, delete_button, delete_modal)
+                           button, confirm_modal, icon_on_mobile, edit_button, delete_button, delete_modal)
 from layout_tokens import if_below, at_least, below
 from design_tokens import ref_hex
 from build_items import FL_CODE, SEED_FL_PICKER, RESET_EDITOR_CONTROLS
@@ -369,7 +369,6 @@ SUB_W = fit_button_width('"Submit"', min_w=72)
 SUBTITLE = '"Plan header, items, task lists and operations - submitted to SAP master data."'
 NEW_W = fit_button_width('"New request"') + ICON_W
 EDIT_W = fit_button_width('"Edit"') + ICON_W
-VIEW_EDIT = "IfError(varVhpViewOnly && varVhpCanEdit, false)"
 
 RESET_COLLECTIONS = ("colVhpItems", "colVhpOperations", "colVhpItemObjects", "colVhpObjDraft",
                      "colVhpMaterials", "colVhpAttachments")
@@ -434,11 +433,9 @@ def build_top_bar():
     btnNew.props["AlignInContainer"] = "AlignInContainer.Center"
     btnNew.props["LayoutMinWidth"] = str(NEW_W)
     btnNew.vis = at_least("Tablet")
-    btnEdit = button("btnVhpEdit", '"Edit"',
-                     "Set(varVhpViewOnly, false); Set(varVhpPlanLocked, false)",
-                     width=EDIT_W, height=36, icon="Edit", visible=VIEW_EDIT,
-                     accessible='"Edit this request"')
-    btnEdit.props["AlignInContainer"] = "AlignInContainer.Center"
+    # Den faelles Edit (build_helpers.edit_button) - samme knap i Equipment og Material.
+    btnEdit = edit_button("btnVhpEdit", "varVhpViewOnly", "varVhpCanEdit",
+                          "Set(varVhpViewOnly, false); Set(varVhpPlanLocked, false)")
     confirmNew = confirm_modal(
         "VhpNew", "varVhpConfirmNew", "Start a new request?",
         '"Unsaved work on this request is discarded. Save a draft first to keep it."',
@@ -469,7 +466,7 @@ def build_top_bar():
     btnSubmit.props["AlignInContainer"] = "AlignInContainer.Center"
     btnDraft.props["LayoutMinWidth"] = str(SAVE_W)
     btnSubmit.props["LayoutMinWidth"] = str(SUB_W)
-    for b_ in (btnEdit, btnNew, btnDraft):
+    for b_ in (btnNew, btnDraft):
         icon_on_mobile(b_)
     narrow = below("Tablet")
     new_m_w = fit_button_width('"New"', min_w=0) + 8
