@@ -176,7 +176,7 @@ class Ctrl:
     # vis = Visible-udtryk, hvis kontrollen kan vaere skjult. Forelderen
     #       taeller den saa kun med, naar den er synlig.
     __slots__ = ("name", "control", "variant", "props", "children", "h", "_vis",
-                 "_tpl_w", "_tpl_h", "_tpl_unc", "_grow", "desk_w", "icon_w")
+                 "_tpl_w", "_tpl_h", "_tpl_unc", "_grow", "_fit", "desk_w", "icon_w")
 
     def __init__(self, name, control, variant=None, props=None, children=None, h=None, vis=None):
         self.name = name
@@ -188,6 +188,7 @@ class Ctrl:
         self._tpl_w = self._tpl_h = None
         self._tpl_unc = False
         self._grow = None      # mindstebredde, naar barnet tager resten
+        self._fit = None       # (naturlig bredde, reserve): se build_helpers.fit
         self._vis = None
         if vis is not None:
             self.vis = vis
@@ -351,6 +352,8 @@ def resolve_templates(nodes, parent=None, parent_inner=None, uncertain=False):
     sidste celle uden for rakken. Derfor traekkes GALLERY_RESERVE fra, naar
     kaeden er usikker."""
     for c in nodes:
+        if c._fit is not None:
+            _resolve_fit(c, parent_inner)
         w = _p(c, "Width", "")
         unc = uncertain
         if parent is not None and parent.control == "Gallery":
@@ -446,6 +449,22 @@ def _resolve_grow(row, inner):
     g.props["Width"] = f"Max({g._grow}, {rest})"
     g.props["FillPortions"] = "0"
     g.props["LayoutMinWidth"] = str(g._grow)
+
+
+def _resolve_fit(ctrl, parent_inner):
+    """En kontrol, der er saa bred som sit indhold - men aldrig bredere end
+    pladsen inden i foraelderen (build_helpers.fit).
+
+    Bredden bliver Min(den naturlige bredde, pladsen - reserven). Pladsen er
+    den samme nedre graense, grow regner med: foraelderens udregnede bredde
+    minus padding og scrollbar - ikke Parent.Width (check_layout regel 24)."""
+    if parent_inner is None:
+        raise SystemExit(f"gen_screen: {ctrl.name} skal passe i sin foraelder, "
+                         f"men foraelderens bredde kan ikke regnes ud")
+    nat, reserve = ctrl._fit
+    room = f"({parent_inner})" + (f" - ({reserve})" if reserve else "")
+    ctrl.props["Width"] = f"Max(0, Min({nat}, {room}))"
+    ctrl.props["LayoutMinWidth"] = "0"
 
 
 # ---------------------------------------------------------------------------
