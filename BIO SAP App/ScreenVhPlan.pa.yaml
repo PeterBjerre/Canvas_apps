@@ -517,7 +517,7 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 2
                                     Width: |-
-                                        =If(LayoutRank < 2, 56, If(LayoutRank < 3, 220, Max(533, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416) / 2 - 16)))
+                                        =If(LayoutRank < 2, 56, If(LayoutRank < 3, Max(220, (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 533 - 16), Max(533, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416) / 2 - 16)))
                                   Children:
                                     - imgVhpTitleIcon:
                                         Control: Image
@@ -573,7 +573,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =Max(0, ((If(LayoutRank < 2, 56, If(LayoutRank < 3, 220, Max(533, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416) / 2 - 16))))) - (If(LayoutRank >= 2, (32) + 10, 0)) - 2)
+                                              =Max(0, ((If(LayoutRank < 2, 56, If(LayoutRank < 3, Max(220, (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 533 - 16), Max(533, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416) / 2 - 16))))) - (If(LayoutRank >= 2, (32) + 10, 0)) - 2)
                                         Children:
                                           - conVhpTitleLine:
                                               Control: GroupContainer
@@ -604,7 +604,7 @@ Screens:
                                                 Visible: |-
                                                     =LayoutRank >= 2
                                                 Width: |-
-                                                    =279
+                                                    =Max(0, Min(286, ((Max(0, ((If(LayoutRank < 2, 56, If(LayoutRank < 3, Max(220, (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 533 - 16), Max(533, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416) / 2 - 16))))) - (If(LayoutRank >= 2, (32) + 10, 0)) - 2)))))
                                               Children:
                                                 - txtVhpTitle:
                                                     Control: ModernText
@@ -626,7 +626,7 @@ Screens:
                                                       Height: |-
                                                           =33
                                                       LayoutMinWidth: |-
-                                                          =185
+                                                          =0
                                                       PaddingBottom: |-
                                                           =0
                                                       PaddingLeft: |-
@@ -642,7 +642,7 @@ Screens:
                                                       Visible: |-
                                                           =LayoutRank >= 2
                                                       Width: |-
-                                                          =185
+                                                          =Max(0, Min(192, ((Max(0, Min(286, ((Max(0, ((If(LayoutRank < 2, 56, If(LayoutRank < 3, Max(220, (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 533 - 16), Max(533, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416) / 2 - 16))))) - (If(LayoutRank >= 2, (32) + 10, 0)) - 2))))))) - (If(IsBlank(varVhpPlanKey), 0, 6 + 88))))
                                                       Wrap: |-
                                                           =false
                                                 - imgVhpNumber:
