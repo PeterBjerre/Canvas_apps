@@ -30,7 +30,7 @@ import yaml
 import combined as cb
 
 # Navne uden domaenepraefiks, der er FAELLES med vilje.
-SHARED = {"gblFbOpen", "gblFbMe", "gblNavOpen", "colAppPrefs", "darkModeEnabled", cb.NEW_SEQ, "gblNavigating", "gblNavTo"}
+SHARED = {"gblFbOpen", "gblFbMe", "gblFbSel", "gblFbPick", "colFbRequests", "gblNavOpen", "colAppPrefs", "darkModeEnabled", cb.NEW_SEQ, "gblNavigating", "gblNavTo"}
 # Hubbens egne - de har aldrig haft et praefiks.
 HUB_OWN = {"varMdMe", "varMdView", "varMdDomain", "varMdStatusMode", "varMdNewMenu", "varMdClosedPeek"}
 
