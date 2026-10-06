@@ -182,6 +182,9 @@ DM_SEL = ('If(IsBlank(varDomActiveRowId), DisplayMode.Disabled, DisplayMode.Edit
 # indsendt raekke - den ejes af SAP-processen.
 DM_ROW_DEL = ('If(varDomViewOnly || ThisItem.Status = "submitted", '
               "DisplayMode.Disabled, DisplayMode.Edit)")
+# Raekkens Edit (issue #101): SAMME regel som slet-ikonet. Kan raekken
+# ikke redigeres, er Details vejen til at se den.
+DM_ROW_EDIT = DM_ROW_DEL
 
 
 # ---------------------------------------------------------------------------
@@ -963,10 +966,13 @@ def build_details(scope=None):
                               f"DisplayMode.Disabled, DisplayMode.Edit)")
     # Aabner raekken i formularen OG lukker popuppen - formularen staar
     # bagved, saa man ellers ikke kunne se, at der skete noget.
+    # Samme regel som raekkens Edit (DM_ROW_EDIT, issue #101): popuppen er
+    # en ren visning, naar raekken ikke kan redigeres.
     edit = button("btnDomDetEdit", '"Edit this row"',
                   load_row_fx().replace("ThisItem.", f"{row}.")
                   + ";\nSet(varDomDetailsId, Blank())",
-                  primary=True, width=130, height=30)
+                  primary=True, width=130, height=30,
+                  display_mode=DM_ROW_EDIT.replace("ThisItem.", f"{row}."))
     close = button("btnDomDetClose", '"Close"',
                    "Set(varDomDetailsId, Blank())", width=84, height=30)
     # Knapperne DIREKTE i hovedet, ikke i en indlejret gruppe: i Studio
@@ -990,6 +996,9 @@ def build_details(scope=None):
         else:
             v = f'Coalesce({row}.{col}, "-")'
         rows.append(_detail_row(n, label, v))
+    # Anmodningen, raekken hoerer til - den sidste kolonne i colDomRows,
+    # der ikke stod her (issue #101: "all available columns").
+    rows.append(_detail_row(len(rows), "Request no.", f'Coalesce({row}.RequestNo, "-")'))
 
     # FELTLISTEN SCROLLER, POPUPPEN GOER IKKE. Equipment har nitten felter;
     # hoejere end en baerbar skaerm. Hovedet med Luk staar fast.
@@ -1490,12 +1499,19 @@ HEAD_SIZE = 11
 CELL_PAD = 10
 BADGE_W = 90
 
-# Knapperne. Details og Docs staar i DETAILS-kolonnen i Compact; i All
-# columns er der ingen DETAILS-kolonne, og saa er de de foerste af
-# handlingerne - overskriften "ACTIONS" flytter hen over dem.
-DETAIL_BTNS = [("btnDomRowDetails", '"Details"'), ("btnDomRowDocs", '"Docs"')]
-ACTION_BTNS = [("btnDomRowOpen", '"Edit"'), ("btnDomRowCopy", '"Copy"'),
+# Knapperne. Raekkens handlinger er Details -> Edit -> Delete, i den
+# raekkefoelge og yderst til hoejre (issue #101). Docs og Copy staar i
+# MORE-kolonnen foran dem i Compact; i All columns er der ingen
+# MORE-overskrift, og saa er de de foerste af handlingerne - overskriften
+# "ACTIONS" flytter hen over dem.
+MORE_BTNS = [("btnDomRowDocs", '"Docs"'), ("btnDomRowCopy", '"Copy"')]
+ACTION_BTNS = [("btnDomRowDetails", '"Details"'), ("btnDomRowOpen", '"Edit"'),
                ("btnDomRowDelete", '"Delete row"')]
+# Details aabner den eksisterende skrivebeskyttede popup (build_details).
+DETAILS_FX = "Set(varDomDetailsId, ThisItem.RowId)"
+# Knapperne, der kan laases - ens i tabellen og i Compact-kortet.
+ROW_MODES = {"btnDomRowDelete": DM_ROW_DEL, "btnDomRowOpen": DM_ROW_EDIT,
+             "btnDomRowCopy": "If(varDomViewOnly, DisplayMode.Disabled, DisplayMode.Edit)"}
 
 
 def _btns_w(btns):
@@ -1507,7 +1523,7 @@ def _btns_w(btns):
     return sum(ROW_BTN[n] for n, _t in btns) + ROW_BTN_GAP * (len(btns) - 1)
 
 
-LIST_DETAILS_W = _btns_w(DETAIL_BTNS) + CELL_PAD
+LIST_MORE_W = _btns_w(MORE_BTNS) + CELL_PAD
 LIST_ACTIONS_W = _btns_w(ACTION_BTNS) + CELL_PAD
 # Galleriets egne 2 x 2 px skabelonpolstring og dets lodrette scrollbar.
 TABLE_AVAIL = f"(({FORM_W}) - 4 - {SCROLLBAR_W})"
@@ -1545,10 +1561,10 @@ class ListLayout:
     def __init__(self, slots):
         self.slots = slots
         self.all_ws = [col_w(a) for _c, a in slots]
-        self.all_w = (BADGE_W + sum(self.all_ws) + LIST_DETAILS_W + LIST_ACTIONS_W
+        self.all_w = (BADGE_W + sum(self.all_ws) + LIST_MORE_W + LIST_ACTIONS_W
                       + T_GAP * (len(slots) + 2))
         self.compact = [i for i, (c, _a) in enumerate(slots) if c is not None]
-        fixed = BADGE_W + LIST_DETAILS_W + LIST_ACTIONS_W + T_GAP * (len(self.compact) + 2)
+        fixed = BADGE_W + LIST_MORE_W + LIST_ACTIONS_W + T_GAP * (len(self.compact) + 2)
         self.compact_min = fixed + sum(col_w(slots[i][0]) for i in self.compact)
         self.spare = (f"Max(0, ({TABLE_AVAIL}) - {self.compact_min}) / "
                       f"{len(self.compact)}")
@@ -1671,12 +1687,10 @@ def _compact_row(lay_, load_fx, copy_fx, delete_fx):
         return group(name, out, direction="Horizontal", gap=ROW_BTN_GAP, height=ROW_BTN_H,
                      align_items="Center")
 
-    line3 = btns("conDomRowLineC3", ACTION_BTNS, [load_fx, copy_fx, delete_fx],
-                 danger=("btnDomRowDelete",),
-                 modes={"btnDomRowDelete": DM_ROW_DEL,
-                        "btnDomRowCopy": "If(varDomViewOnly, DisplayMode.Disabled, DisplayMode.Edit)"})
-    line4 = btns("conDomRowLineC4", DETAIL_BTNS,
-                 ["Set(varDomDetailsId, ThisItem.RowId)", open_docs_fx()])
+    line3 = btns("conDomRowLineC3", ACTION_BTNS, [DETAILS_FX, load_fx, delete_fx],
+                 danger=("btnDomRowDelete",), modes=ROW_MODES)
+    line4 = btns("conDomRowLineC4", MORE_BTNS, [open_docs_fx(), copy_fx],
+                 modes=ROW_MODES)
     return group("conDomRowC", [line1, line2, line3, line4], direction="Vertical", gap=4,
                  height="Parent.TemplateHeight - 2", align_items="Stretch",
                  width="Parent.TemplateWidth", pad=(8, CELL_PAD, 0, CELL_PAD),
@@ -1727,18 +1741,17 @@ def build_list(slots, badge_head, search_placeholder):
         cells.append(_pad(text_ctrl(f"txtDomCell{i}", lay_.text(i, 1), size=13,
                                     height=20, width=lay_.width(i), wrap="false",
                                     visible=lay_.visible(i))))
-    heads.append(_head_text("txtDomHeadDetails",
-                            f'If({ALL_COLS}, "ACTIONS", "DETAILS")', LIST_DETAILS_W))
+    heads.append(_head_text("txtDomHeadMore",
+                            f'If({ALL_COLS}, "ACTIONS", "MORE")', LIST_MORE_W))
     heads.append(_head_text("txtDomHeadActions", f'If({ALL_COLS}, "", "ACTIONS")',
                             LIST_ACTIONS_W, accessible='"Actions"'))
-    cells.append(_row_buttons("conDomRowDetails", DETAIL_BTNS,
-                              ['Set(varDomDetailsId, ThisItem.RowId)', open_docs_fx()],
-                              LIST_DETAILS_W))
+    cells.append(_row_buttons("conDomRowMore", MORE_BTNS,
+                              [open_docs_fx(), copy_row_fx()],
+                              LIST_MORE_W, modes=ROW_MODES))
     cells.append(_row_buttons("conDomRowActions", ACTION_BTNS,
-                              [load_row_fx(), copy_row_fx(), delete_this_row_fx()],
+                              [DETAILS_FX, load_row_fx(), delete_this_row_fx()],
                               LIST_ACTIONS_W, danger=("btnDomRowDelete",),
-                              modes={"btnDomRowDelete": DM_ROW_DEL,
-                                  "btnDomRowCopy": "If(varDomViewOnly, DisplayMode.Disabled, DisplayMode.Edit)"}))
+                              modes=ROW_MODES))
 
     table_w = if_below("Desktop", TABLE_AVAIL, lay_.table_w)
     list_head = group("conDomListHead", heads, direction="Horizontal", gap=T_GAP,
@@ -1790,13 +1803,13 @@ def build_list(slots, badge_head, search_placeholder):
 # Indsend - under tabellen, til hoejre. Selve indsendelsen er send_fx.
 # ---------------------------------------------------------------------------
 def _submit_parts():
-    """Reload rows, Save as draft og Submit saved rows - med Submit yderst
-    til hoejre - og hvor indmeldingen staar."""
-    # "Hent forfra" stod BEGGE steder - her og paa dokumentruden - og
-    # betoed to forskellige ting. Nu siger navnet hvad der hentes.
-    reload_ = icon_on_mobile(fit(button("btnDomReload", '"Reload rows"',
-                         refresh_rows_fx() + ';\nSet(varDomInfo, "Reloaded.")', icon="ArrowSync",
-        tooltip='"Fetch your rows from SharePoint again"'), icon=True))
+    """Hvor indmeldingen staar - under tabellen.
+
+    "Reload rows" stod her (issue #101: fjernet). Listen hentes allerede
+    forfra efter hver gem og sletning (refresh_rows_fx i save_row_fx og
+    delete_confirmed_fx), saa knappen gav kun et ekstra kald. Teksten staar
+    nu alene og er kun synlig, naar der er en anmodning - ellers tager den
+    ingen plads (hoejden regnes af Visible)."""
     state = text_ctrl(
         "txtDomSubmitState",
         ('If(\n'
@@ -1805,6 +1818,4 @@ def _submit_parts():
          '    "Request " & varDomRequestNo & " is on the landing page."\n'
          ')'),
         size=13, color=C_MUTED, height=20, wrap="false", visible="!IsBlank(varDomRequestNo)")
-    row = flow_row("conDomSubmitRow", [state, reload_], FORM_W, gap=8,
-                   flex=state, flex_min=0)
-    return [row]
+    return [state]
