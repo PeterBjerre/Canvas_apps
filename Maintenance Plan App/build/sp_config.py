@@ -104,8 +104,11 @@ C_FILE_NAME   = "FileName"
 #
 # Nul personer findes ikke; en tom eller nulstillet celle regnes som een, saa
 # udtrykket aldrig dividerer med nul.
+#
+# Afrundet til to decimaler som i den gamle app: 10 timer paa 3 personer er
+# 3,33 og ikke 3,3333333 i TaskListMain og i SAP-ordren.
 def duration_expr(work, persons):
-    return f"{work} / Max(Coalesce({persons}, 1), 1)"
+    return f"Round({work} / Max(Coalesce({persons}, 1), 1), 2)"
 
 
 # Beskrivelserne til Non Flow User Status-koderne (issue #112). Kun
@@ -131,6 +134,16 @@ def non_flow_desc(code):
 
 
 NON_FLOW_DESC = non_flow_desc("c")
+
+
+# Varegruppen paa en PM02-operation, der ingen har. Samme vaerdi som
+# Excel-opretterens standard (excel/opretter/VhpConfig.bas, SET_PM02_MATGROUP:
+# "Det gamle regneark brugte altid B08.06").
+PM02_DEFAULT_MATGROUP = "B08.06"
+
+# Vaerk -> vaerket, hvis standardtaskliste det laaner, saa laenge det ingen
+# har selv. Fra den gamle app (StandardTasklistGallery: HCV og SMV -> AVV).
+TASKLIST_FALLBACK = {"HCV": "AVV", "SMV": "AVV"}
 
 
 def _forall(source, fields, alias="R"):
@@ -338,7 +351,7 @@ def named_formulas():
         "op pr. vaerk i hukommelsen.")
 
     ops = _forall(
-        "Sort(Filter(colVhpStdOps, Plant = P.Value), OperationNo)",
+        "Sort(Filter(colVhpStdOps, Plant = P.Src), OperationNo)",
         [("OperationNo", "Text(O.OperationNo, \"0000\")"),
          ("OperationShortText", "O.OperationShortText"),
          ("WorkHours", "O.Work"),
@@ -365,14 +378,67 @@ def named_formulas():
          ("MaterialGroup", "O.MaterialGroup"),
          ("OpPlant", "O.SapPlant")],
         alias="O")
+    # VAERKER UDEN EGEN STANDARDARBEJDSPLAN. Den gamle app gav HCV og SMV
+    # AVV's standardtaskliste (TASKLIST_FALLBACK). Har vaerket faaet sine
+    # egne operationer i MD_StandardTaskOperations, bruges de i stedet.
+    fallback = ", ".join(f'"{k}", "{v}"' for k, v in TASKLIST_FALLBACK.items())
+    add("colVhpTasklistPlants",
+        "Filter(\n"
+        f"    ForAll(Choices({L_STDOPS}.Plant) As C,\n"
+        "        {\n"
+        "            Plant: C.Value,\n"
+        "            Src: If(C.Value in colVhpStdOps.Plant, C.Value,\n"
+        f"                Coalesce(Switch(C.Value, {fallback}), C.Value))\n"
+        "        }\n"
+        "    ),\n"
+        "    Src in colVhpStdOps.Plant\n"
+        ")",
+        "Vaerkerne med en standardtaskliste, og hvis operationer den bruger.")
     add("colVhpTasklists",
-        _forall("Distinct(colVhpStdOps, Plant)",
-                [("Plant", "P.Value"),
-                 ("Key", "P.Value & \"-STD\""),
-                 ("Name", "\"Standard task list - \" & P.Value"),
+        _forall("colVhpTasklistPlants",
+                [("Plant", "P.Plant"),
+                 ("Key", "P.Plant & \"-STD\""),
+                 ("Name", "\"Standard task list - \" & P.Plant"),
                  ("Description", "\"\""),
                  ("Operations", ops)],
                 alias="P"))
+
+    # --- kaldshorisont og planlaegningsperiode ---
+    # Den gamle VH-plan-app regnede dem ud fra CallHorizonMatrix og skrev
+    # dem paa planen; Excel-opretteren har den samme tabel i arket Opslag.
+    # CycleOrUnit er teksten "2 mon" - den deles her i tal og enhed, saa
+    # opslaget ikke afhaenger af store/smaa bogstaver eller mellemrum.
+    # Raekken uden cyklus (taellerbaseret) falder fra. 16 raekker, hentet
+    # een gang, dovent.
+    add("colVhpCallHorizon",
+        "Filter(\n"
+        f"    ForAll({L_CALLHORIZON} As H,\n"
+        "        With({ t: Trim(Coalesce(H.CycleOrUnit, \"\")) },\n"
+        "            With({ p: Find(\" \", t) },\n"
+        "                {\n"
+        "                    Cycle: If(IsBlank(p), Blank(), Value(Left(t, p - 1))),\n"
+        "                    Unit: If(IsBlank(p), \"\", Upper(Trim(Mid(t, p + 1)))),\n"
+        "                    Fcd: H.NewCallHorizonOrFCD,\n"
+        "                    Period: H.SchedulingPeriodNum\n"
+        "                }\n"
+        "            )\n"
+        "        )\n"
+        "    ),\n"
+        "    !IsBlank(Cycle) && !IsBlank(Unit)\n"
+        ")",
+        "CallHorizonMatrix som { Cycle, Unit, Fcd, Period }.")
+    # Samme regel som den gamle app: den eksakte cyklus, og findes den ikke,
+    # den naermeste MINDRE cyklus med samme enhed (5 WK -> 2 WK).
+    add("VhpCallHorizon",
+        "With(\n"
+        "    { c: varVhpPlan.Cycle, u: Upper(varVhpPlan.Unit) },\n"
+        "    First(Sort(Filter(colVhpCallHorizon, Unit = u && Cycle <= c), Cycle, SortOrder.Descending)).Fcd\n"
+        ")",
+        "Kaldshorisonten (FCD) for planens cyklus. Tom paa en strategiplan.")
+    # Planlaegningsperioden kun ved eksakt cyklus - som i den gamle app.
+    add("VhpSchedulingPeriod",
+        "LookUp(colVhpCallHorizon, Unit = Upper(varVhpPlan.Unit) && Cycle = varVhpPlan.Cycle).Period",
+        "Planlaegningsperioden (aar) for planens cyklus.")
 
     # De faste tabeller. Samme form som resten: en navngiven formel, der
     # laeses dovent og caches. Se STATIC_TABLES nedenfor.
@@ -469,7 +535,10 @@ WORKING_COLLECTIONS = [
     # Gemmets arbejdssamlinger (build_save.py): hvad der er i SharePoint
     # foer skrivningen, de gamle raekker, der slettes til sidst, og
     # trinenes fejl.
-    ("colVhpSpItems", {"ID": 0, "ItemID": '""'}),
+    # Sceq: raekken har SCEqFL eller SCEqOL - sikkerhedskritisk udstyr, som
+    # den gamle app hentede fra FL-flowet. Prioriteten (build_save.PRIORITY)
+    # holder et saadant item roedt, ogsaa naar det gemmes igen.
+    ("colVhpSpItems", {"ID": 0, "ItemID": '""', "Sceq": "false"}),
     # Items, som de stod foer en ADMINS gemning af en andens plan - kun
     # hentet dér, til admin-loggen (tools/admin_log.py).
     ("colVhpAdmOld", {"ID": 0, "ItemID": '""', "Title": '""', "ItemDescription": '""',
