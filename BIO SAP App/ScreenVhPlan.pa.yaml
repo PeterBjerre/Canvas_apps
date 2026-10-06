@@ -1493,6 +1493,60 @@ Screens:
                                     Width: |-
                                         =If(LayoutRank < 3, If(LayoutRank < 2, 304, 548), Max(548, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416) / 2 - 16))
                                   Children:
+                                    - btnVhpNotes:
+                                        Control: ModernButton
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="View the submission notes"
+                                          Align: |-
+                                              =Align.Center
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          Appearance: |-
+                                              =ButtonAppearance.Outline
+                                          BorderColor: |-
+                                              =C.'border-default'
+                                          BorderThickness: |-
+                                              =1
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =36
+                                          Icon: |-
+                                              ="Note"
+                                          Layout: |-
+                                              =ButtonLayout.IconOnly
+                                          LayoutMinWidth: |-
+                                              =40
+                                          OnSelect: |-
+                                              =Set(varVhpNotesEdit, false);
+                                              Reset(inpVhpNoteA);
+                                              Reset(inpVhpNoteS);
+                                              Set(varVhpConfirmSubmit, true)
+                                          RadiusBottomLeft: |-
+                                              =10
+                                          RadiusBottomRight: |-
+                                              =10
+                                          RadiusTopLeft: |-
+                                              =10
+                                          RadiusTopRight: |-
+                                              =10
+                                          Size: |-
+                                              =14
+                                          Text: |-
+                                              ="Notes"
+                                          Tooltip: |-
+                                              ="View notes"
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Visible: |-
+                                              =(!IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf))
+                                          Width: |-
+                                              =40
                                     - btnVhpEdit:
                                         Control: ModernButton
                                         Properties:
@@ -1678,6 +1732,13 @@ Screens:
                                               Set(varVhpActiveItemId, 1);
                                               Set(varVhpNextItemId, 1);
                                               Set(varVhpFlMsg, "");
+                                              // Noterne ved Submit (issue #115, tools/submission_notes.py). build_load
+                                              // fylder dem kun med det, brugeren maa se. varVhpOwnerEmail er ejeren af
+                                              // en indlaest plan (tom = ny plan, brugeren selv).
+                                              Set(varVhpNoteApprover, "");
+                                              Set(varVhpNoteSelf, "");
+                                              Set(varVhpOwnerEmail, "");
+                                              Set(varVhpNotesEdit, false);
                                               Set(varVhpSavedJson, ""); Set(varVhpPrevPlant, ""); Set(varVhpPlanSpId, 0);
                                               Set(varVhpPlanKey, ""); Set(varVhpPlanModified, Blank()); Set(varVhpRequestGuid, "");
                                               Set(varVhpFocusStep, 0);
@@ -2264,10 +2325,39 @@ Screens:
                                                   CountRows(colVhpSaveErrors) = 0,
                                               IfError(
                                                   If(
+                                                      varVhpSubmitting && !((!IsBlank(varVhpIdxNow) && !(Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe))),
+                                                      With(
+                                                          { s: LookUp(VHP_NoteToSelf, RequestGuid = varVhpRequestGuid && OwnerEmail = varVhpMe) },
+                                                          If(
+                                                              IsBlank(Trim(varVhpNoteSelf)),
+                                                              If(!IsBlank(s), Remove(VHP_NoteToSelf, s)),
+                                                              Patch(
+                                                                  VHP_NoteToSelf,
+                                                                  If(IsBlank(s), Defaults(VHP_NoteToSelf), s),
+                                                                  {
+                                                                      Title: varVhpPlanKey,
+                                                                      RequestGuid: varVhpRequestGuid,
+                                                                      PlanId: varVhpPlanSpId,
+                                                                      Note: varVhpNoteSelf,
+                                                                      OwnerEmail: varVhpMe
+                                                                  }
+                                                              )
+                                                          )
+                                                      )
+                                                  );
+                                                  true,
+                                                  Collect(colVhpSaveErrors, { Where: "Note to self", Msg: FirstError.Message });
+                                                  false
+                                              )
+                                              );
+                                              If(
+                                                  CountRows(colVhpSaveErrors) = 0,
+                                              IfError(
+                                                  If(
                                                       varVhpSubmitting,
                                                       Set(
                                                           varVhpPlanRec,
-                                                          Patch(MaintenancePlans, varVhpPlanRec, { Status: { Value: "In Progress" }, ApprovalStage: { Value: "System" }, SubmittedOn: Now(), StageRunId: "" })
+                                                          Patch(MaintenancePlans, varVhpPlanRec, { Status: { Value: "In Progress" }, ApprovalStage: { Value: "System" }, SubmittedOn: Now(), StageRunId: "", NoteToApprover: varVhpNoteApprover, SubmittedBy: varVhpMe })
                                                       );
                                                       Set(varVhpFlow, { Status: varVhpPlanRec.Status.Value, Stage: varVhpPlanRec.ApprovalStage.Value, ReturnComment: "" })
                                                   );
@@ -2295,7 +2385,8 @@ Screens:
                                                           AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/17f6f493-203d-40a1-9fe4-2c99b04b85a5?domain=vhplan&reqid=" & varVhpRequestGuid,
                                                           LastActionOn: Now(),
                                                           LastActionBy: varVhpMe
-                                                      }
+                                                      },
+                                                      { HasApproverNote: !IsBlank(Trim(varVhpNoteApprover)) }
                                                   ),
                                                   Patch(
                                                       MD_RequestIndex,
@@ -2464,7 +2555,10 @@ Screens:
                                           LayoutMinWidth: |-
                                               =82
                                           OnSelect: |-
-                                              =Set(varVhpConfirmSubmit, true)
+                                              =Set(varVhpNotesEdit, true);
+                                              Reset(inpVhpNoteA);
+                                              Reset(inpVhpNoteS);
+                                              Set(varVhpConfirmSubmit, true)
                                           RadiusBottomLeft: |-
                                               =10
                                           RadiusBottomRight: |-
@@ -18189,25 +18283,42 @@ Screens:
                             =VerticalAlign.Middle
                         Width: |-
                             =133
-      - conVhpConfirmBackdrop:
-          Control: Image
+      - conVhpNotesBackdrop:
+          Control: GroupContainer
+          Variant: AutoLayout
           Properties:
-            AccessibleLabel: |-
-                ="Close the dialog"
             BorderStyle: |-
                 =BorderStyle.None
-            BorderThickness: |-
-                =0
+            DropShadow: |-
+                =DropShadow.None
             Fill: |-
                 =C.'overlay'
+            FillPortions: |-
+                =0
             Height: |-
                 =App.Height
-            Image: |-
-                =""
-            OnSelect: |-
-                =If(LayoutRank < 2, Set(varVhpConfirmSubmit, false))
-            TabIndex: |-
-                =-1
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Center
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =0
+            LayoutJustifyContent: |-
+                =LayoutJustifyContent.Start
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Scroll
+            PaddingBottom: |-
+                =16
+            PaddingLeft: |-
+                =0
+            PaddingRight: |-
+                =0
+            PaddingTop: |-
+                =16
             Visible: |-
                 =IfError(varVhpConfirmSubmit, false)
             Width: |-
@@ -18216,236 +18327,584 @@ Screens:
                 =0
             Y: |-
                 =0
-      - conVhpConfirmModal:
-          Control: GroupContainer
-          Variant: AutoLayout
-          Properties:
-            BorderColor: |-
-                =C.'color-brand-primary-soft'
-            BorderThickness: |-
-                =1
-            DropShadow: |-
-                =DropShadow.ExtraBold
-            Fill: |-
-                =C.'bg-modal'
-            FillPortions: |-
-                =0
-            Height: |-
-                =162
-            LayoutAlignItems: |-
-                =LayoutAlignItems.Stretch
-            LayoutDirection: |-
-                =LayoutDirection.Vertical
-            LayoutGap: |-
-                =12
-            LayoutMinWidth: |-
-                =0
-            LayoutOverflowX: |-
-                =LayoutOverflow.Hide
-            LayoutOverflowY: |-
-                =LayoutOverflow.Hide
-            PaddingBottom: |-
-                =18
-            PaddingLeft: |-
-                =18
-            PaddingRight: |-
-                =18
-            PaddingTop: |-
-                =18
-            RadiusBottomLeft: |-
-                =16
-            RadiusBottomRight: |-
-                =16
-            RadiusTopLeft: |-
-                =16
-            RadiusTopRight: |-
-                =16
-            Visible: |-
-                =IfError(varVhpConfirmSubmit, false)
-            Width: |-
-                =Min(460, App.Width - 40)
-            X: |-
-                =(App.Width - Self.Width) / 2
-            Y: |-
-                =Max(20, (App.Height - Self.Height) / 3)
           Children:
-            - txtVhpConfirmTitle:
-                Control: ModernText
-                Properties:
-                  AccessibleLabel: |-
-                      ="Submit plan?"
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  BorderThickness: |-
-                      =0
-                  Color: |-
-                      =C.'text-primary'
-                  Fill: |-
-                      =RGBA(0, 0, 0, 0)
-                  Font: |-
-                      =Font.'Segoe UI'
-                  FontWeight: |-
-                      =FontWeight.Semibold
-                  Height: |-
-                      =26
-                  PaddingBottom: |-
-                      =0
-                  PaddingLeft: |-
-                      =0
-                  PaddingRight: |-
-                      =0
-                  PaddingTop: |-
-                      =0
-                  Size: |-
-                      =17
-                  Text: |-
-                      ="Submit plan?"
-                  Wrap: |-
-                      =false
-            - txtVhpConfirmText:
-                Control: ModernText
-                Properties:
-                  AccessibleLabel: |-
-                      =Self.Text
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  BorderThickness: |-
-                      =0
-                  Color: |-
-                      =C.'text-muted'
-                  Fill: |-
-                      =RGBA(0, 0, 0, 0)
-                  Font: |-
-                      =Font.'Segoe UI'
-                  Height: |-
-                      =40
-                  PaddingBottom: |-
-                      =0
-                  PaddingLeft: |-
-                      =0
-                  PaddingRight: |-
-                      =0
-                  PaddingTop: |-
-                      =0
-                  Size: |-
-                      =13
-                  Text: |-
-                      ="The plan " & varVhpPlan.Plant & " " & varVhpPlan.PlanText & " is saved and marked as ready for processing on the landing page."
-                  Wrap: |-
-                      =true
-            - conVhpConfirmFooter:
+            - conVhpNotesModal:
                 Control: GroupContainer
                 Variant: AutoLayout
                 Properties:
-                  BorderStyle: |-
-                      =BorderStyle.None
+                  AlignInContainer: |-
+                      =AlignInContainer.Center
+                  BorderColor: |-
+                      =C.'color-brand-primary-soft'
+                  BorderThickness: |-
+                      =1
                   DropShadow: |-
-                      =DropShadow.None
+                      =DropShadow.ExtraBold
+                  Fill: |-
+                      =C.'bg-modal'
                   FillPortions: |-
                       =0
                   Height: |-
-                      =36
+                      =174 + If(LayoutRank < 2 && ((IfError(varVhpNotesEdit, false) || !IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf)) && (If(IfError(varVhpNotesEdit, false), Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe, (Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe || IsAdmin)))), 462, 223)
                   LayoutAlignItems: |-
-                      =LayoutAlignItems.Center
+                      =LayoutAlignItems.Stretch
                   LayoutDirection: |-
-                      =LayoutDirection.Horizontal
+                      =LayoutDirection.Vertical
                   LayoutGap: |-
-                      =8
-                  LayoutJustifyContent: |-
-                      =LayoutJustifyContent.End
+                      =12
                   LayoutMinWidth: |-
                       =0
                   LayoutOverflowX: |-
                       =LayoutOverflow.Hide
                   LayoutOverflowY: |-
                       =LayoutOverflow.Hide
+                  PaddingBottom: |-
+                      =18
+                  PaddingLeft: |-
+                      =18
+                  PaddingRight: |-
+                      =18
+                  PaddingTop: |-
+                      =18
+                  RadiusBottomLeft: |-
+                      =16
+                  RadiusBottomRight: |-
+                      =16
+                  RadiusTopLeft: |-
+                      =16
+                  RadiusTopRight: |-
+                      =16
                   Width: |-
-                      =Parent.Width
+                      =Min(760, App.Width - 24)
                 Children:
-                  - btnVhpConfirmCancel:
-                      Control: ModernButton
+                  - txtVhpNotesTitle:
+                      Control: ModernText
                       Properties:
                         AccessibleLabel: |-
-                            ="Close"
-                        Align: |-
-                            =Align.Center
-                        AlignInContainer: |-
-                            =AlignInContainer.Center
-                        Appearance: |-
-                            =ButtonAppearance.Outline
-                        BorderColor: |-
-                            =C.'border-default'
+                            =Self.Text
+                        BorderStyle: |-
+                            =BorderStyle.None
                         BorderThickness: |-
-                            =1
+                            =0
                         Color: |-
                             =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
                         Font: |-
                             =Font.'Segoe UI'
                         FontWeight: |-
                             =FontWeight.Semibold
                         Height: |-
-                            =36
-                        Layout: |-
-                            =ButtonLayout.TextOnly
-                        OnSelect: |-
-                            =Set(varVhpConfirmSubmit, false)
-                        RadiusBottomLeft: |-
-                            =10
-                        RadiusBottomRight: |-
-                            =10
-                        RadiusTopLeft: |-
-                            =10
-                        RadiusTopRight: |-
-                            =10
+                            =26
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
                         Size: |-
-                            =14
+                            =17
                         Text: |-
-                            ="Close"
-                        VerticalAlign: |-
-                            =VerticalAlign.Middle
-                        Width: |-
-                            =77
-                  - btnVhpSubmitConfirm:
-                      Control: ModernButton
+                            =If(IfError(varVhpNotesEdit, false), "Submit plan?", "Submission notes")
+                        Wrap: |-
+                            =false
+                  - txtVhpNotesIntro:
+                      Control: ModernText
                       Properties:
                         AccessibleLabel: |-
-                            ="Submit"
-                        Align: |-
-                            =Align.Center
-                        AlignInContainer: |-
-                            =AlignInContainer.Center
-                        BasePaletteColor: |-
-                            =C.'color-brand-primary'
+                            =Self.Text
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
                         Color: |-
-                            =C.'text-on-primary'
+                            =C.'text-muted'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
                         Font: |-
                             =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
+                        Height: |-
+                            =40
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =13
+                        Text: |-
+                            =If(IfError(varVhpNotesEdit, false), "The plan " & varVhpPlan.Plant & " " & varVhpPlan.PlanText & " is saved and marked as ready for processing on the landing page. Both notes are optional.", "Notes added when " & varVhpPlanKey & " was submitted. They are read-only.")
+                        Wrap: |-
+                            =true
+                  - conVhpNotesSplit:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =If(LayoutRank < 2 && ((IfError(varVhpNotesEdit, false) || !IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf)) && (If(IfError(varVhpNotesEdit, false), Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe, (Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe || IsAdmin)))), 462, 223)
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Start
+                        LayoutDirection: |-
+                            =If(LayoutRank < 2, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                        LayoutGap: |-
+                            =16
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        Width: |-
+                            =(Min(760, App.Width - 24) - 36)
+                      Children:
+                        - conVhpNoteA:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderColor: |-
+                                  =C.'border-default'
+                              BorderThickness: |-
+                                  =1
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =223
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Stretch
+                              LayoutDirection: |-
+                                  =LayoutDirection.Vertical
+                              LayoutGap: |-
+                                  =6
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              PaddingBottom: |-
+                                  =12
+                              PaddingLeft: |-
+                                  =12
+                              PaddingRight: |-
+                                  =12
+                              PaddingTop: |-
+                                  =12
+                              RadiusBottomLeft: |-
+                                  =8
+                              RadiusBottomRight: |-
+                                  =8
+                              RadiusTopLeft: |-
+                                  =8
+                              RadiusTopRight: |-
+                                  =8
+                              Visible: |-
+                                  =IfError(varVhpNotesEdit, false) || !IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf)
+                              Width: |-
+                                  =If(LayoutRank < 2 || !((IfError(varVhpNotesEdit, false) || !IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf)) && (If(IfError(varVhpNotesEdit, false), Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe, (Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe || IsAdmin)))), (Min(760, App.Width - 24) - 36), ((Min(760, App.Width - 24) - 36) - 16) / 2)
+                            Children:
+                              - txtVhpNoteATitle:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Note to approver"
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =21
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="Note to approver"
+                                    Wrap: |-
+                                        =false
+                              - txtVhpNoteAHint:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =Self.Text
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =34
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =12
+                                    Text: |-
+                                        =If(IfError(varVhpNotesEdit, false), "Shared with the approvers of this plan. You and administrators can also see it.", "Visible to the requester, administrators and the approvers of this plan.")
+                                    Wrap: |-
+                                        =true
+                              - inpVhpNoteA:
+                                  Control: ModernTextInput
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Note to approver"
+                                    Appearance: |-
+                                        =If((If(IfError(varVhpNotesEdit, false), DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                                    BasePaletteColor: |-
+                                        =C.'color-brand-primary'
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderStyle: |-
+                                        =BorderStyle.Solid
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =If((If(IfError(varVhpNotesEdit, false), DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                                    Default: |-
+                                        =varVhpNoteApprover
+                                    DisplayMode: |-
+                                        =If((If(varVhpViewOnly, DisplayMode.View, If((If(IfError(varVhpNotesEdit, false), DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                    Fill: |-
+                                        =If(If(IfError(varVhpNotesEdit, false), DisplayMode.Edit, DisplayMode.View) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =132
+                                    LayoutMinWidth: |-
+                                        =0
+                                    MaxLength: |-
+                                        =4000
+                                    Placeholder: |-
+                                        =If(IfError(varVhpNotesEdit, false), "Optional - for example context for the approval", "No note was added.")
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =If(LayoutRank < 2, 16, 14)
+                                    Type: |-
+                                        =TextInputType.Multiline
+                                    ValidationState: |-
+                                        =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                                    Width: |-
+                                        =Parent.Width
+                        - conVhpNoteS:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderColor: |-
+                                  =C.'border-default'
+                              BorderThickness: |-
+                                  =1
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =223
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Stretch
+                              LayoutDirection: |-
+                                  =LayoutDirection.Vertical
+                              LayoutGap: |-
+                                  =6
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              PaddingBottom: |-
+                                  =12
+                              PaddingLeft: |-
+                                  =12
+                              PaddingRight: |-
+                                  =12
+                              PaddingTop: |-
+                                  =12
+                              RadiusBottomLeft: |-
+                                  =8
+                              RadiusBottomRight: |-
+                                  =8
+                              RadiusTopLeft: |-
+                                  =8
+                              RadiusTopRight: |-
+                                  =8
+                              Visible: |-
+                                  =If(IfError(varVhpNotesEdit, false), Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe, (Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe || IsAdmin))
+                              Width: |-
+                                  =If(LayoutRank < 2 || !((IfError(varVhpNotesEdit, false) || !IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf)) && (If(IfError(varVhpNotesEdit, false), Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe, (Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe || IsAdmin)))), (Min(760, App.Width - 24) - 36), ((Min(760, App.Width - 24) - 36) - 16) / 2)
+                            Children:
+                              - txtVhpNoteSTitle:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Note to self"
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =21
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="Note to self"
+                                    Wrap: |-
+                                        =false
+                              - txtVhpNoteSHint:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =Self.Text
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =34
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =12
+                                    Text: |-
+                                        =If(IfError(varVhpNotesEdit, false), "Private. Only you and administrators can see it - it is never shared with approvers.", "Private to the requester and administrators. Never shared with approvers.")
+                                    Wrap: |-
+                                        =true
+                              - inpVhpNoteS:
+                                  Control: ModernTextInput
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Note to self"
+                                    Appearance: |-
+                                        =If((If(IfError(varVhpNotesEdit, false), DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                                    BasePaletteColor: |-
+                                        =C.'color-brand-primary'
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderStyle: |-
+                                        =BorderStyle.Solid
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =If((If(IfError(varVhpNotesEdit, false), DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                                    Default: |-
+                                        =varVhpNoteSelf
+                                    DisplayMode: |-
+                                        =If((If(varVhpViewOnly, DisplayMode.View, If((If(IfError(varVhpNotesEdit, false), DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                    Fill: |-
+                                        =If(If(IfError(varVhpNotesEdit, false), DisplayMode.Edit, DisplayMode.View) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =132
+                                    LayoutMinWidth: |-
+                                        =0
+                                    MaxLength: |-
+                                        =4000
+                                    Placeholder: |-
+                                        =If(IfError(varVhpNotesEdit, false), "Optional - a private reminder", "No note was added.")
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =If(LayoutRank < 2, 16, 14)
+                                    Type: |-
+                                        =TextInputType.Multiline
+                                    ValidationState: |-
+                                        =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                                    Width: |-
+                                        =Parent.Width
+                  - conVhpNotesFooter:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
                         Height: |-
                             =36
-                        Layout: |-
-                            =ButtonLayout.TextOnly
-                        OnSelect: |-
-                            =Set(varVhpConfirmSubmit, false);
-                            Set(varVhpSubmitting, true);
-                            Select(btnVhpSaveDraft)
-                        RadiusBottomLeft: |-
-                            =10
-                        RadiusBottomRight: |-
-                            =10
-                        RadiusTopLeft: |-
-                            =10
-                        RadiusTopRight: |-
-                            =10
-                        Size: |-
-                            =14
-                        Text: |-
-                            ="Submit"
-                        VerticalAlign: |-
-                            =VerticalAlign.Middle
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Center
+                        LayoutDirection: |-
+                            =LayoutDirection.Horizontal
+                        LayoutGap: |-
+                            =8
+                        LayoutJustifyContent: |-
+                            =LayoutJustifyContent.End
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
                         Width: |-
-                            =82
+                            =Parent.Width
+                      Children:
+                        - btnVhpNotesClose:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Close"
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              Appearance: |-
+                                  =ButtonAppearance.Outline
+                              BorderColor: |-
+                                  =C.'border-default'
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =C.'text-primary'
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =36
+                              Layout: |-
+                                  =ButtonLayout.TextOnly
+                              OnSelect: |-
+                                  =Set(varVhpConfirmSubmit, false)
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Size: |-
+                                  =14
+                              Text: |-
+                                  ="Close"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Width: |-
+                                  =77
+                        - btnVhpSubmitConfirm:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Submit"
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
+                              Color: |-
+                                  =C.'text-on-primary'
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =36
+                              Layout: |-
+                                  =ButtonLayout.TextOnly
+                              OnSelect: |-
+                                  =Set(varVhpConfirmSubmit, false);
+                                  Set(varVhpNoteApprover, inpVhpNoteA.Text);
+                                  Set(varVhpNoteSelf, If(Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe, inpVhpNoteS.Text, varVhpNoteSelf));
+                                  Set(varVhpSubmitting, true);
+                                  Select(btnVhpSaveDraft)
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Size: |-
+                                  =14
+                              Text: |-
+                                  ="Submit"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Visible: |-
+                                  =IfError(varVhpNotesEdit, false)
+                              Width: |-
+                                  =82
       - conVhpNewConfirmBackdrop:
           Control: Image
           Properties:
@@ -18731,6 +19190,13 @@ Screens:
                             Set(varVhpActiveItemId, 1);
                             Set(varVhpNextItemId, 1);
                             Set(varVhpFlMsg, "");
+                            // Noterne ved Submit (issue #115, tools/submission_notes.py). build_load
+                            // fylder dem kun med det, brugeren maa se. varVhpOwnerEmail er ejeren af
+                            // en indlaest plan (tom = ny plan, brugeren selv).
+                            Set(varVhpNoteApprover, "");
+                            Set(varVhpNoteSelf, "");
+                            Set(varVhpOwnerEmail, "");
+                            Set(varVhpNotesEdit, false);
                             Set(varVhpSavedJson, ""); Set(varVhpPrevPlant, ""); Set(varVhpPlanSpId, 0);
                             Set(varVhpPlanKey, ""); Set(varVhpPlanModified, Blank()); Set(varVhpRequestGuid, "");
                             Set(varVhpFocusStep, 0);
@@ -19057,38 +19523,43 @@ Screens:
                                             If(
                                                 !IsBlank(varVhpDelSp) && !IsEmpty(Errors(MaintenanceItems)),
                                                 Notify("The request could not be deleted: " & First(Errors(MaintenanceItems)).Message, NotificationType.Error),
-                                                If(!IsBlank(varVhpDelSp), Remove(MaintenancePlans, Filter(MaintenancePlans, ID = varVhpDelSp)));
+                                                Remove(VHP_NoteToSelf, Filter(VHP_NoteToSelf, RequestGuid = varVhpDelGuid));
                                                 If(
-                                                    !IsBlank(varVhpDelSp) && !IsEmpty(Errors(MaintenancePlans)),
-                                                    Notify("The request could not be deleted: " & First(Errors(MaintenancePlans)).Message, NotificationType.Error),
-                                                    Remove(MD_RequestIndex, Filter(MD_RequestIndex, RequestGuid = varVhpDelGuid));
+                                                    !IsEmpty(Errors(VHP_NoteToSelf)),
+                                                    Notify("The request could not be deleted: " & First(Errors(VHP_NoteToSelf)).Message, NotificationType.Error),
+                                                    If(!IsBlank(varVhpDelSp), Remove(MaintenancePlans, Filter(MaintenancePlans, ID = varVhpDelSp)));
                                                     If(
-                                                        !IsEmpty(Errors(MD_RequestIndex)),
-                                                        Notify("The request could not be deleted: " & First(Errors(MD_RequestIndex)).Message, NotificationType.Error),
+                                                        !IsBlank(varVhpDelSp) && !IsEmpty(Errors(MaintenancePlans)),
+                                                        Notify("The request could not be deleted: " & First(Errors(MaintenancePlans)).Message, NotificationType.Error),
+                                                        Remove(MD_RequestIndex, Filter(MD_RequestIndex, RequestGuid = varVhpDelGuid));
                                                         If(
-                                                            (IsAdmin && !(Lower(Coalesce(varVhpDelIdx.RequesterEmail, "")) = varVhpMe)),
-                                                            IfError(
-                                                                Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
-                                                                    Title: varVhpDelKey,
-                                                                    RequestGuid: varVhpDelGuid,
-                                                                    Stage: "Admin",
-                                                                    Decision: "AdminDelete",
-                                                                    Detail: Left("Request deleted (" & varVhpDelIdx.Status.Value & ", owner " & varVhpDelIdx.RequesterEmail & ")", 255),
-                                                                    Comment: "Request deleted (" & varVhpDelIdx.Status.Value & ", owner " & varVhpDelIdx.RequesterEmail & ")",
-                                                                    DecidedByEmail: Lower(User().Email),
-                                                                    DecidedOn: Now()
-                                                                });
-                                                                true,
-                                                                Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
-                                                                false
-                                                            )
-                                                        );
-                                                        Set(varVhpRequestGuid, "");
-                                                        Set(gblVhpStale, true);
-                                                        Set(gblVhpWant, Blank());
-                                                        Set(varVhpOpened, "");
-                                                        Notify("Request deleted.", NotificationType.Success);
-                                                        Set(gblNavOpen, false); Navigate(ScreenMdHub, ScreenTransition.None)
+                                                            !IsEmpty(Errors(MD_RequestIndex)),
+                                                            Notify("The request could not be deleted: " & First(Errors(MD_RequestIndex)).Message, NotificationType.Error),
+                                                            If(
+                                                                (IsAdmin && !(Lower(Coalesce(varVhpDelIdx.RequesterEmail, "")) = varVhpMe)),
+                                                                IfError(
+                                                                    Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                                        Title: varVhpDelKey,
+                                                                        RequestGuid: varVhpDelGuid,
+                                                                        Stage: "Admin",
+                                                                        Decision: "AdminDelete",
+                                                                        Detail: Left("Request deleted (" & varVhpDelIdx.Status.Value & ", owner " & varVhpDelIdx.RequesterEmail & ")", 255),
+                                                                        Comment: "Request deleted (" & varVhpDelIdx.Status.Value & ", owner " & varVhpDelIdx.RequesterEmail & ")",
+                                                                        DecidedByEmail: Lower(User().Email),
+                                                                        DecidedOn: Now()
+                                                                    });
+                                                                    true,
+                                                                    Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                                    false
+                                                                )
+                                                            );
+                                                            Set(varVhpRequestGuid, "");
+                                                            Set(gblVhpStale, true);
+                                                            Set(gblVhpWant, Blank());
+                                                            Set(varVhpOpened, "");
+                                                            Notify("Request deleted.", NotificationType.Success);
+                                                            Set(gblNavOpen, false); Navigate(ScreenMdHub, ScreenTransition.None)
+                                                        )
                                                     )
                                                 )
                                             )
@@ -21808,6 +22279,13 @@ Screens:
                             Set(varVhpActiveItemId, 1);
                             Set(varVhpNextItemId, 1);
                             Set(varVhpFlMsg, "");
+                            // Noterne ved Submit (issue #115, tools/submission_notes.py). build_load
+                            // fylder dem kun med det, brugeren maa se. varVhpOwnerEmail er ejeren af
+                            // en indlaest plan (tom = ny plan, brugeren selv).
+                            Set(varVhpNoteApprover, "");
+                            Set(varVhpNoteSelf, "");
+                            Set(varVhpOwnerEmail, "");
+                            Set(varVhpNotesEdit, false);
                             // Brugeren, som alle skrivninger stempler (REVIEW.md A10).
                             Set(varVhpMe, Lower(User().Email));
                             // Trinene og Submit regnes af navngivne formler (build_status.py).
@@ -21823,7 +22301,7 @@ Screens:
                             Set(varVhpObjListOpen, false);
                             // Trinet, der sidst er klikket i progressbaren - dets sektion har en tyk kant.
                             Set(varVhpFocusStep, 0);
-                            // Bekraeftelsen foer Submit.
+                            // Popuppen med noterne - ved Submit og i visningen (issue #115).
                             Set(varVhpConfirmSubmit, false);
                             Set(varVhpConfirmNew, false);
                             // Popupperne for materialer og dokumenter pr. operation (OperationNo, tom = lukket).
@@ -21948,6 +22426,8 @@ Screens:
                                             Set(varVhpPlanSpId, pl.ID);
                                             Set(varVhpPlanKey, pl.PlanID);
                                             Set(varVhpFlow, { Status: Coalesce(pl.Status.Value, ""), Stage: Coalesce(pl.ApprovalStage.Value, ""), ReturnComment: Coalesce(pl.ReturnComment, "") });
+                                            Set(varVhpOwnerEmail, Lower(Coalesce(idx.RequesterEmail, "")));
+                                            Set(varVhpNoteApprover, If((Lower(Coalesce(idx.RequesterEmail, "")) = varVhpMe || IsAdmin || IsApprover || Lower(Coalesce(idx.AssignedToEmail, "")) = varVhpMe || !IsBlank(LookUp(MD_ApprovalLog, RequestGuid = varVhpRequestGuid && DecidedByEmail = varVhpMe))), Coalesce(pl.NoteToApprover, ""), ""));
                                             Set(varVhpPlanModified, pl.Modified);
                                             Set(varVhpRequestGuid, idx.RequestGuid);
                                             Set(varVhpPlanCommitted, true);
@@ -22024,7 +22504,8 @@ Screens:
                                                             SpId: OP.ID
                                                         }
                                                     )
-                                                )
+                                                ),
+                                                Set(varVhpNoteSelf, If((Lower(Coalesce(idx.RequesterEmail, "")) = varVhpMe || IsAdmin), Coalesce(LookUp(VHP_NoteToSelf, RequestGuid = varVhpRequestGuid).Note, ""), ""))
                                             );
                 
                                             // Disse to LAESER colVhpSavedItems, som boelge 1

@@ -370,6 +370,7 @@ SUB_W = fit_button_width('"Submit"', min_w=72)
 SUBTITLE = '"Plan header, items, task lists and operations - submitted to SAP master data."'
 NEW_W = fit_button_width('"New request"') + ICON_W
 EDIT_W = fit_button_width('"Edit"') + ICON_W
+NOTES_W = 40
 
 RESET_COLLECTIONS = ("colVhpItems", "colVhpOperations", "colVhpItemObjects", "colVhpObjDraft",
                      "colVhpMaterials", "colVhpAttachments")
@@ -425,8 +426,16 @@ def build_top_bar():
     (build_helpers.top_bar), saa ikonet staar det samme sted overalt.
     Trinene staar under den, i fuld bredde og med fast hoejde. Help og tema
     staar i sidebaren."""
-    from build_save import save_buttons
+    from build_save import save_buttons, NOTES_OPEN_VIEW, NOTES_HAVE
     btnDraft, btnSubmit, confirm = save_buttons(CAN_SUBMIT)
+    # Noterne ved Submit, skrivebeskyttet (issue #115): kun naar planen har
+    # en note, brugeren maa se. Kun ikonet, saa knaprakken ikke vokser.
+    btnNotes = button("btnVhpNotes", '"Notes"', NOTES_OPEN_VIEW, width=NOTES_W, height=36,
+                      icon="Note", accessible='"View the submission notes"', tooltip='"View notes"',
+                      visible=NOTES_HAVE)
+    btnNotes.props["Layout"] = "ButtonLayout.IconOnly"
+    btnNotes.props["AlignInContainer"] = "AlignInContainer.Center"
+    btnNotes.props["LayoutMinWidth"] = str(NOTES_W)
     btnNew = button("btnVhpNewRequest", '"New request"',
                     f"If({HAS_UNSAVED}, Set(varVhpConfirmNew, true), {NEW_PLAN_FX})",
                     width=NEW_W, height=36, icon="Add",
@@ -515,7 +524,7 @@ def build_top_bar():
     tab_w = f"Max(220, {SHELL_W} - {side_min} - 16)"
     title_bar.props["Width"] = if_below("Tablet", "56", if_below("Desktop", tab_w, f"Max({side_min}, ({SHELL_W} - {steps_w}) / 2 - 16)"))
     title_bar.props["LayoutMinWidth"] = if_below("Tablet", "56", "220")
-    btns = group("conVhpHeadBtns", [btnEdit, btnDelete, btnNew, btnDraft, btnSubmit], direction="Horizontal", gap=8,
+    btns = group("conVhpHeadBtns", [btnNotes, btnEdit, btnDelete, btnNew, btnDraft, btnSubmit], direction="Horizontal", gap=8,
                  height=44, width=side_w, justify="End", align_items="Center")
     head = group("conVhpHeadLine", [title_bar, steps, btns],
                  height=if_below("Tablet", "60", str(STEP_H + 28)),

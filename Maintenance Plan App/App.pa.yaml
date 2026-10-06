@@ -184,6 +184,10 @@ App:
       // Een delegerbar LookUp i admin-listen, laest dovent og kun een gang.
       IsAdmin = !IsBlank(LookUp(UserAndGroups, Title = "Admin" && Member = Lower(User().Email)));
 
+      // GODKENDER. Genereret af tools/permissions.py - ret ikke her.
+      MyUserId = Upper(First(Split(User().Email, "@")).Value);
+      IsApprover = !IsBlank(LookUp(MD_Approver, Approver1 = MyUserId || Approver2 = MyUserId));
+
       // Hjaelpetekster. En manglende raekke = ingen tekst, ikke en fejl.
       colVhpHelp = ForAll(Filter(MD_HelpText, AppArea.Value = "MaintenancePlan") As R, { Key: R.HelpKey, Kind: R.Kind.Value, Heading: Coalesce(R.Heading, ""), Body: Coalesce(R.Body, ""), Ord: Coalesce(R.SortOrder, 0) });
 
@@ -473,6 +477,13 @@ App:
       Set(varVhpActiveItemId, 1);
       Set(varVhpNextItemId, 1);
       Set(varVhpFlMsg, "");
+      // Noterne ved Submit (issue #115, tools/submission_notes.py). build_load
+      // fylder dem kun med det, brugeren maa se. varVhpOwnerEmail er ejeren af
+      // en indlaest plan (tom = ny plan, brugeren selv).
+      Set(varVhpNoteApprover, "");
+      Set(varVhpNoteSelf, "");
+      Set(varVhpOwnerEmail, "");
+      Set(varVhpNotesEdit, false);
       // Brugeren, som alle skrivninger stempler (REVIEW.md A10).
       Set(varVhpMe, Lower(User().Email));
       // Trinene og Submit regnes af navngivne formler (build_status.py).
@@ -488,7 +499,7 @@ App:
       Set(varVhpObjListOpen, false);
       // Trinet, der sidst er klikket i progressbaren - dets sektion har en tyk kant.
       Set(varVhpFocusStep, 0);
-      // Bekraeftelsen foer Submit.
+      // Popuppen med noterne - ved Submit og i visningen (issue #115).
       Set(varVhpConfirmSubmit, false);
       Set(varVhpConfirmNew, false);
       // Popupperne for materialer og dokumenter pr. operation (OperationNo, tom = lukket).
@@ -612,6 +623,8 @@ App:
                       Set(varVhpPlanSpId, pl.ID);
                       Set(varVhpPlanKey, pl.PlanID);
                       Set(varVhpFlow, { Status: Coalesce(pl.Status.Value, ""), Stage: Coalesce(pl.ApprovalStage.Value, ""), ReturnComment: Coalesce(pl.ReturnComment, "") });
+                      Set(varVhpOwnerEmail, Lower(Coalesce(idx.RequesterEmail, "")));
+                      Set(varVhpNoteApprover, If((Lower(Coalesce(idx.RequesterEmail, "")) = varVhpMe || IsAdmin || IsApprover || Lower(Coalesce(idx.AssignedToEmail, "")) = varVhpMe || !IsBlank(LookUp(MD_ApprovalLog, RequestGuid = varVhpRequestGuid && DecidedByEmail = varVhpMe))), Coalesce(pl.NoteToApprover, ""), ""));
                       Set(varVhpPlanModified, pl.Modified);
                       Set(varVhpRequestGuid, idx.RequestGuid);
                       Set(varVhpPlanCommitted, true);
@@ -687,7 +700,8 @@ App:
                                       SpId: OP.ID
                                   }
                               )
-                          )
+                          ),
+                          Set(varVhpNoteSelf, If((Lower(Coalesce(idx.RequesterEmail, "")) = varVhpMe || IsAdmin), Coalesce(LookUp(VHP_NoteToSelf, RequestGuid = varVhpRequestGuid).Note, ""), ""))
                       );
 
                       // Disse to LAESER colVhpSavedItems, som boelge 1

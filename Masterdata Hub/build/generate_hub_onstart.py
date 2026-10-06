@@ -21,7 +21,8 @@ import permissions as perm
 # hente dovent. Nu er der een formel, og det er temaet: C. Se
 # tools/design_tokens.py for hvorfor farven hoerer hjemme i en navngiven
 # formel og ikke i hver enkelt kontrol.
-FORMULAS = tok.formula() + "\n\n" + lay.formula() + "\n\n" + perm.formula()
+FORMULAS = (tok.formula() + "\n\n" + lay.formula() + "\n\n" + perm.formula() + "\n\n" +
+            perm.approver_formula())
 
 # Samlingen bag SaveData skal have et kendt skema, foer Coalesce kan laese
 # .Dark - samme moenster som arbejdssamlingerne i de tre andre apps.

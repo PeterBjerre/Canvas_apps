@@ -30,6 +30,12 @@ import request_index as ri
 ADMIN_LIST = "UserAndGroups"
 ADMIN_GROUP = "Admin"
 IS_ADMIN = "IsAdmin"
+# Godkender (issue #115): brugeren staar som 1. eller 2. godkender i
+# MD_Approver. Listen har initialer (PKBJE); flowene danner mailen som
+# initialer + @ + BioSap-EmailDomain, saa initialerne er delen foer @.
+APPROVER_LIST = "MD_Approver"
+MY_UID = "MyUserId"
+IS_APPROVER = "IsApprover"
 
 OWNER_STATUSES = (ri.DRAFT,)
 ADMIN_STATUSES = (ri.DRAFT, "AfventerInfo")
@@ -43,6 +49,22 @@ def formula():
         "// Een delegerbar LookUp i admin-listen, laest dovent og kun een gang.\n"
         f"{IS_ADMIN} = !IsBlank(LookUp({ADMIN_LIST}, Title = \"{ADMIN_GROUP}\" "
         "&& Member = Lower(User().Email)));"
+    )
+
+
+def approver_formula():
+    """IsApprover og MyUserId til App.Formulas (issue #115). Samme regel
+    som flowene: en godkender er en raekke i MD_Approver med brugerens
+    initialer som Approver1 eller Approver2. Systemnummeret pr. item kommer
+    fra Power BI og kendes ikke i appen, saa reglen er "godkender i
+    processen", ikke "godkender af netop det item" - se
+    tools/submission_notes.py. MyUserId er en navngiven formel, saa
+    LookUp'en delegeres."""
+    return (
+        "// GODKENDER. Genereret af tools/permissions.py - ret ikke her.\n"
+        f"{MY_UID} = Upper(First(Split(User().Email, \"@\")).Value);\n"
+        f"{IS_APPROVER} = !IsBlank(LookUp({APPROVER_LIST}, Approver1 = {MY_UID} "
+        f"|| Approver2 = {MY_UID}));"
     )
 
 
