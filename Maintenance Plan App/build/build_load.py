@@ -52,6 +52,12 @@ import sp_config as cfg
 from build_helpers import concurrent
 import permissions as perm
 from build_status import HAS_PKGS
+import submission_notes as sn
+
+# Hvem maa se noterne ved Submit (issue #115) - tools/submission_notes.py.
+NOTE_S_OK = sn.may_self("idx.RequesterEmail", "varVhpMe")
+NOTE_A_OK = sn.may_approver("idx.RequesterEmail", "varVhpMe", "idx.AssignedToEmail",
+                            sn.decided_in(sn.LOG, "varVhpRequestGuid", "varVhpMe"))
 
 # Et helt tomt item, saa Item Editoren staar klar (#8). Bruges baade naar
 # appen aabnes uden dyblink, og naar et dyblink ikke kan findes.
@@ -230,6 +236,11 @@ def load_block():
         "                Set(varVhpFlow, { Status: Coalesce(pl.Status.Value, \"\"), "
         "Stage: Coalesce(pl.ApprovalStage.Value, \"\"), "
         "ReturnComment: Coalesce(pl.ReturnComment, \"\") });\n"
+        # Noterne ved Submit (issue #115): Note to approver kun for den,
+        # der maa se den - Note to self hentes i boelge 1 nedenfor.
+        "                Set(varVhpOwnerEmail, Lower(Coalesce(idx.RequesterEmail, \"\")));\n"
+        f"                Set(varVhpNoteApprover, If({NOTE_A_OK}, "
+        f"Coalesce(pl.{sn.COL_APPROVER}, \"\"), \"\"));\n"
         # Konflikttjekket i build_save maaler mod den.
         "                Set(varVhpPlanModified, pl.Modified);\n"
         "                Set(varVhpRequestGuid, idx.RequestGuid);\n"
@@ -284,6 +295,10 @@ def load_block():
             "                        )\n"
             "                    )",
             _collect('colVhpOperations', ops_src, 'OP', OP_FIELDS, 20),
+            # Note to self (issue #115): kun ejer og admin. Listen giver
+            # i forvejen kun ejeren sin egen raekke.
+            f"Set(varVhpNoteSelf, If({NOTE_S_OK}, Coalesce(LookUp({sn.LIST}, "
+            "RequestGuid = varVhpRequestGuid).Note, \"\"), \"\"))",
             indent=16) + ";\n"
         "\n"
         "                // Disse to LAESER colVhpSavedItems, som boelge 1\n"

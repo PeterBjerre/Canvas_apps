@@ -29,6 +29,19 @@
     MD_ApprovalLog          revisionsspor og hukommelse pr. item
     AppSettings             Option CostApprovalThresholdDkk = 300000
 
+    NOTERNE VED SUBMIT (issue #115, tools/submission_notes.py)
+    MaintenancePlans
+        NoteToApprover      Note   - skrives af appen ved Submit
+        SubmittedBy         Text   - hvem der indsendte (forfatteren i Activity)
+    MD_RequestIndex
+        HasApproverNote     Yes/No - hubben viser note-ikonet uden et opslag
+    VHP_NoteToSelf          Note to self, een raekke pr. anmodning. Listen
+                            faar "Read access: Only their own" og "Create
+                            and Edit access: Only their own", saa kun
+                            ejeren - og dem med Override List Behaviors
+                            (Full Control/Design, dvs. admins) - kan laese
+                            den. Godkendere kan ikke, heller ikke via API.
+
     DE TO SPAERRER PAA EKSISTERENDE PLANER
     --------------------------------------
     MasterDataNotified og RequesterNotified er TOMME paa de planer, der
@@ -103,6 +116,7 @@ $PLANS     = 'MaintenancePlans'
 $ITEMS     = 'MaintenanceItems'
 $APPROVER  = 'MD_Approver'
 $LOG       = 'MD_ApprovalLog'
+$SELF_NOTE = 'VHP_NoteToSelf'
 $SETTINGS  = 'AppSettings'
 
 # Samme strenge som i docs/32 og i flowenes trigger conditions. Et
@@ -229,6 +243,23 @@ Add-Col $PLANS 'MasterDataNotified' Boolean `
 Add-Col $PLANS 'RequesterNotified' Boolean `
     -Description 'Spaerre: rekvirenten har faaet mailen ved Published.'
 Set-ChoiceOrder $PLANS 'Status' @('Draft', 'In Progress', 'Ready for creation in SAP', 'Published', $RETURNED)
+# Noterne ved Submit (issue #115). Skrives KUN af appen ved Submit - aldrig
+# af Save draft eller flowene. Note to self ligger IKKE her: alle, der kan
+# laese planen, kan laese dens kolonner. Den har sin egen liste nedenfor.
+Add-Col 'MaintenancePlans' 'NoteToApprover' Note `
+    -Description 'Note to approver fra rekvirenten ved Submit. Laeses af ejer, admins og godkendere. Se tools/submission_notes.py.'
+Add-Col 'MaintenancePlans' 'SubmittedBy' Text `
+    -Description 'E-mail paa den, der indsendte (saettes af appen ved Submit sammen med SubmittedOn).'
+if (-not $WhatIfOnly -and (Get-PnPField -List $PLANS -Identity 'NoteToApprover' -ErrorAction SilentlyContinue)) {
+    # Ren tekst: noten gemmes praecis, som den er skrevet.
+    Set-PnPField -List $PLANS -Identity 'NoteToApprover' -Values @{ RichText = $false; NumberOfLines = 6 }
+}
+
+# ---------------------------------------------------------------------------
+Write-Host "`n=== MD_RequestIndex ===" -ForegroundColor Cyan
+# ---------------------------------------------------------------------------
+Add-Col 'MD_RequestIndex' 'HasApproverNote' Boolean `
+    -Description 'VH-plan: Note to approver er udfyldt. Saettes af appen ved Submit; hubben viser note-ikonet.'
 
 # ---------------------------------------------------------------------------
 Write-Host "`n=== $ITEMS ===" -ForegroundColor Cyan
@@ -277,6 +308,30 @@ Add-Col $LOG 'Detail' Text -Description 'Fx systemnummer, beloeb eller grunden t
 Add-Col $LOG 'DecidedByEmail' Text
 Add-Col $LOG 'DecidedOn' DateTime
 Add-Col $LOG 'Comment' Note
+
+# ---------------------------------------------------------------------------
+Write-Host "`n=== $SELF_NOTE ===" -ForegroundColor Cyan
+# ---------------------------------------------------------------------------
+# Note to self (issue #115). SharePoint har ingen sikkerhed pr. kolonne, saa
+# den private note har sin egen liste med sikkerhed pr. element: brugerne
+# kan kun laese og rette deres egne raekker. Admins ser alle via Override
+# List Behaviors (Full Control eller Design paa listen).
+New-List $SELF_NOTE 'Note to self ved Submit af en VH-plan. Kun ejeren og admins kan laese en raekke. Se tools/submission_notes.py.'
+if (-not $WhatIfOnly) {
+    Set-PnPField -List $SELF_NOTE -Identity 'Title' -Values @{ Title = 'RequestNo'; Required = $false }
+    # 2 = OwnerReadAccess / OwnerWriteAccess: "Only their own".
+    Set-PnPList -Identity $SELF_NOTE -ReadSecurity 2 -WriteSecurity 2 | Out-Null
+    Write-Host "    ~ Read/Create and Edit access: Only their own" -ForegroundColor Green
+} else {
+    Write-Host "    ? ville saette Read/Create and Edit access til Only their own" -ForegroundColor Yellow
+}
+Add-Col 'VHP_NoteToSelf' 'RequestGuid' Text -Indexed -Description 'MD_RequestIndex.RequestGuid.'
+Add-Col 'VHP_NoteToSelf' 'PlanId' Number -Description 'ID i MaintenancePlans.'
+Add-Col 'VHP_NoteToSelf' 'OwnerEmail' Text -Indexed -Description 'Ejeren med smaa bogstaver - den, der kan laese raekken.'
+Add-Col 'VHP_NoteToSelf' 'Note' Note -Description 'Note to self, praecis som den er skrevet.'
+if (-not $WhatIfOnly -and (Get-PnPField -List $SELF_NOTE -Identity 'Note' -ErrorAction SilentlyContinue)) {
+    Set-PnPField -List $SELF_NOTE -Identity 'Note' -Values @{ RichText = $false; NumberOfLines = 6 }
+}
 
 # ---------------------------------------------------------------------------
 Write-Host "`n=== $APPROVER - seed ===" -ForegroundColor Cyan
@@ -398,3 +453,9 @@ Write-Host "  4. Koer sharepoint/inspect/Export-ListSchema.ps1, saa schema.md ke
 Write-Host "     de nye kolonner og lister."
 Write-Host "  5. Nye kolonner ses foerst i appen, naar MaintenancePlans er opdateret"
 Write-Host "     som datakilde i Studio."
+Write-Host "  6. ${SELF_NOTE} (issue #115): kontroller under Listeindstillinger >"
+Write-Host "     Avanceret, at Read access og Create and Edit access er 'Only their own'."
+Write-Host "     Admins (UserAndGroups, Title = Admin) skal have Full Control eller Design"
+Write-Host "     paa listen (Override List Behaviors) for at se alle noter. Tilfoej"
+Write-Host "     ${SELF_NOTE} som datakilde i Studio, og opdater MaintenancePlans og"
+Write-Host "     MD_RequestIndex."

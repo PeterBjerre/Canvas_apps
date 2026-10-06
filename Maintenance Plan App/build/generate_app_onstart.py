@@ -101,6 +101,13 @@ Set(varVhpFlow, { Status: "", Stage: "", ReturnComment: "" });
 Set(varVhpActiveItemId, 1);
 Set(varVhpNextItemId, 1);
 Set(varVhpFlMsg, "");
+// Noterne ved Submit (issue #115, tools/submission_notes.py). build_load
+// fylder dem kun med det, brugeren maa se. varVhpOwnerEmail er ejeren af
+// en indlaest plan (tom = ny plan, brugeren selv).
+Set(varVhpNoteApprover, "");
+Set(varVhpNoteSelf, "");
+Set(varVhpOwnerEmail, "");
+Set(varVhpNotesEdit, false);
 // Brugeren, som alle skrivninger stempler (REVIEW.md A10).
 Set(varVhpMe, Lower(User().Email));
 // Trinene og Submit regnes af navngivne formler (build_status.py).
@@ -116,7 +123,7 @@ Set(varVhpFlPick, "");
 Set(varVhpObjListOpen, false);
 // Trinet, der sidst er klikket i progressbaren - dets sektion har en tyk kant.
 Set(varVhpFocusStep, 0);
-// Bekraeftelsen foer Submit.
+// Popuppen med noterne - ved Submit og i visningen (issue #115).
 Set(varVhpConfirmSubmit, false);
 Set(varVhpConfirmNew, false);
 // Popupperne for materialer og dokumenter pr. operation (OperationNo, tom = lukket).
@@ -198,7 +205,7 @@ def build_onstart():
 
 def build_formulas():
     """App.Formulas. Hver formel afsluttes med semikolon - ogsaa den sidste."""
-    out = [tok.formula(), "", lay.formula(), "", perm.formula(), ""]
+    out = [tok.formula(), "", lay.formula(), "", perm.formula(), "", perm.approver_formula(), ""]
     for name, expr, why in cfg.named_formulas() + build_status.formulas():
         if why:
             out.append(f"// {why}")

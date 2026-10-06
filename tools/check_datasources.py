@@ -397,12 +397,12 @@ def provisioned_lists():
         if not fn.endswith(".ps1"):
             continue
         txt = open(os.path.join(d, fn), encoding="utf-8-sig").read()
-        for m in re.finditer(r"(?:New-MdList|New-PnPList)\s+(?:-Title\s+)?'([^']+)'", txt):
+        for m in re.finditer(r"(?:New-MdList|New-PnPList|New-List)\s+(?:-Title\s+)?'([^']+)'", txt):
             out.add(m.group(1).strip())
         # New-PnPList -Title $LIST_NAME: navnet staar i en variabel
         # oeverst i scriptet. Uden den her linje var listen usynlig
         # for tjekket, og alle dens kolonner med den.
-        for m in re.finditer(r"(?:New-MdList|New-PnPList)\s+(?:-Title\s+)?\$(\w+)", txt):
+        for m in re.finditer(r"(?:New-MdList|New-PnPList|New-List)\s+(?:-Title\s+)?\$(\w+)", txt):
             v = re.search(r"^\s*\$%s\s*=\s*'([^']+)'" % m.group(1),
                           txt, re.M)
             if v:

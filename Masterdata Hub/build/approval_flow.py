@@ -24,11 +24,12 @@ from gen_screen import (Ctrl, C_OVERLAY, C_MODAL_BG, C_PRIMARY_SOFT, C_MUTED, C_
                         C_MUTED_BG, C_TRANSPARENT, C_PRIMARY, C_INFO_BG, C_INFO_FG,
                         C_WARN_FG, C_WARN_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, C_VALID_FG, C_VALID_BG,
                         C_INVALID_FG, C_INVALID_BG, C_CARD_BORDER, C_ROW_HOVER, C_ROW_PRESSED)
-from build_helpers import group, text_ctrl, button, grow, spinner_svg, row_hit, text_px
+from build_helpers import group, text_ctrl, button, grow, spinner_svg, row_hit, text_px, text_input
 from hub_config import DOMAINS, STATUS
 from design_tokens import ref_hex
 import layout_tokens as lay
 import admin_log as alog
+import submission_notes as sn
 from layout_tokens import if_below, at_least
 
 OPEN = "IfError(varMdAprOpen, false)"
@@ -50,7 +51,7 @@ STAGES = [
 # som Returned, saa den skiller sig ud i forloebet.
 STATE_HEX = {"Approved": "state-ok-fg", "Done": "state-ok-fg", "Skipped": "state-neutral-fg",
              "In progress": "state-info-fg", "Returned": "state-warn-fg",
-             "Pending": "text-muted", "Admin": "state-warn-fg"}
+             "Pending": "text-muted", "Admin": "state-warn-fg", "Note": "color-brand-primary"}
 # Kun popuppens tidslinje kan vise en lukket anmodnings udfald.
 RAIL_HEX = {**STATE_HEX, "Rejected": "state-error-fg", "Cancelled": "state-neutral-fg"}
 PASSED = '(%s = "Approved" || %s = "Skipped" || %s = "Done")'
@@ -313,6 +314,28 @@ def _status_label(value):
             ", ".join(f'"{k}", "{label}"' for k, label, *_r in STATUS) + f", {value})")
 
 
+# NOTERNE VED INDSENDELSEN (issue #115) - en haendelse i Activity, ikke en
+# kommentar eller en beslutning. Raekken viser kun, AT der er noter, og
+# hvilke brugeren maa se; teksten aabnes fra raekken (sn.hub_open_fx).
+# Planen slaas op een gang og kun, naar der er en note at vise.
+NOTE_STAGE = "N"
+
+
+def _notes_row():
+    show_a = f"{R}.{sn.FLAG} && {sn.hub_may_approver(R)}"
+    show_s = f"{sn.has_self(R + '.RequestGuid', 'colMdSelfNotes')} && {sn.hub_may_self(R)}"
+    which = (f'Concat(Filter(Table({{ v: If({show_a}, "{sn.T_APPROVER}", "") }}, '
+             f'{{ v: If({show_s}, "{sn.T_SELF}", "") }}), !IsBlank(v)), v, " and ")')
+    rec = _rec(Kind=_q("D"), Stage=_q(NOTE_STAGE),
+               Title=_who(f"Coalesce(p.{sn.COL_BY}, {R}.RequesterEmail)"),
+               Act=_q("Added submission notes"), State=_q("Note"), Label=_q("Notes"),
+               Sub=f'{which} & " - select to read"',
+               Stamp=f"Text(p.SubmittedOn, {STAMP})", Human="true")
+    return (f'If({R}.Domain.Value = "MaintenancePlan" && (({show_a}) || ({show_s})), '
+            f"With({{ p: LookUp({sn.PLANS}, ID = {R}.SourceItemId) }}, "
+            f"Collect(colMdAprRows, {rec})))")
+
+
 def timeline_fx():
     """Activity of one request. One filtered query. For plans it holds the
     approvals; for every domain it holds an admin's changes (Stage "Admin",
@@ -330,6 +353,7 @@ def timeline_fx():
             Kind=_q("D"), Stage=_q("T"), Title=_who(R + ".RequesterEmail"),
             Act=_q("Created the request"), State=_q("Done"), Label=_q("Created"),
             Stamp=f"Text({R}.Created, {STAMP})", Human="true") + ")",
+        _notes_row(),
         "Collect(colMdAprRows, " + _decision_rows("T", "colMdAprLog", timeline=True) + ")",
         f'If(!IsBlank({R}.SapObjectNo), Collect(colMdAprRows, ' + _rec(
             Kind=_q("D"), Stage=_q("T"), Title=_q("SAP"), Act=_q("Created in SAP"),
@@ -361,6 +385,9 @@ def open_fx():
         'Set(varMdAprMode, "A")',
         "Set(varMdAprOpen, true)",
         f"Set({R}, ThisItem)",
+        # Note to approver (issue #115): kun naar der er en, og brugeren maa se den.
+        f'Set(varMdAprNote, If({R}.{sn.FLAG} && {sn.hub_may_approver(R)}, '
+        f'Coalesce(LookUp({sn.PLANS}, ID = {R}.SourceItemId).{sn.COL_APPROVER}, ""), ""))',
         f"ClearCollect({log}, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid))",
     ]
     for i, (stage, _t, _v) in enumerate(STAGES):
@@ -464,10 +491,12 @@ PERSON = "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z M4.5 20.5a7.5 7.5 0 0 1 15 0"
 #   red       Rejected
 BADGE_FG = {"Approved": C_VALID_FG, "Done": C_VALID_FG, "Skipped": C_MUTED,
             "Cancelled": C_MUTED, "In progress": C_INFO_FG, "Returned": C_WARN_FG,
-            "Pending": C_INFO_FG, "Admin": C_WARN_FG, "Rejected": C_INVALID_FG}
+            "Pending": C_INFO_FG, "Admin": C_WARN_FG, "Rejected": C_INVALID_FG,
+            "Note": C_TITLE}
 BADGE_BG = {"Approved": C_VALID_BG, "Done": C_VALID_BG, "Skipped": C_MUTED_BG,
             "Cancelled": C_MUTED_BG, "In progress": C_INFO_BG, "Returned": C_WARN_BG,
-            "Pending": C_NEUTRAL_BG, "Admin": C_WARN_BG, "Rejected": C_INVALID_BG}
+            "Pending": C_NEUTRAL_BG, "Admin": C_WARN_BG, "Rejected": C_INVALID_BG,
+            "Note": C_PRIMARY_SOFT}
 
 
 def _rail_svg():
@@ -525,6 +554,26 @@ def _number_badge(name):
         "ImagePosition": "ImagePosition.Fit", "LayoutMinWidth": "88",
         "OnSelect": "false", "TabIndex": "-1", "Width": "88",
     }, h=26)
+
+
+NOTE_IN_H = 76
+
+
+def _note_panel(busy):
+    """Note to approver i Approval flow (issue #115): over trinene, saa
+    godkenderen laeser den foer en beslutning - i sin egen ramme, adskilt
+    fra beslutningernes kommentarer og forloebet. Note to self vises
+    aldrig her."""
+    vis = f'!{busy} && !({IS_TIMELINE}) && !IsBlank(IfError(varMdAprNote, ""))'
+    t = text_ctrl("txtMdAprNoteTitle", f'"{sn.T_APPROVER}"', size=14, weight="Semibold",
+                  color=C_PRIMARY, height=20, wrap="false")
+    hint = text_ctrl("txtMdAprNoteHint", '"From the requester, added at submission."',
+                     size=lay.SIZE_SMALL, color=C_MUTED, height=17, wrap="false")
+    body = text_input("inpMdAprNote", 'IfError(varMdAprNote, "")', height=NOTE_IN_H,
+                      ttype="Multiline", display_mode="DisplayMode.View", label=f'"{sn.T_APPROVER}"')
+    panel = group("conMdAprNote", [t, hint, body], direction="Vertical", gap=4,
+                  border_color=C_PRIMARY, radius=8, pad=(10, 12, 10, 12), width=GW, visible=vis)
+    return panel, vis, panel.h
 
 
 def build_popup():
@@ -659,11 +708,15 @@ def build_popup():
                             "PaddingLeft": "8", "PaddingRight": "8",
                             "RadiusBottomLeft": "6", "RadiusBottomRight": "6",
                             "RadiusTopLeft": "6", "RadiusTopRight": "6"})
-    hit = row_hit(n("btn", "Expand"), toggle, '"Show or hide the full text"', f"{TW} - 38", ROW_H - 8)
+    # Noteraekken (issue #115) aabner noterne i stedet for at folde ud.
+    is_note = f'{_is("D")} && ThisItem.Stage = "{NOTE_STAGE}"'
+    hit = row_hit(n("btn", "Expand"), f"If({is_note}, {sn.hub_open_fx(R)}, {toggle})",
+                  f'If({is_note}, "Read the submission notes", "Show or hide the full text")',
+                  f"{TW} - 38", ROW_H - 8)
     hit.props["X"] = "38"
     hit.props["Y"] = f"If({_is('X')}, 0, 4)"
     hit.props["Height"] = f"If({_is('X')}, {ROW_H}, {ROW_H - 8})"
-    hit.vis = f"{expandable} || {_is('X')}"
+    hit.vis = f"{expandable} || {_is('X')} || ({is_note})"
 
     gh = f"(Min(CountRows(colMdAprRows), {MAX_ROWS}) + IfError(varMdAprExtra, 0)) * {ROW_H}"
     gal = Ctrl(n("gal", "Rows"), "Gallery", variant="Vertical", props={
@@ -704,6 +757,7 @@ def build_popup():
     busy = "IfError(varMdAprBusy, false)"
     gal.props["Visible"] = f"!{busy}"
     sub.props["Visible"] = f"!{busy}"
+    note, note_vis, note_h = _note_panel(busy)
     spin = Ctrl(n("img", "Spinner"), "Image", props={
         "AccessibleLabel": f'If({IS_TIMELINE}, "Loading activity", "Loading approval flow")',
         "BorderStyle": "BorderStyle.None",
@@ -712,11 +766,12 @@ def build_popup():
         "TabIndex": "-1", "Visible": busy, "Width": GW,
     }, h=110, vis=busy)
 
-    modal = group(n("con", "Modal"), [head, sub, spin, gal], direction="Vertical", gap=10,
+    modal = group(n("con", "Modal"), [head, sub, note, spin, gal], direction="Vertical", gap=10,
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(POP_PAD, POP_PAD, POP_PAD, POP_PAD), width=POP_W, drop_shadow="ExtraBold",
                   align_in_container="Center")
-    modal.props["Height"] = f"{2 * POP_PAD + 32 + 2 * 10} + If({busy}, 110, 20 + 10 + {gh})"
+    modal.props["Height"] = (f"{2 * POP_PAD + 32 + 2 * 10} + If({busy}, 110, 20 + 10 + {gh}) + "
+                             f"If({note_vis}, {note_h} + 10, 0)")
     backdrop = group(n("con", "Backdrop"), [modal], direction="Vertical", gap=0,
                      height="App.Height", width="App.Width", fill=C_OVERLAY, visible=OPEN,
                      justify="Start", align_items="Center", pad=(16, 0, 16, 0), overflow_y="Scroll")
