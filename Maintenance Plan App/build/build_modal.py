@@ -2,8 +2,9 @@
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_MUTED, C_TRANSPARENT, C_DIVIDER, C_MODAL_BG,
-                        C_PRIMARY_SOFT, C_OVERLAY)
+                        C_PRIMARY_SOFT, C_OVERLAY, C_PRIMARY, C_WHITE)
 import layout_tokens as lay
+from layout_tokens import at_least, if_below
 from build_helpers import tap_backdrop, text_ctrl, group, button, text_input, grow, ICON_SAVE, checkbox_theme, table_surface
 from design_tokens import ref_hex
 
@@ -34,9 +35,9 @@ PICKER_COLS = [
 PICKER_GAP = 10
 
 
-def _picker_header_html():
-    cols = " ".join(f"{w}px" for _, w in PICKER_COLS)
-    spans = "".join(f"<span>{t}</span>" for t, _ in PICKER_COLS)
+def _picker_header_html(cols_def=PICKER_COLS):
+    cols = " ".join(f"{w}px" for _, w in cols_def)
+    spans = "".join(f"<span>{t}</span>" for t, _ in cols_def)
     # Se _ops_header_html i build_tasklist.py: <style>-nulstillingen af
     # iframe'ens body-margin fjerner scrollbaren under overskriften.
     return (
@@ -49,6 +50,68 @@ def _picker_header_html():
 
 
 PICKER_HEADER_HTML = _picker_header_html()
+
+# DESKTOP (issue #109): "Select all" sidder i tabeloverskriften, over
+# raekkernes afkrydsning i SEL-kolonnen. Overskriften er derfor en raekke:
+# afkrydsningen (SEL-bredden) + HTML'en for resten af kolonnerne med samme
+# mellemrum. Under desktop er alt som foer: hele HTML'en med SEL-teksten.
+# Den fulde HTML staar SIDST i If'en - check_layout regel 5 laeser den.
+DESK = at_least("Desktop")
+SEL_W = PICKER_COLS[0][1]
+PICKER_HEADER_DESK_HTML = _picker_header_html(PICKER_COLS[1:])
+PICKER_HEADER_HTML_ANY = f"If({DESK}, {PICKER_HEADER_DESK_HTML}, {PICKER_HEADER_HTML})"
+
+# Antal synlige raekker og hvor mange af dem, der er valgt. Delt af
+# afkrydsningerne og den delvise tilstand, saa de ikke kan komme i utakt.
+VISIBLE_N = f"CountRows({VISIBLE_OPS})"
+VISIBLE_SEL_N = (f"CountRows(Filter({VISIBLE_OPS} As VOP, "
+                 "CountRows(Filter(colVhpPickerSelected, OperationNo = VOP.OperationNo)) > 0))")
+ALL_VISIBLE_SELECTED = f"IfError({VISIBLE_N} > 0 && {VISIBLE_SEL_N} = {VISIBLE_N}, false)"
+SOME_VISIBLE_SELECTED = f"IfError({VISIBLE_SEL_N} > 0 && {VISIBLE_SEL_N} < {VISIBLE_N}, false)"
+
+# EEN SKRIVNING HVER VEJ
+#
+# Her stod to ForAll med en mutation indeni. Begrundelsen var, at
+# maalet er en samling i hukommelsen, saa der ikke var noget
+# netvaerkskald at spare. App checker melder dem alligevel
+# (ForAllWithMutation), og den har ret i det, begrundelsen ikke
+# naevnte: hver enkelt skrivning faar ALT, der afhaenger af
+# samlingen, til at genberegne - og her afhaenger baade
+# afkrydsningen i hver raekke og "vaelg alle"s egen Default af den.
+#
+# Den gamle note var i tvivl om RemoveIf med to raekkescopes. Det
+# spoergsmaal er der ikke laengere: Remove(DataSource, Table) er en
+# dokumenteret form, og tabellen er raekker fra samlingen selv, saa
+# de matcher helt.
+SELECT_ALL_VISIBLE = (
+    "Collect(\n"
+    "    colVhpPickerSelected,\n"
+    "    ForAll(\n"
+    f"        Filter(\n"
+    f"            {VISIBLE_OPS} As VOP,\n"
+    "            CountRows(Filter(colVhpPickerSelected, OperationNo = VOP.OperationNo)) = 0\n"
+    "        ) As NEW,\n"
+    "        { OperationNo: NEW.OperationNo }\n"
+    "    )\n"
+    ")"
+)
+CLEAR_ALL_VISIBLE = (
+    "Remove(\n"
+    "    colVhpPickerSelected,\n"
+    "    Filter(\n"
+    "        colVhpPickerSelected As SEL,\n"
+    f"        CountRows(Filter({VISIBLE_OPS} As VOP, VOP.OperationNo = SEL.OperationNo)) > 0\n"
+    "    )\n"
+    ")"
+)
+
+# Galleriets raekkehoejde efter table_surface (TemplateSize 32 + padding 2).
+PICKER_ROW_H = 34
+# Popuppens faste dele paa desktop: padding 18+18, hoved 32, soegefelt 36,
+# info 18, kolonneoverskrift 22 + streg 1 + 2 x 4 gap, knapraekke 36 og
+# 4 x 12 gap mellem sektionerne = 237. Plus 32 luft over og under.
+PICKER_FIXED_H = 237
+PICKER_EDGE = 32
 
 
 def build_tasklist_picker_modal():
@@ -63,51 +126,17 @@ def build_tasklist_picker_modal():
     txtSearch = text_input("inpVhpPickerSearch", "\"\"", placeholder="\"Search operation no, text, work center\"",
                             height=36, label="\"Search operations\"")
     grow(txtSearch)
+    # Under desktop: "Select all visible" ved soegefeltet som foer. Paa
+    # desktop sidder "Select all" i tabeloverskriften (issue #109).
     chkSelectAll = Ctrl("chkVhpPickerSelectAll", "ModernCheckbox", props=checkbox_theme({
         "AccessibleLabel": "\"Select all visible\"",
-        "Default": (
-            f"IfError(CountRows({VISIBLE_OPS}) > 0 && "
-            f"CountRows(Filter({VISIBLE_OPS} As VOP, CountRows(Filter(colVhpPickerSelected, OperationNo = VOP.OperationNo)) > 0)) = CountRows({VISIBLE_OPS}), false)"
-        ),
+        "Default": ALL_VISIBLE_SELECTED,
         "Height": "36",
         "Label": "\"Select all visible\"",
-        # EEN SKRIVNING HVER VEJ
-        #
-        # Her stod to ForAll med en mutation indeni. Begrundelsen var, at
-        # maalet er en samling i hukommelsen, saa der ikke var noget
-        # netvaerkskald at spare. App checker melder dem alligevel
-        # (ForAllWithMutation), og den har ret i det, begrundelsen ikke
-        # naevnte: hver enkelt skrivning faar ALT, der afhaenger af
-        # samlingen, til at genberegne - og her afhaenger baade
-        # afkrydsningen i hver raekke og "vaelg alle"s egen Default af den.
-        #
-        # Den gamle note var i tvivl om RemoveIf med to raekkescopes. Det
-        # spoergsmaal er der ikke laengere: Remove(DataSource, Table) er en
-        # dokumenteret form, og tabellen er raekker fra samlingen selv, saa
-        # de matcher helt.
-        "OnCheck": (
-            "Collect(\n"
-            "    colVhpPickerSelected,\n"
-            "    ForAll(\n"
-            f"        Filter(\n"
-            f"            {VISIBLE_OPS} As VOP,\n"
-            "            CountRows(Filter(colVhpPickerSelected, OperationNo = VOP.OperationNo)) = 0\n"
-            "        ) As NEW,\n"
-            "        { OperationNo: NEW.OperationNo }\n"
-            "    )\n"
-            ")"
-        ),
-        "OnUncheck": (
-            "Remove(\n"
-            "    colVhpPickerSelected,\n"
-            "    Filter(\n"
-            "        colVhpPickerSelected As SEL,\n"
-            f"        CountRows(Filter({VISIBLE_OPS} As VOP, VOP.OperationNo = SEL.OperationNo)) > 0\n"
-            "    )\n"
-            ")"
-        ),
+        "OnCheck": SELECT_ALL_VISIBLE,
+        "OnUncheck": CLEAR_ALL_VISIBLE,
         "Width": "200",
-    }))
+    }), vis=if_below("Desktop", "true", "false"))
     toolbar = group("conVhpPickerToolbar", [txtSearch, chkSelectAll], direction="Horizontal", gap=12, height=36,
                     align_items="Center")
 
@@ -119,9 +148,45 @@ def build_tasklist_picker_modal():
         ), size=12, color=C_MUTED, height=18, wrap="false")
 
     headHtml = Ctrl("htmVhpPickerHeader", "HtmlViewer", props={
-        "Fill": C_TRANSPARENT, "Height": "22", "HtmlText": PICKER_HEADER_HTML,
-        "PaddingBottom": "0", "PaddingLeft": "0", "PaddingRight": "0", "PaddingTop": "0", "Width": "636",
+        "Fill": C_TRANSPARENT, "Height": "22", "HtmlText": PICKER_HEADER_HTML_ANY,
+        "PaddingBottom": "0", "PaddingLeft": "0", "PaddingRight": "0", "PaddingTop": "0",
+        "Width": if_below("Desktop", "636", str(636 - SEL_W - PICKER_GAP)),
     }, h=22)
+    # "Select all" i SEL-kolonnen (desktop). Tre tilstande: ingen valgt =
+    # tom boks, alle synlige valgt = afkrydset boks. En moderne checkboks
+    # har ingen delvis tilstand, saa naar NOGLE er valgt, staar en lille
+    # knap med et minus i boksens sted; et tryk paa den vaelger alle.
+    chkHeadAll = Ctrl("chkVhpPickerHeadAll", "ModernCheckbox", props=checkbox_theme({
+        "AccessibleLabel": "\"Select all\"",
+        "Default": ALL_VISIBLE_SELECTED,
+        "Height": "22",
+        "OnCheck": SELECT_ALL_VISIBLE,
+        "OnUncheck": CLEAR_ALL_VISIBLE,
+        "Tooltip": "\"Select all\"",
+        "Width": str(SEL_W),
+    }), h=22, vis=f"{DESK} && !{SOME_VISIBLE_SELECTED}")
+    btnHeadPartial = Ctrl("btnVhpPickerHeadPartial", "Classic/Button", props={
+        "BorderColor": C_PRIMARY, "BorderStyle": "BorderStyle.Solid", "BorderThickness": "1",
+        "Color": C_WHITE, "Fill": C_PRIMARY, "FocusedBorderColor": C_PRIMARY,
+        "FocusedBorderThickness": "2", "FontWeight": "FontWeight.Bold",
+        "Height": "18", "HoverColor": C_WHITE, "HoverFill": C_PRIMARY,
+        "OnSelect": SELECT_ALL_VISIBLE,
+        "PaddingBottom": "0", "PaddingLeft": "0", "PaddingRight": "0", "PaddingTop": "0",
+        "PressedColor": C_WHITE, "PressedFill": C_PRIMARY,
+        "RadiusBottomLeft": "4", "RadiusBottomRight": "4", "RadiusTopLeft": "4", "RadiusTopRight": "4",
+        "Size": "12", "TabIndex": "0",
+        # Den klassiske knap har ingen AccessibleLabel - skaermlaeseren
+        # laeser Text og Tooltip.
+        "Text": "\"\u2212\"",
+        "Tooltip": "\"Some lines selected - select all\"",
+        "Width": "18",
+    }, h=18, vis=f"{DESK} && {SOME_VISIBLE_SELECTED}")
+    # Lodret, ikke vandret: der er altid kun EEN af de to synlig, og de
+    # deler SEL-kolonnens 26 px.
+    headSel = group("conVhpPickerHeadSel", [chkHeadAll, btnHeadPartial], direction="Vertical", gap=0,
+                    height=22, width=SEL_W, align_items="Center", justify="Center", visible=DESK)
+    colHead = group("conVhpPickerColHead", [headSel, headHtml], direction="Horizontal", gap=PICKER_GAP,
+                    height=22, width=636, align_items="Center")
     divider = group("conVhpPickerDivider", [], height=1, fill=C_DIVIDER, direction="Horizontal",
                     width=636)
 
@@ -155,7 +220,12 @@ def build_tasklist_picker_modal():
             "BorderStyle": "BorderStyle.None",
             "Fill": C_MODAL_BG,
             "FillPortions": "0",
-            "Height": "280",
+            # Desktop: saa hoej som raekkerne, med et loft fra skaermhoejden,
+            # saa popuppen aldrig gaar ud over skaermen. Foerst naar raekkerne
+            # ikke kan staa der, scroller galleriet (issue #109).
+            "Height": if_below("Desktop", "280",
+                               f"Min(Max({VISIBLE_N}, 1) * {PICKER_ROW_H}, "
+                               f"Max(3 * {PICKER_ROW_H}, App.Height - {PICKER_FIXED_H + 2 * PICKER_EDGE}))"),
             "Items": VISIBLE_OPS,
             "LayoutMinWidth": "0",
             "LoadingSpinner": "LoadingSpinner.None",
@@ -167,14 +237,15 @@ def build_tasklist_picker_modal():
             "Width": "636",
             "WrapCount": "1",
         },
-        children=[pickerRow], h=280)
+        children=[pickerRow], h=None)
+    gallery.h = gallery.props["Height"]
     # Neutral flade og een streg pr. raekke - ikke graat fyld (issue #78).
     table_surface(gallery, "rctVhpPickerRule", surface=C_MODAL_BG)
 
     # Ingen scroll her: beholderen er praecis saa hoej som sit indhold, og
     # galleriet scroller selv. To scrollbarer oven i hinanden tog 18 px
     # ekstra af bredden, og sidste kolonne laa under dem.
-    listWrap = group("conVhpPickerListWrap", [headHtml, divider, gallery], direction="Vertical", gap=4,
+    listWrap = group("conVhpPickerListWrap", [colHead, divider, gallery], direction="Vertical", gap=4,
                      width=636, align_items="Start")
     # POPUPPEN FOELGER SKAERMEN (REVIEW.md A16). Den var fast 740 px og gik
     # ud over en telefon. Nu er den Min(740, App.Width - 40) som de andre
@@ -185,7 +256,8 @@ def build_tasklist_picker_modal():
                        overflow_x="Scroll", width="Parent.Width")
 
     btnCancel = button("btnVhpPickerCancel", "\"Cancel\"",
-                       "Set(varVhpTasklistPickerOpen, false); Clear(colVhpPickerSelected)", width=100, height=36)
+                       "Set(varVhpTasklistPickerOpen, false); Clear(colVhpPickerSelected)", width=100, height=36,
+                       visible=if_below("Desktop", "true", "false"))
     btnAddSelected = button(
         "btnVhpPickerAddSelected", "\"Add selected lines\"",
         (
@@ -226,7 +298,9 @@ def build_tasklist_picker_modal():
             "    Clear(colVhpPickerSelected);\n"
             "    Set(varVhpTasklistPickerOpen, false)\n"
             ")"
-        ), primary=True, width=170, height=36)
+        ), primary=True, width=170, height=36,
+        # Desktop: graa, til der er valgt mindst een linje (issue #109).
+        display_mode=f"If({DESK} && CountRows(colVhpPickerSelected) = 0, DisplayMode.Disabled, DisplayMode.Edit)")
     footer = group("conVhpPickerFooter", [btnCancel, btnAddSelected], direction="Horizontal", gap=10, height=36,
                   justify="End", align_items="Center")
 
@@ -236,7 +310,8 @@ def build_tasklist_picker_modal():
         pad=(18, 18, 18, 18), width="Min(740, App.Width - 40)", drop_shadow="ExtraBold",
         visible="varVhpTasklistPickerOpen")
     modal.props["X"] = "(App.Width - Self.Width) / 2"
-    modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
+    # Desktop: hoejt oppe med fast luft til toppen, ikke centreret.
+    modal.props["Y"] = if_below("Desktop", "Max(20, (App.Height - Self.Height) / 3)", str(PICKER_EDGE))
     return modal
 
 
