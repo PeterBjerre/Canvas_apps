@@ -90,12 +90,13 @@ kilden afklares foerst - ikke gaettes her.
 """
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from build_helpers import button, confirm_modal, ICON_SAVE, ICON_SUBMIT
+from build_helpers import button, ICON_SAVE, ICON_SUBMIT
 import sp_config as cfg
 import messages as msg
 import admin_log as alog
 import permissions as perm
 import request_index as ri
+import submission_notes as sn
 
 # AppUrl (appens play-URL fra tools/canvas_apps.json) skrives af
 # tools/request_index.record - samme felter som de andre apps.
@@ -649,7 +650,7 @@ def _step_cleanup():
     ]))
 
 
-def _index_patch(status):
+def _index_patch(status, extra=None):
     rec = ri.record(
         DOMAIN, "vhplan", status,
         request_no="varVhpPlanKey", guid="varVhpRequestGuid", me="varVhpMe",
@@ -658,9 +659,10 @@ def _index_patch(status):
         current=IDX_NOW,
         short_text="varVhpPlan.PlanText", plant="varVhpPlan.Plant",
         item_count=SAVEABLE_COUNT, source_id="varVhpPlanSpId", indent=8)
+    more = f",\n        {extra}" if extra else ""
     return (f"Patch(\n        {cfg.L_INDEX},\n        Coalesce(\n"
             f"            {IDX_NOW},\n"
-            f"            Defaults({cfg.L_INDEX})\n        ),\n        {rec}\n    )")
+            f"            Defaults({cfg.L_INDEX})\n        ),\n        {rec}{more}\n    )")
 
 
 def _step_status():
@@ -673,7 +675,10 @@ def _step_status():
         "            varVhpPlanRec,\n"
         f"            Patch({cfg.L_PLANS}, varVhpPlanRec, "
         f"{{ Status: {{ Value: \"{PLAN_STATUS_SUBMITTED}\" }}, "
-        "ApprovalStage: { Value: \"System\" }, SubmittedOn: Now(), StageRunId: \"\" })\n"
+        "ApprovalStage: { Value: \"System\" }, SubmittedOn: Now(), StageRunId: \"\", "
+        # Note to approver og hvem der indsendte (issue #115) - kun her,
+        # saa Save draft og flowene aldrig overskriver noten.
+        f"{sn.COL_APPROVER}: varVhpNoteApprover, {sn.COL_BY}: varVhpMe }})\n"
         "        );\n"
         # Progressbaren viser nu godkendelsen (build_status.VhpSubmitted).
         "        Set(varVhpFlow, { Status: varVhpPlanRec.Status.Value, "
@@ -682,12 +687,46 @@ def _step_status():
         # Hubben laeser KUN indeksraekken.
         "    If(\n"
         "        varVhpSubmitting,\n"
-        f"    {_index_patch(ri.SUBMITTED)},\n"
+        f"    {_index_patch(ri.SUBMITTED, NOTE_FLAG)},\n"
         f"    {_index_patch(ri.DRAFT)}\n"
         "    );\n"
         # Det, der nu staar i SharePoint - konflikttjekket (trin 2) maaler
         # mod det ved naeste gem.
         "    Set(varVhpPlanModified, varVhpPlanRec.Modified)"))
+
+
+# Hubben viser note-ikonet af indeksraekken alene (tools/submission_notes.py).
+NOTE_FLAG = f"{{ {sn.FLAG}: !IsBlank(Trim(varVhpNoteApprover)) }}"
+
+
+def _step_notes():
+    """7b. Note to self ved Submit (issue #115) - i sin egen liste, som kun
+    ejeren (og admins) kan laese. Kun ejeren skriver den: en admin, der
+    indsender en andens plan, ville eje raekken, og ejeren kunne ikke se
+    den. En tom note roerer ingen liste - en eksisterende slettes.
+    Teksten gemmes, som den er skrevet."""
+    owner = f"!({AS_ADMIN})"
+    cur = f"LookUp({sn.LIST}, RequestGuid = varVhpRequestGuid && OwnerEmail = varVhpMe)"
+    return _step("Note to self", (
+        "    If(\n"
+        f"        varVhpSubmitting && {owner},\n"
+        f"        With(\n            {{ s: {cur} }},\n"
+        "            If(\n"
+        "                IsBlank(Trim(varVhpNoteSelf)),\n"
+        f"                If(!IsBlank(s), Remove({sn.LIST}, s)),\n"
+        f"                Patch(\n                    {sn.LIST},\n"
+        f"                    If(IsBlank(s), Defaults({sn.LIST}), s),\n"
+        "                    {\n"
+        "                        Title: varVhpPlanKey,\n"
+        "                        RequestGuid: varVhpRequestGuid,\n"
+        "                        PlanId: varVhpPlanSpId,\n"
+        "                        Note: varVhpNoteSelf,\n"
+        "                        OwnerEmail: varVhpMe\n"
+        "                    }\n"
+        "                )\n"
+        "            )\n"
+        "        )\n"
+        "    )"))
 
 
 def _admin_log():
@@ -757,6 +796,7 @@ def save_action():
         _when_ok(_step_materials()),
         _when_ok(_step_attachments()),
         _when_ok(_step_cleanup()),
+        _when_ok(_step_notes()),
         _when_ok(_step_status()),
         report,
         # EET sted spinneren slukkes og tilstanden nulstilles.
@@ -790,25 +830,64 @@ DRAFT_DM = ("If(\n"
 
 def save_buttons(can_submit):
     """Save draft og Submit - de to knapper, der skriver planen i
-    SharePoint - og Submits bekraeftelse.
+    SharePoint - og Submits popup med noterne (issue #115).
 
     can_submit er betingelsen for, at planen kan indsendes. DisplayMode er
     bundet til den, saa en graa Submit ikke kan klikkes.
 
-    Submit aabner en bekraeftelse; foerst "Submit" dér indsender: den
-    saetter varVhpSubmitting og vaelger Save draft-knappen. Select koerer
-    knappens OnSelect, efter bekraeftelsens egen formel er faerdig.
+    Submit aabner popuppen med noterne; foerst "Submit" dér indsender: den
+    saetter noterne og varVhpSubmitting og vaelger Save draft-knappen.
+    Select koerer knappens OnSelect, efter popuppens egen formel er faerdig.
 
-    Returnerer (Save draft, Submit, [sloer, popup])."""
+    Returnerer (Save draft, Submit, [popup])."""
     btnDraft = button(SAVE_BUTTON, "\"Save draft\"", save_action(),
                       display_mode=DRAFT_DM, icon=ICON_SAVE)
-    btnSubmit = button("btnVhpSubmit", "\"Submit\"", "Set(varVhpConfirmSubmit, true)",
+    btnSubmit = button("btnVhpSubmit", "\"Submit\"", NOTES_OPEN_SUBMIT,
                        primary=True, icon=ICON_SUBMIT,
                        display_mode=f"If(!varVhpViewOnly && {can_submit}, DisplayMode.Edit, DisplayMode.Disabled)")
-    confirm = confirm_modal(
-        "Vhp", "varVhpConfirmSubmit", "Submit plan?",
-        "\"The plan \" & varVhpPlan.Plant & \" \" & varVhpPlan.PlanText & "
-        "\" is saved and marked as ready for processing on the landing page.\"",
-        "Submit", f"Set(varVhpSubmitting, true);\nSelect({SAVE_BUTTON})",
-        "btnVhpSubmitConfirm")
-    return btnDraft, btnSubmit, confirm
+    return btnDraft, btnSubmit, notes_popup()
+
+
+# NOTERNE VED SUBMIT (issue #115)
+#
+# Submit aabner popuppen med de to valgfri noter - den erstatter
+# bekraeftelsen, saa der stadig kun er eet ekstra klik. Popuppens Submit
+# laegger noterne i variablerne og koerer den SAMME gemning som foer. Tomme
+# noter stopper intet. Close er den eneste anden vej ud.
+#
+# Uden for indsendelsen (en indsendt plan, View) viser den samme popup
+# noterne skrivebeskyttet - knappen btnVhpNotes i topbjaelken.
+NOTES_EDIT = "IfError(varVhpNotesEdit, false)"
+_INPUTS = ("inpVhpNoteA", "inpVhpNoteS")
+NOTES_OPEN_SUBMIT = ("Set(varVhpNotesEdit, true);\n" + "".join(f"Reset({c});\n" for c in _INPUTS)
+                     + "Set(varVhpConfirmSubmit, true)")
+NOTES_OPEN_VIEW = ("Set(varVhpNotesEdit, false);\n" + "".join(f"Reset({c});\n" for c in _INPUTS)
+                   + "Set(varVhpConfirmSubmit, true)")
+# Ejeren af planen - eller brugeren selv i en ny plan (build_load saetter den).
+VHP_OWNER = 'Coalesce(varVhpOwnerEmail, varVhpMe)'
+NOTES_HAVE = '(!IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf))'
+
+
+def notes_popup():
+    edit = NOTES_EDIT
+    intro = (f'If({edit}, "The plan " & varVhpPlan.Plant & " " & varVhpPlan.PlanText & '
+             '" is saved and marked as ready for processing on the landing page. '
+             'Both notes are optional.", '
+             '"Notes added when " & varVhpPlanKey & " was submitted. They are read-only.")')
+    owner = sn.may_self(VHP_OWNER, "varVhpMe")
+    ctrls, _a, _s = sn.popup(
+        "Vhp", "varVhpConfirmSubmit", edit,
+        f'If({edit}, "Submit plan?", "Submission notes")', intro,
+        "varVhpNoteApprover", "varVhpNoteSelf",
+        # Note to approver: altid i indsendelsen; i visningen kun, naar
+        # brugeren maa se den (build_load fylder kun noter, brugeren maa se).
+        f"{edit} || !IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf)",
+        # Note to self: kun ejeren skriver den (_step_notes); i visningen
+        # ejer og admin.
+        f"If({edit}, {perm.is_owner(VHP_OWNER, 'varVhpMe')}, {owner})",
+        submit_fx=("Set(varVhpNoteApprover, inpVhpNoteA.Text);\n"
+                   "Set(varVhpNoteSelf, If(" + perm.is_owner(VHP_OWNER, "varVhpMe") +
+                   ", inpVhpNoteS.Text, varVhpNoteSelf));\n"
+                   f"Set(varVhpSubmitting, true);\nSelect({SAVE_BUTTON})"),
+        submit_name="btnVhpSubmitConfirm")
+    return ctrls
