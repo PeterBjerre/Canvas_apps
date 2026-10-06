@@ -1056,8 +1056,13 @@ def build_list():
         b.props["PressedFill"] = C_ROW_HOVER
     c_base = f"Parent.Width - {SCROLLBAR_W} - {ROW_PAD} - {TL_W} - 8 - 80"
     zone_w = 80 + 8 + TL_W + 8
-    zone = _image("imgMdRowActionsZone", '""', zone_w, 34, onselect="false", hover=C_CARD_BG)
-    zone.props["Fill"] = C_CARD_BG
+    # HANDLINGSZONEN ER GENNEMSIGTIG (issue #90). Den stod i kortets farve
+    # og tegnede en hvid kasse oven i raekkens hover-tone. Nu ses raekkens
+    # tone igennem den; peger man direkte paa zonen, toner den sig selv
+    # med den samme row-hover, saa feltet ikke springer tilbage til hvid.
+    # Zonen fanger stadig klik mellem ikonerne (onselect false).
+    zone = _image("imgMdRowActionsZone", '""', zone_w, 34, onselect="false", hover=C_ROW_HOVER)
+    zone.props["PressedFill"] = C_ROW_HOVER
     zone.props["X"] = if_below("Wide", f"{c_base} - 4", f"{tl_x} - 4")
     zone.props["Y"] = if_below("Wide", "4", "(Parent.TemplateHeight - 1 - 34) / 2")
     zone.props["Width"] = if_below("Wide", str(zone_w), str(TL_W + 12 + 72 + 8))

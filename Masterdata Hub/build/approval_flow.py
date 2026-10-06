@@ -21,10 +21,11 @@ A stage is complete when every expected decision exists. An item decided twice
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_OVERLAY, C_MODAL_BG, C_PRIMARY_SOFT, C_MUTED, C_TITLE,
-                        C_MUTED_BG, C_TRANSPARENT, C_PRIMARY, C_WHITE, C_INFO_BG, C_INFO_FG,
+                        C_MUTED_BG, C_TRANSPARENT, C_PRIMARY, C_INFO_BG, C_INFO_FG,
                         C_WARN_FG, C_WARN_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, C_VALID_FG, C_VALID_BG,
-                        C_DIVIDER, C_ROW_HOVER, C_ROW_PRESSED)
-from build_helpers import group, text_ctrl, button, grow, spinner_svg, row_hit
+                        C_INVALID_FG, C_INVALID_BG, C_CARD_BORDER, C_ROW_HOVER, C_ROW_PRESSED)
+from build_helpers import group, text_ctrl, button, grow, spinner_svg, row_hit, text_px
+from hub_config import DOMAINS, STATUS
 from design_tokens import ref_hex
 import layout_tokens as lay
 import admin_log as alog
@@ -32,9 +33,9 @@ from layout_tokens import if_below, at_least
 
 OPEN = "IfError(varMdAprOpen, false)"
 CLOSE = "Set(varMdAprOpen, false)"
-ROW_H = 46
+ROW_H = 48
 MAX_ROWS = 11
-POP_MAX_W = 640
+POP_MAX_W = 720
 POP_PAD = 16
 SVG_FONT = "font-family='Segoe UI, sans-serif'"
 
@@ -43,17 +44,15 @@ STAGES = [
     ("Cost", "Cost approval", "S2"),
     ("Quality", "Quality review", "S3"),
 ]
-# "Admin": en admins aendring i en andens anmodning (tools/admin_log.py) -
-# samme advarselsfarve som Returned, saa den skiller sig ud i forloebet.
-STATE_FG = {"Approved": C_VALID_FG, "Done": C_VALID_FG, "Skipped": C_NEUTRAL_FG,
-            "In progress": C_INFO_FG, "Returned": C_WARN_FG, "Pending": C_NEUTRAL_FG,
-            "Admin": C_WARN_FG}
-STATE_BG = {"Approved": C_VALID_BG, "Done": C_VALID_BG, "Skipped": C_NEUTRAL_BG,
-            "In progress": C_INFO_BG, "Returned": C_WARN_BG, "Pending": C_NEUTRAL_BG,
-            "Admin": C_WARN_BG}
+# Farverne paa forloebets knuder og striben i listen (SVG, derfor hex).
+# Badgefarverne staar ved popuppen (BADGE_FG/BADGE_BG). "Admin": en admins
+# aendring i en andens anmodning (tools/admin_log.py) - samme advarselsfarve
+# som Returned, saa den skiller sig ud i forloebet.
 STATE_HEX = {"Approved": "state-ok-fg", "Done": "state-ok-fg", "Skipped": "state-neutral-fg",
              "In progress": "state-info-fg", "Returned": "state-warn-fg",
              "Pending": "text-muted", "Admin": "state-warn-fg"}
+# Kun popuppens tidslinje kan vise en lukket anmodnings udfald.
+RAIL_HEX = {**STATE_HEX, "Rejected": "state-error-fg", "Cancelled": "state-neutral-fg"}
 PASSED = '(%s = "Approved" || %s = "Skipped" || %s = "Done")'
 
 
@@ -179,14 +178,27 @@ def row_svg():
 # Opening the popup: build the collections the gallery reads.
 # ---------------------------------------------------------------------------
 R = "varMdAprReq"
-COLS = ("Kind", "Stage", "Title", "State", "Label", "Rule", "Cur", "Sub")
+# EEN RAEKKEMODEL FOR BEGGE POPUPS (issue #90)
+#
+#   Kind   H = trinoverskrift (kun Approval flow), D = haendelse/beslutning,
+#          X = fortsaettelseslinje, naar en raekke er foldet ud (smal skaerm)
+#   Title  overskriftens navn (H) - eller AKTOEREN (D): et bruger-id
+#          (UFFES) eller en automatisk afsender (SYSTEM, Master Data)
+#   Act    handlingen eller rollen ved siden af aktoeren
+#   Sub    stoettende detaljer (kommentar, detalje, item) - egen linje
+#   Stamp  tidsstemplet - egen kolonne til hoejre, ikke en del af Sub
+#   Human  true = en bestemt bruger handlede: personikon og fast kort.
+#          false = automatisk/system: intet ikon, stiplet kort, rude i
+#          tidslinjen. Afgjort af de vaerdier, flowene faktisk skriver:
+#          DecidedByEmail er "system" (uden @) for automatiske raekker.
+COLS = ("Kind", "Stage", "Title", "State", "Label", "Rule", "Cur", "Sub", "Act", "Stamp", "Human")
+_DEFAULTS = {"Cur": "false", "Human": "false"}
 
 
 def _rec(**f):
-    f.setdefault("Cur", "false")
     vals = []
     for c in COLS:
-        v = f.get(c, '""')
+        v = f.get(c, _DEFAULTS.get(c, '""'))
         vals.append(f"{c}: {v}")
     return "{ " + ", ".join(vals) + " }"
 
@@ -210,24 +222,46 @@ _RULES = {
     "Quality": '"One approver for the whole plan - the plant"',
 }
 
+STAMP = '"dd-mm-yyyy hh:mm"'
+
 
 def _who(email):
-    return f'Upper(First(Split(Coalesce({email}, "unknown@"), "@")).Value)'
+    """Bruger-id af en e-mail: delen foer @, med store bogstaver
+    (uffes@orsted.com -> UFFES). En vaerdi uden @ (et id som PKBJE i
+    MD_Approver, eller "system") bliver blot til store bogstaver."""
+    return f'Upper(First(Split(Coalesce({email}, "unknown"), "@")).Value)'
+
+
+def _by(text):
+    """LastActionBy er en e-mail, naar appen skrev den, og et navn, naar et
+    flow gjorde ("Quality review", "SAP"). Kun e-mailen goeres til id."""
+    return f'If("@" in Coalesce({text}, ""), {_who(text)}, {text})'
+
+
+# Trinets navn i aktivitetsloggen. Stage-vaerdierne er dem, flowene og
+# appen skriver i MD_ApprovalLog (SapCreated: ToMasterData/SapReceipt,
+# Admin: tools/admin_log.py); en ukendt vaerdi vises som den er.
+STAGE_ACT = {"System": "System approval", "Cost": "Cost approval", "Quality": "Quality review",
+             "SapCreated": "Creation in SAP", alog.STAGE: "Admin change"}
 
 
 def _decision_rows(stage, tbl, timeline=False):
-    item = '' if stage == "Quality" else ' & If(!IsBlank(ItemText), "  \u00b7  " & ItemText, "")'
     state = ('Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", '
              f'"{alog.EDIT}", "Admin", "{alog.DELETE}", "Admin", "Returned")')
     label = (f'Switch(Decision, "{alog.EDIT}", "Admin edit", "{alog.DELETE}", "Admin delete", '
              f'{state})')
-    sub = ('Text(DecidedOn, "dd-mm-yyyy hh:mm") & '
-           'If(!IsBlank(Comment), "  \u00b7  " & Substitute(Comment, Char(10), " "), '
-           'If(!IsBlank(Detail), "  \u00b7  " & Detail, ""))')
-    who = f"{_who('DecidedByEmail')}{item}"
+    note = ('If(!IsBlank(Comment), Substitute(Comment, Char(10), " "), Coalesce(Detail, ""))')
     if timeline:
-        who = f'Stage & "  \u00b7  " & {who}'
-    rec = _rec(Kind=_q("D"), Stage=_q(stage), Title=who, State=state, Label=label, Sub=sub)
+        act = ("Switch(Stage, " + ", ".join(f'"{k}", "{v}"' for k, v in STAGE_ACT.items()) +
+               ", Stage)")
+        sub = (f'With({{ n: {note} }}, If(IsBlank(ItemText), n, '
+               'ItemText & If(IsBlank(n), "", "  ·  " & n)))')
+    else:
+        act = '"Whole plan"' if stage == "Quality" else 'Coalesce(ItemText, "")'
+        sub = note
+    rec = _rec(Kind=_q("D"), Stage=_q(stage), Title=_who("DecidedByEmail"), State=state,
+               Label=label, Sub=sub, Act=act, Stamp=f"Text(DecidedOn, {STAMP})",
+               Human='"@" in Coalesce(DecidedByEmail, "")')
     return f'ForAll(SortByColumns({tbl}, "DecidedOn"), {rec})'
 
 
@@ -235,44 +269,55 @@ def _waiting_row(stage, svar):
     n = f'CountRows(Filter(colMdAprLatest, Stage = "{stage}"))'
     exp = expected(stage, R)
     if stage == "System":
-        who = '"System manager of each item"'
-        sub = f'({exp} - {n}) & " of " & {exp} & " awaiting a decision"'
-    else:
-        key = '"COST"' if stage == "Cost" else f"Upper(Left({R}.Plant, 3))"
-        who = (f'With({{a: LookUp(MD_Approver, ApproverKey = {key})}}, If(IsBlank(a), "Approver not set", '
-               f'Upper(If(a.Approver1Absent, a.Approver2, a.Approver1))))')
-        sub = (f'With({{a: LookUp(MD_Approver, ApproverKey = {key})}}, If(IsBlank(a), "No row in MD_Approver for " & {key}, '
-               f'If(a.Approver1Absent, "2nd approver - 1st approver absent", "1st approver")))' )
+        rec = _rec(Kind=_q("D"), Stage=_q(stage), Title='"System manager of each item"',
+                   State=_q("Pending"), Label=_q("Awaiting"),
+                   Sub=f'({exp} - {n}) & " of " & {exp} & " awaiting a decision"')
+        return f'If({svar} = "In progress" && {n} < {exp}, Collect(colMdAprRows, {rec}))'
+    # Godkenderen slaas op EEN gang - og kun naar trinet venter.
+    key = '"COST"' if stage == "Cost" else f"Upper(Left({R}.Plant, 3))"
+    who = (f'If(IsBlank(a), "Approver not set", '
+           f'{_who("If(a.Approver1Absent, a.Approver2, a.Approver1)")})')
+    act = 'If(IsBlank(a), "", If(a.Approver1Absent, "2nd approver", "1st approver"))'
+    sub = (f'If(IsBlank(a), "No row in MD_Approver for " & {key}, '
+           'If(a.Approver1Absent, "1st approver absent", ""))')
     rec = _rec(Kind=_q("D"), Stage=_q(stage), Title=who, State=_q("Pending"), Label=_q("Awaiting"),
-               Sub=sub)
-    return f'If({svar} = "In progress" && {n} < {exp}, Collect(colMdAprRows, {rec}))'
+               Sub=sub, Act=act, Human="!IsBlank(a)")
+    return (f'If({svar} = "In progress" && {n} < {exp}, '
+            f'With({{a: LookUp(MD_Approver, ApproverKey = {key})}}, Collect(colMdAprRows, {rec})))')
 
 
 META_FX = (
     "Concat(\n"
     "    Filter(\n"
     "        Table(\n"
-    '            { v: If(!IsBlank(%(r)s.RequesterName), "by " & %(r)s.RequesterName) },\n'
+    '            { v: If(!IsBlank(%(r)s.RequesterEmail), "Requested by " & %(who)s) },\n'
     "            { v: If(%(r)s.ItemCount > 0, Text(%(r)s.ItemCount) &\n"
     '                    If(%(r)s.ItemCount = 1, " item", " items")) },\n'
     '            { v: If(!IsBlank(%(r)s.SapObjectNo), "SAP " & %(r)s.SapObjectNo) },\n'
-    '            { v: If(!IsBlank(%(r)s.LastActionBy), "last change by " & %(r)s.LastActionBy) }\n'
+    '            { v: If(!IsBlank(%(r)s.LastActionBy), "last change by " & %(by)s) }\n'
     "        ),\n"
     "        !IsBlank(v)\n"
     "    ),\n"
     "    v,\n"
-    '    "  \u00b7  "\n'
+    '    "  ·  "\n'
     ")"
-) % {"r": R}
+) % {"r": R, "who": _who(R + ".RequesterEmail"),
+       "by": _by(R + ".LastActionBy")}
 
 IS_TIMELINE = 'IfError(varMdAprMode, "") = "T"'
+
+
+def _status_label(value):
+    """Den engelske etiket for en statusvaerdi - hubbens eget ordforraad."""
+    return ("Switch(" + value + ", " +
+            ", ".join(f'"{k}", "{label}"' for k, label, *_r in STATUS) + f", {value})")
 
 
 def timeline_fx():
     """Activity of one request. One filtered query. For plans it holds the
     approvals; for every domain it holds an admin's changes (Stage "Admin",
     tools/admin_log.py) - so it is read for all domains, not only plans."""
-    stamp = 'Text(%s.Created, "dd-mm-yyyy hh:mm")' % R
+    st = f"{R}.Status.Value"
     lines = [
         "Set(varMdAprBusy, true)",
         "Set(varMdAprExp, 0)",
@@ -282,20 +327,25 @@ def timeline_fx():
         f"Set({R}, ThisItem)",
         "ClearCollect(colMdAprLog, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid))",
         "ClearCollect(colMdAprRows, " + _rec(
-            Kind=_q("D"), Stage=_q("T"), Title=f'"Created by " & {_who(R + ".RequesterEmail")}',
-            State=_q("Done"), Label=_q("Created"), Sub=stamp) + ")",
+            Kind=_q("D"), Stage=_q("T"), Title=_who(R + ".RequesterEmail"),
+            Act=_q("Created the request"), State=_q("Done"), Label=_q("Created"),
+            Stamp=f"Text({R}.Created, {STAMP})", Human="true") + ")",
         "Collect(colMdAprRows, " + _decision_rows("T", "colMdAprLog", timeline=True) + ")",
         f'If(!IsBlank({R}.SapObjectNo), Collect(colMdAprRows, ' + _rec(
-            Kind=_q("D"), Stage=_q("T"), Title=f'"SAP " & {R}.SapObjectNo', State=_q("Done"),
-            Label=_q("Created"), Sub=_q("Created in SAP")) + "))",
+            Kind=_q("D"), Stage=_q("T"), Title=_q("SAP"), Act=_q("Created in SAP"),
+            State=_q("Done"), Label=_q("Created"), Sub=f'"SAP " & {R}.SapObjectNo') + "))",
         f'If({R}.IsOpen && !IsBlank({R}.AssignedToEmail), Collect(colMdAprRows, ' + _rec(
-            Kind=_q("D"), Stage=_q("T"), Title=_who(R + ".AssignedToEmail"), State=_q("In progress"),
-            Label=_q("Waiting"), Sub=_q("Assigned to")) + "))",
+            Kind=_q("D"), Stage=_q("T"), Title=_who(R + ".AssignedToEmail"),
+            Act=_q("Assigned to"), State=_q("In progress"), Label=_q("Waiting"),
+            Human="true") + "))",
         "Collect(colMdAprRows, " + _rec(
-            Kind=_q("D"), Stage=_q("T"), Title=f'"Status: " & {R}.Status.Value',
-            State=f'If({R}.IsOpen, "In progress", "Done")', Label=f'If({R}.IsOpen, "Open", "Closed")',
-            Sub=f'"Last change " & Text({R}.LastActionOn, "dd-mm-yyyy hh:mm") & '
-                f'If(!IsBlank({R}.LastActionBy), " by " & {R}.LastActionBy, "")') + ")",
+            Kind=_q("D"), Stage=_q("T"), Title=_q("Status"), Act=_status_label(st),
+            State=f'If({R}.IsOpen, "In progress", {st} = "Afvist", "Rejected", '
+                  f'{st} = "Annulleret", "Cancelled", "Done")',
+            Label=f'If({R}.IsOpen, "Open", "Closed")',
+            Stamp=f"Text({R}.LastActionOn, {STAMP})",
+            Sub=f'If(IsBlank({R}.LastActionBy), "Last change", '
+                f'"Last change by " & {_by(R + ".LastActionBy")})') + ")",
         *INDEX_ROWS,
         "Set(varMdAprBusy, false)",
     ]
@@ -343,7 +393,8 @@ def open_fx():
         'If(varMdAprS4 <> "Pending", Collect(colMdAprRows, ' + _rec(
             Kind=_q("D"), Stage=_q("SAP"), Title=_q("Master Data"), State="varMdAprS4",
             Label='If(varMdAprS4 = "Done", "Created", "Awaiting")',
-            Sub=f'If(varMdAprS4 = "Done", "SAP " & {R}.SapObjectNo, "Ready - waiting for creation in SAP")')
+            Act='If(varMdAprS4 = "Done", "Created the plan", "Ready - waiting for creation in SAP")',
+            Sub=f'If(varMdAprS4 = "Done", "SAP " & {R}.SapObjectNo, "")')
         + "))")
     lines.extend(INDEX_ROWS)
     lines.append("Set(varMdAprBusy, false)")
@@ -380,18 +431,47 @@ def strip_hits(act_width, x_expr, compact=None):
 
 
 # ---------------------------------------------------------------------------
-# The popup: a swimlane timeline. Rail on the left (node per stage, dot per
-# decision), stage header with state and rule, one compact card per decision.
+# The popups: Approval flow (Mode "A") and Activity (Mode "T") are the SAME
+# component (issue #90) - one header with the title and a request-number
+# badge in the domain's colour, one rail, one row layout, one badge system.
+# What differs is the content: Approval flow groups decisions under a
+# header per stage; Activity is a flat, chronological list of events.
+#
+# Row layout (D rows), left to right:
+#   rail  | [person icon] ACTOR  action          | timestamp | [ BADGE ]
+#         |   supporting details (own line)      |  column   |  column
+# Badge and timestamp are vertically centred in the row; both sit in fixed
+# right-hand columns, so they line up from row to row. Below Tablet there
+# is no room for the timestamp column: it leads the details line instead.
 # ---------------------------------------------------------------------------
 POP_W = f"Min({POP_MAX_W}, App.Width - 24)"
 GW = f"({POP_W} - {2 * POP_PAD})"
 TW = f"({GW} - 20)"
 CHIP_W = 92
+CHIP_H = 22
+STAMP_W = 104
+LX = 48            # where the row text starts (card at 38 + 10 padding)
+ICON_W = 16
+PERSON = "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z M4.5 20.5a7.5 7.5 0 0 1 15 0"
+
+# Badge colours, by State. One table for both popups. Tinted background,
+# readable foreground - no solid fills:
+#   green     Approved, Done (Created, Closed)
+#   blue      In progress (Open, Waiting)
+#   blue-grey Pending (Awaiting) - blue text on the neutral tint
+#   grey      Skipped, Cancelled
+#   amber     Returned, Admin
+#   red       Rejected
+BADGE_FG = {"Approved": C_VALID_FG, "Done": C_VALID_FG, "Skipped": C_MUTED,
+            "Cancelled": C_MUTED, "In progress": C_INFO_FG, "Returned": C_WARN_FG,
+            "Pending": C_INFO_FG, "Admin": C_WARN_FG, "Rejected": C_INVALID_FG}
+BADGE_BG = {"Approved": C_VALID_BG, "Done": C_VALID_BG, "Skipped": C_MUTED_BG,
+            "Cancelled": C_MUTED_BG, "In progress": C_INFO_BG, "Returned": C_WARN_BG,
+            "Pending": C_NEUTRAL_BG, "Admin": C_WARN_BG, "Rejected": C_INVALID_BG}
 
 
 def _rail_svg():
-    ok = ref_hex("state-ok-fg")
-    col = _hex_switch("ThisItem.State")
+    col = _switch("ThisItem.State", {k: ref_hex(t) for k, t in RAIL_HEX.items()}, ref_hex("text-muted"))
     c = ROW_H // 2
     line = ref_hex("border-default")
     node_glyph = _switch(
@@ -405,9 +485,16 @@ def _rail_svg():
             f'<g transform=\'translate(4 {c - 12})\' fill=\'none\' stroke=\'" & {ref_hex("text-on-primary")} & '
             f'"\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><path d=\'" & '
             f'{node_glyph} & "\'/></g>"')
-    dot = (f'"<line x1=\'16\' y1=\'{c}\' x2=\'30\' y2=\'{c}\' stroke=\'" & {line} & "\' stroke-width=\'1.5\'/>'
-           f'<circle cx=\'16\' cy=\'{c}\' r=\'5\' stroke-width=\'2\' stroke=\'" & {col} & "\' fill=\'" & '
-           f'If(ThisItem.State = "Pending", "none", {col}) & "\'/>"')
+    fill = f'If(ThisItem.State = "Pending", "none", {col})'
+    # Een bruger handlede: en prik. Automatisk/system: en rude - samme
+    # farve, anden form, saa forskellen ikke kun er farven.
+    marker = (f'If(ThisItem.Human, "<circle cx=\'16\' cy=\'{c}\' r=\'5\' stroke-width=\'2\' stroke=\'" & '
+              f'{col} & "\' fill=\'" & {fill} & "\'/>", '
+              f'"<rect x=\'12\' y=\'{c - 4}\' width=\'8\' height=\'8\' rx=\'1\' '
+              f'transform=\'rotate(45 16 {c})\' stroke-width=\'2\' stroke=\'" & {col} & '
+              f'"\' fill=\'" & {fill} & "\'/>")')
+    dot = (f'"<line x1=\'16\' y1=\'{c}\' x2=\'30\' y2=\'{c}\' stroke=\'" & {line} & "\' stroke-width=\'1.5\'/>" & '
+           f'{marker}')
     svg = ('"<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'%d\' viewBox=\'0 0 32 %d\'>'
            '<line x1=\'16\' y1=\'0\' x2=\'16\' y2=\'%d\' stroke=\'" & %s & "\' stroke-width=\'2\'/>"'
            ' & If(ThisItem.Kind = "H", %s, If(ThisItem.Kind = "X", "", %s)) & "</svg>"') % (ROW_H, ROW_H, ROW_H, line, head, dot)
@@ -418,44 +505,93 @@ def _is(kind):
     return f'ThisItem.Kind = "{kind}"'
 
 
+def _number_badge(name):
+    """The request number as the request app shows it (build_helpers.
+    number_badge): a 88 x 26 pill in the domain's colour on a 12 % tint
+    of it. The colour follows the request's domain - the same tokens as
+    the hub's domain icons (hub_config.DOMAINS)."""
+    col = ("Switch(" + R + ".Domain.Value, " +
+           ", ".join(f'"{d["key"]}", {ref_hex(d["token"])}' for d in DOMAINS) +
+           f', {ref_hex("text-muted")})')
+    svg = ('"data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'88\' '
+           'height=\'26\' viewBox=\'0 0 88 26\'><rect width=\'88\' height=\'26\' rx=\'13\' fill=\'" & c & '
+           '"\' fill-opacity=\'0.12\'/><text x=\'44\' y=\'17.5\' text-anchor=\'middle\' '
+           'font-family=\'Segoe UI, sans-serif\' font-size=\'12\' font-weight=\'600\' fill=\'" & c & '
+           '"\'>" & ' + R + '.RequestNo & "</text></svg>")')
+    return Ctrl(name, "Image", props={
+        "AccessibleLabel": f'"Request " & {R}.RequestNo',
+        "BorderStyle": "BorderStyle.None", "BorderThickness": "0", "Fill": C_TRANSPARENT,
+        "Height": "26", "Image": f'If(IsBlank({R}.RequestNo), "", With({{ c: {col} }}, {svg}))',
+        "ImagePosition": "ImagePosition.Fit", "LayoutMinWidth": "88",
+        "OnSelect": "false", "TabIndex": "-1", "Width": "88",
+    }, h=26)
+
+
 def build_popup():
     n = lambda kind, base: f"{kind}MdApr{base}"
-    sw = lambda table: _switch("ThisItem.State", table, C_NEUTRAL_FG)
     narrow = lay.below("Tablet")
+    wide = lay.at_least("Tablet")
     exp = "IfError(varMdAprExp, 0)"
-    cpl = f"RoundDown(({TW} - 56) / 5.8, 0)"
-    sub_fit = f"RoundDown(({TW} - 56) / 5.8, 0)"
-    tit_fit = f"RoundDown(({TW} - 48 - {CHIP_W} - 12) / 7.6, 0)"
-    long_title = f"Len(ThisItem.Title) > {tit_fit}"
-    expandable = (f'{_is("D")} && {narrow} && (Len(ThisItem.Sub) > {sub_fit} || {long_title})')
     is_open = f"{exp} = ThisItem.Idx"
-    full_text = 'If(Len(Q.Title) > %s, Q.Title & "  \u00b7  ", "") & Q.Sub' % tit_fit.replace("ThisItem", "Q")
-    lines_n = f"RoundUp(Len(t) / (2 * c), 0)"
+    d_or_x = f"{_is('D')} || {_is('X')}"
+
+    # Hoejre kant af tekstomraadet: foran tidskolonnen (bred) eller
+    # direkte foran badget (smal).
+    chip_x = f"{TW} - {CHIP_W} - 10"
+    stamp_x = f"{chip_x} - 12 - {STAMP_W}"
+    right = f"If({wide}, {stamp_x}, {chip_x}) - 12"
+    actor_x = f"If(ThisItem.Human, {LX + ICON_W + 6}, {LX})"
+    actor_w = f"Min(Len(ThisItem.Title) * 8 + 4, ({right} - {LX}) / 2)"
+    act_x = f"{actor_x} + {actor_w} + 8"
+    act_w = f"Max(0, {right} - ({act_x}))"
+    # Detaljelinjen: under Tablet foerer tidsstemplet linjen.
+    stamp_sep = 'If(IsBlank(%(q)s.Stamp) || IsBlank(%(q)s.Sub), "", "  ·  ")'
+    line2 = (f'If({narrow}, ThisItem.Stamp & {stamp_sep % {"q": "ThisItem"}} & ThisItem.Sub, '
+             'ThisItem.Sub)')
+    one_line = f"IsBlank({line2})"
+
+    # Udfoldning (kun smal skaerm, uaendret mekanik): handlingen og
+    # detaljelinjen i fuld laengde over saa mange linjer, som de skal bruge.
+    cpl = f"RoundDown(({TW} - {LX + 8}) / 5.8, 0)"
+    sub_fit = cpl
+    act_fit = (f"RoundDown(({chip_x} - 12 - ({actor_x.replace('ThisItem', 'Q')} + "
+               f"{actor_w.replace('ThisItem', 'Q').replace(right, '(' + chip_x + ' - 12)')} + 8)) / 6.6, 0)")
+    long_act = f"Len(ThisItem.Act) > {act_fit.replace('Q.', 'ThisItem.')}"
+    full = ('If(Len(Q.Act) > %s, Q.Act & "  ·  ", "") & Q.Stamp & %s & Q.Sub'
+            % (act_fit, stamp_sep % {"q": "Q"}))
+    lines_n = "RoundUp(Len(t) / (2 * c), 0)"
+    x_rec = ", ".join(f'{c}: {"Q.State" if c == "State" else "Q.Human" if c == "Human" else _DEFAULTS.get(c, chr(34) * 2)}'
+                      for c in COLS)
+    x_rec = x_rec.replace('Kind: ""', 'Kind: "X"')
     expanded = (
-        f"With({{t: {full_text}, c: {cpl}}}, Ungroup(Table({{r: Table(Q)}}, {{r: ForAll("
-        f"Sequence({lines_n}) As S, {{ Kind: \"X\", Stage: \"\", Title: \"\", State: Q.State, Label: \"\", Rule: \"\", Cur: false, Sub: \"\", Idx: Q.Idx, "
+        f"With({{t: {full}, c: {cpl}}}, Ungroup(Table({{r: Table(Q)}}, {{r: ForAll("
+        f"Sequence({lines_n}) As S, {{ {x_rec}, Idx: Q.Idx, "
         f"L1: Mid(t, (S.Value - 1) * 2 * c + 1, c), L2: Mid(t, (S.Value - 1) * 2 * c + c + 1, c), "
         f"IsLast: S.Value = {lines_n} }})}}), r))")
-    items = (f"Ungroup(ForAll(colMdAprRows As Q, {{ r: If(Q.Idx = {exp}, {expanded}, Table(Q)) }}), r)")
-    n_new = (f"With({{t: {full_text.replace('Q.', 'ThisItem.')}, c: {cpl}}}, RoundUp(Len(t) / (2 * c), 0))")
+    items = f"Ungroup(ForAll(colMdAprRows As Q, {{ r: If(Q.Idx = {exp}, {expanded}, Table(Q)) }}), r)"
+    n_new = f"With({{t: {full.replace('Q.', 'ThisItem.')}, c: {cpl}}}, {lines_n})"
+    expandable = (f'{_is("D")} && {narrow} && (Len({line2}) > {sub_fit} || {long_act})')
     toggle = (f'If({_is("X")} || {is_open}, Set(varMdAprExp, 0); Set(varMdAprExtra, 0), '
               f'Set(varMdAprExp, ThisItem.Idx); Set(varMdAprExtra, {n_new}))')
 
-    bg_cur = text_ctrl(n("txt", "Cur"), '""', size=lay.SIZE_SMALL, height=ROW_H - 2,
-                       fill=f"If({_is('H')} && ThisItem.Cur, {C_INFO_BG}, {C_TRANSPARENT})",
-                       width=TW, extra={"X": "0", "Y": "0"})
-    row_bg = f"If({_is('D')} || {_is('X')}, {C_MUTED_BG}, {C_TRANSPARENT})"
-    d_or_x = f"{_is('D')} || {_is('X')}"
+    # Kortet: en bruger = fast, toned flade. Automatisk/system og det,
+    # der venter = stiplet kant uden flade.
+    solid = f'ThisItem.Human && ThisItem.State <> "Pending"'
+    row_bg = f"If(({d_or_x}) && {solid}, {C_MUTED_BG}, {C_TRANSPARENT})"
     card = Ctrl(n("btn", "Card"), "Classic/Button", props={
-        "BorderStyle": "BorderStyle.None", "BorderThickness": "0", "Color": C_TRANSPARENT,
+        "BorderColor": f"If({solid}, {C_TRANSPARENT}, {C_CARD_BORDER})",
+        "BorderStyle": "BorderStyle.Dashed",
+        "BorderThickness": f"If({solid}, 0, 1)", "Color": C_TRANSPARENT,
         "Fill": row_bg, "HoverFill": row_bg, "PressedFill": row_bg,
+        "HoverBorderColor": f"If({solid}, {C_TRANSPARENT}, {C_CARD_BORDER})",
+        "PressedBorderColor": f"If({solid}, {C_TRANSPARENT}, {C_CARD_BORDER})",
         "HoverColor": C_TRANSPARENT, "PressedColor": C_TRANSPARENT,
         "DisplayMode": "DisplayMode.View",
-        "Height": f"If({_is('X')}, If(ThisItem.IsLast, {ROW_H - 4}, {ROW_H}), If({exp} = ThisItem.Idx, {ROW_H - 4}, {ROW_H - 8}))",
+        "Height": f"If({_is('X')}, If(ThisItem.IsLast, {ROW_H - 4}, {ROW_H}), If({is_open}, {ROW_H - 4}, {ROW_H - 8}))",
         "Width": f"{TW} - 38", "X": "38", "Y": f"If({_is('X')}, 0, 4)",
         "RadiusTopLeft": f"If({_is('X')}, 0, 8)", "RadiusTopRight": f"If({_is('X')}, 0, 8)",
-        "RadiusBottomLeft": f"If({_is('X')}, If(ThisItem.IsLast, 8, 0), If({exp} = ThisItem.Idx, 0, 8))",
-        "RadiusBottomRight": f"If({_is('X')}, If(ThisItem.IsLast, 8, 0), If({exp} = ThisItem.Idx, 0, 8))",
+        "RadiusBottomLeft": f"If({_is('X')}, If(ThisItem.IsLast, 8, 0), If({is_open}, 0, 8))",
+        "RadiusBottomRight": f"If({_is('X')}, If(ThisItem.IsLast, 8, 0), If({is_open}, 0, 8))",
         "TabIndex": "-1", "Text": '""', "Visible": d_or_x,
     }, h=ROW_H - 8, vis=d_or_x)
     rail = Ctrl(n("img", "Rail"), "Image", props={
@@ -465,59 +601,102 @@ def build_popup():
         "Width": "32", "X": "0", "Y": "0",
     }, h=ROW_H)
 
+    # Det aktuelle trin: en smal streg i informationsfarven foran trinets
+    # navn - i stedet for et "Current"-maerke ved siden af "In progress".
+    cur_bar = text_ctrl(n("txt", "CurBar"), '""', size=lay.SIZE_MICRO, height=26, width=3,
+                        fill=C_INFO_FG, visible=f"{_is('H')} && ThisItem.Cur",
+                        accessible='""',
+                        extra={"X": "34", "Y": str((ROW_H - 26) // 2),
+                               "RadiusBottomLeft": "2", "RadiusBottomRight": "2",
+                               "RadiusTopLeft": "2", "RadiusTopRight": "2"})
     h_title = text_ctrl(n("txt", "HTitle"), "ThisItem.Title", size=14, weight="Semibold", height=20,
-                        visible=_is("H"), width=f"{TW} - 40 - {CHIP_W} - 8",
-                        extra={"X": "40", "Y": "5"})
+                        visible=_is("H"), width=f"{chip_x} - 12 - 42",
+                        extra={"X": "42", "Y": "5"})
     h_rule = text_ctrl(n("txt", "HRule"), "ThisItem.Rule", size=lay.SIZE_MICRO, color=C_MUTED,
-                       height=17, visible=_is("H"), width=f"{TW} - 48",
-                       extra={"X": "40", "Y": "26"})
-    d_title = text_ctrl(n("txt", "DTitle"), "ThisItem.Title", size=lay.SIZE_BODY, weight="Semibold",
-                        height=20, visible=_is("D"), width=f"{TW} - 48 - {CHIP_W} - 12",
-                        extra={"X": "48", "Y": "6"})
-    d_sub = text_ctrl(n("txt", "DSub"), "ThisItem.Sub", size=lay.SIZE_MICRO, color=C_MUTED,
-                      height=17, visible=f'{_is("D")} && !({is_open})', width=f"{TW} - 56",
-                      extra={"X": "48", "Y": "25"})
-    x1 = text_ctrl(n("txt", "X1"), "ThisItem.L1", size=lay.SIZE_MICRO, color=C_MUTED, height=17,
-                   visible=_is("X"), width=f"{TW} - 56", extra={"X": "48", "Y": "4"})
-    x2 = text_ctrl(n("txt", "X2"), "ThisItem.L2", size=lay.SIZE_MICRO, color=C_MUTED, height=17,
-                   visible=_is("X"), width=f"{TW} - 56", extra={"X": "48", "Y": "22"})
+                       height=17, visible=_is("H"), width=f"{chip_x} - 12 - 42",
+                       extra={"X": "42", "Y": "26"})
+
+    y1 = f"If({one_line}, {(ROW_H - 20) // 2}, 6)"
+    person = Ctrl(n("img", "Person"), "Image", props={
+        "AccessibleLabel": '""', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
+        "Fill": C_TRANSPARENT, "Height": str(ICON_W),
+        "Image": ('"data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns=\'http://www.w3.org/2000/svg\' '
+                  'width=\'24\' height=\'24\' viewBox=\'0 0 24 24\'><path d=\'' + PERSON +
+                  '\' fill=\'none\' stroke=\'" & ' + ref_hex("text-muted") +
+                  ' & "\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'/></svg>")'),
+        "ImagePosition": "ImagePosition.Fit", "OnSelect": "false", "TabIndex": "-1",
+        "Width": str(ICON_W), "X": str(LX), "Y": f"{y1} + 2",
+        "Visible": f"{_is('D')} && ThisItem.Human",
+    }, h=ICON_W, vis=f"{_is('D')} && ThisItem.Human")
+    actor = text_ctrl(n("txt", "DTitle"), "ThisItem.Title", size=lay.SIZE_BODY, weight="Semibold",
+                      color=f"If(ThisItem.Human, {C_TITLE}, {C_MUTED})", height=20,
+                      visible=_is("D"), width=actor_w,
+                      accessible='If(ThisItem.Human, "User ", "Automated: ") & ThisItem.Title',
+                      extra={"X": actor_x, "Y": y1})
+    act = text_ctrl(n("txt", "DAct"), "ThisItem.Act", size=lay.SIZE_BODY, height=20,
+                    visible=f"{_is('D')} && !IsBlank(ThisItem.Act)", width=act_w,
+                    extra={"X": act_x, "Y": y1})
+    d_sub = text_ctrl(n("txt", "DSub"), line2, size=lay.SIZE_SMALL, color=C_MUTED,
+                      height=17, visible=f'{_is("D")} && !({is_open}) && !({one_line})',
+                      width=f"{right} - {LX}", extra={"X": str(LX), "Y": "25"})
+    stamp = text_ctrl(n("txt", "Stamp"), "ThisItem.Stamp", size=lay.SIZE_SMALL, color=C_MUTED,
+                      height=20, align="Right", width=STAMP_W,
+                      visible=f"{_is('D')} && {wide} && !IsBlank(ThisItem.Stamp)",
+                      extra={"X": stamp_x, "Y": str((ROW_H - 20) // 2)})
+    x1 = text_ctrl(n("txt", "X1"), "ThisItem.L1", size=lay.SIZE_SMALL, color=C_MUTED, height=17,
+                   visible=_is("X"), width=f"{TW} - {LX + 8}", extra={"X": str(LX), "Y": "4"})
+    x2 = text_ctrl(n("txt", "X2"), "ThisItem.L2", size=lay.SIZE_SMALL, color=C_MUTED, height=17,
+                   visible=_is("X"), width=f"{TW} - {LX + 8}", extra={"X": str(LX), "Y": "22"})
+    sw = lambda table: _switch("ThisItem.State", table, C_NEUTRAL_FG)
     chip = text_ctrl(n("txt", "Chip"), "ThisItem.Label", size=lay.SIZE_MICRO, weight="Semibold",
-                     height=20, align="Center", color=sw(STATE_FG), fill=sw(STATE_BG),
-                     width=CHIP_W, accessible='"Status " & ThisItem.Label',
+                     height=CHIP_H, align="Center", color=sw(BADGE_FG),
+                     fill=_switch("ThisItem.State", BADGE_BG, C_NEUTRAL_BG),
+                     width=CHIP_W,
+                     accessible='"Status " & ThisItem.Label & If(ThisItem.Cur, ", current stage", "")',
                      visible=f'!({_is("X")})',
-                     extra={"X": f"{TW} - {CHIP_W} - 4", "Y": f"If({_is('H')}, 5, 8)",
-                            "PaddingTop": "1"})
+                     extra={"X": chip_x, "Y": str((ROW_H - CHIP_H) // 2),
+                            "VerticalAlign": "VerticalAlign.Middle",
+                            "PaddingLeft": "8", "PaddingRight": "8",
+                            "RadiusBottomLeft": "6", "RadiusBottomRight": "6",
+                            "RadiusTopLeft": "6", "RadiusTopRight": "6"})
     hit = row_hit(n("btn", "Expand"), toggle, '"Show or hide the full text"', f"{TW} - 38", ROW_H - 8)
     hit.props["X"] = "38"
     hit.props["Y"] = f"If({_is('X')}, 0, 4)"
     hit.props["Height"] = f"If({_is('X')}, {ROW_H}, {ROW_H - 8})"
     hit.vis = f"{expandable} || {_is('X')}"
-    cur = text_ctrl(n("txt", "CurTag"), '"Current"', size=lay.SIZE_MICRO, weight="Semibold",
-                    height=20, align="Center", color=C_WHITE, fill=C_INFO_FG, width=58,
-                    visible=f"{_is('H')} && ThisItem.Cur",
-                    extra={"X": f"{TW} - {CHIP_W} - 4 - 58 - 6", "Y": "5", "PaddingTop": "1"})
 
     gh = f"(Min(CountRows(colMdAprRows), {MAX_ROWS}) + IfError(varMdAprExtra, 0)) * {ROW_H}"
     gal = Ctrl(n("gal", "Rows"), "Gallery", variant="Vertical", props={
-        "AccessibleLabel": '"Approval flow"',
+        "AccessibleLabel": f'If({IS_TIMELINE}, "Activity", "Approval flow")',
         "AlignInContainer": "AlignInContainer.Start",
         "BorderStyle": "BorderStyle.None", "Fill": C_TRANSPARENT, "FillPortions": "0",
         "Height": gh, "Items": items, "LayoutMinWidth": "0",
         "Selectable": "false", "ShowScrollbar": "true", "TabIndex": "0",
         "TemplatePadding": "0", "TemplateSize": str(ROW_H),
         "Width": GW, "WrapCount": "1",
-    }, children=[bg_cur, card, rail, h_title, h_rule, cur, d_title, d_sub, x1, x2, chip, hit],
+    }, children=[card, rail, cur_bar, h_title, h_rule, person, actor, act, d_sub, stamp,
+                 x1, x2, chip, hit],
         h=MAX_ROWS * ROW_H)
 
-    title = grow(text_ctrl(n("txt", "Title"),
-                           f'{R}.RequestNo & If({IS_TIMELINE}, "  -  activity", "  -  approval flow")',
-                           size=lay.SIZE_CARD_TITLE, weight="Semibold", height=26, wrap="false"))
+    # Overskriften: titlen, saa nummeret som badge i domaenets farve, og
+    # Close yderst til hoejre. Titlen er sin egen tekst - nummeret staar
+    # ikke laengere i den.
+    # Samme maal som sidetitlen ved appens nummerbadge (top_bar).
+    tw_a = int(text_px("Approval flow", lay.SIZE_CARD_TITLE) * 0.86) + 2
+    tw_t = int(text_px("Activity", lay.SIZE_CARD_TITLE) * 0.86) + 2
+    title = text_ctrl(n("txt", "Title"), f'If({IS_TIMELINE}, "Activity", "Approval flow")',
+                      size=lay.SIZE_CARD_TITLE, weight="Semibold", height=26, wrap="false",
+                      width=f"If({IS_TIMELINE}, {tw_t}, {tw_a})")
+    title.props["LayoutMinWidth"] = str(min(tw_a, tw_t))
+    no_badge = _number_badge(n("img", "No"))
+    spacer = grow(text_ctrl(n("txt", "HeadGap"), '""', size=lay.SIZE_MICRO, height=20,
+                            accessible='""'))
     btnClose = button(n("btn", "Close"), '"Close"', CLOSE, width=84, height=32)
-    head = group(n("con", "Head"), [title, btnClose], direction="Horizontal", gap=12, height=32,
-                 align_items="Center")
+    head = group(n("con", "Head"), [title, no_badge, spacer, btnClose], direction="Horizontal",
+                 gap=10, height=32, align_items="Center")
     sub = text_ctrl(
         n("txt", "Sub"),
-        f'If({IS_TIMELINE}, {META_FX}, {R}.ShortText & "  \u00b7  Plant " & {R}.Plant & "  \u00b7  " & '
+        f'If({IS_TIMELINE}, {META_FX}, {R}.ShortText & "  ·  Plant " & {R}.Plant & "  ·  " & '
         'If(varMdAprCur = "", If(varMdAprS4 = "Done", "Completed", "No active stage"), '
         '"Now at: " & varMdAprCur))',
         size=lay.SIZE_SMALL, color=C_MUTED, height=20, wrap="false")
@@ -526,7 +705,8 @@ def build_popup():
     gal.props["Visible"] = f"!{busy}"
     sub.props["Visible"] = f"!{busy}"
     spin = Ctrl(n("img", "Spinner"), "Image", props={
-        "AccessibleLabel": '"Loading approval flow"', "BorderStyle": "BorderStyle.None",
+        "AccessibleLabel": f'If({IS_TIMELINE}, "Loading activity", "Loading approval flow")',
+        "BorderStyle": "BorderStyle.None",
         "BorderThickness": "0", "Fill": C_TRANSPARENT, "Height": "110",
         "Image": spinner_svg(), "ImagePosition": "ImagePosition.Center",
         "TabIndex": "-1", "Visible": busy, "Width": GW,
