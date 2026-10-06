@@ -433,9 +433,11 @@ def build_top_bar():
     btnNew.props["AlignInContainer"] = "AlignInContainer.Center"
     btnNew.props["LayoutMinWidth"] = str(NEW_W)
     btnNew.vis = at_least("Tablet")
-    # Den faelles Edit (build_helpers.edit_button) - samme knap i Equipment og Material.
+    # Den faelles Edit (build_helpers.edit_button). Den skifter KUN til Edit
+    # mode (issue #103): de gemte sektioner forbliver sammenklappede, og hver
+    # aabnes med sin egen Edit - foer laaste denne knap ogsaa Plan Header op.
     btnEdit = edit_button("btnVhpEdit", "varVhpViewOnly", "varVhpCanEdit",
-                          "Set(varVhpViewOnly, false); Set(varVhpPlanLocked, false)")
+                          "Set(varVhpViewOnly, false)")
     confirmNew = confirm_modal(
         "VhpNew", "varVhpConfirmNew", "Start a new request?",
         '"Unsaved work on this request is discarded. Save a draft first to keep it."',

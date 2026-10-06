@@ -14,7 +14,8 @@ from build_helpers import (checkbox_theme, row_hit, text_ctrl, group, button,
                            field_cell, col_width, card, HINTS_ON, grow,
                            fit_button_width, column_grid, ICON_SAVE, ICON_W,
                            mark_done, bool_toggle, border_rule)
-from build_plan_header import section_header, help_panel
+from build_plan_header import (section_header, help_panel, summary_chips,
+                               summary_info_button)
 import build_help as bh
 from fl_picker import fl_picker
 import sp_config as cfg
@@ -22,6 +23,28 @@ import sp_config as cfg
 DM_ITEM = "If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)"
 VIEW_LOCK = "If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)"
 REQ_ITEM = "varVhpItemValidated"
+
+# SAMLET SAMMEN, NAAR ITEMET ER GEMT (issue #103) - Plan Headers moenster
+# (varVhpPlanLocked) for Item Editoren. Et item er gemt, naar Save har
+# skrevet det som "valid"; saa vises en linje med det vigtigste, og Edit
+# folder editoren ud igen (varVhpItemEditing). Et nyt, kopieret eller
+# ugyldigt item er aldrig "valid" og staar derfor altid foldet ud.
+# Valg af et item i listen saetter varVhpItemEditing tilbage til false,
+# saa et gemt item altid aabner sammenklappet.
+#
+# CountRows og ikke LookUp(...).Status: layout-tjekket kan regne paa
+# CountRows og ser saa, at linjen og "hvad mangler"-teksten udelukker
+# hinanden.
+ITEM_LOCKED = ('(!IsBlank(varVhpActiveItemId) && '
+               'CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) > 0 && '
+               '!IfError(varVhpItemEditing, false))')
+# Det modsatte, skrevet ud: layout-tjekket kan ikke regne paa !( ... ).
+ITEM_OPEN = ('(IsBlank(varVhpActiveItemId) || '
+             'CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || '
+             'IfError(varVhpItemEditing, false))')
+ITEM_SUMMARY_VIS = f"({ITEM_LOCKED} && {at_least('Tablet')})"
+ITEM_INFO_VIS = f"({ITEM_LOCKED} && {below('Tablet')})"
+ACTIVE_ITEM = "LookUp(colVhpItems, ItemId = varVhpActiveItemId)"
 
 # Items-skinnens og editorens indholdsbredde (kortbredde minus 18+18 polstring).
 RAIL_CW = RAIL_W - 36
@@ -330,10 +353,12 @@ def build_items_rail():
             # blev de gemt med tom ItemKey og laa usynlige i planen.
             "    RemoveIf(colVhpMaterials, ItemId = id);\n"
             "    RemoveIf(colVhpAttachments, ItemId = id);\n"
+            "    RemoveIf(colVhpOpsDone, ItemId = id);\n"
             "    RemoveIf(colVhpItems, ItemId = id);\n"
             "    If(\n"
             "        varVhpActiveItemId = id,\n"
             "        Set(varVhpActiveItemId, If(CountRows(colVhpItems) > 0, First(colVhpItems).ItemId, Blank()));\n"
+            "        Set(varVhpItemEditing, false);\n"
             f"        {RESET_EDITOR_CONTROLS}\n"
             "    );\n"
             "    Notify(\"Item \" & Text(id) & \" deleted.\", NotificationType.Success)\n"
@@ -368,6 +393,7 @@ def build_items_rail():
     btnOpen = row_hit(
         "btnVhpItemOpen",
         ("Set(varVhpActiveItemId, ThisItem.ItemId);\n"
+         "Set(varVhpItemEditing, false);\n"
          "Set(varVhpItemValidated, false);\n"
          "Set(varVhpFlMsg, \"\");\n"
          f"{SEED_FL_PICKER};\n"
@@ -711,12 +737,25 @@ def build_item_editor():
             "                \"Item \" & Text(varVhpActiveItemId) & \" is not in the list - nothing was saved.\",\n"
             "                NotificationType.Error\n"
             "            ),\n"
+            # Gemt: editoren klappes sammen (ITEM_LOCKED) - som Plan Header.
+            "            Set(varVhpItemEditing, false);\n"
             "            Notify(\"Item saved: \" & Trim(inpVhpItemShortText.Text) & \".\", NotificationType.Success)\n"
             "        )\n"
             "    )\n"
             ")"
         ), primary=True, width=110, icon=ICON_SAVE,
         display_mode=DM_ITEM)
+    # SAVE ELLER EDIT (issue #103) - samme knap som i Plan Header: Save
+    # gemmer og klapper sammen, Edit folder editoren ud igen. Edit vises
+    # kun i Edit mode; i View mode er et gemt item kun linjen.
+    btnSaveItem.props["Text"] = f'If({ITEM_LOCKED}, "Edit", "Save")'
+    btnSaveItem.props["Icon"] = f'If({ITEM_LOCKED}, "Edit", "{ICON_SAVE}")'
+    btnSaveItem.props["OnSelect"] = (
+        f"If(\n    {ITEM_LOCKED},\n    Set(varVhpItemEditing, true),\n\n"
+        + btnSaveItem.props["OnSelect"] + "\n)")
+    btnSaveItem.props["AccessibleLabel"] = (
+        f'If({ITEM_LOCKED}, "Edit item ", "Save item ") & Text(varVhpActiveItemId)')
+    btnSaveItem.vis = f"(!varVhpViewOnly || {ITEM_OPEN})"
     # RESET (issue #54): Item Editorens usavede aendringer tilbage til det,
     # der sidst blev gemt paa itemet - eller tomt, hvis itemet aldrig er
     # gemt. Felterne har itemets gemte vaerdi som Default, saa Reset() er
@@ -753,17 +792,75 @@ def build_item_editor():
             f"{RESET_EDITOR_CONTROLS}"
         ), width=fit_button_width("\"Reset\""), height=36,
         display_mode=DM_ITEM)
-    btnSaveItem.props["Width"] = str(fit_button_width("\"Save\"", min_w=96) + ICON_W)
-    footer = group("conVhpEditorFooter", [btnResetItem, btnSaveItem], direction="Horizontal",
-                   gap=8, height=36, align_items="Center", justify="End")
+    save_w = fit_button_width("\"Save\"", min_w=96) + ICON_W
+    btnSaveItem.props["Width"] = str(save_w)
+
+    # DEN SAMMENKLAPPEDE LINJE (issue #103) - Plan Headers chips til
+    # venstre for Edit. Paa en telefon er chipsene for brede; der aabner en
+    # knap de samme vaerdier i et laeseudsnit (item_info_modal).
+    it = ACTIVE_ITEM
+    summary = summary_chips(
+        "imgVhpItemSummary",
+        [('"ITEM"', f'Coalesce({it}.ShortText, "")'),
+         ('"FUNC. LOC."', f'Coalesce({it}.FunctionalLocation, "")'),
+         ('"WORK CENTER"', f'Coalesce({it}.MainWorkCenter, "")'),
+         ('"ACTIVITY"', f'Coalesce({it}.ActivityType, "")')],
+        ITEM_SUMMARY_VIS,
+        f'"Item " & Text(varVhpActiveItemId) & ", " & Coalesce({it}.ShortText, "") & ", " & '
+        f'Coalesce({it}.FunctionalLocation, "")',
+        max_w=f"({EDITOR_CW}) - {save_w + 8}")
+    info = summary_info_button("btnVhpItemInfo", '"Item details"', "varVhpItemInfoOpen",
+                               '"Show the saved item details"', ITEM_INFO_VIS)
+    # Foldet ud: hvad der mangler, foer itemet kan klappes sammen.
+    attention = text_ctrl(
+        "txtVhpItemAttention",
+        f'Switch({ST}, "invalid", "Fix the fields marked * and save.", '
+        '"valid", "Save to collapse the item.", "Not saved yet.")',
+        size=12, height=36, wrap="true",
+        visible=f"({ITEM_OPEN} && !IsBlank(varVhpActiveItemId) && !varVhpViewOnly)",
+        extra={"Color": f'If({ST} = "invalid", {C_INVALID_FG}, {C_MUTED})',
+               "VerticalAlign": "VerticalAlign.Middle"})
+    footerInfo = grow(group("conVhpItemFooterInfo", [summary, info, attention],
+                            direction="Vertical", gap=0, height=36, justify="Center"))
+    OPEN_EDIT = f"{ITEM_OPEN}"
+    btnResetItem.vis = OPEN_EDIT
+    footer = group("conVhpEditorFooter", [footerInfo, btnResetItem, btnSaveItem],
+                   direction="Horizontal", gap=8, height=36, align_items="Center", justify="End")
+
+    # Sammenklappet: felterne, Functional Location og hjaelpepanelet er
+    # skjult - kun overskriften og linjen staar tilbage.
+    for c in (fieldsGrid, flBlock):
+        c.vis = OPEN_EDIT
+    helpPanel.vis = f"({OPEN_EDIT}) && IfError(varVhpShowHints, false)"
 
     # The card stretches to the height of the items list; SpaceBetween keeps
     # Reset and Save at the bottom edge when the editor card is taller.
+    # Sammenklappet staar linjen lige under overskriften (Start).
     body = group("conVhpEditorBody", [header, helpPanel, fieldsGrid, flBlock],
                  direction="Vertical", gap=14)
     editor = card("conVhpEditorCard", [body, footer])
-    editor.props["LayoutJustifyContent"] = "LayoutJustifyContent.SpaceBetween"
+    editor.props["LayoutJustifyContent"] = (
+        f"If({ITEM_LOCKED}, LayoutJustifyContent.Start, LayoutJustifyContent.SpaceBetween)")
     return editor
+
+
+def item_info_modal():
+    """Telefonens laeseudsnit af det gemte item (btnVhpItemInfo)."""
+    from build_helpers import text_modal
+    it = "it"
+    body = (
+        f"With(\n    {{ {it}: {ACTIVE_ITEM} }},\n"
+        f'    "Item: " & Coalesce({it}.ShortText, "") & Char(10) &\n'
+        f'    "Functional location: " & Coalesce({it}.FunctionalLocation, "") &\n'
+        f'        If(IsBlank({it}.FlDescription), "", " - " & {it}.FlDescription) & Char(10) &\n'
+        f'    "Main work center: " & Coalesce({it}.MainWorkCenter, "") & Char(10) &\n'
+        f'    "Activity type: " & Coalesce({it}.ActivityType, "") & Char(10) &\n'
+        f'    "Revision: " & If(IsBlank({it}.Revision), "No", "Yes") & Char(10) &\n'
+        f'    "Initials: " & Coalesce({it}.Initials, "") & Char(10) &\n'
+        f'    "Objects: " & Text(CountRows({OBJ_CHOSEN})) & Char(10) &\n'
+        f'    "Long text: " & If(IsBlank(Trim(Coalesce({it}.LongText, ""))), "No", "Yes")\n'
+        ")")
+    return text_modal("VhpItemInfo", "varVhpItemInfoOpen", '"Item"', body, 170)
 
 
 def build_object_list_modal():
