@@ -14,8 +14,8 @@ from build_helpers import (checkbox_theme, row_hit, text_ctrl, group, button,
                            field_cell, col_width, card, HINTS_ON, grow,
                            fit_button_width, column_grid, ICON_SAVE, ICON_W,
                            mark_done, bool_toggle, border_rule, row_n)
-from build_plan_header import (section_header, help_panel, summary_chips,
-                               summary_info_button)
+from build_plan_header import (section_header, help_panel, summary_chips, summary_formula,
+                               summary_width, collapse_footer)
 import build_help as bh
 from fl_picker import fl_picker
 import sp_config as cfg
@@ -42,8 +42,8 @@ ITEM_LOCKED = ('(!IsBlank(varVhpActiveItemId) && '
 ITEM_OPEN = ('(IsBlank(varVhpActiveItemId) || '
              'CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || '
              'IfError(varVhpItemEditing, false))')
-ITEM_SUMMARY_VIS = f"({ITEM_LOCKED} && {at_least('Tablet')})"
-ITEM_INFO_VIS = f"({ITEM_LOCKED} && {below('Tablet')})"
+# Linjen vises paa alle bredder (issue #123) - chipsene ombrydes.
+ITEM_SUMMARY_VIS = ITEM_LOCKED
 ACTIVE_ITEM = "LookUp(colVhpItems, ItemId = varVhpActiveItemId)"
 
 # Items-skinnens og editorens indholdsbredde (kortbredde minus 18+18 polstring).
@@ -213,7 +213,7 @@ def build_items_rail():
     # Vaerket fra Plan Header staar ved titlen: det er den kontekst, alle
     # items arbejder i - arbejdscentre, tasklister og FL-soegningen er
     # filtreret paa det (issue #54).
-    header = section_header("conVhpItemsHead", "Items", "Step 2")
+    header = section_header("conVhpItemsHead", "Items", "Step 2", valid_fx=items_valid_fx())
 
     btnAdd = button(
         "btnVhpAddItem", "\"Add item\"",
@@ -503,22 +503,24 @@ def _obj_list_button(n_obj):
     return img
 
 
+def items_valid_fx():
+    """Trin 2 er "Valid" (issue #123): alle items er gemt som valid, ingen
+    item-regel fejler (build_status.VhpItemsValid) - og intet i Item
+    Editoren venter paa at blive gemt (build_hero.ITEM_DIRTY, samme
+    betingelse som progressbarens Item-trin)."""
+    from build_hero import ITEM_DIRTY
+    return f"(VhpItemsValid && !({ITEM_DIRTY}))"
+
+
 def build_item_editor():
-    # Status som badge i hoejre hjoerne - samme tre tilstande som teksten
-    # i bunden havde: draft, valid, invalid.
+    # TRIN-BADGE (issue #123): "Step 2", indtil trinnet er faerdigt og
+    # gyldigt, saa "Valid" - som Plan Header og Tasklist and Operations.
+    # Foer stod det valgte items egen status her (Draft/Valid/Invalid); den
+    # staar stadig paa itemets kort i listen. "Invalid" bliver staaende som
+    # badgets advarsel, naar det valgte item er gemt som ugyldigt.
     ST = "LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status"
-    statusBadge = text_ctrl(
-        "txtVhpItemStatusBadge",
-        f'Switch({ST}, "valid", "Valid", "invalid", "Invalid", "Draft")',
-        size=11, weight="Semibold", height=22, width=72, wrap="false",
-        visible="!IsBlank(varVhpActiveItemId)",
-        extra={"Color": f'Switch({ST}, "valid", {C_VALID_FG}, "invalid", {C_INVALID_FG}, {C_NEUTRAL_FG})',
-               "Fill": f'Switch({ST}, "valid", {C_VALID_BG}, "invalid", {C_INVALID_BG}, {C_NEUTRAL_BG})',
-               "Align": "Align.Center",
-               "AlignInContainer": "AlignInContainer.Center",
-               "RadiusBottomLeft": "12", "RadiusBottomRight": "12",
-               "RadiusTopLeft": "12", "RadiusTopRight": "12"})
-    header = section_header("conVhpEditorHead", "Item Editor", "", extra_right=[statusBadge])
+    header = section_header("conVhpEditorHead", "Item Editor", "Step 2",
+                            valid_fx=items_valid_fx(), attention_fx=f'{ST} = "invalid"')
     helpPanel = help_panel("conVhpItemHelp", "item")
 
     # --- Functional Location: EEN combobox med Search (issue #63) ---------
@@ -812,27 +814,12 @@ def build_item_editor():
             f"{RESET_EDITOR_CONTROLS}"
         ), width=fit_button_width("\"Reset\""), height=36,
         display_mode=DM_ITEM)
-    save_w = fit_button_width("\"Save\"", min_w=96) + ICON_W
-    btnSaveItem.props["Width"] = str(save_w)
+    btnSaveItem.props["Width"] = str(ITEM_SAVE_W)
 
-    # DEN SAMMENKLAPPEDE LINJE (issue #103) - Plan Headers chips til
-    # venstre for Edit. Paa en telefon er chipsene for brede; der aabner en
-    # knap de samme vaerdier i et laeseudsnit (item_info_modal).
-    it = ACTIVE_ITEM
-    summary = summary_chips(
-        "imgVhpItemSummary",
-        [('"ITEM"', f'Coalesce({it}.ShortText, "")'),
-         ('"FUNC. LOC."', f'Coalesce({it}.FunctionalLocation, "")'),
-         ('"WORK CENTER"', f'Coalesce({it}.MainWorkCenter, "")'),
-         ('"ACTIVITY"', f'Coalesce({it}.ActivityType, "")'),
-         # Kun koden - beskrivelsen staar i feltet og i laeseudsnittet (#112).
-         ('"NON FLOW"', f'If(IsBlank({it}.NonFlowUserStatus), "None", {it}.NonFlowUserStatus)')],
-        ITEM_SUMMARY_VIS,
-        f'"Item " & Text(varVhpActiveItemId) & ", " & Coalesce({it}.ShortText, "") & ", " & '
-        f'Coalesce({it}.FunctionalLocation, "")',
-        max_w=f"({EDITOR_CW}) - {save_w + 8}")
-    info = summary_info_button("btnVhpItemInfo", '"Item details"', "varVhpItemInfoOpen",
-                               '"Show the saved item details"', ITEM_INFO_VIS)
+    # DEN SAMMENKLAPPEDE LINJE (issue #103, #123) - Plan Headers chips til
+    # venstre for Edit, paa alle bredder. Chipsene og deres layout er den
+    # navngivne formel VhpItemSummary (item_summary_fx).
+    summary = summary_chips("imgVhpItemSummary", "VhpItemSummary", ITEM_SUMMARY_VIS)
     # Foldet ud: hvad der mangler, foer itemet kan klappes sammen.
     attention = text_ctrl(
         "txtVhpItemAttention",
@@ -842,12 +829,15 @@ def build_item_editor():
         visible=f"({ITEM_OPEN} && !IsBlank(varVhpActiveItemId) && !varVhpViewOnly)",
         extra={"Color": f'If({ST} = "invalid", {C_INVALID_FG}, {C_MUTED})',
                "VerticalAlign": "VerticalAlign.Middle"})
-    footerInfo = grow(group("conVhpItemFooterInfo", [summary, info, attention],
-                            direction="Vertical", gap=0, height=36, justify="Center"))
+    footerInfo = grow(group("conVhpItemFooterInfo", [summary, attention],
+                            direction="Vertical", gap=0, justify="Center"))
     OPEN_EDIT = f"{ITEM_OPEN}"
     btnResetItem.vis = OPEN_EDIT
-    footer = group("conVhpEditorFooter", [footerInfo, btnResetItem, btnSaveItem],
-                   direction="Horizontal", gap=8, height=36, align_items="Center", justify="End")
+    # Hoejden foelger linjen, naar chipsene ombrydes (issue #123).
+    footer = collapse_footer(
+        group("conVhpEditorFooter", [footerInfo, btnResetItem, btnSaveItem],
+              direction="Horizontal", gap=8, align_items="Center", justify="End"),
+        footerInfo, btnSaveItem, ITEM_LOCKED)
 
     # Sammenklappet: felterne, Functional Location og hjaelpepanelet er
     # skjult - kun overskriften og linjen staar tilbage.
@@ -866,26 +856,26 @@ def build_item_editor():
     return editor
 
 
-def item_info_modal():
-    """Telefonens laeseudsnit af det gemte item (btnVhpItemInfo)."""
-    from build_helpers import text_modal
+# Save/Edit-knappens bredde i Item Editoren - linjen har resten.
+ITEM_SAVE_W = fit_button_width("\"Save\"", min_w=96) + ICON_W
+
+
+def item_summary_fx():
+    """Item Editorens sammenklappede linje (issue #123) for det valgte item:
+    det, der kendetegner itemet, fra de SAMME gemte data som formularen og
+    listen (colVhpItems, colVhpItemObjects). Tomme vaerdier giver ingen chip.
+    Revision vises kun, naar den er sat; objekterne kun, naar der er nogen."""
     it = "it"
-    body = (
-        f"With(\n    {{ {it}: {ACTIVE_ITEM} }},\n"
-        f'    "Item: " & Coalesce({it}.ShortText, "") & Char(10) &\n'
-        f'    "Functional location: " & Coalesce({it}.FunctionalLocation, "") &\n'
-        f'        If(IsBlank({it}.FlDescription), "", " - " & {it}.FlDescription) & Char(10) &\n'
-        f'    "Main work center: " & Coalesce({it}.MainWorkCenter, "") & Char(10) &\n'
-        f'    "Activity type: " & Coalesce({it}.ActivityType, "") & Char(10) &\n'
-        f'    "Revision: " & If(IsBlank({it}.Revision), "No", "Yes") & Char(10) &\n'
-        f'    "Initials: " & Coalesce({it}.Initials, "") & Char(10) &\n'
-        f'    "Non flow user status: " & If(IsBlank({it}.NonFlowUserStatus), "None", '
-        f'Coalesce(LookUp(colVhpNonFlowStatusOptions, Value = {it}.NonFlowUserStatus).Display, '
-        f'{it}.NonFlowUserStatus)) & Char(10) &\n'
-        f'    "Objects: " & Text(CountRows({OBJ_CHOSEN})) & Char(10) &\n'
-        f'    "Long text: " & If(IsBlank(Trim(Coalesce({it}.LongText, ""))), "No", "Yes")\n'
-        ")")
-    return text_modal("VhpItemInfo", "varVhpItemInfoOpen", '"Item"', body, 210)
+    segs = [('"ITEM"', f'Coalesce({it}.ShortText, "")'),
+            ('"WORK CENTER"', f'Coalesce({it}.MainWorkCenter, "")'),
+            ('"ACTIVITY"', f'Coalesce({it}.ActivityType, "")'),
+            ('"FUNC. LOC."', f'Coalesce({it}.FunctionalLocation, "")'),
+            ('"OBJECTS"', f'With({{ n: CountRows({OBJ_CHOSEN}) }}, If(n = 0, "", Text(n)))'),
+            ('"REVISION"', f'If(IsBlank({it}.Revision), "", "Yes")'),
+            ('"INITIALS"', f'Coalesce({it}.Initials, "")'),
+            # Kun koden - beskrivelsen staar i feltet (#112).
+            ('"NON FLOW"', f'Coalesce({it}.NonFlowUserStatus, "")')]
+    return summary_formula(segs, summary_width(EDITOR_CW, ITEM_SAVE_W), bind={it: ACTIVE_ITEM})
 
 
 def build_object_list_modal():

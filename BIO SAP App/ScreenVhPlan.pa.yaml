@@ -2807,13 +2807,13 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =96 + If((!varVhpPlanLocked) && IfError(varVhpShowHints, false), 10 + (24 + (Max(CountRows(Sort(
+                            =50 + If((!varVhpPlanLocked) && IfError(varVhpShowHints, false), 10 + (24 + (Max(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "plan" && Kind = "Panel"),
                                 Ord
                             )), 1) * 88) + If(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "plan" && Kind = "Panel"),
                                 Ord
-                            )) = 0, 4 + (32), 0)), 0) + If(!varVhpPlanLocked, 10 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + If((drpVhpPlanType.Selected.Key = "Strategy"), 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)), 0)) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + 60, Max((0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + If((drpVhpPlanType.Selected.Key = "Strategy"), 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)), 0)), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))), 0)
+                            )) = 0, 4 + (32), 0)), 0) + If(!varVhpPlanLocked, 10 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + If((drpVhpPlanType.Selected.Key = "Strategy"), 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)), 0)) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + 60, Max((0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + If((drpVhpPlanType.Selected.Key = "Strategy"), 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)), 0)), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))), 0) + 10 + (If((LayoutRank < 2 && varVhpPlanLocked), (0 + If(varVhpPlanLocked, 0 + (VhpPlanSummary.H), 0) + If(!varVhpPlanLocked, 0 + (24), 0)) + If((!varVhpViewOnly), 8 + 36, 0), Max((0 + If(varVhpPlanLocked, 0 + (VhpPlanSummary.H), 0) + If(!varVhpPlanLocked, 0 + (24), 0)), 36)))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -3029,12 +3029,12 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18)) - ((113) + 12) - ((83) + 12) - ((64) + 12) - 2)
+                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18)) - ((113) + 12) - ((83) + 12) - ((72) + 12) - 2)
                               - txtVhpPlanHeadBadge:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Step 1"
+                                        =If(Self.Text = "Valid", "Step 1: valid", "Step 1: " & If(Self.Text = "Invalid", "invalid", "not complete yet"))
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
@@ -3044,9 +3044,9 @@ Screens:
                                     BorderThickness: |-
                                         =0
                                     Color: |-
-                                        =C.'text-muted'
+                                        =Switch(Self.Text, "Valid", C.'state-ok-fg', "Invalid", C.'state-error-fg', C.'text-muted')
                                     Fill: |-
-                                        =C.'state-neutral-bg'
+                                        =Switch(Self.Text, "Valid", C.'state-ok-bg', "Invalid", C.'state-error-bg', C.'state-neutral-bg')
                                     Font: |-
                                         =Font.'Segoe UI'
                                     FontWeight: |-
@@ -3072,9 +3072,9 @@ Screens:
                                     Size: |-
                                         =11
                                     Text: |-
-                                        ="Step 1"
+                                        =If(VhpPlanValid, "Valid", "Step 1")
                                     Width: |-
-                                        =64
+                                        =72
                                     Wrap: |-
                                         =false
                         - conVhpPlanHelp:
@@ -5377,11 +5377,11 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =36
+                                  =If((LayoutRank < 2 && varVhpPlanLocked), (0 + If(varVhpPlanLocked, 0 + (VhpPlanSummary.H), 0) + If(!varVhpPlanLocked, 0 + (24), 0)) + If((!varVhpViewOnly), 8 + 36, 0), Max((0 + If(varVhpPlanLocked, 0 + (VhpPlanSummary.H), 0) + If(!varVhpPlanLocked, 0 + (24), 0)), 36))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Center
                               LayoutDirection: |-
-                                  =LayoutDirection.Horizontal
+                                  =If((LayoutRank < 2 && varVhpPlanLocked), LayoutDirection.Vertical, LayoutDirection.Horizontal)
                               LayoutGap: |-
                                   =8
                               LayoutMinWidth: |-
@@ -5404,13 +5404,15 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =32
+                                        =0 + If(varVhpPlanLocked, 0 + (VhpPlanSummary.H), 0) + If(!varVhpPlanLocked, 0 + (24), 0)
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Stretch
                                     LayoutDirection: |-
                                         =LayoutDirection.Vertical
                                     LayoutGap: |-
                                         =0
+                                    LayoutJustifyContent: |-
+                                        =LayoutJustifyContent.Center
                                     LayoutMinWidth: |-
                                         =0
                                     LayoutOverflowX: |-
@@ -5424,7 +5426,7 @@ Screens:
                                         Control: Image
                                         Properties:
                                           AccessibleLabel: |-
-                                              =Coalesce(varVhpPlan.PlanText, "") & ", " & If((varVhpPlan.PlanType = "Strategy"), Coalesce(varVhpPlan.Strategy, ""), "Every " & Text(varVhpPlan.Cycle) & " " & varVhpPlan.Unit) & ", first call " & Text(varVhpPlan.FirstCallDay) & "/" & Text(varVhpPlan.FirstCallMonth) & "/" & Text(varVhpPlan.FirstCallYear)
+                                              =VhpPlanSummary.Label
                                           AlignInContainer: |-
                                               =AlignInContainer.Start
                                           BorderStyle: |-
@@ -5432,27 +5434,9 @@ Screens:
                                           BorderThickness: |-
                                               =0
                                           Height: |-
-                                              =32
+                                              =VhpPlanSummary.H
                                           Image: |-
-                                              =With({ l1: "PLANT", v1: Text(varVhpPlan.Plant), l2: "PLAN TEXT", v2: Coalesce(varVhpPlan.PlanText, ""), l3: If((varVhpPlan.PlanType = "Strategy"), "STRATEGY", "CYCLE"), v3: If((varVhpPlan.PlanType = "Strategy"), Coalesce(varVhpPlan.Strategy, ""), "Every " & Text(varVhpPlan.Cycle) & " " & varVhpPlan.Unit), l4: "FIRST CALL", v4: Text(varVhpPlan.FirstCallDay) & "/" & Text(varVhpPlan.FirstCallMonth) & "/" & Text(varVhpPlan.FirstCallYear) },
-                                                With({ w1: 30 + Len(l1) * 7 + Len(v1) * 7.4, w2: 30 + Len(l2) * 7 + Len(v2) * 7.4, w3: 30 + Len(l3) * 7 + Len(v3) * 7.4, w4: 30 + Len(l4) * 7 + Len(v4) * 7.4 },
-                                                  "data:image/svg+xml;utf8," & EncodeUrl(
-                                                      "<svg xmlns='http://www.w3.org/2000/svg' height='32' width='" & (w1 + w2 + w3 + w4 + 24) & "'>" &
-                                                      "<rect x='" & (0 + 1) & "' y='2' rx='14' width='" & (w1 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                                                      "<text x='" & (0 + 14) & "' y='20' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l1, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                      "<text x='" & (0 + 20 + Len(l1) * 7) & "' y='20' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(v1, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                      "<rect x='" & (w1 + 8 + 1) & "' y='2' rx='14' width='" & (w2 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                                                      "<text x='" & (w1 + 8 + 14) & "' y='20' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l2, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                      "<text x='" & (w1 + 8 + 20 + Len(l2) * 7) & "' y='20' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(v2, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                      "<rect x='" & (w1 + w2 + 16 + 1) & "' y='2' rx='14' width='" & (w3 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                                                      "<text x='" & (w1 + w2 + 16 + 14) & "' y='20' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l3, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                      "<text x='" & (w1 + w2 + 16 + 20 + Len(l3) * 7) & "' y='20' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(v3, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                      "<rect x='" & (w1 + w2 + w3 + 24 + 1) & "' y='2' rx='14' width='" & (w4 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                                                      "<text x='" & (w1 + w2 + w3 + 24 + 14) & "' y='20' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l4, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                      "<text x='" & (w1 + w2 + w3 + 24 + 20 + Len(l4) * 7) & "' y='20' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(v4, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                      "</svg>"
-                                                  )
-                                              ))
+                                              =VhpPlanSummary.Svg
                                           ImagePosition: |-
                                               =ImagePosition.Fit
                                           OnSelect: |-
@@ -5460,57 +5444,9 @@ Screens:
                                           TabIndex: |-
                                               =-1
                                           Visible: |-
-                                              =(varVhpPlanLocked && LayoutRank >= 2)
+                                              =varVhpPlanLocked
                                           Width: |-
-                                              =With({ l1: "PLANT", v1: Text(varVhpPlan.Plant), l2: "PLAN TEXT", v2: Coalesce(varVhpPlan.PlanText, ""), l3: If((varVhpPlan.PlanType = "Strategy"), "STRATEGY", "CYCLE"), v3: If((varVhpPlan.PlanType = "Strategy"), Coalesce(varVhpPlan.Strategy, ""), "Every " & Text(varVhpPlan.Cycle) & " " & varVhpPlan.Unit), l4: "FIRST CALL", v4: Text(varVhpPlan.FirstCallDay) & "/" & Text(varVhpPlan.FirstCallMonth) & "/" & Text(varVhpPlan.FirstCallYear) },
-                                                With({ w1: 30 + Len(l1) * 7 + Len(v1) * 7.4, w2: 30 + Len(l2) * 7 + Len(v2) * 7.4, w3: 30 + Len(l3) * 7 + Len(v3) * 7.4, w4: 30 + Len(l4) * 7 + Len(v4) * 7.4 },
-                                                  w1 + w2 + w3 + w4 + 24
-                                              ))
-                                    - btnVhpPlanInfo:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Show the plan header details"
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Start
-                                          Appearance: |-
-                                              =ButtonAppearance.Outline
-                                          BorderColor: |-
-                                              =C.'border-default'
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =32
-                                          Layout: |-
-                                              =ButtonLayout.TextOnly
-                                          OnSelect: |-
-                                              =Set(varVhpPlanInfoOpen, true)
-                                          RadiusBottomLeft: |-
-                                              =10
-                                          RadiusBottomRight: |-
-                                              =10
-                                          RadiusTopLeft: |-
-                                              =10
-                                          RadiusTopRight: |-
-                                              =10
-                                          Size: |-
-                                              =14
-                                          Text: |-
-                                              ="Plan details"
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Visible: |-
-                                              =(varVhpPlanLocked && LayoutRank < 2)
-                                          Width: |-
-                                              =134
+                                              =VhpPlanSummary.W
                                     - txtVhpPlanMeta:
                                         Control: ModernText
                                         Properties:
@@ -5601,7 +5537,7 @@ Screens:
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
-                                        =AlignInContainer.Center
+                                        =If((LayoutRank < 2 && varVhpPlanLocked), AlignInContainer.End, AlignInContainer.Center)
                                     BasePaletteColor: |-
                                         =C.'color-brand-primary'
                                     Color: |-
@@ -5706,19 +5642,19 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =(If(LayoutRank < 3, (110 + 12 + (Max(CountRows(colVhpItems), 1) * 94) + If(IfError(CountRows(colVhpItems) = 0, true), 12 + (40), 0)) + 20 + (86 + (26 + If(((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false))) && IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
+                            =(If(LayoutRank < 3, (110 + 12 + (Max(CountRows(colVhpItems), 1) * 94) + If(IfError(CountRows(colVhpItems) = 0, true), 12 + (40), 0)) + 20 + (36 + (26 + If(((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false))) && IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "item" && Kind = "Panel"),
                                 Ord
                             )), 1) * 88) + If(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "item" && Kind = "Panel"),
                                 Ord
-                            )) = 0, 4 + (32), 0)), 0) + If((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false)), 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (58 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + 40, Max((0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (58 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))), 0) + If((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false)), 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)) + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 20, Max((20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)), (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))))), 0))), Max((110 + 12 + (Max(CountRows(colVhpItems), 1) * 94) + If(IfError(CountRows(colVhpItems) = 0, true), 12 + (40), 0)), (86 + (26 + If(((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false))) && IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
+                            )) = 0, 4 + (32), 0)), 0) + If((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false)), 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (58 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + 40, Max((0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (58 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))), 0) + If((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false)), 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)) + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 20, Max((20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)), (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))))), 0)) + 14 + (If((LayoutRank < 2 && (!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) > 0 && !IfError(varVhpItemEditing, false))), (0 + If((!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) > 0 && !IfError(varVhpItemEditing, false)), 0 + (VhpItemSummary.H), 0) + If(((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false)) && !IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0)) + If(((!varVhpViewOnly || (IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false)))), 8 + 36, 0), Max((0 + If((!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) > 0 && !IfError(varVhpItemEditing, false)), 0 + (VhpItemSummary.H), 0) + If(((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false)) && !IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0)), 36)))), Max((110 + 12 + (Max(CountRows(colVhpItems), 1) * 94) + If(IfError(CountRows(colVhpItems) = 0, true), 12 + (40), 0)), (36 + (26 + If(((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false))) && IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "item" && Kind = "Panel"),
                                 Ord
                             )), 1) * 88) + If(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "item" && Kind = "Panel"),
                                 Ord
-                            )) = 0, 4 + (32), 0)), 0) + If((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false)), 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (58 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + 40, Max((0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (58 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))), 0) + If((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false)), 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)) + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 20, Max((20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)), (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))))), 0)))))) + 2
+                            )) = 0, 4 + (32), 0)), 0) + If((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false)), 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (58 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + 40, Max((0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (58 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))), 0) + If((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false)), 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)) + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 20, Max((20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)), (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))))), 0)) + 14 + (If((LayoutRank < 2 && (!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) > 0 && !IfError(varVhpItemEditing, false))), (0 + If((!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) > 0 && !IfError(varVhpItemEditing, false)), 0 + (VhpItemSummary.H), 0) + If(((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false)) && !IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0)) + If(((!varVhpViewOnly || (IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false)))), 8 + 36, 0), Max((0 + If((!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) > 0 && !IfError(varVhpItemEditing, false)), 0 + (VhpItemSummary.H), 0) + If(((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false)) && !IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0)), 36))))))) + 2
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -5878,12 +5814,12 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =Max(0, (((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), 360)) - 18 - 18)) - ((54) + 12) - ((64) + 12) - 2)
+                                              =Max(0, (((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), 360)) - 18 - 18)) - ((54) + 12) - ((72) + 12) - 2)
                                     - txtVhpItemsHeadBadge:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Step 2"
+                                              =If(Self.Text = "Valid", "Step 2: valid", "Step 2: " & If(Self.Text = "Invalid", "invalid", "not complete yet"))
                                           Align: |-
                                               =Align.Center
                                           AlignInContainer: |-
@@ -5893,9 +5829,9 @@ Screens:
                                           BorderThickness: |-
                                               =0
                                           Color: |-
-                                              =C.'text-muted'
+                                              =Switch(Self.Text, "Valid", C.'state-ok-fg', "Invalid", C.'state-error-fg', C.'text-muted')
                                           Fill: |-
-                                              =C.'state-neutral-bg'
+                                              =Switch(Self.Text, "Valid", C.'state-ok-bg', "Invalid", C.'state-error-bg', C.'state-neutral-bg')
                                           Font: |-
                                               =Font.'Segoe UI'
                                           FontWeight: |-
@@ -5921,9 +5857,20 @@ Screens:
                                           Size: |-
                                               =11
                                           Text: |-
-                                              ="Step 2"
+                                              =If((VhpItemsValid && !(With(
+                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                                  !IsBlank(varVhpActiveItemId) && (
+                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                      tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
+                                                      (drpVhpItemNonFlowStatus.Selected.Value & "") <> (it.NonFlowUserStatus & "") ||
+                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                  )
+                                              ))), "Valid", "Step 2")
                                           Width: |-
-                                              =64
+                                              =72
                                           Wrap: |-
                                               =false
                               - conVhpItemButtonRow:
@@ -6616,13 +6563,13 @@ Screens:
                               FillPortions: |-
                                   =If(LayoutRank >= 3, 1, 0)
                               Height: |-
-                                  =86 + (26 + If(((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false))) && IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
+                                  =36 + (26 + If(((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false))) && IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
                                       Filter(colVhpHelp, Key = "item" && Kind = "Panel"),
                                       Ord
                                   )), 1) * 88) + If(CountRows(Sort(
                                       Filter(colVhpHelp, Key = "item" && Kind = "Panel"),
                                       Ord
-                                  )) = 0, 4 + (32), 0)), 0) + If((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false)), 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (58 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + 40, Max((0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (58 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))), 0) + If((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false)), 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)) + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 20, Max((20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)), (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))))), 0))
+                                  )) = 0, 4 + (32), 0)), 0) + If((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false)), 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (58 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + 40, Max((0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (58 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))), 0) + If((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false)), 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)) + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 20, Max((20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)), (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))))), 0)) + 14 + (If((LayoutRank < 2 && (!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) > 0 && !IfError(varVhpItemEditing, false))), (0 + If((!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) > 0 && !IfError(varVhpItemEditing, false)), 0 + (VhpItemSummary.H), 0) + If(((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false)) && !IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0)) + If(((!varVhpViewOnly || (IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false)))), 8 + 36, 0), Max((0 + If((!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) > 0 && !IfError(varVhpItemEditing, false)), 0 + (VhpItemSummary.H), 0) + If(((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false)) && !IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0)), 36)))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -6778,12 +6725,12 @@ Screens:
                                                 LayoutOverflowY: |-
                                                     =LayoutOverflow.Hide
                                                 Width: |-
-                                                    =Max(0, ((((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20)) - 18 - 18))) - ((105) + 12) - (If(!IsBlank(varVhpActiveItemId), (72) + 12, 0)) - 2)
-                                          - txtVhpItemStatusBadge:
+                                                    =Max(0, ((((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20)) - 18 - 18))) - ((105) + 12) - ((72) + 12) - 2)
+                                          - txtVhpEditorHeadBadge:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    =Self.Text
+                                                    =If(Self.Text = "Valid", "Step 2: valid", "Step 2: " & If(Self.Text = "Invalid", "invalid", "not complete yet"))
                                                 Align: |-
                                                     =Align.Center
                                                 AlignInContainer: |-
@@ -6793,9 +6740,9 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =Switch(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status, "valid", C.'state-ok-fg', "invalid", C.'state-error-fg', C.'state-neutral-fg')
+                                                    =Switch(Self.Text, "Valid", C.'state-ok-fg', "Invalid", C.'state-error-fg', C.'text-muted')
                                                 Fill: |-
-                                                    =Switch(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status, "valid", C.'state-ok-bg', "invalid", C.'state-error-bg', C.'state-neutral-bg')
+                                                    =Switch(Self.Text, "Valid", C.'state-ok-bg', "Invalid", C.'state-error-bg', C.'state-neutral-bg')
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 FontWeight: |-
@@ -6805,9 +6752,9 @@ Screens:
                                                 PaddingBottom: |-
                                                     =0
                                                 PaddingLeft: |-
-                                                    =0
+                                                    =10
                                                 PaddingRight: |-
-                                                    =0
+                                                    =10
                                                 PaddingTop: |-
                                                     =0
                                                 RadiusBottomLeft: |-
@@ -6821,9 +6768,18 @@ Screens:
                                                 Size: |-
                                                     =11
                                                 Text: |-
-                                                    =Switch(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status, "valid", "Valid", "invalid", "Invalid", "Draft")
-                                                Visible: |-
-                                                    =!IsBlank(varVhpActiveItemId)
+                                                    =If((VhpItemsValid && !(With(
+                                                        { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                                        !IsBlank(varVhpActiveItemId) && (
+                                                            Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                            (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                            (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                            tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
+                                                            (drpVhpItemNonFlowStatus.Selected.Value & "") <> (it.NonFlowUserStatus & "") ||
+                                                            (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                            Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                        )
+                                                    ))), "Valid", LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status = "invalid", "Invalid", "Step 2")
                                                 Width: |-
                                                     =72
                                                 Wrap: |-
@@ -9187,11 +9143,11 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =36
+                                        =If((LayoutRank < 2 && (!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) > 0 && !IfError(varVhpItemEditing, false))), (0 + If((!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) > 0 && !IfError(varVhpItemEditing, false)), 0 + (VhpItemSummary.H), 0) + If(((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false)) && !IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0)) + If(((!varVhpViewOnly || (IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false)))), 8 + 36, 0), Max((0 + If((!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) > 0 && !IfError(varVhpItemEditing, false)), 0 + (VhpItemSummary.H), 0) + If(((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false)) && !IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0)), 36))
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Center
                                     LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
+                                        =If((LayoutRank < 2 && (!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) > 0 && !IfError(varVhpItemEditing, false))), LayoutDirection.Vertical, LayoutDirection.Horizontal)
                                     LayoutGap: |-
                                         =8
                                     LayoutJustifyContent: |-
@@ -9216,7 +9172,7 @@ Screens:
                                           FillPortions: |-
                                               =0
                                           Height: |-
-                                              =36
+                                              =0 + If((!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) > 0 && !IfError(varVhpItemEditing, false)), 0 + (VhpItemSummary.H), 0) + If(((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) = 0 || IfError(varVhpItemEditing, false)) && !IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0)
                                           LayoutAlignItems: |-
                                               =LayoutAlignItems.Stretch
                                           LayoutDirection: |-
@@ -9238,7 +9194,7 @@ Screens:
                                               Control: Image
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Item " & Text(varVhpActiveItemId) & ", " & Coalesce(LookUp(colVhpItems, ItemId = varVhpActiveItemId).ShortText, "") & ", " & Coalesce(LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation, "")
+                                                    =VhpItemSummary.Label
                                                 AlignInContainer: |-
                                                     =AlignInContainer.Start
                                                 BorderStyle: |-
@@ -9246,30 +9202,9 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Height: |-
-                                                    =32
+                                                    =VhpItemSummary.H
                                                 Image: |-
-                                                    =With({ l1: "ITEM", v1: Coalesce(LookUp(colVhpItems, ItemId = varVhpActiveItemId).ShortText, ""), l2: "FUNC. LOC.", v2: Coalesce(LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation, ""), l3: "WORK CENTER", v3: Coalesce(LookUp(colVhpItems, ItemId = varVhpActiveItemId).MainWorkCenter, ""), l4: "ACTIVITY", v4: Coalesce(LookUp(colVhpItems, ItemId = varVhpActiveItemId).ActivityType, ""), l5: "NON FLOW", v5: If(IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus), "None", LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus) },
-                                                      With({ w1: 30 + Len(l1) * 7 + Len(v1) * 7.4, w2: 30 + Len(l2) * 7 + Len(v2) * 7.4, w3: 30 + Len(l3) * 7 + Len(v3) * 7.4, w4: 30 + Len(l4) * 7 + Len(v4) * 7.4, w5: 30 + Len(l5) * 7 + Len(v5) * 7.4 },
-                                                        "data:image/svg+xml;utf8," & EncodeUrl(
-                                                            "<svg xmlns='http://www.w3.org/2000/svg' height='32' width='" & (w1 + w2 + w3 + w4 + w5 + 32) & "'>" &
-                                                            "<rect x='" & (0 + 1) & "' y='2' rx='14' width='" & (w1 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                                                            "<text x='" & (0 + 14) & "' y='20' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l1, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                            "<text x='" & (0 + 20 + Len(l1) * 7) & "' y='20' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(v1, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                            "<rect x='" & (w1 + 8 + 1) & "' y='2' rx='14' width='" & (w2 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                                                            "<text x='" & (w1 + 8 + 14) & "' y='20' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l2, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                            "<text x='" & (w1 + 8 + 20 + Len(l2) * 7) & "' y='20' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(v2, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                            "<rect x='" & (w1 + w2 + 16 + 1) & "' y='2' rx='14' width='" & (w3 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                                                            "<text x='" & (w1 + w2 + 16 + 14) & "' y='20' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l3, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                            "<text x='" & (w1 + w2 + 16 + 20 + Len(l3) * 7) & "' y='20' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(v3, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                            "<rect x='" & (w1 + w2 + w3 + 24 + 1) & "' y='2' rx='14' width='" & (w4 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                                                            "<text x='" & (w1 + w2 + w3 + 24 + 14) & "' y='20' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l4, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                            "<text x='" & (w1 + w2 + w3 + 24 + 20 + Len(l4) * 7) & "' y='20' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(v4, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                            "<rect x='" & (w1 + w2 + w3 + w4 + 32 + 1) & "' y='2' rx='14' width='" & (w5 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                                                            "<text x='" & (w1 + w2 + w3 + w4 + 32 + 14) & "' y='20' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l5, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                            "<text x='" & (w1 + w2 + w3 + w4 + 32 + 20 + Len(l5) * 7) & "' y='20' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(v5, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                            "</svg>"
-                                                        )
-                                                    ))
+                                                    =VhpItemSummary.Svg
                                                 ImagePosition: |-
                                                     =ImagePosition.Fit
                                                 OnSelect: |-
@@ -9277,57 +9212,9 @@ Screens:
                                                 TabIndex: |-
                                                     =-1
                                                 Visible: |-
-                                                    =((!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) > 0 && !IfError(varVhpItemEditing, false)) && LayoutRank >= 2)
+                                                    =(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) > 0 && !IfError(varVhpItemEditing, false))
                                                 Width: |-
-                                                    =With({ l1: "ITEM", v1: Coalesce(LookUp(colVhpItems, ItemId = varVhpActiveItemId).ShortText, ""), l2: "FUNC. LOC.", v2: Coalesce(LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation, ""), l3: "WORK CENTER", v3: Coalesce(LookUp(colVhpItems, ItemId = varVhpActiveItemId).MainWorkCenter, ""), l4: "ACTIVITY", v4: Coalesce(LookUp(colVhpItems, ItemId = varVhpActiveItemId).ActivityType, ""), l5: "NON FLOW", v5: If(IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus), "None", LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus) },
-                                                      With({ w1: 30 + Len(l1) * 7 + Len(v1) * 7.4, w2: 30 + Len(l2) * 7 + Len(v2) * 7.4, w3: 30 + Len(l3) * 7 + Len(v3) * 7.4, w4: 30 + Len(l4) * 7 + Len(v4) * 7.4, w5: 30 + Len(l5) * 7 + Len(v5) * 7.4 },
-                                                        Min(w1 + w2 + w3 + w4 + w5 + 32, ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) - 128)
-                                                    ))
-                                          - btnVhpItemInfo:
-                                              Control: ModernButton
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    ="Show the saved item details"
-                                                Align: |-
-                                                    =Align.Center
-                                                AlignInContainer: |-
-                                                    =AlignInContainer.Start
-                                                Appearance: |-
-                                                    =ButtonAppearance.Outline
-                                                BorderColor: |-
-                                                    =C.'border-default'
-                                                BorderThickness: |-
-                                                    =1
-                                                Color: |-
-                                                    =C.'text-primary'
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                FontWeight: |-
-                                                    =FontWeight.Semibold
-                                                Height: |-
-                                                    =32
-                                                Layout: |-
-                                                    =ButtonLayout.TextOnly
-                                                OnSelect: |-
-                                                    =Set(varVhpItemInfoOpen, true)
-                                                RadiusBottomLeft: |-
-                                                    =10
-                                                RadiusBottomRight: |-
-                                                    =10
-                                                RadiusTopLeft: |-
-                                                    =10
-                                                RadiusTopRight: |-
-                                                    =10
-                                                Size: |-
-                                                    =14
-                                                Text: |-
-                                                    ="Item details"
-                                                VerticalAlign: |-
-                                                    =VerticalAlign.Middle
-                                                Visible: |-
-                                                    =((!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) > 0 && !IfError(varVhpItemEditing, false)) && LayoutRank < 2)
-                                                Width: |-
-                                                    =134
+                                                    =VhpItemSummary.W
                                           - txtVhpItemAttention:
                                               Control: ModernText
                                               Properties:
@@ -9453,7 +9340,7 @@ Screens:
                                           Align: |-
                                               =Align.Center
                                           AlignInContainer: |-
-                                              =AlignInContainer.Center
+                                              =If((LayoutRank < 2 && (!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) > 0 && !IfError(varVhpItemEditing, false))), AlignInContainer.End, AlignInContainer.Center)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           Color: |-
@@ -9553,7 +9440,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =112 + If(((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) = 0)) && IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
+                            =62 + If(((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) = 0)) && IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "ops" && Kind = "Panel"),
                                 Ord
                             )), 1) * 88) + If(CountRows(Sort(
@@ -9565,7 +9452,7 @@ Screens:
                             )), 1) * 88) + If(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "pkg" && Kind = "Panel"),
                                 Ord
-                            )) = 0, 4 + (32), 0)), 0) + If(IfError((!IsBlank(varVhpPlan.Strategy) && CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 0 && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0), false), 12 + (36), 0) + If(IfError((!IsBlank(varVhpPlan.Strategy) && CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 0 && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0) && !(LookUp(colVhpStrategies, Key = varVhpPlan.Strategy).Hierarchical = "Ja"), false), 12 + (32), 0) + If(IfError((!IsBlank(varVhpPlan.Strategy) && CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 0 && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0), false), 12 + (45 + 4 + (Max(CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)), 1) * 42)), 0) + If(IfError(!(!IsBlank(varVhpPlan.Strategy) && CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 0 && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0), true), 12 + (40), 0) + If(IfError((!IsBlank(varVhpPlan.Strategy) && CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 0 && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0), false), 12 + (32), 0)), 0)
+                            )) = 0, 4 + (32), 0)), 0) + If(IfError((!IsBlank(varVhpPlan.Strategy) && CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 0 && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0), false), 12 + (36), 0) + If(IfError((!IsBlank(varVhpPlan.Strategy) && CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 0 && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0) && !(LookUp(colVhpStrategies, Key = varVhpPlan.Strategy).Hierarchical = "Ja"), false), 12 + (32), 0) + If(IfError((!IsBlank(varVhpPlan.Strategy) && CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 0 && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0), false), 12 + (45 + 4 + (Max(CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)), 1) * 42)), 0) + If(IfError(!(!IsBlank(varVhpPlan.Strategy) && CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 0 && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0), true), 12 + (40), 0) + If(IfError((!IsBlank(varVhpPlan.Strategy) && CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 0 && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0), false), 12 + (32), 0)), 0) + 14 + (If((LayoutRank < 2 && (!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0)), (0 + If((!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0), 0 + (VhpOpsSummary.H), 0) + If(((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) = 0) && !IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0)) + If(((!varVhpViewOnly || (IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) = 0))), 8 + 36, 0), Max((0 + If((!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0), 0 + (VhpOpsSummary.H), 0) + If(((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) = 0) && !IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0)), 36)))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -9686,12 +9573,12 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18)) - ((224) + 12) - ((64) + 12) - 2)
+                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18)) - ((224) + 12) - ((72) + 12) - 2)
                               - txtVhpOpsHeadBadge:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Step 3"
+                                        =If(Self.Text = "Valid", "Step 3: valid", "Step 3: " & If(Self.Text = "Invalid", "invalid", "not complete yet"))
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
@@ -9701,9 +9588,9 @@ Screens:
                                     BorderThickness: |-
                                         =0
                                     Color: |-
-                                        =C.'text-muted'
+                                        =Switch(Self.Text, "Valid", C.'state-ok-fg', "Invalid", C.'state-error-fg', C.'text-muted')
                                     Fill: |-
-                                        =C.'state-neutral-bg'
+                                        =Switch(Self.Text, "Valid", C.'state-ok-bg', "Invalid", C.'state-error-bg', C.'state-neutral-bg')
                                     Font: |-
                                         =Font.'Segoe UI'
                                     FontWeight: |-
@@ -9729,9 +9616,9 @@ Screens:
                                     Size: |-
                                         =11
                                     Text: |-
-                                        ="Step 3"
+                                        =If(VhpOpsValid, "Valid", "Step 3")
                                     Width: |-
-                                        =64
+                                        =72
                                     Wrap: |-
                                         =false
                         - conVhpOpsHelp:
@@ -12843,11 +12730,11 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =36
+                                  =If((LayoutRank < 2 && (!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0)), (0 + If((!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0), 0 + (VhpOpsSummary.H), 0) + If(((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) = 0) && !IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0)) + If(((!varVhpViewOnly || (IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) = 0))), 8 + 36, 0), Max((0 + If((!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0), 0 + (VhpOpsSummary.H), 0) + If(((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) = 0) && !IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0)), 36))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Center
                               LayoutDirection: |-
-                                  =LayoutDirection.Horizontal
+                                  =If((LayoutRank < 2 && (!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0)), LayoutDirection.Vertical, LayoutDirection.Horizontal)
                               LayoutGap: |-
                                   =8
                               LayoutJustifyContent: |-
@@ -12872,7 +12759,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =36
+                                        =0 + If((!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0), 0 + (VhpOpsSummary.H), 0) + If(((IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) = 0) && !IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0)
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Stretch
                                     LayoutDirection: |-
@@ -12894,7 +12781,7 @@ Screens:
                                         Control: Image
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Task list " & Coalesce(LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistName, "") & ", " & Text(CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId))) & " operations"
+                                              =VhpOpsSummary.Label
                                           AlignInContainer: |-
                                               =AlignInContainer.Start
                                           BorderStyle: |-
@@ -12902,30 +12789,9 @@ Screens:
                                           BorderThickness: |-
                                               =0
                                           Height: |-
-                                              =32
+                                              =VhpOpsSummary.H
                                           Image: |-
-                                              =With({ l1: "TASK LIST", v1: Coalesce(LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistName, ""), l2: "OPERATIONS", v2: Text(CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId))), l3: "WORK (H)", v3: Text(Sum(Filter(colVhpOperations, ItemId = varVhpActiveItemId), WorkHours), "[$-en-US]#,##0.##"), l4: "COST", v4: Text(Sum(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Cost), "[$-en-US]#,##0.00"), l5: "MATERIALS", v5: Text(CountRows(Filter(colVhpMaterials, ItemId = varVhpActiveItemId))) },
-                                                With({ w1: 30 + Len(l1) * 7 + Len(v1) * 7.4, w2: 30 + Len(l2) * 7 + Len(v2) * 7.4, w3: 30 + Len(l3) * 7 + Len(v3) * 7.4, w4: 30 + Len(l4) * 7 + Len(v4) * 7.4, w5: 30 + Len(l5) * 7 + Len(v5) * 7.4 },
-                                                  "data:image/svg+xml;utf8," & EncodeUrl(
-                                                      "<svg xmlns='http://www.w3.org/2000/svg' height='32' width='" & (w1 + w2 + w3 + w4 + w5 + 32) & "'>" &
-                                                      "<rect x='" & (0 + 1) & "' y='2' rx='14' width='" & (w1 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                                                      "<text x='" & (0 + 14) & "' y='20' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l1, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                      "<text x='" & (0 + 20 + Len(l1) * 7) & "' y='20' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(v1, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                      "<rect x='" & (w1 + 8 + 1) & "' y='2' rx='14' width='" & (w2 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                                                      "<text x='" & (w1 + 8 + 14) & "' y='20' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l2, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                      "<text x='" & (w1 + 8 + 20 + Len(l2) * 7) & "' y='20' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(v2, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                      "<rect x='" & (w1 + w2 + 16 + 1) & "' y='2' rx='14' width='" & (w3 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                                                      "<text x='" & (w1 + w2 + 16 + 14) & "' y='20' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l3, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                      "<text x='" & (w1 + w2 + 16 + 20 + Len(l3) * 7) & "' y='20' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(v3, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                      "<rect x='" & (w1 + w2 + w3 + 24 + 1) & "' y='2' rx='14' width='" & (w4 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                                                      "<text x='" & (w1 + w2 + w3 + 24 + 14) & "' y='20' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l4, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                      "<text x='" & (w1 + w2 + w3 + 24 + 20 + Len(l4) * 7) & "' y='20' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(v4, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                      "<rect x='" & (w1 + w2 + w3 + w4 + 32 + 1) & "' y='2' rx='14' width='" & (w5 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                                                      "<text x='" & (w1 + w2 + w3 + w4 + 32 + 14) & "' y='20' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l5, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                      "<text x='" & (w1 + w2 + w3 + w4 + 32 + 20 + Len(l5) * 7) & "' y='20' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(v5, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                                                      "</svg>"
-                                                  )
-                                              ))
+                                              =VhpOpsSummary.Svg
                                           ImagePosition: |-
                                               =ImagePosition.Fit
                                           OnSelect: |-
@@ -12933,57 +12799,9 @@ Screens:
                                           TabIndex: |-
                                               =-1
                                           Visible: |-
-                                              =((!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0) && LayoutRank >= 2)
+                                              =(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0)
                                           Width: |-
-                                              =With({ l1: "TASK LIST", v1: Coalesce(LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistName, ""), l2: "OPERATIONS", v2: Text(CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId))), l3: "WORK (H)", v3: Text(Sum(Filter(colVhpOperations, ItemId = varVhpActiveItemId), WorkHours), "[$-en-US]#,##0.##"), l4: "COST", v4: Text(Sum(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Cost), "[$-en-US]#,##0.00"), l5: "MATERIALS", v5: Text(CountRows(Filter(colVhpMaterials, ItemId = varVhpActiveItemId))) },
-                                                With({ w1: 30 + Len(l1) * 7 + Len(v1) * 7.4, w2: 30 + Len(l2) * 7 + Len(v2) * 7.4, w3: 30 + Len(l3) * 7 + Len(v3) * 7.4, w4: 30 + Len(l4) * 7 + Len(v4) * 7.4, w5: 30 + Len(l5) * 7 + Len(v5) * 7.4 },
-                                                  Min(w1 + w2 + w3 + w4 + w5 + 32, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 128)
-                                              ))
-                                    - btnVhpOpsInfo:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Show the saved task list and operations"
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Start
-                                          Appearance: |-
-                                              =ButtonAppearance.Outline
-                                          BorderColor: |-
-                                              =C.'border-default'
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =32
-                                          Layout: |-
-                                              =ButtonLayout.TextOnly
-                                          OnSelect: |-
-                                              =Set(varVhpOpsInfoOpen, true)
-                                          RadiusBottomLeft: |-
-                                              =10
-                                          RadiusBottomRight: |-
-                                              =10
-                                          RadiusTopLeft: |-
-                                              =10
-                                          RadiusTopRight: |-
-                                              =10
-                                          Size: |-
-                                              =14
-                                          Text: |-
-                                              ="Task list details"
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Visible: |-
-                                              =((!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0) && LayoutRank < 2)
-                                          Width: |-
-                                              =168
+                                              =VhpOpsSummary.W
                                     - txtVhpOpsAttention:
                                         Control: ModernText
                                         Properties:
@@ -13089,7 +12907,7 @@ Screens:
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
-                                        =AlignInContainer.Center
+                                        =If((LayoutRank < 2 && (!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0)), AlignInContainer.End, AlignInContainer.Center)
                                     BasePaletteColor: |-
                                         =C.'color-brand-primary'
                                     Color: |-
@@ -19605,672 +19423,6 @@ Screens:
                             =VerticalAlign.Middle
                         Width: |-
                             =106
-      - conVhpPlanInfoBackdrop:
-          Control: Image
-          Properties:
-            AccessibleLabel: |-
-                ="Close the dialog"
-            BorderStyle: |-
-                =BorderStyle.None
-            BorderThickness: |-
-                =0
-            Fill: |-
-                =C.'overlay'
-            Height: |-
-                =App.Height
-            Image: |-
-                =""
-            OnSelect: |-
-                =If(LayoutRank < 2, Set(varVhpPlanInfoOpen, false))
-            TabIndex: |-
-                =-1
-            Visible: |-
-                =IfError(varVhpPlanInfoOpen, false)
-            Width: |-
-                =App.Width
-            X: |-
-                =0
-            Y: |-
-                =0
-      - conVhpPlanInfoModal:
-          Control: GroupContainer
-          Variant: AutoLayout
-          Properties:
-            BorderColor: |-
-                =C.'color-brand-primary-soft'
-            BorderThickness: |-
-                =1
-            DropShadow: |-
-                =DropShadow.ExtraBold
-            Fill: |-
-                =C.'bg-modal'
-            FillPortions: |-
-                =0
-            Height: |-
-                =218
-            LayoutAlignItems: |-
-                =LayoutAlignItems.Stretch
-            LayoutDirection: |-
-                =LayoutDirection.Vertical
-            LayoutGap: |-
-                =12
-            LayoutMinWidth: |-
-                =0
-            LayoutOverflowX: |-
-                =LayoutOverflow.Hide
-            LayoutOverflowY: |-
-                =LayoutOverflow.Hide
-            PaddingBottom: |-
-                =18
-            PaddingLeft: |-
-                =18
-            PaddingRight: |-
-                =18
-            PaddingTop: |-
-                =18
-            RadiusBottomLeft: |-
-                =16
-            RadiusBottomRight: |-
-                =16
-            RadiusTopLeft: |-
-                =16
-            RadiusTopRight: |-
-                =16
-            Visible: |-
-                =IfError(varVhpPlanInfoOpen, false)
-            Width: |-
-                =Min(460, App.Width - 24)
-            X: |-
-                =(App.Width - Self.Width) / 2
-            Y: |-
-                =Max(20, (App.Height - Self.Height) / 3)
-          Children:
-            - txtVhpPlanInfoTitle:
-                Control: ModernText
-                Properties:
-                  AccessibleLabel: |-
-                      ="Plan header"
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  BorderThickness: |-
-                      =0
-                  Color: |-
-                      =C.'text-primary'
-                  Fill: |-
-                      =RGBA(0, 0, 0, 0)
-                  Font: |-
-                      =Font.'Segoe UI'
-                  FontWeight: |-
-                      =FontWeight.Semibold
-                  Height: |-
-                      =26
-                  PaddingBottom: |-
-                      =0
-                  PaddingLeft: |-
-                      =0
-                  PaddingRight: |-
-                      =0
-                  PaddingTop: |-
-                      =0
-                  Size: |-
-                      =17
-                  Text: |-
-                      ="Plan header"
-                  Wrap: |-
-                      =false
-            - txtVhpPlanInfoBody:
-                Control: ModernText
-                Properties:
-                  AccessibleLabel: |-
-                      =Self.Text
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  BorderThickness: |-
-                      =0
-                  Color: |-
-                      =C.'text-primary'
-                  Fill: |-
-                      =RGBA(0, 0, 0, 0)
-                  Font: |-
-                      =Font.'Segoe UI'
-                  Height: |-
-                      =96
-                  PaddingBottom: |-
-                      =0
-                  PaddingLeft: |-
-                      =0
-                  PaddingRight: |-
-                      =0
-                  PaddingTop: |-
-                      =0
-                  Size: |-
-                      =13
-                  Text: |-
-                      ="Plant: " & Text(varVhpPlan.Plant) & Char(10) & "Plan text: " & Coalesce(varVhpPlan.PlanText, "") & Char(10) & If((varVhpPlan.PlanType = "Strategy"), "Strategy: " & Coalesce(varVhpPlan.Strategy, ""), "Cycle: Every " & Text(varVhpPlan.Cycle) & " " & varVhpPlan.Unit) & Char(10) & "First call: " & Text(varVhpPlan.FirstCallDay) & "/" & Text(varVhpPlan.FirstCallMonth) & "/" & Text(varVhpPlan.FirstCallYear)
-                  Wrap: |-
-                      =true
-            - conVhpPlanInfoFooter:
-                Control: GroupContainer
-                Variant: AutoLayout
-                Properties:
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  DropShadow: |-
-                      =DropShadow.None
-                  FillPortions: |-
-                      =0
-                  Height: |-
-                      =36
-                  LayoutAlignItems: |-
-                      =LayoutAlignItems.Center
-                  LayoutDirection: |-
-                      =LayoutDirection.Horizontal
-                  LayoutGap: |-
-                      =8
-                  LayoutJustifyContent: |-
-                      =LayoutJustifyContent.End
-                  LayoutMinWidth: |-
-                      =0
-                  LayoutOverflowX: |-
-                      =LayoutOverflow.Hide
-                  LayoutOverflowY: |-
-                      =LayoutOverflow.Hide
-                  Width: |-
-                      =Parent.Width
-                Children:
-                  - btnVhpPlanInfoClose:
-                      Control: ModernButton
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Close"
-                        Align: |-
-                            =Align.Center
-                        AlignInContainer: |-
-                            =AlignInContainer.Center
-                        Appearance: |-
-                            =ButtonAppearance.Outline
-                        BorderColor: |-
-                            =C.'border-default'
-                        BorderThickness: |-
-                            =1
-                        Color: |-
-                            =C.'text-primary'
-                        Font: |-
-                            =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
-                        Height: |-
-                            =36
-                        Layout: |-
-                            =ButtonLayout.TextOnly
-                        OnSelect: |-
-                            =Set(varVhpPlanInfoOpen, false)
-                        RadiusBottomLeft: |-
-                            =10
-                        RadiusBottomRight: |-
-                            =10
-                        RadiusTopLeft: |-
-                            =10
-                        RadiusTopRight: |-
-                            =10
-                        Size: |-
-                            =14
-                        Text: |-
-                            ="Close"
-                        VerticalAlign: |-
-                            =VerticalAlign.Middle
-                        Width: |-
-                            =77
-      - conVhpItemInfoBackdrop:
-          Control: Image
-          Properties:
-            AccessibleLabel: |-
-                ="Close the dialog"
-            BorderStyle: |-
-                =BorderStyle.None
-            BorderThickness: |-
-                =0
-            Fill: |-
-                =C.'overlay'
-            Height: |-
-                =App.Height
-            Image: |-
-                =""
-            OnSelect: |-
-                =If(LayoutRank < 2, Set(varVhpItemInfoOpen, false))
-            TabIndex: |-
-                =-1
-            Visible: |-
-                =IfError(varVhpItemInfoOpen, false)
-            Width: |-
-                =App.Width
-            X: |-
-                =0
-            Y: |-
-                =0
-      - conVhpItemInfoModal:
-          Control: GroupContainer
-          Variant: AutoLayout
-          Properties:
-            BorderColor: |-
-                =C.'color-brand-primary-soft'
-            BorderThickness: |-
-                =1
-            DropShadow: |-
-                =DropShadow.ExtraBold
-            Fill: |-
-                =C.'bg-modal'
-            FillPortions: |-
-                =0
-            Height: |-
-                =332
-            LayoutAlignItems: |-
-                =LayoutAlignItems.Stretch
-            LayoutDirection: |-
-                =LayoutDirection.Vertical
-            LayoutGap: |-
-                =12
-            LayoutMinWidth: |-
-                =0
-            LayoutOverflowX: |-
-                =LayoutOverflow.Hide
-            LayoutOverflowY: |-
-                =LayoutOverflow.Hide
-            PaddingBottom: |-
-                =18
-            PaddingLeft: |-
-                =18
-            PaddingRight: |-
-                =18
-            PaddingTop: |-
-                =18
-            RadiusBottomLeft: |-
-                =16
-            RadiusBottomRight: |-
-                =16
-            RadiusTopLeft: |-
-                =16
-            RadiusTopRight: |-
-                =16
-            Visible: |-
-                =IfError(varVhpItemInfoOpen, false)
-            Width: |-
-                =Min(460, App.Width - 24)
-            X: |-
-                =(App.Width - Self.Width) / 2
-            Y: |-
-                =Max(20, (App.Height - Self.Height) / 3)
-          Children:
-            - txtVhpItemInfoTitle:
-                Control: ModernText
-                Properties:
-                  AccessibleLabel: |-
-                      ="Item"
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  BorderThickness: |-
-                      =0
-                  Color: |-
-                      =C.'text-primary'
-                  Fill: |-
-                      =RGBA(0, 0, 0, 0)
-                  Font: |-
-                      =Font.'Segoe UI'
-                  FontWeight: |-
-                      =FontWeight.Semibold
-                  Height: |-
-                      =26
-                  PaddingBottom: |-
-                      =0
-                  PaddingLeft: |-
-                      =0
-                  PaddingRight: |-
-                      =0
-                  PaddingTop: |-
-                      =0
-                  Size: |-
-                      =17
-                  Text: |-
-                      ="Item"
-                  Wrap: |-
-                      =false
-            - txtVhpItemInfoBody:
-                Control: ModernText
-                Properties:
-                  AccessibleLabel: |-
-                      =Self.Text
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  BorderThickness: |-
-                      =0
-                  Color: |-
-                      =C.'text-primary'
-                  Fill: |-
-                      =RGBA(0, 0, 0, 0)
-                  Font: |-
-                      =Font.'Segoe UI'
-                  Height: |-
-                      =210
-                  PaddingBottom: |-
-                      =0
-                  PaddingLeft: |-
-                      =0
-                  PaddingRight: |-
-                      =0
-                  PaddingTop: |-
-                      =0
-                  Size: |-
-                      =13
-                  Text: |-
-                      =With(
-                          { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                          "Item: " & Coalesce(it.ShortText, "") & Char(10) &
-                          "Functional location: " & Coalesce(it.FunctionalLocation, "") &
-                              If(IsBlank(it.FlDescription), "", " - " & it.FlDescription) & Char(10) &
-                          "Main work center: " & Coalesce(it.MainWorkCenter, "") & Char(10) &
-                          "Activity type: " & Coalesce(it.ActivityType, "") & Char(10) &
-                          "Revision: " & If(IsBlank(it.Revision), "No", "Yes") & Char(10) &
-                          "Initials: " & Coalesce(it.Initials, "") & Char(10) &
-                          "Non flow user status: " & If(IsBlank(it.NonFlowUserStatus), "None", Coalesce(LookUp(colVhpNonFlowStatusOptions, Value = it.NonFlowUserStatus).Display, it.NonFlowUserStatus)) & Char(10) &
-                          "Objects: " & Text(CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId))) & Char(10) &
-                          "Long text: " & If(IsBlank(Trim(Coalesce(it.LongText, ""))), "No", "Yes")
-                      )
-                  Wrap: |-
-                      =true
-            - conVhpItemInfoFooter:
-                Control: GroupContainer
-                Variant: AutoLayout
-                Properties:
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  DropShadow: |-
-                      =DropShadow.None
-                  FillPortions: |-
-                      =0
-                  Height: |-
-                      =36
-                  LayoutAlignItems: |-
-                      =LayoutAlignItems.Center
-                  LayoutDirection: |-
-                      =LayoutDirection.Horizontal
-                  LayoutGap: |-
-                      =8
-                  LayoutJustifyContent: |-
-                      =LayoutJustifyContent.End
-                  LayoutMinWidth: |-
-                      =0
-                  LayoutOverflowX: |-
-                      =LayoutOverflow.Hide
-                  LayoutOverflowY: |-
-                      =LayoutOverflow.Hide
-                  Width: |-
-                      =Parent.Width
-                Children:
-                  - btnVhpItemInfoClose:
-                      Control: ModernButton
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Close"
-                        Align: |-
-                            =Align.Center
-                        AlignInContainer: |-
-                            =AlignInContainer.Center
-                        Appearance: |-
-                            =ButtonAppearance.Outline
-                        BorderColor: |-
-                            =C.'border-default'
-                        BorderThickness: |-
-                            =1
-                        Color: |-
-                            =C.'text-primary'
-                        Font: |-
-                            =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
-                        Height: |-
-                            =36
-                        Layout: |-
-                            =ButtonLayout.TextOnly
-                        OnSelect: |-
-                            =Set(varVhpItemInfoOpen, false)
-                        RadiusBottomLeft: |-
-                            =10
-                        RadiusBottomRight: |-
-                            =10
-                        RadiusTopLeft: |-
-                            =10
-                        RadiusTopRight: |-
-                            =10
-                        Size: |-
-                            =14
-                        Text: |-
-                            ="Close"
-                        VerticalAlign: |-
-                            =VerticalAlign.Middle
-                        Width: |-
-                            =77
-      - conVhpOpsInfoBackdrop:
-          Control: Image
-          Properties:
-            AccessibleLabel: |-
-                ="Close the dialog"
-            BorderStyle: |-
-                =BorderStyle.None
-            BorderThickness: |-
-                =0
-            Fill: |-
-                =C.'overlay'
-            Height: |-
-                =App.Height
-            Image: |-
-                =""
-            OnSelect: |-
-                =If(LayoutRank < 2, Set(varVhpOpsInfoOpen, false))
-            TabIndex: |-
-                =-1
-            Visible: |-
-                =IfError(varVhpOpsInfoOpen, false)
-            Width: |-
-                =App.Width
-            X: |-
-                =0
-            Y: |-
-                =0
-      - conVhpOpsInfoModal:
-          Control: GroupContainer
-          Variant: AutoLayout
-          Properties:
-            BorderColor: |-
-                =C.'color-brand-primary-soft'
-            BorderThickness: |-
-                =1
-            DropShadow: |-
-                =DropShadow.ExtraBold
-            Fill: |-
-                =C.'bg-modal'
-            FillPortions: |-
-                =0
-            Height: |-
-                =252
-            LayoutAlignItems: |-
-                =LayoutAlignItems.Stretch
-            LayoutDirection: |-
-                =LayoutDirection.Vertical
-            LayoutGap: |-
-                =12
-            LayoutMinWidth: |-
-                =0
-            LayoutOverflowX: |-
-                =LayoutOverflow.Hide
-            LayoutOverflowY: |-
-                =LayoutOverflow.Hide
-            PaddingBottom: |-
-                =18
-            PaddingLeft: |-
-                =18
-            PaddingRight: |-
-                =18
-            PaddingTop: |-
-                =18
-            RadiusBottomLeft: |-
-                =16
-            RadiusBottomRight: |-
-                =16
-            RadiusTopLeft: |-
-                =16
-            RadiusTopRight: |-
-                =16
-            Visible: |-
-                =IfError(varVhpOpsInfoOpen, false)
-            Width: |-
-                =Min(460, App.Width - 24)
-            X: |-
-                =(App.Width - Self.Width) / 2
-            Y: |-
-                =Max(20, (App.Height - Self.Height) / 3)
-          Children:
-            - txtVhpOpsInfoTitle:
-                Control: ModernText
-                Properties:
-                  AccessibleLabel: |-
-                      ="Tasklist and Operations"
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  BorderThickness: |-
-                      =0
-                  Color: |-
-                      =C.'text-primary'
-                  Fill: |-
-                      =RGBA(0, 0, 0, 0)
-                  Font: |-
-                      =Font.'Segoe UI'
-                  FontWeight: |-
-                      =FontWeight.Semibold
-                  Height: |-
-                      =26
-                  PaddingBottom: |-
-                      =0
-                  PaddingLeft: |-
-                      =0
-                  PaddingRight: |-
-                      =0
-                  PaddingTop: |-
-                      =0
-                  Size: |-
-                      =17
-                  Text: |-
-                      ="Tasklist and Operations"
-                  Wrap: |-
-                      =false
-            - txtVhpOpsInfoBody:
-                Control: ModernText
-                Properties:
-                  AccessibleLabel: |-
-                      =Self.Text
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  BorderThickness: |-
-                      =0
-                  Color: |-
-                      =C.'text-primary'
-                  Fill: |-
-                      =RGBA(0, 0, 0, 0)
-                  Font: |-
-                      =Font.'Segoe UI'
-                  Height: |-
-                      =130
-                  PaddingBottom: |-
-                      =0
-                  PaddingLeft: |-
-                      =0
-                  PaddingRight: |-
-                      =0
-                  PaddingTop: |-
-                      =0
-                  Size: |-
-                      =13
-                  Text: |-
-                      ="Task list: " & Coalesce(LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistName, "") & Char(10) &
-                      "Operations: " & Text(CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId))) & Char(10) &
-                      "Work (h): " & Text(Sum(Filter(colVhpOperations, ItemId = varVhpActiveItemId), WorkHours), "[$-en-US]#,##0.##") & Char(10) &
-                      "Duration (h): " & Text(Sum(Filter(colVhpOperations, ItemId = varVhpActiveItemId), DurationHours), "[$-en-US]#,##0.##") & Char(10) &
-                      "Cost: " & Text(Sum(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Cost), "[$-en-US]#,##0.00") & Char(10) &
-                      "Materials: " & Text(CountRows(Filter(colVhpMaterials, ItemId = varVhpActiveItemId))) & Char(10) &
-                      "Documents: " & Text(CountRows(Filter(colVhpAttachments, ItemId = varVhpActiveItemId)))
-                  Wrap: |-
-                      =true
-            - conVhpOpsInfoFooter:
-                Control: GroupContainer
-                Variant: AutoLayout
-                Properties:
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  DropShadow: |-
-                      =DropShadow.None
-                  FillPortions: |-
-                      =0
-                  Height: |-
-                      =36
-                  LayoutAlignItems: |-
-                      =LayoutAlignItems.Center
-                  LayoutDirection: |-
-                      =LayoutDirection.Horizontal
-                  LayoutGap: |-
-                      =8
-                  LayoutJustifyContent: |-
-                      =LayoutJustifyContent.End
-                  LayoutMinWidth: |-
-                      =0
-                  LayoutOverflowX: |-
-                      =LayoutOverflow.Hide
-                  LayoutOverflowY: |-
-                      =LayoutOverflow.Hide
-                  Width: |-
-                      =Parent.Width
-                Children:
-                  - btnVhpOpsInfoClose:
-                      Control: ModernButton
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Close"
-                        Align: |-
-                            =Align.Center
-                        AlignInContainer: |-
-                            =AlignInContainer.Center
-                        Appearance: |-
-                            =ButtonAppearance.Outline
-                        BorderColor: |-
-                            =C.'border-default'
-                        BorderThickness: |-
-                            =1
-                        Color: |-
-                            =C.'text-primary'
-                        Font: |-
-                            =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
-                        Height: |-
-                            =36
-                        Layout: |-
-                            =ButtonLayout.TextOnly
-                        OnSelect: |-
-                            =Set(varVhpOpsInfoOpen, false)
-                        RadiusBottomLeft: |-
-                            =10
-                        RadiusBottomRight: |-
-                            =10
-                        RadiusTopLeft: |-
-                            =10
-                        RadiusTopRight: |-
-                            =10
-                        Size: |-
-                            =14
-                        Text: |-
-                            ="Close"
-                        VerticalAlign: |-
-                            =VerticalAlign.Middle
-                        Width: |-
-                            =77
       - imgVhpNavScrim:
           Control: Image
           Properties:
