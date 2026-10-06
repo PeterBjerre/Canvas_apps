@@ -5540,7 +5540,8 @@ Screens:
                                                     (!isStrat && IsBlank(drpVhpUnit.Selected.Value)) ||
                                                     IsBlank(numVhpFirstCallDay.Value) || numVhpFirstCallDay.Value < 1 || numVhpFirstCallDay.Value > 31 ||
                                                     IsBlank(numVhpFirstCallMonth.Value) || numVhpFirstCallMonth.Value < 1 || numVhpFirstCallMonth.Value > 12 ||
-                                                    IsBlank(numVhpFirstCallYear.Value) || numVhpFirstCallYear.Value < 2020 || numVhpFirstCallYear.Value > 2100,
+                                                    IsBlank(numVhpFirstCallYear.Value) || numVhpFirstCallYear.Value < 2020 || numVhpFirstCallYear.Value > 2100 ||
+                                                    Month(Date(numVhpFirstCallYear.Value, numVhpFirstCallMonth.Value, numVhpFirstCallDay.Value)) <> numVhpFirstCallMonth.Value,
                                                     Notify("Plan contains issues. Fix plan fields before creating items.", NotificationType.Warning),
                                         
                                                     Set(varVhpPrevPlant, varVhpPlan.Plant);
