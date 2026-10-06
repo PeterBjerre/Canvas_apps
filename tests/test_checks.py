@@ -303,3 +303,20 @@ def test_kks_check_finds_flkey_drifting_from_kks(monkeypatch, tmp_path):
     rc, out = _kks_check(monkeypatch, tmp_path, "MD_FLKey.csv",
                          lambda t: t.replace('"Transformere."', '"Transformer."', 1))
     assert rc == 1 and "Aggregate" in out
+
+
+def test_vhp_every_rule_has_a_section():
+    """Sektionernes badge (issue #123) sorterer VhpValidationErrors efter
+    beskedens begyndelse. En ny regel uden sektion ville aldrig holde et
+    badge fra "Valid" - mens Submit stadig var graa."""
+    sys.path.insert(0, os.path.join(ROOT, "Maintenance Plan App", "build"))
+    import build_status as bs
+    codes = set(re.findall(r'"([A-Z]\d+): ', bs.VALIDATION))
+    assert codes, "fandt ingen regler - testen er forkert"
+    prefixes = [p for ps in bs.RULE_SECTIONS.values() for p in ps]
+    assert len(prefixes) == len(set(prefixes)), "en regel staar i to sektioner"
+    for code in codes:
+        assert code + ":" in prefixes, f"regel {code} hoerer ikke til nogen sektion"
+    # Item-reglen er den eneste uden kode: "Item <id> (...): missing ...".
+    assert '"Item " & Text(ItemId) & " ("' in bs.VALIDATION
+    assert "Item " in bs.RULE_SECTIONS["Item"]
