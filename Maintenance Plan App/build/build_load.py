@@ -223,6 +223,9 @@ def load_block():
         "                );\n"
         "                Set(varVhpPlanSpId, pl.ID);\n"
         "                Set(varVhpPlanKey, pl.PlanID);\n"
+        "                Set(varVhpFlow, { Status: Coalesce(pl.Status.Value, \"\"), "
+        "Stage: Coalesce(pl.ApprovalStage.Value, \"\"), "
+        "ReturnComment: Coalesce(pl.ReturnComment, \"\") });\n"
         # Konflikttjekket i build_save maaler mod den.
         "                Set(varVhpPlanModified, pl.Modified);\n"
         "                Set(varVhpRequestGuid, idx.RequestGuid);\n"

@@ -167,8 +167,32 @@ def formulas():
     add("VhpStepSaveDone",
         "!IsBlank(varVhpPlanKey) && varVhpSavedJson = VhpStateJson",
         "Trin 5: planen staar i SharePoint, og intet er aendret siden.")
+    # EFTER SUBMIT (issue #88): varVhpFlow er MaintenancePlans' Status og
+    # ApprovalStage. Flowene flytter dem (docs/32-godkendelsesflow.md):
+    #
+    #   In Progress + System    systemgodkendelse pr. item
+    #   In Progress + Cost      omkostningsgodkendelse
+    #   In Progress + Quality   kvalitetsgodkendelse, hele planen
+    #   Ready for creation in SAP + Done    Master Data opretter i SAP
+    #   Published               oprettet i SAP
+    #   Returned                tilbage hos rekvirenten - redigeres og
+    #                           indsendes igen, saa den taeller som IKKE
+    #                           indsendt.
+    add("VhpSubmitted",
+        'varVhpFlow.Status in ["In Progress", "Ready for creation in SAP", "Published"]',
+        "Planen er indsendt og ligger i godkendelse eller SAP-oprettelse.")
+    add("VhpApprovalDone",
+        'varVhpFlow.Stage in ["Quality", "Done"] || '
+        'varVhpFlow.Status in ["Ready for creation in SAP", "Published"]',
+        "System- og omkostningsgodkendelsen er overstaaet.")
+    add("VhpQualityDone",
+        'varVhpFlow.Status in ["Ready for creation in SAP", "Published"]',
+        "Kvalitetsgodkendelsen er overstaaet - planen venter paa SAP.")
+    add("VhpInSap", 'varVhpFlow.Status = "Published"',
+        "Planen er oprettet i SAP.")
     add("VhpCanSubmit",
-        "!varVhpSaving && VhpStepPlanDone && VhpStepItemDone && VhpStepTasklistDone &&\n"
+        "!varVhpSaving && !VhpSubmitted && VhpStepPlanDone && VhpStepItemDone && VhpStepTasklistDone &&\n"
         "    VhpStepOpsDone && IsBlank(VhpValidationErrors)",
-        "Submit er aktiv, naar trin 1-4 er faerdige, og reglerne ingen fejl finder.")
+        "Submit er aktiv, naar trin 1-4 er faerdige, reglerne ingen fejl finder, "
+        "og planen ikke allerede er indsendt.")
     return F
