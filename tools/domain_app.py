@@ -30,7 +30,7 @@ def _row_schema(cfg):
     s = {"RowId": "0", "ItemKey": '""', "RequestNo": '""',
          "Status": '""', "FileCount": "0",
          cfg.C_TEXT: '""', "Plant": '""'}
-    for col, _lab, kind, _ch in dp.FIELDS:
+    for col, _lab, kind, _ch in dp.ROW_FIELDS:
         s[col] = EMPTY[kind]
     return s
 

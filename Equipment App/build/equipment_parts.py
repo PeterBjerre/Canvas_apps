@@ -12,12 +12,17 @@ listen viser.
 FORMULAREN - I KOLONNE-ORDEN, SOM eq.png
 ---------------------------------------
     Equipment Form  * Required
-    [ Type          ][ Manufacturer     ][ Functional loc. 2 ][ Warranty to   ]
-    [ Plant         ][ Type designation ][ Class data        ][ Documentation ]
-    [ Equipment no. ][ Serial number    ][ Room coordinates  ]
-    [ Description   ][ Func. location   ][ Placement text    ]
-    [ Equipment type][ Func. loc. 1     ][ Warranty from     ]
-    (Plant: X) (Row status: ...)   [Delete row][Save draft][Save][New row]
+    [ Type          ][ Manufacturer     ][ Class data        ][ Warranty from ]
+    [ Plant         ][ Type designation ][ Room coordinates  ][ Warranty to   ]
+    [ Description   ][ Serial number    ][ Placement text    ][ Documentation ]
+    [ Equipment type][ Func. location   ]
+    (Plant: X) (Row status: ...)   [Save draft][Save][New row]
+
+Equipment number, Func. loc. 1 og Functional location 2 er fjernet fra
+formularen (issue #94). FL-soegningen er den eneste maade at vaelge en
+funktionsplads paa, og udstyrsnummeret er SAP's - det vises stadig i
+listen og i detaljerne (domain_config.READ_FIELDS). En gemt raekke
+slettes med ikonet i listens Actions-kolonne, ikke fra formularen.
 
 Paa en tablet staar kolonne 1 og 2 side om side over 3 og 4; paa en
 telefon under hinanden.
@@ -35,10 +40,10 @@ from build_helpers import card
 # et almindeligt felt fra SECTIONS.
 SPECIAL = {"FL", "TEXT", "DOCS", "PLANT"}
 COLUMNS = [
-    ["RequestType", "PLANT", "EquipmentNumber", "TEXT", "EquipmentCategory"],
-    ["Manufacturer", "TypeDesignation", "SerialNumber", "FL", "FunctionalLocation1"],
-    ["FunctionalLocation2", "ClassData", "RoomCoordinates", "Placement", "WarrantyStart"],
-    ["WarrantyEnd", "DOCS"],
+    ["RequestType", "PLANT", "TEXT", "EquipmentCategory"],
+    ["Manufacturer", "TypeDesignation", "SerialNumber", "FL"],
+    ["ClassData", "RoomCoordinates", "Placement"],
+    ["WarrantyStart", "WarrantyEnd", "DOCS"],
 ]
 NOT_IN_GRID = {cfg.FL_FIELD}
 
@@ -92,8 +97,6 @@ SLOTS = [
     (None, ("TYPE DESIGNATION", "ThisItem.TypeDesignation", 110)),
     (None, ("SERIAL NUMBER", "ThisItem.SerialNumber", 110)),
     (None, FL_C),
-    (None, ("FUNC. LOC. 1", "ThisItem.FunctionalLocation1", 110)),
-    (None, ("FUNCTIONAL LOCATION 2", "ThisItem.FunctionalLocation2", 110)),
     (None, ("CLASS DATA", "ThisItem.ClassData", 100)),
     (None, ("ROOM COORDINATES", "ThisItem.RoomCoordinates", 110)),
     (None, ("PLACEMENT TEXT", "ThisItem.Placement", 120)),

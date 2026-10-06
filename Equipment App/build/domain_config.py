@@ -106,7 +106,6 @@ FL_FIELD = "FunctionalLocation"
 SECTIONS = [
     ("What should happen", [
         ("RequestType", "Type", "text", None),
-        ("EquipmentNumber", "Equipment number", "text", None),
     ]),
     ("Master data", [
         ("EquipmentCategory", "Equipment type", "text", None),
@@ -114,13 +113,13 @@ SECTIONS = [
         ("TypeDesignation", "Type designation", "text", None),
         ("SerialNumber", "Serial number", "text", None),
     ]),
-    # Func. loc. 1, Functional location 2 og Class data blev fjernet i
-    # issue #37 og er tilbage i issue #68: de staar i eq.png og i listens
-    # All columns. Kolonnerne var aldrig slettet i SharePoint.
+    # Func. loc. 1 og Functional location 2 er fjernet igen (issue #94):
+    # FL-soegningen (FunctionalLocation) er den eneste maade at vaelge en
+    # funktionsplads paa. Kolonnerne FunctionalLocation1/2 staar stadig i
+    # EquipmentItems - de slettes ikke, og Patch roerer dem ikke, fordi
+    # Patch kun skriver felterne herunder.
     ("Where it sits", [
         ("FunctionalLocation", "Functional location", "text", None),
-        ("FunctionalLocation1", "Func. loc. 1", "text", None),
-        ("FunctionalLocation2", "Functional location 2", "text", None),
         ("ClassData", "Class data", "text", None),
         ("RoomCoordinates", "Room coordinates", "text", None),
         ("Placement", "Placement text", "text", None),
@@ -129,6 +128,17 @@ SECTIONS = [
         ("WarrantyStart", "Warranty from", "date", None),
         ("WarrantyEnd", "Warranty to", "date", None),
     ]),
+]
+
+# FELTER, DER KUN LAESES (issue #94)
+# ----------------------------------
+# Udstyrsnummeret tastes ikke laengere i formularen - det er SAP's. Men et
+# nummer, der allerede staar paa raekken (fra SAP eller fra en aeldre
+# raekke), skal stadig kunne ses og soeges paa. Felterne her hentes ind i
+# colDomRows og vises i listen og i detaljerne, men de er IKKE i
+# formularen, i Patch, i kopien eller i admin-loggens diff.
+READ_FIELDS = [
+    ("EquipmentNumber", "Equipment number", "text", None),
 ]
 
 # Plant staar for sig i hovedet - den er obligatorisk og filtreres paa.
