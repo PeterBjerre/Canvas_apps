@@ -241,9 +241,28 @@ def build_plan_header():
     drpPlant = themed_dropdown("drpVhpPlant", "colVhpPlantCodes",
                                "LookUp(colVhpPlantCodes, Value = varVhpPlan.Plant).Value",
                                required_formula=REQ_PLAN, display_mode=DM_PLAN)
+    # STATUS (issue #113). En ny plan kan kun oprettes som New. Change og
+    # Deleted (SharePoints valg i MaintenanceItems.Status) staar stadig i
+    # listen, men en ModernDropdown kan ikke deaktivere enkelte valg. De er
+    # derfor maerket "(not available)" i teksten, og OnChange saetter et
+    # forsoeg paa at vaelge dem tilbage til Default.
+    # Default er New, naar planen ingen status har (ny plan). En gemt plan
+    # beholder sin status: varVhpPlan.Status er det gemte (build_load), og
+    # den gemte vaerdi forbliver valgbar og vises uden maerkning.
     drpStatus = themed_dropdown("drpVhpStatus", "colVhpPlanStatusOptions",
-                         "LookUp(colVhpPlanStatusOptions, Value = varVhpPlan.Status).Value",
-                         required_formula=REQ_PLAN, display_mode=DM_PLAN)
+                         'Coalesce(varVhpPlan.Status, "New")',
+                         required_formula=REQ_PLAN, display_mode=DM_PLAN,
+                         onchange=(
+                             'If(\n'
+                             '    !IsBlank(Self.Selected.Value) && Self.Selected.Value <> "New" &&\n'
+                             '        Self.Selected.Value <> varVhpPlan.Status,\n'
+                             '    Reset(Self);\n'
+                             '    Notify("Only New is available when creating a maintenance plan.", '
+                             'NotificationType.Information)\n'
+                             ')'))
+    drpStatus.props["ItemDisplayText"] = (
+        'If(ThisItem.Value = "New" || ThisItem.Value = varVhpPlan.Status, ThisItem.Value, '
+        'ThisItem.Value & " (not available)")')
 
     # --- Plantype og strategi ------------------------------------------------
     drpPlanType = themed_dropdown("drpVhpPlanType", "colVhpPlanTypeOptions",
@@ -321,9 +340,12 @@ def build_plan_header():
          cellStrategy],
         [cell("conVhpCellStatus", "Status", drpStatus, "Status", True),
          cell("conVhpCellPlanText", "Plan Text", txtPlanText, "PlanText", True)],
+        # Cycle og Unit har byttet plads (issue #113): Unit staar i kolonne 3,
+        # Cycle oeverst i kolonne 4. Hele cellen flytter (etiket, stjerne,
+        # validering); kontrollerne og deres formler er de samme.
         [cell("conVhpCellSortField", "Sort Field", drpSortField, "SortField"),
-         cell("conVhpCellCycle", "Cycle", numCycle, "Cycle", True)],
-        [cell("conVhpCellUnit", "Unit", drpUnit, "Unit", True),
+         cell("conVhpCellUnit", "Unit", drpUnit, "Unit", True)],
+        [cell("conVhpCellCycle", "Cycle", numCycle, "Cycle", True),
          cell("conVhpCellFirstCall", "First Call (dd / mm / yyyy)", firstCallRow,
               "FirstCall", True)],
     ], container_w=CW, row_gap=10)
