@@ -643,7 +643,7 @@ App:
                                       MainWorkCenter: IT.MainWorkCenter.Value,
                                       ActivityType: IT.MaintenanceActivityType.Value,
                                       ObjectList: IT.ObjectList,
-                                      Revision: IT.RevisionMark.Value,
+                                      Revision: If(IT.Revision, Coalesce(IT.RevisionMark.Value, First(colVhpRevisionOptions).Value), Coalesce(IT.RevisionMark.Value, "")),
                                       OrstedResponsible: IT.OrstedResponsibleEmail,
                                       Initials: IT.InitialOrstedResponsible,
                                       LongText: IT.ItemDescription,
