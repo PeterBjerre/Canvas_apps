@@ -35,6 +35,7 @@ import os
 import re
 import shutil
 import sys
+import zipfile
 
 # Filer vi overhovedet kigger i. Resten er binaert eller ligegyldigt.
 TEXT_EXT = {".json", ".xml", ".yml", ".yaml", ".txt", ".config", ".resx",
@@ -222,6 +223,37 @@ def scrub_text(text, path=""):
     return text, hits
 
 
+def scrub_zip(path, report_only):
+    """Renser tekstmedlemmerne i en .msapp (en zip). Returnerer [(medlem,
+    [hvad der blev roert])]. Billeder og andet binaert roeres ikke.
+
+    Power Apps gemmer signerede blob-URL'er (sig=...) i
+    References\\Resources.json, saa en .msapp er ikke mere uskyldig end
+    resten af eksporten."""
+    found, out = [], []
+    with zipfile.ZipFile(path) as zin:
+        for info in zin.infolist():
+            data = zin.read(info)
+            if os.path.splitext(info.filename)[1].lower() in TEXT_EXT:
+                try:
+                    raw = data.decode("utf-8")
+                except UnicodeDecodeError:
+                    raw = None
+                if raw is not None:
+                    new, hits = scrub_text(raw, info.filename)
+                    if hits:
+                        found.append((info.filename, hits))
+                        data = new.encode("utf-8")
+            out.append((info, data))
+    if found and not report_only:
+        tmp = path + ".tmp"
+        with zipfile.ZipFile(tmp, "w") as zout:
+            for info, data in out:
+                zout.writestr(info, data, compress_type=info.compress_type)
+        os.replace(tmp, path)
+    return found
+
+
 def walk(root):
     for d, subdirs, files in os.walk(root):
         subdirs[:] = [s for s in subdirs if s not in (".git", "obj", "bin")]
@@ -281,6 +313,18 @@ def main(argv=None):
             if not args.report_only:
                 with open(path, "w", encoding="utf-8", newline="") as f:
                     f.write(new)
+
+    # 3) tekstmedlemmerne i .msapp-pakkerne
+    for path in walk(root):
+        if os.path.splitext(path)[1].lower() != ".msapp":
+            continue
+        try:
+            found = scrub_zip(path, args.report_only)
+        except zipfile.BadZipFile:
+            continue
+        for member, hits in found:
+            rel = f"{os.path.relpath(path, root)} [{member}]"
+            edited.append((rel, sorted(set(hits)), len(hits)))
 
     verb = "ville blive" if args.report_only else "blev"
     print(f"Gennemgaaet: {scanned} tekstfil(er) i {root}")
