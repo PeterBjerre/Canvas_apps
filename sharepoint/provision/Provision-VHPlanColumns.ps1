@@ -12,6 +12,7 @@
         MaintenanceItems.OrstedResponsible-
             Email                           delegerbart alternativ til
                                             Person-kolonnen
+        MaintenanceItems.NonFlowUserStatus  de manglende valg (issue #112)
         MaintenancePlans                    CallHorizon-choicen omdoebes
 
     OPERATIONSNUMMERET
@@ -82,6 +83,34 @@ function Add-Col {
     Write-Host "    + $Name ($Type)" -ForegroundColor Green
 }
 
+function Add-Choices {
+    # Sikrer, at alle oenskede valg findes paa en EKSISTERENDE Choice-kolonne,
+    # i den raekkefoelge. Valg, der er der i forvejen og ikke er paa listen,
+    # beholdes efter dem. Opretter aldrig kolonnen - findes den ikke, siges
+    # det, og intet roeres (ingen dubletkolonne).
+    param([string]$List, [string]$Name, [string[]]$Wanted)
+    $f = Get-PnPField -List $List -Identity $Name -ErrorAction SilentlyContinue
+    if (-not $f) {
+        Write-Host "    ! $Name findes ikke paa $List - roerer intet" -ForegroundColor Yellow
+        return
+    }
+    # Get-PnPField henter ikke .Choices - kun SchemaXml (se
+    # Provision-VHPlanApproval.ps1, Add-Choice).
+    $current = [string[]]@(([xml]$f.SchemaXml).Field.CHOICES.CHOICE)
+    $missing = @($Wanted | Where-Object { $current -notcontains $_ })
+    if (-not $missing) {
+        Write-Host "    = $Name har alle valg" -ForegroundColor DarkGray
+        return
+    }
+    $new = [string[]]($Wanted + @($current | Where-Object { $_ -and ($Wanted -notcontains $_) }))
+    if ($WhatIfOnly) {
+        Write-Host "    ? ville tilfoeje $($missing -join ', ') til $Name" -ForegroundColor Yellow
+        return
+    }
+    Set-PnPField -List $List -Identity $Name -Values @{ Choices = $new }
+    Write-Host "    + $Name har nu: $($new -join ', ')" -ForegroundColor Green
+}
+
 # ---------------------------------------------------------------------------
 Write-Host "`n=== TaskListMain ===" -ForegroundColor Cyan
 Add-Col 'TaskListMain' 'OperationNo' Number -Indexed `
@@ -104,6 +133,13 @@ Add-Col 'MaintenancePlans' 'StrategyKey' Text -Indexed `
 Write-Host "`n=== MaintenanceItems ===" -ForegroundColor Cyan
 Add-Col 'MaintenanceItems' 'OrstedResponsibleEmail' Text -Indexed `
     -Description 'Samme person som OrstedResponsible, men som indekseret tekst. Person-kolonner kan ikke filtreres delegerbart.'
+
+# Non Flow User Status (issue #112). Kolonnen FINDES (valg: ZBOW); her
+# tilfoejes de manglende SAP-koder. Valget er koden alene: SAP-ordre-flowet
+# sender NonFlowUserStatus.Value direkte til SAP. Beskrivelserne vises af
+# appen (sp_config.NON_FLOW_STATUS_TEXT).
+Add-Choices 'MaintenanceItems' 'NonFlowUserStatus' @(
+    'INCD', 'ZBUN', 'ZMOC', 'WADO', 'ZBOW', 'OPHO', 'UNEX', 'OFIX', 'REWO')
 
 # Opslagskolonnerne, appen filtrerer paa (REVIEW.md B14). MaintenancePlanNo
 # og MaintenancePlanID findes i forvejen; de faar kun et indeks, saa
