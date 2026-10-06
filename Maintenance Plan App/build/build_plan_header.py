@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gen_screen import Ctrl, C_MUTED, C_REQUIRED, C_INFO_BG, SHELL_W, C_DISABLED_BG, C_DIVIDER
+from gen_screen import (Ctrl, C_MUTED, C_REQUIRED, C_INFO_BG, SHELL_W, C_DISABLED_BG, C_DIVIDER,
+                        C_VALID_FG, C_VALID_BG, C_INVALID_FG, C_INVALID_BG, C_NEUTRAL_BG)
 import build_help as bh
 import layout_tokens as lay
 from build_helpers import (child_name, text_min_height, text_ctrl, group, button, text_input, number_input,
@@ -9,90 +10,180 @@ from build_helpers import (child_name, text_min_height, text_ctrl, group, button
                            column_grid, text_px, fit_button_width, ICON_W)
 
 DM_PLAN = "If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)"
-SUMMARY_VIS = "(varVhpPlanLocked && " + lay.at_least("Tablet") + ")"
-INFO_VIS = "(varVhpPlanLocked && " + lay.below("Tablet") + ")"
-
-
-def plan_info_modal():
-    from build_helpers import text_modal
-    body = ('"Plant: " & Text(varVhpPlan.Plant) & Char(10) & "Plan text: " & Coalesce(varVhpPlan.PlanText, "")'
-            ' & Char(10) & If(' + IS_STRATEGY + ', "Strategy: " & Coalesce(varVhpPlan.Strategy, ""), '
-            '"Cycle: Every " & Text(varVhpPlan.Cycle) & " " & varVhpPlan.Unit)'
-            ' & Char(10) & "First call: " & Text(varVhpPlan.FirstCallDay) & "/" & Text(varVhpPlan.FirstCallMonth)'
-            ' & "/" & Text(varVhpPlan.FirstCallYear)')
-    return text_modal("VhpPlanInfo", "varVhpPlanInfoOpen", '"Plan header"', body, 96)
+# Linjen vises, naar planen er gemt og laast - paa ALLE bredder (issue #123).
+# Foer viste en telefon en "Plan details"-knap i stedet, fordi chipsene var
+# for brede til een linje. Nu ombrydes de til flere raekker (summary_formula).
+SUMMARY_VIS = "varVhpPlanLocked"
 REQ_PLAN = "varVhpPlanValidated"
 
+# Chipsenes maal. Etiketten er 10 px versaler (ca. 7 px pr. tegn med
+# bogstavafstanden), vaerdien 13 px (ca. 7,4 px pr. tegn). En chip er 32
+# hoej, og raekkerne staar CHIP_PITCH fra hinanden - samme luft lodret som
+# vandret.
+CHIP_H, CHIP_GAP, CHIP_PITCH = 32, 8, 36
 
-def summary_chips(name, segs, visible, label, max_w=None):
-    """Den sammenklappede sektions linje (issue #54, #103): een "chip" pr.
-    (etiket, vaerdi), tegnet som EEN SVG. Plan Header, Item Editor og
-    Tasklist and Operations bruger den samme, saa de ser ens ud.
 
-    max_w: hoejeste bredde. Er chipsene bredere, skaleres billedet ned
-    (ImagePosition.Fit) i stedet for at blive klippet."""
+def summary_formula(segs, max_w, bind=None):
+    """Den sammenklappede sektions linje (issue #54, #103, #123) som EEN
+    navngiven formel: en post { Svg, W, H, Label }.
+
+    segs: (etiket, vaerdi) - begge Power Fx-tekst. En tom vaerdi giver
+    INGEN chip: ingen etiket uden vaerdi og intet tomt hul.
+    max_w: den plads, linjen har. Chipsene laegges fra venstre og
+    ombrydes til en ny raekke, naar den naeste ikke kan vaere der. En
+    vaerdi, der alene er bredere end pladsen, afkortes med en ellipse i
+    stedet for at blive klippet eller skaleret ned.
+    bind: {navn: udtryk} - regnes een gang (fx det aktive item).
+
+    Formlen staar i App.Formulas, saa layoutet regnes een gang og deles af
+    billedet og af hoejderne paa kortet omkring det (H). Hoejderne maa ikke
+    laese billedets .Height (layout-tjekkets regel 1)."""
     from design_tokens import ref_hex
-    from gen_screen import Ctrl as _C
     esc = lambda e: f'Substitute(Substitute({e}, "&", "&amp;"), "<", "&lt;")'
     n = len(segs)
-    binds, widths = [], []
-    for i, (lab, val) in enumerate(segs, 1):
-        binds.append(f"l{i}: {lab}")
-        binds.append(f"v{i}: {val}")
-        widths.append(f"w{i}: 30 + Len(l{i}) * 7 + Len(v{i}) * 7.4")
-    head = ("With({ " + ", ".join(binds) + " },\n  With({ " + ", ".join(widths)
-            + " },\n    %s\n))")
-    tot = " + ".join(f"w{i}" for i in range(1, n + 1)) + f" + {8 * (n - 1)}"
+    rng = range(1, n + 1)
+    lab = ", ".join(f"l{i}: {l}" for i, (l, _v) in enumerate(segs, 1))
+    val = ", ".join(f"v{i}: {v}" for i, (_l, v) in enumerate(segs, 1))
+    ell = "\u2026"
+    # Vaerdien, afkortet til pladsen.
+    disp = ",\n    ".join(
+        f"d{i}: If(Len(v{i}) = 0, \"\", 30 + Len(l{i}) * 7 + Len(v{i}) * 7.4 <= mw, v{i}, "
+        f"Left(v{i}, Max(0, RoundDown((mw - 38 - Len(l{i}) * 7) / 7.4, 0))) & \"{ell}\")"
+        for i in rng)
+    wid = ", ".join(f"w{i}: If(Len(d{i}) = 0, 0, 30 + Len(l{i}) * 7 + Len(d{i}) * 7.4)" for i in rng)
+    outer = dict(bind or {})
+    outer["mw"] = max_w
+    opens = ["With({ " + ", ".join(f"{k}: {v}" for k, v in outer.items()) + " },",
+             f"With({{ {lab},\n    {val} }},",
+             f"With({{ {disp} }},",
+             f"With({{ {wid} }},"]
+    # Placeringen: x og raekke r for chip i; c er der, hvor den naeste kan
+    # starte. En tom chip (w = 0) flytter ingenting.
+    for i in rng:
+        if i == 1:
+            opens.append(f"With({{ x1: 0, r1: 0, c1: If(w1 = 0, 0, w1 + {CHIP_GAP}) }},")
+            continue
+        pc, pr = f"c{i - 1}", f"r{i - 1}"
+        wrap = f"w{i} > 0 && {pc} > 0 && {pc} + w{i} > mw"
+        opens.append(f"With({{ x{i}: If({wrap}, 0, {pc}), r{i}: {pr} + If({wrap}, 1, 0) }},")
+        opens.append(f"With({{ c{i}: If(w{i} = 0, x{i}, x{i} + w{i} + {CHIP_GAP}) }},")
     fill, line = ref_hex("state-neutral-bg"), ref_hex("border-default")
     mut, txt = ref_hex("text-muted"), ref_hex("text-primary")
-    parts = ['"<svg xmlns=\'http://www.w3.org/2000/svg\' height=\'32\' width=\'" & (' + tot + ') & "\'>"']
-    xs = ["0"] + [" + ".join(f"w{j}" for j in range(1, i)) + f" + {8 * (i - 1)}"
-                  for i in range(2, n + 1)]
-    for i in range(1, n + 1):
-        x, w = xs[i - 1], f"w{i}"
+    W = "Max(" + ", ".join(f"If(w{i} = 0, 0, x{i} + w{i})" for i in rng) + ", 1)"
+    H = f"r{n} * {CHIP_PITCH} + {CHIP_H}"
+    parts = [f'"<svg xmlns=\'http://www.w3.org/2000/svg\' height=\'" & ({H}) & "\' width=\'" & '
+             f'{W} & "\'>"']
+    for i in rng:
+        y = f"r{i} * {CHIP_PITCH}"
         parts.append(
-            f'"<rect x=\'" & ({x} + 1) & "\' y=\'2\' rx=\'14\' width=\'" & ({w} - 2) & "\' height=\'28\' '
-            f'fill=\'" & {fill} & "\' stroke=\'" & {line} & "\'/>"')
-        parts.append(
-            f'"<text x=\'" & ({x} + 14) & "\' y=\'20\' font-family=\'Segoe UI, sans-serif\' font-size=\'10\' '
-            f'font-weight=\'600\' letter-spacing=\'.5\' fill=\'" & {mut} & "\'>" & {esc("l%d" % i)} & "</text>"')
-        parts.append(
-            f'"<text x=\'" & ({x} + 20 + Len(l{i}) * 7) & "\' y=\'20\' font-family=\'Segoe UI, sans-serif\' '
-            f'font-size=\'13\' font-weight=\'600\' fill=\'" & {txt} & "\'>" & {esc("v%d" % i)} & "</text>"')
+            f'If(w{i} = 0, "", '
+            f'"<rect x=\'" & (x{i} + 1) & "\' y=\'" & ({y} + 2) & "\' rx=\'14\' width=\'" & (w{i} - 2) & '
+            f'"\' height=\'28\' fill=\'" & {fill} & "\' stroke=\'" & {line} & "\'/>" &\n            '
+            f'"<text x=\'" & (x{i} + 14) & "\' y=\'" & ({y} + 20) & "\' font-family=\'Segoe UI, sans-serif\' '
+            f'font-size=\'10\' font-weight=\'600\' letter-spacing=\'.5\' fill=\'" & {mut} & "\'>" & '
+            f'{esc("l%d" % i)} & "</text>" &\n            '
+            f'"<text x=\'" & (x{i} + 20 + Len(l{i}) * 7) & "\' y=\'" & ({y} + 20) & "\' '
+            f'font-family=\'Segoe UI, sans-serif\' font-size=\'13\' font-weight=\'600\' fill=\'" & {txt} & '
+            f'"\'>" & {esc("d%d" % i)} & "</text>")')
     parts.append('"</svg>"')
-    img = '"data:image/svg+xml;utf8," & EncodeUrl(\n        ' + " &\n        ".join(parts) + "\n    )"
-    width = tot if max_w is None else f"Min({tot}, {max_w})"
-    return _C(name, "Image", props={
-        "AccessibleLabel": label,
+    label = " &\n        ".join(f'If(w{i} = 0, "", l{i} & " " & v{i} & ". ")' for i in rng)
+    body = ("{\n    Svg: \"data:image/svg+xml;utf8,\" & EncodeUrl(\n        "
+            + " &\n        ".join(parts) + "\n    ),\n"
+            f"    W: {W},\n    H: {H},\n    Label: {label}\n}}")
+    return "\n".join(opens) + "\n" + body + "\n" + ")" * len(opens)
+
+
+def summary_chips(name, fx, visible):
+    """Billedet, der viser summary_formula'ens post fx (et navn i
+    App.Formulas). Plan Header, Item Editor og Tasklist and Operations
+    bruger den samme, saa de ser ens ud. h er fx.H: kortet omkring foelger
+    linjens hoejde, naar den ombrydes."""
+    return Ctrl(name, "Image", props={
+        "AccessibleLabel": f"{fx}.Label",
         "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
-        "Height": "32", "Image": head % img, "ImagePosition": "ImagePosition.Fit",
+        "Height": f"{fx}.H", "Image": f"{fx}.Svg", "ImagePosition": "ImagePosition.Fit",
         "OnSelect": "false", "TabIndex": "-1", "Visible": visible,
-        "Width": head % width, "AlignInContainer": "AlignInContainer.Start",
-    }, h=32, vis=visible)
+        "Width": f"{fx}.W", "AlignInContainer": "AlignInContainer.Start",
+    }, h=f"{fx}.H", vis=visible)
 
 
-def summary_info_button(name, text, open_var, accessible, visible):
-    """Telefonens udgave af linjen: chipsene er for brede, saa en knap
-    aabner de samme vaerdier i et laeseudsnit (build_helpers.text_modal)."""
-    b = button(name, text, f"Set({open_var}, true)",
-               width=fit_button_width(text) + 8, height=32, visible=visible,
-               accessible=accessible)
-    b.props["AlignInContainer"] = "AlignInContainer.Start"
+def summary_width(cw, edit_w):
+    """Pladsen til linjen: kortets indholdsbredde minus Edit-knappen ved
+    siden af - paa en telefon hele bredden, for der staar Edit under
+    linjen (collapse_footer)."""
+    return lay.if_below("Tablet", cw, f"{cw} - {edit_w + 8}")
+
+
+def collapse_footer(footer, info, edit, locked):
+    """Sektionens fod, naar den er klappet sammen (issue #123).
+
+    Fra Tablet og op staar linjen til venstre og Edit til hoejre i samme
+    raekke, og raekken er saa hoej som den hoejeste af dem. Paa en telefon
+    ville Edit tage en tredjedel af bredden fra chipsene; der staar linjen
+    i fuld bredde og Edit under den, stadig hoejrestillet. Hoejden er
+    skrevet ud, saa kortet omkring foelger med - ogsaa naar Edit er skjult
+    (View mode), saa der ikke staar et tomt hul under linjen."""
+    stack = f"({lay.below('Tablet')} && {locked})"
+    footer.props["LayoutDirection"] = (f"If({stack}, LayoutDirection.Vertical, "
+                                       "LayoutDirection.Horizontal)")
+    edit.props["AlignInContainer"] = (f"If({stack}, AlignInContainer.End, "
+                                      "AlignInContainer.Center)")
+    ev = f"({edit.vis})" if edit.vis else "true"
+    h = (f"If({stack}, ({info.h}) + If({ev}, {footer.props['LayoutGap']} + 36, 0), "
+         f"Max(({info.h}), 36))")
+    footer.props["Height"] = h
+    footer.h = h
+    return footer
+
+
+def step_badge(name, step_label, valid_fx, attention_fx=None):
+    """Sektionens badge (issue #123): "Step N", indtil sektionen er
+    faerdig OG opfylder valideringen - saa "Valid" i ok-farverne. Samme
+    badge og samme farver paa alle tre sektioner.
+
+    valid_fx er den eksisterende validering (build_status: VhpPlanValid,
+    VhpItemsValid, VhpOpsValid), aldrig blot "gemt" eller "sammenklappet".
+    attention_fx: hvornaar der i stedet skal staa "Invalid" (fx et item,
+    der er gemt som ugyldigt)."""
+    text = (f'If({valid_fx}, "Valid", ' + (f'{attention_fx}, "Invalid", ' if attention_fx else "")
+            + f'"{step_label}")')
+    b = badge(name, text, width=72)
+    # Self.Text: formlen bag teksten regnes een gang, ikke tre.
+    b.props["Color"] = f'Switch(Self.Text, "Valid", {C_VALID_FG}, "Invalid", {C_INVALID_FG}, {C_MUTED})'
+    b.props["Fill"] = f'Switch(Self.Text, "Valid", {C_VALID_BG}, "Invalid", {C_INVALID_BG}, {C_NEUTRAL_BG})'
+    b.props["AccessibleLabel"] = (f'If(Self.Text = "Valid", "{step_label}: valid", '
+                                  f'"{step_label}: " & If(Self.Text = "Invalid", "invalid", "not complete yet"))')
     return b
 
 
-def _summary_chips():
+def plan_summary_segs():
     first = ('Text(varVhpPlan.FirstCallDay) & "/" & Text(varVhpPlan.FirstCallMonth) & "/" & '
              'Text(varVhpPlan.FirstCallYear)')
     cycle = (f'If({IS_STRATEGY}, Coalesce(varVhpPlan.Strategy, ""), "Every " & Text(varVhpPlan.Cycle) '
              '& " " & varVhpPlan.Unit)')
-    segs = [('"PLANT"', 'Text(varVhpPlan.Plant)'), ('"PLAN TEXT"', 'Coalesce(varVhpPlan.PlanText, "")'),
+    return [('"PLANT"', 'Coalesce(varVhpPlan.Plant, "")'),
+            ('"PLAN TEXT"', 'Coalesce(varVhpPlan.PlanText, "")'),
             (f'If({IS_STRATEGY}, "STRATEGY", "CYCLE")', cycle), ('"FIRST CALL"', first)]
-    label = ('Coalesce(varVhpPlan.PlanText, "") & ", " & ' + cycle + ' & ", first call " & ' + first)
-    return summary_chips("imgVhpPlanSummary", segs, SUMMARY_VIS, label)
+
+
+def summary_formulas():
+    """De tre linjers navngivne formler (generate_app_onstart.build_formulas)."""
+    import build_items as bi
+    import build_tasklist as bt
+    return [
+        ("VhpPlanSummary", summary_formula(plan_summary_segs(), summary_width(PLAN_CW, PLAN_SAVE_W)),
+         "Plan Headers sammenklappede linje (issue #123): chips, bredde og hoejde."),
+        ("VhpItemSummary", bi.item_summary_fx(),
+         "Item Editorens sammenklappede linje for det valgte item (issue #123)."),
+        ("VhpOpsSummary", bt.ops_summary_fx(),
+         "Tasklist and Operations' sammenklappede linje for det valgte item (issue #123)."),
+    ]
+
 
 # Indholdsbredden i et kort: skaermens indholdsbredde minus kortets polstring.
 PLAN_CW = f"({SHELL_W} - 36)"
+# Save/Edit-knappens bredde - linjen har kortets bredde minus den.
+PLAN_SAVE_W = fit_button_width("\"Save\"", min_w=96) + ICON_W
 
 # En strategiplan henter sin cyklus fra strategiens pakker. Cycle/Unit paa
 # planhovedet gaelder derfor kun single cycle-planer.
@@ -132,9 +223,13 @@ def required_legend():
                  align_items="Center", width=83)
 
 
-def section_header(name, title, step_label, extra_right=(), extra_left=()):
+def section_header(name, title, step_label, extra_right=(), extra_left=(), valid_fx=None,
+                   attention_fx=None):
     """Sektionsoverskrift: titlen til venstre (evt. med noget lige efter
     den, fx "* Required"), og et trin-badge til hoejre.
+
+    valid_fx (issue #123): badget skifter fra "Step N" til "Valid", naar
+    sektionen opfylder valideringen (step_badge).
 
     Beskrivelsen under titlen er fjernet (issue #54). Den gentog blot det,
     sektionen viser, og kostede en linje paa hvert kort."""
@@ -144,7 +239,9 @@ def section_header(name, title, step_label, extra_right=(), extra_left=()):
     t.props["LayoutMinWidth"] = t.props["Width"]
 
     right = list(extra_right)
-    if step_label:
+    if step_label and valid_fx:
+        right.append(step_badge(child_name("txt", name, "Badge"), step_label, valid_fx, attention_fx))
+    elif step_label:
         right.append(badge(child_name("txt", name, "Badge"), f"\"{step_label}\"", width=64))
 
     # FLAD RAEKKE (issue #54 - titlerne manglede i Studio). Titlen staar
@@ -230,7 +327,7 @@ PLAN_CONTROLS = ("drpVhpPlanType", "drpVhpStrategy", "drpVhpPlant", "drpVhpStatu
 def build_plan_header():
     # "* Required" staar lige efter titlen i venstre side. I hoejre side,
     # mellem titlen og trin-badget, blev den klippet (issue #54).
-    header = section_header("conVhpPlanHead", "Plan Header", "Step 1",
+    header = section_header("conVhpPlanHead", "Plan Header", "Step 1", valid_fx="VhpPlanValid",
                             extra_left=[required_legend()])
     helpPanel = help_panel("conVhpPlanHelp", "plan")
 
@@ -354,11 +451,10 @@ def build_plan_header():
         "txtVhpPlanMeta",
         f"If(varVhpPlanCommitted, \"Plan created \" & Text(varVhpPlanCreatedAt, \"{lay.DATETIME_FMT}\"), \"\")",
         size=12, color=C_MUTED, height=24, wrap="false", visible="!varVhpPlanLocked")
-    summary = _summary_chips()
-    info = summary_info_button("btnVhpPlanInfo", '"Plan details"', "varVhpPlanInfoOpen",
-                               '"Show the plan header details"', INFO_VIS)
-    footerInfo = grow(group("conVhpPlanFooterInfo", [summary, info, planMeta], direction="Vertical",
-                            gap=0, height=32))
+    # Linjen (issue #123): chipsene ombrydes, og kortet foelger deres hoejde.
+    summary = summary_chips("imgVhpPlanSummary", "VhpPlanSummary", SUMMARY_VIS)
+    footerInfo = grow(group("conVhpPlanFooterInfo", [summary, planMeta], direction="Vertical",
+                            gap=0, justify="Center"))
 
     btnSave = button(
         "btnVhpPlanSave", "If(varVhpPlanLocked, \"Edit\", \"Save\")",
@@ -453,10 +549,14 @@ def build_plan_header():
         "If(varVhpPlanCommitted, Set(varVhpPlanLocked, true))",
         width=fit_button_width("\"Reset\""), height=36,
         display_mode="If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)")
-    btnSave.props["Width"] = str(fit_button_width("\"Save\"", min_w=96) + ICON_W)
+    btnSave.props["Width"] = str(PLAN_SAVE_W)
 
-    footer = group("conVhpPlanFooter", [footerInfo, btnReset, btnSave], direction="Horizontal",
-                   gap=8, height=36, align_items="Center")
+    # Hoejden er den hoejeste af linjen og knapperne: ombrydes chipsene,
+    # vokser raekken med dem (issue #123).
+    footer = collapse_footer(
+        group("conVhpPlanFooter", [footerInfo, btnReset, btnSave], direction="Horizontal",
+              gap=8, align_items="Center"),
+        footerInfo, btnSave, "varVhpPlanLocked")
 
     # SAMLET SAMMEN, NAAR PLANEN ER GEMT. Felterne og hjaelpepanelet vises kun,
     # mens planen kan redigeres; derefter staar en linje med det vigtigste, og
