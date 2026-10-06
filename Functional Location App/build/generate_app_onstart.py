@@ -190,7 +190,7 @@ Set(varFlViewOnly, false);
 Set(varFlBadgeOn, false);
 Set(varFlCanEdit, false);
 Set(varFlNextRowNo, 1);
-// Aktiv klassefane. "ALL" som i renderClassTabs.
+// Aktiv klassefane. ALL som i renderClassTabs.
 Set(varFlTab, "ALL");
 // Detaljeruden: raekkens RowGuid og den klasse, den blev aabnet i.
 Set(varFlDetailRow, "");
