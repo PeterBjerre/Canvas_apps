@@ -57,7 +57,7 @@ from build_helpers import (tap_backdrop, text_ctrl, text_min_height, group, butt
                            fit_button_width, number_input, themed_dropdown,
                            card, field_cell, pin_widths, badge, top_bar, grow,
                            flow_row, label_px, text_px, loading_overlay,
-                           with_busy, confirm_modal, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
+                           with_busy, confirm_modal, edit_button, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
                            ICON_W, icon_on_mobile, new_text_on_mobile)
 
 # Mens en gemning koerer, staar ventespinneren oven paa skaermen (issue #54).
@@ -177,6 +177,8 @@ REQUIRED = "varDomValidated"
 # Dokumentpopuppens knapper haenger paa DEN raekke, popuppen er aabnet for.
 DM_DOCS = ('If(IsBlank(varDomDocsId), DisplayMode.Disabled, DisplayMode.Edit)')
 DM_SEL = ('If(IsBlank(varDomActiveRowId), DisplayMode.Disabled, DisplayMode.Edit)')
+# Ordet for anmodningen i Edit/Delete: "equipment request" / "material request".
+WHAT = f"{cfg.DOMAIN.lower()} request"
 # Raekkens slet-ikon i listen (issue #94): kun mens anmodningen kan
 # redigeres (varDomViewOnly er den eksisterende laas), og aldrig paa en
 # indsendt raekke - den ejes af SAP-processen.
@@ -222,17 +224,18 @@ def build_bar():
         'Set(varDomRequestGuid, "");\nSet(varDomRequestNo, "");\nSet(varDomViewOnly, false);\nSet(varDomCanEdit, false);\n' + clear_form_fx(),
         icon="Add", tooltip='"Start a new request - your saved rows stay in SharePoint"'),
         True)
-    edit = sized(button(
-        "btnDomEditRequest", '"Edit"', "Set(varDomViewOnly, false)", icon="Edit",
-        visible="varDomViewOnly && varDomCanEdit",
-        display_mode="If(varDomCanEdit, DisplayMode.Edit, DisplayMode.Disabled)",
-        tooltip='"Edit this draft"'), True)
+    # Edit og Delete er VH-planens (issue #94): de faelles knapper i
+    # build_helpers, samme synlighed, placering og ikon-kun under Tablet.
+    # varDomCanEdit er sat af tools/permissions.may_change ved aabningen.
+    edit = edit_button("btnDomEditRequest", "varDomViewOnly", "varDomCanEdit",
+                       "Set(varDomViewOnly, false)", what=WHAT,
+                       tooltip=f'"Edit this {WHAT}"')
     narrow = below("Tablet")
     save.props["Width"] = f"If({narrow}, 40, {save.props['Width']})"
     save.props["Layout"] = f"If({narrow}, ButtonLayout.IconOnly, ButtonLayout.IconBefore)"
     new_text_on_mobile(new, new.props["Width"])
     return top_bar("Dom", f'"{cfg.TITLE}"', f'"{cfg.SUBTITLE}"',
-                   [edit, delete_button("Dom", "varDomViewOnly", "varDomRequestGuid"), save, submit, new],
+                   [edit, delete_button("Dom", "varDomViewOnly", "varDomRequestGuid", WHAT), save, submit, new],
                    icon=cfg.APP_KEY, mode_var="varDomViewOnly", num_var="varDomRequestNo")
 
 
@@ -451,8 +454,17 @@ def open_request_fx():
     kladde oprettede en NY indeksraekke, mens den gamle "Kladde" blev
     staaende for evigt (REVIEW.md D18).
 
-    En indsendt anmodning genaabnes ikke: dens raekker er laast, og en ny
-    kladde skal vaere en ny anmodning (som efter Submit, D19).
+    EN INDSENDT ANMODNING AABNES I VIEW MODE (issue #94)
+    ----------------------------------------------------
+    Her blev en indsendt anmodning smidt vaek: GUID og nummer blev
+    nulstillet, og skaermen stod med en ny, tom anmodning i Edit mode.
+    Nu er det VH-planens metode (Maintenance Plan App/build/build_load.py):
+    anmodningen aabnes altid, varDomCanEdit afgoeres af
+    tools/permissions.may_change (ejer i Kladde, admin i Kladde og
+    AfventerInfo), og alt andet - indsendt eller laast - staar i View mode
+    uden Edit og Delete. Gem og Submit er slaaet fra i View mode, saa en
+    indsendt anmodning kan ikke skrives tilbage til Kladde (D19); en ny
+    kladde startes med New request.
 
     Opslaget maaler mod varDomRequestGuid, der er sat lige foer - ikke mod
     Param(), som ikke er "ens for alle raekker" i delegeringens forstand."""
@@ -465,10 +477,6 @@ def open_request_fx():
         "        IsBlank(varDomIdx),\n"
         '        Notify("Could not find the request behind this link. Rows you save start a new request.",\n'
         "            NotificationType.Warning);\n"
-        '        Set(varDomRequestGuid, ""); Set(varDomRequestNo, ""),\n'
-        '        varDomIdx.Status.Value = "Indsendt",\n'
-        '        Notify("Request " & varDomIdx.RequestNo & " is already submitted. Rows you save start a new request.",\n'
-        "            NotificationType.Information);\n"
         '        Set(varDomRequestGuid, ""); Set(varDomRequestNo, ""),\n'
         "        Set(varDomRequestNo, varDomIdx.RequestNo);\n"
         # Edit for the owner of a draft, and for an admin (tools/permissions.py);
@@ -1186,7 +1194,7 @@ def build_submit_confirm():
         "Dom", CONFIRM_VAR, "Submit request?",
         '"The valid rows are sent to the landing page as Submitted and locked."',
         "Submit", with_busy(SAVING_VAR, send_fx(True)), "btnDomSubmitConfirm") + delete_modal(
-        "Dom", "varDomRequestGuid", cfg.L_INDEX, cfg.DOMAIN) + [
+        "Dom", "varDomRequestGuid", cfg.L_INDEX, cfg.DOMAIN, WHAT) + [
         loading_overlay("imgDomSaving", SAVING_VAR)]
 
 
