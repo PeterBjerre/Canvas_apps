@@ -235,7 +235,7 @@ App:
       colVhpStrategyPackages = ForAll(MD_StrategyPackage As R, { StrategyKey: R.StrategyKey, PackageNo: R.PackageNo, ShortCode: R.ShortCode, CycleLength: R.CycleLength, CycleUnit: R.CycleUnit.Value, Hierarchy: R.Hierarchy, PackageText: R.PackageText });
 
       // Standardoperationerne, hentet een gang. colVhpTasklists deler dem op pr. vaerk i hukommelsen.
-      colVhpStdOps = ForAll(MD_StandardTaskOperations As O, { Plant: O.Plant.Value, OperationNo: O.OperationNo, OperationShortText: O.OperationShortText, Work: O.Work, NumberOfCapacities: O.NumberOfCapacities, WorkCenter: O.WorkCenter, VendorNo: O.VendorNo, ControlKey: O.ControlKey, Price: O.Price, Currency: O.Currency, CostElement: O.CostElement, MaterialGroup: O.MaterialGroup, SapPlant: O.SapPlant });
+      colVhpStdOps = ForAll(MD_StandardTaskOperations As O, { Plant: O.Plant.Value, OperationNo: O.OperationNo, OperationShortText: O.OperationShortText, Work: O.Work, NumberOfCapacities: O.NumberOfCapacities, WorkCenter: O.WorkCenter, VendorNo: O.VendorNo, ControlKey: O.ControlKey, Price: O.Price, Currency: O.Currency, CostElement: O.CostElement, MaterialGroup: O.MaterialGroup, ServiceNo: O.ServiceNo, SapPlant: O.SapPlant });
 
       // Vaerkerne med en standardtaskliste, og hvis operationer den bruger.
       colVhpTasklistPlants = Filter(
@@ -249,7 +249,7 @@ App:
           Src in colVhpStdOps.Plant
       );
 
-      colVhpTasklists = ForAll(colVhpTasklistPlants As P, { Plant: P.Plant, Key: P.Plant & "-STD", Name: "Standard task list - " & P.Plant, Description: "", Operations: ForAll(Sort(Filter(colVhpStdOps, Plant = P.Src), OperationNo) As O, { OperationNo: Text(O.OperationNo, "0000"), OperationShortText: O.OperationShortText, WorkHours: O.Work, Persons: O.NumberOfCapacities, DurationHours: Round(O.Work / Max(Coalesce(O.NumberOfCapacities, 1), 1), 2), MainWorkCenter: O.WorkCenter, Vendor: O.VendorNo, LongText: "", ControlKey: O.ControlKey, UnitCost: O.Price, Cost: O.Work * O.Price, Currency: O.Currency, CostElement: O.CostElement, MaterialGroup: O.MaterialGroup, OpPlant: O.SapPlant }) });
+      colVhpTasklists = ForAll(colVhpTasklistPlants As P, { Plant: P.Plant, Key: P.Plant & "-STD", Name: "Standard task list - " & P.Plant, Description: "", Operations: ForAll(Sort(Filter(colVhpStdOps, Plant = P.Src), OperationNo) As O, { OperationNo: Text(O.OperationNo, "0000"), OperationShortText: O.OperationShortText, WorkHours: O.Work, Persons: O.NumberOfCapacities, DurationHours: Round(O.Work / Max(Coalesce(O.NumberOfCapacities, 1), 1), 2), MainWorkCenter: O.WorkCenter, Vendor: O.VendorNo, LongText: "", ControlKey: O.ControlKey, UnitCost: O.Price, Cost: O.Work * O.Price, Currency: O.Currency, CostElement: O.CostElement, MaterialGroup: If(Upper(Trim(Coalesce(O.ControlKey, ""))) = "PM02", "", O.MaterialGroup), ServiceNo: If(Upper(Trim(Coalesce(O.ControlKey, ""))) = "PM03", O.ServiceNo, ""), OpPlant: O.SapPlant }) });
 
       // CallHorizonMatrix som { Cycle, Unit, Fcd, Period }.
       colVhpCallHorizon = Filter(
@@ -327,6 +327,15 @@ App:
                               ") has no operations - the plan would call an empty order.",
                               Char(10)
                           ), ""),
+                  m1:
+                      Concat(
+                          Filter(colVhpOperations,
+                              Upper(Trim(Coalesce(ControlKey, ""))) = "PM02" &&
+                              IsBlank(Trim(Coalesce(MaterialGroup, "")))),
+                          "M1: Item " & Text(ItemId) & " operation " & OperationNo &
+                          " is PM02 and needs a material group.",
+                          Char(10)
+                      ),
                   r1:
                       If(
                           !IsBlank(varVhpPlan.Plant) && !IsBlank(varVhpPlan.PlanText) &&
@@ -352,7 +361,7 @@ App:
                   Filter(
                       Table(
                           { t: itemErr }, { t: s1 }, { t: s3 }, { t: s4 }, { t: s5 },
-                          { t: r1 }, { t: r2 }, { t: r4 }
+                          { t: m1 }, { t: r1 }, { t: r2 }, { t: r4 }
                       ),
                       !IsBlank(t)
                   ),
@@ -414,7 +423,7 @@ App:
     OnStart: |
       =If(false, ClearCollect(colVhpItems, { ItemId: 0, ShortText: "", FunctionalLocation: "", FlDescription: "", MainWorkCenter: "", ActivityType: "", ObjectList: "", Revision: "", OrstedResponsible: "", Initials: "", LongText: "", NonFlowUserStatus: "", TasklistKey: "", TasklistName: "", Status: "", SpId: 0 }));
 
-      If(false, ClearCollect(colVhpOperations, { ItemId: 0, OperationNo: "", OperationShortText: "", WorkHours: 0, Persons: 0, DurationHours: 0, MainWorkCenter: "", Vendor: "", LongText: "", PackagesKey: ";", Selected: false, ControlKey: "", Cost: 0, UnitCost: 0, Currency: "", CostElement: 0, MaterialGroup: "", SpId: 0 }));
+      If(false, ClearCollect(colVhpOperations, { ItemId: 0, OperationNo: "", OperationShortText: "", WorkHours: 0, Persons: 0, DurationHours: 0, MainWorkCenter: "", Vendor: "", LongText: "", PackagesKey: ";", Selected: false, ControlKey: "", Cost: 0, UnitCost: 0, Currency: "", CostElement: 0, MaterialGroup: "", ServiceNo: "", SpId: 0 }));
 
       If(false, ClearCollect(colVhpFl, { Code: "", Description: "", Display: "", Maintainable: false, Level: "" }));
 
@@ -735,6 +744,7 @@ App:
                                       Currency: OP.Currency,
                                       CostElement: OP.CostElem,
                                       MaterialGroup: OP.MaterialGroup,
+                                      ServiceNo: OP.ServiceNo,
                                       SpId: OP.ID
                                   }
                               )

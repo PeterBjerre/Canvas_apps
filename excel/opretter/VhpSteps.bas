@@ -170,7 +170,7 @@ Private Sub EnterOperation(ByVal sess As Object, ByVal op As Object, ByVal rowIn
             End If
 
         Case "PM03"
-            Set svc = VhpLookup.Service(ctx("lookups"), VhpUtil.JStr(op, "workCenter"))
+            Set svc = VhpLookup.ServiceFor(ctx("lookups"), op)
             If Len(matGroup) = 0 And Not svc Is Nothing Then matGroup = VhpUtil.JStr(svc, "matGroup")
             VhpSap.SetText sess, cellBase & IA05_COL_PERSONS & vis & "]", VhpMap.SapNumber(persons, dec)
             If Len(matGroup) > 0 Then
@@ -232,9 +232,9 @@ Private Sub AddService(ByVal sess As Object, ByVal op As Object, ByVal rowIndex 
     Dim serviceNo As String
     Dim found As Long
 
-    Set svc = VhpLookup.Service(ctx("lookups"), VhpUtil.JStr(op, "workCenter"))
+    Set svc = VhpLookup.ServiceFor(ctx("lookups"), op)
     If svc Is Nothing Then
-        Err.Raise ERR_SAP, "VhpSteps", what & VhpUtil.Dk(": ydelsesnummer mangler i Opslag.")
+        Err.Raise ERR_SAP, "VhpSteps", what & VhpUtil.Dk(": ydelsesnummer mangler (ServiceNo i TaskListMain eller Ydelser i Opslag).")
     End If
     serviceNo = VhpUtil.JStr(svc, "serviceNo")
 

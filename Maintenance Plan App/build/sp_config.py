@@ -136,11 +136,6 @@ def non_flow_desc(code):
 NON_FLOW_DESC = non_flow_desc("c")
 
 
-# Varegruppen paa en PM02-operation, der ingen har. Samme vaerdi som
-# Excel-opretterens standard (excel/opretter/VhpConfig.bas, SET_PM02_MATGROUP:
-# "Det gamle regneark brugte altid B08.06").
-PM02_DEFAULT_MATGROUP = "B08.06"
-
 # Vaerk -> vaerket, hvis standardtaskliste det laaner, saa laenge det ingen
 # har selv. Fra den gamle app (StandardTasklistGallery: HCV og SMV -> AVV).
 TASKLIST_FALLBACK = {"HCV": "AVV", "SMV": "AVV"}
@@ -345,6 +340,7 @@ def named_formulas():
                            ("Currency", "O.Currency"),
                            ("CostElement", "O.CostElement"),
                            ("MaterialGroup", "O.MaterialGroup"),
+                           ("ServiceNo", "O.ServiceNo"),
                            ("SapPlant", "O.SapPlant")],
                 alias="O"),
         "Standardoperationerne, hentet een gang. colVhpTasklists deler dem "
@@ -375,7 +371,14 @@ def named_formulas():
          ("Cost", "O.Work * O.Price"),
          ("Currency", "O.Currency"),
          ("CostElement", "O.CostElement"),
-         ("MaterialGroup", "O.MaterialGroup"),
+         # PM02 kommer ind med TOM varegruppe: brugeren angiver den rigtige
+         # (M1 i build_status holder Submit tilbage, til den er udfyldt).
+         ("MaterialGroup",
+          "If(Upper(Trim(Coalesce(O.ControlKey, \"\"))) = \"PM02\", \"\", O.MaterialGroup)"),
+         # Ydelsesnummeret vedligeholdes paa standardoperationen og foelger
+         # med til TaskListMain. Kun PM03 har en ydelse.
+         ("ServiceNo",
+          "If(Upper(Trim(Coalesce(O.ControlKey, \"\"))) = \"PM03\", O.ServiceNo, \"\")"),
          ("OpPlant", "O.SapPlant")],
         alias="O")
     # VAERKER UDEN EGEN STANDARDARBEJDSPLAN. Den gamle app gav HCV og SMV
@@ -480,7 +483,7 @@ WORKING_COLLECTIONS = [
       # fra standardarbejdsplanen - saa beloebet kan regnes om, naar
       # timerne rettes. Se cost_expr() i build_tasklist.py.
       "ControlKey": '""', "Cost": 0, "UnitCost": 0, "Currency": '""',
-      "CostElement": 0, "MaterialGroup": '""',
+      "CostElement": 0, "MaterialGroup": '""', "ServiceNo": '""',
       # Raekkens ID i TaskListMain; 0 = ny. Se colVhpItems.SpId.
       "SpId": 0}),
     ("colVhpFl",

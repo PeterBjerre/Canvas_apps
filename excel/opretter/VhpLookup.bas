@@ -63,6 +63,28 @@ Public Function Service(ByVal lk As Object, ByVal workCenterText As String) As O
     End If
 End Function
 
+' Ydelsen for en PM03-operation. Operationens eget ydelsesnummer
+' (TaskListMain.ServiceNo, vedligeholdt paa standardoperationen) vinder;
+' tabellen Ydelser bruges kun, naar det er tomt. Varegruppen kommer stadig
+' fra tabellen, hvis operationen ingen har. Nothing, hvis ingen af dem
+' kender ydelsen.
+Public Function ServiceFor(ByVal lk As Object, ByVal op As Object) As Object
+    Dim own As String
+    Dim tbl As Object
+    Dim d As Object
+
+    own = Trim$(VhpUtil.JStr(op, "serviceNo"))
+    Set tbl = Service(lk, VhpUtil.JStr(op, "workCenter"))
+    If Len(own) = 0 Then
+        Set ServiceFor = tbl
+        Exit Function
+    End If
+    Set d = VhpUtil.NewDict()
+    d.Add "serviceNo", own
+    d.Add "matGroup", VhpUtil.JStr(tbl, "matGroup")
+    Set ServiceFor = d
+End Function
+
 ' Karakteristikkerne for en FL-klasse (eller TRM, GIV_EXT), som de hedder paa
 ' SAP-skaermen. Tom, hvis klassen ikke staar i tabellen.
 Public Function FlCharacteristics(ByVal lk As Object, ByVal cls As String) As Collection
