@@ -270,6 +270,14 @@ def item_fields(key=None):
         "                },\n"
         f"                OrstedResponsibleEmail: {RESP},\n"
         "                InitialOrstedResponsible: IT.Initials,\n"
+        # REVISIONSMAERKET (outage-arbejde). Den gamle app skrev det i den
+        # boolske Revision - det er den, de eksisterende items har det i.
+        # RevisionMark er valgkolonnen med samme betydning, som appens
+        # toggle laeser sin tekst fra. Begge skrives, saa intet, der laeser
+        # den ene af dem, mister maerket. Foer blev ingen af dem skrevet, og
+        # toggle'en var vaek efter naeste aabning.
+        "                Revision: !IsBlank(IT.Revision),\n"
+        "                RevisionMark: If(IsBlank(IT.Revision), Blank(), { Value: IT.Revision }),\n"
         # SAP-koden som valg; "" rydder kolonnen (issue #112). SAP-ordre-
         # flowet laeser NonFlowUserStatus.Value herfra.
         "                NonFlowUserStatus: If(\n"
