@@ -19,8 +19,11 @@ build_screen(render=...). BIO SAP giver sin egen render (_capture), saa
 skaermens navn og OnVisible kan saettes - og sidebaren og hubben faar
 deres Navigate-kroge (side_nav.use_screens, build_hub.use_actions).
 
-Oveni faar hver domaeneskaerm en ventespinner (loading_overlay), mens den
-klargoeres - den faelles build_helpers.loading_overlay, og kun den.
+Oveni faar hver domaeneskaerm et indlaesningskort (build_helpers.
+open_overlay, issue #92), mens den klargoeres: hjul, det trin der er i
+gang, en besked hvis det tager lang tid, og Retry/Close ved en fejl.
+Klargoeringen staar paa en skjult knap (attach_open), saa Retry kan koere
+den igen.
 """
 import importlib.util
 import os
@@ -71,7 +74,75 @@ def _capture():
         return ""
     return seen, fake
 
-def open_block(domain, init):
+# ---------------------------------------------------------------------------
+# Live status, mens en anmodning aabnes (issue #92)
+#
+# POWER APPS TEGNER KUN, NAAR DEN VENTER
+# --------------------------------------
+# En Set() midt i en formel bliver foerst synlig, naar formlen venter paa
+# data - et kald til SharePoint. Derfor saettes trinteksten LIGE FOER et
+# rigtigt kald, og kun dér. Et trin uden ventetid (afledte samlinger,
+# Reset af felterne) naar aldrig at blive tegnet, og et kald, der kommer
+# fra cachen (fx standardarbejdsplanerne anden gang), heller ikke. Det er
+# netop "spring de hurtige trin over" - uden en timer og uden pauser.
+# ---------------------------------------------------------------------------
+STEP_FIND = "Finding the request"
+STEP_NEW = "Setting up a new request"
+
+# Trin -> den besked, der vises under det, naar det tager lang tid.
+SLOW_HINTS = {
+    STEP_FIND: "The request list is responding slowly.",
+    "Loading plan details": "Still waiting for the plan details.",
+    "Loading items and operations": "Plans with many items and operations take longer.",
+    "Loading materials and documents": "Plans with many materials and documents take longer.",
+    "Loading standard task lists": "Standard task lists load once per session.",
+    "Loading functional locations": "Requests with many rows take longer to load.",
+    "Loading saved rows": "Many saved rows take longer to load.",
+}
+SLOW_DEFAULT = "Still working on it."
+
+
+def step_var(tag):
+    """Det trin, indlaesningen er i - teksten, kortet viser."""
+    return f"var{tag}LoadStep"
+
+
+def failed_var(tag):
+    """Sand, naar indlaesningen stoppede med en fejl. Kortet viser saa
+    Retry og Close i stedet for hjulet."""
+    return f"var{tag}LoadFailed"
+
+
+def slow_var(tag):
+    """Sat af timeren, naar indlaesningen tager laengere end ventet."""
+    return f"var{tag}LoadSlow"
+
+
+def open_button(tag):
+    """Den skjulte knap, der baerer klargoeringen - se attach_open()."""
+    return f"btn{tag}Open"
+
+
+def set_step(tag, text):
+    if text not in SLOW_HINTS:
+        raise SystemExit("Trinet '%s' har ingen besked i SLOW_HINTS." % text)
+    return f'Set({step_var(tag)}, "{text}")'
+
+
+def mark_step(text, pattern, tag, step, what):
+    """Saet trinet lige foer det kald, pattern finder - som et eget udsagn
+    paa linjen foer, med samme indrykning. Findes moensteret ikke praecis
+    een gang, er domaenets indlaesning aendret, og saa skal det ses her."""
+    rx = re.compile(pattern, re.M)
+    hits = list(rx.finditer(text))
+    if len(hits) != 1:
+        raise SystemExit("%s: fandt %d steder til trinet '%s' (forventet 1). "
+                         "Ret mark_step-moenstrene i build_screens.py." % (what, len(hits), step))
+    m = hits[0]
+    return text[:m.start()] + m.group(1) + set_step(tag, step) + ";\n" + text[m.start():]
+
+
+def open_block(domain, init, new_step=STEP_NEW):
     """Klargoer domaeneskaermen, naar hubben eller et dyblink beder om det.
 
     FOERSTE BESOEG, "NEW REQUEST" OG "OPEN"
@@ -118,6 +189,10 @@ def open_block(domain, init):
         f'               StartsWith(wantKey, "link:"), Mid(wantKey, 6), "")\n'
         f"        );\n"
         f'        Set({cb.mode_var(t)}, If(StartsWith(wantKey, "edit:") || (StartsWith(wantKey, "link:") && Lower(Coalesce(Param("mode"), "")) = "edit"), "edit", "view"));\n'
+        "        // Live status (issue #92): the first step is the request itself.\n"
+        f"        Set({failed_var(t)}, false);\n"
+        f"        Set({slow_var(t)}, false);\n"
+        f'        Set({step_var(t)}, If(IsBlank({cb.reqid_var(t)}), "{new_step}", "{STEP_FIND}"));\n'
         f"        {body}\n"
         "    )\n"
         ")"
@@ -180,7 +255,8 @@ def done(domain):
     return (";\n\n// Klar - ventespinneren forsvinder.\n"
             f"Set(var{t}BadgeOn, StartsWith({o}, \"req:\") || StartsWith({o}, \"edit:\") "
             f"|| StartsWith({o}, \"link:\"));\n"
-            f"Set({cb.loading_var(t)}, false);\nSet(gblNavigating, false);\nSet(gblNavTo, \"\")")
+            f"Set({cb.loading_var(t)}, false);\nSet({slow_var(t)}, false);\n"
+            "Set(gblNavigating, false);\nSet(gblNavTo, \"\")")
 
 
 def screen_props(props):
@@ -197,19 +273,69 @@ def screen_props(props):
     return props
 
 
-def loading_overlay(domain, label):
-    """Ventespinneren, mens et domaene klargoeres - den FAELLES komponent
-    (build_helpers.loading_overlay), ikke en kopi af den.
+def guarded(domain, body):
+    """body (klargoeringen) i IfError. Fejler et kald, stopper hjulet, og
+    kortet viser fejlen med Retry og Close (issue #92) - i stedet for en
+    teknisk fejlbesked i et banner. Skaermen er ikke klargjort
+    (var<X>Opened = ""), saa naeste besoeg proever igen."""
+    t = domain["tag"]
+    body = "\n".join(("    " + l) if l.strip() else "" for l in body.split("\n"))
+    return ("IfError(\n" + body + ",\n"
+            f"    Set({failed_var(t)}, true);\n"
+            f'    Set({cb.opened_var(t)}, "")\n'
+            ")" + done(domain))
 
-    Synlig, saa laenge var<X>Loading er sand: open_block saetter den
-    foerst, done() nulstiller den sidst i OnVisible. Imens venter OnVisible
-    paa SharePoint, og saa laenge daekker sloeret skaermen - ogsaa
-    sidebaren - saa ingen naar at trykke paa en formular, der er ved at
-    blive fyldt."""
-    from build_helpers import loading_overlay as shared
-    return shared(f"img{domain['tag']}Loading", cb.loading_var(domain["tag"]),
-                  f"Loading {label}, please wait",
-                  "Opening request - checking edit or view mode...")
+
+def attach_open(domain, seen, fx, label):
+    """Klargoeringen paa en skjult knap, kortet og timeren (issue #92).
+
+    HVORFOR EN KNAP
+    ---------------
+    Retry skal koere klargoeringen igen, og en skaerms OnVisible kan ikke
+    kaldes. Formlen staar derfor paa en skjult knap (samme greb som
+    btnFlVerify), og baade OnVisible og Retry kalder den med Select().
+    Formlen er den samme som foer - den er bare flyttet.
+
+    Select() koerer knappen EFTER OnVisible. Saa skaermen ikke naar at vise
+    den forrige anmodning et oejeblik, taender OnVisible sloeret selv, naar
+    det er tydeligt, at der skal klargoeres (foerste besoeg, en ny
+    anmodning, en anden anmodning). Klargoeringen slukker det igen sidst
+    (done) - ogsaa naar den ender med ikke at have noget at goere."""
+    from build_helpers import open_overlay, button
+    t = domain["tag"]
+    btn = open_button(t)
+    loading, failed, slow, step = cb.loading_var(t), failed_var(t), slow_var(t), step_var(t)
+    opened, want, reqid = cb.opened_var(t), cb.want_var(t), cb.reqid_var(t)
+    seen["props"]["OnVisible"] = (
+        "// Klargoeringen staar paa en skjult knap, saa Retry kan koere den igen\n"
+        "// (BIO SAP App/build/build_screens.py, attach_open). Sloeret taendes\n"
+        "// her med det samme, naar der tydeligvis skal klargoeres.\n"
+        f'If(IsBlank({opened}) || If(gblNavTo = "{t}", "new:0", Coalesce({want}, {opened})) <> {opened},\n'
+        f"    Set({loading}, true)\n);\n"
+        f"Select({btn})")
+    hidden = button(btn, '"Open"', fx, width=72, height=36, visible="false",
+                    accessible='"Open the request"')
+    hidden.props["X"] = "0"
+    hidden.props["Y"] = "0"
+    hints = ", ".join(f'"{k}", "{v}"' for k, v in SLOW_HINTS.items())
+    lower_step = f'Lower(Left(Coalesce({step}, ""), 1)) & Mid(Coalesce({step}, ""), 2)'
+    hub = cb.BY_KEY["hub"]["screen"]
+    seen["children"].append(hidden)
+    seen["children"].extend(open_overlay(
+        t, loading, failed, slow,
+        title_fx=(f'If(IfError({failed}, false), "Could not open the request", '
+                  f'IsBlank({reqid}), "Preparing a new request", "Opening request")'),
+        step_fx=(f'If(IfError({failed}, false), "Stopped while " & {lower_step}, '
+                 f'Coalesce({step}, ""))'),
+        hint_fx=(f'If(IfError({failed}, false), "Check your connection and try again.", '
+                 f'IfError({slow}, false) && IfError({loading}, false), '
+                 f'"Taking longer than usual. " & Switch(Coalesce({step}, ""), {hints}, '
+                 f'"{SLOW_DEFAULT}"), "")'),
+        retry_fx=(f"Set({failed}, false);\nSet({slow}, false);\n"
+                  f'Set({opened}, "");\nSet({loading}, true);\nSelect({btn})'),
+        close_fx=(f"Set({failed}, false);\nSet({want}, Blank());\n"
+                  f'Set({opened}, "");\nNavigate({hub}, ScreenTransition.None)'),
+        label=f"Loading {label}, please wait"))
 
 
 def _write(screen_name, text, domain=None):
@@ -313,17 +439,13 @@ def build_functionallocation():
     # gamle anmodning oven i en ny, fordi New request ikke nulstiller
     # gblFlReqId (REVIEW.md D23). Den tomme raekke laegges stadig ved hvert
     # besoeg, naar der ingen er.
+    # Live status (issue #92): raekkerne er det ene tunge kald efter opslaget.
+    load = mark_step(load, r"^([ \t]*)ClearCollect\(\n\s*colFlLoad,", d["tag"],
+                     "Loading functional locations", "Functional Location")
     init = (cb.with_reqid(cb.domain_onstart(d), d) + ";\n"
             + asm.ME + ";\n" + cb.with_reqid(load, d))
     load_all = stale_check(d) + open_block(d, init) + ";\n\n" + asm.ME + ";\n" + asm.ensure_row_part()
-    load_all = "\n".join(("    " + l) if l.strip() else "" for l in load_all.split("\n"))
-    seen["props"]["OnVisible"] = (
-        "IfError(\n" + load_all + ",\n"
-        '    Notify("Could not load the page. Check the connection and open it again.",\n'
-        "        NotificationType.Error);\n"
-        f'    Set({cb.opened_var(d["tag"])}, "")\n'
-        ")" + done(d))
-    seen["children"].append(loading_overlay(d, "Functional Location"))
+    attach_open(d, seen, guarded(d, load_all), "Functional Location")
     from gen_screen import render_screen
     _write(d["screen"], render_screen(d["screen"], screen_props(seen["props"]),
                                       seen["children"]))
@@ -365,27 +487,23 @@ def build_domain_app(key):
     form = dp.clear_form_fx()
     init = (_drop_repeated_sets(cb.domain_onstart(d), cb.rename(form, d)) + ";\n" + form + ";\n"
             + cb.with_reqid(dp.open_request_fx(), d) + ";\n"
+            # Live status (issue #92): opslaget i indekset er "Finding the
+            # request" (open_block), raekkerne er det andet kald.
+            + set_step(d["tag"], "Loading saved rows") + ";\n"
             + dp.refresh_rows_fx())
     # A failed load must neither leave the spinner on nor mark the screen as
     # prepared: the loading flag is cleared after IfError and the next visit retries.
     load = (stale_check(d) + open_block(d, init) + ";\n\n"
             f"If(\n    var{d['tag']}StaleNow,\n"
             + "\n".join("    " + l for l in dp.refresh_rows_fx().split("\n")) + "\n)")
-    load = "\n".join(("    " + l) if l.strip() else "" for l in load.split("\n"))
-    seen["props"]["OnVisible"] = (
-        "IfError(\n" + load + ",\n"
-        '    Notify("Could not load the saved rows. Check the connection and open the page again.",\n'
-        "        NotificationType.Error);\n"
-        f'    Set({cb.opened_var(d["tag"])}, "")\n'
-        ")" + done(d))
+    label = {"equipment": "Equipments", "material": "Materials"}[key]
     # Her stod en regex-omdoebning: felternes kontroller hed inp<Kolonne>
     # og con<Kolonne> uden Dom, og Manufacturer findes i begge domaener.
     # domain_parts navngiver dem nu selv inpDom<Kolonne>/conDom<Kolonne>
     # (REVIEW.md A2). Slipper et navn uden Dom igennem, stopper
     # check_combined paa dubletten.
-    # Spinneren har allerede domaenets eget praefiks.
-    seen["children"].append(loading_overlay(
-        d, {"equipment": "Equipments", "material": "Materials"}[key]))
+    # Kortet og knappen har allerede domaenets eget praefiks.
+    attach_open(d, seen, guarded(d, load), label)
     from gen_screen import render_screen
     _write(d["screen"], render_screen(d["screen"], screen_props(seen["props"]),
                                       seen["children"]), d)
@@ -394,6 +512,40 @@ def build_domain_app(key):
 # ---------------------------------------------------------------------------
 # VH-planen
 # ---------------------------------------------------------------------------
+def vhplan_steps(onstart, tag):
+    """Trinene i VH-planens indlaesning (Maintenance Plan App/build/
+    build_load.py) - hvert sat lige foer det kald, det handler om.
+
+        Finding the request              MD_RequestIndex (open_block)
+        Loading plan details             MaintenancePlans + planens status
+        Loading items and operations     boelge 1: MaintenanceItems, TaskListMain
+        Loading materials and documents  boelge 2: materialer og dokumenter
+        Loading standard task lists      MD_StandardTaskOperations - kun
+                                         foerste gang i sessionen; ellers
+                                         cachet og aldrig tegnet
+
+    Adgangen (View/Edit) afgoeres af indeksraekken og IsAdmin, som hubben
+    allerede har spurgt om. Den har ingen egen ventetid og derfor intet
+    eget trin. Den tekniske fejlbesked (FirstError.Message) i banneret
+    erstattes af kortets fejltilstand med Retry og Close."""
+    what = "Maintenance Plan"
+    onstart = mark_step(onstart, r"^([ \t]*)With\(\n\s*\{ pl: LookUp\(", tag,
+                        "Loading plan details", what)
+    onstart = mark_step(onstart, r"^([ \t]*)Concurrent\(\n\s*ClearCollect\(\n\s*colVhpItems,", tag,
+                        "Loading items and operations", what)
+    onstart = mark_step(onstart, r"^([ \t]*)Concurrent\(\n\s*ClearCollect\(\n\s*colVhpMaterials,", tag,
+                        "Loading materials and documents", what)
+    onstart = mark_step(onstart, r"^([ \t]*)With\(\n\s*\{ tl: LookUp\(colVhpTasklists", tag,
+                        "Loading standard task lists", what)
+    rx = re.compile(r'Notify\(\n\s*"Could not open the request: " & FirstError\.Message,'
+                    r'\n\s*NotificationType\.Error\n\s*\);')
+    onstart, n = rx.subn(f"Set({failed_var(tag)}, true);", onstart)
+    if n != 1:
+        raise SystemExit("Maintenance Plan: fejlbeskeden i build_load.py er aendret - "
+                         "ret vhplan_steps() i build_screens.py.")
+    return onstart
+
+
 def build_vhplan():
     """VH-planen som EEN skaerm, som i appen selv.
 
@@ -412,12 +564,12 @@ def build_vhplan():
     init = ("// A new or another request starts from a clean plan.\n"
             "Clear(colVhpItems);\nClear(colVhpOperations);\nClear(colVhpItemObjects);\n"
             "Clear(colVhpObjDraft);\nClear(colVhpMaterials);\nClear(colVhpAttachments);\n"
-            + cb.with_reqid(cb.domain_onstart(d), d) + ";\n"
+            + vhplan_steps(cb.with_reqid(cb.domain_onstart(d), d), d["tag"]) + ";\n"
             "// Editoren skal vise den plan, der lige er klargjort.\n"
             + build_items.SEED_FL_PICKER + ";\n"
             + build_items.RESET_EDITOR_CONTROLS)
-    seen["props"]["OnVisible"] = stale_check(d) + open_block(d, init) + done(d)
-    seen["children"].append(loading_overlay(d, "Maintenance Plan"))
+    body = stale_check(d) + open_block(d, init, "Setting up a new plan")
+    attach_open(d, seen, guarded(d, body), "Maintenance Plan")
     from gen_screen import render_screen
     _write(d["screen"], render_screen(d["screen"], screen_props(seen["props"]),
                                       seen["children"]))
