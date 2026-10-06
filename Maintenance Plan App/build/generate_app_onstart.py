@@ -82,6 +82,10 @@ Set(varVhpCanEdit, false);
 Set(varVhpPlanCreatedAt, Blank());
 Set(varVhpPlanValidated, false);
 Set(varVhpItemValidated, false);
+// Hvor planen er EFTER Submit: Status og ApprovalStage fra MaintenancePlans
+// (docs/32-godkendelsesflow.md). Tom = ikke indsendt. Progressbaren skifter
+// til godkendelses- og SAP-trinene, naar Status er indsendt (build_status).
+Set(varVhpFlow, { Status: "", Stage: "", ReturnComment: "" });
 // Appen aabner med EET item, der allerede er valgt. Item Editoren stod
 // foer tom og skrivebeskyttet (DM_ITEM slaar fra paa tomt
 // varVhpActiveItemId), saa det foerste man moedte var en raekke graa felter
