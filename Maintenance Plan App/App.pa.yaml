@@ -199,6 +199,28 @@ App:
 
       colVhpRevisionOptions = Choices(MaintenanceItems.RevisionMark);
 
+      // Non Flow User Status: valgene fra SharePoint, vist som kode - beskrivelse.
+      colVhpNonFlowStatusOptions = With(
+          { ch: Choices(MaintenanceItems.NonFlowUserStatus) },
+          ForAll(
+              Sequence(CountRows(ch) + 1),
+              If(
+                  Value = 1,
+                  { Value: "", Display: "(none)" },
+                  With(
+                      { c: Index(ch, Value - 1).Value },
+                      {
+                          Value: c,
+                          Display: c & With(
+                              { d: Switch(c, "INCD", "Create Synergy Incident Q-Case", "ZBUN", "Bundling", "ZMOC", "Create Synergy MoC Action Plan", "WADO", "Ope Waiting for documentation", "ZBOW", "Bowtie", "OPHO", "Operation on Hold", "UNEX", "Work Under Execution", "OFIX", "Operation Fixed", "REWO", "Maintenance Rework", Blank()) },
+                              If(IsBlank(d), "", " - " & d)
+                          )
+                      }
+                  )
+              )
+          )
+      );
+
       // Alle arbejdscentre med deres vaerk. Afgraenses i kontrollen.
       colVhpMainWorkCenters = ForAll(MainWorkCenters As R, { Id: R.ID, Value: Trim(R.Title), Plant: Trim(R.'Plant Key') });
 
@@ -348,7 +370,7 @@ App:
       );
       Notify("Something went wrong: " & FirstError.Message, NotificationType.Error)
     OnStart: |
-      =If(false, ClearCollect(colVhpItems, { ItemId: 0, ShortText: "", FunctionalLocation: "", FlDescription: "", MainWorkCenter: "", ActivityType: "", ObjectList: "", Revision: "", OrstedResponsible: "", Initials: "", LongText: "", TasklistKey: "", TasklistName: "", Status: "", SpId: 0 }));
+      =If(false, ClearCollect(colVhpItems, { ItemId: 0, ShortText: "", FunctionalLocation: "", FlDescription: "", MainWorkCenter: "", ActivityType: "", ObjectList: "", Revision: "", OrstedResponsible: "", Initials: "", LongText: "", NonFlowUserStatus: "", TasklistKey: "", TasklistName: "", Status: "", SpId: 0 }));
 
       If(false, ClearCollect(colVhpOperations, { ItemId: 0, OperationNo: "", OperationShortText: "", WorkHours: 0, Persons: 0, DurationHours: 0, MainWorkCenter: "", Vendor: "", LongText: "", PackagesKey: ";", Selected: false, ControlKey: "", Cost: 0, UnitCost: 0, Currency: "", CostElement: 0, MaterialGroup: "", SpId: 0 }));
 
@@ -524,6 +546,7 @@ App:
               OrstedResponsible: "",
               Initials: Upper(First(Split(varVhpMe, "@")).Value),
               LongText: "",
+              NonFlowUserStatus: "",
               TasklistKey: "",
               TasklistName: "",
               Status: "draft",
@@ -561,6 +584,7 @@ App:
                           OrstedResponsible: "",
                           Initials: Upper(First(Split(varVhpMe, "@")).Value),
                           LongText: "",
+                          NonFlowUserStatus: "",
                           TasklistKey: "",
                           TasklistName: "",
                           Status: "draft",
@@ -623,6 +647,7 @@ App:
                                       OrstedResponsible: IT.OrstedResponsibleEmail,
                                       Initials: IT.InitialOrstedResponsible,
                                       LongText: IT.ItemDescription,
+                                      NonFlowUserStatus: Coalesce(IT.NonFlowUserStatus.Value, ""),
                                       TasklistKey: "",
                                       TasklistName: "",
                                       Status: "valid",

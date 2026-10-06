@@ -2077,6 +2077,28 @@ App:
 
       colVhpRevisionOptions = Choices(MaintenanceItems.RevisionMark);
 
+      // Non Flow User Status: valgene fra SharePoint, vist som kode - beskrivelse.
+      colVhpNonFlowStatusOptions = With(
+          { ch: Choices(MaintenanceItems.NonFlowUserStatus) },
+          ForAll(
+              Sequence(CountRows(ch) + 1),
+              If(
+                  Value = 1,
+                  { Value: "", Display: "(none)" },
+                  With(
+                      { c: Index(ch, Value - 1).Value },
+                      {
+                          Value: c,
+                          Display: c & With(
+                              { d: Switch(c, "INCD", "Create Synergy Incident Q-Case", "ZBUN", "Bundling", "ZMOC", "Create Synergy MoC Action Plan", "WADO", "Ope Waiting for documentation", "ZBOW", "Bowtie", "OPHO", "Operation on Hold", "UNEX", "Work Under Execution", "OFIX", "Operation Fixed", "REWO", "Maintenance Rework", Blank()) },
+                              If(IsBlank(d), "", " - " & d)
+                          )
+                      }
+                  )
+              )
+          )
+      );
+
       // Alle arbejdscentre med deres vaerk. Afgraenses i kontrollen.
       colVhpMainWorkCenters = ForAll(MainWorkCenters As R, { Id: R.ID, Value: Trim(R.Title), Plant: Trim(R.'Plant Key') });
 
