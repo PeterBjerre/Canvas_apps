@@ -87,6 +87,10 @@ from fl_picker import fl_picker, known_fx as fl_known_fx, reset_fx as fl_reset_f
 
 # Raekkens felter i een flad liste - raekkefoelgen er sektionernes.
 FIELDS = [f for _sec, fields in cfg.SECTIONS for f in fields]
+# Raekkens felter i SAMLINGEN: formularens plus dem, appen kun laeser
+# (cfg.READ_FIELDS, fx Equipments SAP-udstyrsnummer - issue #94). De
+# hentes og vises, men skrives aldrig af formularen.
+ROW_FIELDS = FIELDS + list(getattr(cfg, "READ_FIELDS", []))
 
 
 def use(expected):
@@ -173,9 +177,11 @@ REQUIRED = "varDomValidated"
 # Dokumentpopuppens knapper haenger paa DEN raekke, popuppen er aabnet for.
 DM_DOCS = ('If(IsBlank(varDomDocsId), DisplayMode.Disabled, DisplayMode.Edit)')
 DM_SEL = ('If(IsBlank(varDomActiveRowId), DisplayMode.Disabled, DisplayMode.Edit)')
-# En indsendt raekke ejes af SAP-processen og kan ikke slettes.
-DM_DEL = ('If(varDomViewOnly || IsBlank(varDomActiveRowId) || varDomRowStatus = "submitted", '
-          'DisplayMode.Disabled, DisplayMode.Edit)')
+# Raekkens slet-ikon i listen (issue #94): kun mens anmodningen kan
+# redigeres (varDomViewOnly er den eksisterende laas), og aldrig paa en
+# indsendt raekke - den ejes af SAP-processen.
+DM_ROW_DEL = ('If(varDomViewOnly || ThisItem.Status = "submitted", '
+              "DisplayMode.Disabled, DisplayMode.Edit)")
 
 
 # ---------------------------------------------------------------------------
@@ -415,7 +421,7 @@ def _collect_rows(source):
         f"            {cfg.C_TEXT}: Coalesce(R.{cfg.C_TEXT}, \"\"),",
         "            Plant: Coalesce(R.Plant, \"\"),",
     ]
-    for col, _lab, kind, _ch in FIELDS:
+    for col, _lab, kind, _ch in ROW_FIELDS:
         if kind in ("text", "long", "choice"):
             v = f'Coalesce(R.{col}, "")'
         elif kind == "bool":
@@ -513,8 +519,9 @@ def copy_row_fx():
 
 
 def delete_this_row_fx():
-    """Listens Delete: slet DEN raekke, knappen sidder paa - bag en
-    bekraeftelse (build_delete_confirm)."""
+    """Listens slet-ikon: slet DEN raekke, ikonet sidder paa - bag en
+    bekraeftelse (build_delete_confirm). Det er den eneste vej til at slette
+    en raekke; formularens "Delete row" er fjernet (issue #94)."""
     return f"Set({DELETE_ID}, ThisItem.RowId);\nSet({DELETE_VAR}, true)"
 
 def load_row_fx():
@@ -706,12 +713,6 @@ def save_row_fx(status="valid", required=()):
     )
 
 
-def delete_row_fx():
-    """Formularens Delete row: slet den AABNE raekke - bag en bekraeftelse."""
-    return (f"Set({DELETE_ID}, varDomActiveRowId);\n"
-            f"Set({DELETE_VAR}, true)")
-
-
 def delete_confirmed_fx():
     """Sletningen selv - koeres af bekraeftelsens "Delete".
 
@@ -883,7 +884,10 @@ def build_attachments():
 # knapperne stod som tomme kanter i bunden af raekken - under den moderne
 # knaps mindstehoejde. check_layout regel 25 kraever nu mindst 30.
 ROW_BTN = {"btnDomRowOpen": 60, "btnDomRowDetails": 72, "btnDomRowDocs": 64,
-           "btnDomRowCopy": 64, "btnDomRowDelete": 72}
+           "btnDomRowCopy": 64, "btnDomRowDelete": 40}
+# Knapper, der KUN er deres ikon (issue #94) - som VH-planens
+# btnVhpOpDelete. Teksten bliver staaende som tilgaengelig etiket.
+ROW_ICON = {"btnDomRowDelete": "Delete"}
 ROW_BTN.update({n + "C": w for n, w in list(ROW_BTN.items())})
 ROW_H_C = 128
 GAL_ROWS_C = 5
@@ -975,7 +979,7 @@ def build_details(scope=None):
             _detail_row(1, "Plant", f'Coalesce({row}.Plant, "-")'),
             _detail_row(2, "Status", f'Coalesce({row}.Status, "-")'),
             _detail_row(3, "Documents", f'Text(Coalesce({row}.FileCount, 0))')]
-    for n, (col, label, kind, _ch) in enumerate(FIELDS, start=len(rows)):
+    for n, (col, label, kind, _ch) in enumerate(ROW_FIELDS, start=len(rows)):
         if kind == "bool":
             v = f'If({row}.{col}, "Yes", "No")'
         elif kind in ("num", "date"):
@@ -1409,14 +1413,16 @@ def form_footer(buttons):
 
 
 def form_buttons(save_fx, save_text, new_text):
-    """Delete row, Save draft, Save og New row/Reset form - i den orden,
-    med den primaere knap naestsidst som i HTML-projektet.
+    """Save draft, Save og New row/Reset form - i den orden, med den
+    primaere knap naestsidst som i HTML-projektet.
+
+    "Delete row" stod foerst. Den er fjernet (issue #94): en gemt raekke
+    slettes med ikonet paa sin egen raekke i Saved Rows, som i VH-planens
+    operationstabel. form_footer regner bredden af de knapper, der er, saa
+    pladsen forsvinder med knappen.
 
     save_fx(status) er appens gem (save_row_fx med evt. egne krav)."""
     return [
-        icon_on_mobile(fit(button("btnDomDelete", '"Delete row"', delete_row_fx(),
-                   danger=True, display_mode=DM_DEL, icon="Delete",
-        tooltip='"Delete the open row in SharePoint (asks first)"'), icon=True)),
         icon_on_mobile(fit(button("btnDomSaveDraft", '"Save row draft"',
                    with_busy(SAVING_VAR, save_fx("draft")),
                    display_mode=DM_ROW, icon=ICON_SAVE,
@@ -1486,7 +1492,7 @@ BADGE_W = 90
 # handlingerne - overskriften "ACTIONS" flytter hen over dem.
 DETAIL_BTNS = [("btnDomRowDetails", '"Details"'), ("btnDomRowDocs", '"Docs"')]
 ACTION_BTNS = [("btnDomRowOpen", '"Edit"'), ("btnDomRowCopy", '"Copy"'),
-               ("btnDomRowDelete", '"Delete"')]
+               ("btnDomRowDelete", '"Delete row"')]
 
 
 def _btns_w(btns):
@@ -1604,6 +1610,14 @@ def _status_badge():
                  pad=(0, 0, 0, CELL_PAD))
 
 
+def _icon_only(b, bn):
+    """Er knappen i ROW_ICON, er den kun sit ikon - paa desktop og mobil."""
+    if bn in ROW_ICON:
+        b.props["Icon"] = f'"{ROW_ICON[bn]}"'
+        b.props["Layout"] = "ButtonLayout.IconOnly"
+    return b
+
+
 def _row_buttons(name, btns, fxs, width, danger=(), modes=None):
     out = []
     for (bn, text), fx in zip(btns, fxs):
@@ -1614,7 +1628,7 @@ def _row_buttons(name, btns, fxs, width, danger=(), modes=None):
                    height=ROW_BTN_H, display_mode=(modes or {}).get(bn),
                    accessible=who, tooltip=who)
         b.props["Size"] = "13"
-        out.append(b)
+        out.append(_icon_only(b, bn))
     return group(name, out, direction="Horizontal", gap=ROW_BTN_GAP, height=ROW_BTN_H,
                  width=width, align_items="Center", pad=(0, 0, 0, CELL_PAD))
 
@@ -1650,14 +1664,13 @@ def _compact_row(lay_, load_fx, copy_fx, delete_fx):
                        width=ROW_BTN[bn], height=ROW_BTN_H,
                        display_mode=(kw.get("modes") or {}).get(bn), accessible=who, tooltip=who)
             b.props["Size"] = "13"
-            out.append(b)
+            out.append(_icon_only(b, bn))
         return group(name, out, direction="Horizontal", gap=ROW_BTN_GAP, height=ROW_BTN_H,
                      align_items="Center")
 
     line3 = btns("conDomRowLineC3", ACTION_BTNS, [load_fx, copy_fx, delete_fx],
                  danger=("btnDomRowDelete",),
-                 modes={"btnDomRowDelete": ('If(varDomViewOnly || ThisItem.Status = "submitted", '
-                                            "DisplayMode.Disabled, DisplayMode.Edit)"),
+                 modes={"btnDomRowDelete": DM_ROW_DEL,
                         "btnDomRowCopy": "If(varDomViewOnly, DisplayMode.Disabled, DisplayMode.Edit)"})
     line4 = btns("conDomRowLineC4", DETAIL_BTNS,
                  ["Set(varDomDetailsId, ThisItem.RowId)", open_docs_fx()])
@@ -1721,9 +1734,7 @@ def build_list(slots, badge_head, search_placeholder):
     cells.append(_row_buttons("conDomRowActions", ACTION_BTNS,
                               [load_row_fx(), copy_row_fx(), delete_this_row_fx()],
                               LIST_ACTIONS_W, danger=("btnDomRowDelete",),
-                              modes={"btnDomRowDelete": (
-                                  'If(varDomViewOnly || ThisItem.Status = "submitted", '
-                                  "DisplayMode.Disabled, DisplayMode.Edit)"),
+                              modes={"btnDomRowDelete": DM_ROW_DEL,
                                   "btnDomRowCopy": "If(varDomViewOnly, DisplayMode.Disabled, DisplayMode.Edit)"}))
 
     table_w = if_below("Desktop", TABLE_AVAIL, lay_.table_w)
