@@ -382,7 +382,11 @@ def build_plan_header():
             "            (!isStrat && IsBlank(drpVhpUnit.Selected.Value)) ||\n"
             "            IsBlank(numVhpFirstCallDay.Value) || numVhpFirstCallDay.Value < 1 || numVhpFirstCallDay.Value > 31 ||\n"
             "            IsBlank(numVhpFirstCallMonth.Value) || numVhpFirstCallMonth.Value < 1 || numVhpFirstCallMonth.Value > 12 ||\n"
-            "            IsBlank(numVhpFirstCallYear.Value) || numVhpFirstCallYear.Value < 2020 || numVhpFirstCallYear.Value > 2100,\n"
+            "            IsBlank(numVhpFirstCallYear.Value) || numVhpFirstCallYear.Value < 2020 || numVhpFirstCallYear.Value > 2100 ||\n"
+            # Dagen skal findes i maaneden (den gamle app: dage pr. maaned
+            # og skudaar). Date(2027; 2; 31) giver 3. marts, og saa var
+            # foerste kald stille og roligt flyttet.
+            "            Month(Date(numVhpFirstCallYear.Value, numVhpFirstCallMonth.Value, numVhpFirstCallDay.Value)) <> numVhpFirstCallMonth.Value,\n"
             "            Notify(\"Plan contains issues. Fix plan fields before creating items.\", NotificationType.Warning),\n"
             "\n"
             # Vaerket FOER gemningen - se plantskiftet nedenfor.

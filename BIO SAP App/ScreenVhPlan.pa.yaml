@@ -1933,6 +1933,8 @@ Screens:
                                                               varVhpPlan.FirstCallYear, varVhpPlan.FirstCallMonth, varVhpPlan.FirstCallDay
                                                           ),
                                                           StrategyKey: varVhpPlan.Strategy,
+                                                          'CallHorizon (CallHorizon0)': VhpCallHorizon,
+                                                          SchedulingPeriod: VhpSchedulingPeriod,
                                                           SortField: With(
                                                               { sf: LookUp(colVhpSortFieldOptions, Value = varVhpPlan.SortField) },
                                                               If(IsBlank(sf.Id), Blank(), { Id: sf.Id, Value: sf.Value })
@@ -1968,7 +1970,7 @@ Screens:
                                                   );
                                                   ClearCollect(
                                                       colVhpSpItems,
-                                                      ForAll(Filter(MaintenanceItems, MaintenancePlanNo.Id = varVhpPlanSpId) As I, { ID: I.ID, ItemID: I.ItemID })
+                                                      ForAll(Filter(MaintenanceItems, MaintenancePlanNo.Id = varVhpPlanSpId) As I, { ID: I.ID, ItemID: I.ItemID, Sceq: !IsBlank(I.SCEqFL) || !IsBlank(I.SCEqOL) })
                                                   );
                                                   ClearCollect(
                                                       colVhpSavedItems,
@@ -2002,7 +2004,12 @@ Screens:
                                                               ItemDescription: Coalesce(IT.LongText, IT.ShortText),
                                                               FunctionalLocation: IT.FunctionalLocation,
                                                               ObjectList: IT.ObjectList,
-                                                              Priority: { Value: "Yellow (default)" },
+                                                              Priority: { Value: If(
+                                                                  Coalesce(LookUp(colVhpSpItems, ID = IT.SpId).Sceq, false) || StartsWith(IT.ActivityType, "110") || StartsWith(IT.ActivityType, "115"),
+                                                                  "Red (Statutory and SCEq)",
+                                                                  StartsWith(IT.ActivityType, "120"), "Blue (standing order)",
+                                                                  "Yellow (default)"
+                                                              ) },
                                                               OrstedResponsible: {
                                                                   '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
                                                                   Claims: "i:0#.f|membership|" & If((!IsBlank(varVhpIdxNow) && !(Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe)), Lower(Coalesce(IT.OrstedResponsible, varVhpIdxNow.RequesterEmail)), varVhpMe),
@@ -2014,6 +2021,8 @@ Screens:
                                                               },
                                                               OrstedResponsibleEmail: If((!IsBlank(varVhpIdxNow) && !(Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe)), Lower(Coalesce(IT.OrstedResponsible, varVhpIdxNow.RequesterEmail)), varVhpMe),
                                                               InitialOrstedResponsible: IT.Initials,
+                                                              Revision: !IsBlank(IT.Revision),
+                                                              RevisionMark: If(IsBlank(IT.Revision), Blank(), { Value: IT.Revision }),
                                                               NonFlowUserStatus: If(
                                                                   IsBlank(IT.NonFlowUserStatus), Blank(),
                                                                   { Value: IT.NonFlowUserStatus }
@@ -2046,7 +2055,12 @@ Screens:
                                                               ItemDescription: Coalesce(IT.LongText, IT.ShortText),
                                                               FunctionalLocation: IT.FunctionalLocation,
                                                               ObjectList: IT.ObjectList,
-                                                              Priority: { Value: "Yellow (default)" },
+                                                              Priority: { Value: If(
+                                                                  Coalesce(LookUp(colVhpSpItems, ID = IT.SpId).Sceq, false) || StartsWith(IT.ActivityType, "110") || StartsWith(IT.ActivityType, "115"),
+                                                                  "Red (Statutory and SCEq)",
+                                                                  StartsWith(IT.ActivityType, "120"), "Blue (standing order)",
+                                                                  "Yellow (default)"
+                                                              ) },
                                                               OrstedResponsible: {
                                                                   '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
                                                                   Claims: "i:0#.f|membership|" & If((!IsBlank(varVhpIdxNow) && !(Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe)), Lower(Coalesce(IT.OrstedResponsible, varVhpIdxNow.RequesterEmail)), varVhpMe),
@@ -2058,6 +2072,8 @@ Screens:
                                                               },
                                                               OrstedResponsibleEmail: If((!IsBlank(varVhpIdxNow) && !(Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe)), Lower(Coalesce(IT.OrstedResponsible, varVhpIdxNow.RequesterEmail)), varVhpMe),
                                                               InitialOrstedResponsible: IT.Initials,
+                                                              Revision: !IsBlank(IT.Revision),
+                                                              RevisionMark: If(IsBlank(IT.Revision), Blank(), { Value: IT.Revision }),
                                                               NonFlowUserStatus: If(
                                                                   IsBlank(IT.NonFlowUserStatus), Blank(),
                                                                   { Value: IT.NonFlowUserStatus }
@@ -2149,7 +2165,11 @@ Screens:
                                                               Price: OP.Cost,
                                                               Currency: OP.Currency,
                                                               CostElem: OP.CostElement,
-                                                              MaterialGroup: OP.MaterialGroup,
+                                                              MaterialGroup: If(
+                                                                  Upper(Trim(Coalesce(OP.ControlKey, ""))) = "PM02" && IsBlank(Trim(Coalesce(OP.MaterialGroup, ""))),
+                                                                  "B08.06",
+                                                                  OP.MaterialGroup
+                                                              ),
                                                               LongText: OP.LongText,
                                                               PlantInitial: varVhpPlan.Plant,
                                                               MaintenanceItemNo: { Id: LookUp(colVhpSavedItems, LocalId = OP.ItemId).SpId, Value: LookUp(colVhpSavedItems, LocalId = OP.ItemId).ItemKey },
@@ -2181,7 +2201,11 @@ Screens:
                                                               Price: OP.Cost,
                                                               Currency: OP.Currency,
                                                               CostElem: OP.CostElement,
-                                                              MaterialGroup: OP.MaterialGroup,
+                                                              MaterialGroup: If(
+                                                                  Upper(Trim(Coalesce(OP.ControlKey, ""))) = "PM02" && IsBlank(Trim(Coalesce(OP.MaterialGroup, ""))),
+                                                                  "B08.06",
+                                                                  OP.MaterialGroup
+                                                              ),
                                                               LongText: OP.LongText,
                                                               PlantInitial: varVhpPlan.Plant,
                                                               MaintenanceItemNo: { Id: LookUp(colVhpSavedItems, LocalId = OP.ItemId).SpId, Value: LookUp(colVhpSavedItems, LocalId = OP.ItemId).ItemKey },
@@ -5618,7 +5642,8 @@ Screens:
                                                     (!isStrat && IsBlank(drpVhpUnit.Selected.Value)) ||
                                                     IsBlank(numVhpFirstCallDay.Value) || numVhpFirstCallDay.Value < 1 || numVhpFirstCallDay.Value > 31 ||
                                                     IsBlank(numVhpFirstCallMonth.Value) || numVhpFirstCallMonth.Value < 1 || numVhpFirstCallMonth.Value > 12 ||
-                                                    IsBlank(numVhpFirstCallYear.Value) || numVhpFirstCallYear.Value < 2020 || numVhpFirstCallYear.Value > 2100,
+                                                    IsBlank(numVhpFirstCallYear.Value) || numVhpFirstCallYear.Value < 2020 || numVhpFirstCallYear.Value > 2100 ||
+                                                    Month(Date(numVhpFirstCallYear.Value, numVhpFirstCallMonth.Value, numVhpFirstCallDay.Value)) <> numVhpFirstCallMonth.Value,
                                                     Notify("Plan contains issues. Fix plan fields before creating items.", NotificationType.Warning),
                                         
                                                     Set(varVhpPrevPlant, varVhpPlan.Plant);
@@ -10823,7 +10848,7 @@ Screens:
                                                         colVhpOperations, ThisItem,
                                                         {
                                                             WorkHours: Self.Value,
-                                                            DurationHours: Self.Value / Max(Coalesce(ThisItem.Persons, 1), 1),
+                                                            DurationHours: Round(Self.Value / Max(Coalesce(ThisItem.Persons, 1), 1), 2),
                                                             Cost: If(
                                                                 Upper(Coalesce(ThisItem.ControlKey, "")) = "PM03",
                                                                 Self.Value * Coalesce(ThisItem.UnitCost, 0),
@@ -10883,7 +10908,7 @@ Screens:
                                                         colVhpOperations, ThisItem,
                                                         {
                                                             Persons: Self.Value,
-                                                            DurationHours: ThisItem.WorkHours / Max(Coalesce(Self.Value, 1), 1)
+                                                            DurationHours: Round(ThisItem.WorkHours / Max(Coalesce(Self.Value, 1), 1), 2)
                                                         }
                                                     )
                                                 Precision: |-
@@ -14170,7 +14195,7 @@ Screens:
                                     colVhpOperations, r,
                                     {
                                         WorkHours: Self.Value,
-                                        DurationHours: Self.Value / Max(Coalesce(r.Persons, 1), 1),
+                                        DurationHours: Round(Self.Value / Max(Coalesce(r.Persons, 1), 1), 2),
                                         Cost: If(
                                         Upper(Coalesce(r.ControlKey, "")) = "PM03",
                                         Self.Value * Coalesce(r.UnitCost, 0),
@@ -14262,7 +14287,7 @@ Screens:
                                     colVhpOperations, r,
                                     {
                                         Persons: Self.Value,
-                                        DurationHours: r.WorkHours / Max(Coalesce(Self.Value, 1), 1)
+                                        DurationHours: Round(r.WorkHours / Max(Coalesce(Self.Value, 1), 1), 2)
                                     }
                                 )
                             )
@@ -22223,7 +22248,7 @@ Screens:
                 
                             If(false, ClearCollect(colVhpSavedOps, { LocalItemId: 0, OpNo: "", SpId: 0, TaskKey: "" }));
                 
-                            If(false, ClearCollect(colVhpSpItems, { ID: 0, ItemID: "" }));
+                            If(false, ClearCollect(colVhpSpItems, { ID: 0, ItemID: "", Sceq: false }));
                 
                             If(false, ClearCollect(colVhpAdmOld, { ID: 0, ItemID: "", Title: "", ItemDescription: "", FunctionalLocation: "", ObjectList: "" }));
                 
@@ -22460,7 +22485,7 @@ Screens:
                                                             MainWorkCenter: IT.MainWorkCenter.Value,
                                                             ActivityType: IT.MaintenanceActivityType.Value,
                                                             ObjectList: IT.ObjectList,
-                                                            Revision: IT.RevisionMark.Value,
+                                                            Revision: If(IT.Revision, Coalesce(IT.RevisionMark.Value, First(colVhpRevisionOptions).Value), Coalesce(IT.RevisionMark.Value, "")),
                                                             OrstedResponsible: IT.OrstedResponsibleEmail,
                                                             Initials: IT.InitialOrstedResponsible,
                                                             LongText: IT.ItemDescription,

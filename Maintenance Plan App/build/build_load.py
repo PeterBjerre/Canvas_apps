@@ -101,7 +101,10 @@ ITEM_FIELDS = [
     ("MainWorkCenter", "IT.MainWorkCenter.Value"),
     ("ActivityType", "IT.MaintenanceActivityType.Value"),
     ("ObjectList", "IT.ObjectList"),
-    ("Revision", "IT.RevisionMark.Value"),
+    # Den gamle app gemte maerket i den boolske Revision, ikke i
+    # RevisionMark - begge laeses, saa ogsaa dens items aabner med det.
+    ("Revision", "If(IT.Revision, Coalesce(IT.RevisionMark.Value, "
+                 "First(colVhpRevisionOptions).Value), Coalesce(IT.RevisionMark.Value, \"\"))"),
     ("OrstedResponsible", "IT.OrstedResponsibleEmail"),
     ("Initials", "IT.InitialOrstedResponsible"),
     ("LongText", "IT.ItemDescription"),
