@@ -110,6 +110,10 @@ Screens:
                   Set(varVhpPlanCreatedAt, Blank());
                   Set(varVhpPlanValidated, false);
                   Set(varVhpItemValidated, false);
+                  // Hvor planen er EFTER Submit: Status og ApprovalStage fra MaintenancePlans
+                  // (docs/32-godkendelsesflow.md). Tom = ikke indsendt. Progressbaren skifter
+                  // til godkendelses- og SAP-trinene, naar Status er indsendt (build_status).
+                  Set(varVhpFlow, { Status: "", Stage: "", ReturnComment: "" });
                   // Appen aabner med EET item, der allerede er valgt. Item Editoren stod
                   // foer tom og skrivebeskyttet (DM_ITEM slaar fra paa tomt
                   // varVhpActiveItemId), saa det foerste man moedte var en raekke graa felter
@@ -254,6 +258,7 @@ Screens:
                                   );
                                   Set(varVhpPlanSpId, pl.ID);
                                   Set(varVhpPlanKey, pl.PlanID);
+                                  Set(varVhpFlow, { Status: Coalesce(pl.Status.Value, ""), Stage: Coalesce(pl.ApprovalStage.Value, ""), ReturnComment: Coalesce(pl.ReturnComment, "") });
                                   Set(varVhpPlanModified, pl.Modified);
                                   Set(varVhpRequestGuid, idx.RequestGuid);
                                   Set(varVhpPlanCommitted, true);
@@ -495,7 +500,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =25 + (0 + If(LayoutRank < 2, 0 + (Min(56, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) / 4 * 56 / 104)), 0) + (If(LayoutRank < 2, 60, 84)) + (If(LayoutRank < 2, 10, 8)))
+                      =25 + (0 + If(LayoutRank < 2, 0 + (Min(56, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) / 4 * 56 / 104)), 0) + (If(LayoutRank < 2, 60, 84)) + (If(LayoutRank < 2, 36, 20)) + (If(LayoutRank < 2, 10, 8)))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -530,7 +535,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =0 + If(LayoutRank < 2, 0 + (Min(56, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) / 4 * 56 / 104)), 0) + (If(LayoutRank < 2, 60, 84)) + (If(LayoutRank < 2, 10, 8))
+                            =0 + If(LayoutRank < 2, 0 + (Min(56, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) / 4 * 56 / 104)), 0) + (If(LayoutRank < 2, 60, 84)) + (If(LayoutRank < 2, 36, 20)) + (If(LayoutRank < 2, 10, 8))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -582,8 +587,8 @@ Screens:
                                   Properties:
                                     AccessibleLabel: |-
                                         =With(
-                                            { d1: VhpStepPlanDone,
-                                              d2: VhpStepItemDone && !(With(
+                                            { d1: If(VhpSubmitted, true, VhpStepPlanDone),
+                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
                                                 Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -593,9 +598,9 @@ Screens:
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                 Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
-                                        )),
-                                              d3: VhpStepTasklistDone && VhpStepOpsDone,
-                                              d4: VhpStepSaveDone && varVhpPlanLocked && !(With(
+                                        ))),
+                                              d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
+                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
                                                 Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -605,8 +610,8 @@ Screens:
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                 Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
-                                        )) },
-                                            "Go to step 1, " & "Plan" & " - " & If(d1, "done", (!d1 && true), "current step", "not done")
+                                        ))) },
+                                            "Go to step 1, " & If(VhpSubmitted, "Submitted", "Plan") & " - " & If(d1, "done", (!d1 && true), "current step", "not done")
                                         )
                                     BorderStyle: |-
                                         =BorderStyle.None
@@ -616,8 +621,8 @@ Screens:
                                         =Min(56, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) / 4 * 56 / 104)
                                     Image: |-
                                         =With(
-                                            { d1: VhpStepPlanDone,
-                                              d2: VhpStepItemDone && !(With(
+                                            { d1: If(VhpSubmitted, true, VhpStepPlanDone),
+                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
                                                 Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -627,9 +632,9 @@ Screens:
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                 Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
-                                        )),
-                                              d3: VhpStepTasklistDone && VhpStepOpsDone,
-                                              d4: VhpStepSaveDone && varVhpPlanLocked && !(With(
+                                        ))),
+                                              d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
+                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
                                                 Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -639,12 +644,12 @@ Screens:
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                 Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
-                                        )) },
+                                        ))) },
                                             "data:image/svg+xml;utf8," & EncodeUrl(
                                             "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='56' viewBox='0 0 104 56'><style>.d{stroke-dasharray:80;stroke-dashoffset:80;animation:draw .6s ease-out forwards}.r{animation-delay:.3s}.c{stroke-dasharray:20;stroke-dashoffset:20;animation:draw .35s .15s ease-out forwards}.p{transform-origin:center;transform-box:fill-box;animation:pulse 1.25s ease-in-out 4 forwards}@keyframes draw{to{stroke-dashoffset:0}}@keyframes pulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:.95;transform:scale(1.08)}}@media (prefers-reduced-motion:reduce){.d,.c{animation:none;stroke-dashoffset:0}.p{animation:none;opacity:.7}}</style><defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='0'><stop offset='0' stop-color='" & C.'hex-state-ok-fg' & "' stop-opacity='.75'/><stop offset='1' stop-color='" & C.'hex-state-ok-fg' & "'/></linearGradient></defs>" &
                                             "<line x1='70' y1='19' x2='104' y2='19' stroke-width='4' stroke-linecap='round' stroke='" & C.'hex-border-default' & "'/>" & If(d1, "<line class='d r' x1='70' y1='19' x2='104' y2='19' stroke-width='4' stroke-linecap='round' stroke='url(#g)'/>", "") &
                                             If(d1, "<circle cx='52' cy='19' r='13' fill='" & C.'hex-state-ok-fg' & "'/><path class='c' d='M47 19 l3.5 3.5 l6.5 -7' fill='none' stroke='" & C.'hex-bg-surface' & "' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/>", (!d1 && true), "<circle class='p' cx='52' cy='19' r='17' fill='none' opacity='.7' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2'/><circle cx='52' cy='19' r='12' fill='" & C.'hex-bg-surface' & "' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2.5'/><text x='52' y='24' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-state-info-fg' & "'>1</text>", "<circle cx='52' cy='19' r='12' fill='" & C.'hex-bg-surface' & "' stroke='" & C.'hex-border-default' & "' stroke-width='2'/><text x='52' y='24' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-text-muted' & "'>1</text>") &
-                                            "<text x='52' y='52' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='12' font-weight='600' fill='" & If(d1, C.'hex-text-primary', (!d1 && true), C.'hex-state-info-fg', C.'hex-text-muted') & "'>" & "Plan" & "</text>" &
+                                            "<text x='52' y='52' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='12' font-weight='600' fill='" & If(d1, C.'hex-text-primary', (!d1 && true), C.'hex-state-info-fg', C.'hex-text-muted') & "'>" & If(VhpSubmitted, "Submitted", "Plan") & "</text>" &
                                             "</svg>"
                                         )
                                         )
@@ -654,6 +659,39 @@ Screens:
                                         =Set(varVhpFocusStep, 1)
                                     TabIndex: |-
                                         =0
+                                    Tooltip: |-
+                                        =With(
+                                            { d1: If(VhpSubmitted, true, VhpStepPlanDone),
+                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
+                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                            !IsBlank(varVhpActiveItemId) && (
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
+                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                            )
+                                        ))),
+                                              d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
+                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
+                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                            !IsBlank(varVhpActiveItemId) && (
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
+                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                            )
+                                        ))) },
+                                            If(
+                                            VhpSubmitted, "Submitted for approval.",
+                                            d1, "Done.",
+                                            "Missing:" & Char(10) &
+                                                If(!VhpStepPlanDone, "- " & "Save the plan header." & Char(10), "")
+                                        )
+                                        )
                                     Width: |-
                                         =(App.Width - If(LayoutRank >= 2, 56, 0) - 64) / 4
                               - imgVhpStep2M:
@@ -661,8 +699,8 @@ Screens:
                                   Properties:
                                     AccessibleLabel: |-
                                         =With(
-                                            { d1: VhpStepPlanDone,
-                                              d2: VhpStepItemDone && !(With(
+                                            { d1: If(VhpSubmitted, true, VhpStepPlanDone),
+                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
                                                 Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -672,9 +710,9 @@ Screens:
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                 Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
-                                        )),
-                                              d3: VhpStepTasklistDone && VhpStepOpsDone,
-                                              d4: VhpStepSaveDone && varVhpPlanLocked && !(With(
+                                        ))),
+                                              d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
+                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
                                                 Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -684,8 +722,8 @@ Screens:
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                 Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
-                                        )) },
-                                            "Go to step 2, " & "Item" & " - " & If(d2, "done", (!d2 && d1), "current step", "not done")
+                                        ))) },
+                                            "Go to step 2, " & If(VhpSubmitted, If(varVhpFlow.Stage = "Cost", "Cost approval", VhpApprovalDone, "Approved", "System approval"), "Item") & " - " & If(d2, "done", (!d2 && d1), "current step", "not done")
                                         )
                                     BorderStyle: |-
                                         =BorderStyle.None
@@ -695,8 +733,8 @@ Screens:
                                         =Min(56, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) / 4 * 56 / 104)
                                     Image: |-
                                         =With(
-                                            { d1: VhpStepPlanDone,
-                                              d2: VhpStepItemDone && !(With(
+                                            { d1: If(VhpSubmitted, true, VhpStepPlanDone),
+                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
                                                 Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -706,9 +744,9 @@ Screens:
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                 Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
-                                        )),
-                                              d3: VhpStepTasklistDone && VhpStepOpsDone,
-                                              d4: VhpStepSaveDone && varVhpPlanLocked && !(With(
+                                        ))),
+                                              d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
+                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
                                                 Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -718,13 +756,13 @@ Screens:
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                 Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
-                                        )) },
+                                        ))) },
                                             "data:image/svg+xml;utf8," & EncodeUrl(
                                             "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='56' viewBox='0 0 104 56'><style>.d{stroke-dasharray:80;stroke-dashoffset:80;animation:draw .6s ease-out forwards}.r{animation-delay:.3s}.c{stroke-dasharray:20;stroke-dashoffset:20;animation:draw .35s .15s ease-out forwards}.p{transform-origin:center;transform-box:fill-box;animation:pulse 1.25s ease-in-out 4 forwards}@keyframes draw{to{stroke-dashoffset:0}}@keyframes pulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:.95;transform:scale(1.08)}}@media (prefers-reduced-motion:reduce){.d,.c{animation:none;stroke-dashoffset:0}.p{animation:none;opacity:.7}}</style><defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='0'><stop offset='0' stop-color='" & C.'hex-state-ok-fg' & "' stop-opacity='.75'/><stop offset='1' stop-color='" & C.'hex-state-ok-fg' & "'/></linearGradient></defs>" &
                                             "<line x1='0' y1='19' x2='34' y2='19' stroke-width='4' stroke-linecap='round' stroke='" & C.'hex-border-default' & "'/>" & If(d1, "<line class='d l' x1='0' y1='19' x2='34' y2='19' stroke-width='4' stroke-linecap='round' stroke='url(#g)'/>", "") &
                                             "<line x1='70' y1='19' x2='104' y2='19' stroke-width='4' stroke-linecap='round' stroke='" & C.'hex-border-default' & "'/>" & If(d2, "<line class='d r' x1='70' y1='19' x2='104' y2='19' stroke-width='4' stroke-linecap='round' stroke='url(#g)'/>", "") &
                                             If(d2, "<circle cx='52' cy='19' r='13' fill='" & C.'hex-state-ok-fg' & "'/><path class='c' d='M47 19 l3.5 3.5 l6.5 -7' fill='none' stroke='" & C.'hex-bg-surface' & "' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/>", (!d2 && d1), "<circle class='p' cx='52' cy='19' r='17' fill='none' opacity='.7' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2'/><circle cx='52' cy='19' r='12' fill='" & C.'hex-bg-surface' & "' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2.5'/><text x='52' y='24' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-state-info-fg' & "'>2</text>", "<circle cx='52' cy='19' r='12' fill='" & C.'hex-bg-surface' & "' stroke='" & C.'hex-border-default' & "' stroke-width='2'/><text x='52' y='24' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-text-muted' & "'>2</text>") &
-                                            "<text x='52' y='52' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='12' font-weight='600' fill='" & If(d2, C.'hex-text-primary', (!d2 && d1), C.'hex-state-info-fg', C.'hex-text-muted') & "'>" & "Item" & "</text>" &
+                                            "<text x='52' y='52' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='12' font-weight='600' fill='" & If(d2, C.'hex-text-primary', (!d2 && d1), C.'hex-state-info-fg', C.'hex-text-muted') & "'>" & If(VhpSubmitted, If(varVhpFlow.Stage = "Cost", "Cost approval", VhpApprovalDone, "Approved", "System approval"), "Item") & "</text>" &
                                             "</svg>"
                                         )
                                         )
@@ -734,6 +772,53 @@ Screens:
                                         =Set(varVhpFocusStep, 2)
                                     TabIndex: |-
                                         =0
+                                    Tooltip: |-
+                                        =With(
+                                            { d1: If(VhpSubmitted, true, VhpStepPlanDone),
+                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
+                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                            !IsBlank(varVhpActiveItemId) && (
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
+                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                            )
+                                        ))),
+                                              d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
+                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
+                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                            !IsBlank(varVhpActiveItemId) && (
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
+                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                            )
+                                        ))) },
+                                            With(
+                                            { vhpDirty: With(
+                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                            !IsBlank(varVhpActiveItemId) && (
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
+                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                            )
+                                        ) },
+                                            If(
+                                            VhpSubmitted, If(VhpApprovalDone, "System and cost approval are done.", varVhpFlow.Stage = "Cost", "Waiting for cost approval.", "Waiting for the system owners to approve the items."),
+                                            d2, "Done.",
+                                            "Missing:" & Char(10) &
+                                                If(!VhpStepItemDone, "- " & "Add at least one item and save every item as valid." & Char(10), "") &
+                                                If(vhpDirty, "- " & "Save the changes in the Item Editor." & Char(10), "")
+                                        )
+                                        )
+                                        )
                                     Width: |-
                                         =(App.Width - If(LayoutRank >= 2, 56, 0) - 64) / 4
                               - imgVhpStep3M:
@@ -741,8 +826,8 @@ Screens:
                                   Properties:
                                     AccessibleLabel: |-
                                         =With(
-                                            { d1: VhpStepPlanDone,
-                                              d2: VhpStepItemDone && !(With(
+                                            { d1: If(VhpSubmitted, true, VhpStepPlanDone),
+                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
                                                 Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -752,9 +837,9 @@ Screens:
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                 Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
-                                        )),
-                                              d3: VhpStepTasklistDone && VhpStepOpsDone,
-                                              d4: VhpStepSaveDone && varVhpPlanLocked && !(With(
+                                        ))),
+                                              d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
+                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
                                                 Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -764,8 +849,8 @@ Screens:
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                 Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
-                                        )) },
-                                            "Go to step 3, " & If(varVhpPlan.PlanType = "Strategy", "Task list + pkgs", "Task list + ops") & " - " & If(d3, "done", (!d3 && d1 && d2), "current step", "not done")
+                                        ))) },
+                                            "Go to step 3, " & If(VhpSubmitted, "Quality review", If(varVhpPlan.PlanType = "Strategy", "Task list + pkgs", "Task list + ops")) & " - " & If(d3, "done", (!d3 && d1 && d2), "current step", "not done")
                                         )
                                     BorderStyle: |-
                                         =BorderStyle.None
@@ -775,8 +860,8 @@ Screens:
                                         =Min(56, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) / 4 * 56 / 104)
                                     Image: |-
                                         =With(
-                                            { d1: VhpStepPlanDone,
-                                              d2: VhpStepItemDone && !(With(
+                                            { d1: If(VhpSubmitted, true, VhpStepPlanDone),
+                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
                                                 Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -786,9 +871,9 @@ Screens:
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                 Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
-                                        )),
-                                              d3: VhpStepTasklistDone && VhpStepOpsDone,
-                                              d4: VhpStepSaveDone && varVhpPlanLocked && !(With(
+                                        ))),
+                                              d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
+                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
                                                 Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -798,13 +883,13 @@ Screens:
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                 Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
-                                        )) },
+                                        ))) },
                                             "data:image/svg+xml;utf8," & EncodeUrl(
                                             "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='56' viewBox='0 0 104 56'><style>.d{stroke-dasharray:80;stroke-dashoffset:80;animation:draw .6s ease-out forwards}.r{animation-delay:.3s}.c{stroke-dasharray:20;stroke-dashoffset:20;animation:draw .35s .15s ease-out forwards}.p{transform-origin:center;transform-box:fill-box;animation:pulse 1.25s ease-in-out 4 forwards}@keyframes draw{to{stroke-dashoffset:0}}@keyframes pulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:.95;transform:scale(1.08)}}@media (prefers-reduced-motion:reduce){.d,.c{animation:none;stroke-dashoffset:0}.p{animation:none;opacity:.7}}</style><defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='0'><stop offset='0' stop-color='" & C.'hex-state-ok-fg' & "' stop-opacity='.75'/><stop offset='1' stop-color='" & C.'hex-state-ok-fg' & "'/></linearGradient></defs>" &
                                             "<line x1='0' y1='19' x2='34' y2='19' stroke-width='4' stroke-linecap='round' stroke='" & C.'hex-border-default' & "'/>" & If(d2, "<line class='d l' x1='0' y1='19' x2='34' y2='19' stroke-width='4' stroke-linecap='round' stroke='url(#g)'/>", "") &
                                             "<line x1='70' y1='19' x2='104' y2='19' stroke-width='4' stroke-linecap='round' stroke='" & C.'hex-border-default' & "'/>" & If(d3, "<line class='d r' x1='70' y1='19' x2='104' y2='19' stroke-width='4' stroke-linecap='round' stroke='url(#g)'/>", "") &
                                             If(d3, "<circle cx='52' cy='19' r='13' fill='" & C.'hex-state-ok-fg' & "'/><path class='c' d='M47 19 l3.5 3.5 l6.5 -7' fill='none' stroke='" & C.'hex-bg-surface' & "' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/>", (!d3 && d1 && d2), "<circle class='p' cx='52' cy='19' r='17' fill='none' opacity='.7' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2'/><circle cx='52' cy='19' r='12' fill='" & C.'hex-bg-surface' & "' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2.5'/><text x='52' y='24' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-state-info-fg' & "'>3</text>", "<circle cx='52' cy='19' r='12' fill='" & C.'hex-bg-surface' & "' stroke='" & C.'hex-border-default' & "' stroke-width='2'/><text x='52' y='24' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-text-muted' & "'>3</text>") &
-                                            "<text x='52' y='52' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='12' font-weight='600' fill='" & If(d3, C.'hex-text-primary', (!d3 && d1 && d2), C.'hex-state-info-fg', C.'hex-text-muted') & "'>" & If(varVhpPlan.PlanType = "Strategy", "Task list + pkgs", "Task list + ops") & "</text>" &
+                                            "<text x='52' y='52' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='12' font-weight='600' fill='" & If(d3, C.'hex-text-primary', (!d3 && d1 && d2), C.'hex-state-info-fg', C.'hex-text-muted') & "'>" & If(VhpSubmitted, "Quality review", If(varVhpPlan.PlanType = "Strategy", "Task list + pkgs", "Task list + ops")) & "</text>" &
                                             "</svg>"
                                         )
                                         )
@@ -815,6 +900,40 @@ Screens:
                                         Set(varVhpFocusStep, 3)
                                     TabIndex: |-
                                         =0
+                                    Tooltip: |-
+                                        =With(
+                                            { d1: If(VhpSubmitted, true, VhpStepPlanDone),
+                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
+                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                            !IsBlank(varVhpActiveItemId) && (
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
+                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                            )
+                                        ))),
+                                              d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
+                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
+                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                            !IsBlank(varVhpActiveItemId) && (
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
+                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                            )
+                                        ))) },
+                                            If(
+                                            VhpSubmitted, If(VhpQualityDone, "Quality review is done.", VhpApprovalDone, "Waiting for the quality review.", "The quality review follows the system and cost approval."),
+                                            d3, "Done.",
+                                            "Missing:" & Char(10) &
+                                                If(!VhpStepTasklistDone, "- " & "Choose a task list for every item." & Char(10), "") &
+                                                If(!VhpStepOpsDone, "- " & If(varVhpPlan.PlanType = "Strategy", "Give every item operations, each with a package.", "Give every item at least one operation.") & Char(10), "")
+                                        )
+                                        )
                                     Width: |-
                                         =(App.Width - If(LayoutRank >= 2, 56, 0) - 64) / 4
                               - imgVhpStep4M:
@@ -822,8 +941,8 @@ Screens:
                                   Properties:
                                     AccessibleLabel: |-
                                         =With(
-                                            { d1: VhpStepPlanDone,
-                                              d2: VhpStepItemDone && !(With(
+                                            { d1: If(VhpSubmitted, true, VhpStepPlanDone),
+                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
                                                 Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -833,9 +952,9 @@ Screens:
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                 Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
-                                        )),
-                                              d3: VhpStepTasklistDone && VhpStepOpsDone,
-                                              d4: VhpStepSaveDone && varVhpPlanLocked && !(With(
+                                        ))),
+                                              d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
+                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
                                                 Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -845,8 +964,8 @@ Screens:
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                 Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
-                                        )) },
-                                            "Go to step 4, " & "Save" & " - " & If(d4, "done", (!d4 && d1 && d2 && d3), "current step", "not done")
+                                        ))) },
+                                            "Go to step 4, " & If(VhpSubmitted, If(VhpInSap, "Created in SAP", "SAP creation"), "Ready to submit") & " - " & If(d4, "done", (!d4 && d1 && d2 && d3), "current step", "not done")
                                         )
                                     BorderStyle: |-
                                         =BorderStyle.None
@@ -856,8 +975,8 @@ Screens:
                                         =Min(56, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) / 4 * 56 / 104)
                                     Image: |-
                                         =With(
-                                            { d1: VhpStepPlanDone,
-                                              d2: VhpStepItemDone && !(With(
+                                            { d1: If(VhpSubmitted, true, VhpStepPlanDone),
+                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
                                                 Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -867,9 +986,9 @@ Screens:
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                 Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
-                                        )),
-                                              d3: VhpStepTasklistDone && VhpStepOpsDone,
-                                              d4: VhpStepSaveDone && varVhpPlanLocked && !(With(
+                                        ))),
+                                              d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
+                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
                                             { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                             !IsBlank(varVhpActiveItemId) && (
                                                 Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -879,12 +998,12 @@ Screens:
                                                 (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                 Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
-                                        )) },
+                                        ))) },
                                             "data:image/svg+xml;utf8," & EncodeUrl(
                                             "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='56' viewBox='0 0 104 56'><style>.d{stroke-dasharray:80;stroke-dashoffset:80;animation:draw .6s ease-out forwards}.r{animation-delay:.3s}.c{stroke-dasharray:20;stroke-dashoffset:20;animation:draw .35s .15s ease-out forwards}.p{transform-origin:center;transform-box:fill-box;animation:pulse 1.25s ease-in-out 4 forwards}@keyframes draw{to{stroke-dashoffset:0}}@keyframes pulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:.95;transform:scale(1.08)}}@media (prefers-reduced-motion:reduce){.d,.c{animation:none;stroke-dashoffset:0}.p{animation:none;opacity:.7}}</style><defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='0'><stop offset='0' stop-color='" & C.'hex-state-ok-fg' & "' stop-opacity='.75'/><stop offset='1' stop-color='" & C.'hex-state-ok-fg' & "'/></linearGradient></defs>" &
                                             "<line x1='0' y1='19' x2='34' y2='19' stroke-width='4' stroke-linecap='round' stroke='" & C.'hex-border-default' & "'/>" & If(d3, "<line class='d l' x1='0' y1='19' x2='34' y2='19' stroke-width='4' stroke-linecap='round' stroke='url(#g)'/>", "") &
                                             If(d4, "<circle cx='52' cy='19' r='13' fill='" & C.'hex-state-ok-fg' & "'/><path class='c' d='M47 19 l3.5 3.5 l6.5 -7' fill='none' stroke='" & C.'hex-bg-surface' & "' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/>", (!d4 && d1 && d2 && d3), "<circle class='p' cx='52' cy='19' r='17' fill='none' opacity='.7' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2'/><circle cx='52' cy='19' r='12' fill='" & C.'hex-bg-surface' & "' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2.5'/><text x='52' y='24' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-state-info-fg' & "'>4</text>", "<circle cx='52' cy='19' r='12' fill='" & C.'hex-bg-surface' & "' stroke='" & C.'hex-border-default' & "' stroke-width='2'/><text x='52' y='24' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-text-muted' & "'>4</text>") &
-                                            "<text x='52' y='52' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='12' font-weight='600' fill='" & If(d4, C.'hex-text-primary', (!d4 && d1 && d2 && d3), C.'hex-state-info-fg', C.'hex-text-muted') & "'>" & "Save" & "</text>" &
+                                            "<text x='52' y='52' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='12' font-weight='600' fill='" & If(d4, C.'hex-text-primary', (!d4 && d1 && d2 && d3), C.'hex-state-info-fg', C.'hex-text-muted') & "'>" & If(VhpSubmitted, If(VhpInSap, "Created in SAP", "SAP creation"), "Ready to submit") & "</text>" &
                                             "</svg>"
                                         )
                                         )
@@ -894,6 +1013,58 @@ Screens:
                                         =Set(varVhpFocusStep, 4)
                                     TabIndex: |-
                                         =0
+                                    Tooltip: |-
+                                        =With(
+                                            { d1: If(VhpSubmitted, true, VhpStepPlanDone),
+                                              d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
+                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                            !IsBlank(varVhpActiveItemId) && (
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
+                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                            )
+                                        ))),
+                                              d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
+                                              d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
+                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                            !IsBlank(varVhpActiveItemId) && (
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
+                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                            )
+                                        ))) },
+                                            With(
+                                            { vhpDirty: With(
+                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                            !IsBlank(varVhpActiveItemId) && (
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
+                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                            )
+                                        ) },
+                                            If(
+                                            VhpSubmitted, If(VhpInSap, "Created in SAP.", VhpQualityDone, "Approved - waiting for Master Data to create the plan in SAP.", "Master Data creates the plan in SAP once it is approved."),
+                                            d4, "Ready - Submit is available.",
+                                            "Missing:" & Char(10) &
+                                                If(!VhpStepPlanDone, "- " & "Save the plan header." & Char(10), "") &
+                                                If(!VhpStepItemDone, "- " & "Add at least one item and save every item as valid." & Char(10), "") &
+                                                If(vhpDirty, "- " & "Save the changes in the Item Editor." & Char(10), "") &
+                                                If(!VhpStepTasklistDone, "- " & "Choose a task list for every item." & Char(10), "") &
+                                                If(!VhpStepOpsDone, "- " & If(varVhpPlan.PlanType = "Strategy", "Give every item operations, each with a package.", "Give every item at least one operation.") & Char(10), "") &
+                                                If(!IsBlank(VhpValidationErrors), "- " & With({ n: CountRows(Split(VhpValidationErrors, Char(10))) }, "Fix " & n & If(n = 1, " plan rule", " plan rules") & ":.") & Char(10), "") &
+                                                VhpValidationErrors
+                                        )
+                                        )
+                                        )
                                     Width: |-
                                         =(App.Width - If(LayoutRank >= 2, 56, 0) - 64) / 4
                         - conVhpHeadLine:
@@ -954,7 +1125,7 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 2
                                     Width: |-
-                                        =If(LayoutRank < 2, 56, If(LayoutRank < 3, 220, Max(533, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416) / 2 - 16)))
+                                        =If(LayoutRank < 2, 56, If(LayoutRank < 3, 220, Max(548, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416) / 2 - 16)))
                                   Children:
                                     - imgVhpTitleIcon:
                                         Control: Image
@@ -1010,7 +1181,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =Max(0, ((If(LayoutRank < 2, 56, If(LayoutRank < 3, 220, Max(533, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416) / 2 - 16))))) - (If(LayoutRank >= 2, (32) + 10, 0)) - 2)
+                                              =Max(0, ((If(LayoutRank < 2, 56, If(LayoutRank < 3, 220, Max(548, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416) / 2 - 16))))) - (If(LayoutRank >= 2, (32) + 10, 0)) - 2)
                                         Children:
                                           - conVhpTitleLine:
                                               Control: GroupContainer
@@ -1203,8 +1374,8 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               =With(
-                                                  { d1: VhpStepPlanDone,
-                                                    d2: VhpStepItemDone && !(With(
+                                                  { d1: If(VhpSubmitted, true, VhpStepPlanDone),
+                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
                                                   { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                                   !IsBlank(varVhpActiveItemId) && (
                                                       Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -1214,9 +1385,9 @@ Screens:
                                                       (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                       Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                                   )
-                                              )),
-                                                    d3: VhpStepTasklistDone && VhpStepOpsDone,
-                                                    d4: VhpStepSaveDone && varVhpPlanLocked && !(With(
+                                              ))),
+                                                    d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
+                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
                                                   { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                                   !IsBlank(varVhpActiveItemId) && (
                                                       Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -1226,8 +1397,8 @@ Screens:
                                                       (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                       Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                                   )
-                                              )) },
-                                                  "Go to step 1, " & "Plan" & " - " & If(d1, "done", (!d1 && true), "current step", "not done")
+                                              ))) },
+                                                  "Go to step 1, " & If(VhpSubmitted, "Submitted", "Plan") & " - " & If(d1, "done", (!d1 && true), "current step", "not done")
                                               )
                                           BorderStyle: |-
                                               =BorderStyle.None
@@ -1237,8 +1408,8 @@ Screens:
                                               =56
                                           Image: |-
                                               =With(
-                                                  { d1: VhpStepPlanDone,
-                                                    d2: VhpStepItemDone && !(With(
+                                                  { d1: If(VhpSubmitted, true, VhpStepPlanDone),
+                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
                                                   { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                                   !IsBlank(varVhpActiveItemId) && (
                                                       Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -1248,9 +1419,9 @@ Screens:
                                                       (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                       Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                                   )
-                                              )),
-                                                    d3: VhpStepTasklistDone && VhpStepOpsDone,
-                                                    d4: VhpStepSaveDone && varVhpPlanLocked && !(With(
+                                              ))),
+                                                    d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
+                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
                                                   { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                                   !IsBlank(varVhpActiveItemId) && (
                                                       Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -1260,12 +1431,12 @@ Screens:
                                                       (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                       Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                                   )
-                                              )) },
+                                              ))) },
                                                   "data:image/svg+xml;utf8," & EncodeUrl(
                                                   "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='56' viewBox='0 0 104 56'><style>.d{stroke-dasharray:80;stroke-dashoffset:80;animation:draw .6s ease-out forwards}.r{animation-delay:.3s}.c{stroke-dasharray:20;stroke-dashoffset:20;animation:draw .35s .15s ease-out forwards}.p{transform-origin:center;transform-box:fill-box;animation:pulse 1.25s ease-in-out 4 forwards}@keyframes draw{to{stroke-dashoffset:0}}@keyframes pulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:.95;transform:scale(1.08)}}@media (prefers-reduced-motion:reduce){.d,.c{animation:none;stroke-dashoffset:0}.p{animation:none;opacity:.7}}</style><defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='0'><stop offset='0' stop-color='" & C.'hex-state-ok-fg' & "' stop-opacity='.75'/><stop offset='1' stop-color='" & C.'hex-state-ok-fg' & "'/></linearGradient></defs>" &
                                                   "<line x1='70' y1='19' x2='104' y2='19' stroke-width='4' stroke-linecap='round' stroke='" & C.'hex-border-default' & "'/>" & If(d1, "<line class='d r' x1='70' y1='19' x2='104' y2='19' stroke-width='4' stroke-linecap='round' stroke='url(#g)'/>", "") &
                                                   If(d1, "<circle cx='52' cy='19' r='13' fill='" & C.'hex-state-ok-fg' & "'/><path class='c' d='M47 19 l3.5 3.5 l6.5 -7' fill='none' stroke='" & C.'hex-bg-surface' & "' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/>", (!d1 && true), "<circle class='p' cx='52' cy='19' r='17' fill='none' opacity='.7' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2'/><circle cx='52' cy='19' r='12' fill='" & C.'hex-bg-surface' & "' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2.5'/><text x='52' y='24' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-state-info-fg' & "'>1</text>", "<circle cx='52' cy='19' r='12' fill='" & C.'hex-bg-surface' & "' stroke='" & C.'hex-border-default' & "' stroke-width='2'/><text x='52' y='24' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-text-muted' & "'>1</text>") &
-                                                  "<text x='52' y='52' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='12' font-weight='600' fill='" & If(d1, C.'hex-text-primary', (!d1 && true), C.'hex-state-info-fg', C.'hex-text-muted') & "'>" & "Plan" & "</text>" &
+                                                  "<text x='52' y='52' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='12' font-weight='600' fill='" & If(d1, C.'hex-text-primary', (!d1 && true), C.'hex-state-info-fg', C.'hex-text-muted') & "'>" & If(VhpSubmitted, "Submitted", "Plan") & "</text>" &
                                                   "</svg>"
                                               )
                                               )
@@ -1275,6 +1446,39 @@ Screens:
                                               =Set(varVhpFocusStep, 1)
                                           TabIndex: |-
                                               =0
+                                          Tooltip: |-
+                                              =With(
+                                                  { d1: If(VhpSubmitted, true, VhpStepPlanDone),
+                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
+                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                                  !IsBlank(varVhpActiveItemId) && (
+                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                      tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
+                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                  )
+                                              ))),
+                                                    d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
+                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
+                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                                  !IsBlank(varVhpActiveItemId) && (
+                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                      tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
+                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                  )
+                                              ))) },
+                                                  If(
+                                                  VhpSubmitted, "Submitted for approval.",
+                                                  d1, "Done.",
+                                                  "Missing:" & Char(10) &
+                                                      If(!VhpStepPlanDone, "- " & "Save the plan header." & Char(10), "")
+                                              )
+                                              )
                                           Width: |-
                                               =Min(104, (App.Width - If(LayoutRank >= 2, 56, 0) - 64) / 4)
                                     - imgVhpStep2:
@@ -1282,8 +1486,8 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               =With(
-                                                  { d1: VhpStepPlanDone,
-                                                    d2: VhpStepItemDone && !(With(
+                                                  { d1: If(VhpSubmitted, true, VhpStepPlanDone),
+                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
                                                   { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                                   !IsBlank(varVhpActiveItemId) && (
                                                       Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -1293,9 +1497,9 @@ Screens:
                                                       (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                       Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                                   )
-                                              )),
-                                                    d3: VhpStepTasklistDone && VhpStepOpsDone,
-                                                    d4: VhpStepSaveDone && varVhpPlanLocked && !(With(
+                                              ))),
+                                                    d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
+                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
                                                   { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                                   !IsBlank(varVhpActiveItemId) && (
                                                       Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -1305,8 +1509,8 @@ Screens:
                                                       (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                       Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                                   )
-                                              )) },
-                                                  "Go to step 2, " & "Item" & " - " & If(d2, "done", (!d2 && d1), "current step", "not done")
+                                              ))) },
+                                                  "Go to step 2, " & If(VhpSubmitted, If(varVhpFlow.Stage = "Cost", "Cost approval", VhpApprovalDone, "Approved", "System approval"), "Item") & " - " & If(d2, "done", (!d2 && d1), "current step", "not done")
                                               )
                                           BorderStyle: |-
                                               =BorderStyle.None
@@ -1316,8 +1520,8 @@ Screens:
                                               =56
                                           Image: |-
                                               =With(
-                                                  { d1: VhpStepPlanDone,
-                                                    d2: VhpStepItemDone && !(With(
+                                                  { d1: If(VhpSubmitted, true, VhpStepPlanDone),
+                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
                                                   { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                                   !IsBlank(varVhpActiveItemId) && (
                                                       Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -1327,9 +1531,9 @@ Screens:
                                                       (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                       Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                                   )
-                                              )),
-                                                    d3: VhpStepTasklistDone && VhpStepOpsDone,
-                                                    d4: VhpStepSaveDone && varVhpPlanLocked && !(With(
+                                              ))),
+                                                    d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
+                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
                                                   { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                                   !IsBlank(varVhpActiveItemId) && (
                                                       Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -1339,13 +1543,13 @@ Screens:
                                                       (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                       Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                                   )
-                                              )) },
+                                              ))) },
                                                   "data:image/svg+xml;utf8," & EncodeUrl(
                                                   "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='56' viewBox='0 0 104 56'><style>.d{stroke-dasharray:80;stroke-dashoffset:80;animation:draw .6s ease-out forwards}.r{animation-delay:.3s}.c{stroke-dasharray:20;stroke-dashoffset:20;animation:draw .35s .15s ease-out forwards}.p{transform-origin:center;transform-box:fill-box;animation:pulse 1.25s ease-in-out 4 forwards}@keyframes draw{to{stroke-dashoffset:0}}@keyframes pulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:.95;transform:scale(1.08)}}@media (prefers-reduced-motion:reduce){.d,.c{animation:none;stroke-dashoffset:0}.p{animation:none;opacity:.7}}</style><defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='0'><stop offset='0' stop-color='" & C.'hex-state-ok-fg' & "' stop-opacity='.75'/><stop offset='1' stop-color='" & C.'hex-state-ok-fg' & "'/></linearGradient></defs>" &
                                                   "<line x1='0' y1='19' x2='34' y2='19' stroke-width='4' stroke-linecap='round' stroke='" & C.'hex-border-default' & "'/>" & If(d1, "<line class='d l' x1='0' y1='19' x2='34' y2='19' stroke-width='4' stroke-linecap='round' stroke='url(#g)'/>", "") &
                                                   "<line x1='70' y1='19' x2='104' y2='19' stroke-width='4' stroke-linecap='round' stroke='" & C.'hex-border-default' & "'/>" & If(d2, "<line class='d r' x1='70' y1='19' x2='104' y2='19' stroke-width='4' stroke-linecap='round' stroke='url(#g)'/>", "") &
                                                   If(d2, "<circle cx='52' cy='19' r='13' fill='" & C.'hex-state-ok-fg' & "'/><path class='c' d='M47 19 l3.5 3.5 l6.5 -7' fill='none' stroke='" & C.'hex-bg-surface' & "' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/>", (!d2 && d1), "<circle class='p' cx='52' cy='19' r='17' fill='none' opacity='.7' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2'/><circle cx='52' cy='19' r='12' fill='" & C.'hex-bg-surface' & "' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2.5'/><text x='52' y='24' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-state-info-fg' & "'>2</text>", "<circle cx='52' cy='19' r='12' fill='" & C.'hex-bg-surface' & "' stroke='" & C.'hex-border-default' & "' stroke-width='2'/><text x='52' y='24' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-text-muted' & "'>2</text>") &
-                                                  "<text x='52' y='52' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='12' font-weight='600' fill='" & If(d2, C.'hex-text-primary', (!d2 && d1), C.'hex-state-info-fg', C.'hex-text-muted') & "'>" & "Item" & "</text>" &
+                                                  "<text x='52' y='52' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='12' font-weight='600' fill='" & If(d2, C.'hex-text-primary', (!d2 && d1), C.'hex-state-info-fg', C.'hex-text-muted') & "'>" & If(VhpSubmitted, If(varVhpFlow.Stage = "Cost", "Cost approval", VhpApprovalDone, "Approved", "System approval"), "Item") & "</text>" &
                                                   "</svg>"
                                               )
                                               )
@@ -1355,6 +1559,53 @@ Screens:
                                               =Set(varVhpFocusStep, 2)
                                           TabIndex: |-
                                               =0
+                                          Tooltip: |-
+                                              =With(
+                                                  { d1: If(VhpSubmitted, true, VhpStepPlanDone),
+                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
+                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                                  !IsBlank(varVhpActiveItemId) && (
+                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                      tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
+                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                  )
+                                              ))),
+                                                    d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
+                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
+                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                                  !IsBlank(varVhpActiveItemId) && (
+                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                      tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
+                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                  )
+                                              ))) },
+                                                  With(
+                                                  { vhpDirty: With(
+                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                                  !IsBlank(varVhpActiveItemId) && (
+                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                      tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
+                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                  )
+                                              ) },
+                                                  If(
+                                                  VhpSubmitted, If(VhpApprovalDone, "System and cost approval are done.", varVhpFlow.Stage = "Cost", "Waiting for cost approval.", "Waiting for the system owners to approve the items."),
+                                                  d2, "Done.",
+                                                  "Missing:" & Char(10) &
+                                                      If(!VhpStepItemDone, "- " & "Add at least one item and save every item as valid." & Char(10), "") &
+                                                      If(vhpDirty, "- " & "Save the changes in the Item Editor." & Char(10), "")
+                                              )
+                                              )
+                                              )
                                           Width: |-
                                               =Min(104, (App.Width - If(LayoutRank >= 2, 56, 0) - 64) / 4)
                                     - imgVhpStep3:
@@ -1362,8 +1613,8 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               =With(
-                                                  { d1: VhpStepPlanDone,
-                                                    d2: VhpStepItemDone && !(With(
+                                                  { d1: If(VhpSubmitted, true, VhpStepPlanDone),
+                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
                                                   { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                                   !IsBlank(varVhpActiveItemId) && (
                                                       Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -1373,9 +1624,9 @@ Screens:
                                                       (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                       Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                                   )
-                                              )),
-                                                    d3: VhpStepTasklistDone && VhpStepOpsDone,
-                                                    d4: VhpStepSaveDone && varVhpPlanLocked && !(With(
+                                              ))),
+                                                    d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
+                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
                                                   { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                                   !IsBlank(varVhpActiveItemId) && (
                                                       Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -1385,8 +1636,8 @@ Screens:
                                                       (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                       Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                                   )
-                                              )) },
-                                                  "Go to step 3, " & If(varVhpPlan.PlanType = "Strategy", "Task list + pkgs", "Task list + ops") & " - " & If(d3, "done", (!d3 && d1 && d2), "current step", "not done")
+                                              ))) },
+                                                  "Go to step 3, " & If(VhpSubmitted, "Quality review", If(varVhpPlan.PlanType = "Strategy", "Task list + pkgs", "Task list + ops")) & " - " & If(d3, "done", (!d3 && d1 && d2), "current step", "not done")
                                               )
                                           BorderStyle: |-
                                               =BorderStyle.None
@@ -1396,8 +1647,8 @@ Screens:
                                               =56
                                           Image: |-
                                               =With(
-                                                  { d1: VhpStepPlanDone,
-                                                    d2: VhpStepItemDone && !(With(
+                                                  { d1: If(VhpSubmitted, true, VhpStepPlanDone),
+                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
                                                   { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                                   !IsBlank(varVhpActiveItemId) && (
                                                       Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -1407,9 +1658,9 @@ Screens:
                                                       (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                       Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                                   )
-                                              )),
-                                                    d3: VhpStepTasklistDone && VhpStepOpsDone,
-                                                    d4: VhpStepSaveDone && varVhpPlanLocked && !(With(
+                                              ))),
+                                                    d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
+                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
                                                   { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                                   !IsBlank(varVhpActiveItemId) && (
                                                       Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -1419,13 +1670,13 @@ Screens:
                                                       (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                       Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                                   )
-                                              )) },
+                                              ))) },
                                                   "data:image/svg+xml;utf8," & EncodeUrl(
                                                   "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='56' viewBox='0 0 104 56'><style>.d{stroke-dasharray:80;stroke-dashoffset:80;animation:draw .6s ease-out forwards}.r{animation-delay:.3s}.c{stroke-dasharray:20;stroke-dashoffset:20;animation:draw .35s .15s ease-out forwards}.p{transform-origin:center;transform-box:fill-box;animation:pulse 1.25s ease-in-out 4 forwards}@keyframes draw{to{stroke-dashoffset:0}}@keyframes pulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:.95;transform:scale(1.08)}}@media (prefers-reduced-motion:reduce){.d,.c{animation:none;stroke-dashoffset:0}.p{animation:none;opacity:.7}}</style><defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='0'><stop offset='0' stop-color='" & C.'hex-state-ok-fg' & "' stop-opacity='.75'/><stop offset='1' stop-color='" & C.'hex-state-ok-fg' & "'/></linearGradient></defs>" &
                                                   "<line x1='0' y1='19' x2='34' y2='19' stroke-width='4' stroke-linecap='round' stroke='" & C.'hex-border-default' & "'/>" & If(d2, "<line class='d l' x1='0' y1='19' x2='34' y2='19' stroke-width='4' stroke-linecap='round' stroke='url(#g)'/>", "") &
                                                   "<line x1='70' y1='19' x2='104' y2='19' stroke-width='4' stroke-linecap='round' stroke='" & C.'hex-border-default' & "'/>" & If(d3, "<line class='d r' x1='70' y1='19' x2='104' y2='19' stroke-width='4' stroke-linecap='round' stroke='url(#g)'/>", "") &
                                                   If(d3, "<circle cx='52' cy='19' r='13' fill='" & C.'hex-state-ok-fg' & "'/><path class='c' d='M47 19 l3.5 3.5 l6.5 -7' fill='none' stroke='" & C.'hex-bg-surface' & "' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/>", (!d3 && d1 && d2), "<circle class='p' cx='52' cy='19' r='17' fill='none' opacity='.7' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2'/><circle cx='52' cy='19' r='12' fill='" & C.'hex-bg-surface' & "' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2.5'/><text x='52' y='24' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-state-info-fg' & "'>3</text>", "<circle cx='52' cy='19' r='12' fill='" & C.'hex-bg-surface' & "' stroke='" & C.'hex-border-default' & "' stroke-width='2'/><text x='52' y='24' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-text-muted' & "'>3</text>") &
-                                                  "<text x='52' y='52' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='12' font-weight='600' fill='" & If(d3, C.'hex-text-primary', (!d3 && d1 && d2), C.'hex-state-info-fg', C.'hex-text-muted') & "'>" & If(varVhpPlan.PlanType = "Strategy", "Task list + pkgs", "Task list + ops") & "</text>" &
+                                                  "<text x='52' y='52' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='12' font-weight='600' fill='" & If(d3, C.'hex-text-primary', (!d3 && d1 && d2), C.'hex-state-info-fg', C.'hex-text-muted') & "'>" & If(VhpSubmitted, "Quality review", If(varVhpPlan.PlanType = "Strategy", "Task list + pkgs", "Task list + ops")) & "</text>" &
                                                   "</svg>"
                                               )
                                               )
@@ -1436,6 +1687,40 @@ Screens:
                                               Set(varVhpFocusStep, 3)
                                           TabIndex: |-
                                               =0
+                                          Tooltip: |-
+                                              =With(
+                                                  { d1: If(VhpSubmitted, true, VhpStepPlanDone),
+                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
+                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                                  !IsBlank(varVhpActiveItemId) && (
+                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                      tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
+                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                  )
+                                              ))),
+                                                    d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
+                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
+                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                                  !IsBlank(varVhpActiveItemId) && (
+                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                      tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
+                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                  )
+                                              ))) },
+                                                  If(
+                                                  VhpSubmitted, If(VhpQualityDone, "Quality review is done.", VhpApprovalDone, "Waiting for the quality review.", "The quality review follows the system and cost approval."),
+                                                  d3, "Done.",
+                                                  "Missing:" & Char(10) &
+                                                      If(!VhpStepTasklistDone, "- " & "Choose a task list for every item." & Char(10), "") &
+                                                      If(!VhpStepOpsDone, "- " & If(varVhpPlan.PlanType = "Strategy", "Give every item operations, each with a package.", "Give every item at least one operation.") & Char(10), "")
+                                              )
+                                              )
                                           Width: |-
                                               =Min(104, (App.Width - If(LayoutRank >= 2, 56, 0) - 64) / 4)
                                     - imgVhpStep4:
@@ -1443,8 +1728,8 @@ Screens:
                                         Properties:
                                           AccessibleLabel: |-
                                               =With(
-                                                  { d1: VhpStepPlanDone,
-                                                    d2: VhpStepItemDone && !(With(
+                                                  { d1: If(VhpSubmitted, true, VhpStepPlanDone),
+                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
                                                   { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                                   !IsBlank(varVhpActiveItemId) && (
                                                       Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -1454,9 +1739,9 @@ Screens:
                                                       (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                       Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                                   )
-                                              )),
-                                                    d3: VhpStepTasklistDone && VhpStepOpsDone,
-                                                    d4: VhpStepSaveDone && varVhpPlanLocked && !(With(
+                                              ))),
+                                                    d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
+                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
                                                   { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                                   !IsBlank(varVhpActiveItemId) && (
                                                       Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -1466,8 +1751,8 @@ Screens:
                                                       (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                       Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                                   )
-                                              )) },
-                                                  "Go to step 4, " & "Save" & " - " & If(d4, "done", (!d4 && d1 && d2 && d3), "current step", "not done")
+                                              ))) },
+                                                  "Go to step 4, " & If(VhpSubmitted, If(VhpInSap, "Created in SAP", "SAP creation"), "Ready to submit") & " - " & If(d4, "done", (!d4 && d1 && d2 && d3), "current step", "not done")
                                               )
                                           BorderStyle: |-
                                               =BorderStyle.None
@@ -1477,8 +1762,8 @@ Screens:
                                               =56
                                           Image: |-
                                               =With(
-                                                  { d1: VhpStepPlanDone,
-                                                    d2: VhpStepItemDone && !(With(
+                                                  { d1: If(VhpSubmitted, true, VhpStepPlanDone),
+                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
                                                   { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                                   !IsBlank(varVhpActiveItemId) && (
                                                       Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -1488,9 +1773,9 @@ Screens:
                                                       (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                       Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                                   )
-                                              )),
-                                                    d3: VhpStepTasklistDone && VhpStepOpsDone,
-                                                    d4: VhpStepSaveDone && varVhpPlanLocked && !(With(
+                                              ))),
+                                                    d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
+                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
                                                   { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                                   !IsBlank(varVhpActiveItemId) && (
                                                       Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -1500,12 +1785,12 @@ Screens:
                                                       (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                       Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                                   )
-                                              )) },
+                                              ))) },
                                                   "data:image/svg+xml;utf8," & EncodeUrl(
                                                   "<svg xmlns='http://www.w3.org/2000/svg' width='104' height='56' viewBox='0 0 104 56'><style>.d{stroke-dasharray:80;stroke-dashoffset:80;animation:draw .6s ease-out forwards}.r{animation-delay:.3s}.c{stroke-dasharray:20;stroke-dashoffset:20;animation:draw .35s .15s ease-out forwards}.p{transform-origin:center;transform-box:fill-box;animation:pulse 1.25s ease-in-out 4 forwards}@keyframes draw{to{stroke-dashoffset:0}}@keyframes pulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:.95;transform:scale(1.08)}}@media (prefers-reduced-motion:reduce){.d,.c{animation:none;stroke-dashoffset:0}.p{animation:none;opacity:.7}}</style><defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='0'><stop offset='0' stop-color='" & C.'hex-state-ok-fg' & "' stop-opacity='.75'/><stop offset='1' stop-color='" & C.'hex-state-ok-fg' & "'/></linearGradient></defs>" &
                                                   "<line x1='0' y1='19' x2='34' y2='19' stroke-width='4' stroke-linecap='round' stroke='" & C.'hex-border-default' & "'/>" & If(d3, "<line class='d l' x1='0' y1='19' x2='34' y2='19' stroke-width='4' stroke-linecap='round' stroke='url(#g)'/>", "") &
                                                   If(d4, "<circle cx='52' cy='19' r='13' fill='" & C.'hex-state-ok-fg' & "'/><path class='c' d='M47 19 l3.5 3.5 l6.5 -7' fill='none' stroke='" & C.'hex-bg-surface' & "' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/>", (!d4 && d1 && d2 && d3), "<circle class='p' cx='52' cy='19' r='17' fill='none' opacity='.7' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2'/><circle cx='52' cy='19' r='12' fill='" & C.'hex-bg-surface' & "' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2.5'/><text x='52' y='24' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-state-info-fg' & "'>4</text>", "<circle cx='52' cy='19' r='12' fill='" & C.'hex-bg-surface' & "' stroke='" & C.'hex-border-default' & "' stroke-width='2'/><text x='52' y='24' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='13' font-weight='700' fill='" & C.'hex-text-muted' & "'>4</text>") &
-                                                  "<text x='52' y='52' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='12' font-weight='600' fill='" & If(d4, C.'hex-text-primary', (!d4 && d1 && d2 && d3), C.'hex-state-info-fg', C.'hex-text-muted') & "'>" & "Save" & "</text>" &
+                                                  "<text x='52' y='52' font-family='Segoe UI, sans-serif' text-anchor='middle' font-size='12' font-weight='600' fill='" & If(d4, C.'hex-text-primary', (!d4 && d1 && d2 && d3), C.'hex-state-info-fg', C.'hex-text-muted') & "'>" & If(VhpSubmitted, If(VhpInSap, "Created in SAP", "SAP creation"), "Ready to submit") & "</text>" &
                                                   "</svg>"
                                               )
                                               )
@@ -1515,6 +1800,58 @@ Screens:
                                               =Set(varVhpFocusStep, 4)
                                           TabIndex: |-
                                               =0
+                                          Tooltip: |-
+                                              =With(
+                                                  { d1: If(VhpSubmitted, true, VhpStepPlanDone),
+                                                    d2: If(VhpSubmitted, VhpApprovalDone, VhpStepItemDone && !(With(
+                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                                  !IsBlank(varVhpActiveItemId) && (
+                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                      tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
+                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                  )
+                                              ))),
+                                                    d3: If(VhpSubmitted, VhpQualityDone, VhpStepTasklistDone && VhpStepOpsDone),
+                                                    d4: If(VhpSubmitted, VhpInSap, VhpCanSubmit && !(With(
+                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                                  !IsBlank(varVhpActiveItemId) && (
+                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                      tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
+                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                  )
+                                              ))) },
+                                                  With(
+                                                  { vhpDirty: With(
+                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                                  !IsBlank(varVhpActiveItemId) && (
+                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                      tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
+                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                  )
+                                              ) },
+                                                  If(
+                                                  VhpSubmitted, If(VhpInSap, "Created in SAP.", VhpQualityDone, "Approved - waiting for Master Data to create the plan in SAP.", "Master Data creates the plan in SAP once it is approved."),
+                                                  d4, "Ready - Submit is available.",
+                                                  "Missing:" & Char(10) &
+                                                      If(!VhpStepPlanDone, "- " & "Save the plan header." & Char(10), "") &
+                                                      If(!VhpStepItemDone, "- " & "Add at least one item and save every item as valid." & Char(10), "") &
+                                                      If(vhpDirty, "- " & "Save the changes in the Item Editor." & Char(10), "") &
+                                                      If(!VhpStepTasklistDone, "- " & "Choose a task list for every item." & Char(10), "") &
+                                                      If(!VhpStepOpsDone, "- " & If(varVhpPlan.PlanType = "Strategy", "Give every item operations, each with a package.", "Give every item at least one operation.") & Char(10), "") &
+                                                      If(!IsBlank(VhpValidationErrors), "- " & With({ n: CountRows(Split(VhpValidationErrors, Char(10))) }, "Fix " & n & If(n = 1, " plan rule", " plan rules") & ":.") & Char(10), "") &
+                                                      VhpValidationErrors
+                                              )
+                                              )
+                                              )
                                           Width: |-
                                               =Min(104, (App.Width - If(LayoutRank >= 2, 56, 0) - 64) / 4)
                               - conVhpHeadBtns:
@@ -1544,7 +1881,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If(LayoutRank < 3, If(LayoutRank < 2, 304, 533), Max(533, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416) / 2 - 16))
+                                        =If(LayoutRank < 3, If(LayoutRank < 2, 304, 548), Max(548, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416) / 2 - 16))
                                   Children:
                                     - btnVhpEdit:
                                         Control: ModernButton
@@ -1711,6 +2048,10 @@ Screens:
                                               Set(varVhpPlanCreatedAt, Blank());
                                               Set(varVhpPlanValidated, false);
                                               Set(varVhpItemValidated, false);
+                                              // Hvor planen er EFTER Submit: Status og ApprovalStage fra MaintenancePlans
+                                              // (docs/32-godkendelsesflow.md). Tom = ikke indsendt. Progressbaren skifter
+                                              // til godkendelses- og SAP-trinene, naar Status er indsendt (build_status).
+                                              Set(varVhpFlow, { Status: "", Stage: "", ReturnComment: "" });
                                               // Appen aabner med EET item, der allerede er valgt. Item Editoren stod
                                               // foer tom og skrivebeskyttet (DM_ITEM slaar fra paa tomt
                                               // varVhpActiveItemId), saa det foerste man moedte var en raekke graa felter
@@ -1781,7 +2122,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Save draft"
+                                              =If(IsBlank(varVhpPlanKey), "Create the plan as a draft", "Update the saved draft")
                                           Align: |-
                                               =Align.Center
                                           AlignInContainer: |-
@@ -1811,7 +2152,7 @@ Screens:
                                           Layout: |-
                                               =If(LayoutRank < 2, ButtonLayout.IconOnly, ButtonLayout.IconBefore)
                                           LayoutMinWidth: |-
-                                              =If(LayoutRank < 2, 40, 135)
+                                              =If(LayoutRank < 2, 40, 150)
                                           OnSelect: |-
                                               =If(
                                                   !varVhpPlanCommitted || CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))) = 0,
@@ -2299,7 +2640,8 @@ Screens:
                                                       Set(
                                                           varVhpPlanRec,
                                                           Patch(MaintenancePlans, varVhpPlanRec, { Status: { Value: "In Progress" }, ApprovalStage: { Value: "System" }, SubmittedOn: Now(), StageRunId: "" })
-                                                      )
+                                                      );
+                                                      Set(varVhpFlow, { Status: varVhpPlanRec.Status.Value, Stage: varVhpPlanRec.ApprovalStage.Value, ReturnComment: "" })
                                                   );
                                                   If(
                                                       varVhpSubmitting,
@@ -2441,17 +2783,17 @@ Screens:
                                           Size: |-
                                               =14
                                           Text: |-
-                                              ="Save draft"
+                                              =If(IsBlank(varVhpPlanKey), "Create draft", "Update draft")
                                           Tooltip: |-
                                               =If(
                                                   varVhpSaving, "Saving ...",
-                                                  IsBlank(varVhpPlanKey), "Not saved yet. Save as draft so you can come back to it.",
-                                                  "Saved as " & varVhpPlanKey & ". The next save updates the same plan, items and operations."
+                                                  IsBlank(varVhpPlanKey), "Not saved yet. Create a draft so you can come back to it.",
+                                                  "Saved as draft " & varVhpPlanKey & ". Update draft saves your changes to the same plan, items and operations."
                                               )
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =If(LayoutRank < 2, 40, 135)
+                                              =If(LayoutRank < 2, 40, 150)
                                     - btnVhpSubmit:
                                         Control: ModernButton
                                         Properties:
@@ -2502,8 +2844,8 @@ Screens:
                                           Text: |-
                                               ="Submit"
                                           Tooltip: |-
-                                              =If(
-                                                  VhpCanSubmit && !(With(
+                                              =With(
+                                                  { vhpDirty: With(
                                                   { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                                   !IsBlank(varVhpActiveItemId) && (
                                                       Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -2513,29 +2855,103 @@ Screens:
                                                       (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
                                                       Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                                   )
-                                              )),
-                                                  "Submit the plan for processing.",
-                                                  "Not ready to submit: " &
-                                                  If(!VhpStepPlanDone, "Save the plan header. ", "") &
-                                                  If(!VhpStepItemDone || (With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              )), "Save every item. ", "") &
-                                                  If(!VhpStepTasklistDone, "Give every item a task list. ", "") &
-                                                  If(!VhpStepOpsDone, "Give every item operations. ", "") &
-                                                  If(IsBlank(VhpValidationErrors), "", Char(10) & VhpValidationErrors)
+                                              ) },
+                                                  If(
+                                                  VhpSubmitted, "Already submitted - see the progress bar.",
+                                                  VhpCanSubmit && !(vhpDirty),
+                                                  "Submit the plan for approval.",
+                                                  "Not ready to submit:" & Char(10) &
+                                                      If(!VhpStepPlanDone, "- " & "Save the plan header." & Char(10), "") &
+                                                      If(!VhpStepItemDone, "- " & "Add at least one item and save every item as valid." & Char(10), "") &
+                                                      If(vhpDirty, "- " & "Save the changes in the Item Editor." & Char(10), "") &
+                                                      If(!VhpStepTasklistDone, "- " & "Choose a task list for every item." & Char(10), "") &
+                                                      If(!VhpStepOpsDone, "- " & If(varVhpPlan.PlanType = "Strategy", "Give every item operations, each with a package.", "Give every item at least one operation.") & Char(10), "") &
+                                                      If(!IsBlank(VhpValidationErrors), "- " & With({ n: CountRows(Split(VhpValidationErrors, Char(10))) }, "Fix " & n & If(n = 1, " plan rule", " plan rules") & ":.") & Char(10), "") &
+                                                      VhpValidationErrors
+                                              )
                                               )
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
                                               =82
+                        - txtVhpReadiness:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Submission status: " & Self.Text
+                              Align: |-
+                                  =Align.Center
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =With(
+                                      { vhpDirty: With(
+                                      { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                      !IsBlank(varVhpActiveItemId) && (
+                                          Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                          (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                          (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                          tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
+                                          (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                          Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                      )
+                                  ) },
+                                      If((VhpSubmitted || (VhpCanSubmit && !(vhpDirty))), C.'state-ok-fg', C.'text-muted')
+                                  )
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =If(LayoutRank < 2, 36, 20)
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =12
+                              Text: |-
+                                  =With(
+                                      { vhpDirty: With(
+                                      { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                      !IsBlank(varVhpActiveItemId) && (
+                                          Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                          (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                          (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                          tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||
+                                          (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                          Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                      )
+                                  ) },
+                                      If(
+                                      VhpSubmitted,
+                                      "Submitted. " & If(VhpInSap, "Created in SAP.", VhpQualityDone, "Approved - waiting for Master Data to create the plan in SAP.", VhpApprovalDone, "Waiting for the quality review.", varVhpFlow.Stage = "Cost", "Waiting for cost approval.", "Waiting for the system owners to approve the items."),
+                                      varVhpFlow.Status = "Returned",
+                                      "Returned to you" & If(IsBlank(varVhpFlow.ReturnComment), ".", ": " & varVhpFlow.ReturnComment) &
+                                          " Correct the plan and submit it again.",
+                                      varVhpViewOnly,
+                                      "View only - this plan has not been submitted.",
+                                      VhpCanSubmit && !(vhpDirty),
+                                      "Ready to submit.",
+                                      "Before you can submit: " &
+                                          If(!VhpStepPlanDone, "" & "Save the plan header." & " ", "") &
+                                          If(!VhpStepItemDone, "" & "Add at least one item and save every item as valid." & " ", "") &
+                                          If(vhpDirty, "" & "Save the changes in the Item Editor." & " ", "") &
+                                          If(!VhpStepTasklistDone, "" & "Choose a task list for every item." & " ", "") &
+                                          If(!VhpStepOpsDone, "" & If(varVhpPlan.PlanType = "Strategy", "Give every item operations, each with a package.", "Give every item at least one operation.") & " ", "") &
+                                          If(!IsBlank(VhpValidationErrors), "" & With({ n: CountRows(Split(VhpValidationErrors, Char(10))) }, "Fix " & n & If(n = 1, " plan rule", " plan rules") & " - hover Submit to see them.") & " ", "")
+                                  )
+                                  )
+                              Width: |-
+                                  =Parent.Width
+                              Wrap: |-
+                                  =true
                         - conVhpHeadSpace:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -2603,7 +3019,7 @@ Screens:
                   FillPortions: |-
                       =1
                   Height: |-
-                      =Parent.Height - (25 + (0 + If(LayoutRank < 2, 0 + (Min(56, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) / 4 * 56 / 104)), 0) + (If(LayoutRank < 2, 60, 84)) + (If(LayoutRank < 2, 10, 8))))
+                      =Parent.Height - (25 + (0 + If(LayoutRank < 2, 0 + (Min(56, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) / 4 * 56 / 104)), 0) + (If(LayoutRank < 2, 60, 84)) + (If(LayoutRank < 2, 36, 20)) + (If(LayoutRank < 2, 10, 8))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -9032,7 +9448,7 @@ Screens:
                             )), 1) * 88) + If(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "ops" && Kind = "Panel"),
                                 Ord
-                            )) = 0, 4 + (32), 0)), 0) + If(IfError((varVhpPlan.PlanType = "Strategy"), false), 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (168) + (168) + 6, 34, (34) + If(IfError((varVhpPlan.PlanType = "Strategy"), false), 6 + (34), 0))), 0) + If(IfError(IsBlank(varVhpOpsTab) || IfError(varVhpOpsTab = "ops", false) || (IfError(varVhpOpsTab = "pkg", false) && !(varVhpPlan.PlanType = "Strategy")), false), 14 + (26 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360)) + (214) + (198) + (190) + 36, Max((62), (36), (36), (36)), (62) + If(LayoutRank >= 2, 12 + (36), 0) + If(LayoutRank >= 2, 12 + (36), 0) + If(LayoutRank < 2, 12 + (36), 0))) + If(IfError(varVhpShowHints && !IsBlank(varVhpActiveItemId), false), 8 + (32), 0) + If(LayoutRank >= 2, 8 + (39 + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) * 46), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (1), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (24), 0) + If(!IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (24), 0)), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && LayoutRank < 2, 8 + (CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) * 46), 0) + If(!IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && LayoutRank < 2, 8 + (24), 0)), 0) + If(IfError(IfError(varVhpOpsTab = "pkg", false) && (varVhpPlan.PlanType = "Strategy"), false), 14 + (32 + If(IfError(varVhpShowHints, false), 0 + (24 + (Max(CountRows(Sort(
+                            )) = 0, 4 + (32), 0)), 0) + If(IfError((varVhpPlan.PlanType = "Strategy"), false), 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (168) + (168) + 6, 34, (34) + If(IfError((varVhpPlan.PlanType = "Strategy"), false), 6 + (34), 0))), 0) + If(IfError(IsBlank(varVhpOpsTab) || IfError(varVhpOpsTab = "ops", false) || (IfError(varVhpOpsTab = "pkg", false) && !(varVhpPlan.PlanType = "Strategy")), false), 14 + (26 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360)) + (199) + (186) + (190) + 36, Max((62), (36), (36), (36)), (62) + If(LayoutRank >= 2, 12 + (36), 0) + If(LayoutRank >= 2, 12 + (36), 0) + If(LayoutRank < 2, 12 + (36), 0))) + If(IfError(varVhpShowHints && !IsBlank(varVhpActiveItemId), false), 8 + (32), 0) + If(LayoutRank >= 2, 8 + (39 + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) * 46), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (1), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (24), 0) + If(!IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (24), 0)), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && LayoutRank < 2, 8 + (CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) * 46), 0) + If(!IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && LayoutRank < 2, 8 + (24), 0)), 0) + If(IfError(IfError(varVhpOpsTab = "pkg", false) && (varVhpPlan.PlanType = "Strategy"), false), 14 + (32 + If(IfError(varVhpShowHints, false), 0 + (24 + (Max(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "pkg" && Kind = "Panel"),
                                 Ord
                             )), 1) * 88) + If(CountRows(Sort(
@@ -9541,7 +9957,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =26 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360)) + (214) + (198) + (190) + 36, Max((62), (36), (36), (36)), (62) + If(LayoutRank >= 2, 12 + (36), 0) + If(LayoutRank >= 2, 12 + (36), 0) + If(LayoutRank < 2, 12 + (36), 0))) + If(IfError(varVhpShowHints && !IsBlank(varVhpActiveItemId), false), 8 + (32), 0) + If(LayoutRank >= 2, 8 + (39 + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) * 46), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (1), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (24), 0) + If(!IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (24), 0)), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && LayoutRank < 2, 8 + (CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) * 46), 0) + If(!IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && LayoutRank < 2, 8 + (24), 0)
+                                  =26 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360)) + (199) + (186) + (190) + 36, Max((62), (36), (36), (36)), (62) + If(LayoutRank >= 2, 12 + (36), 0) + If(LayoutRank >= 2, 12 + (36), 0) + If(LayoutRank < 2, 12 + (36), 0))) + If(IfError(varVhpShowHints && !IsBlank(varVhpActiveItemId), false), 8 + (32), 0) + If(LayoutRank >= 2, 8 + (39 + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) * 46), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (1), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (24), 0) + If(!IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false), 4 + (24), 0)), 0) + If(IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && LayoutRank < 2, 8 + (CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) * 46), 0) + If(!IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false) && LayoutRank < 2, 8 + (24), 0)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -9570,11 +9986,11 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360)) + (214) + (198) + (190) + 36, Max((62), (36), (36), (36)), (62) + If(LayoutRank >= 2, 12 + (36), 0) + If(LayoutRank >= 2, 12 + (36), 0) + If(LayoutRank < 2, 12 + (36), 0))
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360)) + (199) + (186) + (190) + 36, Max((62), (36), (36), (36)), (62) + If(LayoutRank >= 2, 12 + (36), 0) + If(LayoutRank >= 2, 12 + (36), 0) + If(LayoutRank < 2, 12 + (36), 0))
                                     LayoutAlignItems: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360)) + (214) + (198) + (190) + 36, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360)) + (199) + (186) + (190) + 36, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                                     LayoutDirection: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360)) + (214) + (198) + (190) + 36, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360)) + (199) + (186) + (190) + 36, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                                     LayoutGap: |-
                                         =12
                                     LayoutMinWidth: |-
@@ -9607,7 +10023,7 @@ Screens:
                                           LayoutGap: |-
                                               =6
                                           LayoutMinWidth: |-
-                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360)) + (214) + (198) + (190) + 36, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360), 0)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360)) + (199) + (186) + (190) + 36, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360), 0)
                                           LayoutOverflowX: |-
                                               =LayoutOverflow.Hide
                                           LayoutOverflowY: |-
@@ -9773,11 +10189,11 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Add Lines from Tasklist"
+                                              ="Add lines from the tasklist"
                                           Align: |-
                                               =Align.Center
                                           AlignInContainer: |-
-                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360)) + (214) + (198) + (190) + 36, AlignInContainer.End, AlignInContainer.Start)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360)) + (199) + (186) + (190) + 36, AlignInContainer.End, AlignInContainer.Start)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           Color: |-
@@ -9790,10 +10206,12 @@ Screens:
                                               =FontWeight.Semibold
                                           Height: |-
                                               =36
+                                          Icon: |-
+                                              ="Add"
                                           Layout: |-
-                                              =ButtonLayout.TextOnly
+                                              =ButtonLayout.IconBefore
                                           LayoutMinWidth: |-
-                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360)) + (214) + (198) + (190) + 36, 214, 0)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360)) + (199) + (186) + (190) + 36, 199, 0)
                                           OnSelect: |-
                                               =If(
                                                   IsBlank(varVhpActiveItemId),
@@ -9817,22 +10235,24 @@ Screens:
                                           Size: |-
                                               =14
                                           Text: |-
-                                              ="Add Lines from Tasklist"
+                                              ="Lines from tasklist"
+                                          Tooltip: |-
+                                              ="Add operation lines from the selected tasklist"
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Visible: |-
                                               =LayoutRank >= 2
                                           Width: |-
-                                              =214
+                                              =199
                                     - btnVhpAddOperation:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Add Manual Operation"
+                                              ="Add a manual operation"
                                           Align: |-
                                               =Align.Center
                                           AlignInContainer: |-
-                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360)) + (214) + (198) + (190) + 36, AlignInContainer.End, AlignInContainer.Start)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360)) + (199) + (186) + (190) + 36, AlignInContainer.End, AlignInContainer.Start)
                                           Appearance: |-
                                               =ButtonAppearance.Outline
                                           BorderColor: |-
@@ -9849,10 +10269,12 @@ Screens:
                                               =FontWeight.Semibold
                                           Height: |-
                                               =36
+                                          Icon: |-
+                                              ="Add"
                                           Layout: |-
-                                              =ButtonLayout.TextOnly
+                                              =ButtonLayout.IconBefore
                                           LayoutMinWidth: |-
-                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360)) + (214) + (198) + (190) + 36, 198, 0)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360)) + (199) + (186) + (190) + 36, 186, 0)
                                           OnSelect: |-
                                               =If(
                                                   IsBlank(varVhpActiveItemId),
@@ -9891,20 +10313,22 @@ Screens:
                                           Size: |-
                                               =14
                                           Text: |-
-                                              ="Add Manual Operation"
+                                              ="Manual operation"
+                                          Tooltip: |-
+                                              ="Add an empty operation line you fill in yourself"
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Visible: |-
                                               =LayoutRank >= 2
                                           Width: |-
-                                              =198
+                                              =186
                                     - drpVhpOpsActions:
                                         Control: ModernDropdown
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Tasklist actions"
                                           AlignInContainer: |-
-                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360)) + (214) + (198) + (190) + 36, AlignInContainer.End, AlignInContainer.Start)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360)) + (199) + (186) + (190) + 36, AlignInContainer.End, AlignInContainer.Start)
                                           Appearance: |-
                                               =Appearance.FilledDarker
                                           BasePaletteColor: |-
@@ -9932,7 +10356,7 @@ Screens:
                                           Items: |-
                                               =Table({ Value: "Add lines from tasklist" }, { Value: "Add manual operation" })
                                           LayoutMinWidth: |-
-                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360)) + (214) + (198) + (190) + 36, 190, 0)
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360)) + (199) + (186) + (190) + 36, 190, 0)
                                           OnChange: |-
                                               =Switch(
                                                   Self.Selected.Value,
@@ -17860,6 +18284,10 @@ Screens:
                             Set(varVhpPlanCreatedAt, Blank());
                             Set(varVhpPlanValidated, false);
                             Set(varVhpItemValidated, false);
+                            // Hvor planen er EFTER Submit: Status og ApprovalStage fra MaintenancePlans
+                            // (docs/32-godkendelsesflow.md). Tom = ikke indsendt. Progressbaren skifter
+                            // til godkendelses- og SAP-trinene, naar Status er indsendt (build_status).
+                            Set(varVhpFlow, { Status: "", Stage: "", ReturnComment: "" });
                             // Appen aabner med EET item, der allerede er valgt. Item Editoren stod
                             // foer tom og skrivebeskyttet (DM_ITEM slaar fra paa tomt
                             // varVhpActiveItemId), saa det foerste man moedte var en raekke graa felter
