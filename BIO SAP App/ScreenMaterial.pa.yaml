@@ -4,246 +4,13 @@ Screens:
       Fill: |-
           =C.'bg-app'
       OnVisible: |-
-          =IfError(
-              // Har en sletning roert det, skaermen viser? (tools/request_delete.py)
-              Set(varMatStaleNow, Coalesce(gblMatStale, false));
-              If(
-                  varMatStaleNow,
-                  Set(gblMatStale, false);
-                  If(
-                      !IsBlank(varMatRequestGuid) && IsBlank(LookUp(MD_RequestIndex, RequestGuid = varMatRequestGuid)),
-                      Set(gblMatWant, Blank());
-                      Set(varMatOpened, "")
-                  )
-              );
-          
-              // DEN SAMLEDE APP: klargoer skaermen, naar hubben eller et dyblink
-              // beder om noget andet end det, den viser. Se BIO SAP App/build/
-              // build_screens.py, open_block().
-              With(
-                  { wantKey: If(
-                      gblNavTo = "Mat",
-                      "new:0",
-                      Coalesce(
-                      gblMatWant,
-                      If(Lower(Param("domain")) = "material", "link:" & Param("reqid")),
-                      "new"
-                  )
-                  ) },
-                  If(
-                      wantKey <> Coalesce(varMatOpened, ""),
-                      Set(varMatLoading, true);
-                      Set(varMatOpened, wantKey);
-                      Set(
-                          gblMatReqId,
-                          If(StartsWith(wantKey, "req:"), Mid(wantKey, 5),
-                             StartsWith(wantKey, "edit:"), Mid(wantKey, 6),
-                             StartsWith(wantKey, "link:"), Mid(wantKey, 6), "")
-                      );
-                      Set(gblMatMode, If(StartsWith(wantKey, "edit:") || (StartsWith(wantKey, "link:") && Lower(Coalesce(Param("mode"), "")) = "edit"), "edit", "view"));
-                      If(false, ClearCollect(colMatRows, { RowId: 0, ItemKey: "", RequestNo: "", Status: "", FileCount: 0, MaterialDescription: "", Plant: "", FunctionalLocation: "", NoBomItem: false, Manufacturer: "", ModelNumber: "", ManufacturerPartNo: "", Supplier: "", SupplierPartNo: "", DeliveringTime: 0, Price: 0, PriceUnit: "", StockUnit: "", RecommendedStock: 0, StrategicPart: "", WearPart: "" }));
-          
-                      If(false, ClearCollect(colMatAttachments, { RowId: 0, FileName: "", FileUrl: "", Identifier: "", Selected: false }));
-          
-                      If(false, ClearCollect(colMatAttUp, { Name: "", Ok: false }));
-          
-                      If(false, ClearCollect(colMatFl, { Code: "", Description: "", Display: "", Maintainable: false, Level: "" }));
-          
-                      Set(varMatMe, Lower(User().Email));
-                      Set(varMatRequestNo, "");
-                      Set(varMatRequestGuid, "");
-                      Set(varMatViewOnly, false);
-                      Set(varMatBadgeOn, false);
-                      Set(varMatCanEdit, false);
-                      // Hvilken raekke detaljeruden viser. Blank = ruden er skjult.
-                      Set(varMatDetailsId, Blank());
-                      // Sletning sker bag en bekraeftelse: hvilken raekke, og om den er aaben.
-                      Set(varMatDeleteId, Blank());
-                      Set(varMatConfirmDelete, false);
-                      // Hvilken raekke dokumentpopuppen viser. Blank = lukket.
-                      Set(varMatDocsId, Blank());
-                      Set(varMatAttJson, "");
-                      Set(varMatFlMsg, "");
-                      Set(varMatFlBusy, false);
-                      // Listen: false = Compact, true = All columns (issue #67/#68).
-                      Set(varMatAllCols, false);
-                      Set(varMatActiveRowId, Blank());
-                      Set(varMatRowStatus, "valid");
-                      Set(varMatValidated, false);
-                      Set(varMatFText, "");
-                      Set(varMatFPlant, "");
-                      Set(varMatFFunctionalLocation, "");
-                      Set(varMatFNoBomItem, false);
-                      Set(varMatFManufacturer, "");
-                      Set(varMatFModelNumber, "");
-                      Set(varMatFManufacturerPartNo, "");
-                      Set(varMatFSupplier, "");
-                      Set(varMatFSupplierPartNo, "");
-                      Set(varMatFDeliveringTime, Blank());
-                      Set(varMatFPrice, Blank());
-                      Set(varMatFPriceUnit, "");
-                      Set(varMatFStockUnit, "");
-                      Set(varMatFRecommendedStock, Blank());
-                      Set(varMatFStrategicPart, "");
-                      Set(varMatFWearPart, "");
-                      Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
-                      Set(varMatInfo, "");
-                      If(
-                          !IsBlank(gblMatReqId) && varMatRequestGuid <> gblMatReqId,
-                          Set(varMatRequestGuid, gblMatReqId);
-                          Set(varMatIdx, LookUp(MD_RequestIndex, RequestGuid = varMatRequestGuid));
-                          If(
-                              IsBlank(varMatIdx),
-                              Notify("Could not find the request behind this link. Rows you save start a new request.",
-                                  NotificationType.Warning);
-                              Set(varMatRequestGuid, ""); Set(varMatRequestNo, ""),
-                              varMatIdx.Status.Value = "Indsendt",
-                              Notify("Request " & varMatIdx.RequestNo & " is already submitted. Rows you save start a new request.",
-                                  NotificationType.Information);
-                              Set(varMatRequestGuid, ""); Set(varMatRequestNo, ""),
-                              Set(varMatRequestNo, varMatIdx.RequestNo);
-                              Set(varMatCanEdit, ((Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe && (varMatIdx.Status.Value = "Kladde")) || (IsAdmin && (varMatIdx.Status.Value = "Kladde" || varMatIdx.Status.Value = "AfventerInfo"))));
-                              Set(varMatViewOnly, !(Lower(Coalesce(gblMatMode, "")) = "edit" && varMatCanEdit))
-                          )
-                      );
-                      If(
-                          (!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)),
-                          ClearCollect(
-                              colMatRows,
-                              ForAll(
-                                  SortByColumns(Filter(MaterialItems, RequestGuid = varMatRequestGuid), "Created", SortOrder.Descending) As R,
-                                  {
-                                      RowId: R.ID,
-                                      ItemKey: Coalesce(R.ItemKey, ""),
-                                      RequestNo: Coalesce(R.RequestNo, ""),
-                                      Status: Coalesce(R.RowStatus.Value, "valid"),
-                                      FileCount: Coalesce(R.FileCount, 0),
-                                      MaterialDescription: Coalesce(R.MaterialDescription, ""),
-                                      Plant: Coalesce(R.Plant, ""),
-                                      FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                      NoBomItem: Coalesce(R.NoBomItem, false),
-                                      Manufacturer: Coalesce(R.Manufacturer, ""),
-                                      ModelNumber: Coalesce(R.ModelNumber, ""),
-                                      ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
-                                      Supplier: Coalesce(R.Supplier, ""),
-                                      SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
-                                      DeliveringTime: R.DeliveringTime,
-                                      Price: R.Price,
-                                      PriceUnit: Coalesce(R.PriceUnit, ""),
-                                      StockUnit: Coalesce(R.StockUnit, ""),
-                                      RecommendedStock: R.RecommendedStock,
-                                      StrategicPart: Coalesce(R.StrategicPart, ""),
-                                      WearPart: Coalesce(R.WearPart, "")
-                                  }
-                              )
-                          ),
-                          ClearCollect(
-                              colMatRows,
-                              ForAll(
-                                  SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe), "Created", SortOrder.Descending) As R,
-                                  {
-                                      RowId: R.ID,
-                                      ItemKey: Coalesce(R.ItemKey, ""),
-                                      RequestNo: Coalesce(R.RequestNo, ""),
-                                      Status: Coalesce(R.RowStatus.Value, "valid"),
-                                      FileCount: Coalesce(R.FileCount, 0),
-                                      MaterialDescription: Coalesce(R.MaterialDescription, ""),
-                                      Plant: Coalesce(R.Plant, ""),
-                                      FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                      NoBomItem: Coalesce(R.NoBomItem, false),
-                                      Manufacturer: Coalesce(R.Manufacturer, ""),
-                                      ModelNumber: Coalesce(R.ModelNumber, ""),
-                                      ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
-                                      Supplier: Coalesce(R.Supplier, ""),
-                                      SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
-                                      DeliveringTime: R.DeliveringTime,
-                                      Price: R.Price,
-                                      PriceUnit: Coalesce(R.PriceUnit, ""),
-                                      StockUnit: Coalesce(R.StockUnit, ""),
-                                      RecommendedStock: R.RecommendedStock,
-                                      StrategicPart: Coalesce(R.StrategicPart, ""),
-                                      WearPart: Coalesce(R.WearPart, "")
-                                  }
-                              )
-                          )
-                      )
-                  )
-              );
-          
-              If(
-                  varMatStaleNow,
-                  If(
-                      (!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)),
-                      ClearCollect(
-                          colMatRows,
-                          ForAll(
-                              SortByColumns(Filter(MaterialItems, RequestGuid = varMatRequestGuid), "Created", SortOrder.Descending) As R,
-                              {
-                                  RowId: R.ID,
-                                  ItemKey: Coalesce(R.ItemKey, ""),
-                                  RequestNo: Coalesce(R.RequestNo, ""),
-                                  Status: Coalesce(R.RowStatus.Value, "valid"),
-                                  FileCount: Coalesce(R.FileCount, 0),
-                                  MaterialDescription: Coalesce(R.MaterialDescription, ""),
-                                  Plant: Coalesce(R.Plant, ""),
-                                  FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                  NoBomItem: Coalesce(R.NoBomItem, false),
-                                  Manufacturer: Coalesce(R.Manufacturer, ""),
-                                  ModelNumber: Coalesce(R.ModelNumber, ""),
-                                  ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
-                                  Supplier: Coalesce(R.Supplier, ""),
-                                  SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
-                                  DeliveringTime: R.DeliveringTime,
-                                  Price: R.Price,
-                                  PriceUnit: Coalesce(R.PriceUnit, ""),
-                                  StockUnit: Coalesce(R.StockUnit, ""),
-                                  RecommendedStock: R.RecommendedStock,
-                                  StrategicPart: Coalesce(R.StrategicPart, ""),
-                                  WearPart: Coalesce(R.WearPart, "")
-                              }
-                          )
-                      ),
-                      ClearCollect(
-                          colMatRows,
-                          ForAll(
-                              SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe), "Created", SortOrder.Descending) As R,
-                              {
-                                  RowId: R.ID,
-                                  ItemKey: Coalesce(R.ItemKey, ""),
-                                  RequestNo: Coalesce(R.RequestNo, ""),
-                                  Status: Coalesce(R.RowStatus.Value, "valid"),
-                                  FileCount: Coalesce(R.FileCount, 0),
-                                  MaterialDescription: Coalesce(R.MaterialDescription, ""),
-                                  Plant: Coalesce(R.Plant, ""),
-                                  FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                  NoBomItem: Coalesce(R.NoBomItem, false),
-                                  Manufacturer: Coalesce(R.Manufacturer, ""),
-                                  ModelNumber: Coalesce(R.ModelNumber, ""),
-                                  ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
-                                  Supplier: Coalesce(R.Supplier, ""),
-                                  SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
-                                  DeliveringTime: R.DeliveringTime,
-                                  Price: R.Price,
-                                  PriceUnit: Coalesce(R.PriceUnit, ""),
-                                  StockUnit: Coalesce(R.StockUnit, ""),
-                                  RecommendedStock: R.RecommendedStock,
-                                  StrategicPart: Coalesce(R.StrategicPart, ""),
-                                  WearPart: Coalesce(R.WearPart, "")
-                              }
-                          )
-                      )
-                  )
-              ),
-              Notify("Could not load the saved rows. Check the connection and open the page again.",
-                  NotificationType.Error);
-              Set(varMatOpened, "")
+          =// Klargoeringen staar paa en skjult knap, saa Retry kan koere den igen
+          // (BIO SAP App/build/build_screens.py, attach_open). Sloeret taendes
+          // her med det samme, naar der tydeligvis skal klargoeres.
+          If(IsBlank(varMatOpened) || If(gblNavTo = "Mat", "new:0", Coalesce(gblMatWant, varMatOpened)) <> varMatOpened,
+              Set(varMatLoading, true)
           );
-          
-          // Klar - ventespinneren forsvinder.
-          Set(varMatBadgeOn, StartsWith(Coalesce(varMatOpened, ""), "req:") || StartsWith(Coalesce(varMatOpened, ""), "edit:") || StartsWith(Coalesce(varMatOpened, ""), "link:"));
-          Set(varMatLoading, false);
-          Set(gblNavigating, false);
-          Set(gblNavTo, "")
+          Select(btnMatOpen)
     Children:
       - conMatRoot:
           Control: GroupContainer
@@ -2506,7 +2273,7 @@ Screens:
                                                 Default: |-
                                                     =If(IsBlank(varMatActiveRowId), "Save the row first", Text(Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).FileCount, 0)) & " document(s)")
                                                 DisplayMode: |-
-                                                    =If((If(varMatViewOnly, DisplayMode.View, If((DisplayMode.View) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                    =If((DisplayMode.View) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(DisplayMode.View = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 FillPortions: |-
@@ -4802,8 +4569,6 @@ Screens:
                                         =C.'input-fg'
                                     Default: |-
                                         =""
-                                    DisplayMode: |-
-                                        =If((If(varMatViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                     Fill: |-
                                         =C.'input-bg'
                                     Font: |-
@@ -4847,8 +4612,6 @@ Screens:
                                         =C.'input-fg'
                                     Default: |-
                                         =LookUp(["All status", "Draft", "Valid", "Submitted"] As _dd, _dd.Value = ("All status"))
-                                    DisplayMode: |-
-                                        =If((If(varMatViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                     Fill: |-
                                         =C.'input-bg'
                                     Font: |-
@@ -4898,8 +4661,6 @@ Screens:
                                                   { Rows: Sort(Distinct(Filter(colMatRows, !IsBlank(Plant)), Plant), Value) }),
                                             Rows
                                         ) As _dd, _dd.Value = ("All plants"))
-                                    DisplayMode: |-
-                                        =If((If(varMatViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                     Fill: |-
                                         =C.'input-bg'
                                     Font: |-
@@ -13469,7 +13230,7 @@ Screens:
             Height: |-
                 =App.Height
             Image: |-
-                ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><g opacity='0' transform='translate(0 0)'><animate attributeName='opacity' from='0' to='1' begin='0.15s' dur='0.2s' fill='freeze'/><circle cx='32' cy='32' r='22' fill='none' stroke-width='6' stroke='" & C.'hex-state-neutral-bg' & "'/><path d='M32 10 a22 22 0 0 1 22 22' fill='none' stroke-width='6' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'><animateTransform attributeName='transform' type='rotate' from='0 32 32' to='360 32 32' dur='0.9s' repeatCount='indefinite'/></path></g></svg>")
+                ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><style>.f{opacity:0;animation:f .2s ease-out 0.15s forwards}.s{transform-origin:32px 32px;animation:s .9s linear infinite}@keyframes f{to{opacity:1}}@keyframes s{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.s{animation:none}}</style><g class='f' transform='translate(0 0)'><circle cx='32' cy='32' r='22' fill='none' stroke-width='6' stroke='" & C.'hex-state-neutral-bg' & "'/><path class='s' d='M32 10 a22 22 0 0 1 22 22' fill='none' stroke-width='6' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'/></g></svg>")
             ImagePosition: |-
                 =ImagePosition.Center
             TabIndex: |-
@@ -13478,6 +13239,299 @@ Screens:
                 =IfError(varMatSaving, false)
             Width: |-
                 =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - btnMatOpen:
+          Control: ModernButton
+          Properties:
+            AccessibleLabel: |-
+                ="Open the request"
+            Align: |-
+                =Align.Center
+            AlignInContainer: |-
+                =AlignInContainer.Center
+            Appearance: |-
+                =ButtonAppearance.Outline
+            BorderColor: |-
+                =C.'border-default'
+            BorderThickness: |-
+                =1
+            Color: |-
+                =C.'text-primary'
+            Font: |-
+                =Font.'Segoe UI'
+            FontWeight: |-
+                =FontWeight.Semibold
+            Height: |-
+                =36
+            Layout: |-
+                =ButtonLayout.TextOnly
+            OnSelect: |-
+                =IfError(
+                    // Har en sletning roert det, skaermen viser? (tools/request_delete.py)
+                    Set(varMatStaleNow, Coalesce(gblMatStale, false));
+                    If(
+                        varMatStaleNow,
+                        Set(gblMatStale, false);
+                        If(
+                            !IsBlank(varMatRequestGuid) && IsBlank(LookUp(MD_RequestIndex, RequestGuid = varMatRequestGuid)),
+                            Set(gblMatWant, Blank());
+                            Set(varMatOpened, "")
+                        )
+                    );
+                
+                    // DEN SAMLEDE APP: klargoer skaermen, naar hubben eller et dyblink
+                    // beder om noget andet end det, den viser. Se BIO SAP App/build/
+                    // build_screens.py, open_block().
+                    With(
+                        { wantKey: If(
+                            gblNavTo = "Mat",
+                            "new:0",
+                            Coalesce(
+                            gblMatWant,
+                            If(Lower(Param("domain")) = "material", "link:" & Param("reqid")),
+                            "new"
+                        )
+                        ) },
+                        If(
+                            wantKey <> Coalesce(varMatOpened, ""),
+                            Set(varMatLoading, true);
+                            Set(varMatOpened, wantKey);
+                            Set(
+                                gblMatReqId,
+                                If(StartsWith(wantKey, "req:"), Mid(wantKey, 5),
+                                   StartsWith(wantKey, "edit:"), Mid(wantKey, 6),
+                                   StartsWith(wantKey, "link:"), Mid(wantKey, 6), "")
+                            );
+                            Set(gblMatMode, If(StartsWith(wantKey, "edit:") || (StartsWith(wantKey, "link:") && Lower(Coalesce(Param("mode"), "")) = "edit"), "edit", "view"));
+                            // Live status (issue #92): the first step is the request itself.
+                            Set(varMatLoadFailed, false);
+                            Set(varMatLoadSlow, false);
+                            Set(varMatLoadStep, If(IsBlank(gblMatReqId), "Setting up a new request", "Finding the request"));
+                            If(false, ClearCollect(colMatRows, { RowId: 0, ItemKey: "", RequestNo: "", Status: "", FileCount: 0, MaterialDescription: "", Plant: "", FunctionalLocation: "", NoBomItem: false, Manufacturer: "", ModelNumber: "", ManufacturerPartNo: "", Supplier: "", SupplierPartNo: "", DeliveringTime: 0, Price: 0, PriceUnit: "", StockUnit: "", RecommendedStock: 0, StrategicPart: "", WearPart: "" }));
+                
+                            If(false, ClearCollect(colMatAttachments, { RowId: 0, FileName: "", FileUrl: "", Identifier: "", Selected: false }));
+                
+                            If(false, ClearCollect(colMatAttUp, { Name: "", Ok: false }));
+                
+                            If(false, ClearCollect(colMatFl, { Code: "", Description: "", Display: "", Maintainable: false, Level: "" }));
+                
+                            Set(varMatMe, Lower(User().Email));
+                            Set(varMatRequestNo, "");
+                            Set(varMatRequestGuid, "");
+                            Set(varMatViewOnly, false);
+                            Set(varMatBadgeOn, false);
+                            Set(varMatCanEdit, false);
+                            // Hvilken raekke detaljeruden viser. Blank = ruden er skjult.
+                            Set(varMatDetailsId, Blank());
+                            // Sletning sker bag en bekraeftelse: hvilken raekke, og om den er aaben.
+                            Set(varMatDeleteId, Blank());
+                            Set(varMatConfirmDelete, false);
+                            // Hvilken raekke dokumentpopuppen viser. Blank = lukket.
+                            Set(varMatDocsId, Blank());
+                            Set(varMatAttJson, "");
+                            Set(varMatFlMsg, "");
+                            Set(varMatFlBusy, false);
+                            // Listen: false = Compact, true = All columns (issue #67/#68).
+                            Set(varMatAllCols, false);
+                            Set(varMatActiveRowId, Blank());
+                            Set(varMatRowStatus, "valid");
+                            Set(varMatValidated, false);
+                            Set(varMatFText, "");
+                            Set(varMatFPlant, "");
+                            Set(varMatFFunctionalLocation, "");
+                            Set(varMatFNoBomItem, false);
+                            Set(varMatFManufacturer, "");
+                            Set(varMatFModelNumber, "");
+                            Set(varMatFManufacturerPartNo, "");
+                            Set(varMatFSupplier, "");
+                            Set(varMatFSupplierPartNo, "");
+                            Set(varMatFDeliveringTime, Blank());
+                            Set(varMatFPrice, Blank());
+                            Set(varMatFPriceUnit, "");
+                            Set(varMatFStockUnit, "");
+                            Set(varMatFRecommendedStock, Blank());
+                            Set(varMatFStrategicPart, "");
+                            Set(varMatFWearPart, "");
+                            Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
+                            Set(varMatInfo, "");
+                            If(
+                                !IsBlank(gblMatReqId) && varMatRequestGuid <> gblMatReqId,
+                                Set(varMatRequestGuid, gblMatReqId);
+                                Set(varMatIdx, LookUp(MD_RequestIndex, RequestGuid = varMatRequestGuid));
+                                If(
+                                    IsBlank(varMatIdx),
+                                    Notify("Could not find the request behind this link. Rows you save start a new request.",
+                                        NotificationType.Warning);
+                                    Set(varMatRequestGuid, ""); Set(varMatRequestNo, ""),
+                                    varMatIdx.Status.Value = "Indsendt",
+                                    Notify("Request " & varMatIdx.RequestNo & " is already submitted. Rows you save start a new request.",
+                                        NotificationType.Information);
+                                    Set(varMatRequestGuid, ""); Set(varMatRequestNo, ""),
+                                    Set(varMatRequestNo, varMatIdx.RequestNo);
+                                    Set(varMatCanEdit, ((Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe && (varMatIdx.Status.Value = "Kladde")) || (IsAdmin && (varMatIdx.Status.Value = "Kladde" || varMatIdx.Status.Value = "AfventerInfo"))));
+                                    Set(varMatViewOnly, !(Lower(Coalesce(gblMatMode, "")) = "edit" && varMatCanEdit))
+                                )
+                            );
+                            Set(varMatLoadStep, "Loading saved rows");
+                            If(
+                                (!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)),
+                                ClearCollect(
+                                    colMatRows,
+                                    ForAll(
+                                        SortByColumns(Filter(MaterialItems, RequestGuid = varMatRequestGuid), "Created", SortOrder.Descending) As R,
+                                        {
+                                            RowId: R.ID,
+                                            ItemKey: Coalesce(R.ItemKey, ""),
+                                            RequestNo: Coalesce(R.RequestNo, ""),
+                                            Status: Coalesce(R.RowStatus.Value, "valid"),
+                                            FileCount: Coalesce(R.FileCount, 0),
+                                            MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                            Plant: Coalesce(R.Plant, ""),
+                                            FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                            NoBomItem: Coalesce(R.NoBomItem, false),
+                                            Manufacturer: Coalesce(R.Manufacturer, ""),
+                                            ModelNumber: Coalesce(R.ModelNumber, ""),
+                                            ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                            Supplier: Coalesce(R.Supplier, ""),
+                                            SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                            DeliveringTime: R.DeliveringTime,
+                                            Price: R.Price,
+                                            PriceUnit: Coalesce(R.PriceUnit, ""),
+                                            StockUnit: Coalesce(R.StockUnit, ""),
+                                            RecommendedStock: R.RecommendedStock,
+                                            StrategicPart: Coalesce(R.StrategicPart, ""),
+                                            WearPart: Coalesce(R.WearPart, "")
+                                        }
+                                    )
+                                ),
+                                ClearCollect(
+                                    colMatRows,
+                                    ForAll(
+                                        SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe), "Created", SortOrder.Descending) As R,
+                                        {
+                                            RowId: R.ID,
+                                            ItemKey: Coalesce(R.ItemKey, ""),
+                                            RequestNo: Coalesce(R.RequestNo, ""),
+                                            Status: Coalesce(R.RowStatus.Value, "valid"),
+                                            FileCount: Coalesce(R.FileCount, 0),
+                                            MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                            Plant: Coalesce(R.Plant, ""),
+                                            FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                            NoBomItem: Coalesce(R.NoBomItem, false),
+                                            Manufacturer: Coalesce(R.Manufacturer, ""),
+                                            ModelNumber: Coalesce(R.ModelNumber, ""),
+                                            ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                            Supplier: Coalesce(R.Supplier, ""),
+                                            SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                            DeliveringTime: R.DeliveringTime,
+                                            Price: R.Price,
+                                            PriceUnit: Coalesce(R.PriceUnit, ""),
+                                            StockUnit: Coalesce(R.StockUnit, ""),
+                                            RecommendedStock: R.RecommendedStock,
+                                            StrategicPart: Coalesce(R.StrategicPart, ""),
+                                            WearPart: Coalesce(R.WearPart, "")
+                                        }
+                                    )
+                                )
+                            )
+                        )
+                    );
+                
+                    If(
+                        varMatStaleNow,
+                        If(
+                            (!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)),
+                            ClearCollect(
+                                colMatRows,
+                                ForAll(
+                                    SortByColumns(Filter(MaterialItems, RequestGuid = varMatRequestGuid), "Created", SortOrder.Descending) As R,
+                                    {
+                                        RowId: R.ID,
+                                        ItemKey: Coalesce(R.ItemKey, ""),
+                                        RequestNo: Coalesce(R.RequestNo, ""),
+                                        Status: Coalesce(R.RowStatus.Value, "valid"),
+                                        FileCount: Coalesce(R.FileCount, 0),
+                                        MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                        Plant: Coalesce(R.Plant, ""),
+                                        FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                        NoBomItem: Coalesce(R.NoBomItem, false),
+                                        Manufacturer: Coalesce(R.Manufacturer, ""),
+                                        ModelNumber: Coalesce(R.ModelNumber, ""),
+                                        ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                        Supplier: Coalesce(R.Supplier, ""),
+                                        SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                        DeliveringTime: R.DeliveringTime,
+                                        Price: R.Price,
+                                        PriceUnit: Coalesce(R.PriceUnit, ""),
+                                        StockUnit: Coalesce(R.StockUnit, ""),
+                                        RecommendedStock: R.RecommendedStock,
+                                        StrategicPart: Coalesce(R.StrategicPart, ""),
+                                        WearPart: Coalesce(R.WearPart, "")
+                                    }
+                                )
+                            ),
+                            ClearCollect(
+                                colMatRows,
+                                ForAll(
+                                    SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe), "Created", SortOrder.Descending) As R,
+                                    {
+                                        RowId: R.ID,
+                                        ItemKey: Coalesce(R.ItemKey, ""),
+                                        RequestNo: Coalesce(R.RequestNo, ""),
+                                        Status: Coalesce(R.RowStatus.Value, "valid"),
+                                        FileCount: Coalesce(R.FileCount, 0),
+                                        MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                        Plant: Coalesce(R.Plant, ""),
+                                        FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                        NoBomItem: Coalesce(R.NoBomItem, false),
+                                        Manufacturer: Coalesce(R.Manufacturer, ""),
+                                        ModelNumber: Coalesce(R.ModelNumber, ""),
+                                        ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                        Supplier: Coalesce(R.Supplier, ""),
+                                        SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                        DeliveringTime: R.DeliveringTime,
+                                        Price: R.Price,
+                                        PriceUnit: Coalesce(R.PriceUnit, ""),
+                                        StockUnit: Coalesce(R.StockUnit, ""),
+                                        RecommendedStock: R.RecommendedStock,
+                                        StrategicPart: Coalesce(R.StrategicPart, ""),
+                                        WearPart: Coalesce(R.WearPart, "")
+                                    }
+                                )
+                            )
+                        )
+                    ),
+                    Set(varMatLoadFailed, true);
+                    Set(varMatOpened, "")
+                );
+                
+                // Klar - ventespinneren forsvinder.
+                Set(varMatBadgeOn, StartsWith(Coalesce(varMatOpened, ""), "req:") || StartsWith(Coalesce(varMatOpened, ""), "edit:") || StartsWith(Coalesce(varMatOpened, ""), "link:"));
+                Set(varMatLoading, false);
+                Set(varMatLoadSlow, false);
+                Set(gblNavigating, false);
+                Set(gblNavTo, "")
+            RadiusBottomLeft: |-
+                =10
+            RadiusBottomRight: |-
+                =10
+            RadiusTopLeft: |-
+                =10
+            RadiusTopRight: |-
+                =10
+            Size: |-
+                =14
+            Text: |-
+                ="Open"
+            VerticalAlign: |-
+                =VerticalAlign.Middle
+            Visible: |-
+                =false
+            Width: |-
+                =72
             X: |-
                 =0
             Y: |-
@@ -13496,16 +13550,332 @@ Screens:
             Height: |-
                 =App.Height
             Image: |-
-                ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='440' height='100' viewBox='0 0 440 100'><g opacity='0' transform='translate(188 0)'><text x='32' y='88' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>Opening request - checking edit or view mode...</text><animate attributeName='opacity' from='0' to='1' begin='0.15s' dur='0.2s' fill='freeze'/><circle cx='32' cy='32' r='22' fill='none' stroke-width='6' stroke='" & C.'hex-state-neutral-bg' & "'/><path d='M32 10 a22 22 0 0 1 22 22' fill='none' stroke-width='6' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'><animateTransform attributeName='transform' type='rotate' from='0 32 32' to='360 32 32' dur='0.9s' repeatCount='indefinite'/></path></g></svg>")
-            ImagePosition: |-
-                =ImagePosition.Center
+                =""
             TabIndex: |-
                 =-1
             Visible: |-
-                =IfError(varMatLoading, false)
+                =IfError(varMatLoading, false) || IfError(varMatLoadFailed, false)
             Width: |-
                 =App.Width
             X: |-
                 =0
             Y: |-
                 =0
+      - conMatLoadCard:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'border-default'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.Bold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =178 + If(IfError(varMatLoadFailed, false), 6 + (36), 0)
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Stretch
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =6
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =18
+            PaddingLeft: |-
+                =20
+            PaddingRight: |-
+                =20
+            PaddingTop: |-
+                =22
+            RadiusBottomLeft: |-
+                =16
+            RadiusBottomRight: |-
+                =16
+            RadiusTopLeft: |-
+                =16
+            RadiusTopRight: |-
+                =16
+            Visible: |-
+                =IfError(varMatLoading, false) || IfError(varMatLoadFailed, false)
+            Width: |-
+                =Min(360, App.Width - 32)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =(App.Height - Self.Height) / 2
+          Children:
+            - imgMatLoadIcon:
+                Control: Image
+                Properties:
+                  AccessibleLabel: |-
+                      =If(IfError(varMatLoadFailed, false), "Error", "Loading")
+                  AlignInContainer: |-
+                      =AlignInContainer.Center
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Height: |-
+                      =40
+                  Image: |-
+                      =If(IfError(varMatLoadFailed, false), "data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><circle cx='20' cy='20' r='16' fill='none' stroke-width='3' stroke='" & C.'hex-state-error-fg' & "'/><path d='M20 12 V22' stroke='" & C.'hex-state-error-fg' & "' stroke-width='4' stroke-linecap='round'/><circle cx='20' cy='29' r='3' fill='" & C.'hex-state-error-fg' & "'/></svg>"), "data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><style>.f{opacity:0;animation:f .2s ease-out 0.15s forwards}.s{transform-origin:20px 20px;animation:s .9s linear infinite}@keyframes f{to{opacity:1}}@keyframes s{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.s{animation:none}}</style><g class='f' transform='translate(0 0)'><circle cx='20' cy='20' r='12' fill='none' stroke-width='4' stroke='" & C.'hex-state-neutral-bg' & "'/><path class='s' d='M20 8 a12 12 0 0 1 12 12' fill='none' stroke-width='4' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'/></g></svg>"))
+                  ImagePosition: |-
+                      =ImagePosition.Fit
+                  TabIndex: |-
+                      =-1
+                  Width: |-
+                      =40
+            - txtMatLoadTitle:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  Align: |-
+                      =Align.Center
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-primary'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  FontWeight: |-
+                      =FontWeight.Semibold
+                  Height: |-
+                      =26
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =17
+                  Text: |-
+                      =If(IfError(varMatLoadFailed, false), "Could not open the request", IsBlank(gblMatReqId), "Preparing a new request", "Opening request")
+                  Wrap: |-
+                      =false
+            - txtMatLoadStep:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  Align: |-
+                      =Align.Center
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =20
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =13
+                  Text: |-
+                      =If(IfError(varMatLoadFailed, false), "Stopped while " & Lower(Left(Coalesce(varMatLoadStep, ""), 1)) & Mid(Coalesce(varMatLoadStep, ""), 2), Coalesce(varMatLoadStep, ""))
+                  Wrap: |-
+                      =false
+            - txtMatLoadHint:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  Align: |-
+                      =Align.Center
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =34
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =12
+                  Text: |-
+                      =If(IfError(varMatLoadFailed, false), "Check your connection and try again.", IfError(varMatLoadSlow, false) && IfError(varMatLoading, false), "Taking longer than usual. " & Switch(Coalesce(varMatLoadStep, ""), "Finding the request", "The request list is responding slowly.", "Loading plan details", "Still waiting for the plan details.", "Loading items and operations", "Plans with many items and operations take longer.", "Loading materials and documents", "Plans with many materials and documents take longer.", "Loading standard task lists", "Standard task lists load once per session.", "Loading functional locations", "Requests with many rows take longer to load.", "Loading saved rows", "Many saved rows take longer to load.", "Still working on it."), "")
+                  Wrap: |-
+                      =true
+            - conMatLoadActions:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =36
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =8
+                  LayoutJustifyContent: |-
+                      =LayoutJustifyContent.Center
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Visible: |-
+                      =IfError(varMatLoadFailed, false)
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - btnMatLoadClose:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-default'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varMatLoadFailed, false);
+                            Set(gblMatWant, Blank());
+                            Set(varMatOpened, "");
+                            Navigate(ScreenMdHub, ScreenTransition.None)
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =14
+                        Text: |-
+                            ="Close"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =77
+                  - btnMatLoadRetry:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Retry"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
+                        Color: |-
+                            =C.'text-on-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varMatLoadFailed, false);
+                            Set(varMatLoadSlow, false);
+                            Set(varMatOpened, "");
+                            Set(varMatLoading, true);
+                            Select(btnMatOpen)
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =14
+                        Text: |-
+                            ="Retry"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =73
+      - tmrMatLoadSlow:
+          Control: Timer
+          Properties:
+            AutoPause: |-
+                =false
+            AutoStart: |-
+                =false
+            Duration: |-
+                =6000
+            Height: |-
+                =1
+            OnTimerEnd: |-
+                =Set(varMatLoadSlow, true)
+            Repeat: |-
+                =false
+            Reset: |-
+                =!IfError(varMatLoading, false)
+            Start: |-
+                =IfError(varMatLoading, false)
+            Visible: |-
+                =false
+            Width: |-
+                =1

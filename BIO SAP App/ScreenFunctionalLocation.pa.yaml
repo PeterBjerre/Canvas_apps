@@ -4,178 +4,13 @@ Screens:
       Fill: |-
           =C.'bg-app'
       OnVisible: |-
-          =IfError(
-              // Har en sletning roert det, skaermen viser? (tools/request_delete.py)
-              Set(varFlStaleNow, Coalesce(gblFlStale, false));
-              If(
-                  varFlStaleNow,
-                  Set(gblFlStale, false);
-                  If(
-                      !IsBlank(varFlRequestGuid) && IsBlank(LookUp(MD_RequestIndex, RequestGuid = varFlRequestGuid)),
-                      Set(gblFlWant, Blank());
-                      Set(varFlOpened, "")
-                  )
-              );
-          
-              // DEN SAMLEDE APP: klargoer skaermen, naar hubben eller et dyblink
-              // beder om noget andet end det, den viser. Se BIO SAP App/build/
-              // build_screens.py, open_block().
-              With(
-                  { wantKey: If(
-                      gblNavTo = "Fl",
-                      "new:0",
-                      Coalesce(
-                      gblFlWant,
-                      If(Lower(Param("domain")) = "functionallocation", "link:" & Param("reqid")),
-                      "new"
-                  )
-                  ) },
-                  If(
-                      wantKey <> Coalesce(varFlOpened, ""),
-                      Set(varFlLoading, true);
-                      Set(varFlOpened, wantKey);
-                      Set(
-                          gblFlReqId,
-                          If(StartsWith(wantKey, "req:"), Mid(wantKey, 5),
-                             StartsWith(wantKey, "edit:"), Mid(wantKey, 6),
-                             StartsWith(wantKey, "link:"), Mid(wantKey, 6), "")
-                      );
-                      Set(gblFlMode, If(StartsWith(wantKey, "edit:") || (StartsWith(wantKey, "link:") && Lower(Coalesce(Param("mode"), "")) = "edit"), "edit", "view"));
-                      If(false, ClearCollect(colFlRows, { RowGuid: "", RowNo: 0, SpId: 0, FL: "", Description: "", KksType: "", AssignedClass: "", Status: "", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0, Pos: 0, FlBad: false, DescBad: false, Hint: "" }));
-          
-                      If(false, ClearCollect(colFlVals, { RowGuid: "", Field: "", Value: "" }));
-          
-                      If(false, ClearCollect(colFlIssues, { RowGuid: "", Ord: 0, Sev: "", Code: "", Field: "", Short: "", Msg: "" }));
-          
-                      If(false, ClearCollect(colFlIssuesRaw, { RowGuid: "", Ord: 0, Sev: "", Code: "", Field: "", Short: "", Msg: "" }));
-          
-                      If(false, ClearCollect(colFlCalc, { RowGuid: "", RowNo: 0, SpId: 0, FL: "", Description: "", IsBlankRow: false, KksType: "", SynIssue: "", Legacy: false, K12: "", K17: "", Cls: "", SpoolCls: "", MFlReq: "", MDup: "", MDescReq: "", MDescLen: "", MKks: "", MRules: "", MPlant: "", MFunc: "", MU: "", MBrMiss: "", MBrK17: "", MComp: "", MEq18: "", MEq12: "", MNoCls: "" }));
-          
-                      If(false, ClearCollect(colFlTmp, { RowGuid: "", RowNo: 0, SpId: 0, FL: "", Description: "", KksType: "", AssignedClass: "", Status: "", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0, Pos: 0, FlBad: false, DescBad: false, Hint: "" }));
-          
-                      If(false, ClearCollect(colFlTrm, { RowGuid: "", AnyTrm: false, Ue: false }));
-          
-                      If(false, ClearCollect(colFlDupFl, { FL: "" }));
-          
-                      If(false, ClearCollect(colFlDet, { Column: "", Field: "", Editable: false, List: "", MaxLen: 0, Value: "", Issue: "" }));
-          
-                      If(false, ClearCollect(colFlDeleted, { RowGuid: "" }));
-          
-                      If(false, ClearCollect(colFlTabs, { Key: "", Label: "" }));
-          
-                      If(false, ClearCollect(colFlSp, { RowGuid: "", ID: 0 }));
-          
-                      If(false, ClearCollect(colFlAdmOld, { RowGuid: "", RowNo: 0, FL: "", Description: "", KksType: "", AssignedClass: "" }));
-          
-                      If(false, ClearCollect(colFlSaveErrors, { Where: "", Msg: "" }));
-          
-                      If(false, ClearCollect(colFlLoad, { RowGuid: "", RowNo: 0, SpId: 0, FL: "", Description: "", KksType: "", AssignedClass: "", Status: "", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0, Json: "" }));
-          
-                      Set(varFlMe, Lower(User().Email));
-                      Set(varFlRequestGuid, "");
-                      Set(varFlRequestNo, "");
-                      // Kladde / Indsendt - som i FunctionalLocationRequests.Status.
-                      Set(varFlStatus, "");
-                      Set(varFlViewOnly, false);
-                      Set(varFlBadgeOn, false);
-                      Set(varFlCanEdit, false);
-                      Set(varFlNextRowNo, 1);
-                      // Aktiv klassefane. "ALL" som i renderClassTabs.
-                      Set(varFlTab, "ALL");
-                      // Detaljeruden: raekkens RowGuid og den klasse, den blev aabnet i.
-                      Set(varFlDetailRow, "");
-                      Set(varFlDetailClass, "");
-                      Set(varFlShowEmpty, false);
-                      // Er der aendret noget siden sidste validering? Submit kraever false (FL68).
-                      Set(varFlStale, false);
-                      // Kun fejl ved gem/indsend - vist under Validation-tabellen (issue #77).
-                      Set(varFlInfo, "");
-                      Set(varFlPayload, "");
-                      Set(varFlReq, Blank());
-                      Set(varFlIdx, Blank());
-                      Set(varFlMe, Lower(User().Email));
-                      If(
-                          !IsBlank(gblFlReqId) && varFlRequestGuid <> gblFlReqId,
-                          Set(varFlRequestGuid, gblFlReqId);
-                          Set(varFlReq, LookUp(FunctionalLocationRequests, RequestGuid = varFlRequestGuid));
-                          // Linket peger paa noget, der ikke er her (andet miljoe, slettet): sig det,
-                          // og slip GUID'en - ellers oprettede naeste gem et hoved med den fremmede.
-                          If(
-                              IsBlank(varFlReq),
-                              Notify("Could not find the request behind this link. Opening a new request.",
-                                  NotificationType.Warning);
-                              Set(varFlRequestGuid, ""),
-                              Set(varFlRequestNo, Coalesce(varFlReq.RequestNo, ""));
-                              Set(varFlStatus, Coalesce(varFlReq.Status.Value, "Kladde"));
-                              Set(varFlCanEdit, ((Lower(Coalesce(varFlReq.RequesterEmail, "")) = varFlMe && (varFlStatus = "Kladde")) || (IsAdmin && (varFlStatus = "Kladde" || varFlStatus = "AfventerInfo"))));
-                              Set(varFlViewOnly, !(Lower(Coalesce(gblFlMode, "")) = "edit" && varFlCanEdit));
-                              Clear(colFlDeleted);
-                              ClearCollect(
-                                  colFlLoad,
-                                  ForAll(
-                                      Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) As I,
-                                      {
-                                          RowGuid: I.RowGuid, RowNo: I.RowNo, SpId: I.ID,
-                                          FL: I.FunctionalLocation, Description: I.Description,
-                                          KksType: I.KksType, AssignedClass: I.AssignedClass,
-                                          Status: I.RowStatus.Value, FirstIssue: I.FirstIssue,
-                                          IssueCount: I.IssueCount, Json: Coalesce(I.SpoolValuesJson, "[]")
-                                      }
-                                  )
-                              );
-                              ClearCollect(
-                                  colFlRows,
-                                  ForAll(
-                                      Sort(colFlLoad, RowNo) As I,
-                                      {
-                                          RowGuid: I.RowGuid, RowNo: I.RowNo, SpId: I.SpId, FL: I.FL,
-                                          Description: I.Description, KksType: I.KksType,
-                                          AssignedClass: I.AssignedClass, Status: I.Status,
-                                          FirstIssue: I.FirstIssue, FirstWarning: "",
-                                          IssueCount: I.IssueCount, WarningCount: 0,
-                                          Pos: 0, FlBad: false, DescBad: false, Hint: ""
-                                      }
-                                  )
-                              );
-                              ClearCollect(
-                                  colFlVals,
-                                  Ungroup(
-                                      ForAll(
-                                          colFlLoad As I,
-                                          {
-                                              Vals: ForAll(
-                                                  Table(ParseJSON(I.Json)) As J,
-                                                  { RowGuid: I.RowGuid, Field: Text(J.Value.field), Value: Text(J.Value.value) }
-                                              )
-                                          }
-                                      ),
-                                      Vals
-                                  )
-                              );
-                              Set(varFlNextRowNo, Max(colFlRows, RowNo) + 1);
-                              // Beskederne gemmes ikke - de regnes. OnVisible koerer valideringen lige
-                              // efter (Select(btnFlVerify)), og indtil da kan der ikke indsendes (FL68).
-                              Set(varFlStale, true);
-                              Set(varFlInfo, "")
-                          );
-                          // Beskederne gemmes ikke - de regnes igen, automatisk (issue #77).
-                          Select(btnFlVerify)
-                      )
-                  )
-              );
-          
-              Set(varFlMe, Lower(User().Email));
-              If(CountRows(colFlRows) = 0, Collect(colFlRows, { RowGuid: Text(GUID()), RowNo: varFlNextRowNo, SpId: 0, FL: "", Description: "", KksType: "", AssignedClass: "", Status: "draft", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0, Pos: 0, FlBad: false, DescBad: false, Hint: "" }); Set(varFlNextRowNo, varFlNextRowNo + 1)),
-              Notify("Could not load the page. Check the connection and open it again.",
-                  NotificationType.Error);
-              Set(varFlOpened, "")
+          =// Klargoeringen staar paa en skjult knap, saa Retry kan koere den igen
+          // (BIO SAP App/build/build_screens.py, attach_open). Sloeret taendes
+          // her med det samme, naar der tydeligvis skal klargoeres.
+          If(IsBlank(varFlOpened) || If(gblNavTo = "Fl", "new:0", Coalesce(gblFlWant, varFlOpened)) <> varFlOpened,
+              Set(varFlLoading, true)
           );
-          
-          // Klar - ventespinneren forsvinder.
-          Set(varFlBadgeOn, StartsWith(Coalesce(varFlOpened, ""), "req:") || StartsWith(Coalesce(varFlOpened, ""), "edit:") || StartsWith(Coalesce(varFlOpened, ""), "link:"));
-          Set(varFlLoading, false);
-          Set(gblNavigating, false);
-          Set(gblNavTo, "")
+          Select(btnFlOpen)
     Children:
       - conFlRoot:
           Control: GroupContainer
@@ -6995,7 +6830,7 @@ Screens:
             Height: |-
                 =App.Height
             Image: |-
-                ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><g opacity='0' transform='translate(0 0)'><animate attributeName='opacity' from='0' to='1' begin='0.15s' dur='0.2s' fill='freeze'/><circle cx='32' cy='32' r='22' fill='none' stroke-width='6' stroke='" & C.'hex-state-neutral-bg' & "'/><path d='M32 10 a22 22 0 0 1 22 22' fill='none' stroke-width='6' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'><animateTransform attributeName='transform' type='rotate' from='0 32 32' to='360 32 32' dur='0.9s' repeatCount='indefinite'/></path></g></svg>")
+                ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><style>.f{opacity:0;animation:f .2s ease-out 0.15s forwards}.s{transform-origin:32px 32px;animation:s .9s linear infinite}@keyframes f{to{opacity:1}}@keyframes s{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.s{animation:none}}</style><g class='f' transform='translate(0 0)'><circle cx='32' cy='32' r='22' fill='none' stroke-width='6' stroke='" & C.'hex-state-neutral-bg' & "'/><path class='s' d='M32 10 a22 22 0 0 1 22 22' fill='none' stroke-width='6' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'/></g></svg>")
             ImagePosition: |-
                 =ImagePosition.Center
             TabIndex: |-
@@ -7004,6 +6839,231 @@ Screens:
                 =IfError(varFlSaving, false)
             Width: |-
                 =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - btnFlOpen:
+          Control: ModernButton
+          Properties:
+            AccessibleLabel: |-
+                ="Open the request"
+            Align: |-
+                =Align.Center
+            AlignInContainer: |-
+                =AlignInContainer.Center
+            Appearance: |-
+                =ButtonAppearance.Outline
+            BorderColor: |-
+                =C.'border-default'
+            BorderThickness: |-
+                =1
+            Color: |-
+                =C.'text-primary'
+            Font: |-
+                =Font.'Segoe UI'
+            FontWeight: |-
+                =FontWeight.Semibold
+            Height: |-
+                =36
+            Layout: |-
+                =ButtonLayout.TextOnly
+            OnSelect: |-
+                =IfError(
+                    // Har en sletning roert det, skaermen viser? (tools/request_delete.py)
+                    Set(varFlStaleNow, Coalesce(gblFlStale, false));
+                    If(
+                        varFlStaleNow,
+                        Set(gblFlStale, false);
+                        If(
+                            !IsBlank(varFlRequestGuid) && IsBlank(LookUp(MD_RequestIndex, RequestGuid = varFlRequestGuid)),
+                            Set(gblFlWant, Blank());
+                            Set(varFlOpened, "")
+                        )
+                    );
+                
+                    // DEN SAMLEDE APP: klargoer skaermen, naar hubben eller et dyblink
+                    // beder om noget andet end det, den viser. Se BIO SAP App/build/
+                    // build_screens.py, open_block().
+                    With(
+                        { wantKey: If(
+                            gblNavTo = "Fl",
+                            "new:0",
+                            Coalesce(
+                            gblFlWant,
+                            If(Lower(Param("domain")) = "functionallocation", "link:" & Param("reqid")),
+                            "new"
+                        )
+                        ) },
+                        If(
+                            wantKey <> Coalesce(varFlOpened, ""),
+                            Set(varFlLoading, true);
+                            Set(varFlOpened, wantKey);
+                            Set(
+                                gblFlReqId,
+                                If(StartsWith(wantKey, "req:"), Mid(wantKey, 5),
+                                   StartsWith(wantKey, "edit:"), Mid(wantKey, 6),
+                                   StartsWith(wantKey, "link:"), Mid(wantKey, 6), "")
+                            );
+                            Set(gblFlMode, If(StartsWith(wantKey, "edit:") || (StartsWith(wantKey, "link:") && Lower(Coalesce(Param("mode"), "")) = "edit"), "edit", "view"));
+                            // Live status (issue #92): the first step is the request itself.
+                            Set(varFlLoadFailed, false);
+                            Set(varFlLoadSlow, false);
+                            Set(varFlLoadStep, If(IsBlank(gblFlReqId), "Setting up a new request", "Finding the request"));
+                            If(false, ClearCollect(colFlRows, { RowGuid: "", RowNo: 0, SpId: 0, FL: "", Description: "", KksType: "", AssignedClass: "", Status: "", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0, Pos: 0, FlBad: false, DescBad: false, Hint: "" }));
+                
+                            If(false, ClearCollect(colFlVals, { RowGuid: "", Field: "", Value: "" }));
+                
+                            If(false, ClearCollect(colFlIssues, { RowGuid: "", Ord: 0, Sev: "", Code: "", Field: "", Short: "", Msg: "" }));
+                
+                            If(false, ClearCollect(colFlIssuesRaw, { RowGuid: "", Ord: 0, Sev: "", Code: "", Field: "", Short: "", Msg: "" }));
+                
+                            If(false, ClearCollect(colFlCalc, { RowGuid: "", RowNo: 0, SpId: 0, FL: "", Description: "", IsBlankRow: false, KksType: "", SynIssue: "", Legacy: false, K12: "", K17: "", Cls: "", SpoolCls: "", MFlReq: "", MDup: "", MDescReq: "", MDescLen: "", MKks: "", MRules: "", MPlant: "", MFunc: "", MU: "", MBrMiss: "", MBrK17: "", MComp: "", MEq18: "", MEq12: "", MNoCls: "" }));
+                
+                            If(false, ClearCollect(colFlTmp, { RowGuid: "", RowNo: 0, SpId: 0, FL: "", Description: "", KksType: "", AssignedClass: "", Status: "", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0, Pos: 0, FlBad: false, DescBad: false, Hint: "" }));
+                
+                            If(false, ClearCollect(colFlTrm, { RowGuid: "", AnyTrm: false, Ue: false }));
+                
+                            If(false, ClearCollect(colFlDupFl, { FL: "" }));
+                
+                            If(false, ClearCollect(colFlDet, { Column: "", Field: "", Editable: false, List: "", MaxLen: 0, Value: "", Issue: "" }));
+                
+                            If(false, ClearCollect(colFlDeleted, { RowGuid: "" }));
+                
+                            If(false, ClearCollect(colFlTabs, { Key: "", Label: "" }));
+                
+                            If(false, ClearCollect(colFlSp, { RowGuid: "", ID: 0 }));
+                
+                            If(false, ClearCollect(colFlAdmOld, { RowGuid: "", RowNo: 0, FL: "", Description: "", KksType: "", AssignedClass: "" }));
+                
+                            If(false, ClearCollect(colFlSaveErrors, { Where: "", Msg: "" }));
+                
+                            If(false, ClearCollect(colFlLoad, { RowGuid: "", RowNo: 0, SpId: 0, FL: "", Description: "", KksType: "", AssignedClass: "", Status: "", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0, Json: "" }));
+                
+                            Set(varFlMe, Lower(User().Email));
+                            Set(varFlRequestGuid, "");
+                            Set(varFlRequestNo, "");
+                            // Kladde / Indsendt - som i FunctionalLocationRequests.Status.
+                            Set(varFlStatus, "");
+                            Set(varFlViewOnly, false);
+                            Set(varFlBadgeOn, false);
+                            Set(varFlCanEdit, false);
+                            Set(varFlNextRowNo, 1);
+                            // Aktiv klassefane. ALL som i renderClassTabs.
+                            Set(varFlTab, "ALL");
+                            // Detaljeruden: raekkens RowGuid og den klasse, den blev aabnet i.
+                            Set(varFlDetailRow, "");
+                            Set(varFlDetailClass, "");
+                            Set(varFlShowEmpty, false);
+                            // Er der aendret noget siden sidste validering? Submit kraever false (FL68).
+                            Set(varFlStale, false);
+                            // Kun fejl ved gem/indsend - vist under Validation-tabellen (issue #77).
+                            Set(varFlInfo, "");
+                            Set(varFlPayload, "");
+                            Set(varFlReq, Blank());
+                            Set(varFlIdx, Blank());
+                            Set(varFlMe, Lower(User().Email));
+                            If(
+                                !IsBlank(gblFlReqId) && varFlRequestGuid <> gblFlReqId,
+                                Set(varFlRequestGuid, gblFlReqId);
+                                Set(varFlReq, LookUp(FunctionalLocationRequests, RequestGuid = varFlRequestGuid));
+                                // Linket peger paa noget, der ikke er her (andet miljoe, slettet): sig det,
+                                // og slip GUID'en - ellers oprettede naeste gem et hoved med den fremmede.
+                                If(
+                                    IsBlank(varFlReq),
+                                    Notify("Could not find the request behind this link. Opening a new request.",
+                                        NotificationType.Warning);
+                                    Set(varFlRequestGuid, ""),
+                                    Set(varFlRequestNo, Coalesce(varFlReq.RequestNo, ""));
+                                    Set(varFlStatus, Coalesce(varFlReq.Status.Value, "Kladde"));
+                                    Set(varFlCanEdit, ((Lower(Coalesce(varFlReq.RequesterEmail, "")) = varFlMe && (varFlStatus = "Kladde")) || (IsAdmin && (varFlStatus = "Kladde" || varFlStatus = "AfventerInfo"))));
+                                    Set(varFlViewOnly, !(Lower(Coalesce(gblFlMode, "")) = "edit" && varFlCanEdit));
+                                    Clear(colFlDeleted);
+                                    Set(varFlLoadStep, "Loading functional locations");
+                                    ClearCollect(
+                                        colFlLoad,
+                                        ForAll(
+                                            Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) As I,
+                                            {
+                                                RowGuid: I.RowGuid, RowNo: I.RowNo, SpId: I.ID,
+                                                FL: I.FunctionalLocation, Description: I.Description,
+                                                KksType: I.KksType, AssignedClass: I.AssignedClass,
+                                                Status: I.RowStatus.Value, FirstIssue: I.FirstIssue,
+                                                IssueCount: I.IssueCount, Json: Coalesce(I.SpoolValuesJson, "[]")
+                                            }
+                                        )
+                                    );
+                                    ClearCollect(
+                                        colFlRows,
+                                        ForAll(
+                                            Sort(colFlLoad, RowNo) As I,
+                                            {
+                                                RowGuid: I.RowGuid, RowNo: I.RowNo, SpId: I.SpId, FL: I.FL,
+                                                Description: I.Description, KksType: I.KksType,
+                                                AssignedClass: I.AssignedClass, Status: I.Status,
+                                                FirstIssue: I.FirstIssue, FirstWarning: "",
+                                                IssueCount: I.IssueCount, WarningCount: 0,
+                                                Pos: 0, FlBad: false, DescBad: false, Hint: ""
+                                            }
+                                        )
+                                    );
+                                    ClearCollect(
+                                        colFlVals,
+                                        Ungroup(
+                                            ForAll(
+                                                colFlLoad As I,
+                                                {
+                                                    Vals: ForAll(
+                                                        Table(ParseJSON(I.Json)) As J,
+                                                        { RowGuid: I.RowGuid, Field: Text(J.Value.field), Value: Text(J.Value.value) }
+                                                    )
+                                                }
+                                            ),
+                                            Vals
+                                        )
+                                    );
+                                    Set(varFlNextRowNo, Max(colFlRows, RowNo) + 1);
+                                    // Beskederne gemmes ikke - de regnes. OnVisible koerer valideringen lige
+                                    // efter (Select(btnFlVerify)), og indtil da kan der ikke indsendes (FL68).
+                                    Set(varFlStale, true);
+                                    Set(varFlInfo, "")
+                                );
+                                // Beskederne gemmes ikke - de regnes igen, automatisk (issue #77).
+                                Select(btnFlVerify)
+                            )
+                        )
+                    );
+                
+                    Set(varFlMe, Lower(User().Email));
+                    If(CountRows(colFlRows) = 0, Collect(colFlRows, { RowGuid: Text(GUID()), RowNo: varFlNextRowNo, SpId: 0, FL: "", Description: "", KksType: "", AssignedClass: "", Status: "draft", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0, Pos: 0, FlBad: false, DescBad: false, Hint: "" }); Set(varFlNextRowNo, varFlNextRowNo + 1)),
+                    Set(varFlLoadFailed, true);
+                    Set(varFlOpened, "")
+                );
+                
+                // Klar - ventespinneren forsvinder.
+                Set(varFlBadgeOn, StartsWith(Coalesce(varFlOpened, ""), "req:") || StartsWith(Coalesce(varFlOpened, ""), "edit:") || StartsWith(Coalesce(varFlOpened, ""), "link:"));
+                Set(varFlLoading, false);
+                Set(varFlLoadSlow, false);
+                Set(gblNavigating, false);
+                Set(gblNavTo, "")
+            RadiusBottomLeft: |-
+                =10
+            RadiusBottomRight: |-
+                =10
+            RadiusTopLeft: |-
+                =10
+            RadiusTopRight: |-
+                =10
+            Size: |-
+                =14
+            Text: |-
+                ="Open"
+            VerticalAlign: |-
+                =VerticalAlign.Middle
+            Visible: |-
+                =false
+            Width: |-
+                =72
             X: |-
                 =0
             Y: |-
@@ -7022,16 +7082,332 @@ Screens:
             Height: |-
                 =App.Height
             Image: |-
-                ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='440' height='100' viewBox='0 0 440 100'><g opacity='0' transform='translate(188 0)'><text x='32' y='88' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>Opening request - checking edit or view mode...</text><animate attributeName='opacity' from='0' to='1' begin='0.15s' dur='0.2s' fill='freeze'/><circle cx='32' cy='32' r='22' fill='none' stroke-width='6' stroke='" & C.'hex-state-neutral-bg' & "'/><path d='M32 10 a22 22 0 0 1 22 22' fill='none' stroke-width='6' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'><animateTransform attributeName='transform' type='rotate' from='0 32 32' to='360 32 32' dur='0.9s' repeatCount='indefinite'/></path></g></svg>")
-            ImagePosition: |-
-                =ImagePosition.Center
+                =""
             TabIndex: |-
                 =-1
             Visible: |-
-                =IfError(varFlLoading, false)
+                =IfError(varFlLoading, false) || IfError(varFlLoadFailed, false)
             Width: |-
                 =App.Width
             X: |-
                 =0
             Y: |-
                 =0
+      - conFlLoadCard:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'border-default'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.Bold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =178 + If(IfError(varFlLoadFailed, false), 6 + (36), 0)
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Stretch
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =6
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =18
+            PaddingLeft: |-
+                =20
+            PaddingRight: |-
+                =20
+            PaddingTop: |-
+                =22
+            RadiusBottomLeft: |-
+                =16
+            RadiusBottomRight: |-
+                =16
+            RadiusTopLeft: |-
+                =16
+            RadiusTopRight: |-
+                =16
+            Visible: |-
+                =IfError(varFlLoading, false) || IfError(varFlLoadFailed, false)
+            Width: |-
+                =Min(360, App.Width - 32)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =(App.Height - Self.Height) / 2
+          Children:
+            - imgFlLoadIcon:
+                Control: Image
+                Properties:
+                  AccessibleLabel: |-
+                      =If(IfError(varFlLoadFailed, false), "Error", "Loading")
+                  AlignInContainer: |-
+                      =AlignInContainer.Center
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Height: |-
+                      =40
+                  Image: |-
+                      =If(IfError(varFlLoadFailed, false), "data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><circle cx='20' cy='20' r='16' fill='none' stroke-width='3' stroke='" & C.'hex-state-error-fg' & "'/><path d='M20 12 V22' stroke='" & C.'hex-state-error-fg' & "' stroke-width='4' stroke-linecap='round'/><circle cx='20' cy='29' r='3' fill='" & C.'hex-state-error-fg' & "'/></svg>"), "data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><style>.f{opacity:0;animation:f .2s ease-out 0.15s forwards}.s{transform-origin:20px 20px;animation:s .9s linear infinite}@keyframes f{to{opacity:1}}@keyframes s{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.s{animation:none}}</style><g class='f' transform='translate(0 0)'><circle cx='20' cy='20' r='12' fill='none' stroke-width='4' stroke='" & C.'hex-state-neutral-bg' & "'/><path class='s' d='M20 8 a12 12 0 0 1 12 12' fill='none' stroke-width='4' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'/></g></svg>"))
+                  ImagePosition: |-
+                      =ImagePosition.Fit
+                  TabIndex: |-
+                      =-1
+                  Width: |-
+                      =40
+            - txtFlLoadTitle:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  Align: |-
+                      =Align.Center
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-primary'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  FontWeight: |-
+                      =FontWeight.Semibold
+                  Height: |-
+                      =26
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =17
+                  Text: |-
+                      =If(IfError(varFlLoadFailed, false), "Could not open the request", IsBlank(gblFlReqId), "Preparing a new request", "Opening request")
+                  Wrap: |-
+                      =false
+            - txtFlLoadStep:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  Align: |-
+                      =Align.Center
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =20
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =13
+                  Text: |-
+                      =If(IfError(varFlLoadFailed, false), "Stopped while " & Lower(Left(Coalesce(varFlLoadStep, ""), 1)) & Mid(Coalesce(varFlLoadStep, ""), 2), Coalesce(varFlLoadStep, ""))
+                  Wrap: |-
+                      =false
+            - txtFlLoadHint:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  Align: |-
+                      =Align.Center
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =34
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =12
+                  Text: |-
+                      =If(IfError(varFlLoadFailed, false), "Check your connection and try again.", IfError(varFlLoadSlow, false) && IfError(varFlLoading, false), "Taking longer than usual. " & Switch(Coalesce(varFlLoadStep, ""), "Finding the request", "The request list is responding slowly.", "Loading plan details", "Still waiting for the plan details.", "Loading items and operations", "Plans with many items and operations take longer.", "Loading materials and documents", "Plans with many materials and documents take longer.", "Loading standard task lists", "Standard task lists load once per session.", "Loading functional locations", "Requests with many rows take longer to load.", "Loading saved rows", "Many saved rows take longer to load.", "Still working on it."), "")
+                  Wrap: |-
+                      =true
+            - conFlLoadActions:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =36
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =8
+                  LayoutJustifyContent: |-
+                      =LayoutJustifyContent.Center
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Visible: |-
+                      =IfError(varFlLoadFailed, false)
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - btnFlLoadClose:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-default'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varFlLoadFailed, false);
+                            Set(gblFlWant, Blank());
+                            Set(varFlOpened, "");
+                            Navigate(ScreenMdHub, ScreenTransition.None)
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =14
+                        Text: |-
+                            ="Close"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =77
+                  - btnFlLoadRetry:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Retry"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
+                        Color: |-
+                            =C.'text-on-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varFlLoadFailed, false);
+                            Set(varFlLoadSlow, false);
+                            Set(varFlOpened, "");
+                            Set(varFlLoading, true);
+                            Select(btnFlOpen)
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =14
+                        Text: |-
+                            ="Retry"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =73
+      - tmrFlLoadSlow:
+          Control: Timer
+          Properties:
+            AutoPause: |-
+                =false
+            AutoStart: |-
+                =false
+            Duration: |-
+                =6000
+            Height: |-
+                =1
+            OnTimerEnd: |-
+                =Set(varFlLoadSlow, true)
+            Repeat: |-
+                =false
+            Reset: |-
+                =!IfError(varFlLoading, false)
+            Start: |-
+                =IfError(varFlLoading, false)
+            Visible: |-
+                =false
+            Width: |-
+                =1
