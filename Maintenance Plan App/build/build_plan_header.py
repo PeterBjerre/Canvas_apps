@@ -24,16 +24,17 @@ def plan_info_modal():
 REQ_PLAN = "varVhpPlanValidated"
 
 
-def _summary_chips():
+def summary_chips(name, segs, visible, label, max_w=None):
+    """Den sammenklappede sektions linje (issue #54, #103): een "chip" pr.
+    (etiket, vaerdi), tegnet som EEN SVG. Plan Header, Item Editor og
+    Tasklist and Operations bruger den samme, saa de ser ens ud.
+
+    max_w: hoejeste bredde. Er chipsene bredere, skaleres billedet ned
+    (ImagePosition.Fit) i stedet for at blive klippet."""
     from design_tokens import ref_hex
     from gen_screen import Ctrl as _C
     esc = lambda e: f'Substitute(Substitute({e}, "&", "&amp;"), "<", "&lt;")'
-    first = ('Text(varVhpPlan.FirstCallDay) & "/" & Text(varVhpPlan.FirstCallMonth) & "/" & '
-             'Text(varVhpPlan.FirstCallYear)')
-    cycle = (f'If({IS_STRATEGY}, Coalesce(varVhpPlan.Strategy, ""), "Every " & Text(varVhpPlan.Cycle) '
-             '& " " & varVhpPlan.Unit)')
-    segs = [('"PLANT"', 'Text(varVhpPlan.Plant)'), ('"PLAN TEXT"', 'Coalesce(varVhpPlan.PlanText, "")'),
-            (f'If({IS_STRATEGY}, "STRATEGY", "CYCLE")', cycle), ('"FIRST CALL"', first)]
+    n = len(segs)
     binds, widths = [], []
     for i, (lab, val) in enumerate(segs, 1):
         binds.append(f"l{i}: {lab}")
@@ -41,12 +42,13 @@ def _summary_chips():
         widths.append(f"w{i}: 30 + Len(l{i}) * 7 + Len(v{i}) * 7.4")
     head = ("With({ " + ", ".join(binds) + " },\n  With({ " + ", ".join(widths)
             + " },\n    %s\n))")
-    tot = "w1 + w2 + w3 + w4 + 24"
+    tot = " + ".join(f"w{i}" for i in range(1, n + 1)) + f" + {8 * (n - 1)}"
     fill, line = ref_hex("state-neutral-bg"), ref_hex("border-default")
     mut, txt = ref_hex("text-muted"), ref_hex("text-primary")
     parts = ['"<svg xmlns=\'http://www.w3.org/2000/svg\' height=\'32\' width=\'" & (' + tot + ') & "\'>"']
-    xs = ["0", "w1 + 8", "w1 + w2 + 16", "w1 + w2 + w3 + 24"]
-    for i in range(1, 5):
+    xs = ["0"] + [" + ".join(f"w{j}" for j in range(1, i)) + f" + {8 * (i - 1)}"
+                  for i in range(2, n + 1)]
+    for i in range(1, n + 1):
         x, w = xs[i - 1], f"w{i}"
         parts.append(
             f'"<rect x=\'" & ({x} + 1) & "\' y=\'2\' rx=\'14\' width=\'" & ({w} - 2) & "\' height=\'28\' '
@@ -59,14 +61,35 @@ def _summary_chips():
             f'font-size=\'13\' font-weight=\'600\' fill=\'" & {txt} & "\'>" & {esc("v%d" % i)} & "</text>"')
     parts.append('"</svg>"')
     img = '"data:image/svg+xml;utf8," & EncodeUrl(\n        ' + " &\n        ".join(parts) + "\n    )"
-    label = ('Coalesce(varVhpPlan.PlanText, "") & ", " & ' + cycle + ' & ", first call " & ' + first)
-    return _C("imgVhpPlanSummary", "Image", props={
+    width = tot if max_w is None else f"Min({tot}, {max_w})"
+    return _C(name, "Image", props={
         "AccessibleLabel": label,
         "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
         "Height": "32", "Image": head % img, "ImagePosition": "ImagePosition.Fit",
-        "OnSelect": "false", "TabIndex": "-1", "Visible": SUMMARY_VIS,
-        "Width": head % tot, "AlignInContainer": "AlignInContainer.Start",
-    }, h=32, vis=SUMMARY_VIS)
+        "OnSelect": "false", "TabIndex": "-1", "Visible": visible,
+        "Width": head % width, "AlignInContainer": "AlignInContainer.Start",
+    }, h=32, vis=visible)
+
+
+def summary_info_button(name, text, open_var, accessible, visible):
+    """Telefonens udgave af linjen: chipsene er for brede, saa en knap
+    aabner de samme vaerdier i et laeseudsnit (build_helpers.text_modal)."""
+    b = button(name, text, f"Set({open_var}, true)",
+               width=fit_button_width(text) + 8, height=32, visible=visible,
+               accessible=accessible)
+    b.props["AlignInContainer"] = "AlignInContainer.Start"
+    return b
+
+
+def _summary_chips():
+    first = ('Text(varVhpPlan.FirstCallDay) & "/" & Text(varVhpPlan.FirstCallMonth) & "/" & '
+             'Text(varVhpPlan.FirstCallYear)')
+    cycle = (f'If({IS_STRATEGY}, Coalesce(varVhpPlan.Strategy, ""), "Every " & Text(varVhpPlan.Cycle) '
+             '& " " & varVhpPlan.Unit)')
+    segs = [('"PLANT"', 'Text(varVhpPlan.Plant)'), ('"PLAN TEXT"', 'Coalesce(varVhpPlan.PlanText, "")'),
+            (f'If({IS_STRATEGY}, "STRATEGY", "CYCLE")', cycle), ('"FIRST CALL"', first)]
+    label = ('Coalesce(varVhpPlan.PlanText, "") & ", " & ' + cycle + ' & ", first call " & ' + first)
+    return summary_chips("imgVhpPlanSummary", segs, SUMMARY_VIS, label)
 
 # Indholdsbredden i et kort: skaermens indholdsbredde minus kortets polstring.
 PLAN_CW = f"({SHELL_W} - 36)"
@@ -310,10 +333,8 @@ def build_plan_header():
         f"If(varVhpPlanCommitted, \"Plan created \" & Text(varVhpPlanCreatedAt, \"{lay.DATETIME_FMT}\"), \"\")",
         size=12, color=C_MUTED, height=24, wrap="false", visible="!varVhpPlanLocked")
     summary = _summary_chips()
-    info = button("btnVhpPlanInfo", '"Plan details"', "Set(varVhpPlanInfoOpen, true)",
-                  width=fit_button_width('"Plan details"') + 8, height=32, visible=INFO_VIS,
-                  accessible='"Show the plan header details"')
-    info.props["AlignInContainer"] = "AlignInContainer.Start"
+    info = summary_info_button("btnVhpPlanInfo", '"Plan details"', "varVhpPlanInfoOpen",
+                               '"Show the plan header details"', INFO_VIS)
     footerInfo = grow(group("conVhpPlanFooterInfo", [summary, info, planMeta], direction="Vertical",
                             gap=0, height=32))
 
@@ -390,7 +411,9 @@ def build_plan_header():
         ),
         primary=True, width=140, height=36,
         icon="If(varVhpPlanLocked, \"Edit\", \"Save\")",
-        visible="!varVhpViewOnly || varVhpCanEdit")
+        # Edit kun i Edit mode (issue #103) - i View mode skifter topbjaelkens
+        # Edit (build_hero.btnVhpEdit) til Edit mode, som for de andre sektioner.
+        visible="!varVhpViewOnly")
 
     # RESET (issue #54): de usavede aendringer i planhovedet tilbage til
     # den senest gemte plan - eller startvaerdierne, hvis planen aldrig er

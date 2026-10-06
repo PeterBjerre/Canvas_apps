@@ -51,6 +51,7 @@ visning og hentes igen ved naeste FL-soegning.
 import sp_config as cfg
 from build_helpers import concurrent
 import permissions as perm
+from build_status import HAS_PKGS
 
 # Et helt tomt item, saa Item Editoren staar klar (#8). Bruges baade naar
 # appen aabnes uden dyblink, og naar et dyblink ikke kan findes.
@@ -314,6 +315,24 @@ def load_block():
         "                        colVhpItems,\n"
         "                        ItemId in colVhpOperations.ItemId,\n"
         "                        { TasklistKey: Coalesce(tl.Key, \"\"), TasklistName: Coalesce(tl.Name, \"\") }\n"
+        "                    )\n"
+        "                );\n"
+        # Sektionernes Save/Edit (issue #103): de gemte sektioner aabner
+        # sammenklappet. Items er "valid" (ITEM_FIELDS); Tasklist and
+        # Operations er det for de items, der har tasklist og operationer -
+        # og paa en strategiplan med pakker en pakke pr. operation (trin 3
+        # og 4, build_status). Et ufuldstaendigt item staar foldet ud.
+        "                ClearCollect(\n"
+        "                    colVhpOpsDone,\n"
+        "                    ShowColumns(\n"
+        "                        Filter(\n"
+        "                            colVhpItems As I,\n"
+        "                            !IsBlank(I.TasklistKey) && I.ItemId in colVhpOperations.ItemId &&\n"
+        "                            (varVhpPlan.PlanType <> \"Strategy\" || !(" + HAS_PKGS + ") ||\n"
+        "                                CountRows(Filter(colVhpOperations, ItemId = I.ItemId && "
+        "Len(Coalesce(PackagesKey, \";\")) <= 1)) = 0)\n"
+        "                        ),\n"
+        "                        ItemId\n"
         "                    )\n"
         "                );\n"
         "\n"
