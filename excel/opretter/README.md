@@ -135,7 +135,7 @@ Det SAP-specifikke, appen ikke ved noget om:
 |---|---|---|
 | Værker | Værk → SAP-værk, arbejdsplanprofil, modelydelsesspecifikation | HCV og SMV mangler |
 | Kaldshorisont | Cyklus og enhed → kaldshorisont og planlægningsperiode | Som *Call_Horizon_Table* i det gamle regneark |
-| Ydelser | PM03-arbejdscenter → ydelsesnummer og varegruppe | **Ydelsesnumrene mangler** — tag dem fra det gamle regneark |
+| Ydelser | PM03-arbejdscenter → ydelsesnummer og varegruppe | Udfyldt fra det gamle regneark (XSPEC har ingen). Ydelsesnummeret på operationen (`TaskListMain.ServiceNo`) går forud |
 | Karakteristikker | FL-klasse → de felter, der er karakteristikker, med navnet som i SAP | Ingenting — det er SPOOL-arkets *DictionaryTable*. Ret et navn, hvis SAP kalder det noget andet |
 
 Mangler en værdi, siger *Vis detaljer* hvilken, og planen eller anmodningen
