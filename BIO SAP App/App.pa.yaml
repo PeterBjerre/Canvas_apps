@@ -2203,8 +2203,20 @@ App:
       // Trin 5: planen staar i SharePoint, og intet er aendret siden.
       VhpStepSaveDone = !IsBlank(varVhpPlanKey) && varVhpSavedJson = VhpStateJson;
 
-      // Submit er aktiv, naar trin 1-4 er faerdige, og reglerne ingen fejl finder.
-      VhpCanSubmit = !varVhpSaving && VhpStepPlanDone && VhpStepItemDone && VhpStepTasklistDone &&
+      // Planen er indsendt og ligger i godkendelse eller SAP-oprettelse.
+      VhpSubmitted = varVhpFlow.Status in ["In Progress", "Ready for creation in SAP", "Published"];
+
+      // System- og omkostningsgodkendelsen er overstaaet.
+      VhpApprovalDone = varVhpFlow.Stage in ["Quality", "Done"] || varVhpFlow.Status in ["Ready for creation in SAP", "Published"];
+
+      // Kvalitetsgodkendelsen er overstaaet - planen venter paa SAP.
+      VhpQualityDone = varVhpFlow.Status in ["Ready for creation in SAP", "Published"];
+
+      // Planen er oprettet i SAP.
+      VhpInSap = varVhpFlow.Status = "Published";
+
+      // Submit er aktiv, naar trin 1-4 er faerdige, reglerne ingen fejl finder, og planen ikke allerede er indsendt.
+      VhpCanSubmit = !varVhpSaving && !VhpSubmitted && VhpStepPlanDone && VhpStepItemDone && VhpStepTasklistDone &&
           VhpStepOpsDone && IsBlank(VhpValidationErrors);
 
       // Vaerkerne. Eneste opslagsliste appen laeser, og den laeses foerst,
