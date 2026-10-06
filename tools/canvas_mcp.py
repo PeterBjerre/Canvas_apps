@@ -570,9 +570,60 @@ def checkers(client):
         out("=== %s ===" % label)
         try:
             txt = client.call(name, {}, timeout=300)
-            out(indent(txt) if txt else "   (tomt svar)")
+            out(indent(summarize_checks(txt, name)) if txt else "   (tomt svar)")
         except McpError as e:
             out(indent(str(e)))
+
+
+def summarize_checks(text, tool, show=10):
+    """Fund samlet pr. tjek i stedet for eet afsnit pr. kontrol.
+
+    Serveren skriver Check/Why/Fix under HVER kontrol. 186 ens fund
+    (issue #86) fyldte terminalen, saa resten af deployet rullede vaek.
+    Her staar hvert tjek een gang med antal, Why/Fix og de foerste
+    kontroller. Kan teksten ikke laeses saadan, vises den uaendret."""
+    groups = {}
+    rest = []
+    item = None   # "[Error] ctrl.Prop: ..." der venter paa sin Check:
+    group = None  # tjekket, hvis Why:/Fix: kommer nu
+    for l in (text or "").splitlines():
+        t = l.strip()
+        m = re.match(r"\[(\w+)\]\s+(.*)$", t)
+        if m:
+            item, group = (m.group(1), m.group(2)), None
+        elif item and t.startswith("Check:"):
+            check = t[len("Check:"):].strip()
+            group = groups.setdefault(check, {"sev": item[0], "items": [],
+                                              "why": "", "fix": ""})
+            group["items"].append(item[1])
+            item = None
+        elif group and t.startswith("Why:"):
+            group["why"] = group["why"] or t
+        elif group and t.startswith("Fix:"):
+            group["fix"] = group["fix"] or t
+        else:
+            if item:
+                rest.append("[%s] %s" % item)
+            item = group = None
+            if t:
+                rest.append(l)
+    if item:
+        rest.append("[%s] %s" % item)
+    if not groups:
+        return text
+    res = list(rest)
+    for check, g in groups.items():
+        res.append("[%s] %s: %d fund" % (g["sev"], check, len(g["items"])))
+        for x in (g["why"], g["fix"]):
+            if x:
+                res.append("    " + x)
+        for x in g["items"][:show]:
+            res.append("    - " + x)
+        if len(g["items"]) > show:
+            res.append("    ... og %d flere. Hele listen: python "
+                       "tools\\canvas_mcp.py raw --app APP --tool %s"
+                       % (len(g["items"]) - show, tool))
+    return "\n".join(res)
 
 
 # ------------------------------------------------------------- kommandoer
