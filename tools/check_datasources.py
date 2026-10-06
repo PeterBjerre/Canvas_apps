@@ -485,7 +485,11 @@ def main():
         if key in seen:
             continue
         seen.add(key)
-        m = re.search(r"'([\w]+)'", msg)
+        # "R.Kolonne - kolonnen findes ikke" (ForAll-aliaset) har ingen
+        # anfoerselstegn om navnet; uden det andet moenster blev en
+        # provisioneret kolonne der meldt som en fejl.
+        m = (re.search(r"'([\w]+)'", msg)
+             or re.search(r"\.([\w]+) - kolonnen findes ikke", msg))
         mv = re.search(r'valgvaerdien "([^"]*)" findes ikke', msg)
         if m and (lst, m.group(1)) in prov:
             pending.append(f"{lst}.{m.group(1)}")

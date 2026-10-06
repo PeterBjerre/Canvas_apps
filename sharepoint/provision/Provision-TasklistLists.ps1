@@ -119,6 +119,19 @@ New-MdField 'MD_TasklistAttachment' 'UploadStatus' Choice `
 Write-Host "`nTaskListMain" -ForegroundColor Cyan
 New-MdField 'TaskListMain' 'MaterialGroup' Text
 
+# ---------------------------------------------------------------------------
+# Ydelsesnummeret (PM03)
+# ---------------------------------------------------------------------------
+# Stod foer kun i Excel-opretterens tabel Ydelser (arbejdscentrets endelse,
+# fx XSTIL for SSVXSTIL). Nu vedligeholdes det paa standardoperationen og
+# skrives paa operationen i TaskListMain, naar linjen vaelges i appen.
+# Opretteren bruger TaskListMain-vaerdien og falder kun tilbage paa Ydelser,
+# naar den er tom.
+New-MdField 'TaskListMain' 'ServiceNo' Text
+
+Write-Host "`nMD_StandardTaskOperations" -ForegroundColor Cyan
+New-MdField 'MD_StandardTaskOperations' 'ServiceNo' Text
+
 Write-Host "`nFaerdig." -ForegroundColor Green
 Write-Host "Naeste skridt: koer sharepoint/inspect/Export-ListSchema.ps1 igen," -ForegroundColor Gray
 Write-Host "saa check_datasources.py kan efterproeve de nye kolonner." -ForegroundColor Gray

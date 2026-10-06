@@ -141,6 +141,7 @@ OP_FIELDS = [
     ("Currency", "OP.Currency"),
     ("CostElement", "OP.CostElem"),
     ("MaterialGroup", "OP.MaterialGroup"),
+    ("ServiceNo", "OP.ServiceNo"),
     ("SpId", "OP.ID"),
 ]
 

@@ -311,15 +311,11 @@ def op_fields(key=None):
         "                Price: OP.Cost,\n"
         "                Currency: OP.Currency,\n"
         "                CostElem: OP.CostElement,\n"
-        # Varegruppen ved PM02 uden varegruppe: den, Excel-opretteren ellers
-        # satte i SAP (Indstillinger, Pm02MatGroup). Nu staar den i
-        # TaskListMain, saa listen siger det samme som SAP.
-        "                MaterialGroup: If(\n"
-        "                    Upper(Trim(Coalesce(OP.ControlKey, \"\"))) = \"PM02\" && "
-        "IsBlank(Trim(Coalesce(OP.MaterialGroup, \"\"))),\n"
-        f"                    \"{cfg.PM02_DEFAULT_MATGROUP}\",\n"
-        "                    OP.MaterialGroup\n"
-        "                ),\n"
+        # PM02 gemmes med den varegruppe, brugeren har tastet - ingen
+        # standard. M1 i build_status holder Submit tilbage, til den er udfyldt.
+        "                MaterialGroup: OP.MaterialGroup,\n"
+        # Ydelsesnummeret fra standardoperationen (PM03), se colVhpTasklists.
+        "                ServiceNo: OP.ServiceNo,\n"
         "                LongText: OP.LongText,\n"
         "                PlantInitial: varVhpPlan.Plant,\n"
         f"                MaintenanceItemNo: {{ Id: {M_SPID}, Value: {M_KEY} }},\n"

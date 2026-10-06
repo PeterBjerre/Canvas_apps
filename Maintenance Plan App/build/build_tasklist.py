@@ -823,6 +823,7 @@ def build_tasklist_section():
             "            Currency: \"\",\n"
             "            CostElement: 0,\n"
             "            MaterialGroup: \"\",\n"
+            "            ServiceNo: \"\",\n"
             "            LongText: \"\",\n"
             "            PackagesKey: \";\",\n"
             "            Selected: false\n"
