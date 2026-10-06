@@ -509,7 +509,11 @@ def build_top_bar():
     side_w = if_below(
         "Desktop", if_below("Tablet", str(SUB_W + 80 + new_m_w + 24 + 48), str(side_min)),
         f"Max({side_min}, ({SHELL_W} - {steps_w}) / 2 - 16)")
-    title_bar.props["Width"] = if_below("Tablet", "56", if_below("Desktop", "220", f"Max({side_min}, ({SHELL_W} - {steps_w}) / 2 - 16)"))
+    # Tablet: trinene er skjult, saa titlen faar resten efter knapperne (mindst
+    # 220 som foer) - ellers klippes "Maintenance Plan" paa en bred tablet,
+    # selv om linjen har plads (issue #93).
+    tab_w = f"Max(220, {SHELL_W} - {side_min} - 16)"
+    title_bar.props["Width"] = if_below("Tablet", "56", if_below("Desktop", tab_w, f"Max({side_min}, ({SHELL_W} - {steps_w}) / 2 - 16)"))
     title_bar.props["LayoutMinWidth"] = if_below("Tablet", "56", "220")
     btns = group("conVhpHeadBtns", [btnEdit, btnDelete, btnNew, btnDraft, btnSubmit], direction="Horizontal", gap=8,
                  height=44, width=side_w, justify="End", align_items="Center")
