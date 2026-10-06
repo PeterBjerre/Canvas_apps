@@ -16056,7 +16056,10 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =194 + 12 + (0 + (311))
+                =194 + 12 + (0 + (27 + 4 + (If(LayoutRank < 3, 280, Min(Max(CountRows(Filter(
+                    LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
+                    IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
+                )), 1) * 34, Max(3 * 34, App.Height - 301))))))
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -16092,7 +16095,7 @@ Screens:
             X: |-
                 =(App.Width - Self.Width) / 2
             Y: |-
-                =Max(20, (App.Height - Self.Height) / 3)
+                =If(LayoutRank < 3, Max(20, (App.Height - Self.Height) / 3), 32)
           Children:
             - conVhpPickerHeadRow:
                 Control: GroupContainer
@@ -16272,7 +16275,7 @@ Screens:
                         ValidationState: |-
                             =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                         Width: |-
-                            =Max(0, (((Min(740, App.Width - 40)) - 18 - 18)) - ((200) + 12) - 2)
+                            =Max(0, (((Min(740, App.Width - 40)) - 18 - 18)) - (If(If(LayoutRank < 3, true, false), (200) + 12, 0)) - 2)
                   - chkVhpPickerSelectAll:
                       Control: ModernCheckbox
                       Properties:
@@ -16326,6 +16329,8 @@ Screens:
                             )
                         Size: |-
                             =13
+                        Visible: |-
+                            =If(LayoutRank < 3, true, false)
                         Width: |-
                             =200
             - txtVhpPickerInfo:
@@ -16376,7 +16381,10 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =0 + (311)
+                      =0 + (27 + 4 + (If(LayoutRank < 3, 280, Min(Max(CountRows(Filter(
+                          LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
+                          IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
+                      )), 1) * 34, Max(3 * 34, App.Height - 301)))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Start
                   LayoutDirection: |-
@@ -16403,7 +16411,10 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =311
+                            =27 + 4 + (If(LayoutRank < 3, 280, Min(Max(CountRows(Filter(
+                                LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
+                                IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
+                            )), 1) * 34, Max(3 * 34, App.Height - 301))))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Start
                         LayoutDirection: |-
@@ -16419,25 +16430,229 @@ Screens:
                         Width: |-
                             =636
                       Children:
-                        - htmVhpPickerHeader:
-                            Control: HtmlViewer
+                        - conVhpPickerColHead:
+                            Control: GroupContainer
+                            Variant: AutoLayout
                             Properties:
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
+                                  =0
                               Height: |-
                                   =22
-                              HtmlText: |-
-                                  ="<style>html,body{margin:0;padding:0;overflow:hidden}</style><div style='display:grid;grid-template-columns:26px 54px 198px 114px 54px 54px 54px;column-gap:10px;align-items:center;height:21px;line-height:21px;overflow:hidden;color:" & C.'hex-text-muted' & ";font-family:Segoe UI;font-size:11px;font-weight:600;white-space:nowrap;'><span>SEL</span><span>OP NO.</span><span>OPERATION SHORT TEXT</span><span>MAIN WORK CENTER</span><span>CTRL</span><span>WORK</span><span>DUR.</span></div>"
-                              PaddingBottom: |-
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Center
+                              LayoutDirection: |-
+                                  =LayoutDirection.Horizontal
+                              LayoutGap: |-
+                                  =10
+                              LayoutMinWidth: |-
                                   =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
                                   =636
+                            Children:
+                              - conVhpPickerHeadSel:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =22
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Center
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =0
+                                    LayoutJustifyContent: |-
+                                        =LayoutJustifyContent.Center
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
+                                    Visible: |-
+                                        =LayoutRank >= 3
+                                    Width: |-
+                                        =26
+                                  Children:
+                                    - chkVhpPickerHeadAll:
+                                        Control: ModernCheckbox
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Select all"
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Default: |-
+                                              =IfError(CountRows(Filter(
+                                                  LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
+                                                  IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
+                                              )) > 0 && CountRows(Filter(Filter(
+                                                  LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
+                                                  IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
+                                              ) As VOP, CountRows(Filter(colVhpPickerSelected, OperationNo = VOP.OperationNo)) > 0)) = CountRows(Filter(
+                                                  LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
+                                                  IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
+                                              )), false)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =22
+                                          OnCheck: |-
+                                              =Collect(
+                                                  colVhpPickerSelected,
+                                                  ForAll(
+                                                      Filter(
+                                                          Filter(
+                                                  LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
+                                                  IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
+                                              ) As VOP,
+                                                          CountRows(Filter(colVhpPickerSelected, OperationNo = VOP.OperationNo)) = 0
+                                                      ) As NEW,
+                                                      { OperationNo: NEW.OperationNo }
+                                                  )
+                                              )
+                                          OnUncheck: |-
+                                              =Remove(
+                                                  colVhpPickerSelected,
+                                                  Filter(
+                                                      colVhpPickerSelected As SEL,
+                                                      CountRows(Filter(Filter(
+                                                  LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
+                                                  IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
+                                              ) As VOP, VOP.OperationNo = SEL.OperationNo)) > 0
+                                                  )
+                                              )
+                                          Size: |-
+                                              =13
+                                          Tooltip: |-
+                                              ="Select all"
+                                          Visible: |-
+                                              =LayoutRank >= 3 && !IfError(CountRows(Filter(Filter(
+                                                  LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
+                                                  IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
+                                              ) As VOP, CountRows(Filter(colVhpPickerSelected, OperationNo = VOP.OperationNo)) > 0)) > 0 && CountRows(Filter(Filter(
+                                                  LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
+                                                  IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
+                                              ) As VOP, CountRows(Filter(colVhpPickerSelected, OperationNo = VOP.OperationNo)) > 0)) < CountRows(Filter(
+                                                  LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
+                                                  IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
+                                              )), false)
+                                          Width: |-
+                                              =26
+                                    - btnVhpPickerHeadPartial:
+                                        Control: Classic/Button
+                                        Properties:
+                                          BorderColor: |-
+                                              =C.'color-brand-primary'
+                                          BorderStyle: |-
+                                              =BorderStyle.Solid
+                                          BorderThickness: |-
+                                              =1
+                                          Color: |-
+                                              =C.'text-on-primary'
+                                          Fill: |-
+                                              =C.'color-brand-primary'
+                                          FocusedBorderColor: |-
+                                              =C.'color-brand-primary'
+                                          FocusedBorderThickness: |-
+                                              =2
+                                          FontWeight: |-
+                                              =FontWeight.Bold
+                                          Height: |-
+                                              =18
+                                          HoverColor: |-
+                                              =C.'text-on-primary'
+                                          HoverFill: |-
+                                              =C.'color-brand-primary'
+                                          OnSelect: |-
+                                              =Collect(
+                                                  colVhpPickerSelected,
+                                                  ForAll(
+                                                      Filter(
+                                                          Filter(
+                                                  LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
+                                                  IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
+                                              ) As VOP,
+                                                          CountRows(Filter(colVhpPickerSelected, OperationNo = VOP.OperationNo)) = 0
+                                                      ) As NEW,
+                                                      { OperationNo: NEW.OperationNo }
+                                                  )
+                                              )
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          PressedColor: |-
+                                              =C.'text-on-primary'
+                                          PressedFill: |-
+                                              =C.'color-brand-primary'
+                                          RadiusBottomLeft: |-
+                                              =4
+                                          RadiusBottomRight: |-
+                                              =4
+                                          RadiusTopLeft: |-
+                                              =4
+                                          RadiusTopRight: |-
+                                              =4
+                                          Size: |-
+                                              =12
+                                          TabIndex: |-
+                                              =0
+                                          Text: |-
+                                              ="−"
+                                          Tooltip: |-
+                                              ="Some lines selected - select all"
+                                          Visible: |-
+                                              =LayoutRank >= 3 && IfError(CountRows(Filter(Filter(
+                                                  LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
+                                                  IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
+                                              ) As VOP, CountRows(Filter(colVhpPickerSelected, OperationNo = VOP.OperationNo)) > 0)) > 0 && CountRows(Filter(Filter(
+                                                  LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
+                                                  IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
+                                              ) As VOP, CountRows(Filter(colVhpPickerSelected, OperationNo = VOP.OperationNo)) > 0)) < CountRows(Filter(
+                                                  LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
+                                                  IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
+                                              )), false)
+                                          Width: |-
+                                              =18
+                              - htmVhpPickerHeader:
+                                  Control: HtmlViewer
+                                  Properties:
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Height: |-
+                                        =22
+                                    HtmlText: |-
+                                        =If(LayoutRank >= 3, "<style>html,body{margin:0;padding:0;overflow:hidden}</style><div style='display:grid;grid-template-columns:54px 198px 114px 54px 54px 54px;column-gap:10px;align-items:center;height:21px;line-height:21px;overflow:hidden;color:" & C.'hex-text-muted' & ";font-family:Segoe UI;font-size:11px;font-weight:600;white-space:nowrap;'><span>OP NO.</span><span>OPERATION SHORT TEXT</span><span>MAIN WORK CENTER</span><span>CTRL</span><span>WORK</span><span>DUR.</span></div>", "<style>html,body{margin:0;padding:0;overflow:hidden}</style><div style='display:grid;grid-template-columns:26px 54px 198px 114px 54px 54px 54px;column-gap:10px;align-items:center;height:21px;line-height:21px;overflow:hidden;color:" & C.'hex-text-muted' & ";font-family:Segoe UI;font-size:11px;font-weight:600;white-space:nowrap;'><span>SEL</span><span>OP NO.</span><span>OPERATION SHORT TEXT</span><span>MAIN WORK CENTER</span><span>CTRL</span><span>WORK</span><span>DUR.</span></div>")
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Width: |-
+                                        =If(LayoutRank < 3, 636, 600)
                         - conVhpPickerDivider:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -16479,7 +16694,10 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =280
+                                  =If(LayoutRank < 3, 280, Min(Max(CountRows(Filter(
+                                      LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
+                                      IsBlank(Trim(inpVhpPickerSearch.Text)) || Trim(inpVhpPickerSearch.Text) in (OperationNo & " " & OperationShortText & " " & MainWorkCenter & " " & ControlKey)
+                                  )), 1) * 34, Max(3 * 34, App.Height - 301)))
                               Items: |-
                                   =Filter(
                                       LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
@@ -16846,6 +17064,8 @@ Screens:
                             ="Cancel"
                         VerticalAlign: |-
                             =VerticalAlign.Middle
+                        Visible: |-
+                            =If(LayoutRank < 3, true, false)
                         Width: |-
                             =100
                   - btnVhpPickerAddSelected:
@@ -16861,6 +17081,8 @@ Screens:
                             =C.'color-brand-primary'
                         Color: |-
                             =C.'text-on-primary'
+                        DisplayMode: |-
+                            =If(LayoutRank >= 3 && CountRows(colVhpPickerSelected) = 0, DisplayMode.Disabled, DisplayMode.Edit)
                         Font: |-
                             =Font.'Segoe UI'
                         FontWeight: |-
