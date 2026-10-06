@@ -1554,13 +1554,23 @@ def rule_10c(ctx):
                 problems.append(f"[10c] {name}: {ctl} mangler {key} - Fluent-temaets "
                                 f"farve i moerk tilstand (brug build_helpers.input_theme)")
         appearance = str(props.get("Appearance", "")).strip().lstrip("=").strip()
+        dm = str(props.get("DisplayMode", "")).strip().lstrip("=").strip()
+        # EEN undtagelse (issue #101): FL-vaelgerens lock (fl_picker._lock_combo,
+        # Materials' No BOM Item). Feltet er da ikke i brug og SKAL se
+        # deaktiveret ud - Disabled, med graa pil og uden fokus. Formen er
+        # If(<lock>, <laast>, <input_themes egen regel>), og kun den ydre gren
+        # skaelles af; den indre skal stadig vaere input_themes.
+        lock_m = re.match(r"^If\(([^(),]+), DisplayMode\.Disabled, (If\(\(.*)\)$", dm)
+        if ctl == "ModernCombobox" and lock_m and appearance.startswith(
+                f"If({lock_m.group(1)}, Appearance.FilledDarker, If("):
+            dm = lock_m.group(2)
+            appearance = appearance[len(f"If({lock_m.group(1)}, Appearance.FilledDarker, "):-1]
         # Outline KUN i den laaste gren (input_theme): If(<redigerbar>,
         # FilledDarker, Outline). Et redigerbart felt i Outline tegner ikke Fill.
         if "Outline" in appearance and not (appearance.startswith("If(") and
                                             appearance.endswith("Appearance.FilledDarker, Appearance.Outline)")):
             problems.append(f"[10c] {name}: Appearance.Outline paa et redigerbart felt - "
                             f"gennemsigtig baggrund, Fill tegnes ikke")
-        dm = str(props.get("DisplayMode", "")).strip().lstrip("=").strip()
         wrapped = dm.startswith("If((") and dm.endswith(
             ", DisplayMode.Edit, DisplayMode.View)")
         if "DisplayMode.Disabled" in dm and not wrapped:
