@@ -87,6 +87,10 @@ from fl_picker import fl_picker, known_fx as fl_known_fx, reset_fx as fl_reset_f
 
 # Raekkens felter i een flad liste - raekkefoelgen er sektionernes.
 FIELDS = [f for _sec, fields in cfg.SECTIONS for f in fields]
+# Raekkens felter i SAMLINGEN: formularens plus dem, appen kun laeser
+# (cfg.READ_FIELDS, fx Equipments SAP-udstyrsnummer - issue #94). De
+# hentes og vises, men skrives aldrig af formularen.
+ROW_FIELDS = FIELDS + list(getattr(cfg, "READ_FIELDS", []))
 
 
 def use(expected):
@@ -417,7 +421,7 @@ def _collect_rows(source):
         f"            {cfg.C_TEXT}: Coalesce(R.{cfg.C_TEXT}, \"\"),",
         "            Plant: Coalesce(R.Plant, \"\"),",
     ]
-    for col, _lab, kind, _ch in FIELDS:
+    for col, _lab, kind, _ch in ROW_FIELDS:
         if kind in ("text", "long", "choice"):
             v = f'Coalesce(R.{col}, "")'
         elif kind == "bool":
@@ -975,7 +979,7 @@ def build_details(scope=None):
             _detail_row(1, "Plant", f'Coalesce({row}.Plant, "-")'),
             _detail_row(2, "Status", f'Coalesce({row}.Status, "-")'),
             _detail_row(3, "Documents", f'Text(Coalesce({row}.FileCount, 0))')]
-    for n, (col, label, kind, _ch) in enumerate(FIELDS, start=len(rows)):
+    for n, (col, label, kind, _ch) in enumerate(ROW_FIELDS, start=len(rows)):
         if kind == "bool":
             v = f'If({row}.{col}, "Yes", "No")'
         elif kind in ("num", "date"):
