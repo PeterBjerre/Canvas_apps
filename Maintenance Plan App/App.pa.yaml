@@ -233,7 +233,19 @@ App:
       // Standardoperationerne, hentet een gang. colVhpTasklists deler dem op pr. vaerk i hukommelsen.
       colVhpStdOps = ForAll(MD_StandardTaskOperations As O, { Plant: O.Plant.Value, OperationNo: O.OperationNo, OperationShortText: O.OperationShortText, Work: O.Work, NumberOfCapacities: O.NumberOfCapacities, WorkCenter: O.WorkCenter, VendorNo: O.VendorNo, ControlKey: O.ControlKey, Price: O.Price, Currency: O.Currency, CostElement: O.CostElement, MaterialGroup: O.MaterialGroup, SapPlant: O.SapPlant });
 
-      colVhpTasklists = ForAll(Distinct(colVhpStdOps, Plant) As P, { Plant: P.Value, Key: P.Value & "-STD", Name: "Standard task list - " & P.Value, Description: "", Operations: ForAll(Sort(Filter(colVhpStdOps, Plant = P.Value), OperationNo) As O, { OperationNo: Text(O.OperationNo, "0000"), OperationShortText: O.OperationShortText, WorkHours: O.Work, Persons: O.NumberOfCapacities, DurationHours: Round(O.Work / Max(Coalesce(O.NumberOfCapacities, 1), 1), 2), MainWorkCenter: O.WorkCenter, Vendor: O.VendorNo, LongText: "", ControlKey: O.ControlKey, UnitCost: O.Price, Cost: O.Work * O.Price, Currency: O.Currency, CostElement: O.CostElement, MaterialGroup: O.MaterialGroup, OpPlant: O.SapPlant }) });
+      // Vaerkerne med en standardtaskliste, og hvis operationer den bruger.
+      colVhpTasklistPlants = Filter(
+          ForAll(Choices(MD_StandardTaskOperations.Plant) As C,
+              {
+                  Plant: C.Value,
+                  Src: If(C.Value in colVhpStdOps.Plant, C.Value,
+                      Coalesce(Switch(C.Value, "HCV", "AVV", "SMV", "AVV"), C.Value))
+              }
+          ),
+          Src in colVhpStdOps.Plant
+      );
+
+      colVhpTasklists = ForAll(colVhpTasklistPlants As P, { Plant: P.Plant, Key: P.Plant & "-STD", Name: "Standard task list - " & P.Plant, Description: "", Operations: ForAll(Sort(Filter(colVhpStdOps, Plant = P.Src), OperationNo) As O, { OperationNo: Text(O.OperationNo, "0000"), OperationShortText: O.OperationShortText, WorkHours: O.Work, Persons: O.NumberOfCapacities, DurationHours: Round(O.Work / Max(Coalesce(O.NumberOfCapacities, 1), 1), 2), MainWorkCenter: O.WorkCenter, Vendor: O.VendorNo, LongText: "", ControlKey: O.ControlKey, UnitCost: O.Price, Cost: O.Work * O.Price, Currency: O.Currency, CostElement: O.CostElement, MaterialGroup: O.MaterialGroup, OpPlant: O.SapPlant }) });
 
       // CallHorizonMatrix som { Cycle, Unit, Fcd, Period }.
       colVhpCallHorizon = Filter(
