@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gen_screen import Ctrl, SHELL_W, C_PRIMARY, C_CARD_BORDER
+from gen_screen import Ctrl, SHELL_W, C_PRIMARY, C_CARD_BORDER, C_VALID_FG, C_MUTED
 import layout_tokens as lay
 from build_helpers import (group, fit_button_width, text_ctrl, text_px,
                            flow_row, page_icon, PAGE_ICON, ICON_W, top_bar, grow,
@@ -77,7 +77,23 @@ ITEM_DIRTY = (
 
 IS_STRAT = 'varVhpPlan.PlanType = "Strategy"'
 
-# (label, faerdig, klik)
+# FOER OG EFTER SUBMIT (issue #88)
+# --------------------------------
+# Foer Submit viser de fire trin, hvor langt planen er, og om den kan
+# indsendes. Efter Submit viser de SAMME fire billeder, hvor sagen er:
+#
+#   foer:   Plan       Item             Task list + ops   Ready to submit
+#   efter:  Submitted  System approval  Quality review    SAP creation
+#                      (Cost approval)                    (Created in SAP)
+#
+# Det sidste trin hed "Save". Det sluttede bjaelken paa en knap, man
+# allerede havde trykket paa, og efter Submit var det ikke laengere sandt.
+# "Ready to submit" er groent praecis naar Submit er aktiv (CAN_SUBMIT) -
+# samme betingelse, saa trin og knap kan ikke sige noget forskelligt.
+#
+# Efter Submit laeses trinene af varVhpFlow (build_status: VhpSubmitted,
+# VhpApprovalDone, VhpQualityDone, VhpInSap). Godkendelse og teknisk
+# oprettelse i SAP er hver sit trin.
 #
 # KLIK = FREMHAEV, IKKE SETFOCUS (issue #59). SetFocus kan ikke naa en
 # kontrol i en container, og alt paa skaermen staar i containere - compile
@@ -85,15 +101,100 @@ IS_STRAT = 'varVhpPlan.PlanType = "Strategy"'
 # formel. Et klik saetter derfor varVhpFocusStep, og sektionen, trinnet
 # hoerer til, faar en tyk kant i primaerfarven (focus_border nedenfor).
 # Tasklist- og Operations-trinnet vaelger ogsaa den rigtige fane.
+
+# Submit er aktiv, naar planen kan indsendes - og intet i Item Editoren
+# venter paa at blive gemt. VhpCanSubmit er falsk, naar planen er indsendt.
+CAN_SUBMIT = f"VhpCanSubmit && !({ITEM_DIRTY})"
+
+# HVAD MANGLER - EEN liste (trin, mangler, besked). Trinenes tooltips,
+# Submits tooltip og linjen under trinene bygges alle af den, og
+# betingelserne er de navngivne formler, Submit selv bruger. Saa kan en
+# besked ikke sige noget andet end knappen.
+MISSING = [
+    (1, "!VhpStepPlanDone", '"Save the plan header."'),
+    (2, "!VhpStepItemDone", '"Add at least one item and save every item as valid."'),
+    (2, ITEM_DIRTY, '"Save the changes in the Item Editor."'),
+    (3, "!VhpStepTasklistDone", '"Choose a task list for every item."'),
+    (3, "!VhpStepOpsDone",
+     f'If({IS_STRAT}, "Give every item operations, each with a package.", '
+     '"Give every item at least one operation.")'),
+    (4, "!IsBlank(VhpValidationErrors)",
+     'With({ n: CountRows(Split(VhpValidationErrors, Char(10))) }, '
+     '"Fix " & n & If(n = 1, " plan rule", " plan rules") & "{hint}.")'),
+]
+
+# Navnet, ITEM_DIRTY faar i en With - saa regnes den een gang pr. formel.
+DIRTY = "vhpDirty"
+
+
+def with_dirty(expr):
+    """expr med ITEM_DIRTY regnet een gang i en With."""
+    return ("With(\n    { %s: %s },\n    %s\n)"
+            % (DIRTY, ITEM_DIRTY, expr.replace(ITEM_DIRTY, DIRTY)))
+
+
+def missing_list(steps=None, sep='Char(10)', bullet='"- "', hint=""):
+    """De beskeder i MISSING, der gaelder nu - for trinene i steps
+    (alle, naar steps er None). Tom tekst, naar intet mangler. hint
+    staar efter regelbeskeden, hvor reglerne ikke selv er listet."""
+    parts = [f"If({cond}, {bullet} & {msg.replace('{hint}', hint)} & {sep}, \"\")"
+             for st, cond, msg in MISSING if steps is None or st in steps]
+    return " &\n        ".join(parts)
+
+
+# (label foer, faerdig foer, label efter, faerdig efter, klik)
 STEPS = [
-    ('"Plan"', "VhpStepPlanDone", "Set(varVhpFocusStep, 1)"),
-    ('"Item"', f"VhpStepItemDone && !({ITEM_DIRTY})", "Set(varVhpFocusStep, 2)"),
+    ('"Plan"', "VhpStepPlanDone",
+     '"Submitted"', "true",
+     "Set(varVhpFocusStep, 1)"),
+    ('"Item"', f"VhpStepItemDone && !({ITEM_DIRTY})",
+     'If(varVhpFlow.Stage = "Cost", "Cost approval", '
+     'VhpApprovalDone, "Approved", "System approval")', "VhpApprovalDone",
+     "Set(varVhpFocusStep, 2)"),
     (f'If({IS_STRAT}, "Task list + pkgs", "Task list + ops")',
      "VhpStepTasklistDone && VhpStepOpsDone",
+     '"Quality review"', "VhpQualityDone",
      f'Set(varVhpOpsTab, If({IS_STRAT}, "pkg", "ops"));\nSet(varVhpFocusStep, 3)'),
-    ('"Save"', f"VhpStepSaveDone && varVhpPlanLocked && !({ITEM_DIRTY})",
+    ('"Ready to submit"', CAN_SUBMIT,
+     'If(VhpInSap, "Created in SAP", "SAP creation")', "VhpInSap",
      "Set(varVhpFocusStep, 4)"),
 ]
+
+# Hvad hvert trin betyder EFTER Submit - tooltippen paa billedet.
+AFTER_TIPS = [
+    '"Submitted for approval."',
+    'If(VhpApprovalDone, "System and cost approval are done.", '
+    'varVhpFlow.Stage = "Cost", "Waiting for cost approval.", '
+    '"Waiting for the system owners to approve the items.")',
+    'If(VhpQualityDone, "Quality review is done.", VhpApprovalDone, '
+    '"Waiting for the quality review.", "The quality review follows the system and cost approval.")',
+    'If(VhpInSap, "Created in SAP.", VhpQualityDone, '
+    '"Approved - waiting for Master Data to create the plan in SAP.", '
+    '"Master Data creates the plan in SAP once it is approved.")',
+]
+
+
+def _label(i):
+    pre, _d, post, _pd, _a = STEPS[i]
+    return f"If(VhpSubmitted, {post}, {pre})"
+
+
+def _done(i):
+    _l, pre, _p, post, _a = STEPS[i]
+    return f"If(VhpSubmitted, {post}, {pre})"
+
+
+def _step_tooltip(i):
+    """Foer Submit: hvad der mangler i trinet (eller at det er faerdigt).
+    Efter Submit: hvor sagen er."""
+    last = i == len(STEPS) - 1
+    # "Ready to submit" kraever det hele - dets tooltip er hele listen og
+    # reglerne selv.
+    lst = (missing_list(hint=":") + ' &\n        VhpValidationErrors') if last else missing_list(steps=(i + 1,))
+    done_tip = '"Ready - Submit is available."' if last else '"Done."'
+    tip = (f"If(\n    VhpSubmitted, {AFTER_TIPS[i]},\n    d{i + 1}, {done_tip},\n"
+           f"    \"Missing:\" & Char(10) &\n        {lst}\n)")
+    return with_dirty(tip) if ITEM_DIRTY in tip else tip
 
 
 def focus_border(ctrl, steps, normal):
@@ -112,13 +213,8 @@ STEP_W, STEP_H, R = 104, 56, 13
 # bjaelken (issue #73): titel, trin i fuld bredde, knapper.
 STEP_MIN = 88
 
-# Submit er aktiv, naar planen kan indsendes - og intet i Item Editoren
-# venter paa at blive gemt.
-CAN_SUBMIT = f"VhpCanSubmit && !({ITEM_DIRTY})"
-
-
-# { d1: ..., d5: ... } - trinenes status, som hvert billede laeser.
-_STATE = "{ " + ",\n      ".join("d%d: %s" % (i + 1, d) for i, (_l, d, _a) in enumerate(STEPS)) + " }"
+# { d1: ..., d4: ... } - trinenes status, som hvert billede laeser.
+_STATE = "{ " + ",\n      ".join("d%d: %s" % (i + 1, _done(i)) for i in range(len(STEPS))) + " }"
 
 
 def _hx(name):
@@ -222,24 +318,53 @@ def _step_image(i, label, done, prev_done, current, action, width, suffix="", he
         "ImagePosition": "ImagePosition.Fit",
         "OnSelect": action,
         "TabIndex": "0",
+        "Tooltip": wrap % (_STATE, _step_tooltip(i)),
         "Width": width,
     }, h=height or STEP_H)
 
 
 def _submit_tooltip():
-    reasons = " &\n    ".join([
-        'If(!VhpStepPlanDone, "Save the plan header. ", "")',
-        f'If(!VhpStepItemDone || ({ITEM_DIRTY}), "Save every item. ", "")',
-        'If(!VhpStepTasklistDone, "Give every item a task list. ", "")',
-        'If(!VhpStepOpsDone, "Give every item operations. ", "")',
-        'If(IsBlank(VhpValidationErrors), "", Char(10) & VhpValidationErrors)',
-    ])
-    return (f"If(\n    {CAN_SUBMIT},\n    \"Submit the plan for processing.\",\n"
-            f"    \"Not ready to submit: \" &\n    {reasons}\n)")
+    """Samme liste som trinene (MISSING) - og reglerne selv til sidst."""
+    return with_dirty(f"If(\n    VhpSubmitted, \"Already submitted - see the progress bar.\",\n"
+            f"    {CAN_SUBMIT},\n    \"Submit the plan for approval.\",\n"
+            f"    \"Not ready to submit:\" & Char(10) &\n        {missing_list(hint=':')} &\n"
+            f"        VhpValidationErrors\n)")
+
+
+# LINJEN UNDER TRINENE (issue #88): det, der mangler, uden at man skal
+# holde musen over noget - eller, efter Submit, hvor sagen ligger. Samme
+# liste (MISSING) og samme betingelse (CAN_SUBMIT) som trin og Submit.
+# Hvor sagen ligger efter Submit - een linje.
+AFTER_LINE = (
+    'If(VhpInSap, "Created in SAP.", '
+    'VhpQualityDone, "Approved - waiting for Master Data to create the plan in SAP.", '
+    'VhpApprovalDone, "Waiting for the quality review.", '
+    'varVhpFlow.Stage = "Cost", "Waiting for cost approval.", '
+    '"Waiting for the system owners to approve the items.")'
+)
+_INLINE = missing_list(sep='" "', bullet='""', hint=" - hover Submit to see them")
+READINESS = with_dirty(
+    "If(\n"
+    "    VhpSubmitted,\n"
+    f'    "Submitted. " & {AFTER_LINE},\n'
+    '    varVhpFlow.Status = "Returned",\n'
+    '    "Returned to you" & If(IsBlank(varVhpFlow.ReturnComment), ".", ": " & varVhpFlow.ReturnComment) &\n'
+    '        " Correct the plan and submit it again.",\n'
+    '    varVhpViewOnly,\n'
+    '    "View only - this plan has not been submitted.",\n'
+    f"    {CAN_SUBMIT},\n"
+    '    "Ready to submit.",\n'
+    '    "Before you can submit: " &\n'
+    f"        {_INLINE}\n"
+    ")")
+READY_OK = f"(VhpSubmitted || ({CAN_SUBMIT}))"
 
 
 # Save draft og Submit - bredderne bruges af knapperne.
-SAVE_W = fit_button_width('"Save draft"') + ICON_W
+# "Save draft" sagde ikke, om man oprettede eller opdaterede (issue #88).
+# Knappen hedder nu det, den goer; status i SharePoint er stadig Draft.
+DRAFT_TEXT = 'If(IsBlank(varVhpPlanKey), "Create draft", "Update draft")'
+SAVE_W = fit_button_width('"Update draft"') + ICON_W
 SUB_W = fit_button_width('"Submit"', min_w=72)
 SUBTITLE = '"Plan header, items, task lists and operations - submitted to SAP master data."'
 NEW_W = fit_button_width('"New request"') + ICON_W
@@ -267,6 +392,22 @@ HAS_UNSAVED = (
     f"!IsBlank(Trim(First(colVhpItems).ShortText))) && "
     f"!(VhpStepSaveDone && varVhpPlanLocked && !({ITEM_DIRTY}))"
 )
+
+def readiness_line():
+    """Linjen under trinene: hvad der mangler foer Submit, eller hvor sagen
+    ligger efter. Groen, naar planen er klar eller indsendt. Skjult, naar
+    planen kun vises og ikke er indsendt, staar der blot det. Linjen er
+    altid synlig, saa headerens hoejde kun afhaenger af skaermbredden."""
+    ok = f"(VhpSubmitted || ({CAN_SUBMIT}))"
+    ctrl = text_ctrl("txtVhpReadiness", READINESS, size=12,
+                     color=with_dirty(f"If({ok}, {C_VALID_FG}, {C_MUTED})"),
+                     wrap="true", align="Center", height=20,
+                     accessible='"Submission status: " & Self.Text')
+    ctrl.props["Width"] = "Parent.Width"
+    # To linjer paa en telefon - beskeden er for lang til een.
+    ctrl.props["Height"] = ctrl.h = if_below("Tablet", "36", "20")
+    return ctrl
+
 
 # Bjaelkens elementer - samme opbevaring som assemble_screen skal bruge.
 CONFIRM = []
@@ -305,11 +446,14 @@ def build_top_bar():
     CONFIRM[:] = confirm + confirmNew + delete_modal("Vhp", "varVhpRequestGuid", _cfg.L_INDEX, "MaintenancePlan")
     btnDelete = delete_button("Vhp", "varVhpViewOnly", "varVhpRequestGuid")
     btnDraft.props["Width"] = str(SAVE_W)
+    btnDraft.props["Text"] = DRAFT_TEXT
+    btnDraft.props["AccessibleLabel"] = (
+        'If(IsBlank(varVhpPlanKey), "Create the plan as a draft", "Update the saved draft")')
     btnDraft.props["Tooltip"] = (
         "If(\n"
         "    varVhpSaving, \"Saving ...\",\n"
-        "    IsBlank(varVhpPlanKey), \"Not saved yet. Save as draft so you can come back to it.\",\n"
-        "    \"Saved as \" & varVhpPlanKey & \". The next save updates the same plan, items and operations.\"\n"
+        "    IsBlank(varVhpPlanKey), \"Not saved yet. Create a draft so you can come back to it.\",\n"
+        "    \"Saved as draft \" & varVhpPlanKey & \". Update draft saves your changes to the same plan, items and operations.\"\n"
         ")")
     focus_border(btnDraft, (4,), C_CARD_BORDER)
     btnSubmit.props["Width"] = str(SUB_W)
@@ -340,11 +484,11 @@ def build_top_bar():
     step_w = f"Min({STEP_W}, {SHELL_W} / {n})"
     done = ["d%d" % (i + 1) for i in range(n)]
     imgs = []
-    for i, (label, _d, action) in enumerate(STEPS):
+    for i in range(n):
         before = " && ".join(done[:i]) or "true"
         current = f"(!{done[i]} && {before})"
         prev = done[i - 1] if i else "false"
-        imgs.append(_step_image(i, label, done[i], prev, current, action, step_w))
+        imgs.append(_step_image(i, _label(i), done[i], prev, current, STEPS[i][4], step_w))
     steps_w = n * STEP_W
     steps = group("conVhpStepRow", imgs, direction="Horizontal", gap=0, height=STEP_H,
                   width=str(steps_w), justify="Center", align_items="Center",
@@ -352,10 +496,10 @@ def build_top_bar():
     steps.vis = at_least("Desktop")
     # Mobile: the same step images (same STEPS logic) in a full-width row above the buttons.
     m_h = f"Min({STEP_H}, ({SHELL_W}) / {n} * {STEP_H} / {STEP_W})"
-    m_imgs = [_step_image(i, label, done[i], done[i - 1] if i else "false",
-                          f"(!{done[i]} && {' && '.join(done[:i]) or 'true'})", action,
+    m_imgs = [_step_image(i, _label(i), done[i], done[i - 1] if i else "false",
+                          f"(!{done[i]} && {' && '.join(done[:i]) or 'true'})", STEPS[i][4],
                           f"{SHELL_W} / {n}", suffix="M", height=m_h)
-              for i, (label, _d, action) in enumerate(STEPS)]
+              for i in range(n)]
     m_steps = group("conVhpStepRowM", m_imgs, direction="Horizontal", gap=0, height=m_h,
                     width=SHELL_W, justify="Center", align_items="Start",
                     visible=below("Tablet"))
@@ -375,7 +519,7 @@ def build_top_bar():
     title_bar.vis = at_least("Tablet")
     head.props["LayoutJustifyContent"] = ("If(%s, LayoutJustifyContent.End, LayoutJustifyContent.SpaceBetween)" % below("Tablet"))
     spacer = group("conVhpHeadSpace", [], direction="Horizontal", height=if_below("Tablet", "10", "8"))
-    head = group("conVhpHeadStack", [m_steps, head, spacer], direction="Vertical", gap=0)
+    head = group("conVhpHeadStack", [m_steps, head, readiness_line(), spacer], direction="Vertical", gap=0)
     if os.environ.get("VHP_DEBUG_LAYOUT"):
         # Midlertidig diagnose: hver container faar sin egen baggrund.
         for ctl, tok in ((head, "state-info-bg"), (title_bar, "state-warn-bg"),
