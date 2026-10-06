@@ -118,6 +118,28 @@ OBJ_TOOLTIP = (
     "    )\n"
     ")"
 )
+# Popup'ens raekker (issue #102): kandidaterne under FL'en PLUS de gemte
+# valg, der ikke er blandt dem. En gemt plan seeder kun colVhpFl med selve
+# FL'en (SEED_FL_PICKER), saa uden de gemte valg var listen tom, og de valgte
+# objekter - som tooltip'en viser - kunne ikke ses i popup'en. Kilden er den
+# samme som tooltip'ens (OBJ_CHOSEN, lokalt), saa der er intet ekstra kald.
+# ForAll over Sequence i stedet for Ungroup (se tools/fl_picker.items_fx).
+OBJ_ROWS_FX = (
+    "With(\n"
+    f"    {{ c: ForAll({OBJ_CANDIDATES} As F, {{ Code: F.Code, Description: F.Description }}) }},\n"
+    "    With(\n"
+    f"        {{ x: ForAll(Filter({OBJ_CHOSEN}, !(Code in c.Code)) As O,\n"
+    "                    { Code: O.Code, Description: O.Description }) },\n"
+    "        Sort(\n"
+    "            ForAll(\n"
+    "                Sequence(CountRows(c) + CountRows(x)),\n"
+    "                If(Value <= CountRows(c), Index(c, Value), Index(x, Value - CountRows(c)))\n"
+    "            ),\n"
+    "            Code\n"
+    "        )\n"
+    "    )\n"
+    ")"
+)
 # Er der noget at vise? Foerst en gyldig Functional Location (issue #72) -
 # saa kandidater under den, eller et valg, der skal kunne fjernes igen.
 OBJ_HAS_DATA = (f"!IsBlank({SEL_FL}) && "
@@ -905,7 +927,7 @@ def build_object_list_modal():
             "Fill": C_INPUT_BG,
             "FillPortions": "0",
             "Height": str(OBJ_ROWS * (OBJ_ROW_H + 2)),
-            "Items": f"Sort({OBJ_CANDIDATES}, Code)",
+            "Items": OBJ_ROWS_FX,
             "LayoutMinWidth": "0",
             "LoadingSpinner": "LoadingSpinner.None",
             "Selectable": "false",
@@ -927,7 +949,8 @@ def build_object_list_modal():
             "    \"No results found. Search more broadly in the functional location field.\"\n"
             ")"
         ), size=12, color=C_MUTED, height=32, wrap="true",
-        visible=f"IfError(CountRows({OBJ_CANDIDATES}) = 0, true)")
+        # Tom kun, naar der hverken er kandidater eller gemte valg (#102).
+        visible=f"IfError(CountRows({OBJ_CANDIDATES}) = 0 && CountRows({OBJ_CHOSEN}) = 0, true)")
 
     info = text_ctrl("txtVhpObjListInfo",
                      "Text(CountRows(colVhpObjDraft)) & \" selected\"",
