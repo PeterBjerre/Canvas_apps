@@ -13,7 +13,7 @@ from build_helpers import (checkbox_theme, row_hit, text_ctrl, group, button,
                            button_row, text_input, themed_dropdown, label_row,
                            field_cell, col_width, card, HINTS_ON, grow,
                            fit_button_width, column_grid, ICON_SAVE, ICON_W,
-                           mark_done, bool_toggle, border_rule)
+                           mark_done, bool_toggle, border_rule, row_n)
 from build_plan_header import (section_header, help_panel, summary_chips,
                                summary_info_button)
 import build_help as bh
@@ -160,7 +160,7 @@ RESET_EDITOR_CONTROLS = (
     f"Reset({FL_COMBO}); "
     "Reset(inpVhpItemShortText); "
     "Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(tglVhpItemRevision); "
-    "Reset(inpVhpItemInitials); "
+    "Reset(inpVhpItemInitials); Reset(drpVhpItemNonFlowStatus); "
     "Reset(drpVhpItemTasklist)"
 )
 
@@ -228,7 +228,7 @@ def build_items_rail():
             "        {\n"
             "            ItemId: varVhpNextItemId, ShortText: \"\", FunctionalLocation: \"\", FlDescription: \"\",\n"
             "            MainWorkCenter: \"\", ActivityType: \"\", ObjectList: \"\", Revision: \"\",\n"
-            "            OrstedResponsible: \"\", Initials: Upper(First(Split(varVhpMe, \"@\")).Value), LongText: \"\", TasklistKey: \"\", TasklistName: \"\",\n"
+            "            OrstedResponsible: \"\", Initials: Upper(First(Split(varVhpMe, \"@\")).Value), LongText: \"\", NonFlowUserStatus: \"\", TasklistKey: \"\", TasklistName: \"\",\n"
             "            Status: \"draft\", SpId: 0\n"
             "        }\n"
             "    );\n"
@@ -258,6 +258,7 @@ def build_items_rail():
             "                FlDescription: \"\", MainWorkCenter: src.MainWorkCenter, ActivityType: src.ActivityType,\n"
             "                ObjectList: src.ObjectList, Revision: src.Revision,\n"
             "                OrstedResponsible: src.OrstedResponsible, Initials: src.Initials, LongText: src.LongText,\n"
+            "                NonFlowUserStatus: src.NonFlowUserStatus,\n"
             "                TasklistKey: src.TasklistKey, TasklistName: src.TasklistName, Status: \"draft\",\n"
             "                SpId: 0\n"
             "            }\n"
@@ -655,6 +656,16 @@ def build_item_editor():
         "\"... (open to read all)\", " + LT + "), \"No long text yet\")")
     mark_done(btnLongText, HAS_LT)
 
+    # NON FLOW USER STATUS (issue #112). Valgfri. Valgene er SharePoint-
+    # kolonnens (sp_config.colVhpNonFlowStatusOptions) og vises som "ZBOW -
+    # Bowtie"; det, der gemmes, er koden. "(none)" staar oeverst, saa et
+    # valg kan fjernes igen.
+    NF = "LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus"
+    drpNonFlow = themed_dropdown(
+        "drpVhpItemNonFlowStatus", "colVhpNonFlowStatusOptions",
+        f'LookUp(colVhpNonFlowStatusOptions, Value = Coalesce({NF}, "")).Display',
+        display_col="Display", display_mode=DM_ITEM)
+
     # KOLONNE-ORDEN (issue #54, #72): oppefra og ned i kolonne 1, saa
     # kolonne 2 - og Functional Location i fuld bredde under dem.
     #
@@ -663,10 +674,14 @@ def build_item_editor():
     #     | Main Work Center             | Initials                     |
     #     | Activity Type                | Item Long Text               |
     #     +------------------------------+------------------------------+
-    #     | Functional Location  [combobox ................][Search] o  |
-    #     | 6 Functional Locations found for ...                        |
-    #     | [Object List (3)]                                           |
-    #     +-------------------------------------------------------------+
+    #     | Functional Location  [combobox ][Search] | Non Flow User      |
+    #     | 6 Functional Locations found for ...     | Status (#112)      |
+    #     | [Object List (3)]                        |                    |
+    #     +----------------------------------------+--------------------+
+    #
+    # Functional Location fylder to af de tre kolonner (FL_W); Non Flow User
+    # Status staar i den tredje kolonnes ledige plads ved siden af. Under
+    # braekpunktet stables de - Functional Location foerst.
     CW = EDITOR_CW
 
     def cell(name, label, ctrl, hint, required=False):
@@ -682,6 +697,10 @@ def build_item_editor():
         [cell("conVhpCellItemRevision", "Revision", tglRevision, "Revision"),
          cell("conVhpCellItemInitials", "Initials", txtInitials, "Initials", True)],
     ], container_w=CW, row_gap=12)
+    # Samme celle som de andre felter, i tredje kolonnes bredde.
+    nfCell = cell("conVhpCellItemNonFlow", "Non Flow User Status", drpNonFlow,
+                  "NonFlowUserStatus")
+    flRow = row_n("conVhpItemFlRow", [flBlock, nfCell], container_w=CW)
 
     # Hvert udfald siger det HOEJT. Knappen skrev foer kun i
     # varVhpRuntimeInfo, som stod i hero-kortet oeverst paa skaermen - var
@@ -726,6 +745,7 @@ def build_item_editor():
             "                    ObjectList: Concat(Sort(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), Code), Code, \"; \"),\n"
             "                    Revision: If(tglVhpItemRevision.Value, First(colVhpRevisionOptions).Value, \"\"),\n"
             "                    Initials: Upper(Trim(inpVhpItemInitials.Text)),\n"
+            "                    NonFlowUserStatus: Coalesce(drpVhpItemNonFlowStatus.Selected.Value, \"\"),\n"
 
             "                    Status: \"valid\"\n"
             "                }\n"
@@ -804,7 +824,9 @@ def build_item_editor():
         [('"ITEM"', f'Coalesce({it}.ShortText, "")'),
          ('"FUNC. LOC."', f'Coalesce({it}.FunctionalLocation, "")'),
          ('"WORK CENTER"', f'Coalesce({it}.MainWorkCenter, "")'),
-         ('"ACTIVITY"', f'Coalesce({it}.ActivityType, "")')],
+         ('"ACTIVITY"', f'Coalesce({it}.ActivityType, "")'),
+         # Kun koden - beskrivelsen staar i feltet og i laeseudsnittet (#112).
+         ('"NON FLOW"', f'If(IsBlank({it}.NonFlowUserStatus), "None", {it}.NonFlowUserStatus)')],
         ITEM_SUMMARY_VIS,
         f'"Item " & Text(varVhpActiveItemId) & ", " & Coalesce({it}.ShortText, "") & ", " & '
         f'Coalesce({it}.FunctionalLocation, "")',
@@ -829,14 +851,14 @@ def build_item_editor():
 
     # Sammenklappet: felterne, Functional Location og hjaelpepanelet er
     # skjult - kun overskriften og linjen staar tilbage.
-    for c in (fieldsGrid, flBlock):
+    for c in (fieldsGrid, flRow):
         c.vis = OPEN_EDIT
     helpPanel.vis = f"({OPEN_EDIT}) && IfError(varVhpShowHints, false)"
 
     # The card stretches to the height of the items list; SpaceBetween keeps
     # Reset and Save at the bottom edge when the editor card is taller.
     # Sammenklappet staar linjen lige under overskriften (Start).
-    body = group("conVhpEditorBody", [header, helpPanel, fieldsGrid, flBlock],
+    body = group("conVhpEditorBody", [header, helpPanel, fieldsGrid, flRow],
                  direction="Vertical", gap=14)
     editor = card("conVhpEditorCard", [body, footer])
     editor.props["LayoutJustifyContent"] = (
@@ -857,10 +879,13 @@ def item_info_modal():
         f'    "Activity type: " & Coalesce({it}.ActivityType, "") & Char(10) &\n'
         f'    "Revision: " & If(IsBlank({it}.Revision), "No", "Yes") & Char(10) &\n'
         f'    "Initials: " & Coalesce({it}.Initials, "") & Char(10) &\n'
+        f'    "Non flow user status: " & If(IsBlank({it}.NonFlowUserStatus), "None", '
+        f'Coalesce(LookUp(colVhpNonFlowStatusOptions, Value = {it}.NonFlowUserStatus).Display, '
+        f'{it}.NonFlowUserStatus)) & Char(10) &\n'
         f'    "Objects: " & Text(CountRows({OBJ_CHOSEN})) & Char(10) &\n'
         f'    "Long text: " & If(IsBlank(Trim(Coalesce({it}.LongText, ""))), "No", "Yes")\n'
         ")")
-    return text_modal("VhpItemInfo", "varVhpItemInfoOpen", '"Item"', body, 170)
+    return text_modal("VhpItemInfo", "varVhpItemInfoOpen", '"Item"', body, 210)
 
 
 def build_object_list_modal():

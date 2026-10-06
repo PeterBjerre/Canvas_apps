@@ -242,6 +242,12 @@ def item_fields(key=None):
         "                },\n"
         f"                OrstedResponsibleEmail: {RESP},\n"
         "                InitialOrstedResponsible: IT.Initials,\n"
+        # SAP-koden som valg; "" rydder kolonnen (issue #112). SAP-ordre-
+        # flowet laeser NonFlowUserStatus.Value herfra.
+        "                NonFlowUserStatus: If(\n"
+        "                    IsBlank(IT.NonFlowUserStatus), Blank(),\n"
+        "                    { Value: IT.NonFlowUserStatus }\n"
+        "                ),\n"
         # Opslag i de navngivne formler, ikke i listerne - de har Id.
         "                MaintenanceActivityType: With(\n"
         "                    { a: LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType) },\n"
