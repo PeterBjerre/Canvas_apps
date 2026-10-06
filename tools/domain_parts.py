@@ -337,15 +337,18 @@ def build_fl_picker(cell_w, lock=None, required_formula="false"):
 
     lock: et udtryk, der - naar det er sandt - deaktiverer vaelgeren
     (Materials' No BOM Item). required_formula: hvornaar kanten maa vaere
-    roed."""
-    dm = DM_ROW if lock is None else f"If({lock}, DisplayMode.Disabled, {DM_ROW})"
+    roed.
+
+    lock gaar til fl_picker selv (issue #101): foer blev den lagt ind i
+    DisplayMode her, og input_theme gjorde Disabled til View - feltet saa
+    ud som et almindeligt, tomt felt. Nu er det Disabled og graat."""
     v = _var(cfg.FL_FIELD)
     return fl_picker(
         "Dom", combo=FL_COMBO, results="colDomFl", raw_var="varDomFlRaw",
         msg_var="varDomFlMsg", busy_var=FL_BUSY_VAR, query_var=FL_QUERY_VAR,
         last_var=FL_LAST_VAR, pick_var=v,
         default_items=f"Filter(colDomFl, Code = {v})",
-        display_mode=dm,
+        display_mode=DM_ROW, lock=lock,
         required_formula=required_formula, width=cell_w, stack_search=True)
 
 
