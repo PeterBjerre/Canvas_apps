@@ -59,7 +59,8 @@ EMPTY_ITEM_FIELDS = [
     ("ItemId", "1"), ("ShortText", '""'), ("FunctionalLocation", '""'),
     ("FlDescription", '""'), ("MainWorkCenter", '""'), ("ActivityType", '""'),
     ("ObjectList", '""'), ("Revision", '""'), ("OrstedResponsible", '""'),
-    ("Initials", 'Upper(First(Split(varVhpMe, "@")).Value)'), ("LongText", '""'), ("TasklistKey", '""'),
+    ("Initials", 'Upper(First(Split(varVhpMe, "@")).Value)'), ("LongText", '""'),
+    ("NonFlowUserStatus", '""'), ("TasklistKey", '""'),
     ("TasklistName", '""'), ("Status", '"draft"'), ("SpId", "0"),
 ]
 
@@ -98,6 +99,8 @@ ITEM_FIELDS = [
     ("OrstedResponsible", "IT.OrstedResponsibleEmail"),
     ("Initials", "IT.InitialOrstedResponsible"),
     ("LongText", "IT.ItemDescription"),
+    # Choice-kolonnen; et item uden status giver "" (issue #112).
+    ("NonFlowUserStatus", 'Coalesce(IT.NonFlowUserStatus.Value, "")'),
     ("TasklistKey", '""'),
     ("TasklistName", '""'),
     # Raekken har vaeret gemt, saa den har bestaaet valideringen.

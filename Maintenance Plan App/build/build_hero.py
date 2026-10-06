@@ -69,6 +69,7 @@ ITEM_DIRTY = (
     "        (drpVhpItemMainWorkCenter.Selected.Value & \"\") <> (it.MainWorkCenter & \"\") ||\n"
     "        (drpVhpItemActivityType.Selected.Value & \"\") <> (it.ActivityType & \"\") ||\n"
     "        tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||\n"
+    "        (drpVhpItemNonFlowStatus.Selected.Value & \"\") <> (it.NonFlowUserStatus & \"\") ||\n"
     f"        ({FL_CODE} & \"\") <> (it.FunctionalLocation & \"\") ||\n"
     "        Trim(inpVhpItemInitials.Text & \"\") <> Trim(it.Initials & \"\")\n"
     "    )\n"

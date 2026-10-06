@@ -108,6 +108,31 @@ def duration_expr(work, persons):
     return f"{work} / Max(Coalesce({persons}, 1), 1)"
 
 
+# Beskrivelserne til Non Flow User Status-koderne (issue #112). Kun
+# visningstekst: hvilke koder der kan vaelges, bestemmer SharePoint-kolonnen
+# (Choices), og det er koden, der gemmes og sendes til SAP.
+NON_FLOW_STATUS_TEXT = [
+    ("INCD", "Create Synergy Incident Q-Case"),
+    ("ZBUN", "Bundling"),
+    ("ZMOC", "Create Synergy MoC Action Plan"),
+    ("WADO", "Ope Waiting for documentation"),
+    ("ZBOW", "Bowtie"),
+    ("OPHO", "Operation on Hold"),
+    ("UNEX", "Work Under Execution"),
+    ("OFIX", "Operation Fixed"),
+    ("REWO", "Maintenance Rework"),
+]
+
+
+def non_flow_desc(code):
+    """Power Fx: beskrivelsen til en kode, blank hvis koden er ukendt."""
+    pairs = ", ".join(f'"{k}", "{v}"' for k, v in NON_FLOW_STATUS_TEXT)
+    return f"Switch({code}, {pairs}, Blank())"
+
+
+NON_FLOW_DESC = non_flow_desc("c")
+
+
 def _forall(source, fields, alias="R"):
     """ForAll med eksplicit record - virker i alle Power Fx-versioner.
 
@@ -192,6 +217,40 @@ def named_formulas():
     add("colVhpPlanStatusOptions", f"Choices({L_ITEMS}.Status)")
     add("colVhpUnitOptions",       f"Choices({L_PLANS}.Unit)")
     add("colVhpRevisionOptions",   f"Choices({L_ITEMS}.RevisionMark)")
+
+    # NON FLOW USER STATUS (issue #112). Valgene ER SharePoint-kolonnen
+    # MaintenanceItems.NonFlowUserStatus - et nyt valg dukker op i appen
+    # uden en ny build. Vaerdien er SAP-koden alene (ZBOW): SAP-ordre-flowet
+    # sender .Value direkte videre, og GUI-scriptet skriver den i
+    # GV_NON_FLOW_USER_STAT. Derfor kan beskrivelsen ikke staa i selve
+    # valget. Den slaas op her og er KUN visningstekst; en kode uden
+    # beskrivelse vises som koden alene.
+    #
+    # Foerste raekke er "(none)" med tom Value, saa et valg kan fjernes igen -
+    # en ModernDropdown kan ikke ryddes af brugeren. Sequence/Index i stedet
+    # for Table(tabel, tabel), som ikke alle Power Fx-versioner kender.
+    add("colVhpNonFlowStatusOptions",
+        "With(\n"
+        f"    {{ ch: Choices({L_ITEMS}.NonFlowUserStatus) }},\n"
+        "    ForAll(\n"
+        "        Sequence(CountRows(ch) + 1),\n"
+        "        If(\n"
+        "            Value = 1,\n"
+        "            { Value: \"\", Display: \"(none)\" },\n"
+        "            With(\n"
+        "                { c: Index(ch, Value - 1).Value },\n"
+        "                {\n"
+        "                    Value: c,\n"
+        "                    Display: c & With(\n"
+        "                        { d: " + NON_FLOW_DESC + " },\n"
+        "                        If(IsBlank(d), \"\", \" - \" & d)\n"
+        "                    )\n"
+        "                }\n"
+        "            )\n"
+        "        )\n"
+        "    )\n"
+        ")",
+        "Non Flow User Status: valgene fra SharePoint, vist som kode - beskrivelse.")
 
     # --- arbejdscentre: baeres med vaerk, saa listen kan afgraenses ---
     # 53 arbejdscentre for hele afdelingen, ~7 der er relevante for det
@@ -336,6 +395,8 @@ WORKING_COLLECTIONS = [
      {"ItemId": 0, "ShortText": '""', "FunctionalLocation": '""', "FlDescription": '""',
       "MainWorkCenter": '""', "ActivityType": '""', "ObjectList": '""', "Revision": '""',
       "OrstedResponsible": '""', "Initials": '""', "LongText": '""',
+      # SAP-koden fra MaintenanceItems.NonFlowUserStatus; "" = ingen (#112).
+      "NonFlowUserStatus": '""',
       "TasklistKey": '""', "TasklistName": '""', "Status": '""',
       # Raekkens ID i MaintenanceItems; 0 = ikke gemt endnu. Gem opdaterer
       # et item med SpId i stedet for at oprette det igen (REVIEW.md D7).
