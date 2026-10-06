@@ -668,7 +668,10 @@ def _step_status():
         f"            Patch({cfg.L_PLANS}, varVhpPlanRec, "
         f"{{ Status: {{ Value: \"{PLAN_STATUS_SUBMITTED}\" }}, "
         "ApprovalStage: { Value: \"System\" }, SubmittedOn: Now(), StageRunId: \"\" })\n"
-        "        )\n"
+        "        );\n"
+        # Progressbaren viser nu godkendelsen (build_status.VhpSubmitted).
+        "        Set(varVhpFlow, { Status: varVhpPlanRec.Status.Value, "
+        "Stage: varVhpPlanRec.ApprovalStage.Value, ReturnComment: \"\" })\n"
         "    );\n"
         # Hubben laeser KUN indeksraekken.
         "    If(\n"
