@@ -434,8 +434,11 @@ def build_top_bar():
     btnNew.props["AlignInContainer"] = "AlignInContainer.Center"
     btnNew.props["LayoutMinWidth"] = str(NEW_W)
     btnNew.vis = at_least("Tablet")
+    # Edit skifter KUN til Edit mode (issue #103). De gemte sektioner
+    # forbliver sammenklappede, og hver aabnes med sin egen Edit - foer
+    # laaste denne knap ogsaa Plan Header op.
     btnEdit = button("btnVhpEdit", '"Edit"',
-                     "Set(varVhpViewOnly, false); Set(varVhpPlanLocked, false)",
+                     "Set(varVhpViewOnly, false)",
                      width=EDIT_W, height=36, icon="Edit", visible=VIEW_EDIT,
                      accessible='"Edit this request"')
     btnEdit.props["AlignInContainer"] = "AlignInContainer.Center"
