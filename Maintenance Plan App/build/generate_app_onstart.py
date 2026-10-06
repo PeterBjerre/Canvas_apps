@@ -82,6 +82,13 @@ Set(varVhpCanEdit, false);
 Set(varVhpPlanCreatedAt, Blank());
 Set(varVhpPlanValidated, false);
 Set(varVhpItemValidated, false);
+// Sektionernes Save/Edit (issue #103), som varVhpPlanLocked: Item Editoren
+// er foldet ud, mens varVhpItemEditing er sand; Tasklist and Operations er
+// klappet sammen for items i colVhpOpsDone. varVhpOpsSavePending er det
+// item, hvis Save venter paa gemningen (0 = intet).
+Set(varVhpItemEditing, false);
+Set(varVhpOpsSavePending, 0);
+Clear(colVhpOpsDone);
 // Hvor planen er EFTER Submit: Status og ApprovalStage fra MaintenancePlans
 // (docs/32-godkendelsesflow.md). Tom = ikke indsendt. Progressbaren skifter
 // til godkendelses- og SAP-trinene, naar Status er indsendt (build_status).
