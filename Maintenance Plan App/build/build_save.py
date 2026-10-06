@@ -310,7 +310,15 @@ def op_fields(key=None):
         "                Price: OP.Cost,\n"
         "                Currency: OP.Currency,\n"
         "                CostElem: OP.CostElement,\n"
-        "                MaterialGroup: OP.MaterialGroup,\n"
+        # Varegruppen ved PM02 uden varegruppe: den, Excel-opretteren ellers
+        # satte i SAP (Indstillinger, Pm02MatGroup). Nu staar den i
+        # TaskListMain, saa listen siger det samme som SAP.
+        "                MaterialGroup: If(\n"
+        "                    Upper(Trim(Coalesce(OP.ControlKey, \"\"))) = \"PM02\" && "
+        "IsBlank(Trim(Coalesce(OP.MaterialGroup, \"\"))),\n"
+        f"                    \"{cfg.PM02_DEFAULT_MATGROUP}\",\n"
+        "                    OP.MaterialGroup\n"
+        "                ),\n"
         "                LongText: OP.LongText,\n"
         "                PlantInitial: varVhpPlan.Plant,\n"
         f"                MaintenanceItemNo: {{ Id: {M_SPID}, Value: {M_KEY} }},\n"
