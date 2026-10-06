@@ -374,6 +374,43 @@ def named_formulas():
                  ("Operations", ops)],
                 alias="P"))
 
+    # --- kaldshorisont og planlaegningsperiode ---
+    # Den gamle VH-plan-app regnede dem ud fra CallHorizonMatrix og skrev
+    # dem paa planen; Excel-opretteren har den samme tabel i arket Opslag.
+    # CycleOrUnit er teksten "2 mon" - den deles her i tal og enhed, saa
+    # opslaget ikke afhaenger af store/smaa bogstaver eller mellemrum.
+    # Raekken uden cyklus (taellerbaseret) falder fra. 16 raekker, hentet
+    # een gang, dovent.
+    add("colVhpCallHorizon",
+        "Filter(\n"
+        f"    ForAll({L_CALLHORIZON} As H,\n"
+        "        With({ t: Trim(Coalesce(H.CycleOrUnit, \"\")) },\n"
+        "            With({ p: Find(\" \", t) },\n"
+        "                {\n"
+        "                    Cycle: If(IsBlank(p), Blank(), Value(Left(t, p - 1))),\n"
+        "                    Unit: If(IsBlank(p), \"\", Upper(Trim(Mid(t, p + 1)))),\n"
+        "                    Fcd: H.NewCallHorizonOrFCD,\n"
+        "                    Period: H.SchedulingPeriodNum\n"
+        "                }\n"
+        "            )\n"
+        "        )\n"
+        "    ),\n"
+        "    !IsBlank(Cycle) && !IsBlank(Unit)\n"
+        ")",
+        "CallHorizonMatrix som { Cycle, Unit, Fcd, Period }.")
+    # Samme regel som den gamle app: den eksakte cyklus, og findes den ikke,
+    # den naermeste MINDRE cyklus med samme enhed (5 WK -> 2 WK).
+    add("VhpCallHorizon",
+        "With(\n"
+        "    { c: varVhpPlan.Cycle, u: Upper(varVhpPlan.Unit) },\n"
+        "    First(Sort(Filter(colVhpCallHorizon, Unit = u && Cycle <= c), Cycle, SortOrder.Descending)).Fcd\n"
+        ")",
+        "Kaldshorisonten (FCD) for planens cyklus. Tom paa en strategiplan.")
+    # Planlaegningsperioden kun ved eksakt cyklus - som i den gamle app.
+    add("VhpSchedulingPeriod",
+        "LookUp(colVhpCallHorizon, Unit = Upper(varVhpPlan.Unit) && Cycle = varVhpPlan.Cycle).Period",
+        "Planlaegningsperioden (aar) for planens cyklus.")
+
     # De faste tabeller. Samme form som resten: en navngiven formel, der
     # laeses dovent og caches. Se STATIC_TABLES nedenfor.
     for name, rows, why in STATIC_TABLES:

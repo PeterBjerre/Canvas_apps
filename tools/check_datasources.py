@@ -62,6 +62,15 @@ def load_schema():
                 ch = [ch]
             if ch:
                 choices[name] = [str(c).replace("<CHOICE>", "").strip() for c in ch]
+        # Er en kolonnes visningsnavn det INTERNE navn paa en anden kolonne
+        # (MaintenancePlans: CallHorizon0 vises som "CallHorizon", som er
+        # det interne navn paa CallHorizonChoiceOLD), skelner Power Fx med
+        # 'Visningsnavn (internt navn)'. Den form er ogsaa et gyldigt navn.
+        internals = {f.get("internalName") for f in l["fields"]}
+        for f in l["fields"]:
+            disp, intern = f.get("displayName"), f.get("internalName")
+            if disp and intern and disp != intern and disp in internals:
+                cols[f"{disp} ({intern})"] = f.get("type")
         out[l["title"]] = {"cols": cols, "choices": choices}
     return out
 
