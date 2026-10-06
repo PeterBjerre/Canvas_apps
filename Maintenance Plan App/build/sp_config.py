@@ -136,6 +136,11 @@ def non_flow_desc(code):
 NON_FLOW_DESC = non_flow_desc("c")
 
 
+# Varegruppen paa en PM02-operation, der ingen har. Samme vaerdi som
+# Excel-opretterens standard (excel/opretter/VhpConfig.bas, SET_PM02_MATGROUP:
+# "Det gamle regneark brugte altid B08.06").
+PM02_DEFAULT_MATGROUP = "B08.06"
+
 # Vaerk -> vaerket, hvis standardtaskliste det laaner, saa laenge det ingen
 # har selv. Fra den gamle app (StandardTasklistGallery: HCV og SMV -> AVV).
 TASKLIST_FALLBACK = {"HCV": "AVV", "SMV": "AVV"}

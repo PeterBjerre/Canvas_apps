@@ -2104,7 +2104,11 @@ Screens:
                                                               Price: OP.Cost,
                                                               Currency: OP.Currency,
                                                               CostElem: OP.CostElement,
-                                                              MaterialGroup: OP.MaterialGroup,
+                                                              MaterialGroup: If(
+                                                                  Upper(Trim(Coalesce(OP.ControlKey, ""))) = "PM02" && IsBlank(Trim(Coalesce(OP.MaterialGroup, ""))),
+                                                                  "B08.06",
+                                                                  OP.MaterialGroup
+                                                              ),
                                                               LongText: OP.LongText,
                                                               PlantInitial: varVhpPlan.Plant,
                                                               MaintenanceItemNo: { Id: LookUp(colVhpSavedItems, LocalId = OP.ItemId).SpId, Value: LookUp(colVhpSavedItems, LocalId = OP.ItemId).ItemKey },
@@ -2136,7 +2140,11 @@ Screens:
                                                               Price: OP.Cost,
                                                               Currency: OP.Currency,
                                                               CostElem: OP.CostElement,
-                                                              MaterialGroup: OP.MaterialGroup,
+                                                              MaterialGroup: If(
+                                                                  Upper(Trim(Coalesce(OP.ControlKey, ""))) = "PM02" && IsBlank(Trim(Coalesce(OP.MaterialGroup, ""))),
+                                                                  "B08.06",
+                                                                  OP.MaterialGroup
+                                                              ),
                                                               LongText: OP.LongText,
                                                               PlantInitial: varVhpPlan.Plant,
                                                               MaintenanceItemNo: { Id: LookUp(colVhpSavedItems, LocalId = OP.ItemId).SpId, Value: LookUp(colVhpSavedItems, LocalId = OP.ItemId).ItemKey },
